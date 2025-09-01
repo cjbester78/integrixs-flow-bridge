@@ -17,6 +17,10 @@ import java.util.Collection;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * JDBC Sender Adapter implementation for database polling and data retrieval (INBOUND).
@@ -29,6 +33,11 @@ public class JdbcSenderAdapter extends AbstractAdapter implements SenderAdapterP
     private final JdbcSenderAdapterConfig config;
     private HikariDataSource dataSource;
     private Object lastProcessedValue; // For incremental polling
+    
+    // Polling mechanism fields
+    private final AtomicBoolean polling = new AtomicBoolean(false);
+    private ScheduledExecutorService pollingExecutor;
+    private DataReceivedCallback dataCallback;
     
     public JdbcSenderAdapter(JdbcSenderAdapterConfig config) {
         super();
@@ -54,6 +63,10 @@ public class JdbcSenderAdapter extends AbstractAdapter implements SenderAdapterP
     @Override
     protected AdapterOperationResult performShutdown() {
         log.info("Destroying JDBC sender adapter");
+        
+        // Stop polling if active
+        stopPolling();
+        
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
             dataSource = null;
@@ -263,10 +276,11 @@ public class JdbcSenderAdapter extends AbstractAdapter implements SenderAdapterP
     
     @Override
     public String getConfigurationSummary() {
-        return String.format("JDBC Sender (Inbound): %s, Query: %s, Polling: %dms", 
+        return String.format("JDBC Sender (Inbound): %s, Query: %s, Polling: %dms (%s)", 
                 maskSensitiveUrl(config.getJdbcUrl()),
                 config.getSelectQuery() != null ? config.getSelectQuery().substring(0, Math.min(50, config.getSelectQuery().length())) + "..." : "Not configured",
-                config.getPollingInterval() != null ? config.getPollingInterval() : 0);
+                config.getPollingInterval() != null ? config.getPollingInterval() : 0,
+                isPolling() ? "active" : "inactive");
     }
     
     // SenderAdapterPort implementation
@@ -300,15 +314,82 @@ public class JdbcSenderAdapter extends AbstractAdapter implements SenderAdapterP
         return false;
     }
     public void startPolling(long intervalMillis) {
-        // Implement if polling is supported
-        throw new UnsupportedOperationException("Polling not implemented");
+        if (polling.get()) {
+            log.warn("JDBC polling already active");
+            return;
+        }
+        
+        log.info("Starting JDBC polling with interval: {} ms", intervalMillis);
+        polling.set(true);
+        
+        // Create scheduled executor for polling
+        pollingExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "jdbc-polling-" + config.getJdbcUrl());
+            t.setDaemon(true);
+            return t;
+        });
+        
+        // Schedule polling task
+        pollingExecutor.scheduleWithFixedDelay(() -> {
+            if (!polling.get()) {
+                return;
+            }
+            
+            try {
+                log.debug("Executing JDBC polling cycle");
+                AdapterOperationResult result = pollForData();
+                
+                // If we have a callback and found records, notify
+                if (dataCallback != null && result.isSuccess() && result.getData() != null) {
+                    List<Map<String, Object>> records = (List<Map<String, Object>>) result.getData();
+                    if (!records.isEmpty()) {
+                        log.info("JDBC polling found {} records", records.size());
+                        dataCallback.onDataReceived(records, result);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error during JDBC polling", e);
+                if (dataCallback != null) {
+                    AdapterOperationResult errorResult = AdapterOperationResult.failure(
+                        "Polling error: " + e.getMessage()
+                    );
+                    dataCallback.onDataReceived(null, errorResult);
+                }
+            }
+        }, 0, intervalMillis, TimeUnit.MILLISECONDS);
+        
+        log.info("JDBC polling started successfully");
     }
+    
     public void stopPolling() {
-        // Not implemented
+        if (polling.compareAndSet(true, false)) {
+            log.info("Stopping JDBC polling");
+            
+            if (pollingExecutor != null) {
+                pollingExecutor.shutdown();
+                try {
+                    if (!pollingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        pollingExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    log.warn("Interrupted while waiting for polling executor to shutdown");
+                    pollingExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+                pollingExecutor = null;
+            }
+            
+            log.info("JDBC polling stopped");
+        }
     }
     
     public void setDataReceivedCallback(DataReceivedCallback callback) {
-        // Implement if callbacks are supported
+        this.dataCallback = callback;
+        log.debug("Data callback registered for JDBC adapter");
+    }
+    
+    public boolean isPolling() {
+        return polling.get();
     }
     public AdapterMetadata getMetadata() {
         return AdapterMetadata.builder()

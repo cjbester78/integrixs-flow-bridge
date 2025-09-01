@@ -43,9 +43,10 @@ This document outlines the phased approach to achieve 100% completion of the Int
   - Task: Similar to FTP - poll remote directories
   - **Completed**: Same implementation as FTP adapter
   
-- [ ] **JDBC Sender Adapter** - Implement polling mechanism
+- [x] **JDBC Sender Adapter** - Implement polling mechanism ✅
   - File: `JdbcSenderAdapter.java:304`
   - Task: Implement database polling with timestamp tracking
+  - **Completed**: Uses SELECT query polling with incremental tracking
   
 - [ ] **JMS Sender Adapter** - Implement polling mechanism
   - File: `JmsSenderAdapter.java:297`
@@ -310,6 +311,21 @@ This document outlines the phased approach to achieve 100% completion of the Int
 - Next steps:
   - Check and implement SFTP adapter polling
   - Implement JDBC adapter polling with database query support
+
+### 2025-09-01 - SFTP and JDBC Adapter Polling Implemented
+- Tasks completed:
+  - ✅ Implemented SFTP Sender Adapter polling (same pattern as FTP)
+  - ✅ Implemented JDBC Sender Adapter polling with database query support
+  - ✅ All file-based and database adapters now have polling support
+- Implementation details:
+  - Used ScheduledExecutorService for all polling implementations
+  - Thread-safe with AtomicBoolean flags
+  - Proper shutdown handling and resource cleanup
+  - Enhanced configuration summaries to show polling status
+- Next steps:
+  - Implement JMS and Mail adapter polling
+  - Fix HTTP Adapter Controller integration
+  - Complete Adapter Registry implementation
 
 ---
 

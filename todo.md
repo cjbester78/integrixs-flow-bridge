@@ -906,11 +906,18 @@ Other adapters (SOAP, REST, OData, RFC, IDoc) use push or request-response patte
 - Data callback notification when files are found
 - Enhanced configuration summary with polling status
 
-### 4. Implement JDBC Sender Adapter Polling
-- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JdbcSenderAdapter.java`
-- [ ] Replace line 304: `throw new UnsupportedOperationException("Polling not implemented")`
-- [ ] Implement database polling with timestamp/sequence tracking
-- [ ] Add configurable SQL query for polling
+### 4. Implement JDBC Sender Adapter Polling ✅
+- [x] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JdbcSenderAdapter.java`
+- [x] Replace line 304: `throw new UnsupportedOperationException("Polling not implemented")`
+- [x] Implement database polling with timestamp/sequence tracking
+- [x] Add configurable SQL query for polling
+
+**Implementation Details:**
+- Added ScheduledExecutorService for periodic database polling
+- Uses existing `pollForData()` method that executes SELECT queries
+- Thread-safe implementation with AtomicBoolean
+- Supports incremental polling with lastProcessedValue tracking
+- Enhanced configuration summary with polling status
 
 ### 5. Implement JMS Sender Adapter Polling
 - [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JmsSenderAdapter.java`
