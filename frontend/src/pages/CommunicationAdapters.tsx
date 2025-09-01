@@ -55,6 +55,7 @@ import { Badge } from '@/components/ui/badge';
 import { api } from '@/services/api';
 import { adapterService } from '@/services/adapter';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface CommunicationAdapter {
   id: string;
@@ -85,6 +86,7 @@ const adapterModes = ['INBOUND', 'OUTBOUND'];
 export default function CommunicationAdapters() {
   const navigate = useNavigate();
   const { isDevelopment } = useEnvironmentPermissions();
+  const { toast } = useToast();
   const [adapters, setAdapters] = useState<CommunicationAdapter[]>([]);
   const [filteredAdapters, setFilteredAdapters] = useState<CommunicationAdapter[]>([]);
   const [businessComponents, setBusinessComponents] = useState<BusinessComponent[]>([]);

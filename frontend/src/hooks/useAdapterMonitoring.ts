@@ -24,7 +24,7 @@ export const useAdapterMonitoring = (businessComponentId?: string) => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setChannels([]);
+      setAdapters([]);
     } finally {
       setLoading(false);
     }

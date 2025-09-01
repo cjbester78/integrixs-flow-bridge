@@ -44,6 +44,7 @@ import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMetaDescription } from '@/hooks/useMetaDescription';
 
+import { useToast } from '@/hooks/use-toast';
 interface DataStructure {
   id: string;
   name: string;
@@ -67,6 +68,7 @@ const structureTypes = ['json', 'xml', 'xsd', 'wsdl', 'edmx', 'custom'];
 export const DataStructures = () => {
   useDocumentTitle('Data Structures');
   useMetaDescription('Manage data structures for your integration flows. Define JSON, XML, XSD, WSDL, and custom formats for seamless data transformation in Integrix Flow Bridge.');
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { isDevelopment } = useEnvironmentPermissions();
   

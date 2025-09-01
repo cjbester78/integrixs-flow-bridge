@@ -25,6 +25,7 @@ import {
   Eye
 } from 'lucide-react';
 
+import { useToast } from '@/hooks/use-toast';
 interface BuiltInFunction {
   name: string;
   category: string;
@@ -64,6 +65,7 @@ interface DevelopmentFunctionsResponse {
 }
 
 export const DevelopmentFunctions = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
