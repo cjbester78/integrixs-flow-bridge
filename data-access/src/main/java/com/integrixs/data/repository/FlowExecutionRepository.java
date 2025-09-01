@@ -23,20 +23,15 @@ public interface FlowExecutionRepository extends JpaRepository<FlowExecution, UU
     
     List<FlowExecution> findByStatus(FlowExecution.ExecutionStatus status);
     
-    @Query("SELECT fe FROM FlowExecution fe WHERE fe.flow.id = :flowId ORDER BY fe.startedAt DESC")
-    Page<FlowExecution> findRecentByFlowId(@Param("flowId") UUID flowId, Pageable pageable);
+    Page<FlowExecution> findByFlowIdOrderByStartedAtDesc(UUID flowId, Pageable pageable);
     
-    @Query("SELECT fe FROM FlowExecution fe WHERE fe.startedAt BETWEEN :startDate AND :endDate")
-    Page<FlowExecution> findByDateRange(@Param("startDate") LocalDateTime startDate, 
-                                       @Param("endDate") LocalDateTime endDate, 
-                                       Pageable pageable);
+    Page<FlowExecution> findByStartedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     
     @Query("SELECT fe FROM FlowExecution fe WHERE fe.status IN :statuses AND fe.startedAt < :cutoffTime")
     List<FlowExecution> findStaleExecutions(@Param("statuses") List<FlowExecution.ExecutionStatus> statuses,
                                            @Param("cutoffTime") LocalDateTime cutoffTime);
     
-    @Query("SELECT COUNT(fe) FROM FlowExecution fe WHERE fe.flow.id = :flowId AND fe.status = :status")
-    Long countByFlowIdAndStatus(@Param("flowId") UUID flowId, @Param("status") FlowExecution.ExecutionStatus status);
+    Long countByFlowIdAndStatus(UUID flowId, FlowExecution.ExecutionStatus status);
     
     @Query("SELECT AVG(fe.executionTimeMs) FROM FlowExecution fe WHERE fe.flow.id = :flowId AND fe.status = 'COMPLETED'")
     Double getAverageExecutionTime(@Param("flowId") UUID flowId);

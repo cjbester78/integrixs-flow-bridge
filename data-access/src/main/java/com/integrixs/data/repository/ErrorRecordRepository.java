@@ -23,20 +23,13 @@ public interface ErrorRecordRepository extends JpaRepository<ErrorRecord, UUID> 
     
     List<ErrorRecord> findByResolvedFalse();
     
-    @Query("SELECT er FROM ErrorRecord er WHERE er.occurredAt BETWEEN :startDate AND :endDate")
-    Page<ErrorRecord> findByDateRange(@Param("startDate") LocalDateTime startDate, 
-                                     @Param("endDate") LocalDateTime endDate, 
-                                     Pageable pageable);
+    Page<ErrorRecord> findByOccurredAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     
-    @Query("SELECT er FROM ErrorRecord er WHERE er.flow.id = :flowId AND er.resolved = false")
-    List<ErrorRecord> findUnresolvedByFlowId(@Param("flowId") UUID flowId);
+    List<ErrorRecord> findByFlowIdAndResolvedFalse(UUID flowId);
     
-    @Query("SELECT er FROM ErrorRecord er WHERE er.severity = :severity AND er.resolved = false")
-    List<ErrorRecord> findUnresolvedBySeverity(@Param("severity") ErrorRecord.ErrorSeverity severity);
+    List<ErrorRecord> findBySeverityAndResolvedFalse(ErrorRecord.ErrorSeverity severity);
     
-    @Query("SELECT COUNT(er) FROM ErrorRecord er WHERE er.flow.id = :flowId AND er.errorType = :errorType")
-    Long countByFlowIdAndErrorType(@Param("flowId") UUID flowId, @Param("errorType") ErrorRecord.ErrorType errorType);
+    Long countByFlowIdAndErrorType(UUID flowId, ErrorRecord.ErrorType errorType);
     
-    @Query("SELECT er FROM ErrorRecord er WHERE er.flow.id = :flowId AND er.occurredAt > :since ORDER BY er.occurredAt DESC")
-    List<ErrorRecord> findByFlowIdAndOccurredAtAfterOrderByOccurredAtDesc(@Param("flowId") UUID flowId, @Param("since") LocalDateTime since);
+    List<ErrorRecord> findByFlowIdAndOccurredAtAfterOrderByOccurredAtDesc(UUID flowId, LocalDateTime since);
 }

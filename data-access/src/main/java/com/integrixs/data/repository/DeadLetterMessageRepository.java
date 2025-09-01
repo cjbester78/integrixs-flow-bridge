@@ -20,19 +20,13 @@ public interface DeadLetterMessageRepository extends JpaRepository<DeadLetterMes
     
     Page<DeadLetterMessage> findByReprocessedFalse(Pageable pageable);
     
-    @Query("SELECT dlm FROM DeadLetterMessage dlm WHERE dlm.queuedAt BETWEEN :startDate AND :endDate")
-    Page<DeadLetterMessage> findByDateRange(@Param("startDate") LocalDateTime startDate, 
-                                           @Param("endDate") LocalDateTime endDate, 
-                                           Pageable pageable);
+    Page<DeadLetterMessage> findByQueuedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     
-    @Query("SELECT dlm FROM DeadLetterMessage dlm WHERE dlm.flow.id = :flowId AND dlm.reprocessed = false")
-    List<DeadLetterMessage> findUnprocessedByFlowId(@Param("flowId") Long flowId);
+    List<DeadLetterMessage> findByFlowIdAndReprocessedFalse(Long flowId);
     
-    @Query("SELECT dlm FROM DeadLetterMessage dlm WHERE dlm.correlationId = :correlationId")
-    List<DeadLetterMessage> findByCorrelationId(@Param("correlationId") String correlationId);
+    List<DeadLetterMessage> findByCorrelationId(String correlationId);
     
-    @Query("SELECT COUNT(dlm) FROM DeadLetterMessage dlm WHERE dlm.flow.id = :flowId AND dlm.reprocessed = false")
-    Long countUnprocessedByFlowId(@Param("flowId") Long flowId);
+    Long countByFlowIdAndReprocessedFalse(Long flowId);
     
     List<DeadLetterMessage> findByStatusAndRetryCountLessThanOrderByQueuedAtAsc(DeadLetterMessage.Status status, int maxRetries);
 }

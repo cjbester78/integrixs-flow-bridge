@@ -40,7 +40,7 @@ public class DomainMessageRepositoryImpl implements DomainMessageRepository {
     
     @Override
     public long countByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return jpaRepository.findByDateRange(startDate, endDate, PageRequest.of(0, 1))
+        return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
             .getTotalElements();
     }
     
@@ -48,14 +48,14 @@ public class DomainMessageRepositoryImpl implements DomainMessageRepository {
     public long countByBusinessComponentAndDateRange(UUID businessComponentId, LocalDateTime startDate, LocalDateTime endDate) {
         // This is a simplified implementation - in reality would need a custom query
         // that joins with flow and adapter tables to filter by business component
-        return jpaRepository.findByDateRange(startDate, endDate, PageRequest.of(0, 1))
+        return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
             .getTotalElements();
     }
     
     @Override
     public long countByStatusAndDateRange(MessageStatus status, LocalDateTime startDate, LocalDateTime endDate) {
         // This would need a custom query in the JPA repository
-        return jpaRepository.findByDateRange(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))
+        return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))
             .stream()
             .filter(m -> m.getStatus() == status)
             .count();

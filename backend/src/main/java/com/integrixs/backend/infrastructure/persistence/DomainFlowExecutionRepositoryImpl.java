@@ -56,7 +56,7 @@ public class DomainFlowExecutionRepositoryImpl implements DomainFlowExecutionRep
     
     @Override
     public long countByStatusAndDateRange(ExecutionStatus status, LocalDateTime startDate, LocalDateTime endDate) {
-        return jpaRepository.findByDateRange(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))
+        return jpaRepository.findByStartedAtBetween(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))
             .stream()
             .filter(e -> e.getStatus() == status)
             .count();

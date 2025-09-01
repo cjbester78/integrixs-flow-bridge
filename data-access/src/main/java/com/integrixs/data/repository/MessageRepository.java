@@ -34,16 +34,11 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     List<Message> findRetryableMessages(@Param("statuses") List<Message.MessageStatus> statuses, 
                                        @Param("maxRetries") Integer maxRetries);
     
-    @Query("SELECT m FROM Message m WHERE m.correlationId = :correlationId ORDER BY m.receivedAt")
-    List<Message> findByCorrelationId(@Param("correlationId") String correlationId);
+    List<Message> findByCorrelationIdOrderByReceivedAt(String correlationId);
     
-    @Query("SELECT m FROM Message m WHERE m.receivedAt BETWEEN :startDate AND :endDate")
-    Page<Message> findByDateRange(@Param("startDate") LocalDateTime startDate, 
-                                  @Param("endDate") LocalDateTime endDate, 
-                                  Pageable pageable);
+    Page<Message> findByReceivedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     
-    @Query("SELECT COUNT(m) FROM Message m WHERE m.flow.id = :flowId AND m.status = :status")
-    Long countByFlowIdAndStatus(@Param("flowId") UUID flowId, @Param("status") Message.MessageStatus status);
+    Long countByFlowIdAndStatus(UUID flowId, Message.MessageStatus status);
     
     @Query("SELECT m FROM Message m WHERE m.status IN :statuses ORDER BY m.priority DESC, m.createdAt ASC")
     List<Message> findByStatusInOrderByPriorityDescCreatedAtAsc(@Param("statuses") List<Message.MessageStatus> statuses);
