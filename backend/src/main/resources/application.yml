@@ -154,6 +154,15 @@ integrix:
     encryption:
       enabled: true
 
+# ✅ IP Whitelist configuration
+security:
+  ip:
+    whitelist:
+      enabled: false  # Enable to restrict access by IP address (set to true in production)
+      addresses: 127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16  # Default includes localhost and private networks
+      bypass-paths: /api/auth/login,/api/health,/actuator/health  # Paths that bypass IP filtering
+      enforcement-mode: STRICT  # STRICT = block non-whitelisted, PERMISSIVE = log warnings only
+
 # ✅ Field encryption configuration
 encryption:
   master:

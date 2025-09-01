@@ -54,7 +54,10 @@ public class CacheConfiguration {
             buildCache("healthChecks", 100, 30, TimeUnit.SECONDS, false),
             
             // System configurations - rarely changes
-            buildCache("systemConfigs", 50, 1, TimeUnit.HOURS, true)
+            buildCache("systemConfigs", 50, 1, TimeUnit.HOURS, true),
+            
+            // IP whitelist cache - frequently checked
+            buildCache("ipWhitelist", 1000, 5, TimeUnit.MINUTES, true)
         ));
         
         return cacheManager;

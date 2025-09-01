@@ -1,6 +1,7 @@
 package com.integrixs.backend.security;
 
 import jakarta.servlet.Filter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,9 @@ public class SecurityConfig {
     
     @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
     private String[] allowedOrigins;
+    
+    @Autowired(required = false)
+    private IpWhitelistFilter ipWhitelistFilter;
 
     @Bean
     public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil, UserRepository userRepository) {
@@ -50,6 +54,7 @@ public class SecurityConfig {
     public UserContextFilter userContextFilter(UserRepository userRepository) {
         return new UserContextFilter(userRepository);
     }
+    
     
     @Bean
     public FilterRegistrationBean<Filter> jwtFilterRegistration(JwtAuthFilter jwtAuthFilter) {
@@ -144,10 +149,15 @@ public class SecurityConfig {
                 )
                 
                 // Session management
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                
+                // Add IP whitelist filter if enabled
+                if (ipWhitelistFilter != null) {
+                    http.addFilterBefore(ipWhitelistFilter, UsernamePasswordAuthenticationFilter.class);
+                }
                 
                 // JWT filter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 
                 // UserContext filter (after JWT authentication)
                 .addFilterAfter(userContextFilter, JwtAuthFilter.class)
