@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { SystemLogEntry } from '@/hooks/useSystemLogs';
 import { apiClient } from '@/lib/api-client';
 

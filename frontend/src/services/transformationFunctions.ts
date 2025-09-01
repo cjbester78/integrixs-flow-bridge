@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Client-side transformation functions for preview and validation
 export interface TransformationFunction {
   name: string;

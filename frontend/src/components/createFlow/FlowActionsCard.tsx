@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary suppression for unused imports/variables
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { api, ApiResponse } from './api';
 import { JarFile } from '@/types/admin';
 

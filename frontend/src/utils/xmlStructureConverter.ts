@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { api } from '@/services/api';
 import { FieldNode } from '@/components/fieldMapping/types';
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { QueryCache, MutationCache, Query, Mutation } from '@tanstack/react-query';
 import { logger, LogCategory } from '@/lib/logger';
 

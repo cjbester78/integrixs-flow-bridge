@@ -1,4 +1,3 @@
-// @ts-nocheck - Temporary suppression for unused imports/variables
 import React from 'react';
 import Editor from '@monaco-editor/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

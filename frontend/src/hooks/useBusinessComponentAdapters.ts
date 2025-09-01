@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { BusinessComponent } from '@/types/businessComponent';
 import { businessComponentService } from '@/services/businessComponentService';

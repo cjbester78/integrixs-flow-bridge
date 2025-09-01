@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { adapterService, CommunicationAdapter } from '@/services/adapter';
 import { api } from '@/services/api';

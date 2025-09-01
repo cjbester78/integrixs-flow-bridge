@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from 'react';
 import { adapterMonitoringService, AdapterMonitoring } from '@/services/adapterMonitoringService';
 import { useToast } from '@/hooks/use-toast';

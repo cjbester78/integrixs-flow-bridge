@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter, Search, Database, RefreshCw, Layers, Edit2, Trash2, MoreHorizontal } from 'lucide-react';

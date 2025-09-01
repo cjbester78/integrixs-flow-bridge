@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Message, MessageStatus } from '@/services/messageService';
 import { TimeFilter } from '../types/timeFilter';
 

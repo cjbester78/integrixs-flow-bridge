@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { X, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 import { useNotificationStore, type Notification } from '@/stores/notification-store';

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react';
 import { Message } from '@/services/messageService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
