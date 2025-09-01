@@ -19,6 +19,10 @@ import java.util.stream.Collectors;
 import com.integrixs.adapters.domain.model.*;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * FTP Sender Adapter implementation for FTP file polling and retrieval (INBOUND).
@@ -33,6 +37,11 @@ public class FtpSenderAdapter extends AbstractAdapter implements com.integrixs.a
     private Pattern filePattern;
     private Pattern exclusionPattern;
     private FTPClient ftpClient;
+    
+    // Polling mechanism fields
+    private final AtomicBoolean polling = new AtomicBoolean(false);
+    private ScheduledExecutorService pollingExecutor;
+    private com.integrixs.adapters.domain.port.SenderAdapterPort.DataReceivedCallback dataCallback;
     
     public FtpSenderAdapter(FtpSenderAdapterConfig config) {
         this.config = config;
@@ -63,6 +72,9 @@ public class FtpSenderAdapter extends AbstractAdapter implements com.integrixs.a
     @Override
     protected AdapterOperationResult performShutdown() {
         log.info("Destroying FTP sender adapter");
+        
+        // Stop polling if active
+        stopPolling();
         
         disconnectFromFtp();
         processedFiles.clear();
@@ -551,12 +563,13 @@ public class FtpSenderAdapter extends AbstractAdapter implements com.integrixs.a
     
     @Override
     public String getConfigurationSummary() {
-        return String.format("FTP Sender (Inbound): %s:%s, User: %s, Dir: %s, Polling: %sms, Processing: %s", 
+        return String.format("FTP Sender (Inbound): %s:%s, User: %s, Dir: %s, Polling: %sms (%s), Processing: %s", 
                 config.getServerAddress(),
                 config.getPort(),
                 config.getUserName(),
                 config.getSourceDirectory(),
                 config.getPollingInterval(),
+                isPolling() ? "active" : "inactive",
                 config.getProcessingMode());
     }
     
@@ -635,16 +648,82 @@ public class FtpSenderAdapter extends AbstractAdapter implements com.integrixs.a
     }
     
     public void startPolling(long intervalMillis) {
-        // Implement if needed
-        throw new UnsupportedOperationException("Polling not implemented");
+        if (polling.get()) {
+            log.warn("FTP polling already active");
+            return;
+        }
+        
+        log.info("Starting FTP polling with interval: {} ms", intervalMillis);
+        polling.set(true);
+        
+        // Create scheduled executor for polling
+        pollingExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "ftp-polling-" + config.getServerAddress());
+            t.setDaemon(true);
+            return t;
+        });
+        
+        // Schedule polling task
+        pollingExecutor.scheduleWithFixedDelay(() -> {
+            if (!polling.get()) {
+                return;
+            }
+            
+            try {
+                log.debug("Executing FTP polling cycle");
+                AdapterOperationResult result = pollForFiles();
+                
+                // If we have a callback and found files, notify
+                if (dataCallback != null && result.isSuccess() && result.getData() != null) {
+                    List<Map<String, Object>> files = (List<Map<String, Object>>) result.getData();
+                    if (!files.isEmpty()) {
+                        log.info("FTP polling found {} files", files.size());
+                        dataCallback.onDataReceived(files, result);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error during FTP polling", e);
+                if (dataCallback != null) {
+                    AdapterOperationResult errorResult = AdapterOperationResult.failure(
+                        "Polling error: " + e.getMessage()
+                    );
+                    dataCallback.onDataReceived(null, errorResult);
+                }
+            }
+        }, 0, intervalMillis, TimeUnit.MILLISECONDS);
+        
+        log.info("FTP polling started successfully");
     }
     
     public void stopPolling() {
-        // Implement if needed
+        if (polling.compareAndSet(true, false)) {
+            log.info("Stopping FTP polling");
+            
+            if (pollingExecutor != null) {
+                pollingExecutor.shutdown();
+                try {
+                    if (!pollingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        pollingExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    log.warn("Interrupted while waiting for polling executor to shutdown");
+                    pollingExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+                pollingExecutor = null;
+            }
+            
+            log.info("FTP polling stopped");
+        }
     }
     
     public void registerDataCallback(com.integrixs.adapters.domain.port.SenderAdapterPort.DataReceivedCallback callback) {
-        // Implement if needed
+        this.dataCallback = callback;
+        log.debug("Data callback registered for FTP adapter");
+    }
+    
+    public boolean isPolling() {
+        return polling.get();
     }
     
     public AdapterOperationResult fetchBatch(List<FetchRequest> requests) {

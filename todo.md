@@ -805,59 +805,141 @@ Implemented comprehensive UI/UX consistency improvements across the entire appli
 ## Result
 The application now has a cohesive, professional appearance with consistent patterns throughout. All UI elements follow the same design system, making the application more intuitive and easier to maintain.
 
-# TODO: Implement Domain Type Filtering for System Logs
+# Phase 1: Adapter Implementations Completion TODO
 
 ## Overview
-Add support for domainType filtering in system logs to allow different monitors (Message Monitor, Adapter Monitor, etc.) to filter logs relevant to their domain.
+After analysis, only certain adapters actually need polling mechanisms:
+- **File-based adapters** (File, FTP, SFTP) - Poll directories for new files
+- **Database adapter** (JDBC) - Poll for new/changed records
+- **Message queue adapters** (JMS, Mail) - Poll queues/mailboxes
 
-## Domain Types to Support
-- UserManagement - Login, authentication, user CRUD operations
-- FlowEngine - Flow execution, deployment, validation
-- AdapterManagement - Adapter configuration, connection, execution
-- DataStructures - Schema validation, structure parsing
-- MessageProcessing - Message routing, transformation, delivery
-- OrchestrationEngine - Orchestration flow execution
-- FieldMapping - Mapping validation, transformation functions
-- SystemConfiguration - Environment settings, system config
+Other adapters (SOAP, REST, OData, RFC, IDoc) use push or request-response patterns and don't need polling.
 
 ## Tasks
 
-### Backend Changes
-- [x] Update SystemLogController to accept domainType as query parameter
-- [x] Update SystemLogSpecifications to include domainType filtering
-- [x] Verify SystemLog entity has domainType field properly mapped
-- [x] Test filtering by domainType works correctly
+### 1. ~~Implement SOAP Sender Adapter Polling~~ (REMOVED - SOAP is typically request-response)
+- SOAP services are typically request-response or use WS-Notification for push
+- Polling SOAP endpoints is uncommon and inefficient
+- The UnsupportedOperationException is likely correct behavior
 
-### Frontend Integration
-- [x] Verify frontend monitors can filter by domainType
-- [ ] Ensure error logging includes appropriate domainType
+### 2. ~~Implement REST Sender Adapter Polling~~ (REMOVED - REST is typically request-response)  
+- REST APIs are typically request-response
+- For real-time updates, webhooks or SSE are used, not polling
+- Consider if polling is actually needed for REST
 
-### Testing
-- [x] Test each domain type filter returns appropriate logs
-- [x] Test combination of domainType with other filters (level, date range)
-- [x] Verify monitors show only relevant domain logs
+### 3. ~~Implement OData Sender Adapter Polling~~ (REMOVED - OData doesn't poll)
+- OData uses request-response pattern, not polling
+- The UnsupportedOperationException is correct behavior
+
+### 4. Implement JDBC Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JdbcSenderAdapter.java`
+- [ ] Replace line 304: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement database polling with timestamp/sequence tracking
+- [ ] Add configurable SQL query for polling
+
+### 5. Implement Mail Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/MailSenderAdapter.java`
+- [ ] Replace line 477: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement IMAP/POP3 polling for new emails
+- [ ] Mark processed emails to avoid reprocessing
+
+### 6. Implement JMS Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JmsSenderAdapter.java`
+- [ ] Replace line 297: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement JMS queue/topic polling
+- [ ] Handle message acknowledgment
+
+### 7. ~~Implement RFC Sender Adapter Polling~~ (REMOVED - RFC doesn't poll)
+- RFC (Remote Function Call) is request-response based
+- SAP systems push RFCs, they aren't polled
+- The UnsupportedOperationException is correct behavior
+
+### 8. ~~Implement IDoc Sender Adapter Polling~~ (REMOVED - IDoc doesn't poll)
+- IDocs are pushed from SAP systems via tRFC/qRFC
+- They use event-driven architecture, not polling
+- The UnsupportedOperationException is correct behavior
+
+### 9. Implement FTP Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/FtpSenderAdapter.java`
+- [ ] Replace line 639: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement FTP directory polling for new files
+- [ ] Track processed files to avoid reprocessing
+
+### 10. Fix HTTP Adapter Controller Integration
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/controller/HttpAdapterController.java`
+- [ ] Fix lines 68-69: Replace TODO with proper adapter interface integration
+- [ ] Fix lines 107-108: Implement new adapter factory pattern support
+- [ ] Update controller to work with new adapter interfaces
+
+### 11. Complete Adapter Registry Implementation
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/service/AdapterRegistryServiceImpl.java`
+- [ ] Fix line 210: Replace UnsupportedOperationException
+- [ ] Implement proper adapter registration logic
+
+## Revised Tasks (Only Adapters That Actually Need Polling)
+
+### 1. Implement File Sender Adapter Polling ✓ (May already be implemented)
+- Check if File adapter already has directory polling implemented
+- If not, implement file system watching/polling
+
+### 2. Implement FTP Sender Adapter Polling ✅
+- [x] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/FtpSenderAdapter.java`
+- [x] Replace line 639: `throw new UnsupportedOperationException("Polling not implemented")`
+- [x] Implement FTP directory polling for new files
+- [x] Track processed files to avoid reprocessing
+
+**Implementation Details:**
+- Added scheduled executor service for periodic polling
+- Implemented thread-safe polling with AtomicBoolean flag
+- Added data callback mechanism for notifying when files are found
+- Enhanced configuration summary to show polling status
+- Proper cleanup in shutdown method
+
+### 3. Implement SFTP Sender Adapter Polling
+- [ ] Check if SFTP adapter needs polling implementation
+- [ ] Similar to FTP - poll remote directories for new files
+
+### 4. Implement JDBC Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JdbcSenderAdapter.java`
+- [ ] Replace line 304: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement database polling with timestamp/sequence tracking
+- [ ] Add configurable SQL query for polling
+
+### 5. Implement JMS Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JmsSenderAdapter.java`
+- [ ] Replace line 297: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement JMS queue/topic polling
+- [ ] Handle message acknowledgment
+
+### 6. Implement Mail Sender Adapter Polling
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/MailSenderAdapter.java`
+- [ ] Replace line 477: `throw new UnsupportedOperationException("Polling not implemented")`
+- [ ] Implement IMAP/POP3 polling for new emails
+- [ ] Mark processed emails to avoid reprocessing
+
+### 7. Fix HTTP Adapter Controller Integration
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/controller/HttpAdapterController.java`
+- [ ] Fix lines 68-69: Replace TODO with proper adapter interface integration
+- [ ] Fix lines 107-108: Implement new adapter factory pattern support
+- [ ] Update controller to work with new adapter interfaces
+
+### 8. Complete Adapter Registry Implementation
+- [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/service/AdapterRegistryServiceImpl.java`
+- [ ] Fix line 210: Replace UnsupportedOperationException
+- [ ] Implement proper adapter registration logic
+
+## Implementation Order
+1. Start with file-based adapters (FTP, SFTP) - similar pattern to File adapter
+2. Move to database adapter (JDBC) - different pattern but straightforward
+3. Then messaging adapters (JMS, Mail) - more complex with acknowledgments
+4. Fix controller and registry after adapter implementations
+
+## Notes
+- Keep implementations simple and focused
+- Each polling implementation should be self-contained
+- Follow existing patterns in the codebase
+- Add appropriate logging for debugging
+- Ensure thread safety for polling operations
 
 ## Review
-
-### Implementation Summary
-Successfully implemented domainType filtering for system logs:
-
-1. **Backend Changes**
-   - Updated `SystemLogController` to accept `domainType` and `domainReferenceId` as query parameters
-   - Added `withDomainType` and `withDomainReferenceId` specifications to `SystemLogSpecifications`
-   - Confirmed SystemLog entity already has domainType and domainReferenceId fields properly mapped
-
-2. **API Support**
-   - Frontend can now call: `/api/logs/system?domainType=AdapterManagement`
-   - Can combine with other filters: `/api/logs/system?domainType=UserManagement&level=error`
-   - Can filter by specific entity: `/api/logs/system?domainType=AdapterManagement&domainReferenceId=ABC123`
-
-3. **Next Steps**
-   - Frontend monitors should be updated to include domainType when logging errors
-   - Each service should set appropriate domainType when creating system logs
-   - Consider creating a DomainType enum for consistency across the application
-
-### Technical Notes
-- The implementation uses JPA Specifications for dynamic query building
-- Null checks ensure optional parameters work correctly
-- Backend is now ready to support domain-based log filtering for all monitors
+[To be completed after implementation]
