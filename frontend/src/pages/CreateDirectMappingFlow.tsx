@@ -34,7 +34,6 @@ const getAdapterIcon = (type: string) => {
 };
 
 export function CreateDirectMappingFlow() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { flowId } = useParams<{ flowId?: string }>();
   const { navigateBack, isDirectNavigation } = useNavigationHistory();

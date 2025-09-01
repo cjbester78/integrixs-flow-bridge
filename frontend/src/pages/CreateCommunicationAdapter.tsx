@@ -353,7 +353,6 @@ const communicationAdapters: CommunicationAdapter[] = [
 ];
 
 export const CreateCommunicationAdapter = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { navigateBack } = useNavigationHistory();
   const [selectedBusinessComponent, setSelectedBusinessComponent] = useState<BusinessComponent | null>(null);

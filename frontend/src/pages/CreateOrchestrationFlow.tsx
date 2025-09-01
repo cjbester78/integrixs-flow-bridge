@@ -14,7 +14,6 @@ import { api } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
 export function CreateOrchestrationFlow() {
-  const navigate = useNavigate();
   const { navigateBack } = useNavigationHistory();
   const { toast } = useToast();
   const { user } = useAuth();

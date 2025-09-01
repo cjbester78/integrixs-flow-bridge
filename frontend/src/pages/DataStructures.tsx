@@ -63,7 +63,6 @@ interface BusinessComponent {
   name: string;
 }
 
-const structureTypes = ['json', 'xml', 'xsd', 'wsdl', 'edmx', 'custom'];
 
 export const DataStructures = () => {
   useDocumentTitle('Data Structures');

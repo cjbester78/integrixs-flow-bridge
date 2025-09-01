@@ -69,21 +69,15 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
               Message History
             </CardTitle>
             <TimeFilterSelect value={timeFilter} onValueChange={handleTimeFilterChange} />
-            {console.log('[MessageList] TimeFilter value:', timeFilter, 'Type:', typeof timeFilter)}
           </div>
           <p className="text-sm text-muted-foreground">
-            {(() => {
-              const desc = getFilterDescription(timeFilter, filteredMessages.length);
-              console.log('[MessageList] Filter description:', desc, 'Type:', typeof desc);
-              return desc;
-            })()}
+            {getFilterDescription(timeFilter, filteredMessages.length)}
           </p>
         </CardHeader>
       </Card>
 
       {/* Message List */}
       <div className="space-y-3">
-        {console.log('[MessageList] About to render messages, loading:', loading, 'filteredMessages.length:', filteredMessages.length)}
         {loading ? (
           // Loading skeleton
           Array.from({ length: 5 }).map((_, i) => (

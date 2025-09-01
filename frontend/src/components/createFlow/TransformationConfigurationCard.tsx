@@ -96,7 +96,6 @@ export const TransformationConfigurationCard = ({
     setBusinessComponentStructures(allowedStructureIds);
   };
 
-  const getStructureById = (id: string) => sampleStructures.find(s => s.id === id);
 
   const getFilteredStructures = (businessComponentId: string, usage: 'source' | 'target') => {
     if (!businessComponentId) return sampleStructures.filter(s => s.usage === usage);

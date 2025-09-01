@@ -14,7 +14,6 @@ export const AdapterStats = ({
   statusFilter, 
   onStatusFilter 
 }: AdapterStatsProps) => {
-  const totalAdapters = adapters.length;
   const activeAdapters = adapters.filter(a => a.status === 'running').length;
   const inactiveAdapters = adapters.filter(a => a.status === 'idle').length;
   const stoppedAdapters = adapters.filter(a => a.status === 'stopped').length;

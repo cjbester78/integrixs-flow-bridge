@@ -6,14 +6,14 @@ import { logger, LogCategory } from '@/lib/logger';
  */
 export const createQueryCacheWithLogging = () => {
   return new QueryCache({
-    onError: (error: any, query: Query) => {
+    onError: (error, query) => {
       logger.error(LogCategory.API, 'Query error', error, {
         queryKey: query.queryKey,
         queryHash: query.queryHash,
         state: query.state.status
       });
     },
-    onSuccess: (data: unknown, query: Query) => {
+    onSuccess: (data, query) => {
       logger.debug(LogCategory.API, 'Query success', {
         queryKey: query.queryKey,
         queryHash: query.queryHash,
@@ -21,7 +21,7 @@ export const createQueryCacheWithLogging = () => {
         recordCount: Array.isArray(data) ? data.length : undefined
       });
     },
-    onSettled: (data: unknown, error: any, query: Query) => {
+    onSettled: (data, error, query) => {
       const duration = Date.now() - (query.state.dataUpdatedAt || 0);
       
       logger.debug(LogCategory.PERFORMANCE, 'Query completed', {
@@ -39,14 +39,14 @@ export const createQueryCacheWithLogging = () => {
  */
 export const createMutationCacheWithLogging = () => {
   return new MutationCache({
-    onError: (error: any, variables: unknown, context: unknown, mutation: Mutation) => {
+    onError: (error, variables, context, mutation) => {
       logger.error(LogCategory.API, 'Mutation error', error, {
         mutationKey: mutation.options.mutationKey,
         variables,
         mutationId: mutation.mutationId
       });
     },
-    onSuccess: (data: unknown, variables: unknown, context: unknown, mutation: Mutation) => {
+    onSuccess: (data, variables, context, mutation) => {
       logger.info(LogCategory.API, 'Mutation success', {
         mutationKey: mutation.options.mutationKey,
         variables,
@@ -54,7 +54,7 @@ export const createMutationCacheWithLogging = () => {
         dataType: typeof data
       });
     },
-    onSettled: (data: unknown, error: any, variables: unknown, context: unknown, mutation: Mutation) => {
+    onSettled: (data, error, variables, context, mutation) => {
       const duration = Date.now() - mutation.state.submittedAt;
       
       logger.debug(LogCategory.PERFORMANCE, 'Mutation completed', {

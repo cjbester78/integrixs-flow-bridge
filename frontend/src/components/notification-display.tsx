@@ -86,7 +86,6 @@ const NotificationItem: React.FC<{ notification: Notification }> = ({ notificati
  */
 export const NotificationDisplay: React.FC = () => {
   const notifications = useNotificationStore((state) => state.notifications);
-  const animations = useAnimations();
 
   return (
     <div

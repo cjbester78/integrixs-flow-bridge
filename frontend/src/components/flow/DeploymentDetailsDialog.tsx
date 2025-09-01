@@ -134,12 +134,13 @@ export function DeploymentDetailsDialog({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <code className="flex-1 p-2 bg-muted rounded text-sm">
-                      {deploymentInfo.metadata.wsdlUrl}
+                      {deploymentInfo.metadata?.wsdlUrl || 'N/A'}
                     </code>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(deploymentInfo.metadata.wsdlUrl!, 'WSDL URL')}
+                      onClick={() => copyToClipboard(deploymentInfo.metadata?.wsdlUrl || '', 'WSDL URL')}
+                      disabled={!deploymentInfo.metadata?.wsdlUrl}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>

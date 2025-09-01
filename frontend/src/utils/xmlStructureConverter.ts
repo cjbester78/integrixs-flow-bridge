@@ -160,7 +160,6 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
       const element = elements[0];
       const path = parentPath ? `${parentPath}.${tagName}` : tagName;
       const hasChildren = element.children.length > 0 || element.attributes.length > 0;
-      const hasTextContent = element.textContent && element.children.length === 0;
       
       const fieldNode: FieldNode = {
         id: `${path}_${Date.now()}_${Math.random()}`,
