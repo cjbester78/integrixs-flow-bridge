@@ -39,8 +39,9 @@ This document outlines the phased approach to achieve 100% completion of the Int
   - Task: Implement FTP directory polling for new files
   - **Completed**: Added ScheduledExecutorService with configurable interval
   
-- [ ] **SFTP Sender Adapter** - Verify and implement if needed
+- [x] **SFTP Sender Adapter** - Verify and implement if needed ✅
   - Task: Similar to FTP - poll remote directories
+  - **Completed**: Same implementation as FTP adapter
   
 - [ ] **JDBC Sender Adapter** - Implement polling mechanism
   - File: `JdbcSenderAdapter.java:304`

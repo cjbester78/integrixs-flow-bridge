@@ -895,9 +895,16 @@ Other adapters (SOAP, REST, OData, RFC, IDoc) use push or request-response patte
 - Enhanced configuration summary to show polling status
 - Proper cleanup in shutdown method
 
-### 3. Implement SFTP Sender Adapter Polling
-- [ ] Check if SFTP adapter needs polling implementation
-- [ ] Similar to FTP - poll remote directories for new files
+### 3. Implement SFTP Sender Adapter Polling ✅
+- [x] Check if SFTP adapter needs polling implementation
+- [x] Similar to FTP - poll remote directories for new files
+
+**Implementation Details:**
+- Added same polling mechanism as FTP adapter
+- Used ScheduledExecutorService for periodic polling
+- Thread-safe implementation with AtomicBoolean
+- Data callback notification when files are found
+- Enhanced configuration summary with polling status
 
 ### 4. Implement JDBC Sender Adapter Polling
 - [ ] File: `adapters/src/main/java/com/integrixs/adapters/infrastructure/adapter/JdbcSenderAdapter.java`

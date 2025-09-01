@@ -17,7 +17,13 @@ import java.util.List;import java.util.stream.Collectors;
 import java.util.List;import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.Map;
-import java.util.List;/**
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+/**
  * SFTP Sender Adapter implementation for SFTP file polling and retrieval (INBOUND).
  * Follows middleware convention: Sender = receives data FROM external systems.
  * Supports SFTP connections, file polling, pattern matching, and SSH authentication.
@@ -30,6 +36,11 @@ public class SftpSenderAdapter extends AbstractAdapter implements SenderAdapterP
     private Pattern exclusionPattern;
     private Session sshSession;
     private ChannelSftp sftpChannel;
+    
+    // Polling mechanism fields
+    private final AtomicBoolean polling = new AtomicBoolean(false);
+    private ScheduledExecutorService pollingExecutor;
+    private SenderAdapterPort.DataReceivedCallback dataCallback;
     
     public SftpSenderAdapter(SftpSenderAdapterConfig config) {
         super();
@@ -61,6 +72,9 @@ public class SftpSenderAdapter extends AbstractAdapter implements SenderAdapterP
     @Override
     protected AdapterOperationResult performShutdown() {
         log.info("Destroying SFTP sender adapter");
+        
+        // Stop polling if active
+        stopPolling();
         
         disconnectFromSftp();
         processedFiles.clear();
@@ -656,13 +670,14 @@ public class SftpSenderAdapter extends AbstractAdapter implements SenderAdapterP
     
     @Override
     public String getConfigurationSummary() {
-        return String.format("SFTP Sender (Inbound): %s:%s, User: %s, Dir: %s, Auth: %s, Polling: %sms, Processing: %s", 
+        return String.format("SFTP Sender (Inbound): %s:%s, User: %s, Dir: %s, Auth: %s, Polling: %sms (%s), Processing: %s", 
                 config.getServerAddress(),
                 config.getPort(),
                 config.getUserName(),
                 config.getSourceDirectory(),
                 config.getAuthenticationType(),
                 config.getPollingInterval(),
+                isPolling() ? "active" : "inactive",
                 config.getProcessingMode());
     }
     private AdapterOperationResult executeTest(java.util.concurrent.Callable<AdapterOperationResult> test) {
@@ -710,6 +725,85 @@ public class SftpSenderAdapter extends AbstractAdapter implements SenderAdapterP
     @Override
     public boolean isListening() {
         return false;
+    }
+    
+    public void startPolling(long intervalMillis) {
+        if (polling.get()) {
+            log.warn("SFTP polling already active");
+            return;
+        }
+        
+        log.info("Starting SFTP polling with interval: {} ms", intervalMillis);
+        polling.set(true);
+        
+        // Create scheduled executor for polling
+        pollingExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "sftp-polling-" + config.getServerAddress());
+            t.setDaemon(true);
+            return t;
+        });
+        
+        // Schedule polling task
+        pollingExecutor.scheduleWithFixedDelay(() -> {
+            if (!polling.get()) {
+                return;
+            }
+            
+            try {
+                log.debug("Executing SFTP polling cycle");
+                AdapterOperationResult result = pollForFiles();
+                
+                // If we have a callback and found files, notify
+                if (dataCallback != null && result.isSuccess() && result.getData() != null) {
+                    List<Map<String, Object>> files = (List<Map<String, Object>>) result.getData();
+                    if (!files.isEmpty()) {
+                        log.info("SFTP polling found {} files", files.size());
+                        dataCallback.onDataReceived(files, result);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error during SFTP polling", e);
+                if (dataCallback != null) {
+                    AdapterOperationResult errorResult = AdapterOperationResult.failure(
+                        "Polling error: " + e.getMessage()
+                    );
+                    dataCallback.onDataReceived(null, errorResult);
+                }
+            }
+        }, 0, intervalMillis, TimeUnit.MILLISECONDS);
+        
+        log.info("SFTP polling started successfully");
+    }
+    
+    public void stopPolling() {
+        if (polling.compareAndSet(true, false)) {
+            log.info("Stopping SFTP polling");
+            
+            if (pollingExecutor != null) {
+                pollingExecutor.shutdown();
+                try {
+                    if (!pollingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        pollingExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    log.warn("Interrupted while waiting for polling executor to shutdown");
+                    pollingExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+                pollingExecutor = null;
+            }
+            
+            log.info("SFTP polling stopped");
+        }
+    }
+    
+    public void registerDataCallback(SenderAdapterPort.DataReceivedCallback callback) {
+        this.dataCallback = callback;
+        log.debug("Data callback registered for SFTP adapter");
+    }
+    
+    public boolean isPolling() {
+        return polling.get();
     }
 
 }
