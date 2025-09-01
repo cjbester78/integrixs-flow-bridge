@@ -1,0 +1,281 @@
+package com.integrixs.adapters.infrastructure.adapter;
+
+import com.integrixs.adapters.core.AdapterException;
+
+import com.integrixs.adapters.domain.model.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.List;import com.integrixs.adapters.domain.port.SenderAdapterPort;
+import java.util.Map;
+import java.util.List;import com.integrixs.adapters.config.RfcSenderAdapterConfig;
+import java.util.*;
+import java.util.List;import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;import lombok.extern.slf4j.Slf4j;
+/**
+ * RFC Sender Adapter implementation for SAP RFC server functionality (INBOUND).
+ * Follows middleware convention: Sender = receives data FROM external systems.
+ * Acts as an RFC server to receive function calls from SAP systems.
+ * 
+ * Note: This is a simulation. Real implementation would require SAP JCo libraries.
+ */
+@Slf4j
+public class RfcSenderAdapter extends AbstractAdapter implements SenderAdapterPort {
+    
+    private final RfcSenderAdapterConfig config;
+    private final Map<String, Object> receivedCalls = new ConcurrentHashMap<>();
+    private boolean serverStarted = false;
+    public RfcSenderAdapter(RfcSenderAdapterConfig config) {
+        super();
+        this.config = config;
+    }
+    
+    @Override
+    protected AdapterOperationResult performInitialization() {
+        log.info("Initializing RFC sender adapter (inbound) with program ID: {}", config.getProgramId());
+        
+        try {
+            validateConfiguration();
+            // In real implementation, would:
+            // 1. Initialize SAP JCo environment
+            // 2. Create RFC server instance
+            // 3. Register function handlers
+            // 4. Start RFC server
+            serverStarted = true;
+        } catch (Exception e) {
+            log.error("Error during initialization", e);
+            return AdapterOperationResult.failure("Initialization error: " + e.getMessage());
+        }
+        
+        log.info("RFC sender adapter initialized successfully");
+        return AdapterOperationResult.success("Adapter initialized successfully");
+    }
+    
+    @Override
+    protected AdapterOperationResult performShutdown() {
+        log.info("Destroying RFC sender adapter");
+        if (serverStarted) {
+            // In real implementation, would stop RFC server
+            serverStarted = false;
+        }
+        receivedCalls.clear();
+        return AdapterOperationResult.success("Adapter destroyed");
+    }
+    
+    @Override
+    protected AdapterOperationResult performConnectionTest() {
+        List<AdapterOperationResult> testResults = new ArrayList<>();
+        // Test 1: Gateway connectivity
+        testResults.add(
+            performGatewayConnectivityTest()
+        );
+        // Test 2: Program ID validation
+        testResults.add(
+            performProgramIdValidationTest()
+        );
+        // Test 3: Function module configuration
+        testResults.add(
+            performFunctionConfigurationTest()
+        );
+        return AdapterOperationResult.success(testResults);
+    }
+    
+    // SenderAdapterPort implementation
+    @Override
+    public AdapterOperationResult fetch(FetchRequest request) {
+        try {
+            // For RFC Sender, this simulates receiving RFC calls from SAP
+            Map<String, Object> params = request.getParameters();
+            Object payload = params != null ? params.get("payload") : null;
+            return receiveRfcCall(payload, params);
+        } catch (Exception e) {
+            return AdapterOperationResult.failure("Failed to receive RFC call: " + e.getMessage());
+        }
+    }
+    
+    private AdapterOperationResult receiveRfcCall(Object payload, Map<String, Object> headers) throws Exception {
+        // Simulate receiving an RFC call
+        Map<String, Object> rfcData = new HashMap<>();
+        if (payload instanceof Map) {
+            Map<String, Object> callData = (Map<String, Object>) payload;
+            
+            // Extract function name
+            String functionName = (String) callData.get("functionName");
+            if (functionName == null) {
+                functionName = "SIMULATED_RFC_FUNCTION";
+            }
+            // Check if function is allowed
+            if (config.getAllowedFunctions() != null && !config.getAllowedFunctions().isEmpty()) {
+                List<String> allowedFunctions = Arrays.asList(config.getAllowedFunctions().split(","));
+                if (!allowedFunctions.contains(functionName)) {
+                    throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.RFC, 
+                            "Function not allowed: " + functionName);
+                }
+            }
+            rfcData.put("functionName", functionName);
+            rfcData.put("callId", UUID.randomUUID().toString());
+            rfcData.put("timestamp", new Date());
+            rfcData.put("sourceSystem", headers != null ? headers.get("sourceSystem") : "SAP");
+            // Import parameters
+            Map<String, Object> importParams = (Map<String, Object>) callData.get("importParameters");
+            if (importParams == null) {
+                importParams = new HashMap<>();
+            }
+            rfcData.put("importParameters", importParams);
+            // Table parameters
+            Map<String, List<Map<String, Object>>> tableParams = 
+                    (Map<String, List<Map<String, Object>>>) callData.get("tableParameters");
+            if (tableParams == null) {
+                tableParams = new HashMap<>();
+            }
+            rfcData.put("tableParameters", tableParams);
+            // Store received call
+            receivedCalls.put((String) rfcData.get("callId"), rfcData);
+            // Prepare response (export parameters)
+            Map<String, Object> exportParams = new HashMap<>();
+            exportParams.put("EV_RESULT", "SUCCESS");
+            exportParams.put("EV_MESSAGE", "RFC call processed successfully");
+            rfcData.put("exportParameters", exportParams);
+            log.info("RFC sender adapter received function call: {}", functionName);
+            return AdapterOperationResult.success(rfcData, 
+                    String.format("Successfully received RFC call: %s", functionName));
+        } else {
+            // Simple simulation
+            rfcData.put("functionName", "SIMULATED_RFC");
+            rfcData.put("payload", payload);
+            return AdapterOperationResult.success(rfcData, "Successfully received RFC call");
+        }
+    }
+    
+    private void validateConfiguration() throws AdapterException.ConfigurationException {
+        if (config.getProgramId() == null || config.getProgramId().trim().isEmpty()) {
+            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Program ID is required");
+        }
+        if (config.getGatewayHost() == null || config.getGatewayHost().trim().isEmpty()) {
+            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Gateway host is required");
+        }
+        if (config.getGatewayService() == null || config.getGatewayService().trim().isEmpty()) {
+            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Gateway service is required");
+        }
+        // Set defaults
+        if (config.getConnectionCount() <= 0) {
+            config.setConnectionCount(config.getDefaultConnectionCount() != null ? config.getDefaultConnectionCount() : 1);
+        }
+    }
+    public long getPollingInterval() {
+        return config.getPollingInterval() != null ? config.getPollingInterval() : 0;
+    }
+    
+    @Override
+    public String getConfigurationSummary() {
+        return String.format("RFC Sender (Inbound): Program ID: %s, Gateway: %s:%s", 
+                config.getProgramId(),
+                config.getGatewayHost(),
+                config.getGatewayService());
+    }
+    
+    
+    @Override
+    public CompletableFuture<AdapterOperationResult> fetchAsync(FetchRequest request) {
+        return CompletableFuture.supplyAsync(() -> fetch(request));
+    }
+    
+    @Override
+    public void startListening(DataReceivedCallback callback) {
+        // Not implemented for this adapter type
+        throw new UnsupportedOperationException("This adapter does not support push-based listening");
+    }
+    
+    @Override
+    public void stopListening() {
+    }
+    
+    public boolean isListening() {
+        return false;
+    }
+    public void startPolling(long intervalMillis) {
+        // Implement if polling is supported
+        throw new UnsupportedOperationException("Polling not implemented");
+    }
+    
+    public void stopPolling() {
+    }
+    public void setDataReceivedCallback(DataReceivedCallback callback) {
+        // Implement if callbacks are supported
+    }
+    public AdapterMetadata getMetadata() {
+        return AdapterMetadata.builder()
+                .adapterType(AdapterConfiguration.AdapterTypeEnum.RFC)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.SENDER)
+                .description("Sender adapter implementation")
+                .version("1.0.0")
+                .supportsBatch(false)
+                .supportsAsync(true)
+                .build();
+    }
+    
+    @Override
+    protected AdapterOperationResult performStart() {
+        return AdapterOperationResult.success("Started");
+    }
+    
+    @Override
+    protected AdapterOperationResult performStop() {
+        return AdapterOperationResult.success("Stopped");
+    }
+    
+    // Helper methods for connection testing
+    private AdapterOperationResult performGatewayConnectivityTest() {
+        try {
+            // Simulate gateway connection test
+            String gatewayInfo = String.format("Gateway: %s:%s", 
+                    config.getGatewayHost(), config.getGatewayService());
+            
+            if (config.getGatewayHost() == null || config.getGatewayHost().isEmpty()) {
+                return AdapterOperationResult.failure(
+                        "Gateway Connection", "Gateway host not configured", null);
+            }
+            return AdapterOperationResult.success(
+                    "Gateway Connection", "Gateway configuration valid: " + gatewayInfo);
+        } catch (Exception e) {
+            return AdapterOperationResult.failure(
+                    "Gateway Connection", "Failed to validate gateway: " + e.getMessage(), e);
+        }
+    }
+    
+    private AdapterOperationResult performProgramIdValidationTest() {
+        try {
+            if (config.getProgramId() == null || config.getProgramId().isEmpty()) {
+                return AdapterOperationResult.failure(
+                        "Program ID", "Program ID not configured", null);
+            }
+            return AdapterOperationResult.success(
+                    "Program ID", "Program ID configured: " + config.getProgramId());
+        } catch (Exception e) {
+            return AdapterOperationResult.failure(
+                    "Program ID", "Invalid program ID: " + e.getMessage(), e);
+        }
+    }
+    
+    private AdapterOperationResult performFunctionConfigurationTest() {
+        try {
+            String info = "RFC server ready to receive function calls";
+            if (config.getAllowedFunctions() != null && !config.getAllowedFunctions().isEmpty()) {
+                info += ", Allowed functions: " + config.getAllowedFunctions();
+            }
+            return AdapterOperationResult.success(
+                    "Function Configuration", info);
+        } catch (Exception e) {
+            return AdapterOperationResult.failure(
+                    "Function Configuration", "Invalid configuration: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    protected AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.RFC;
+    }
+    
+    @Override
+    protected AdapterConfiguration.AdapterModeEnum getAdapterMode() {
+        return AdapterConfiguration.AdapterModeEnum.SENDER;
+    }
+}

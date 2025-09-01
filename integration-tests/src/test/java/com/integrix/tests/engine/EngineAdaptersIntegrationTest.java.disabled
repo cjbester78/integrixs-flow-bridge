@@ -1,0 +1,297 @@
+package com.integrix.tests.engine;
+
+import com.integrix.adapters.api.controller.AdapterController;
+import com.integrix.adapters.domain.service.AdapterRegistryService;
+import com.integrix.engine.application.service.FlowExecutionService;
+import com.integrixs.shared.dto.AdapterType;
+import com.integrixs.shared.integration.*;
+import com.integrix.tests.config.BaseIntegrationTest;
+import com.integrix.tests.config.TestDataBuilder;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Integration tests for Engine → Adapters interaction
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+public class EngineAdaptersIntegrationTest extends BaseIntegrationTest {
+    
+    @Autowired
+    private AdapterController adapterController;
+    
+    @MockBean
+    private AdapterExecutionService adapterExecutionService;
+    
+    @MockBean
+    private AdapterRegistryService adapterRegistryService;
+    
+    @MockBean
+    private SystemMonitor systemMonitor;
+    
+    private MockWebServer mockWebServer;
+    
+    @BeforeEach
+    void setUp() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start(8081);
+    }
+    
+    @AfterEach
+    void tearDown() throws IOException {
+        mockWebServer.shutdown();
+    }
+    
+    @Test
+    void testAdapterDiscovery() {
+        // Given
+        List<AdapterMetadata> mockAdapters = List.of(
+                TestDataBuilder.createTestAdapterMetadata(AdapterType.HTTP),
+                TestDataBuilder.createTestAdapterMetadata(AdapterType.JDBC),
+                TestDataBuilder.createTestAdapterMetadata(AdapterType.FTP),
+                TestDataBuilder.createTestAdapterMetadata(AdapterType.SOAP)
+        );
+        
+        when(adapterExecutionService.listAdapters()).thenReturn(mockAdapters);
+        
+        // When
+        List<AdapterMetadata> adapters = adapterExecutionService.listAdapters();
+        
+        // Then
+        assertThat(adapters).hasSize(4);
+        assertThat(adapters).extracting(AdapterMetadata::getType)
+                .containsExactlyInAnyOrder("HTTP", "JDBC", "FTP", "SOAP");
+        
+        verify(systemMonitor).recordActivity(
+                eq("engine"),
+                eq("adapter_discovery"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testHttpAdapterExecution() throws Exception {
+        // Given
+        String adapterId = "http-adapter-1";
+        AdapterContext context = TestDataBuilder.createTestAdapterContext();
+        
+        // Mock HTTP response
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("{\"status\":\"success\",\"data\":\"test response\"}")
+                .addHeader("Content-Type", "application/json"));
+        
+        AdapterResult expectedResult = AdapterResult.success(
+                Map.of("status", "success", "data", "test response")
+        );
+        
+        when(adapterExecutionService.executeAdapter(eq(adapterId), any(AdapterContext.class)))
+                .thenReturn(expectedResult);
+        
+        // When
+        AdapterResult result = adapterExecutionService.executeAdapter(adapterId, context);
+        
+        // Then
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getOutputData()).containsEntry("status", "success");
+        assertThat(result.getOutputData()).containsEntry("data", "test response");
+        
+        verify(systemMonitor).recordActivity(
+                eq("engine"),
+                eq("adapter_execution"),
+                argThat(map -> map.get("adapterId").equals(adapterId))
+        );
+    }
+    
+    @Test
+    void testJdbcAdapterExecution() {
+        // Given
+        String adapterId = "jdbc-adapter-1";
+        AdapterContext context = TestDataBuilder.createTestAdapterContext();
+        context.getInputData().put("query", "INSERT INTO test_table (data) VALUES (:data)");
+        context.getInputData().put("data", "test data");
+        
+        AdapterResult expectedResult = AdapterResult.success(
+                Map.of("rowsAffected", 1)
+        );
+        
+        when(adapterExecutionService.executeAdapter(eq(adapterId), any(AdapterContext.class)))
+                .thenReturn(expectedResult);
+        
+        // When
+        AdapterResult result = adapterExecutionService.executeAdapter(adapterId, context);
+        
+        // Then
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getOutputData()).containsEntry("rowsAffected", 1);
+        
+        verify(systemMonitor).recordPerformance(
+                eq("adapters"),
+                eq("jdbc_execution"),
+                anyLong()
+        );
+    }
+    
+    @Test
+    void testAdapterErrorHandling() {
+        // Given
+        String adapterId = "error-adapter";
+        AdapterContext context = TestDataBuilder.createTestAdapterContext();
+        String errorMessage = "Connection timeout";
+        
+        AdapterResult errorResult = AdapterResult.failure(errorMessage, "TIMEOUT_ERROR");
+        
+        when(adapterExecutionService.executeAdapter(eq(adapterId), any(AdapterContext.class)))
+                .thenReturn(errorResult);
+        
+        // When
+        AdapterResult result = adapterExecutionService.executeAdapter(adapterId, context);
+        
+        // Then
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(result.getErrorCode()).isEqualTo("TIMEOUT_ERROR");
+        
+        verify(systemMonitor).recordError(
+                eq("adapters"),
+                any(Exception.class),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testAdapterTimeout() {
+        // Given
+        String adapterId = "slow-adapter";
+        AdapterContext context = TestDataBuilder.createTestAdapterContext();
+        context.setTimeout(2000L); // 2 second timeout
+        
+        when(adapterExecutionService.executeAdapter(eq(adapterId), any(AdapterContext.class)))
+                .thenAnswer(invocation -> {
+                    Thread.sleep(3000); // Simulate slow operation
+                    return AdapterResult.failure("Operation timed out", "TIMEOUT");
+                });
+        
+        // When/Then
+        await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    AdapterResult result = adapterExecutionService.executeAdapter(adapterId, context);
+                    assertThat(result.isSuccess()).isFalse();
+                    assertThat(result.getErrorCode()).isEqualTo("TIMEOUT");
+                });
+        
+        verify(systemMonitor).recordActivity(
+                eq("engine"),
+                eq("adapter_timeout"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testAdapterValidation() {
+        // Given
+        String adapterId = "http-adapter-invalid";
+        
+        ValidationResult invalidResult = ValidationResult.builder()
+                .valid(false)
+                .errors(List.of("Missing required configuration: url"))
+                .build();
+                
+        when(adapterExecutionService.validateAdapterConfig(adapterId))
+                .thenReturn(invalidResult);
+        
+        // When
+        ValidationResult result = adapterExecutionService.validateAdapterConfig(adapterId);
+        
+        // Then
+        assertThat(result.isValid()).isFalse();
+        assertThat(result.getErrors()).contains("Missing required configuration: url");
+    }
+    
+    @Test
+    void testAdapterConnectivityTest() {
+        // Given
+        String httpAdapterId = "http-adapter-test";
+        String jdbcAdapterId = "jdbc-adapter-test";
+        
+        when(adapterExecutionService.testAdapter(httpAdapterId)).thenReturn(true);
+        when(adapterExecutionService.testAdapter(jdbcAdapterId)).thenReturn(false);
+        
+        // When
+        boolean httpConnected = adapterExecutionService.testAdapter(httpAdapterId);
+        boolean jdbcConnected = adapterExecutionService.testAdapter(jdbcAdapterId);
+        
+        // Then
+        assertThat(httpConnected).isTrue();
+        assertThat(jdbcConnected).isFalse();
+        
+        verify(systemMonitor, times(2)).recordActivity(
+                eq("engine"),
+                eq("adapter_connectivity_test"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testMultipleAdapterChaining() {
+        // Given
+        String httpAdapterId = "http-adapter-chain";
+        String transformAdapterId = "transform-adapter";
+        String jdbcAdapterId = "jdbc-adapter-chain";
+        
+        AdapterContext httpContext = TestDataBuilder.createTestAdapterContext();
+        AdapterResult httpResult = AdapterResult.success(
+                Map.of("rawData", "test input")
+        );
+        
+        AdapterContext transformContext = AdapterContext.builder()
+                .inputData(httpResult.getOutputData())
+                .build();
+        AdapterResult transformResult = AdapterResult.success(
+                Map.of("transformedData", "TEST INPUT")
+        );
+        
+        AdapterContext jdbcContext = AdapterContext.builder()
+                .inputData(transformResult.getOutputData())
+                .build();
+        AdapterResult jdbcResult = AdapterResult.success(
+                Map.of("rowsInserted", 1)
+        );
+        
+        when(adapterExecutionService.executeAdapter(eq(httpAdapterId), any()))
+                .thenReturn(httpResult);
+        when(adapterExecutionService.executeAdapter(eq(transformAdapterId), any()))
+                .thenReturn(transformResult);
+        when(adapterExecutionService.executeAdapter(eq(jdbcAdapterId), any()))
+                .thenReturn(jdbcResult);
+        
+        // When - Execute chain
+        AdapterResult step1 = adapterExecutionService.executeAdapter(httpAdapterId, httpContext);
+        AdapterResult step2 = adapterExecutionService.executeAdapter(transformAdapterId, transformContext);
+        AdapterResult step3 = adapterExecutionService.executeAdapter(jdbcAdapterId, jdbcContext);
+        
+        // Then
+        assertThat(step1.isSuccess()).isTrue();
+        assertThat(step2.isSuccess()).isTrue();
+        assertThat(step3.isSuccess()).isTrue();
+        assertThat(step3.getOutputData()).containsEntry("rowsInserted", 1);
+        
+        verify(adapterExecutionService, times(3)).executeAdapter(anyString(), any());
+    }
+}

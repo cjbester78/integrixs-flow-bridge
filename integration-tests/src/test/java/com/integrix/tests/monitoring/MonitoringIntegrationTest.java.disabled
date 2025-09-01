@@ -1,0 +1,411 @@
+package com.integrix.tests.monitoring;
+
+import com.integrixs.monitoring.application.service.MonitoringApplicationService;
+import com.integrixs.monitoring.api.dto.*;
+import com.integrixs.shared.integration.SystemMonitor;
+import com.integrix.tests.config.BaseIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+/**
+ * Integration tests for Monitoring module interaction with all other modules
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+public class MonitoringIntegrationTest extends BaseIntegrationTest {
+    
+    @Autowired
+    private SystemMonitor systemMonitor;
+    
+    @Autowired
+    private MonitoringApplicationService monitoringApplicationService;
+    
+    private Map<String, Object> testContext;
+    
+    @BeforeEach
+    void setUp() {
+        testContext = new HashMap<>();
+        testContext.put("testId", "integration-test");
+        testContext.put("timestamp", System.currentTimeMillis());
+    }
+    
+    @Test
+    void testEventLoggingFromAllModules() {
+        // Given - Events from different modules
+        LogEventRequestDTO backendEvent = LogEventRequestDTO.builder()
+                .eventType("SYSTEM_EVENT")
+                .level("INFO")
+                .source("backend")
+                .message("flow_created")
+                .metadata(Map.of("flowId", "flow-1", "name", "Test Flow"))
+                .build();
+                
+        LogEventRequestDTO engineEvent = LogEventRequestDTO.builder()
+                .eventType("SYSTEM_EVENT")
+                .level("INFO")
+                .source("engine")
+                .message("flow_execution_started")
+                .metadata(Map.of("flowId", "flow-1", "executionId", "exec-1"))
+                .build();
+                
+        LogEventRequestDTO adaptersEvent = LogEventRequestDTO.builder()
+                .eventType("SYSTEM_EVENT")
+                .level("INFO")
+                .source("adapters")
+                .message("adapter_executed")
+                .metadata(Map.of("adapterId", "http-1", "duration", "150"))
+                .build();
+                
+        LogEventRequestDTO webClientEvent = LogEventRequestDTO.builder()
+                .eventType("SYSTEM_EVENT")
+                .level("INFO")
+                .source("webclient")
+                .message("message_received")
+                .metadata(Map.of("messageId", "msg-1", "size", "1024"))
+                .build();
+        
+        // When - Log events
+        monitoringApplicationService.logEvent(backendEvent);
+        monitoringApplicationService.logEvent(engineEvent);
+        monitoringApplicationService.logEvent(adaptersEvent);
+        monitoringApplicationService.logEvent(webClientEvent);
+        
+        // Then - Query events
+        EventQueryRequestDTO query = EventQueryRequestDTO.builder()
+                .limit(10)
+                .build();
+        
+        List<MonitoringEventDTO> events = monitoringApplicationService.queryEvents(query);
+        assertThat(events).hasSizeGreaterThanOrEqualTo(4);
+        
+        assertThat(events.stream()
+                .map(MonitoringEventDTO::getSource)
+                .distinct())
+                .containsAnyOf("backend", "engine", "adapters", "webclient");
+    }
+    
+    @Test
+    void testMetricCollection() {
+        // Given - Performance metrics from different operations
+        RecordMetricRequestDTO backendMetric = RecordMetricRequestDTO.builder()
+                .metricName("api_request_duration")
+                .metricType("GAUGE")
+                .value(45.0)
+                .unit("milliseconds")
+                .source("backend")
+                .build();
+                
+        RecordMetricRequestDTO engineMetric = RecordMetricRequestDTO.builder()
+                .metricName("flow_execution_duration")
+                .metricType("GAUGE")
+                .value(1200.0)
+                .unit("milliseconds")
+                .source("engine")
+                .build();
+                
+        RecordMetricRequestDTO httpMetric = RecordMetricRequestDTO.builder()
+                .metricName("http_call_duration")
+                .metricType("GAUGE")
+                .value(230.0)
+                .unit("milliseconds")
+                .source("adapters")
+                .tags(Map.of("adapter_type", "http"))
+                .build();
+                
+        RecordMetricRequestDTO jdbcMetric = RecordMetricRequestDTO.builder()
+                .metricName("jdbc_query_duration")
+                .metricType("GAUGE")
+                .value(89.0)
+                .unit("milliseconds")
+                .source("adapters")
+                .tags(Map.of("adapter_type", "jdbc"))
+                .build();
+        
+        // When
+        monitoringApplicationService.recordMetric(backendMetric);
+        monitoringApplicationService.recordMetric(engineMetric);
+        monitoringApplicationService.recordMetric(httpMetric);
+        monitoringApplicationService.recordMetric(jdbcMetric);
+        
+        // Then
+        MetricQueryRequestDTO query = MetricQueryRequestDTO.builder()
+                .metricType("GAUGE")
+                .limit(10)
+                .build();
+                
+        List<MetricSnapshotDTO> metrics = monitoringApplicationService.queryMetrics(query);
+        assertThat(metrics).hasSizeGreaterThanOrEqualTo(4);
+    }
+    
+    @Test
+    void testAlertTriggering() {
+        // Given - Error event that should trigger an alert
+        LogEventRequestDTO errorEvent = LogEventRequestDTO.builder()
+                .eventType("ERROR_EVENT")
+                .level("ERROR")
+                .source("backend")
+                .message("Database connection failed")
+                .metadata(Map.of("operation", "save_flow", "severity", "HIGH"))
+                .stackTrace("java.sql.SQLException: Connection refused")
+                .build();
+        
+        // When
+        LogEventResponseDTO response = monitoringApplicationService.logEvent(errorEvent);
+        
+        // Then
+        assertThat(response.isSuccess()).isTrue();
+        
+        // Check active alerts
+        List<AlertDTO> alerts = monitoringApplicationService.getActiveAlerts();
+        assertThat(alerts).isNotEmpty();
+    }
+    
+    @Test
+    void testHealthChecks() {
+        // Given - Health check via metrics
+        RecordMetricRequestDTO backendHealth = RecordMetricRequestDTO.builder()
+                .metricName("health.status")
+                .metricType("GAUGE")
+                .value(1.0) // 1 = UP, 0 = DOWN
+                .source("backend")
+                .tags(Map.of("component", "api", "status", "UP"))
+                .build();
+                
+        RecordMetricRequestDTO engineHealth = RecordMetricRequestDTO.builder()
+                .metricName("health.status")
+                .metricType("GAUGE")
+                .value(1.0)
+                .source("engine")
+                .tags(Map.of("component", "executor", "status", "UP"))
+                .build();
+                
+        RecordMetricRequestDTO adaptersHealth = RecordMetricRequestDTO.builder()
+                .metricName("health.status")
+                .metricType("GAUGE")
+                .value(1.0)
+                .source("adapters")
+                .tags(Map.of("component", "pool", "status", "UP"))
+                .build();
+        
+        // When
+        monitoringApplicationService.recordMetric(backendHealth);
+        monitoringApplicationService.recordMetric(engineHealth);
+        monitoringApplicationService.recordMetric(adaptersHealth);
+        
+        // Then
+        MetricQueryRequestDTO query = MetricQueryRequestDTO.builder()
+                .metricName("health.status")
+                .limit(10)
+                .build();
+                
+        List<MetricSnapshotDTO> healthMetrics = monitoringApplicationService.queryMetrics(query);
+        assertThat(healthMetrics).hasSizeGreaterThanOrEqualTo(3);
+        assertThat(healthMetrics).allMatch(m -> m.getValue() == 1.0);
+    }
+    
+    @Test
+    void testConcurrentEventLogging() throws InterruptedException {
+        // Given
+        int threadCount = 10;
+        int eventsPerThread = 100;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        
+        // When - Generate concurrent events
+        for (int i = 0; i < threadCount; i++) {
+            final int threadId = i;
+            executor.submit(() -> {
+                try {
+                    for (int j = 0; j < eventsPerThread; j++) {
+                        LogEventRequestDTO event = LogEventRequestDTO.builder()
+                                .eventType("SYSTEM_EVENT")
+                                .level("INFO")
+                                .source("test-module-" + threadId)
+                                .message("test-operation")
+                                .metadata(Map.of("thread", String.valueOf(threadId), "event", String.valueOf(j)))
+                                .build();
+                        
+                        monitoringApplicationService.logEvent(event);
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        
+        latch.await(10, TimeUnit.SECONDS);
+        executor.shutdown();
+        
+        // Then
+        EventQueryRequestDTO query = EventQueryRequestDTO.builder()
+                .limit(threadCount * eventsPerThread)
+                .build();
+                
+        List<MonitoringEventDTO> events = monitoringApplicationService.queryEvents(query);
+        assertThat(events.size()).isGreaterThanOrEqualTo(threadCount * eventsPerThread);
+    }
+    
+    @Test
+    void testEventFiltering() {
+        // Given - Various events
+        LogEventRequestDTO loginEvent = LogEventRequestDTO.builder()
+                .eventType("SECURITY_EVENT")
+                .level("INFO")
+                .source("backend")
+                .message("user_login")
+                .metadata(Map.of("user", "admin"))
+                .build();
+                
+        LogEventRequestDTO logoutEvent = LogEventRequestDTO.builder()
+                .eventType("SECURITY_EVENT")
+                .level("INFO")
+                .source("backend")
+                .message("user_logout")
+                .metadata(Map.of("user", "admin"))
+                .build();
+                
+        LogEventRequestDTO flowStartEvent = LogEventRequestDTO.builder()
+                .eventType("SYSTEM_EVENT")
+                .level("INFO")
+                .source("engine")
+                .message("flow_started")
+                .metadata(Map.of("flow", "test-flow"))
+                .build();
+                
+        LogEventRequestDTO flowCompleteEvent = LogEventRequestDTO.builder()
+                .eventType("SYSTEM_EVENT")
+                .level("INFO")
+                .source("engine")
+                .message("flow_completed")
+                .metadata(Map.of("flow", "test-flow"))
+                .build();
+        
+        // When
+        monitoringApplicationService.logEvent(loginEvent);
+        monitoringApplicationService.logEvent(logoutEvent);
+        monitoringApplicationService.logEvent(flowStartEvent);
+        monitoringApplicationService.logEvent(flowCompleteEvent);
+        
+        // Then - Filter by source
+        EventQueryRequestDTO backendQuery = EventQueryRequestDTO.builder()
+                .source("backend")
+                .limit(10)
+                .build();
+                
+        EventQueryRequestDTO engineQuery = EventQueryRequestDTO.builder()
+                .source("engine")
+                .limit(10)
+                .build();
+        
+        List<MonitoringEventDTO> backendEvents = monitoringApplicationService.queryEvents(backendQuery);
+        List<MonitoringEventDTO> engineEvents = monitoringApplicationService.queryEvents(engineQuery);
+        
+        assertThat(backendEvents).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(backendEvents).allMatch(e -> "backend".equals(e.getSource()));
+        
+        assertThat(engineEvents).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(engineEvents).allMatch(e -> "engine".equals(e.getSource()));
+    }
+    
+    @Test
+    void testAlertResolution() {
+        // Given - Create an alert rule first
+        CreateAlertRuleRequestDTO ruleRequest = CreateAlertRuleRequestDTO.builder()
+                .ruleName("Test Alert Rule")
+                .alertType("METRIC_THRESHOLD")
+                .severity("MEDIUM")
+                .condition("metric.value > 100")
+                .targetMetric("test.metric")
+                .threshold(100.0)
+                .comparison("GT")
+                .enabled(true)
+                .evaluationInterval(60)
+                .build();
+                
+        AlertRuleOperationResponseDTO ruleResponse = monitoringApplicationService.createAlertRule(ruleRequest);
+        assertThat(ruleResponse.isSuccess()).isTrue();
+        
+        // Trigger an alert by recording a metric that violates the rule
+        RecordMetricRequestDTO metric = RecordMetricRequestDTO.builder()
+                .metricName("test.metric")
+                .metricType("GAUGE")
+                .value(150.0)
+                .source("test")
+                .build();
+                
+        RecordMetricResponseDTO metricResponse = monitoringApplicationService.recordMetric(metric);
+        assertThat(metricResponse.getAlertsTriggered()).isGreaterThan(0);
+        
+        // Get active alerts
+        List<AlertDTO> alerts = monitoringApplicationService.getActiveAlerts();
+        assertThat(alerts).isNotEmpty();
+        
+        AlertDTO alert = alerts.get(0);
+        
+        // When - Resolve the alert
+        ResolveAlertRequestDTO resolveRequest = ResolveAlertRequestDTO.builder()
+                .resolution("Issue fixed by test")
+                .build();
+                
+        AlertOperationResponseDTO resolveResponse = monitoringApplicationService.resolveAlert(alert.getAlertId(), resolveRequest);
+        
+        // Then
+        assertThat(resolveResponse.isSuccess()).isTrue();
+        assertThat(resolveResponse.getStatus()).isEqualTo("RESOLVED");
+    }
+    
+    @Test
+    void testMetricsAggregation() {
+        // Given - Multiple performance recordings
+        String metricName = "operation.duration";
+        for (int i = 0; i < 10; i++) {
+            RecordMetricRequestDTO metricA = RecordMetricRequestDTO.builder()
+                    .metricName(metricName)
+                    .metricType("GAUGE")
+                    .value(100.0 + i * 10)
+                    .source("adapters")
+                    .tags(Map.of("operation", "operation_A"))
+                    .build();
+                    
+            RecordMetricRequestDTO metricB = RecordMetricRequestDTO.builder()
+                    .metricName(metricName)
+                    .metricType("GAUGE")
+                    .value(200.0 + i * 20)
+                    .source("adapters")
+                    .tags(Map.of("operation", "operation_B"))
+                    .build();
+                    
+            monitoringApplicationService.recordMetric(metricA);
+            monitoringApplicationService.recordMetric(metricB);
+        }
+        
+        // When
+        MetricAggregationRequestDTO aggregationRequest = MetricAggregationRequestDTO.builder()
+                .metricName(metricName)
+                .aggregationType("AVG")
+                .startTime(LocalDateTime.now().minusHours(1).toEpochSecond(java.time.ZoneOffset.UTC) * 1000)
+                .endTime(LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC) * 1000)
+                .build();
+                
+        MetricAggregationResponseDTO aggregation = monitoringApplicationService.calculateAggregation(aggregationRequest);
+        
+        // Then
+        assertThat(aggregation.isSuccess()).isTrue();
+        assertThat(aggregation.getValue()).isGreaterThan(0);
+    }
+}

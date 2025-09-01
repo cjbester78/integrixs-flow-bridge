@@ -1,0 +1,166 @@
+server:
+  port: 8080
+  address: 0.0.0.0
+  tomcat:
+    max-http-form-post-size: 100MB
+    max-swallow-size: 100MB
+    connection-timeout: 60000
+    max-connections: 10000
+    accept-count: 100
+
+spring:
+  application:
+    name: backend
+  profiles:
+    active: dev
+  main:
+    allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+      resolve-lazily: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+    static-path-pattern: /**
+    # Large request body support
+    async:
+      request-timeout: 60000
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          no-cache: true
+          no-store: true
+          must-revalidate: true
+          max-age: 0
+      static-locations: classpath:/public/
+  jackson:
+    serialization:
+      indent_output: true
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+    # Large JSON payload support
+    generator:
+      write-numbers-as-strings: false
+    parser:
+      allow-unquoted-control-chars: true
+      allow-backslash-escaping-any-character: true
+
+# ✅ Flyway configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 121
+    locations: classpath:db/migration
+    sql-migration-prefix: V
+    sql-migration-separator: __
+    sql-migration-suffixes: .sql
+    validate-on-migrate: true
+    clean-disabled: true
+    schemas: integrixflowbridge
+
+# ✅ JPA default settings
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Changed from none to validate
+    show-sql: false  # Set to true in dev profile only
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        # Performance optimizations
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+          order_inserts: true
+          order_updates: true
+        # Second-level cache configuration
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+          # region:
+          #   factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+        # Statistics (disable in production)
+        generate_statistics: false
+        # Connection handling
+        connection:
+          provider_disables_autocommit: true
+        # Query plan cache
+        query:
+          plan_cache_max_size: 2048
+          plan_parameter_metadata_max_size: 128
+        # Default fetch settings
+        default_batch_fetch_size: 16
+        # Enable lazy loading outside transactions (use with caution)
+        enable_lazy_load_no_trans: false
+
+# ✅ Logging configuration is in logback-spring.xml
+logging:
+  file:
+    path: ./logs
+    name: ./logs/integrix-flow-bridge.log
+  level:
+    root: INFO
+    com.integrixs: DEBUG
+    org.springframework: INFO
+
+# ✅ Actuator settings
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# ✅ Certificate path (used globally)
+certificates:
+  storage:
+    path: /opt/integrixflowbridge/certs
+
+# ✅ Engine runtime config
+engine:
+  worker:
+    thread-pool-size: 4
+    retry-attempts: 3
+    retry-delay-ms: 2000
+
+# ✅ System environment configuration
+system:
+  environment:
+    type: DEVELOPMENT  # Options: DEVELOPMENT, QUALITY_ASSURANCE, PRODUCTION
+    enforce-restrictions: true
+    restriction-message: "This action is not allowed in %s environment"
+
+# ✅ Audit configuration
+audit:
+  enabled: true  # Enable audit aspect for comprehensive logging
+
+# ✅ Security configuration
+integrix:
+  security:
+    master-key: ${INTEGRIX_MASTER_KEY:IntegrixFlowBridge2024SecureKey}
+    encryption:
+      enabled: true
+
+# ✅ Email configuration
+mail:
+  smtp:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    from: ${SMTP_FROM:noreply@integrix.com}
+    auth: ${SMTP_AUTH:true}
+    starttls-enable: ${SMTP_STARTTLS:true}
+    connection-timeout: ${SMTP_TIMEOUT:10000}
+    timeout: ${SMTP_TIMEOUT:10000}
+    write-timeout: ${SMTP_TIMEOUT:10000}
+    alerts-enabled: ${EMAIL_ALERTS_ENABLED:true}
+    default-alert-recipients: ${EMAIL_ALERT_RECIPIENTS:}
+    test-mode: ${EMAIL_TEST_MODE:false}
+    test-email-recipient: ${EMAIL_TEST_RECIPIENT:}

@@ -1,0 +1,293 @@
+package com.integrix.tests.webclient;
+
+import com.integrix.engine.application.service.FlowExecutionService;
+import com.integrixs.shared.integration.ExecutionResult;
+import com.integrixs.shared.integration.ExecutionStatus;
+import com.integrixs.shared.integration.MessageRoutingService;
+import com.integrixs.shared.integration.SystemMonitor;
+import com.integrix.tests.config.BaseIntegrationTest;
+import com.integrix.webclient.application.service.InboundMessageService;
+import com.integrix.webclient.domain.model.InboundMessage;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Map;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Integration tests for WebClient → Engine interaction
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+public class WebClientEngineIntegrationTest extends BaseIntegrationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private InboundMessageService inboundMessageService;
+    
+    @MockBean
+    private MessageRoutingService messageRoutingService;
+    
+    @MockBean
+    private FlowExecutionService flowExecutionService;
+    
+    @MockBean
+    private SystemMonitor systemMonitor;
+    
+    private String testFlowId;
+    private String testEndpointPath;
+    
+    @BeforeEach
+    void setUp() {
+        testFlowId = UUID.randomUUID().toString();
+        testEndpointPath = "/api/inbound/" + testFlowId;
+    }
+    
+    @Test
+    void testInboundMessageProcessing() throws Exception {
+        // Given
+        String messagePayload = "{\"orderId\":\"ORD-123\",\"amount\":99.99}";
+        
+        InboundMessage processedMessage = InboundMessage.builder()
+                .id(UUID.randomUUID().toString())
+                .flowId(testFlowId)
+                .payload(messagePayload)
+                .contentType("application/json")
+                .status("PROCESSED")
+                .build();
+                
+        ExecutionResult executionResult = ExecutionResult.builder()
+                .executionId(UUID.randomUUID().toString())
+                .flowId(testFlowId)
+                .status(ExecutionStatus.SUCCESS)
+                .outputData(Map.of("processed", true))
+                .build();
+        
+        when(inboundMessageService.processInboundMessage(anyString(), anyString(), anyString(), any()))
+                .thenReturn(processedMessage);
+        when(messageRoutingService.routeMessage(eq(testFlowId), any()))
+                .thenReturn(executionResult);
+        
+        // When
+        mockMvc.perform(post(testEndpointPath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(messagePayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
+        
+        // Then
+        verify(inboundMessageService).processInboundMessage(
+                eq(testFlowId),
+                eq(messagePayload),
+                eq("application/json"),
+                any()
+        );
+        verify(messageRoutingService).routeMessage(eq(testFlowId), any());
+        verify(systemMonitor).recordActivity(
+                eq("webclient"),
+                eq("message_received"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testMessageValidation() throws Exception {
+        // Given
+        String invalidPayload = "{invalid json";
+        
+        // When
+        mockMvc.perform(post(testEndpointPath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidPayload))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid message format"));
+        
+        // Then
+        verify(systemMonitor).recordError(
+                eq("webclient"),
+                any(Exception.class),
+                argThat(map -> map.get("reason").equals("validation_failed"))
+        );
+    }
+    
+    @Test
+    void testMessageRoutingToEngine() {
+        // Given
+        String flowId = testFlowId;
+        Map<String, Object> payload = Map.of(
+                "type", "ORDER",
+                "data", Map.of("orderId", "ORD-456", "total", 150.00)
+        );
+        
+        ExecutionResult routingResult = ExecutionResult.builder()
+                .executionId(UUID.randomUUID().toString())
+                .flowId(flowId)
+                .status(ExecutionStatus.SUCCESS)
+                .outputData(payload)
+                .build();
+                
+        when(messageRoutingService.routeMessage(eq(flowId), eq(payload)))
+                .thenReturn(routingResult);
+        
+        // When
+        ExecutionResult result = messageRoutingService.routeMessage(flowId, payload);
+        
+        // Then
+        assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCESS);
+        assertThat(result.getFlowId()).isEqualTo(flowId);
+        assertThat(result.getOutputData()).isEqualTo(payload);
+        
+        verify(systemMonitor).recordActivity(
+                eq("webclient"),
+                eq("message_routed"),
+                argThat(map -> map.get("flowId").equals(flowId))
+        );
+    }
+    
+    @Test
+    void testErrorResponseHandling() throws Exception {
+        // Given
+        String messagePayload = "{\"test\":\"error\"}";
+        
+        when(messageRoutingService.routeMessage(eq(testFlowId), any()))
+                .thenThrow(new RuntimeException("Flow execution failed"));
+        
+        // When
+        mockMvc.perform(post(testEndpointPath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(messagePayload))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Internal server error"));
+        
+        // Then
+        verify(systemMonitor).recordError(
+                eq("webclient"),
+                any(RuntimeException.class),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testAsynchronousMessageProcessing() throws Exception {
+        // Given
+        String messagePayload = "{\"async\":true,\"data\":\"test\"}";
+        
+        InboundMessage queuedMessage = InboundMessage.builder()
+                .id(UUID.randomUUID().toString())
+                .flowId(testFlowId)
+                .payload(messagePayload)
+                .status("QUEUED")
+                .build();
+                
+        when(inboundMessageService.processInboundMessage(anyString(), anyString(), anyString(), any()))
+                .thenReturn(queuedMessage);
+        
+        // When
+        mockMvc.perform(post(testEndpointPath)
+                .header("X-Async-Processing", "true")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(messagePayload))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.messageId").value(queuedMessage.getId()))
+                .andExpect(jsonPath("$.status").value("QUEUED"));
+        
+        // Then
+        verify(systemMonitor).recordActivity(
+                eq("webclient"),
+                eq("message_queued"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testContentTypeNegotiation() throws Exception {
+        // Test JSON
+        mockMvc.perform(post(testEndpointPath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"json\"}"))
+                .andExpect(status().isOk());
+        
+        // Test XML
+        mockMvc.perform(post(testEndpointPath)
+                .contentType(MediaType.APPLICATION_XML)
+                .content("<message><type>xml</type></message>"))
+                .andExpect(status().isOk());
+        
+        // Test Plain Text
+        mockMvc.perform(post(testEndpointPath)
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("plain text message"))
+                .andExpect(status().isOk());
+        
+        verify(inboundMessageService, times(3)).processInboundMessage(
+                anyString(),
+                anyString(),
+                anyString(),
+                any()
+        );
+    }
+    
+    @Test
+    void testMessageHeaderPropagation() throws Exception {
+        // Given
+        String messagePayload = "{\"test\":\"headers\"}";
+        String correlationId = UUID.randomUUID().toString();
+        String traceId = UUID.randomUUID().toString();
+        
+        // When
+        mockMvc.perform(post(testEndpointPath)
+                .header("X-Correlation-ID", correlationId)
+                .header("X-Trace-ID", traceId)
+                .header("X-Custom-Header", "custom-value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(messagePayload))
+                .andExpect(status().isOk());
+        
+        // Then
+        verify(inboundMessageService).processInboundMessage(
+                eq(testFlowId),
+                eq(messagePayload),
+                eq("application/json"),
+                argThat(headers -> 
+                    headers.get("X-Correlation-ID").equals(correlationId) &&
+                    headers.get("X-Trace-ID").equals(traceId) &&
+                    headers.get("X-Custom-Header").equals("custom-value")
+                )
+        );
+    }
+    
+    @Test
+    void testRateLimiting() throws Exception {
+        // Given
+        String messagePayload = "{\"test\":\"rate-limit\"}";
+        int requestCount = 10;
+        
+        // When - Send multiple requests rapidly
+        for (int i = 0; i < requestCount; i++) {
+            mockMvc.perform(post(testEndpointPath)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(messagePayload));
+        }
+        
+        // Then
+        verify(systemMonitor, atLeast(1)).recordActivity(
+                eq("webclient"),
+                eq("rate_limit_check"),
+                any(Map.class)
+        );
+    }
+}

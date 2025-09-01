@@ -1,0 +1,295 @@
+package com.integrix.tests.backend;
+
+import com.integrixs.backend.application.service.IntegrationFlowService;
+import com.integrixs.backend.api.dto.request.CreateFlowRequest;
+import com.integrixs.backend.api.dto.request.UpdateFlowRequest;
+import com.integrixs.backend.api.dto.response.FlowResponse;
+import com.integrixs.data.model.IntegrationFlow;
+import com.integrixs.data.model.FlowStatus;
+import com.integrixs.data.model.FlowType;
+import com.integrixs.data.model.MappingMode;
+import com.integrixs.shared.integration.*;
+import com.integrix.tests.config.BaseIntegrationTest;
+import com.integrix.tests.config.TestDataBuilder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+/**
+ * Integration tests for Backend → Engine interaction
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+public class BackendEngineIntegrationTest extends BaseIntegrationTest {
+
+    @Autowired
+    private IntegrationFlowService flowService;
+    
+    @MockBean
+    private FlowExecutionClient flowExecutionClient;
+    
+    @MockBean
+    private SystemMonitor systemMonitor;
+    
+    private CreateFlowRequest testFlowRequest;
+    
+    @BeforeEach
+    void setUp() {
+        testFlowRequest = TestDataBuilder.createTestFlowRequest();
+    }
+    
+    @Test
+    void testFlowExecutionFromBackend() {
+        // Given
+        FlowResponse createdFlow = flowService.createFlow(testFlowRequest);
+        String flowId = createdFlow.getId();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("test", "data");
+        
+        ExecutionResult mockResult = ExecutionResult.builder()
+                .executionId(UUID.randomUUID().toString())
+                .flowId(flowId)
+                .status(ExecutionStatus.SUCCESS)
+                .outputData(payload)
+                .startTime(System.currentTimeMillis())
+                .endTime(System.currentTimeMillis() + 1000)
+                .build();
+                
+        when(flowExecutionClient.executeFlow(eq(flowId), any(Map.class)))
+                .thenReturn(mockResult);
+        
+        // When
+        ExecutionResult result = flowExecutionClient.executeFlow(flowId, payload);
+        
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCESS);
+        assertThat(result.getFlowId()).isEqualTo(flowId);
+        assertThat(result.getOutputData()).isEqualTo(payload);
+        
+        verify(flowExecutionClient).executeFlow(flowId, payload);
+        verify(systemMonitor).recordActivity(
+                eq("backend"),
+                eq("flow_execution"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testAsyncFlowExecution() {
+        // Given
+        FlowResponse createdFlow = flowService.createFlow(testFlowRequest);
+        String flowId = createdFlow.getId();
+        String executionId = UUID.randomUUID().toString();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("async", true);
+        
+        ExecutionResult pendingResult = ExecutionResult.builder()
+                .executionId(executionId)
+                .flowId(flowId)
+                .status(ExecutionStatus.PENDING)
+                .build();
+                
+        ExecutionResult runningResult = ExecutionResult.builder()
+                .executionId(executionId)
+                .flowId(flowId)
+                .status(ExecutionStatus.RUNNING)
+                .build();
+                
+        ExecutionResult successResult = ExecutionResult.builder()
+                .executionId(executionId)
+                .flowId(flowId)
+                .status(ExecutionStatus.SUCCESS)
+                .outputData(payload)
+                .build();
+        
+        when(flowExecutionClient.executeFlow(eq(flowId), any(Map.class)))
+                .thenReturn(pendingResult);
+        when(flowExecutionClient.getExecutionStatus(executionId))
+                .thenReturn(runningResult.getStatus())
+                .thenReturn(successResult.getStatus());
+        
+        // When
+        ExecutionResult initialResult = flowExecutionClient.executeFlow(flowId, payload);
+        assertThat(initialResult.getStatus()).isEqualTo(ExecutionStatus.PENDING);
+        
+        // Poll for completion
+        await().atMost(5, TimeUnit.SECONDS)
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .until(() -> {
+                    ExecutionStatus status = flowExecutionClient.getExecutionStatus(executionId);
+                    return status == ExecutionStatus.SUCCESS;
+                });
+        
+        // Then
+        ExecutionStatus finalStatus = flowExecutionClient.getExecutionStatus(executionId);
+        assertThat(finalStatus).isEqualTo(ExecutionStatus.SUCCESS);
+    }
+    
+    @Test
+    void testFlowExecutionErrorHandling() {
+        // Given
+        FlowResponse createdFlow = flowService.createFlow(testFlowRequest);
+        String flowId = createdFlow.getId();
+        Map<String, Object> payload = new HashMap<>();
+        String errorMessage = "Connection refused to external system";
+        
+        ExecutionResult errorResult = ExecutionResult.builder()
+                .executionId(UUID.randomUUID().toString())
+                .flowId(flowId)
+                .status(ExecutionStatus.FAILED)
+                .errorMessage(errorMessage)
+                .errorCode("ADAPTER_CONNECTION_ERROR")
+                .build();
+                
+        when(flowExecutionClient.executeFlow(eq(flowId), any(Map.class)))
+                .thenReturn(errorResult);
+        
+        // When
+        ExecutionResult result = flowExecutionClient.executeFlow(flowId, payload);
+        
+        // Then
+        assertThat(result.getStatus()).isEqualTo(ExecutionStatus.FAILED);
+        assertThat(result.getErrorMessage()).isEqualTo(errorMessage);
+        assertThat(result.getErrorCode()).isEqualTo("ADAPTER_CONNECTION_ERROR");
+        
+        verify(systemMonitor).recordError(
+                eq("backend"),
+                any(Exception.class),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testFlowExecutionTimeout() {
+        // Given
+        FlowResponse createdFlow = flowService.createFlow(testFlowRequest);
+        String flowId = createdFlow.getId();
+        String executionId = UUID.randomUUID().toString();
+        long timeout = 5000L; // 5 seconds
+        
+        ExecutionResult runningResult = ExecutionResult.builder()
+                .executionId(executionId)
+                .flowId(flowId)
+                .status(ExecutionStatus.RUNNING)
+                .build();
+                
+        when(flowExecutionClient.executeFlow(eq(flowId), any(Map.class)))
+                .thenReturn(runningResult);
+        when(flowExecutionClient.getExecutionStatus(executionId))
+                .thenReturn(ExecutionStatus.RUNNING);
+        
+        // When
+        ExecutionResult result = flowExecutionClient.executeFlow(flowId, new HashMap<>());
+        
+        // Wait for timeout
+        await().atMost(timeout + 1000, TimeUnit.MILLISECONDS)
+                .pollDelay(timeout, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    flowExecutionClient.stopExecution(executionId);
+                    verify(flowExecutionClient).stopExecution(executionId);
+                });
+        
+        // Then
+        verify(systemMonitor).recordActivity(
+                eq("backend"),
+                eq("flow_execution_timeout"),
+                any(Map.class)
+        );
+    }
+    
+    @Test
+    void testConcurrentFlowExecutions() {
+        // Given
+        int concurrentExecutions = 10;
+        FlowResponse createdFlow = flowService.createFlow(testFlowRequest);
+        String flowId = createdFlow.getId();
+        
+        when(flowExecutionClient.executeFlow(eq(flowId), any(Map.class)))
+                .thenAnswer(invocation -> {
+                    // Simulate processing time
+                    Thread.sleep(100);
+                    return ExecutionResult.builder()
+                            .executionId(UUID.randomUUID().toString())
+                            .flowId(flowId)
+                            .status(ExecutionStatus.SUCCESS)
+                            .outputData((Map<String, Object>) invocation.getArgument(1))
+                            .build();
+                });
+        
+        // When
+        CompletableFuture<ExecutionResult>[] futures = new CompletableFuture[concurrentExecutions];
+        for (int i = 0; i < concurrentExecutions; i++) {
+            final int index = i;
+            futures[i] = CompletableFuture.supplyAsync(() -> {
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("index", index);
+                return flowExecutionClient.executeFlow(flowId, payload);
+            });
+        }
+        
+        // Then
+        CompletableFuture.allOf(futures).join();
+        
+        for (int i = 0; i < concurrentExecutions; i++) {
+            ExecutionResult result = futures[i].join();
+            assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCESS);
+            assertThat(result.getOutputData()).containsEntry("index", i);
+        }
+        
+        verify(flowExecutionClient, times(concurrentExecutions))
+                .executeFlow(eq(flowId), any(Map.class));
+    }
+    
+    @Test
+    void testFlowDeploymentAndExecution() {
+        // Given
+        testFlowRequest.setStatus("DEVELOPED_INACTIVE");
+        FlowResponse savedFlow = flowService.createFlow(testFlowRequest);
+        
+        // Deploy the flow
+        flowService.activateFlow(UUID.fromString(savedFlow.getId()));
+        FlowResponse deployedFlow = flowService.getFlow(UUID.fromString(savedFlow.getId()));
+        assertThat(deployedFlow.getStatus()).isEqualTo("DEPLOYED_ACTIVE");
+        
+        // Mock execution
+        ExecutionResult mockResult = ExecutionResult.builder()
+                .executionId(UUID.randomUUID().toString())
+                .flowId(deployedFlow.getId())
+                .status(ExecutionStatus.SUCCESS)
+                .build();
+                
+        when(flowExecutionClient.executeFlow(eq(deployedFlow.getId()), any(Map.class)))
+                .thenReturn(mockResult);
+        
+        // When
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("test", "deployment");
+        ExecutionResult result = flowExecutionClient.executeFlow(deployedFlow.getId(), payload);
+        
+        // Then
+        assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCESS);
+        assertThat(result.getFlowId()).isEqualTo(deployedFlow.getId());
+        
+        verify(systemMonitor).recordActivity(
+                eq("backend"),
+                eq("flow_deployed"),
+                any(Map.class)
+        );
+    }
+}

@@ -1,0 +1,343 @@
+package com.integrix.tests.e2e;
+
+import com.integrix.backend.application.service.IntegrationFlowService;
+import com.integrix.backend.application.service.CommunicationAdapterService;
+import com.integrix.backend.application.service.FieldMappingService;
+import com.integrix.backend.domain.model.IntegrationFlow;
+import com.integrix.backend.domain.model.CommunicationAdapter;
+import com.integrix.backend.infrastructure.dto.IntegrationFlowDTO;
+import com.integrix.backend.infrastructure.dto.CommunicationAdapterDTO;
+import com.integrix.backend.infrastructure.dto.FieldMappingDTO;
+import com.integrixs.shared.dto.AdapterType;
+import com.integrixs.shared.dto.AdapterDirection;
+import com.integrixs.shared.dto.FlowStatus;
+import com.integrixs.shared.integration.*;
+import com.integrix.tests.config.BaseIntegrationTest;
+import com.integrix.tests.config.TestDataBuilder;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.atLeastOnce;
+
+/**
+ * End-to-End test for complete integration flow execution
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@Testcontainers
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class CompleteFlowExecutionE2ETest extends BaseIntegrationTest {
+    
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
+            .withDatabaseName("integrixflowbridge")
+            .withUsername("integrix")
+            .withPassword("integrix");
+    
+    private static WireMockServer wireMockServer;
+    
+    @Autowired
+    private IntegrationFlowService flowService;
+    
+    @Autowired
+    private CommunicationAdapterService adapterService;
+    
+    @Autowired
+    private FieldMappingService fieldMappingService;
+    
+    @MockBean
+    private FlowExecutionClient flowExecutionClient;
+    
+    @MockBean
+    private SystemMonitor systemMonitor;
+    
+    private static String testFlowId;
+    private static String httpAdapterId;
+    private static String jdbcAdapterId;
+    
+    @BeforeAll
+    static void startWireMock() {
+        wireMockServer = new WireMockServer(8089);
+        wireMockServer.start();
+        WireMock.configureFor("localhost", 8089);
+    }
+    
+    @AfterAll
+    static void stopWireMock() {
+        wireMockServer.stop();
+    }
+    
+    @Test
+    @Order(1)
+    @DisplayName("Step 1: Create HTTP Sender Adapter")
+    void createHttpSenderAdapter() {
+        // Given
+        CommunicationAdapterDTO httpAdapter = new CommunicationAdapterDTO();
+        httpAdapter.setName("E2E HTTP Sender");
+        httpAdapter.setAdapterType(AdapterType.HTTP);
+        httpAdapter.setDirection(AdapterDirection.SENDER);
+        httpAdapter.setConfiguration(Map.of(
+            "url", "http://localhost:8089/source-api",
+            "method", "GET",
+            "headers", Map.of("Accept", "application/json"),
+            "pollingInterval", 5000
+        ));
+        httpAdapter.setActive(true);
+        
+        // When
+        CommunicationAdapter createdAdapter = adapterService.createAdapter(httpAdapter);
+        httpAdapterId = createdAdapter.getId();
+        
+        // Then
+        assertThat(createdAdapter).isNotNull();
+        assertThat(createdAdapter.getId()).isNotBlank();
+        assertThat(createdAdapter.getName()).isEqualTo("E2E HTTP Sender");
+        assertThat(createdAdapter.isActive()).isTrue();
+        
+        verify(systemMonitor).recordActivity(
+            eq("backend"),
+            eq("adapter_created"),
+            any(Map.class)
+        );
+    }
+    
+    @Test
+    @Order(2)
+    @DisplayName("Step 2: Create JDBC Receiver Adapter")
+    void createJdbcReceiverAdapter() {
+        // Given
+        CommunicationAdapterDTO jdbcAdapter = new CommunicationAdapterDTO();
+        jdbcAdapter.setName("E2E JDBC Receiver");
+        jdbcAdapter.setAdapterType(AdapterType.JDBC);
+        jdbcAdapter.setDirection(AdapterDirection.RECEIVER);
+        jdbcAdapter.setConfiguration(Map.of(
+            "driverClassName", "org.postgresql.Driver",
+            "url", postgres.getJdbcUrl(),
+            "username", postgres.getUsername(),
+            "password", postgres.getPassword(),
+            "query", "INSERT INTO test_data (id, name, value, timestamp) VALUES (:id, :name, :value, :timestamp)"
+        ));
+        jdbcAdapter.setActive(true);
+        
+        // When
+        CommunicationAdapter createdAdapter = adapterService.createAdapter(jdbcAdapter);
+        jdbcAdapterId = createdAdapter.getId();
+        
+        // Then
+        assertThat(createdAdapter).isNotNull();
+        assertThat(createdAdapter.getId()).isNotBlank();
+        assertThat(createdAdapter.getName()).isEqualTo("E2E JDBC Receiver");
+        assertThat(createdAdapter.isActive()).isTrue();
+    }
+    
+    @Test
+    @Order(3)
+    @DisplayName("Step 3: Create Integration Flow")
+    void createIntegrationFlow() {
+        // Given
+        IntegrationFlowDTO flowDTO = new IntegrationFlowDTO();
+        flowDTO.setName("E2E HTTP to Database Flow");
+        flowDTO.setDescription("End-to-end test flow");
+        flowDTO.setSourceAdapterId(httpAdapterId);
+        flowDTO.setTargetAdapterId(jdbcAdapterId);
+        flowDTO.setStatus(FlowStatus.INACTIVE);
+        flowDTO.setRetryAttempts(3);
+        flowDTO.setRetryDelay(1000L);
+        flowDTO.setTimeoutMs(30000L);
+        
+        // When
+        IntegrationFlow createdFlow = flowService.createIntegrationFlow(flowDTO);
+        testFlowId = createdFlow.getId();
+        
+        // Then
+        assertThat(createdFlow).isNotNull();
+        assertThat(createdFlow.getId()).isNotBlank();
+        assertThat(createdFlow.getName()).isEqualTo("E2E HTTP to Database Flow");
+        assertThat(createdFlow.getStatus()).isEqualTo(FlowStatus.INACTIVE);
+    }
+    
+    @Test
+    @Order(4)
+    @DisplayName("Step 4: Configure Field Mappings")
+    void configureFieldMappings() {
+        // Given
+        List<FieldMappingDTO> mappings = List.of(
+            createMapping("$.id", "id"),
+            createMapping("$.name", "name"),
+            createMapping("$.amount", "value"),
+            createMapping("$.timestamp", "timestamp")
+        );
+        
+        // When
+        mappings.forEach(mapping -> {
+            fieldMappingService.createFieldMapping(mapping);
+        });
+        
+        // Then
+        List<FieldMappingDTO> savedMappings = fieldMappingService.getFieldMappingsByFlowId(testFlowId);
+        assertThat(savedMappings).hasSize(4);
+        assertThat(savedMappings).extracting(FieldMappingDTO::getSourceField)
+            .containsExactlyInAnyOrder("$.id", "$.name", "$.amount", "$.timestamp");
+    }
+    
+    @Test
+    @Order(5)
+    @DisplayName("Step 5: Deploy Integration Flow")
+    void deployIntegrationFlow() {
+        // When
+        flowService.toggleFlowStatus(testFlowId);
+        IntegrationFlow deployedFlow = flowService.getIntegrationFlowById(testFlowId);
+        
+        // Then
+        assertThat(deployedFlow.getStatus()).isEqualTo(FlowStatus.ACTIVE);
+        
+        verify(systemMonitor).recordActivity(
+            eq("backend"),
+            eq("flow_deployed"),
+            any(Map.class)
+        );
+    }
+    
+    @Test
+    @Order(6)
+    @DisplayName("Step 6: Execute Flow and Verify End-to-End")
+    void executeFlowEndToEnd() {
+        // Given - Mock HTTP source endpoint
+        stubFor(get(urlEqualTo("/source-api"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("""
+                    {
+                        "id": "12345",
+                        "name": "Test Record",
+                        "amount": 99.99,
+                        "timestamp": 1234567890
+                    }
+                    """)));
+        
+        // Mock flow execution
+        ExecutionResult mockResult = ExecutionResult.builder()
+            .executionId("exec-123")
+            .flowId(testFlowId)
+            .status(ExecutionStatus.SUCCESS)
+            .outputData(Map.of(
+                "rowsInserted", 1,
+                "processedData", Map.of(
+                    "id", "12345",
+                    "name", "Test Record",
+                    "value", 99.99,
+                    "timestamp", 1234567890
+                )
+            ))
+            .startTime(System.currentTimeMillis())
+            .endTime(System.currentTimeMillis() + 2000)
+            .build();
+            
+        org.mockito.Mockito.when(flowExecutionClient.executeFlow(eq(testFlowId), any()))
+            .thenReturn(mockResult);
+        
+        // When - Trigger flow execution
+        Map<String, Object> triggerPayload = Map.of("trigger", "manual");
+        ExecutionResult result = flowExecutionClient.executeFlow(testFlowId, triggerPayload);
+        
+        // Then
+        assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCESS);
+        assertThat(result.getOutputData()).containsKey("rowsInserted");
+        assertThat(result.getOutputData().get("rowsInserted")).isEqualTo(1);
+        
+        // Verify HTTP call was made
+        WireMock.verify(1, getRequestedFor(urlEqualTo("/source-api")));
+        
+        // Verify monitoring
+        verify(systemMonitor, atLeastOnce()).recordActivity(
+            eq("engine"),
+            eq("flow_execution_completed"),
+            any(Map.class)
+        );
+    }
+    
+    @Test
+    @Order(7)
+    @DisplayName("Step 7: Verify Error Handling")
+    void verifyErrorHandling() {
+        // Given - Mock HTTP endpoint returns error
+        stubFor(get(urlEqualTo("/source-api"))
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withBody("Internal Server Error")));
+        
+        ExecutionResult errorResult = ExecutionResult.builder()
+            .executionId("exec-error")
+            .flowId(testFlowId)
+            .status(ExecutionStatus.FAILED)
+            .errorMessage("HTTP adapter failed: 500 Internal Server Error")
+            .errorCode("HTTP_ERROR_500")
+            .startTime(System.currentTimeMillis())
+            .endTime(System.currentTimeMillis() + 1000)
+            .build();
+            
+        org.mockito.Mockito.when(flowExecutionClient.executeFlow(eq(testFlowId), any()))
+            .thenReturn(errorResult);
+        
+        // When
+        ExecutionResult result = flowExecutionClient.executeFlow(testFlowId, Map.of());
+        
+        // Then
+        assertThat(result.getStatus()).isEqualTo(ExecutionStatus.FAILED);
+        assertThat(result.getErrorMessage()).contains("HTTP adapter failed");
+        assertThat(result.getErrorCode()).isEqualTo("HTTP_ERROR_500");
+        
+        // Verify error monitoring
+        verify(systemMonitor).recordError(
+            eq("engine"),
+            any(Exception.class),
+            any(Map.class)
+        );
+    }
+    
+    @Test
+    @Order(8)
+    @DisplayName("Step 8: Cleanup - Deactivate Flow")
+    void deactivateFlow() {
+        // When
+        flowService.toggleFlowStatus(testFlowId);
+        IntegrationFlow deactivatedFlow = flowService.getIntegrationFlowById(testFlowId);
+        
+        // Then
+        assertThat(deactivatedFlow.getStatus()).isEqualTo(FlowStatus.INACTIVE);
+        
+        verify(systemMonitor).recordActivity(
+            eq("backend"),
+            eq("flow_deactivated"),
+            any(Map.class)
+        );
+    }
+    
+    private FieldMappingDTO createMapping(String source, String target) {
+        FieldMappingDTO mapping = new FieldMappingDTO();
+        mapping.setFlowId(testFlowId);
+        mapping.setSourceField(source);
+        mapping.setTargetField(target);
+        mapping.setActive(true);
+        return mapping;
+    }
+}

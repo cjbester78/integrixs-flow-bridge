@@ -1,0 +1,32 @@
+---
+# Test flow structure creation with message structures
+
+# Step 1: Check if flow structure exists
+check_flow_structure:
+  method: GET
+  url: http://localhost:8080/api/flow-structures
+  params:
+    search: TempConvertSoap
+    
+# Step 2: Get message structure details
+get_celsius_message:
+  method: GET
+  url: http://localhost:8080/api/message-structures
+  params:
+    search: CelsiusToFahrenheit
+    
+# Expected XSD content in CelsiusToFahrenheit message structure:
+# <?xml version="1.0" encoding="UTF-8"?>
+# <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+#   <xsd:element name="Celsius" type="xsd:string"/>
+# </xsd:schema>
+
+# The issue:
+# When creating a flow structure that references this message structure,
+# the backend's generateWsdl method should extract the XSD content
+# and inline it, but instead it's using type="xsd:anyType"
+
+# To verify:
+# 1. Check if message structures have XSD content
+# 2. Check if flow structure WSDL contains anyType or inline XSD
+# 3. Monitor backend logs when creating flow structure

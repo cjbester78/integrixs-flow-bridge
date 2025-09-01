@@ -1,0 +1,196 @@
+package com.integrix.tests.contract;
+
+import com.integrix.monitoring.application.service.SystemActivityService;
+import com.integrix.monitoring.application.service.AlertingService;
+import com.integrix.monitoring.domain.model.SystemActivity;
+import com.integrix.monitoring.domain.model.Alert;
+import com.integrix.monitoring.domain.model.AlertSeverity;
+import com.integrixs.shared.integration.HealthCheckResult;
+import com.integrixs.shared.integration.SystemMonitor;
+import com.integrix.tests.config.IntegrationTestBase;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+/**
+ * Contract tests for Monitoring module interfaces
+ */
+public class MonitoringContractTest extends IntegrationTestBase {
+    
+    @Autowired
+    private SystemMonitor systemMonitor;
+    
+    @MockBean
+    private SystemActivityService activityService;
+    
+    @MockBean
+    private AlertingService alertingService;
+    
+    @Test
+    void shouldRecordActivity() {
+        // Given - Activity recording contract
+        String module = "backend";
+        String operation = "flow_created";
+        Map<String, Object> context = Map.of(
+            "flowId", "flow-123",
+            "flowName", "Test Flow",
+            "createdBy", "test-user"
+        );
+        
+        // When
+        systemMonitor.recordActivity(module, operation, context);
+        
+        // Then - Verify contract
+        verify(activityService).recordActivity(
+            eq(module),
+            eq(operation),
+            argThat(ctx -> 
+                ctx.get("flowId").equals("flow-123") &&
+                ctx.get("flowName").equals("Test Flow")
+            )
+        );
+    }
+    
+    @Test
+    void shouldRecordError() {
+        // Given - Error recording contract
+        String module = "engine";
+        Exception error = new RuntimeException("Connection timeout");
+        Map<String, Object> context = Map.of(
+            "adapterId", "http-adapter-1",
+            "operation", "execute",
+            "timeout", 30000
+        );
+        
+        // When
+        systemMonitor.recordError(module, error, context);
+        
+        // Then - Verify error contract
+        verify(activityService).recordError(
+            eq(module),
+            argThat(e -> e.getMessage().equals("Connection timeout")),
+            argThat(ctx -> ctx.get("adapterId").equals("http-adapter-1"))
+        );
+    }
+    
+    @Test
+    void shouldRecordPerformanceMetric() {
+        // Given - Performance metric contract
+        String module = "adapters";
+        String operation = "http_request";
+        long durationMs = 250L;
+        
+        // When
+        systemMonitor.recordPerformance(module, operation, durationMs);
+        
+        // Then - Verify metric contract
+        verify(activityService).recordPerformance(module, operation, durationMs);
+    }
+    
+    @Test
+    void shouldRecordCustomMetric() {
+        // Given - Custom metric contract
+        String metricName = "messages.processed";
+        double value = 100.0;
+        Map<String, String> tags = Map.of(
+            "flow", "order-processing",
+            "environment", "test"
+        );
+        
+        // When
+        systemMonitor.recordMetric(metricName, value, tags);
+        
+        // Then - Verify custom metric contract
+        verify(activityService).recordMetric(
+            eq(metricName),
+            eq(value),
+            argThat(t -> t.get("flow").equals("order-processing"))
+        );
+    }
+    
+    @Test
+    void shouldCheckSystemHealth() {
+        // Given - Health check contract
+        HealthCheckResult expectedHealth = HealthCheckResult.builder()
+            .status(HealthCheckResult.Status.UP)
+            .details(Map.of(
+                "database", "UP",
+                "kafka", "UP",
+                "redis", "UP"
+            ))
+            .build();
+            
+        when(systemMonitor.checkHealth()).thenReturn(expectedHealth);
+        
+        // When
+        HealthCheckResult health = systemMonitor.checkHealth();
+        
+        // Then - Verify health check contract
+        assertThat(health.getStatus()).isEqualTo(HealthCheckResult.Status.UP);
+        assertThat(health.getDetails()).containsKeys("database", "kafka", "redis");
+        assertThat(health.getDetails().values()).allMatch("UP"::equals);
+    }
+    
+    @Test
+    void shouldGetModuleHealthStatus() {
+        // Given - Module health contract
+        String module = "backend";
+        Map<String, Object> expectedStatus = Map.of(
+            "status", "UP",
+            "timestamp", System.currentTimeMillis(),
+            "details", Map.of(
+                "activeConnections", 10,
+                "queueSize", 0,
+                "lastActivity", LocalDateTime.now().toString()
+            )
+        );
+        
+        when(systemMonitor.getHealthStatus(module)).thenReturn(expectedStatus);
+        
+        // When
+        Map<String, Object> status = systemMonitor.getHealthStatus(module);
+        
+        // Then - Verify module health contract
+        assertThat(status).containsKey("status");
+        assertThat(status.get("status")).isEqualTo("UP");
+        assertThat(status).containsKey("timestamp");
+        assertThat(status).containsKey("details");
+        assertThat((Map<?, ?>) status.get("details")).containsKeys("activeConnections", "queueSize");
+    }
+    
+    @Test
+    void shouldTriggerAlert() {
+        // Given - Alert triggering contract
+        Alert expectedAlert = Alert.builder()
+            .id("alert-123")
+            .severity(AlertSeverity.HIGH)
+            .source("monitoring")
+            .message("High error rate detected")
+            .timestamp(LocalDateTime.now())
+            .build();
+            
+        when(alertingService.createAlert(any(Alert.class))).thenReturn(expectedAlert);
+        
+        // When error threshold exceeded
+        for (int i = 0; i < 10; i++) {
+            systemMonitor.recordError("backend", new RuntimeException("Test error"), Map.of());
+        }
+        
+        // Then - Verify alert contract
+        verify(alertingService, atLeastOnce()).createAlert(
+            argThat(alert -> 
+                alert.getSeverity() == AlertSeverity.HIGH &&
+                alert.getMessage().contains("error rate")
+            )
+        );
+    }
+}

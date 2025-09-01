@@ -1,0 +1,25 @@
+#\!/bin/bash
+# Check flow structure content
+mysql -h 127.0.0.1 -u root integrixflowbridge -e "
+SELECT 
+    fs.id,
+    fs.name,
+    fs.processing_mode,
+    fs.source_type,
+    SUBSTRING(fs.wsdl_content, 1, 500) as wsdl_preview
+FROM flow_structures fs
+WHERE fs.name = 'TempConvertSoap'
+AND fs.is_active = 1;"
+
+# Check message structures linked to flow
+mysql -h 127.0.0.1 -u root integrixflowbridge -e "
+SELECT 
+    fsm.message_type,
+    ms.name as message_structure_name,
+    ms.xsd_content IS NOT NULL as has_xsd,
+    SUBSTRING(ms.xsd_content, 1, 200) as xsd_preview
+FROM flow_structures fs
+JOIN flow_structure_messages fsm ON fs.id = fsm.flow_structure_id
+JOIN message_structures ms ON fsm.message_structure_id = ms.id
+WHERE fs.name = 'TempConvertSoap'
+AND fs.is_active = 1;"
