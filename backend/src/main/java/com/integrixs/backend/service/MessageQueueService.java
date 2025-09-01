@@ -49,6 +49,9 @@ public class MessageQueueService {
     @Autowired
     private EnhancedAdapterExecutionService adapterExecutionService;
     
+    @Autowired(required = false)
+    private MessageLazyLoadingService messageLazyLoadingService;
+    
     // @Autowired
     // private NotificationService notificationService;
     
@@ -173,7 +176,12 @@ public class MessageQueueService {
             message.setCorrelationId(UUID.randomUUID().toString());
             message.setCreatedAt(LocalDateTime.now());
             
-            message = messageRepository.save(message);
+            // Use lazy loading service if available
+            if (messageLazyLoadingService != null) {
+                message = messageLazyLoadingService.saveMessageWithLazyLoading(message);
+            } else {
+                message = messageRepository.save(message);
+            }
             
             // Create flow execution record
             FlowExecution execution = new FlowExecution();
@@ -358,11 +366,19 @@ public class MessageQueueService {
                     messageRepository.save(message);
                 }
                 
+                // Load message with payload if using lazy loading
+                String actualPayload = message.getPayload();
+                if (messageLazyLoadingService != null && messageLazyLoadingService.hasExternalPayload(message)) {
+                    Message loadedMessage = messageLazyLoadingService.loadMessageWithPayload(message.getId())
+                        .orElse(message);
+                    actualPayload = loadedMessage.getPayload();
+                }
+                
                 // Add to queue
                 QueuedMessage queuedMessage = new QueuedMessage(
                     message.getId().toString(),
                     message.getFlowId().toString(),
-                    message.getPayload(),
+                    actualPayload,
                     message.getPriority(),
                     message.getCreatedAt()
                 );

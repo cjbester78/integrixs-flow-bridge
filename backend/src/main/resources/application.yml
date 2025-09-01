@@ -182,6 +182,17 @@ encryption:
     rotation:
       enabled: false
 
+# ✅ Payload lazy loading configuration
+payload:
+  storage:
+    path: ${PAYLOAD_STORAGE_PATH:./data/payloads}  # Directory for external payload storage
+  size:
+    threshold: ${PAYLOAD_SIZE_THRESHOLD:1048576}  # 1MB default - payloads larger than this are stored externally
+  compression:
+    enabled: ${PAYLOAD_COMPRESSION_ENABLED:true}  # Enable GZIP compression for external payloads
+  cleanup:
+    days-to-keep: ${PAYLOAD_CLEANUP_DAYS:30}  # Keep external payloads for 30 days
+
 # ✅ Email configuration
 mail:
   smtp:

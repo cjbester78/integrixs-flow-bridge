@@ -6,6 +6,7 @@ import com.integrixs.data.model.FlowExecution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -46,4 +47,11 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     
     @Query("SELECT m FROM Message m WHERE m.status IN :statuses ORDER BY m.priority DESC, m.createdAt ASC")
     List<Message> findByStatusInOrderByPriorityDescCreatedAtAsc(@Param("statuses") List<Message.MessageStatus> statuses);
+    
+    @Modifying
+    @Query("UPDATE Message m SET m.messageContent = :content WHERE m.id = :id")
+    void updateMessageContent(@Param("id") UUID id, @Param("content") String content);
+    
+    @Query("SELECT m.messageContent FROM Message m WHERE m.id = :id")
+    String findMessageContentById(@Param("id") UUID id);
 }
