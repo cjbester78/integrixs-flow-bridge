@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Settings as SettingsIcon, Loader2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Settings as Loader2 } from 'lucide-react';
 import { FlowActionsCard } from '@/components/createFlow/FlowActionsCard';
 import { FlowSummaryCard } from '@/components/createFlow/FlowSummaryCard';
 import { QuickTipsCard } from '@/components/createFlow/QuickTipsCard';

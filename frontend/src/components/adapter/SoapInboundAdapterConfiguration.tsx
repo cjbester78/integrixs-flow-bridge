@@ -6,11 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 import { api } from '@/services/api';
 import { extractWsdlSoapActions } from '@/utils/structureParsers';
-import { useToast } from '@/hooks/use-toast';
 
 interface SoapInboundAdapterConfigurationProps {
   configuration: any;
@@ -23,7 +20,6 @@ export function SoapInboundAdapterConfiguration({
   onConfigurationChange,
   businessComponentId
 }: SoapInboundAdapterConfigurationProps) {
-  const { toast } = useToast();
   const [wsdls, setWsdls] = useState<any[]>([]);
   const [loadingWsdls, setLoadingWsdls] = useState(false);
   const [wsdlStructureDetails, setWsdlStructureDetails] = useState<{

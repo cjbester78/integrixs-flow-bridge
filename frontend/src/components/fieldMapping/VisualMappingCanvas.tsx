@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { FunctionPicker } from './FunctionPicker';
 import { VisualFlowEditor } from './VisualFlowEditor';
 import { FieldNode, FieldMapping } from './types';
 import { Plus, Settings } from 'lucide-react';

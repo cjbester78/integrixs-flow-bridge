@@ -1,4 +1,4 @@
-import { Message, MessageStatus } from '@/services/messageService';
+import { Message } from '@/services/messageService';
 import { TimeFilter } from '../types/timeFilter';
 
 export const filterMessagesByTime = (messages: Message[], filter: TimeFilter): Message[] => {

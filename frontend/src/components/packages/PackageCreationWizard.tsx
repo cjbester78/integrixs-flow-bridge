@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,9 +15,6 @@ import { dataStructureService } from '@/services/dataStructureService';
 import { integrationFlowService } from '@/services/integrationFlowService';
 import type { IntegrationPackage, CreatePackageRequest, ComponentType } from '@/types/package';
 import type { CommunicationAdapter, AdapterType } from '@/types/communicationAdapter';
-import { requiresFlowStructure } from '@/types/communicationAdapter';
-import type { DataStructure } from '@/types/dataStructure';
-import type { IntegrationFlow } from '@/types/flow';
 import { FieldMappingScreen } from '../FieldMappingScreen';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';

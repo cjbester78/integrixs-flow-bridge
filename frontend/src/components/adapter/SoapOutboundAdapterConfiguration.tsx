@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CertificateSelection } from '@/components/ui/certificate-selection';
 import { api } from '@/services/api';
 import { extractWsdlSoapActions } from '@/utils/structureParsers';
-import { useToast } from '@/hooks/use-toast';
-
 interface SoapOutboundAdapterConfigurationProps {
   configuration: any;
   onConfigurationChange: (field: string, value: any) => void;
@@ -23,7 +21,6 @@ export function SoapOutboundAdapterConfiguration({
   onConfigurationChange,
   businessComponentId
 }: SoapOutboundAdapterConfigurationProps) {
-  const { toast } = useToast();
   const [wsdls, setWsdls] = useState<any[]>([]);
   const [loadingWsdls, setLoadingWsdls] = useState(false);
   const [wsdlStructureDetails, setWsdlStructureDetails] = useState<{

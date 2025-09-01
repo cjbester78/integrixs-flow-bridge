@@ -52,7 +52,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import { api } from '@/services/api';
 import { adapterService } from '@/services/adapter';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';

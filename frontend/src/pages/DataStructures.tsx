@@ -39,7 +39,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import { api } from '@/services/api';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';

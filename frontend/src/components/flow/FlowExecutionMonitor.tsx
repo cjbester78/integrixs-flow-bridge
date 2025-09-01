@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FlowExecution, StepExecution } from '@/types/flow';
+import { FlowExecution } from '@/types/flow';
 import { flowExecutionEngine } from '@/services/flowExecutionEngine';
 import { 
   Play, 

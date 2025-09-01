@@ -13,7 +13,6 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Download, Info, Loader2 } from 'lucide-react';
 import { downloadFlowExport, flowExportImportService } from '@/services/flowExportImportService';
 import { useToast } from '@/hooks/use-toast';

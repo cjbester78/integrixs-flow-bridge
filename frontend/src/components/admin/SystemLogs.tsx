@@ -11,7 +11,7 @@ import { SystemLogViewer } from '@/components/SystemLogViewer';
 import { DomainLogViewer } from '@/components/DomainLogViewer';
 import { LogFilters } from '@/components/adapter/LogFilters';
 import { LogExport } from '@/components/adapter/LogExport';
-import { ScrollText, Search, Filter, Download, RefreshCw, Database, Workflow, Network, User, Settings, MessageSquare } from 'lucide-react';
+import { ScrollText, Search, Filter, RefreshCw, Database, Workflow, Network, User, Settings, MessageSquare } from 'lucide-react';
 
 export const SystemLogs = () => {
   const [selectedSource, setSelectedSource] = useState<'adapter' | 'system' | 'channel' | 'flow' | 'api' | ''>('');

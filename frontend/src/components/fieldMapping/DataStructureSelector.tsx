@@ -1,10 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useDataStructures } from '@/hooks/useDataStructures';
-import { DataStructure } from '@/types/dataStructures';
 
 interface DataStructureSelectorProps {
   isOpen: boolean;

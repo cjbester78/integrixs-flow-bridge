@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { adapterMonitoringService, AdapterMonitoring } from '@/services/adapterMonitoringService';
-import { useToast } from '@/hooks/use-toast';
 
 export const useAdapterMonitoring = (businessComponentId?: string) => {
   const [adapters, setAdapters] = useState<AdapterMonitoring[]>([]);

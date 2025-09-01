@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowRight, Code, X, Zap } from 'lucide-react';
+import { ArrowRight, X, Zap } from 'lucide-react';
 import { FieldMapping, FieldNode } from './types';
-import { FunctionPicker } from './FunctionPicker';
 import { FunctionMappingModal } from './FunctionMappingModal';
 import { VisualFlowEditor } from './VisualFlowEditor';
 

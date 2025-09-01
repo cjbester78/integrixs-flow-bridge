@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FieldNode, FieldMapping, FunctionNodeData } from './types';
-import { functionsByCategory, TransformationFunction } from '@/services/transformationFunctions';
+import { functionsByCategory } from '@/services/transformationFunctions';
 import { X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

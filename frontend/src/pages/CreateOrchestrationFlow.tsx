@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { usePageReset } from '@/hooks/usePageReset';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Construction, Save, X, Settings as SettingsIcon, Loader2, Play } from 'lucide-react';
+import { ArrowLeft, Construction, Save, X, Settings as Loader2 } from 'lucide-react';
 import { VisualOrchestrationEditor } from '@/components/orchestration/VisualOrchestrationEditor';
 import { businessComponentService } from '@/services/businessComponentService';
 import { api } from '@/services/api';

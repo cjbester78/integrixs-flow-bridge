@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Play, Save, Copy, Loader2 } from 'lucide-react';
+import { Save, Copy, Loader2 } from 'lucide-react';
 
 interface FlowActionsCardProps {
   onSaveFlow: () => void;

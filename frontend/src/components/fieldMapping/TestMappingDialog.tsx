@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Play, Upload, Download, Copy, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Play, Upload, Download, Copy, AlertCircle, Loader2 } from 'lucide-react';
 import { FieldMapping } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/services/api';

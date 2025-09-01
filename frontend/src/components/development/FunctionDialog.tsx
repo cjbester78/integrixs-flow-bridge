@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -23,8 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Info } from 'lucide-react';
-import { parseFunctionSignature, inferParameterTypes, generateSignature, FunctionParameter } from '@/utils/functionSignatureParser';
+import { Loader2, Info } from 'lucide-react';
+import { parseFunctionSignature, inferParameterTypes, FunctionParameter } from '@/utils/functionSignatureParser';
 import { ParameterEditor } from './ParameterEditor';
 import { FunctionTestPanel } from './FunctionTestPanel';
 

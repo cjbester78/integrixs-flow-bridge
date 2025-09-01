@@ -14,8 +14,6 @@ import {
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
 
 // Import our custom node types and components
 import { AdapterNode } from './nodes/AdapterNode';

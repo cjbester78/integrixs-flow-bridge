@@ -4,11 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { TransformationFunction, functionsByCategory } from '@/services/transformationFunctions';
 import { developmentFunctionsService, TransformationFunctionWithParams } from '@/services/developmentFunctions';
-import { Settings, Zap, X, Link2, Code } from 'lucide-react';
+import { Settings, Zap, X, Code } from 'lucide-react';
 
 interface FunctionNodeProps {
   id: string;

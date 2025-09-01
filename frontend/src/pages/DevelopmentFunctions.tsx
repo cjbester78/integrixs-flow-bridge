@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { FunctionDialog } from '@/components/development/FunctionDialog';
 import {
   Code,
@@ -25,7 +24,6 @@ import {
   CheckCircle2,
   Eye
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 interface BuiltInFunction {
   name: string;

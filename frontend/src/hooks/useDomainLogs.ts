@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/services/api';
-import { useSystemLogs, SystemLogEntry } from './useSystemLogs';
+import { useSystemLogs } from './useSystemLogs';
 
 // Domain-specific error types
 export interface DomainErrorEntry {

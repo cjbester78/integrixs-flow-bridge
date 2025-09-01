@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Settings, Save, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { Settings, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EnvironmentConfiguration } from './EnvironmentConfiguration';
 import { apiClient } from '@/lib/api-client';
