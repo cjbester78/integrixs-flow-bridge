@@ -31,14 +31,14 @@ ADD CONSTRAINT fk_flows_target_flow_structure
 ALTER TABLE integration_flows
 DROP CONSTRAINT IF EXISTS fk_flows_source_adapter,
 ADD CONSTRAINT fk_flows_source_adapter 
-    FOREIGN KEY (source_adapter_id) 
+    FOREIGN KEY (inbound_adapter_id) 
     REFERENCES communication_adapters(id) 
     ON DELETE RESTRICT;
 
 ALTER TABLE integration_flows
 DROP CONSTRAINT IF EXISTS fk_flows_target_adapter,
 ADD CONSTRAINT fk_flows_target_adapter 
-    FOREIGN KEY (target_adapter_id) 
+    FOREIGN KEY (outbound_adapter_id) 
     REFERENCES communication_adapters(id) 
     ON DELETE RESTRICT;
 

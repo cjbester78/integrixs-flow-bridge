@@ -18,32 +18,32 @@ public class DeploymentValidator {
     /**
      * Validate flow is ready for deployment
      */
-    public void validateFlowForDeployment(IntegrationFlow flow, CommunicationAdapter sourceAdapter, CommunicationAdapter targetAdapter) {
+    public void validateFlowForDeployment(IntegrationFlow flow, CommunicationAdapter inboundAdapter, CommunicationAdapter outboundAdapter) {
         // Check deployment status
         if (flow.getStatus() == FlowStatus.DEPLOYED_ACTIVE) {
             throw new IllegalStateException("Flow is already deployed");
         }
         
         // Check adapters are configured
-        if (flow.getSourceAdapterId() == null || flow.getTargetAdapterId() == null) {
+        if (flow.getInboundAdapterId() == null || flow.getOutboundAdapterId() == null) {
             throw new IllegalStateException("Flow must have source and target adapters configured");
         }
         
         // Validate source adapter
-        if (!sourceAdapter.isActive()) {
+        if (!inboundAdapter.isActive()) {
             throw new IllegalStateException(
                 String.format("Cannot deploy flow: Source adapter '%s' is in a stopped status. " +
                     "Please activate the adapter before deploying the flow.", 
-                    sourceAdapter.getName())
+                    inboundAdapter.getName())
             );
         }
         
         // Validate target adapter
-        if (!targetAdapter.isActive()) {
+        if (!outboundAdapter.isActive()) {
             throw new IllegalStateException(
                 String.format("Cannot deploy flow: Target adapter '%s' is in a stopped status. " +
                     "Please activate the adapter before deploying the flow.", 
-                    targetAdapter.getName())
+                    outboundAdapter.getName())
             );
         }
         

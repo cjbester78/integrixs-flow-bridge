@@ -2,8 +2,11 @@ package com.integrixs.adapters.controller;
 
 import com.integrixs.adapters.core.*;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
-import com.integrixs.adapters.domain.port.SenderAdapterPort;
-import com.integrixs.adapters.config.HttpSenderAdapterConfig;
+import com.integrixs.adapters.domain.model.AdapterOperationResult;
+import com.integrixs.adapters.domain.model.FetchRequest;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
+import com.integrixs.adapters.infrastructure.adapter.AbstractAdapter;
+import com.integrixs.adapters.config.HttpInboundAdapterConfig;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +19,7 @@ import java.util.Map;
 
 /**
  * REST Controller to handle inbound HTTP requests routed to the HTTP Sender Adapter.
- * In middleware terminology, sender adapters receive data FROM external systems.
+ * In middleware terminology, inbound adapters receive data FROM external systems.
  */
 @RestController
 @RequestMapping("/api/http-adapter")
@@ -24,21 +27,21 @@ public class HttpAdapterController {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpAdapterController.class);
 
-    private final Object httpSenderAdapter; // Using Object to avoid cast issues
+    private final InboundAdapterPort httpInboundAdapter;
     private final AdapterFactoryManager factoryManager;
 
     /**
-     * Constructor injecting HttpSenderAdapterConfig and initializing HTTP Sender Adapter.
+     * Constructor injecting HttpInboundAdapterConfig and initializing HTTP Sender Adapter.
      */
-    public HttpAdapterController(HttpSenderAdapterConfig config) {
+    public HttpAdapterController(HttpInboundAdapterConfig config) {
         this.factoryManager = AdapterFactoryManager.getInstance();
         try {
-            this.httpSenderAdapter = factoryManager.createAndInitialize(
-                    AdapterConfiguration.AdapterTypeEnum.HTTP, AdapterConfiguration.AdapterModeEnum.SENDER, config);
-            logger.info("HTTP Sender Adapter initialized for controller");
+            this.httpInboundAdapter = (InboundAdapterPort) factoryManager.createAndInitialize(
+                    AdapterConfiguration.AdapterTypeEnum.HTTP, AdapterConfiguration.AdapterModeEnum.INBOUND, config);
+            logger.info("HTTP Inbound Adapter initialized for controller");
         } catch (AdapterException e) {
-            logger.error("Failed to initialize HTTP Sender Adapter", e);
-            throw new RuntimeException("Failed to initialize HTTP Sender Adapter", e);
+            logger.error("Failed to initialize HTTP Inbound Adapter", e);
+            throw new RuntimeException("Failed to initialize HTTP Inbound Adapter", e);
         }
     }
 
@@ -54,22 +57,26 @@ public class HttpAdapterController {
         try {
             logger.debug("Received inbound HTTP payload of length: {}", payload != null ? payload.length() : 0);
             
-            // Use the sender adapter to process the inbound request
-            // In middleware terminology, sender adapters receive data FROM external systems
+            // Use the inbound adapter to process the inbound request
+            // In middleware terminology, inbound adapters receive data FROM external systems
             Map<String, Object> headers = new HashMap<>();
             headers.put("requestMethod", "POST");
             headers.put("contentType", "application/json");
             
-            // Use reflection or instanceof to handle both old and new adapter interfaces
-            AdapterResult result;
-            if (httpSenderAdapter instanceof SenderAdapter) {
-                result = ((SenderAdapter) httpSenderAdapter).send(payload, headers);
-            } else if (httpSenderAdapter instanceof SenderAdapterPort) {
-                // TODO: Convert to new interface methods
-                throw new UnsupportedOperationException("New adapter interface not yet supported in controller");
-            } else {
-                throw new IllegalStateException("Unknown adapter type: " + httpSenderAdapter.getClass());
-            }
+            // Create a FetchRequest with the payload and headers
+            Map<String, String> stringHeaders = new HashMap<>();
+            headers.forEach((k, v) -> stringHeaders.put(k, v != null ? v.toString() : ""));
+            
+            FetchRequest fetchRequest = FetchRequest.builder()
+                    .adapterId("http-controller")
+                    .headers(stringHeaders)
+                    .build();
+            
+            // Add the payload as a parameter
+            fetchRequest.addParameter("payload", payload);
+            
+            // Use the inbound adapter to process the inbound request
+            AdapterOperationResult result = httpInboundAdapter.fetch(fetchRequest);
             
             if (result.isSuccess()) {
                 String responsePayload = result.getData() != null ? result.getData().toString() : "OK";
@@ -81,10 +88,6 @@ public class HttpAdapterController {
                         .body("Failed to process payload: " + result.getMessage());
             }
             
-        } catch (AdapterException e) {
-            logger.error("Adapter error processing inbound HTTP payload", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Adapter error: " + e.getMessage());
         } catch (Exception e) {
             logger.error("Error processing inbound HTTP payload", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -100,14 +103,16 @@ public class HttpAdapterController {
     @GetMapping("/test")
     public ResponseEntity<String> testConnection() {
         try {
-            AdapterResult result;
-            if (httpSenderAdapter instanceof SenderAdapter) {
-                result = ((SenderAdapter) httpSenderAdapter).testConnection();
-            } else if (httpSenderAdapter instanceof SenderAdapterPort) {
-                // TODO: Convert to new interface methods
-                throw new UnsupportedOperationException("New adapter interface not yet supported in controller");
+            // Use the AbstractAdapter to access testConnection method
+            AdapterOperationResult result;
+            if (httpInboundAdapter instanceof AbstractAdapter) {
+                AbstractAdapter abstractAdapter = (AbstractAdapter) httpInboundAdapter;
+                result = abstractAdapter.testConnection(abstractAdapter.getConfiguration());
             } else {
-                throw new IllegalStateException("Unknown adapter type: " + httpSenderAdapter.getClass());
+                // Fallback: create a simple test by checking if adapter is ready
+                result = httpInboundAdapter.isReady() 
+                    ? AdapterOperationResult.success("Adapter is ready")
+                    : AdapterOperationResult.failure("Adapter is not ready");
             }
             
             if (result.isSuccess()) {

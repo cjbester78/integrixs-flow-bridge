@@ -198,6 +198,15 @@ public class ExternalAuthenticationService {
                 case OAUTH1:
                     applyOAuth1Auth(auth, headers, requestContext);
                     break;
+                case HMAC:
+                    applyHmacAuth(auth, headers, requestContext);
+                    break;
+                case CERTIFICATE:
+                    applyCertificateAuth(auth, requestContext);
+                    break;
+                case CUSTOM_HEADER:
+                    applyCustomHeaderAuth(auth, headers);
+                    break;
                 default:
                     logger.warn("Unsupported authentication type: {}", auth.getAuthType());
             }
@@ -284,11 +293,45 @@ public class ExternalAuthenticationService {
         }
     }
     
+    @Autowired
+    private OAuth2TokenRefreshService oauth2TokenRefreshService;
+    
     private void applyOAuth2Auth(ExternalAuthentication auth, Map<String, String> headers) {
         // Check if token needs refresh
-        if (auth.needsTokenRefresh() && auth.getRefreshToken() != null) {
-            // TODO: Implement OAuth2 token refresh
-            logger.warn("OAuth2 token refresh needed but not implemented yet");
+        if (auth.needsTokenRefresh()) {
+            if (auth.getRefreshToken() != null) {
+                // Try to refresh the token
+                logger.info("OAuth2 token needs refresh for authentication: {}", auth.getName());
+                boolean refreshed = oauth2TokenRefreshService.refreshToken(auth);
+                if (!refreshed) {
+                    // If refresh fails with refresh token, try client credentials if configured
+                    if ("client_credentials".equals(auth.getGrantType()) || 
+                        (auth.getClientId() != null && auth.getEncryptedClientSecret() != null)) {
+                        logger.info("Attempting client credentials flow for authentication: {}", auth.getName());
+                        Map<String, Object> result = oauth2TokenRefreshService.requestClientCredentialsToken(auth.getId().toString());
+                        if (!Boolean.TRUE.equals(result.get("success"))) {
+                            throw new RuntimeException("Failed to refresh OAuth2 token: " + result.get("message"));
+                        }
+                    } else {
+                        throw new RuntimeException("OAuth2 token expired and refresh failed");
+                    }
+                }
+            } else if ("client_credentials".equals(auth.getGrantType()) || 
+                      (auth.getClientId() != null && auth.getEncryptedClientSecret() != null)) {
+                // For client credentials flow, request new token
+                logger.info("Requesting new client credentials token for authentication: {}", auth.getName());
+                Map<String, Object> result = oauth2TokenRefreshService.requestClientCredentialsToken(auth.getId().toString());
+                if (!Boolean.TRUE.equals(result.get("success"))) {
+                    throw new RuntimeException("Failed to obtain OAuth2 token: " + result.get("message"));
+                }
+            } else {
+                throw new RuntimeException("OAuth2 token expired and no refresh mechanism available");
+            }
+        }
+        
+        // At this point we should have a valid token
+        if (auth.getEncryptedAccessToken() == null) {
+            throw new RuntimeException("No OAuth2 access token available");
         }
         
         String accessToken = encryptionService.decrypt(auth.getEncryptedAccessToken());
@@ -310,6 +353,109 @@ public class ExternalAuthenticationService {
                                 Map<String, Object> requestContext) {
         // TODO: Implement OAuth1 signature generation
         logger.warn("OAuth1 authentication not implemented yet");
+    }
+    
+    private void applyHmacAuth(ExternalAuthentication auth, Map<String, String> headers,
+                              Map<String, Object> requestContext) {
+        try {
+            String secretKey = encryptionService.decrypt(auth.getEncryptedHmacSecretKey());
+            String algorithm = auth.getHmacAlgorithm() != null ? auth.getHmacAlgorithm() : "HmacSHA256";
+            String headerName = auth.getHmacHeaderName() != null ? auth.getHmacHeaderName() : "X-HMAC-Signature";
+            
+            // Build string to sign
+            StringBuilder dataToSign = new StringBuilder();
+            
+            // Add HTTP method if available
+            if (requestContext.containsKey("httpMethod")) {
+                dataToSign.append(requestContext.get("httpMethod")).append("\n");
+            }
+            
+            // Add request URI if available
+            if (requestContext.containsKey("requestUri")) {
+                dataToSign.append(requestContext.get("requestUri")).append("\n");
+            }
+            
+            // Add timestamp if configured
+            if (Boolean.TRUE.equals(auth.getHmacIncludeTimestamp())) {
+                String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+                headers.put("X-Timestamp", timestamp);
+                dataToSign.append(timestamp).append("\n");
+            }
+            
+            // Add nonce if configured
+            if (Boolean.TRUE.equals(auth.getHmacIncludeNonce())) {
+                String nonce = UUID.randomUUID().toString();
+                headers.put("X-Nonce", nonce);
+                dataToSign.append(nonce).append("\n");
+            }
+            
+            // Add request body if available
+            if (requestContext.containsKey("requestBody")) {
+                dataToSign.append(requestContext.get("requestBody"));
+            }
+            
+            // Generate HMAC signature
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance(algorithm);
+            javax.crypto.spec.SecretKeySpec secretKeySpec = new javax.crypto.spec.SecretKeySpec(
+                secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8), algorithm);
+            mac.init(secretKeySpec);
+            
+            byte[] hmacBytes = mac.doFinal(dataToSign.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String hmacSignature = Base64.getEncoder().encodeToString(hmacBytes);
+            
+            headers.put(headerName, hmacSignature);
+            
+        } catch (Exception e) {
+            logger.error("Failed to apply HMAC authentication", e);
+            throw new RuntimeException("HMAC authentication failed: " + e.getMessage(), e);
+        }
+    }
+    
+    private void applyCertificateAuth(ExternalAuthentication auth, Map<String, Object> requestContext) {
+        // Certificate authentication is typically handled at the HTTP client level
+        // Store certificate configuration in request context for the adapter to use
+        if (auth.getCertificatePath() != null) {
+            requestContext.put("certificatePath", auth.getCertificatePath());
+            if (auth.getEncryptedCertificatePassword() != null) {
+                requestContext.put("certificatePassword", 
+                    encryptionService.decrypt(auth.getEncryptedCertificatePassword()));
+            }
+            if (auth.getCertificateType() != null) {
+                requestContext.put("certificateType", auth.getCertificateType());
+            }
+        }
+        
+        if (auth.getTrustStorePath() != null) {
+            requestContext.put("trustStorePath", auth.getTrustStorePath());
+            if (auth.getEncryptedTrustStorePassword() != null) {
+                requestContext.put("trustStorePassword", 
+                    encryptionService.decrypt(auth.getEncryptedTrustStorePassword()));
+            }
+        }
+        
+        // Set flag to indicate certificate auth is required
+        requestContext.put("requiresCertificateAuth", true);
+    }
+    
+    private void applyCustomHeaderAuth(ExternalAuthentication auth, Map<String, String> headers) {
+        if (auth.getCustomHeaders() != null && !auth.getCustomHeaders().isEmpty()) {
+            // Add all custom headers
+            for (Map.Entry<String, String> entry : auth.getCustomHeaders().entrySet()) {
+                String headerName = entry.getKey();
+                String headerValue = entry.getValue();
+                
+                // Check if value contains a placeholder for encrypted data
+                if (headerValue != null && headerValue.startsWith("${encrypted:") && headerValue.endsWith("}")) {
+                    // Extract and decrypt the value
+                    String encryptedValue = headerValue.substring(12, headerValue.length() - 1);
+                    headerValue = encryptionService.decrypt(encryptedValue);
+                }
+                
+                headers.put(headerName, headerValue);
+            }
+        } else {
+            logger.warn("Custom header authentication configured but no headers defined");
+        }
     }
     
     private void populateAndEncryptAuthFields(ExternalAuthentication auth, ExternalAuthenticationDTO dto) {
@@ -357,6 +503,46 @@ public class ExternalAuthenticationService {
                 auth.setOauth1Token(dto.getOauth1Token());
                 if (dto.getOauth1TokenSecret() != null && !dto.getOauth1TokenSecret().isEmpty()) {
                     auth.setOauth1TokenSecret(encryptionService.encrypt(dto.getOauth1TokenSecret()));
+                }
+                break;
+                
+            case HMAC:
+                auth.setHmacAlgorithm(dto.getHmacAlgorithm());
+                if (dto.getHmacSecretKey() != null && !dto.getHmacSecretKey().isEmpty()) {
+                    auth.setEncryptedHmacSecretKey(encryptionService.encrypt(dto.getHmacSecretKey()));
+                }
+                auth.setHmacHeaderName(dto.getHmacHeaderName());
+                auth.setHmacIncludeTimestamp(dto.isHmacIncludeTimestamp());
+                auth.setHmacIncludeNonce(dto.isHmacIncludeNonce());
+                break;
+                
+            case CERTIFICATE:
+                auth.setCertificatePath(dto.getCertificatePath());
+                if (dto.getCertificatePassword() != null && !dto.getCertificatePassword().isEmpty()) {
+                    auth.setEncryptedCertificatePassword(encryptionService.encrypt(dto.getCertificatePassword()));
+                }
+                auth.setCertificateType(dto.getCertificateType());
+                auth.setTrustStorePath(dto.getTrustStorePath());
+                if (dto.getTrustStorePassword() != null && !dto.getTrustStorePassword().isEmpty()) {
+                    auth.setEncryptedTrustStorePassword(encryptionService.encrypt(dto.getTrustStorePassword()));
+                }
+                break;
+                
+            case CUSTOM_HEADER:
+                auth.setCustomHeaders(dto.getCustomHeaders());
+                // Encrypt any sensitive values in custom headers
+                if (dto.getCustomHeaders() != null) {
+                    Map<String, String> processedHeaders = new HashMap<>();
+                    for (Map.Entry<String, String> entry : dto.getCustomHeaders().entrySet()) {
+                        String value = entry.getValue();
+                        // Check if value is marked as sensitive
+                        if (value != null && value.startsWith("${sensitive:") && value.endsWith("}")) {
+                            String sensitiveValue = value.substring(12, value.length() - 1);
+                            value = "${encrypted:" + encryptionService.encrypt(sensitiveValue) + "}";
+                        }
+                        processedHeaders.put(entry.getKey(), value);
+                    }
+                    auth.setCustomHeaders(processedHeaders);
                 }
                 break;
         }
@@ -415,6 +601,37 @@ public class ExternalAuthenticationService {
                 dto.setOauth1Token(auth.getOauth1Token());
                 dto.setHasConsumerSecret(auth.getConsumerSecret() != null);
                 dto.setHasOauth1TokenSecret(auth.getOauth1TokenSecret() != null);
+                break;
+                
+            case HMAC:
+                dto.setHmacAlgorithm(auth.getHmacAlgorithm());
+                dto.setHmacHeaderName(auth.getHmacHeaderName());
+                dto.setHmacIncludeTimestamp(auth.getHmacIncludeTimestamp() != null ? auth.getHmacIncludeTimestamp() : false);
+                dto.setHmacIncludeNonce(auth.getHmacIncludeNonce() != null ? auth.getHmacIncludeNonce() : false);
+                dto.setHasHmacSecretKey(auth.getEncryptedHmacSecretKey() != null);
+                break;
+                
+            case CERTIFICATE:
+                dto.setCertificatePath(auth.getCertificatePath());
+                dto.setCertificateType(auth.getCertificateType());
+                dto.setTrustStorePath(auth.getTrustStorePath());
+                dto.setHasCertificatePassword(auth.getEncryptedCertificatePassword() != null);
+                dto.setHasTrustStorePassword(auth.getEncryptedTrustStorePassword() != null);
+                break;
+                
+            case CUSTOM_HEADER:
+                // Return custom headers but mask encrypted values
+                if (auth.getCustomHeaders() != null) {
+                    Map<String, String> maskedHeaders = new HashMap<>();
+                    for (Map.Entry<String, String> entry : auth.getCustomHeaders().entrySet()) {
+                        String value = entry.getValue();
+                        if (value != null && value.startsWith("${encrypted:") && value.endsWith("}")) {
+                            value = "***ENCRYPTED***";
+                        }
+                        maskedHeaders.put(entry.getKey(), value);
+                    }
+                    dto.setCustomHeaders(maskedHeaders);
+                }
                 break;
         }
         

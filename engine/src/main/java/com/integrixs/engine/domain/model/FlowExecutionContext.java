@@ -15,8 +15,8 @@ import java.util.UUID;
 public class FlowExecutionContext {
     private String executionId;
     private String flowId;
-    private UUID sourceAdapterId;
-    private UUID targetAdapterId;
+    private UUID inboundAdapterId;
+    private UUID outboundAdapterId;
     private String mappingMode;
     @Builder.Default
     private Map<String, Object> parameters = new HashMap<>();

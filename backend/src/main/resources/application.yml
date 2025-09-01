@@ -139,6 +139,13 @@ system:
 # ✅ Audit configuration
 audit:
   enabled: true  # Enable audit aspect for comprehensive logging
+  encryption:
+    enabled: false  # Enable to encrypt sensitive data in audit logs (set to true in production)
+
+# ✅ System log configuration
+systemlog:
+  encryption:
+    enabled: false  # Enable to encrypt sensitive data in system logs (set to true in production)
 
 # ✅ Security configuration
 integrix:
@@ -146,6 +153,14 @@ integrix:
     master-key: ${INTEGRIX_MASTER_KEY:IntegrixFlowBridge2024SecureKey}
     encryption:
       enabled: true
+
+# ✅ Field encryption configuration
+encryption:
+  master:
+    key: ${INTEGRIX_MASTER_KEY:IntegrixFlowBridge2024SecureKey}
+  key:
+    rotation:
+      enabled: false
 
 # ✅ Email configuration
 mail:

@@ -50,8 +50,8 @@ public class AdapterConfiguration {
      * Adapter modes
      */
     public enum AdapterModeEnum {
-        SENDER,   // Receives FROM external systems
-        RECEIVER  // Sends TO external systems
+        INBOUND,   // Receives FROM external systems
+        OUTBOUND  // Sends TO external systems
     }
     
     /**

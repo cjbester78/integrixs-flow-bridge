@@ -232,7 +232,7 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
                 .stepType(WorkflowStep.StepType.SOURCE_ADAPTER)
                 .status(WorkflowStep.StepStatus.PENDING)
                 .build();
-        sourceStep.addStepVariable("adapterId", flow.getSourceAdapterId().toString());
+        sourceStep.addStepVariable("adapterId", flow.getInboundAdapterId().toString());
         context.addStep(sourceStep);
         
         // Step 2: Transformation (if needed)
@@ -257,7 +257,7 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
                 .stepType(WorkflowStep.StepType.TARGET_ADAPTER)
                 .status(WorkflowStep.StepStatus.PENDING)
                 .build();
-        targetStep.addStepVariable("adapterId", flow.getTargetAdapterId().toString());
+        targetStep.addStepVariable("adapterId", flow.getOutboundAdapterId().toString());
         context.addStep(targetStep);
     }
     

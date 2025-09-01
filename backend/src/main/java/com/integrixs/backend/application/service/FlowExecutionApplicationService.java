@@ -73,24 +73,24 @@ public class FlowExecutionApplicationService {
 
         try {
             // Get adapters
-            CommunicationAdapter sourceAdapter = adapterRepository.findById(flow.getSourceAdapterId())
+            CommunicationAdapter inboundAdapter = adapterRepository.findById(flow.getInboundAdapterId())
                     .orElseThrow(() -> new RuntimeException("Source adapter not found"));
-            CommunicationAdapter targetAdapter = adapterRepository.findById(flow.getTargetAdapterId())
+            CommunicationAdapter outboundAdapter = adapterRepository.findById(flow.getOutboundAdapterId())
                     .orElseThrow(() -> new RuntimeException("Target adapter not found"));
 
             // Validate flow can be executed
-            flowExecutionService.validateFlowExecution(flow, sourceAdapter, targetAdapter);
+            flowExecutionService.validateFlowExecution(flow, inboundAdapter, outboundAdapter);
 
             // Check if we should skip XML conversion (direct passthrough)
             if (flowExecutionService.shouldUseDirectTransfer(flow)) {
                 log.info("Executing direct transfer (skip XML conversion) for flow: {}", flow.getName());
-                directFileTransferService.executeDirectTransfer(flow, sourceAdapter, targetAdapter);
+                directFileTransferService.executeDirectTransfer(flow, inboundAdapter, outboundAdapter);
                 return;
             }
 
             // Execute the flow
             try {
-                executeFlowWithTransformations(flow, sourceAdapter, targetAdapter, correlationId);
+                executeFlowWithTransformations(flow, inboundAdapter, outboundAdapter, correlationId);
             } catch (Exception e) {
                 throw new RuntimeException("Flow execution failed: " + e.getMessage(), e);
             }
@@ -108,36 +108,36 @@ public class FlowExecutionApplicationService {
     
     private void executeFlowWithTransformations(
             IntegrationFlow flow,
-            CommunicationAdapter sourceAdapter,
-            CommunicationAdapter targetAdapter,
+            CommunicationAdapter inboundAdapter,
+            CommunicationAdapter outboundAdapter,
             String correlationId) throws Exception {
         
         // Step 1: Fetch source data
-        Object rawData = adapterExecutor.fetchDataAsObject(flow.getSourceAdapterId().toString());
-        log.info("Fetched data from source adapter: {}", sourceAdapter.getName());
+        Object rawData = adapterExecutor.fetchDataAsObject(flow.getInboundAdapterId().toString());
+        log.info("Fetched data from source adapter: {}", inboundAdapter.getName());
         
         // Log source adapter payload
         String rawDataStr = flowExecutionService.convertRawDataToString(rawData);
-        // TODO: Replace messageService.logAdapterPayload(correlationId, sourceAdapter, "REQUEST", rawDataStr, "INBOUND");
-        log.debug("Source adapter payload - correlationId: {}, adapter: {}, payload: {}", correlationId, sourceAdapter.getName(), rawDataStr);
+        // TODO: Replace messageService.logAdapterPayload(correlationId, inboundAdapter, "REQUEST", rawDataStr, "INBOUND");
+        log.debug("Source adapter payload - correlationId: {}, adapter: {}, payload: {}", correlationId, inboundAdapter.getName(), rawDataStr);
 
         // Check if the data is binary and should skip XML conversion
         if (flowExecutionService.isBinaryData(rawData)) {
             log.info("Binary file detected, using direct transfer for flow: {}", flow.getName());
-            directFileTransferService.executeDirectTransfer(flow, sourceAdapter, targetAdapter);
+            directFileTransferService.executeDirectTransfer(flow, inboundAdapter, outboundAdapter);
             return;
         }
 
-        String processedData = processData(flow, rawData, sourceAdapter, targetAdapter);
+        String processedData = processData(flow, rawData, inboundAdapter, outboundAdapter);
 
         // Step 3: Send to target adapter
         Map<String, Object> context = flowExecutionService.buildExecutionContext(correlationId, flow.getId());
-        adapterExecutor.sendData(flow.getTargetAdapterId().toString(), processedData, context);
-        log.info("Sent data to target adapter: {}", targetAdapter.getName());
+        adapterExecutor.sendData(flow.getOutboundAdapterId().toString(), processedData, context);
+        log.info("Sent data to target adapter: {}", outboundAdapter.getName());
         
         // Log target adapter payload
-        // TODO: Replace messageService.logAdapterPayload(correlationId, targetAdapter, "REQUEST", processedData, "OUTBOUND");
-        log.debug("Target adapter payload - correlationId: {}, adapter: {}, payload: {}", correlationId, targetAdapter.getName(), processedData);
+        // TODO: Replace messageService.logAdapterPayload(correlationId, outboundAdapter, "REQUEST", processedData, "OUTBOUND");
+        log.debug("Target adapter payload - correlationId: {}, adapter: {}, payload: {}", correlationId, outboundAdapter.getName(), processedData);
 
         // Step 4: Log success
         log.info("Flow execution successful for flow: {} - correlationId: {}", flow.getName(), correlationId);
@@ -146,14 +146,14 @@ public class FlowExecutionApplicationService {
     private String processData(
             IntegrationFlow flow,
             Object rawData,
-            CommunicationAdapter sourceAdapter,
-            CommunicationAdapter targetAdapter) throws Exception {
+            CommunicationAdapter inboundAdapter,
+            CommunicationAdapter outboundAdapter) throws Exception {
         
         if (flowExecutionService.isMappingRequired(flow)) {
             log.info("Mapping required for flow: {}", flow.getName());
             
             // Convert source data to XML
-            String xmlData = formatConversionService.convertToXml(rawData, sourceAdapter);
+            String xmlData = formatConversionService.convertToXml(rawData, inboundAdapter);
             log.debug("Converted source data to XML");
             
             // Apply transformations
@@ -164,7 +164,7 @@ public class FlowExecutionApplicationService {
             List<FlowTransformation> transformations = transformationRepository.findByFlowId(flow.getId());
             Map<String, Object> conversionConfig = adapterConfigurationService.buildConversionConfig(
                 flow, 
-                targetAdapter, 
+                outboundAdapter, 
                 transformations,
                 transformationId -> fieldMappingRepository.findByTransformationId(transformationId)
             );
@@ -172,10 +172,10 @@ public class FlowExecutionApplicationService {
             // Convert XML back to target format
             Object targetData = formatConversionService.convertFromXml(
                 transformedXml, 
-                targetAdapter, 
+                outboundAdapter, 
                 conversionConfig
             );
-            log.info("Converted XML to target format: {}", targetAdapter.getType());
+            log.info("Converted XML to target format: {}", outboundAdapter.getType());
             
             return targetData.toString();
         } else {

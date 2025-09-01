@@ -381,12 +381,23 @@ public class AdapterMonitoringService {
     
     // Helper methods to extract information from adapters
     private AdapterConfiguration.AdapterModeEnum getAdapterMode(BaseAdapter adapter) {
-        // This is a simplified implementation - in practice you'd have a proper way to determine mode
-        return adapter instanceof SenderAdapter ? AdapterConfiguration.AdapterModeEnum.SENDER : AdapterConfiguration.AdapterModeEnum.RECEIVER;
+        // Get adapter mode from the adapter's getAdapterMode() method
+        return adapter.getAdapterMode();
     }
     
     private String getAdapterId(BaseAdapter adapter) {
-        // This is a simplified implementation - in practice you'd have a proper adapter ID
+        // Use reflection to get the adapterId from AbstractAdapter
+        if (adapter instanceof AbstractAdapter) {
+            try {
+                // Access the protected getAdapterId() method
+                java.lang.reflect.Method method = AbstractAdapter.class.getDeclaredMethod("getAdapterId");
+                method.setAccessible(true);
+                return (String) method.invoke(adapter);
+            } catch (Exception e) {
+                logger.warn("Failed to get adapter ID via reflection, using fallback", e);
+            }
+        }
+        // Fallback to simple implementation
         return adapter.getClass().getSimpleName() + "-" + adapter.hashCode();
     }
     

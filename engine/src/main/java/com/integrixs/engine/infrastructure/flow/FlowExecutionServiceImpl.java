@@ -45,7 +45,7 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
         
         try {
             // Process through source adapter
-            Object processedMessage = processSourceAdapter(message, flow.getSourceAdapterId().toString(), context);
+            Object processedMessage = processSourceAdapter(message, flow.getInboundAdapterId().toString(), context);
             
             // Apply field mappings if required
             if (flow.getMappingMode() == MappingMode.WITH_MAPPING) {
@@ -56,7 +56,7 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
             }
             
             // Send through target adapter
-            sendToTargetAdapter(processedMessage, flow.getTargetAdapterId().toString(), context);
+            sendToTargetAdapter(processedMessage, flow.getOutboundAdapterId().toString(), context);
             
             // Calculate execution time
             long executionTime = Duration.between(startTime, LocalDateTime.now()).toMillis();
@@ -69,8 +69,8 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
                     .processedData(processedMessage)
                     .timestamp(LocalDateTime.now())
                     .executionTimeMs(executionTime)
-                    .sourceAdapterId(flow.getSourceAdapterId().toString())
-                    .targetAdapterId(flow.getTargetAdapterId().toString())
+                    .inboundAdapterId(flow.getInboundAdapterId().toString())
+                    .outboundAdapterId(flow.getOutboundAdapterId().toString())
                     .build();
             
             result.addMetadata("flowName", flow.getName());
@@ -92,8 +92,8 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
                     .errorCode("FLOW_EXECUTION_ERROR")
                     .timestamp(LocalDateTime.now())
                     .executionTimeMs(executionTime)
-                    .sourceAdapterId(flow.getSourceAdapterId().toString())
-                    .targetAdapterId(flow.getTargetAdapterId().toString())
+                    .inboundAdapterId(flow.getInboundAdapterId().toString())
+                    .outboundAdapterId(flow.getOutboundAdapterId().toString())
                     .build();
         }
     }
@@ -104,19 +104,19 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
     }
     
     @Override
-    public Object processSourceAdapter(Object message, String sourceAdapterId, FlowExecutionContext context) {
-        log.debug("Processing message through source adapter: {}", sourceAdapterId);
+    public Object processSourceAdapter(Object message, String inboundAdapterId, FlowExecutionContext context) {
+        log.debug("Processing message through source adapter: {}", inboundAdapterId);
         
         try {
             // Get adapter configuration
-            var sourceAdapter = communicationAdapterRepository.findById(UUID.fromString(sourceAdapterId))
-                    .orElseThrow(() -> new IllegalArgumentException("Source adapter not found: " + sourceAdapterId));
+            var inboundAdapter = communicationAdapterRepository.findById(UUID.fromString(inboundAdapterId))
+                    .orElseThrow(() -> new IllegalArgumentException("Source adapter not found: " + inboundAdapterId));
             
             // Use message routing service for initial processing
-            return messageRoutingService.processMessage(message, null, sourceAdapter.getConfiguration());
+            return messageRoutingService.processMessage(message, null, inboundAdapter.getConfiguration());
             
         } catch (Exception e) {
-            log.error("Error processing source adapter {}: {}", sourceAdapterId, e.getMessage());
+            log.error("Error processing source adapter {}: {}", inboundAdapterId, e.getMessage());
             throw new RuntimeException("Source adapter processing failed", e);
         }
     }
@@ -144,8 +144,8 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
     }
     
     @Override
-    public void sendToTargetAdapter(Object message, String targetAdapterId, FlowExecutionContext context) {
-        log.debug("Sending message to target adapter: {}", targetAdapterId);
+    public void sendToTargetAdapter(Object message, String outboundAdapterId, FlowExecutionContext context) {
+        log.debug("Sending message to target adapter: {}", outboundAdapterId);
         
         try {
             // Build adapter execution context
@@ -160,7 +160,7 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
                     .build();
             
             // Execute adapter
-            AdapterExecutionResult result = adapterExecutionService.sendData(targetAdapterId, message, adapterContext);
+            AdapterExecutionResult result = adapterExecutionService.sendData(outboundAdapterId, message, adapterContext);
             
             if (!result.isSuccess()) {
                 throw new RuntimeException("Target adapter execution failed: " + result.getErrorMessage());
@@ -169,7 +169,7 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
             log.debug("Message sent successfully to target adapter");
             
         } catch (Exception e) {
-            log.error("Error sending to target adapter {}: {}", targetAdapterId, e.getMessage());
+            log.error("Error sending to target adapter {}: {}", outboundAdapterId, e.getMessage());
             throw new RuntimeException("Target adapter send failed", e);
         }
     }
@@ -180,11 +180,11 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
             throw new IllegalArgumentException("Flow cannot be null");
         }
         
-        if (flow.getSourceAdapterId() == null) {
+        if (flow.getInboundAdapterId() == null) {
             throw new IllegalArgumentException("Flow must have a source adapter");
         }
         
-        if (flow.getTargetAdapterId() == null) {
+        if (flow.getOutboundAdapterId() == null) {
             throw new IllegalArgumentException("Flow must have a target adapter");
         }
         
@@ -193,11 +193,11 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
         }
         
         // Check if adapters exist and are active
-        if (!adapterExecutionService.isAdapterReady(flow.getSourceAdapterId().toString())) {
+        if (!adapterExecutionService.isAdapterReady(flow.getInboundAdapterId().toString())) {
             throw new IllegalArgumentException("Source adapter is not ready");
         }
         
-        if (!adapterExecutionService.isAdapterReady(flow.getTargetAdapterId().toString())) {
+        if (!adapterExecutionService.isAdapterReady(flow.getOutboundAdapterId().toString())) {
             throw new IllegalArgumentException("Target adapter is not ready");
         }
     }

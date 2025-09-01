@@ -7,6 +7,8 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -131,6 +133,46 @@ public class ExternalAuthentication {
     
     @Column(name = "rate_limit_window_seconds")
     private Integer rateLimitWindowSeconds;
+    
+    // HMAC fields
+    @Column(name = "hmac_algorithm", length = 50)
+    private String hmacAlgorithm;
+    
+    @Column(name = "hmac_secret_key", columnDefinition = "TEXT")
+    private String encryptedHmacSecretKey;
+    
+    @Column(name = "hmac_header_name", length = 100)
+    private String hmacHeaderName;
+    
+    @Column(name = "hmac_include_timestamp")
+    private Boolean hmacIncludeTimestamp;
+    
+    @Column(name = "hmac_include_nonce")
+    private Boolean hmacIncludeNonce;
+    
+    // Certificate fields
+    @Column(name = "certificate_path", length = 500)
+    private String certificatePath;
+    
+    @Column(name = "certificate_password", columnDefinition = "TEXT")
+    private String encryptedCertificatePassword;
+    
+    @Column(name = "certificate_type", length = 50)
+    private String certificateType;
+    
+    @Column(name = "trust_store_path", length = 500)
+    private String trustStorePath;
+    
+    @Column(name = "trust_store_password", columnDefinition = "TEXT")
+    private String encryptedTrustStorePassword;
+    
+    // Custom header fields
+    @ElementCollection
+    @CollectionTable(name = "external_auth_custom_headers",
+                     joinColumns = @JoinColumn(name = "auth_id"))
+    @MapKeyColumn(name = "header_name", length = 100)
+    @Column(name = "header_value", columnDefinition = "TEXT")
+    private Map<String, String> customHeaders = new HashMap<>();
 
     // Status fields
     @Column(nullable = false)
@@ -177,7 +219,10 @@ public class ExternalAuthentication {
         OAUTH1,
         OAUTH2,
         API_KEY,
-        CUSTOM
+        CUSTOM,
+        HMAC,
+        CERTIFICATE,
+        CUSTOM_HEADER
     }
 
     /**

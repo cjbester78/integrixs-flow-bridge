@@ -61,7 +61,7 @@ public class DeploymentOrchestrator {
     /**
      * Generate endpoint URL for flow
      */
-    public String generateEndpoint(IntegrationFlow flow, CommunicationAdapter sourceAdapter, String configuredEndpoint) {
+    public String generateEndpoint(IntegrationFlow flow, CommunicationAdapter inboundAdapter, String configuredEndpoint) {
         String baseUrl = String.format("%s://%s:%s", serverProtocol, serverHost, serverPort);
         
         // Use configured endpoint if provided
@@ -74,7 +74,7 @@ public class DeploymentOrchestrator {
             }
             
             // Handle SOAP endpoints
-            if (sourceAdapter.getType() == AdapterType.SOAP) {
+            if (inboundAdapter.getType() == AdapterType.SOAP) {
                 if (!configuredEndpoint.startsWith("/soap/")) {
                     return baseUrl + "/soap" + configuredEndpoint;
                 }
@@ -86,7 +86,7 @@ public class DeploymentOrchestrator {
         // Generate default endpoint based on adapter type
         String flowPath = flow.getName().toLowerCase().replaceAll("[^a-zA-Z0-9-]", "-");
         
-        return switch (sourceAdapter.getType()) {
+        return switch (inboundAdapter.getType()) {
             case HTTP, REST -> String.format("%s/api/integration/%s", baseUrl, flowPath);
             case SOAP -> String.format("%s/soap/%s", baseUrl, flowPath);
             case FILE, FTP, SFTP -> String.format("file:///opt/integrixflowbridge/flows/%s", flowPath);
@@ -97,16 +97,16 @@ public class DeploymentOrchestrator {
     /**
      * Create deployment metadata
      */
-    public Map<String, Object> createDeploymentMetadata(IntegrationFlow flow, CommunicationAdapter sourceAdapter, String endpoint) {
+    public Map<String, Object> createDeploymentMetadata(IntegrationFlow flow, CommunicationAdapter inboundAdapter, String endpoint) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("flowName", flow.getName());
         metadata.put("flowId", flow.getId().toString());
-        metadata.put("adapterType", sourceAdapter.getType().toString());
-        metadata.put("adapterMode", sourceAdapter.getMode().toString());
+        metadata.put("adapterType", inboundAdapter.getType().toString());
+        metadata.put("adapterMode", inboundAdapter.getMode().toString());
         metadata.put("endpoint", endpoint);
         
         // Add adapter-specific metadata
-        switch (sourceAdapter.getType()) {
+        switch (inboundAdapter.getType()) {
             case SOAP -> {
                 metadata.put("wsdlUrl", endpoint + "?wsdl");
                 metadata.put("soapVersion", "1.1/1.2");

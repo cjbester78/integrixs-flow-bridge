@@ -91,18 +91,18 @@ public class FlowImportService {
         
         // Check adapter conflicts
         if (options.isImportAdapters()) {
-            if (export.getSourceAdapter() != null && 
-                communicationAdapterRepository.existsByName(export.getSourceAdapter().getName())) {
+            if (export.getInboundAdapter() != null && 
+                communicationAdapterRepository.existsByName(export.getInboundAdapter().getName())) {
                 conflicts.add(createNameConflict("CommunicationAdapter", 
-                        export.getSourceAdapter().getId(), 
-                        export.getSourceAdapter().getName()));
+                        export.getInboundAdapter().getId(), 
+                        export.getInboundAdapter().getName()));
             }
             
-            if (export.getTargetAdapter() != null && 
-                communicationAdapterRepository.existsByName(export.getTargetAdapter().getName())) {
+            if (export.getOutboundAdapter() != null && 
+                communicationAdapterRepository.existsByName(export.getOutboundAdapter().getName())) {
                 conflicts.add(createNameConflict("CommunicationAdapter", 
-                        export.getTargetAdapter().getId(), 
-                        export.getTargetAdapter().getName()));
+                        export.getOutboundAdapter().getId(), 
+                        export.getOutboundAdapter().getName()));
             }
         }
         
@@ -183,36 +183,36 @@ public class FlowImportService {
             }
             
             // Import adapters
-            String sourceAdapterId = null;
-            String targetAdapterId = null;
+            String inboundAdapterId = null;
+            String outboundAdapterId = null;
             
             if (options.isImportAdapters()) {
-                if (export.getSourceAdapter() != null) {
-                    CommunicationAdapter sourceAdapter = importAdapter(
-                            export.getSourceAdapter(), businessComponentId, options, idMappings, result);
-                    if (sourceAdapter != null) {
-                        sourceAdapterId = sourceAdapter.getId().toString();
+                if (export.getInboundAdapter() != null) {
+                    CommunicationAdapter inboundAdapter = importAdapter(
+                            export.getInboundAdapter(), businessComponentId, options, idMappings, result);
+                    if (inboundAdapter != null) {
+                        inboundAdapterId = inboundAdapter.getId().toString();
                         result.getSummary().setAdaptersImported(result.getSummary().getAdaptersImported() + 1);
                     }
                 }
                 
-                if (export.getTargetAdapter() != null) {
-                    CommunicationAdapter targetAdapter = importAdapter(
-                            export.getTargetAdapter(), businessComponentId, options, idMappings, result);
-                    if (targetAdapter != null) {
-                        targetAdapterId = targetAdapter.getId().toString();
+                if (export.getOutboundAdapter() != null) {
+                    CommunicationAdapter outboundAdapter = importAdapter(
+                            export.getOutboundAdapter(), businessComponentId, options, idMappings, result);
+                    if (outboundAdapter != null) {
+                        outboundAdapterId = outboundAdapter.getId().toString();
                         result.getSummary().setAdaptersImported(result.getSummary().getAdaptersImported() + 1);
                     }
                 }
             } else {
                 // Use existing adapters if not importing
-                sourceAdapterId = export.getFlow().getSourceAdapterId();
-                targetAdapterId = export.getFlow().getTargetAdapterId();
+                inboundAdapterId = export.getFlow().getInboundAdapterId();
+                outboundAdapterId = export.getFlow().getOutboundAdapterId();
             }
             
             // Import the flow
             IntegrationFlow importedFlow = importIntegrationFlow(
-                    export.getFlow(), businessComponentId, sourceAdapterId, targetAdapterId, 
+                    export.getFlow(), businessComponentId, inboundAdapterId, outboundAdapterId, 
                     options, idMappings, result);
             
             if (importedFlow != null) {
@@ -340,8 +340,8 @@ public class FlowImportService {
 
     private IntegrationFlow importIntegrationFlow(FlowDTO dto,
                                                 String businessComponentId,
-                                                String sourceAdapterId,
-                                                String targetAdapterId,
+                                                String inboundAdapterId,
+                                                String outboundAdapterId,
                                                 FlowImportRequestDTO.ImportOptions options,
                                                 Map<String, String> idMappings,
                                                 FlowImportResultDTO result) {
@@ -360,8 +360,8 @@ public class FlowImportService {
             IntegrationFlow flow = IntegrationFlow.builder()
                     .name(dto.getName())
                     .description(dto.getDescription())
-                    .sourceAdapterId(sourceAdapterId != null ? UUID.fromString(sourceAdapterId) : null)
-                    .targetAdapterId(targetAdapterId != null ? UUID.fromString(targetAdapterId) : null)
+                    .inboundAdapterId(inboundAdapterId != null ? UUID.fromString(inboundAdapterId) : null)
+                    .outboundAdapterId(outboundAdapterId != null ? UUID.fromString(outboundAdapterId) : null)
                     .sourceFlowStructureId(dto.getSourceFlowStructureId() != null ? UUID.fromString(dto.getSourceFlowStructureId()) : null)
                     .targetFlowStructureId(dto.getTargetFlowStructureId() != null ? UUID.fromString(dto.getTargetFlowStructureId()) : null)
                     .status(FlowStatus.DEVELOPED_INACTIVE) // Always import as undeployed
@@ -488,8 +488,8 @@ public class FlowImportService {
         objectCounts.put("flows", 1);
         objectCounts.put("businessComponents", export.getBusinessComponent() != null ? 1 : 0);
         objectCounts.put("adapters", 
-                (export.getSourceAdapter() != null ? 1 : 0) + 
-                (export.getTargetAdapter() != null ? 1 : 0));
+                (export.getInboundAdapter() != null ? 1 : 0) + 
+                (export.getOutboundAdapter() != null ? 1 : 0));
         objectCounts.put("transformations", 
                 export.getTransformations() != null ? export.getTransformations().size() : 0);
         objectCounts.put("fieldMappings", 
@@ -502,10 +502,10 @@ public class FlowImportService {
                 .flowDescription(export.getFlow().getDescription())
                 .businessComponentName(export.getBusinessComponent() != null ? 
                         export.getBusinessComponent().getName() : null)
-                .sourceAdapterName(export.getSourceAdapter() != null ? 
-                        export.getSourceAdapter().getName() : null)
-                .targetAdapterName(export.getTargetAdapter() != null ? 
-                        export.getTargetAdapter().getName() : null)
+                .inboundAdapterName(export.getInboundAdapter() != null ? 
+                        export.getInboundAdapter().getName() : null)
+                .outboundAdapterName(export.getOutboundAdapter() != null ? 
+                        export.getOutboundAdapter().getName() : null)
                 .transformationCount(objectCounts.get("transformations"))
                 .fieldMappingCount(objectCounts.get("fieldMappings"))
                 .certificateReferenceCount(objectCounts.get("certificateReferences"))

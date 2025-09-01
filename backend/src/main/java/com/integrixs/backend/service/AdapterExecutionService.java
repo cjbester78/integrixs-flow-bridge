@@ -115,8 +115,8 @@ public class AdapterExecutionService {
         logger.debug("SOAP adapter full configuration: {}", config);
         
         // Check for endpoint in multiple possible field names
-        // For receiver adapters (sending TO external systems), check targetEndpointUrl
-        // For sender adapters in POLL mode, check serviceEndpointUrl
+        // For outbound adapters (sending TO external systems), check targetEndpointUrl
+        // For inbound adapters in POLL mode, check serviceEndpointUrl
         String endpoint = (String) config.get("targetEndpointUrl");
         if (endpoint == null) {
             endpoint = (String) config.get("serviceEndpointUrl");
@@ -370,9 +370,9 @@ public class AdapterExecutionService {
         }
         
         // Prepare configuration based on adapter type and mode
-        if (adapter.getMode() == com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.RECEIVER) {
+        if (adapter.getMode() == com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.OUTBOUND) {
             // Receiver mode - send data TO FTP server (upload)
-            com.integrixs.adapters.config.FtpReceiverAdapterConfig config = new com.integrixs.adapters.config.FtpReceiverAdapterConfig();
+            com.integrixs.adapters.config.FtpOutboundAdapterConfig config = new com.integrixs.adapters.config.FtpOutboundAdapterConfig();
             
             // Set connection details from adapter config
             config.setServerAddress((String) configMap.get("serverAddress"));
@@ -389,8 +389,8 @@ public class AdapterExecutionService {
             config.setFileConstructionMode((String) configMap.getOrDefault("fileConstructionMode", "create"));
             config.setFileEncoding((String) configMap.getOrDefault("fileEncoding", "UTF-8"));
             
-            // Create receiver adapter and execute
-            com.integrixs.adapters.domain.port.ReceiverAdapterPort receiverAdapter = factory.createReceiver(
+            // Create outbound adapter and execute
+            com.integrixs.adapters.domain.port.OutboundAdapterPort receiverAdapter = factory.createOutboundAdapter(
                 adapter.getType() == com.integrixs.shared.enums.AdapterType.FTP ? 
                     com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.FTP : 
                     com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.SFTP, 
@@ -403,12 +403,12 @@ public class AdapterExecutionService {
                     .adapterType(adapter.getType() == com.integrixs.shared.enums.AdapterType.FTP ? 
                         com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.FTP : 
                         com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.SFTP)
-                    .adapterMode(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.RECEIVER)
+                    .adapterMode(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.OUTBOUND)
                     .connectionProperties(configMap)
                     .build();
             receiverAdapter.initialize(adapterConfig);
             try {
-                // Create send request for ReceiverAdapterPort
+                // Create send request for OutboundAdapterPort
                 com.integrixs.adapters.domain.model.SendRequest sendRequest = 
                     com.integrixs.adapters.domain.model.SendRequest.builder()
                         .payload(message)
@@ -427,7 +427,7 @@ public class AdapterExecutionService {
             
         } else {
             // Sender mode - receive data FROM FTP server (download/poll)
-            com.integrixs.adapters.config.FtpSenderAdapterConfig config = new com.integrixs.adapters.config.FtpSenderAdapterConfig();
+            com.integrixs.adapters.config.FtpInboundAdapterConfig config = new com.integrixs.adapters.config.FtpInboundAdapterConfig();
             
             // Set connection details from adapter config
             config.setServerAddress((String) configMap.get("serverAddress"));
@@ -440,9 +440,9 @@ public class AdapterExecutionService {
             
             // File pattern settings
             String fileNamePattern = (String) configMap.getOrDefault("fileNamePattern", "*");
-            config.setFileName(fileNamePattern); // FtpSenderAdapterConfig uses fileName not fileNamePattern
+            config.setFileName(fileNamePattern); // FtpInboundAdapterConfig uses fileName not fileNamePattern
             
-            // Note: FtpSenderAdapterConfig handles exclusion patterns internally
+            // Note: FtpInboundAdapterConfig handles exclusion patterns internally
             // The adapter implementation checks for exclusionFileNamePattern
             
             config.setFileEncoding((String) configMap.getOrDefault("fileEncoding", "UTF-8"));
@@ -450,10 +450,10 @@ public class AdapterExecutionService {
             // Processing settings
             config.setProcessingMode((String) configMap.getOrDefault("processingMode", "test"));
             String postProcessing = (String) configMap.getOrDefault("postProcessingCommand", "none");
-            // FtpSenderAdapterConfig doesn't have setPostProcessingCommand, it's handled internally
+            // FtpInboundAdapterConfig doesn't have setPostProcessingCommand, it's handled internally
             
-            // Create sender adapter and execute
-            com.integrixs.adapters.domain.port.SenderAdapterPort senderAdapter = factory.createSender(
+            // Create inbound adapter and execute
+            com.integrixs.adapters.domain.port.InboundAdapterPort senderAdapter = factory.createInboundAdapter(
                 adapter.getType() == com.integrixs.shared.enums.AdapterType.FTP ? 
                     com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.FTP : 
                     com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.SFTP, 
@@ -466,12 +466,12 @@ public class AdapterExecutionService {
                     .adapterType(adapter.getType() == com.integrixs.shared.enums.AdapterType.FTP ? 
                         com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.FTP : 
                         com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.SFTP)
-                    .adapterMode(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.SENDER)
+                    .adapterMode(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.INBOUND)
                     .connectionProperties(configMap)
                     .build();
             senderAdapter.initialize(senderAdapterConfig);
             try {
-                // Create fetch request for SenderAdapterPort
+                // Create fetch request for InboundAdapterPort
                 com.integrixs.adapters.domain.model.FetchRequest fetchRequest = 
                     com.integrixs.adapters.domain.model.FetchRequest.builder()
                         .build();

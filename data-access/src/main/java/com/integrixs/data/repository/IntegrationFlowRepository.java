@@ -84,13 +84,13 @@ public interface IntegrationFlowRepository extends JpaRepository<IntegrationFlow
     long countByTargetFlowStructureIdAndIsActiveTrue(UUID targetFlowStructureId);
     
     // Count flows by adapter references
-    long countBySourceAdapterIdAndIsActiveTrue(UUID sourceAdapterId);
+    long countBySourceAdapterIdAndIsActiveTrue(UUID inboundAdapterId);
     
-    long countByTargetAdapterIdAndIsActiveTrue(UUID targetAdapterId);
+    long countByTargetAdapterIdAndIsActiveTrue(UUID outboundAdapterId);
     
     
     // Find flows by adapter references
-    List<IntegrationFlow> findBySourceAdapterId(UUID sourceAdapterId);
+    List<IntegrationFlow> findBySourceAdapterId(UUID inboundAdapterId);
     
-    List<IntegrationFlow> findByTargetAdapterId(UUID targetAdapterId);
+    List<IntegrationFlow> findByTargetAdapterId(UUID outboundAdapterId);
 }

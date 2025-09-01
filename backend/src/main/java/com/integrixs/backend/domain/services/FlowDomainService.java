@@ -63,8 +63,8 @@ public class FlowDomainService {
         eventPublisher.publish(new FlowCreatedEvent(
             savedFlow.getId().toString(),
             savedFlow.getName(),
-            savedFlow.getSourceAdapterId() != null ? savedFlow.getSourceAdapterId().toString() : null,
-            savedFlow.getTargetAdapterId() != null ? savedFlow.getTargetAdapterId().toString() : null,
+            savedFlow.getInboundAdapterId() != null ? savedFlow.getInboundAdapterId().toString() : null,
+            savedFlow.getOutboundAdapterId() != null ? savedFlow.getOutboundAdapterId().toString() : null,
             createdBy.getUsername()
         ));
         
@@ -173,7 +173,7 @@ public class FlowDomainService {
         }
         
         // Validate source and target adapters are different
-        if (flow.getSourceAdapterId().equals(flow.getTargetAdapterId())) {
+        if (flow.getInboundAdapterId().equals(flow.getOutboundAdapterId())) {
             throw new BusinessException("Source and target adapters must be different");
         }
         

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Domain model for fetch requests (used by sender adapters)
+ * Domain model for fetch requests (used by inbound adapters)
  */
 @Data
 @Builder

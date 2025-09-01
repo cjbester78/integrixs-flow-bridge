@@ -1,7 +1,7 @@
 package com.integrixs.webclient;
 
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.adapters.domain.model.SendRequest;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
@@ -29,7 +29,7 @@ public class InboundMessageProcessor {
     public AdapterOperationResult processMessage(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration, Object payload) {
         logger.debug("Processing inbound message with adapter type: {}", adapterType);
         
-        ReceiverAdapterPort adapter = null;
+        OutboundAdapterPort adapter = null;
         try {
             // Create and initialize adapter
             adapter = adapterFactory.createReceiver(adapterType, configuration);

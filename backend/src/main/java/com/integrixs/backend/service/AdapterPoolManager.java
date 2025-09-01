@@ -95,9 +95,9 @@ public class AdapterPoolManager {
     }
     
     /**
-     * Get a sender adapter from the pool
+     * Get a inbound adapter from the pool
      */
-    public PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort> getSenderAdapter(String adapterId) throws Exception {
+    public PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort> getInboundAdapter(String adapterId) throws Exception {
         CommunicationAdapter adapter = getAdapterConfig(adapterId);
         AdapterPool pool = getOrCreatePool(adapterId, adapter);
         
@@ -105,9 +105,9 @@ public class AdapterPoolManager {
     }
     
     /**
-     * Get a receiver adapter from the pool
+     * Get a outbound adapter from the pool
      */
-    public PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort> getReceiverAdapter(String adapterId) throws Exception {
+    public PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort> getOutboundAdapter(String adapterId) throws Exception {
         CommunicationAdapter adapter = getAdapterConfig(adapterId);
         AdapterPool pool = getOrCreatePool(adapterId, adapter);
         
@@ -196,8 +196,8 @@ public class AdapterPoolManager {
     private class AdapterPool {
         private final String adapterId;
         private final CommunicationAdapter adapterConfig;
-        private final BlockingQueue<PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort>> senderPool;
-        private final BlockingQueue<PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort>> receiverPool;
+        private final BlockingQueue<PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort>> senderPool;
+        private final BlockingQueue<PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort>> receiverPool;
         private final AtomicInteger activeSenders = new AtomicInteger(0);
         private final AtomicInteger activeReceivers = new AtomicInteger(0);
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -212,19 +212,19 @@ public class AdapterPoolManager {
             this.receiverPool = new LinkedBlockingQueue<>(poolSize);
         }
         
-        public PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort> borrowSender() throws Exception {
+        public PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort> borrowSender() throws Exception {
             if (shutdown) {
                 throw new IllegalStateException("Pool is shutdown");
             }
             
-            PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort> pooled = senderPool.poll();
+            PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort> pooled = senderPool.poll();
             
             if (pooled == null) {
                 // Try to create a new adapter
                 lock.readLock().lock();
                 try {
                     if (activeSenders.get() < getMaxPoolSize()) {
-                        pooled = createSenderAdapter();
+                        pooled = createInboundAdapter();
                     }
                 } finally {
                     lock.readLock().unlock();
@@ -234,7 +234,7 @@ public class AdapterPoolManager {
                     // Wait for an adapter to become available
                     pooled = senderPool.poll(5, TimeUnit.SECONDS);
                     if (pooled == null) {
-                        throw new TimeoutException("No sender adapter available in pool");
+                        throw new TimeoutException("No inbound adapter available in pool");
                     }
                 }
             }
@@ -250,19 +250,19 @@ public class AdapterPoolManager {
             return pooled;
         }
         
-        public PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort> borrowReceiver() throws Exception {
+        public PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort> borrowReceiver() throws Exception {
             if (shutdown) {
                 throw new IllegalStateException("Pool is shutdown");
             }
             
-            PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort> pooled = receiverPool.poll();
+            PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort> pooled = receiverPool.poll();
             
             if (pooled == null) {
                 // Try to create a new adapter
                 lock.readLock().lock();
                 try {
                     if (activeReceivers.get() < getMaxPoolSize()) {
-                        pooled = createReceiverAdapter();
+                        pooled = createOutboundAdapter();
                     }
                 } finally {
                     lock.readLock().unlock();
@@ -272,7 +272,7 @@ public class AdapterPoolManager {
                     // Wait for an adapter to become available
                     pooled = receiverPool.poll(5, TimeUnit.SECONDS);
                     if (pooled == null) {
-                        throw new TimeoutException("No receiver adapter available in pool");
+                        throw new TimeoutException("No outbound adapter available in pool");
                     }
                 }
             }
@@ -296,23 +296,23 @@ public class AdapterPoolManager {
             
             pooledAdapter.markReturned();
             
-            if (pooledAdapter.getAdapter() instanceof com.integrixs.adapters.domain.port.SenderAdapterPort) {
+            if (pooledAdapter.getAdapter() instanceof com.integrixs.adapters.domain.port.InboundAdapterPort) {
                 activeSenders.decrementAndGet();
-                senderPool.offer((PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort>) pooledAdapter);
-            } else if (pooledAdapter.getAdapter() instanceof com.integrixs.adapters.domain.port.ReceiverAdapterPort) {
+                senderPool.offer((PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort>) pooledAdapter);
+            } else if (pooledAdapter.getAdapter() instanceof com.integrixs.adapters.domain.port.OutboundAdapterPort) {
                 activeReceivers.decrementAndGet();
-                receiverPool.offer((PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort>) pooledAdapter);
+                receiverPool.offer((PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort>) pooledAdapter);
             }
         }
         
-        private PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort> createSenderAdapter() throws Exception {
+        private PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort> createInboundAdapter() throws Exception {
             if (!globalAdapterLimit.tryAcquire()) {
                 throw new RuntimeException("Global adapter limit reached");
             }
             
             try {
                 Object config = buildAdapterConfiguration(adapterConfig);
-                com.integrixs.adapters.domain.port.SenderAdapterPort adapter = adapterFactory.createSender(
+                com.integrixs.adapters.domain.port.InboundAdapterPort adapter = adapterFactory.createSender(
                     mapToAdapterType(adapterConfig.getType()),
                     config
                 );
@@ -333,14 +333,14 @@ public class AdapterPoolManager {
             }
         }
         
-        private PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort> createReceiverAdapter() throws Exception {
+        private PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort> createOutboundAdapter() throws Exception {
             if (!globalAdapterLimit.tryAcquire()) {
                 throw new RuntimeException("Global adapter limit reached");
             }
             
             try {
                 Object config = buildAdapterConfiguration(adapterConfig);
-                com.integrixs.adapters.domain.port.ReceiverAdapterPort adapter = adapterFactory.createReceiver(
+                com.integrixs.adapters.domain.port.OutboundAdapterPort adapter = adapterFactory.createReceiver(
                     mapToAdapterType(adapterConfig.getType()),
                     config
                 );
@@ -362,8 +362,8 @@ public class AdapterPoolManager {
         }
         
         public void validate() {
-            List<PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort>> invalidSenders = new ArrayList<>();
-            List<PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort>> invalidReceivers = new ArrayList<>();
+            List<PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort>> invalidSenders = new ArrayList<>();
+            List<PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort>> invalidReceivers = new ArrayList<>();
             
             // Validate sender pool
             senderPool.forEach(pooled -> {
@@ -391,7 +391,7 @@ public class AdapterPoolManager {
             });
             
             if (!invalidSenders.isEmpty() || !invalidReceivers.isEmpty()) {
-                logger.warn("Removed {} invalid sender and {} invalid receiver adapters from pool {}",
+                logger.warn("Removed {} invalid sender and {} invalid outbound adapters from pool {}",
                     invalidSenders.size(), invalidReceivers.size(), adapterId);
             }
         }
@@ -425,14 +425,14 @@ public class AdapterPoolManager {
                 
                 // Destroy all pooled adapters
                 while (!senderPool.isEmpty()) {
-                    PooledAdapter<com.integrixs.adapters.domain.port.SenderAdapterPort> pooled = senderPool.poll();
+                    PooledAdapter<com.integrixs.adapters.domain.port.InboundAdapterPort> pooled = senderPool.poll();
                     if (pooled != null) {
                         pooled.destroy();
                     }
                 }
                 
                 while (!receiverPool.isEmpty()) {
-                    PooledAdapter<com.integrixs.adapters.domain.port.ReceiverAdapterPort> pooled = receiverPool.poll();
+                    PooledAdapter<com.integrixs.adapters.domain.port.OutboundAdapterPort> pooled = receiverPool.poll();
                     if (pooled != null) {
                         pooled.destroy();
                     }

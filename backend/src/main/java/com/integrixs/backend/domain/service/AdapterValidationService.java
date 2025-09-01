@@ -94,8 +94,8 @@ public class AdapterValidationService {
             throw new IllegalArgumentException("HTTP adapter requires 'url' configuration");
         }
         
-        if (mode == AdapterModeEnum.RECEIVER && !config.containsKey("method")) {
-            throw new IllegalArgumentException("HTTP receiver adapter requires 'method' configuration");
+        if (mode == AdapterModeEnum.OUTBOUND && !config.containsKey("method")) {
+            throw new IllegalArgumentException("HTTP outbound adapter requires 'method' configuration");
         }
     }
     
@@ -108,8 +108,8 @@ public class AdapterValidationService {
             throw new IllegalArgumentException("JDBC adapter requires database credentials");
         }
         
-        if (mode == AdapterModeEnum.SENDER && !config.containsKey("query")) {
-            throw new IllegalArgumentException("JDBC sender adapter requires 'query' configuration");
+        if (mode == AdapterModeEnum.INBOUND && !config.containsKey("query")) {
+            throw new IllegalArgumentException("JDBC inbound adapter requires 'query' configuration");
         }
     }
     
@@ -142,19 +142,19 @@ public class AdapterValidationService {
             throw new IllegalArgumentException("File adapter requires 'directory' configuration");
         }
         
-        if (mode == AdapterModeEnum.SENDER && !config.containsKey("filePattern")) {
-            throw new IllegalArgumentException("File sender adapter requires 'filePattern' configuration");
+        if (mode == AdapterModeEnum.INBOUND && !config.containsKey("filePattern")) {
+            throw new IllegalArgumentException("File inbound adapter requires 'filePattern' configuration");
         }
     }
     
     private void validateEmailConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (mode == AdapterModeEnum.SENDER) {
+        if (mode == AdapterModeEnum.INBOUND) {
             if (!config.containsKey("host") || !config.containsKey("port")) {
-                throw new IllegalArgumentException("Email sender adapter requires mail server configuration");
+                throw new IllegalArgumentException("Email inbound adapter requires mail server configuration");
             }
         } else {
             if (!config.containsKey("smtpHost") || !config.containsKey("smtpPort")) {
-                throw new IllegalArgumentException("Email receiver adapter requires SMTP configuration");
+                throw new IllegalArgumentException("Email outbound adapter requires SMTP configuration");
             }
         }
     }

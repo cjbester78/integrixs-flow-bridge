@@ -36,11 +36,11 @@ public class FlowConfigurationValidator implements ConstraintValidator<ValidFlow
         
         boolean isValid = true;
         
-        // Validate source and target adapters are different
-        if (flow.getSourceAdapterId() != null && 
-            flow.getSourceAdapterId().equals(flow.getTargetAdapterId())) {
+        // Validate inbound and outbound adapters are different
+        if (flow.getInboundAdapterId() != null && 
+            flow.getInboundAdapterId().equals(flow.getOutboundAdapterId())) {
             context.buildConstraintViolationWithTemplate(
-                "Source and target adapters must be different")
+                "Inbound and outbound adapters must be different")
                 .addConstraintViolation();
             isValid = false;
         }

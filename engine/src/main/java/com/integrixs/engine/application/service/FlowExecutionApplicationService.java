@@ -1,16 +1,20 @@
 package com.integrixs.engine.application.service;
 
 import com.integrixs.data.model.FieldMapping;
+import com.integrixs.data.model.FlowExecution;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.repository.FieldMappingRepository;
+import com.integrixs.data.repository.FlowExecutionRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.engine.api.dto.FlowExecutionRequestDTO;
 import com.integrixs.engine.api.dto.FlowExecutionResponseDTO;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
 import com.integrixs.engine.domain.model.FlowExecutionResult;
 import com.integrixs.engine.domain.service.FlowExecutionService;
+import com.integrixs.backend.service.AlertingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,21 +35,33 @@ public class FlowExecutionApplicationService {
     private final FlowExecutionService flowExecutionService;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final FieldMappingRepository fieldMappingRepository;
+    private final FlowExecutionRepository flowExecutionRepository;
+    
+    @Autowired(required = false)
+    private AlertingService alertingService;
     
     /**
      * Execute a flow
      * @param request Execution request
      * @return Execution response
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public FlowExecutionResponseDTO executeFlow(FlowExecutionRequestDTO request) {
         LocalDateTime startTime = LocalDateTime.now();
         log.info("Executing flow: {}", request.getFlowId());
+        
+        // Create flow execution record
+        FlowExecution flowExecution = new FlowExecution();
+        flowExecution.setStartTime(startTime);
+        flowExecution.setStatus(FlowExecution.ExecutionStatus.IN_PROGRESS);
         
         try {
             // Load flow
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(request.getFlowId()))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + request.getFlowId()));
+            
+            flowExecution.setIntegrationFlow(flow);
+            flowExecution = flowExecutionRepository.save(flowExecution);
             
             // Validate flow
             flowExecutionService.validateFlow(flow);
@@ -57,7 +73,19 @@ public class FlowExecutionApplicationService {
             FlowExecutionResult result = flowExecutionService.executeFlow(flow, request.getMessage(), context);
             
             // Calculate execution time
-            result.setExecutionTimeMs(Duration.between(startTime, LocalDateTime.now()).toMillis());
+            long executionTime = Duration.between(startTime, LocalDateTime.now()).toMillis();
+            result.setExecutionTimeMs(executionTime);
+            
+            // Update flow execution record
+            flowExecution.setEndTime(LocalDateTime.now());
+            flowExecution.setStatus(FlowExecution.ExecutionStatus.COMPLETED);
+            flowExecution.setSuccessCount(1);
+            flowExecution = flowExecutionRepository.save(flowExecution);
+            
+            // Evaluate alerts for successful execution
+            if (alertingService != null) {
+                alertingService.evaluateFlowAlerts(flowExecution);
+            }
             
             // Convert to DTO
             return convertToResponseDTO(result);
@@ -66,6 +94,20 @@ public class FlowExecutionApplicationService {
             log.error("Error executing flow {}: {}", request.getFlowId(), e.getMessage(), e);
             
             long executionTime = Duration.between(startTime, LocalDateTime.now()).toMillis();
+            
+            // Update flow execution record for failure
+            if (flowExecution != null && flowExecution.getId() != null) {
+                flowExecution.setEndTime(LocalDateTime.now());
+                flowExecution.setStatus(FlowExecution.ExecutionStatus.FAILED);
+                flowExecution.setErrorMessage(e.getMessage());
+                flowExecution.setErrorCount(1);
+                flowExecution = flowExecutionRepository.save(flowExecution);
+                
+                // Evaluate alerts for failed execution
+                if (alertingService != null) {
+                    alertingService.evaluateFlowAlerts(flowExecution);
+                }
+            }
             
             return FlowExecutionResponseDTO.builder()
                     .executionId(request.getExecutionId())
@@ -125,8 +167,8 @@ public class FlowExecutionApplicationService {
         return FlowExecutionContext.builder()
                 .executionId(request.getExecutionId() != null ? request.getExecutionId() : UUID.randomUUID().toString())
                 .flowId(flow.getId().toString())
-                .sourceAdapterId(flow.getSourceAdapterId())
-                .targetAdapterId(flow.getTargetAdapterId())
+                .inboundAdapterId(flow.getInboundAdapterId())
+                .outboundAdapterId(flow.getOutboundAdapterId())
                 .mappingMode(flow.getMappingMode() != null ? flow.getMappingMode().name() : null)
                 .parameters(request.getParameters())
                 .headers(request.getHeaders())
@@ -149,8 +191,8 @@ public class FlowExecutionApplicationService {
                 .executionTimeMs(result.getExecutionTimeMs())
                 .metadata(result.getMetadata())
                 .warnings(result.getWarnings())
-                .sourceAdapterId(result.getSourceAdapterId())
-                .targetAdapterId(result.getTargetAdapterId())
+                .inboundAdapterId(result.getInboundAdapterId())
+                .outboundAdapterId(result.getOutboundAdapterId())
                 .recordsProcessed(result.getRecordsProcessed())
                 .build();
     }

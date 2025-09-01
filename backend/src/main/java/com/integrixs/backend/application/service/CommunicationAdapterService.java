@@ -83,7 +83,7 @@ public class CommunicationAdapterService {
         adapter.setActive(request.isActive());
         
         // Set direction based on mode (following reversed convention)
-        adapter.setDirection(mode == AdapterModeEnum.SENDER ? "OUTBOUND" : "INBOUND");
+        adapter.setDirection(mode == AdapterModeEnum.INBOUND ? "OUTBOUND" : "INBOUND");
         
         // Encrypt and set configuration
         String encryptedConfig = configurationService.encryptConfiguration(request.getConfiguration());
@@ -151,7 +151,7 @@ public class CommunicationAdapterService {
         adapter.setMode(mode);
         adapter.setDescription(request.getDescription());
         adapter.setActive(request.isActive());
-        adapter.setDirection(mode == AdapterModeEnum.SENDER ? "OUTBOUND" : "INBOUND");
+        adapter.setDirection(mode == AdapterModeEnum.INBOUND ? "OUTBOUND" : "INBOUND");
         
         // Encrypt and update configuration
         String encryptedConfig = configurationService.encryptConfiguration(request.getConfiguration());
@@ -290,20 +290,20 @@ public class CommunicationAdapterService {
     
     private AdapterModeEnum mapDtoModeToAdapterMode(String dtoMode, String direction) {
         // Following the reversed convention:
-        // SENDER = OUTBOUND (receives from external)
-        // RECEIVER = INBOUND (sends to external)
+        // INBOUND = OUTBOUND (receives from external)
+        // OUTBOUND = INBOUND (sends to external)
         
-        if ("SENDER".equalsIgnoreCase(dtoMode)) {
-            return AdapterModeEnum.SENDER;
-        } else if ("RECEIVER".equalsIgnoreCase(dtoMode)) {
-            return AdapterModeEnum.RECEIVER;
+        if ("INBOUND".equalsIgnoreCase(dtoMode)) {
+            return AdapterModeEnum.INBOUND;
+        } else if ("OUTBOUND".equalsIgnoreCase(dtoMode)) {
+            return AdapterModeEnum.OUTBOUND;
         }
         
         // Fallback to direction-based mapping
         if ("OUTBOUND".equalsIgnoreCase(direction)) {
-            return AdapterModeEnum.SENDER;
+            return AdapterModeEnum.INBOUND;
         } else {
-            return AdapterModeEnum.RECEIVER;
+            return AdapterModeEnum.OUTBOUND;
         }
     }
 }

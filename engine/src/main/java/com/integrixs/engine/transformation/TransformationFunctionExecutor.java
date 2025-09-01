@@ -25,6 +25,12 @@ public class TransformationFunctionExecutor {
     // Cache compiled functions for performance
     private final Map<String, TransformationFunction> functionCache = new ConcurrentHashMap<>();
     
+    // Version tracking for functions
+    private final Map<String, Integer> functionVersions = new ConcurrentHashMap<>();
+    
+    // Function test results cache
+    private final Map<String, FunctionTestResult> testResultCache = new ConcurrentHashMap<>();
+    
     /**
      * Execute a transformation function by name with given arguments
      */
@@ -212,6 +218,8 @@ public class TransformationFunctionExecutor {
      */
     public void clearCache() {
         functionCache.clear();
+        functionVersions.clear();
+        testResultCache.clear();
     }
     
     /**
@@ -219,6 +227,88 @@ public class TransformationFunctionExecutor {
      */
     public int getCacheSize() {
         return functionCache.size();
+    }
+    
+    /**
+     * Register a function with version tracking
+     */
+    public void registerFunction(String functionName, String functionBody, int version) {
+        String cacheKey = functionName + "_" + functionBody.hashCode();
+        Integer currentVersion = functionVersions.get(functionName);
+        
+        if (currentVersion == null || version > currentVersion) {
+            // Remove old version from cache
+            functionCache.entrySet().removeIf(entry -> entry.getKey().startsWith(functionName + "_"));
+            functionVersions.put(functionName, version);
+            logger.info("Registered function {} version {}", functionName, version);
+        } else {
+            logger.warn("Attempted to register older version {} of function {} (current: {})", 
+                version, functionName, currentVersion);
+        }
+    }
+    
+    /**
+     * Get current version of a function
+     */
+    public Integer getFunctionVersion(String functionName) {
+        return functionVersions.get(functionName);
+    }
+    
+    /**
+     * Test a function with sample data
+     */
+    public FunctionTestResult testFunction(String functionName, String functionBody, 
+                                          Object[] testInputs, Object expectedOutput) {
+        try {
+            Object actualOutput = executeFunction(functionName, functionBody, testInputs);
+            boolean passed = Objects.equals(expectedOutput, actualOutput);
+            
+            FunctionTestResult result = new FunctionTestResult(
+                functionName, passed, actualOutput, expectedOutput, null);
+            
+            testResultCache.put(functionName, result);
+            return result;
+            
+        } catch (Exception e) {
+            FunctionTestResult result = new FunctionTestResult(
+                functionName, false, null, expectedOutput, e.getMessage());
+            testResultCache.put(functionName, result);
+            return result;
+        }
+    }
+    
+    /**
+     * Get test results for a function
+     */
+    public FunctionTestResult getTestResult(String functionName) {
+        return testResultCache.get(functionName);
+    }
+    
+    /**
+     * Inner class for test results
+     */
+    public static class FunctionTestResult {
+        private final String functionName;
+        private final boolean passed;
+        private final Object actualOutput;
+        private final Object expectedOutput;
+        private final String errorMessage;
+        
+        public FunctionTestResult(String functionName, boolean passed, 
+                                Object actualOutput, Object expectedOutput, String errorMessage) {
+            this.functionName = functionName;
+            this.passed = passed;
+            this.actualOutput = actualOutput;
+            this.expectedOutput = expectedOutput;
+            this.errorMessage = errorMessage;
+        }
+        
+        // Getters
+        public String getFunctionName() { return functionName; }
+        public boolean isPassed() { return passed; }
+        public Object getActualOutput() { return actualOutput; }
+        public Object getExpectedOutput() { return expectedOutput; }
+        public String getErrorMessage() { return errorMessage; }
     }
     
     /**

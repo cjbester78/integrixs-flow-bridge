@@ -76,26 +76,26 @@ public class IntegrationEndpointService {
         String correlationId = UUID.randomUUID().toString();
         
         // Get source adapter for logging
-        CommunicationAdapter sourceAdapter = adapterRepository.findById(flow.getSourceAdapterId())
+        CommunicationAdapter inboundAdapter = adapterRepository.findById(flow.getInboundAdapterId())
             .orElseThrow(() -> new IllegalArgumentException("Source adapter not found"));
             
         // Log incoming SOAP request to source adapter with correlation ID
         logger.info("SOAP request received - Adapter: {}, Endpoint: /{}, Request size: {} bytes, CorrelationId: {}", 
-            sourceAdapter.getName(), flowPath, soapRequest.length(), correlationId);
+            inboundAdapter.getName(), flowPath, soapRequest.length(), correlationId);
             
         // Log the incoming SOAP request payload
         logger.info("DEBUG: About to log source adapter payload - correlationId: {}, adapter: {}, payloadSize: {}", 
-            correlationId, sourceAdapter.getName(), soapRequest.length());
+            correlationId, inboundAdapter.getName(), soapRequest.length());
         try {
             logger.info("DEBUG: Source adapter details - ID: {}, Type: {}, Mode: {}", 
-                sourceAdapter.getId(), sourceAdapter.getType(), sourceAdapter.getMode());
+                inboundAdapter.getId(), inboundAdapter.getType(), inboundAdapter.getMode());
             
             // Clone adapter to avoid lazy loading issues
             CommunicationAdapter clonedAdapter = new CommunicationAdapter();
-            clonedAdapter.setId(sourceAdapter.getId());
-            clonedAdapter.setName(sourceAdapter.getName());
-            clonedAdapter.setType(sourceAdapter.getType());
-            clonedAdapter.setMode(sourceAdapter.getMode());
+            clonedAdapter.setId(inboundAdapter.getId());
+            clonedAdapter.setName(inboundAdapter.getName());
+            clonedAdapter.setType(inboundAdapter.getType());
+            clonedAdapter.setMode(inboundAdapter.getMode());
             
             logger.debug("Adapter payload logged - correlationId: {}, adapter: {}, type: REQUEST, direction: INBOUND", 
                 correlationId, clonedAdapter.getName());
@@ -105,7 +105,7 @@ public class IntegrationEndpointService {
         }
         
         // Check if target adapter is also SOAP
-        CommunicationAdapter targetAdapter = adapterRepository.findById(flow.getTargetAdapterId())
+        CommunicationAdapter outboundAdapter = adapterRepository.findById(flow.getOutboundAdapterId())
             .orElseThrow(() -> new IllegalArgumentException("Target adapter not found"));
         
         String messageToProcess;
@@ -135,14 +135,14 @@ public class IntegrationEndpointService {
         
         // Log the outgoing SOAP response payload for the SOURCE adapter (it's sending the response back)
         logger.info("DEBUG: About to log source adapter response - correlationId: {}, adapter: {}, payloadSize: {}", 
-            correlationId, sourceAdapter.getName(), soapResponse.length());
+            correlationId, inboundAdapter.getName(), soapResponse.length());
         
         // Clone adapter to avoid lazy loading issues
         CommunicationAdapter clonedSourceAdapter = new CommunicationAdapter();
-        clonedSourceAdapter.setId(sourceAdapter.getId());
-        clonedSourceAdapter.setName(sourceAdapter.getName());
-        clonedSourceAdapter.setType(sourceAdapter.getType());
-        clonedSourceAdapter.setMode(sourceAdapter.getMode());
+        clonedSourceAdapter.setId(inboundAdapter.getId());
+        clonedSourceAdapter.setName(inboundAdapter.getName());
+        clonedSourceAdapter.setType(inboundAdapter.getType());
+        clonedSourceAdapter.setMode(inboundAdapter.getMode());
         
         try {
             logger.debug("Adapter payload logged - correlationId: {}, adapter: {}, type: RESPONSE, direction: INBOUND", 
@@ -186,7 +186,7 @@ public class IntegrationEndpointService {
         }
         
         // Get source adapter
-        CommunicationAdapter sourceAdapter = adapterRepository.findById(flow.getSourceAdapterId())
+        CommunicationAdapter inboundAdapter = adapterRepository.findById(flow.getInboundAdapterId())
             .orElseThrow(() -> new IllegalArgumentException("Source adapter not found"));
         
         // First check if flow has a source flow structure with WSDL
@@ -203,7 +203,7 @@ public class IntegrationEndpointService {
         
         
         // Fall back to adapter configuration
-        String configJson = sourceAdapter.getConfiguration();
+        String configJson = inboundAdapter.getConfiguration();
         if (configJson != null) {
             Map<String, Object> config = objectMapper.readValue(configJson, Map.class);
             if (config.containsKey("wsdlContent")) {
@@ -215,7 +215,7 @@ public class IntegrationEndpointService {
         
         // Generate basic WSDL if none exists
         logger.info("Generating basic WSDL as no original WSDL found");
-        return generateBasicWsdl(flow, sourceAdapter);
+        return generateBasicWsdl(flow, inboundAdapter);
     }
     
     /**

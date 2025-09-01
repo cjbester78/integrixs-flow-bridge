@@ -69,19 +69,19 @@ public class FlowCompositionService {
         }
         
         // Validate adapters exist
-        validateAdapter(request.getSourceAdapterId());
-        validateAdapter(request.getTargetAdapterId());
+        validateAdapter(request.getInboundAdapterId());
+        validateAdapter(request.getOutboundAdapterId());
         
         // Create the integration flow
         IntegrationFlow flow = new IntegrationFlow();
         flow.setName(request.getFlowName());
         flow.setDescription(request.getDescription());
         // Convert String adapter IDs to UUID
-        if (request.getSourceAdapterId() != null) {
-            flow.setSourceAdapterId(UUID.fromString(request.getSourceAdapterId()));
+        if (request.getInboundAdapterId() != null) {
+            flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getTargetAdapterId() != null) {
-            flow.setTargetAdapterId(UUID.fromString(request.getTargetAdapterId()));
+        if (request.getOutboundAdapterId() != null) {
+            flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
         // Convert String structure IDs to UUID
         if (request.getSourceFlowStructureId() != null) {
@@ -245,13 +245,13 @@ public class FlowCompositionService {
         }
         
         // Update adapters
-        if (request.getSourceAdapterId() != null) {
-            validateAdapter(request.getSourceAdapterId());
-            existingFlow.setSourceAdapterId(UUID.fromString(request.getSourceAdapterId()));
+        if (request.getInboundAdapterId() != null) {
+            validateAdapter(request.getInboundAdapterId());
+            existingFlow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getTargetAdapterId() != null) {
-            validateAdapter(request.getTargetAdapterId());
-            existingFlow.setTargetAdapterId(UUID.fromString(request.getTargetAdapterId()));
+        if (request.getOutboundAdapterId() != null) {
+            validateAdapter(request.getOutboundAdapterId());
+            existingFlow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
         
         // Update flow structures
@@ -379,11 +379,11 @@ public class FlowCompositionService {
         flow.setName(request.getFlowName());
         flow.setDescription(request.getDescription());
         // Convert String adapter IDs to UUID
-        if (request.getSourceAdapterId() != null) {
-            flow.setSourceAdapterId(UUID.fromString(request.getSourceAdapterId()));
+        if (request.getInboundAdapterId() != null) {
+            flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getTargetAdapterId() != null) {
-            flow.setTargetAdapterId(UUID.fromString(request.getTargetAdapterId()));
+        if (request.getOutboundAdapterId() != null) {
+            flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
         flow.setStatus(FlowStatus.DEVELOPED_INACTIVE);
         // Load user from createdBy string
@@ -432,14 +432,14 @@ public class FlowCompositionService {
             flow.setName(request.getFlowName());
             flow.setDescription(request.getDescription());
             
-            if (request.getSourceAdapterId() != null) {
-                validateAdapter(request.getSourceAdapterId());
-                flow.setSourceAdapterId(UUID.fromString(request.getSourceAdapterId()));
+            if (request.getInboundAdapterId() != null) {
+                validateAdapter(request.getInboundAdapterId());
+                flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
             }
             
-            if (request.getTargetAdapterId() != null) {
-                validateAdapter(request.getTargetAdapterId());
-                flow.setTargetAdapterId(UUID.fromString(request.getTargetAdapterId()));
+            if (request.getOutboundAdapterId() != null) {
+                validateAdapter(request.getOutboundAdapterId());
+                flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
             }
             
             // Convert String structure IDs to UUID
@@ -468,8 +468,8 @@ public class FlowCompositionService {
             // No need to parse JSON configuration anymore
             
             // Get adapters
-            composition.setSourceAdapter(adapterRepository.findById(flow.getSourceAdapterId()).orElse(null));
-            composition.setTargetAdapter(adapterRepository.findById(flow.getTargetAdapterId()).orElse(null));
+            composition.setInboundAdapter(adapterRepository.findById(flow.getInboundAdapterId()).orElse(null));
+            composition.setOutboundAdapter(adapterRepository.findById(flow.getOutboundAdapterId()).orElse(null));
             
             // Get transformations
             composition.setTransformations(transformationService.getByFlowId(flowId));
@@ -517,8 +517,8 @@ public class FlowCompositionService {
         private String description;
         private String sourceBusinessComponentId;
         private String targetBusinessComponentId;
-        private String sourceAdapterId;
-        private String targetAdapterId;
+        private String inboundAdapterId;
+        private String outboundAdapterId;
         private String sourceFlowStructureId;
         private String targetFlowStructureId;
         private String createdBy;
@@ -539,10 +539,10 @@ public class FlowCompositionService {
         public void setSourceBusinessComponentId(String sourceBusinessComponentId) { this.sourceBusinessComponentId = sourceBusinessComponentId; }
         public String getTargetBusinessComponentId() { return targetBusinessComponentId; }
         public void setTargetBusinessComponentId(String targetBusinessComponentId) { this.targetBusinessComponentId = targetBusinessComponentId; }
-        public String getSourceAdapterId() { return sourceAdapterId; }
-        public void setSourceAdapterId(String sourceAdapterId) { this.sourceAdapterId = sourceAdapterId; }
-        public String getTargetAdapterId() { return targetAdapterId; }
-        public void setTargetAdapterId(String targetAdapterId) { this.targetAdapterId = targetAdapterId; }
+        public String getInboundAdapterId() { return inboundAdapterId; }
+        public void setInboundAdapterId(String inboundAdapterId) { this.inboundAdapterId = inboundAdapterId; }
+        public String getOutboundAdapterId() { return outboundAdapterId; }
+        public void setOutboundAdapterId(String outboundAdapterId) { this.outboundAdapterId = outboundAdapterId; }
         public String getSourceFlowStructureId() { return sourceFlowStructureId; }
         public void setSourceFlowStructureId(String sourceFlowStructureId) { this.sourceFlowStructureId = sourceFlowStructureId; }
         public String getTargetFlowStructureId() { return targetFlowStructureId; }
@@ -568,8 +568,8 @@ public class FlowCompositionService {
     public static class OrchestrationFlowRequest {
         private String flowName;
         private String description;
-        private String sourceAdapterId;
-        private String targetAdapterId;
+        private String inboundAdapterId;
+        private String outboundAdapterId;
         private String createdBy;
         private List<String> businessComponentIds;
         private List<String> adapterIds;
@@ -580,10 +580,10 @@ public class FlowCompositionService {
         public void setFlowName(String flowName) { this.flowName = flowName; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
-        public String getSourceAdapterId() { return sourceAdapterId; }
-        public void setSourceAdapterId(String sourceAdapterId) { this.sourceAdapterId = sourceAdapterId; }
-        public String getTargetAdapterId() { return targetAdapterId; }
-        public void setTargetAdapterId(String targetAdapterId) { this.targetAdapterId = targetAdapterId; }
+        public String getInboundAdapterId() { return inboundAdapterId; }
+        public void setInboundAdapterId(String inboundAdapterId) { this.inboundAdapterId = inboundAdapterId; }
+        public String getOutboundAdapterId() { return outboundAdapterId; }
+        public void setOutboundAdapterId(String outboundAdapterId) { this.outboundAdapterId = outboundAdapterId; }
         public String getCreatedBy() { return createdBy; }
         public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
         public List<String> getBusinessComponentIds() { return businessComponentIds; }
@@ -597,8 +597,8 @@ public class FlowCompositionService {
     public static class UpdateFlowRequest {
         private String flowName;
         private String description;
-        private String sourceAdapterId;
-        private String targetAdapterId;
+        private String inboundAdapterId;
+        private String outboundAdapterId;
         private String sourceFlowStructureId;
         private String targetFlowStructureId;
 
@@ -607,10 +607,10 @@ public class FlowCompositionService {
         public void setFlowName(String flowName) { this.flowName = flowName; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
-        public String getSourceAdapterId() { return sourceAdapterId; }
-        public void setSourceAdapterId(String sourceAdapterId) { this.sourceAdapterId = sourceAdapterId; }
-        public String getTargetAdapterId() { return targetAdapterId; }
-        public void setTargetAdapterId(String targetAdapterId) { this.targetAdapterId = targetAdapterId; }
+        public String getInboundAdapterId() { return inboundAdapterId; }
+        public void setInboundAdapterId(String inboundAdapterId) { this.inboundAdapterId = inboundAdapterId; }
+        public String getOutboundAdapterId() { return outboundAdapterId; }
+        public void setOutboundAdapterId(String outboundAdapterId) { this.outboundAdapterId = outboundAdapterId; }
         public String getSourceFlowStructureId() { return sourceFlowStructureId; }
         public void setSourceFlowStructureId(String sourceFlowStructureId) { this.sourceFlowStructureId = sourceFlowStructureId; }
         public String getTargetFlowStructureId() { return targetFlowStructureId; }
@@ -621,8 +621,8 @@ public class FlowCompositionService {
         private IntegrationFlow flow;
         private BusinessComponent sourceBusinessComponent;
         private BusinessComponent targetBusinessComponent;
-        private CommunicationAdapter sourceAdapter;
-        private CommunicationAdapter targetAdapter;
+        private CommunicationAdapter inboundAdapter;
+        private CommunicationAdapter outboundAdapter;
         private List<FlowTransformationDTO> transformations;
 
         // Getters and setters
@@ -632,10 +632,10 @@ public class FlowCompositionService {
         public void setSourceBusinessComponent(BusinessComponent sourceBusinessComponent) { this.sourceBusinessComponent = sourceBusinessComponent; }
         public BusinessComponent getTargetBusinessComponent() { return targetBusinessComponent; }
         public void setTargetBusinessComponent(BusinessComponent targetBusinessComponent) { this.targetBusinessComponent = targetBusinessComponent; }
-        public CommunicationAdapter getSourceAdapter() { return sourceAdapter; }
-        public void setSourceAdapter(CommunicationAdapter sourceAdapter) { this.sourceAdapter = sourceAdapter; }
-        public CommunicationAdapter getTargetAdapter() { return targetAdapter; }
-        public void setTargetAdapter(CommunicationAdapter targetAdapter) { this.targetAdapter = targetAdapter; }
+        public CommunicationAdapter getInboundAdapter() { return inboundAdapter; }
+        public void setInboundAdapter(CommunicationAdapter inboundAdapter) { this.inboundAdapter = inboundAdapter; }
+        public CommunicationAdapter getOutboundAdapter() { return outboundAdapter; }
+        public void setOutboundAdapter(CommunicationAdapter outboundAdapter) { this.outboundAdapter = outboundAdapter; }
         public List<FlowTransformationDTO> getTransformations() { return transformations; }
         public void setTransformations(List<FlowTransformationDTO> transformations) { this.transformations = transformations; }
     }

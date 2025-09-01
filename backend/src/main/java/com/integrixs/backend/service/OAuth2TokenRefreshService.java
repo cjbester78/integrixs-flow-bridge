@@ -286,4 +286,278 @@ public class OAuth2TokenRefreshService {
         
         return result;
     }
+    
+    /**
+     * Exchange authorization code for access token
+     * This completes the OAuth2 authorization code flow
+     */
+    @Transactional
+    public Map<String, Object> exchangeAuthorizationCode(String authId, String authorizationCode, String state, String redirectUri) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            ExternalAuthentication auth = authRepository.findById(java.util.UUID.fromString(authId))
+                    .orElseThrow(() -> new IllegalArgumentException("Authentication not found: " + authId));
+            
+            if (auth.getAuthType() != ExternalAuthentication.AuthType.OAUTH2) {
+                result.put("success", false);
+                result.put("message", "Authentication is not OAuth2 type");
+                return result;
+            }
+            
+            logger.info("Exchanging authorization code for access token for authentication: {}", auth.getName());
+            
+            // Build token request
+            Map<String, String> formData = new HashMap<>();
+            formData.put("grant_type", "authorization_code");
+            formData.put("code", authorizationCode);
+            
+            // Add redirect URI if provided
+            if (redirectUri != null) {
+                formData.put("redirect_uri", redirectUri);
+            } else if (auth.getRedirectUri() != null) {
+                formData.put("redirect_uri", auth.getRedirectUri());
+            }
+            
+            // Add client credentials
+            String clientId = auth.getClientId();
+            String clientSecret = null;
+            if (auth.getEncryptedClientSecret() != null) {
+                clientSecret = encryptionService.decrypt(auth.getEncryptedClientSecret());
+            }
+            
+            // Build request
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(new URI(auth.getTokenEndpoint()))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .timeout(Duration.ofSeconds(30));
+            
+            // Add client authentication
+            if (clientId != null && clientSecret != null) {
+                // Option 1: Basic authentication (preferred)
+                String credentials = clientId + ":" + clientSecret;
+                String basicAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+                requestBuilder.header("Authorization", "Basic " + basicAuth);
+            } else if (clientId != null) {
+                // Option 2: Client ID and secret in form data
+                formData.put("client_id", clientId);
+                if (clientSecret != null) {
+                    formData.put("client_secret", clientSecret);
+                }
+            }
+            
+            // Build form body
+            String formBody = buildFormBody(formData);
+            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(formBody));
+            
+            HttpRequest request = requestBuilder.build();
+            
+            // Send request
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            if (response.statusCode() == 200) {
+                // Parse response
+                JsonNode responseJson = objectMapper.readTree(response.body());
+                
+                // Update authentication with tokens
+                String accessToken = responseJson.get("access_token").asText();
+                auth.setEncryptedAccessToken(encryptionService.encrypt(accessToken));
+                
+                // Save refresh token if provided
+                if (responseJson.has("refresh_token")) {
+                    auth.setRefreshToken(responseJson.get("refresh_token").asText());
+                }
+                
+                // Calculate expiration time
+                if (responseJson.has("expires_in")) {
+                    int expiresIn = responseJson.get("expires_in").asInt();
+                    auth.setTokenExpiresAt(LocalDateTime.now().plusSeconds(expiresIn));
+                } else {
+                    // Default to 1 hour if not specified
+                    auth.setTokenExpiresAt(LocalDateTime.now().plusHours(1));
+                }
+                
+                // Update grant type if it was authorization code
+                if (!"authorization_code".equals(auth.getGrantType())) {
+                    auth.setGrantType("authorization_code");
+                }
+                
+                authRepository.save(auth);
+                
+                // Log successful token exchange
+                Map<String, Object> auditDetails = new HashMap<>();
+                auditDetails.put("authName", auth.getName());
+                auditDetails.put("tokenEndpoint", auth.getTokenEndpoint());
+                auditDetails.put("tokenExpiry", auth.getTokenExpiresAt());
+                auditDetails.put("hasRefreshToken", responseJson.has("refresh_token"));
+                auditTrailService.logAction("ExternalAuthentication", auth.getId().toString(),
+                        com.integrixs.data.model.AuditTrail.AuditAction.UPDATE, auditDetails);
+                
+                result.put("success", true);
+                result.put("message", "Successfully obtained access token");
+                result.put("expiresAt", auth.getTokenExpiresAt());
+                result.put("hasRefreshToken", auth.getRefreshToken() != null);
+                
+                logger.info("Successfully exchanged authorization code for access token");
+                
+            } else {
+                // Parse error response
+                String errorMessage = response.body();
+                try {
+                    JsonNode errorJson = objectMapper.readTree(response.body());
+                    if (errorJson.has("error_description")) {
+                        errorMessage = errorJson.get("error_description").asText();
+                    } else if (errorJson.has("error")) {
+                        errorMessage = errorJson.get("error").asText();
+                    }
+                } catch (Exception e) {
+                    // Use raw response body if parsing fails
+                }
+                
+                logger.error("Token exchange failed with status {}: {}", response.statusCode(), errorMessage);
+                
+                result.put("success", false);
+                result.put("message", "Token exchange failed: " + errorMessage);
+                result.put("statusCode", response.statusCode());
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error exchanging authorization code", e);
+            result.put("success", false);
+            result.put("message", "Error: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Request access token using client credentials flow
+     * This is used for machine-to-machine authentication
+     */
+    @Transactional
+    public Map<String, Object> requestClientCredentialsToken(String authId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            ExternalAuthentication auth = authRepository.findById(java.util.UUID.fromString(authId))
+                    .orElseThrow(() -> new IllegalArgumentException("Authentication not found: " + authId));
+            
+            if (auth.getAuthType() != ExternalAuthentication.AuthType.OAUTH2) {
+                result.put("success", false);
+                result.put("message", "Authentication is not OAuth2 type");
+                return result;
+            }
+            
+            logger.info("Requesting client credentials token for authentication: {}", auth.getName());
+            
+            // Build token request
+            Map<String, String> formData = new HashMap<>();
+            formData.put("grant_type", "client_credentials");
+            
+            // Add scopes if configured
+            if (auth.getScopes() != null && !auth.getScopes().isEmpty()) {
+                formData.put("scope", auth.getScopes());
+            }
+            
+            // Get client credentials
+            String clientId = auth.getClientId();
+            String clientSecret = null;
+            if (auth.getEncryptedClientSecret() != null) {
+                clientSecret = encryptionService.decrypt(auth.getEncryptedClientSecret());
+            }
+            
+            if (clientId == null || clientSecret == null) {
+                result.put("success", false);
+                result.put("message", "Client credentials flow requires both client ID and client secret");
+                return result;
+            }
+            
+            // Build request
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(new URI(auth.getTokenEndpoint()))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .timeout(Duration.ofSeconds(30));
+            
+            // Add client authentication (Basic auth preferred)
+            String credentials = clientId + ":" + clientSecret;
+            String basicAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+            requestBuilder.header("Authorization", "Basic " + basicAuth);
+            
+            // Build form body
+            String formBody = buildFormBody(formData);
+            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(formBody));
+            
+            HttpRequest request = requestBuilder.build();
+            
+            // Send request
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            if (response.statusCode() == 200) {
+                // Parse response
+                JsonNode responseJson = objectMapper.readTree(response.body());
+                
+                // Update authentication with access token
+                String accessToken = responseJson.get("access_token").asText();
+                auth.setEncryptedAccessToken(encryptionService.encrypt(accessToken));
+                
+                // Client credentials flow typically doesn't provide refresh tokens
+                auth.setRefreshToken(null);
+                
+                // Calculate expiration time
+                if (responseJson.has("expires_in")) {
+                    int expiresIn = responseJson.get("expires_in").asInt();
+                    auth.setTokenExpiresAt(LocalDateTime.now().plusSeconds(expiresIn));
+                } else {
+                    // Default to 1 hour if not specified
+                    auth.setTokenExpiresAt(LocalDateTime.now().plusHours(1));
+                }
+                
+                // Update grant type
+                auth.setGrantType("client_credentials");
+                
+                authRepository.save(auth);
+                
+                // Log successful token request
+                Map<String, Object> auditDetails = new HashMap<>();
+                auditDetails.put("authName", auth.getName());
+                auditDetails.put("grantType", "client_credentials");
+                auditDetails.put("tokenExpiry", auth.getTokenExpiresAt());
+                auditTrailService.logAction("ExternalAuthentication", auth.getId().toString(),
+                        com.integrixs.data.model.AuditTrail.AuditAction.UPDATE, auditDetails);
+                
+                result.put("success", true);
+                result.put("message", "Successfully obtained access token using client credentials");
+                result.put("expiresAt", auth.getTokenExpiresAt());
+                
+                logger.info("Successfully obtained client credentials token");
+                
+            } else {
+                // Parse error response
+                String errorMessage = response.body();
+                try {
+                    JsonNode errorJson = objectMapper.readTree(response.body());
+                    if (errorJson.has("error_description")) {
+                        errorMessage = errorJson.get("error_description").asText();
+                    } else if (errorJson.has("error")) {
+                        errorMessage = errorJson.get("error").asText();
+                    }
+                } catch (Exception e) {
+                    // Use raw response body if parsing fails
+                }
+                
+                logger.error("Client credentials request failed with status {}: {}", response.statusCode(), errorMessage);
+                
+                result.put("success", false);
+                result.put("message", "Token request failed: " + errorMessage);
+                result.put("statusCode", response.statusCode());
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error requesting client credentials token", e);
+            result.put("success", false);
+            result.put("message", "Error: " + e.getMessage());
+        }
+        
+        return result;
+    }
 }

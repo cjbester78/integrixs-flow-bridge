@@ -68,14 +68,14 @@ public class FlowExportService {
         
         // Load and include adapters
         if (options.isIncludeAdapterConfigs()) {
-            export.setSourceAdapter(loadAdapter(flow.getSourceAdapterId() != null ? flow.getSourceAdapterId().toString() : null));
-            export.setTargetAdapter(loadAdapter(flow.getTargetAdapterId() != null ? flow.getTargetAdapterId().toString() : null));
+            export.setInboundAdapter(loadAdapter(flow.getInboundAdapterId() != null ? flow.getInboundAdapterId().toString() : null));
+            export.setOutboundAdapter(loadAdapter(flow.getOutboundAdapterId() != null ? flow.getOutboundAdapterId().toString() : null));
             
             // Include certificate references
             if (options.isIncludeCertificateReferences()) {
                 Set<String> certificateIds = new HashSet<>();
-                certificateIds.addAll(extractCertificateIds(export.getSourceAdapter()));
-                certificateIds.addAll(extractCertificateIds(export.getTargetAdapter()));
+                certificateIds.addAll(extractCertificateIds(export.getInboundAdapter()));
+                certificateIds.addAll(extractCertificateIds(export.getOutboundAdapter()));
                 
                 List<FlowExportDTO.CertificateReferenceDTO> certRefs = certificateIds.stream()
                         .map(this::createCertificateReference)
@@ -131,8 +131,8 @@ public class FlowExportService {
             validation.put("status", flow.getStatus().toString());
             
             // Check dependencies
-            boolean hasSourceAdapter = communicationAdapterRepository.existsById(flow.getSourceAdapterId());
-            boolean hasTargetAdapter = communicationAdapterRepository.existsById(flow.getTargetAdapterId());
+            boolean hasSourceAdapter = communicationAdapterRepository.existsById(flow.getInboundAdapterId());
+            boolean hasTargetAdapter = communicationAdapterRepository.existsById(flow.getOutboundAdapterId());
             
             validation.put("hasSourceAdapter", hasSourceAdapter);
             validation.put("hasTargetAdapter", hasTargetAdapter);
@@ -266,8 +266,8 @@ public class FlowExportService {
                 .id(flow.getId().toString())
                 .name(flow.getName())
                 .description(flow.getDescription())
-                .sourceAdapterId(flow.getSourceAdapterId() != null ? flow.getSourceAdapterId().toString() : null)
-                .targetAdapterId(flow.getTargetAdapterId() != null ? flow.getTargetAdapterId().toString() : null)
+                .inboundAdapterId(flow.getInboundAdapterId() != null ? flow.getInboundAdapterId().toString() : null)
+                .outboundAdapterId(flow.getOutboundAdapterId() != null ? flow.getOutboundAdapterId().toString() : null)
                 .sourceFlowStructureId(flow.getSourceFlowStructureId() != null ? flow.getSourceFlowStructureId().toString() : null)
                 .targetFlowStructureId(flow.getTargetFlowStructureId() != null ? flow.getTargetFlowStructureId().toString() : null)
                 .status(flow.getStatus().toString())

@@ -206,8 +206,8 @@ public class FlowControllerV1 {
         IntegrationFlow flow = new IntegrationFlow();
         flow.setName(dto.getName());
         flow.setDescription(dto.getDescription());
-        flow.setSourceAdapterId(UUID.fromString(dto.getSourceAdapterId()));
-        flow.setTargetAdapterId(UUID.fromString(dto.getTargetAdapterId()));
+        flow.setInboundAdapterId(UUID.fromString(dto.getInboundAdapterId()));
+        flow.setOutboundAdapterId(UUID.fromString(dto.getOutboundAdapterId()));
         // Configuration field removed - using native columns instead
         return flow;
     }
@@ -223,8 +223,8 @@ public class FlowControllerV1 {
         response.setId(flow.getId().toString());
         response.setName(flow.getName());
         response.setDescription(flow.getDescription());
-        response.setSourceAdapterId(flow.getSourceAdapterId().toString());
-        response.setTargetAdapterId(flow.getTargetAdapterId().toString());
+        response.setInboundAdapterId(flow.getInboundAdapterId().toString());
+        response.setOutboundAdapterId(flow.getOutboundAdapterId().toString());
         response.setSourceFlowStructureId(flow.getSourceFlowStructureId() != null ? flow.getSourceFlowStructureId().toString() : null);
         response.setTargetFlowStructureId(flow.getTargetFlowStructureId() != null ? flow.getTargetFlowStructureId().toString() : null);
         response.setStatus(flow.getStatus().toString());
@@ -247,8 +247,8 @@ public class FlowControllerV1 {
             .id(flow.getId().toString())
             .name(flow.getName())
             .description(flow.getDescription())
-            .sourceAdapterId(flow.getSourceAdapterId() != null ? flow.getSourceAdapterId().toString() : null)
-            .targetAdapterId(flow.getTargetAdapterId() != null ? flow.getTargetAdapterId().toString() : null)
+            .inboundAdapterId(flow.getInboundAdapterId() != null ? flow.getInboundAdapterId().toString() : null)
+            .outboundAdapterId(flow.getOutboundAdapterId() != null ? flow.getOutboundAdapterId().toString() : null)
             .sourceFlowStructureId(flow.getSourceFlowStructureId() != null ? flow.getSourceFlowStructureId().toString() : null)
             .targetFlowStructureId(flow.getTargetFlowStructureId() != null ? flow.getTargetFlowStructureId().toString() : null)
             .status(flow.getStatus().toString())

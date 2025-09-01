@@ -30,8 +30,8 @@ public class MessageRoutingService {
      * 
      * @param messageData The incoming message data
      * @param flow The integration flow configuration
-     * @param senderAdapterConfig The sender adapter configuration
-     * @return Processed message ready for receiver adapter
+     * @param senderAdapterConfig The inbound adapter configuration
+     * @return Processed message ready for outbound adapter
      */
     public Object processMessage(Object messageData, IntegrationFlow flow, Object senderAdapterConfig) {
         

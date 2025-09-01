@@ -1,8 +1,8 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.adapters.core.*;
-import com.integrixs.adapters.domain.port.SenderAdapterPort;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.domain.model.SendRequest;
 import com.integrixs.adapters.domain.model.FetchRequest;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
@@ -101,8 +101,8 @@ public class EnhancedAdapterExecutionService {
                             long duration = System.currentTimeMillis() - startTime;
                             
                             // Update metrics
-                            var sourceMetrics = healthMonitor.getMetrics(flow.getSourceAdapterId().toString());
-                            var targetMetrics = healthMonitor.getMetrics(flow.getTargetAdapterId().toString());
+                            var sourceMetrics = healthMonitor.getMetrics(flow.getInboundAdapterId().toString());
+                            var targetMetrics = healthMonitor.getMetrics(flow.getOutboundAdapterId().toString());
                             
                             if (sourceMetrics != null) sourceMetrics.recordMessage(true, duration / 2);
                             if (targetMetrics != null) targetMetrics.recordMessage(true, duration / 2);
@@ -141,7 +141,7 @@ public class EnhancedAdapterExecutionService {
         
         // Step 1: Fetch from source adapter
         Map<String, Object> fetchParams = new HashMap<>();
-        fetchParams.put("adapterId", flow.getSourceAdapterId().toString());
+        fetchParams.put("adapterId", flow.getInboundAdapterId().toString());
         fetchParams.put("payload", payload);
         fetchParams.put("correlationId", correlationId);
         
@@ -167,7 +167,7 @@ public class EnhancedAdapterExecutionService {
         
         // Step 3: Send to target adapter
         Map<String, Object> sendParams = new HashMap<>();
-        sendParams.put("adapterId", flow.getTargetAdapterId().toString());
+        sendParams.put("adapterId", flow.getOutboundAdapterId().toString());
         sendParams.put("correlationId", correlationId);
         
         steps.add(new SagaTransactionService.SagaStepDefinition(
@@ -185,7 +185,7 @@ public class EnhancedAdapterExecutionService {
      */
     public CompletableFuture<Object> fetchFromAdapter(String adapterId, String correlationId) {
         return CompletableFuture.supplyAsync(() -> {
-            PooledAdapter<SenderAdapterPort> pooledAdapter = null;
+            PooledAdapter<InboundAdapterPort> pooledAdapter = null;
             CommunicationAdapter adapterEntity = null;
             
             try {
@@ -196,8 +196,8 @@ public class EnhancedAdapterExecutionService {
                 }
                 
                 // Get adapter from pool
-                pooledAdapter = poolManager.getSenderAdapter(adapterId);
-                SenderAdapterPort adapter = pooledAdapter.getAdapter();
+                pooledAdapter = poolManager.getInboundAdapter(adapterId);
+                InboundAdapterPort adapter = pooledAdapter.getAdapter();
                 
                 // Log adapter request
                 adapterEntity = adapterRepository.findById(UUID.fromString(adapterId)).orElse(null);
@@ -212,7 +212,7 @@ public class EnhancedAdapterExecutionService {
                 logger.info("Fetching data from adapter: {} - correlationId: {}", adapterId, correlationId);
                 
                 // Fetch data
-                // Create fetch request for SenderAdapterPort
+                // Create fetch request for InboundAdapterPort
                 com.integrixs.adapters.domain.model.FetchRequest fetchRequest = 
                     com.integrixs.adapters.domain.model.FetchRequest.builder()
                         .adapterId(adapterId)
@@ -261,7 +261,7 @@ public class EnhancedAdapterExecutionService {
      */
     public CompletableFuture<Void> sendToAdapter(String adapterId, Object data, String correlationId) {
         return CompletableFuture.runAsync(() -> {
-            PooledAdapter<ReceiverAdapterPort> pooledAdapter = null;
+            PooledAdapter<OutboundAdapterPort> pooledAdapter = null;
             CommunicationAdapter adapterEntity = null;
             
             try {
@@ -272,8 +272,8 @@ public class EnhancedAdapterExecutionService {
                 }
                 
                 // Get adapter from pool
-                pooledAdapter = poolManager.getReceiverAdapter(adapterId);
-                ReceiverAdapterPort adapter = pooledAdapter.getAdapter();
+                pooledAdapter = poolManager.getOutboundAdapter(adapterId);
+                OutboundAdapterPort adapter = pooledAdapter.getAdapter();
                 
                 // Log adapter request
                 adapterEntity = adapterRepository.findById(UUID.fromString(adapterId)).orElse(null);
@@ -291,7 +291,7 @@ public class EnhancedAdapterExecutionService {
                 logger.info("Sending data to adapter: {} - correlationId: {}", adapterId, correlationId);
                 
                 // Send data
-                // Create send request for ReceiverAdapterPort
+                // Create send request for OutboundAdapterPort
                 SendRequest sendRequest = SendRequest.builder()
                     .adapterId(adapterId)
                     .payload(data)
@@ -448,11 +448,11 @@ public class EnhancedAdapterExecutionService {
                 
                 if (healthResult.isHealthy()) {
                     // Try to get adapter from pool to test actual connectivity
-                    if (adapter.getDirection().equals("SENDER")) {
-                        var pooled = poolManager.getSenderAdapter(adapterId);
+                    if (adapter.getDirection().equals("INBOUND")) {
+                        var pooled = poolManager.getInboundAdapter(adapterId);
                         poolManager.returnAdapter(adapterId, pooled);
                     } else {
-                        var pooled = poolManager.getReceiverAdapter(adapterId);
+                        var pooled = poolManager.getOutboundAdapter(adapterId);
                         poolManager.returnAdapter(adapterId, pooled);
                     }
                     

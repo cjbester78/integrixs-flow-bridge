@@ -32,7 +32,7 @@ public class FlowExecutionResponseDTO {
     private Map<String, Object> metadata = new HashMap<>();
     @Builder.Default
     private List<String> warnings = new ArrayList<>();
-    private String sourceAdapterId;
-    private String targetAdapterId;
+    private String inboundAdapterId;
+    private String outboundAdapterId;
     private Integer recordsProcessed;
 }

@@ -1,8 +1,8 @@
 package com.integrixs.adapters.factory;
 
 import com.integrixs.adapters.core.*;
-import com.integrixs.adapters.domain.port.SenderAdapterPort;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,59 +78,59 @@ public class AdapterFactoryManager {
     }
     
     /**
-     * Create a sender adapter using the default factory.
+     * Create a inbound adapter using the default factory.
      * 
      * @param adapterType the adapter type
      * @param configuration the configuration object
-     * @return configured sender adapter
+     * @return configured inbound adapter
      * @throws AdapterException if creation fails
      */
-    public SenderAdapterPort createSender(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException {
+    public InboundAdapterPort createSender(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException {
         return createSender(adapterType, configuration, null);
     }
     
     /**
-     * Create a sender adapter using a specific factory.
+     * Create a inbound adapter using a specific factory.
      * 
      * @param adapterType the adapter type
      * @param configuration the configuration object
      * @param factoryName the specific factory to use (null for default)
-     * @return configured sender adapter
+     * @return configured inbound adapter
      * @throws AdapterException if creation fails
      */
-    public SenderAdapterPort createSender(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration, String factoryName) 
+    public InboundAdapterPort createSender(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration, String factoryName) 
             throws AdapterException {
         
-        AdapterFactory factory = getFactory(factoryName, adapterType, AdapterConfiguration.AdapterModeEnum.SENDER);
-        return factory.createSender(adapterType, configuration);
+        AdapterFactory factory = getFactory(factoryName, adapterType, AdapterConfiguration.AdapterModeEnum.INBOUND);
+        return factory.createInboundAdapter(adapterType, configuration);
     }
     
     /**
-     * Create a receiver adapter using the default factory.
+     * Create a outbound adapter using the default factory.
      * 
      * @param adapterType the adapter type
      * @param configuration the configuration object
-     * @return configured receiver adapter
+     * @return configured outbound adapter
      * @throws AdapterException if creation fails
      */
-    public ReceiverAdapterPort createReceiver(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException {
+    public OutboundAdapterPort createReceiver(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException {
         return createReceiver(adapterType, configuration, null);
     }
     
     /**
-     * Create a receiver adapter using a specific factory.
+     * Create a outbound adapter using a specific factory.
      * 
      * @param adapterType the adapter type
      * @param configuration the configuration object
      * @param factoryName the specific factory to use (null for default)
-     * @return configured receiver adapter
+     * @return configured outbound adapter
      * @throws AdapterException if creation fails
      */
-    public ReceiverAdapterPort createReceiver(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration, String factoryName) 
+    public OutboundAdapterPort createReceiver(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration, String factoryName) 
             throws AdapterException {
         
-        AdapterFactory factory = getFactory(factoryName, adapterType, AdapterConfiguration.AdapterModeEnum.RECEIVER);
-        return factory.createReceiver(adapterType, configuration);
+        AdapterFactory factory = getFactory(factoryName, adapterType, AdapterConfiguration.AdapterModeEnum.OUTBOUND);
+        return factory.createOutboundAdapter(adapterType, configuration);
     }
     
     /**
@@ -147,7 +147,7 @@ public class AdapterFactoryManager {
         
         Object adapter;
         
-        if (adapterMode == AdapterConfiguration.AdapterModeEnum.SENDER) {
+        if (adapterMode == AdapterConfiguration.AdapterModeEnum.INBOUND) {
             adapter = createSender(adapterType, configuration);
         } else {
             adapter = createReceiver(adapterType, configuration);

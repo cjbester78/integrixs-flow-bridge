@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * DTO for external authentication configurations
@@ -60,6 +61,26 @@ public class ExternalAuthenticationDTO {
     private String oauth1TokenSecret; // Only used for create/update, never returned
     private boolean hasConsumerSecret;
     private boolean hasOauth1TokenSecret;
+    
+    // HMAC fields
+    private String hmacAlgorithm;
+    private String hmacSecretKey; // Only used for create/update, never returned
+    private String hmacHeaderName;
+    private boolean hmacIncludeTimestamp;
+    private boolean hmacIncludeNonce;
+    private boolean hasHmacSecretKey;
+    
+    // Certificate fields
+    private String certificatePath;
+    private String certificatePassword; // Only used for create/update, never returned
+    private String certificateType;
+    private String trustStorePath;
+    private String trustStorePassword; // Only used for create/update, never returned
+    private boolean hasCertificatePassword;
+    private boolean hasTrustStorePassword;
+    
+    // Custom header fields
+    private Map<String, String> customHeaders;
     
     // Status fields
     private boolean active;

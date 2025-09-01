@@ -37,15 +37,15 @@ public class FormatConversionService {
     /**
      * Convert data to XML format based on source adapter type
      */
-    public String convertToXml(Object data, CommunicationAdapter sourceAdapter) throws XmlConversionException {
-        String adapterType = sourceAdapter.getType().name();
+    public String convertToXml(Object data, CommunicationAdapter inboundAdapter) throws XmlConversionException {
+        String adapterType = inboundAdapter.getType().name();
         
         switch (adapterType) {
             case "HTTP_REST":
             case "HTTP":
             case "REST":
                 // Assume REST APIs return JSON
-                return jsonToXmlConverter.convertToXml(data, createJsonXmlConfig(sourceAdapter));
+                return jsonToXmlConverter.convertToXml(data, createJsonXmlConfig(inboundAdapter));
                 
             case "SOAP":
             case "SOAP_WS":
@@ -64,23 +64,23 @@ public class FormatConversionService {
                 
             default:
                 // Try JSON conversion as default
-                return jsonToXmlConverter.convertToXml(data, createJsonXmlConfig(sourceAdapter));
+                return jsonToXmlConverter.convertToXml(data, createJsonXmlConfig(inboundAdapter));
         }
     }
     
     /**
      * Convert XML back to target format based on target adapter type
      */
-    public Object convertFromXml(String xmlContent, CommunicationAdapter targetAdapter, Map<String, Object> conversionConfig) 
+    public Object convertFromXml(String xmlContent, CommunicationAdapter outboundAdapter, Map<String, Object> conversionConfig) 
             throws XmlConversionException {
-        String adapterType = targetAdapter.getType().name();
+        String adapterType = outboundAdapter.getType().name();
         
         switch (adapterType) {
             case "HTTP_REST":
             case "HTTP":
             case "REST":
                 // Convert to JSON for REST APIs
-                boolean removeRoot = shouldRemoveRootElement(targetAdapter);
+                boolean removeRoot = shouldRemoveRootElement(outboundAdapter);
                 return xmlToJsonConverter.convertToJson(xmlContent, removeRoot);
                 
             case "SOAP":
@@ -90,13 +90,13 @@ public class FormatConversionService {
                 
             case "JDBC":
                 // Convert to SQL statements
-                return convertToSql(xmlContent, targetAdapter, conversionConfig);
+                return convertToSql(xmlContent, outboundAdapter, conversionConfig);
                 
             case "FILE":
             case "FTP":
             case "SFTP":
                 // Check file format from adapter config
-                String fileFormat = getFileFormat(targetAdapter);
+                String fileFormat = getFileFormat(outboundAdapter);
                 if ("CSV".equalsIgnoreCase(fileFormat)) {
                     return convertToCsv(xmlContent, conversionConfig);
                 } else if ("FIXED".equalsIgnoreCase(fileFormat)) {
@@ -111,7 +111,7 @@ public class FormatConversionService {
             case "JMS":
             case "KAFKA":
                 // Message queues typically accept XML or JSON
-                String messageFormat = getMessageFormat(targetAdapter);
+                String messageFormat = getMessageFormat(outboundAdapter);
                 if ("JSON".equalsIgnoreCase(messageFormat)) {
                     return xmlToJsonConverter.convertToJson(xmlContent, true);
                 } else {

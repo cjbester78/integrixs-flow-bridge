@@ -60,13 +60,13 @@ public class IntegrationFlowRepositoryImpl implements IntegrationFlowRepository 
     }
     
     @Override
-    public List<IntegrationFlow> findBySourceAdapterId(UUID sourceAdapterId) {
-        return jpaRepository.findBySourceAdapterId(sourceAdapterId);
+    public List<IntegrationFlow> findBySourceAdapterId(UUID inboundAdapterId) {
+        return jpaRepository.findBySourceAdapterId(inboundAdapterId);
     }
     
     @Override
-    public List<IntegrationFlow> findByTargetAdapterId(UUID targetAdapterId) {
-        return jpaRepository.findByTargetAdapterId(targetAdapterId);
+    public List<IntegrationFlow> findByTargetAdapterId(UUID outboundAdapterId) {
+        return jpaRepository.findByTargetAdapterId(outboundAdapterId);
     }
     
     @Override

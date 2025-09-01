@@ -138,7 +138,7 @@ public class FlowDeploymentSaga implements Saga<IntegrationFlowDTO> {
             log.debug("Validating flow configuration: {}", flow.getId());
             
             // Validate flow has required fields
-            if (flow.getSourceAdapterId() == null || flow.getTargetAdapterId() == null) {
+            if (flow.getInboundAdapterId() == null || flow.getOutboundAdapterId() == null) {
                 return StepResult.failure(getName(), "Flow missing required adapters");
             }
             

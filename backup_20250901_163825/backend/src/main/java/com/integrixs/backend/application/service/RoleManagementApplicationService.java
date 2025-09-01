@@ -1,0 +1,226 @@
+package com.integrixs.backend.application.service;
+
+import com.integrixs.backend.domain.repository.RoleRepository;
+import com.integrixs.backend.domain.service.RoleManagementService;
+import com.integrixs.backend.exception.ConflictException;
+import com.integrixs.backend.exception.ResourceNotFoundException;
+import com.integrixs.backend.service.AuditTrailService;
+import com.integrixs.data.model.Role;
+import com.integrixs.shared.dto.RoleDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+/**
+ * Application service for role management
+ * Orchestrates role operations across domain services
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class RoleManagementApplicationService {
+    
+    private final RoleRepository roleRepository;
+    private final RoleManagementService roleManagementService;
+    private final AuditTrailService auditTrailService;
+    
+    /**
+     * Get all roles with pagination
+     */
+    @Transactional(readOnly = true)
+    public List<RoleDTO> getAllRoles(int page, int limit) {
+        log.debug("Fetching all roles - page: {}, limit: {}", page, limit);
+        
+        PageRequest pageRequest = PageRequest.of(page, limit);
+        Page<Role> rolePage = roleRepository.findAll(pageRequest);
+        
+        return rolePage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get role by ID
+     */
+    @Transactional(readOnly = true)
+    public RoleDTO getRoleById(String id) {
+        log.debug("Fetching role by id: {}", id);
+        
+        UUID roleId = UUID.fromString(id);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + id));
+                
+        return convertToDTO(role);
+    }
+    
+    /**
+     * Get role by name
+     */
+    @Transactional(readOnly = true)
+    public RoleDTO getRoleByName(String name) {
+        log.debug("Fetching role by name: {}", name);
+        
+        Role role = roleRepository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with name: " + name));
+                
+        return convertToDTO(role);
+    }
+    
+    /**
+     * Create new role
+     */
+    @Transactional
+    public RoleDTO createRole(RoleDTO roleDTO, String userId) {
+        log.info("Creating new role: {}", roleDTO.getName());
+        
+        // Check if role name already exists
+        if (roleRepository.existsByName(roleDTO.getName())) {
+            throw new ConflictException("Role already exists with name: " + roleDTO.getName());
+        }
+        
+        // Create role entity
+        Role role = new Role();
+        role.setName(roleDTO.getName().toUpperCase());
+        
+        // Set default permissions if not provided
+        String permissions = roleDTO.getDescription(); // Using description field for permissions
+        if (permissions == null || permissions.trim().isEmpty()) {
+            permissions = roleManagementService.getDefaultPermissions();
+        }
+        
+        // Validate
+        roleManagementService.validateRole(role);
+        roleManagementService.validatePermissions(permissions);
+        
+        role.setPermissions(permissions);
+        
+        // Save
+        Role savedRole = roleRepository.save(role);
+        
+        // Audit trail
+        auditTrailService.logCreate(
+            "Role",
+            savedRole.getId().toString(),
+            savedRole
+        );
+        
+        log.info("Role created successfully: {}", savedRole.getId());
+        
+        return convertToDTO(savedRole);
+    }
+    
+    /**
+     * Update existing role
+     */
+    @Transactional
+    public RoleDTO updateRole(String id, RoleDTO roleDTO, String userId) {
+        log.info("Updating role: {}", id);
+        
+        UUID roleId = UUID.fromString(id);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + id));
+        
+        // Check if it's a system role
+        if (roleManagementService.isSystemRole(role)) {
+            throw new AccessDeniedException("System roles cannot be modified");
+        }
+        
+        // Check for name conflicts
+        if (!role.getName().equals(roleDTO.getName()) && 
+            roleRepository.existsByName(roleDTO.getName())) {
+            throw new ConflictException("Role already exists with name: " + roleDTO.getName());
+        }
+        
+        // Update fields
+        role.setName(roleDTO.getName().toUpperCase());
+        
+        // Update permissions if provided
+        String permissions = roleDTO.getDescription(); // Using description field for permissions
+        if (permissions != null && !permissions.trim().isEmpty()) {
+            roleManagementService.validatePermissions(permissions);
+            role.setPermissions(permissions);
+        }
+        
+        // Validate
+        roleManagementService.validateRole(role);
+        
+        // Save
+        Role updatedRole = roleRepository.save(role);
+        
+        // Audit trail
+        auditTrailService.logUpdate(
+            "Role",
+            updatedRole.getId().toString(),
+            role,
+            updatedRole
+        );
+        
+        log.info("Role updated successfully: {}", updatedRole.getId());
+        
+        return convertToDTO(updatedRole);
+    }
+    
+    /**
+     * Delete role
+     */
+    @Transactional
+    public void deleteRole(String id, String userId) {
+        log.info("Deleting role: {}", id);
+        
+        UUID roleId = UUID.fromString(id);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + id));
+        
+        // Check if it's a system role
+        if (roleManagementService.isSystemRole(role)) {
+            throw new AccessDeniedException("System roles cannot be deleted");
+        }
+        
+        // TODO: Check if role is in use by any users
+        
+        // Delete
+        roleRepository.deleteById(roleId);
+        
+        // Audit trail
+        auditTrailService.logDelete(
+            "Role",
+            roleId.toString(),
+            role
+        );
+        
+        log.info("Role deleted successfully: {}", roleId);
+    }
+    
+    /**
+     * Get all roles (without pagination)
+     */
+    @Transactional(readOnly = true)
+    public List<RoleDTO> getAllRoles() {
+        log.debug("Fetching all roles");
+        
+        return roleRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convert Role entity to DTO
+     */
+    private RoleDTO convertToDTO(Role role) {
+        return RoleDTO.builder()
+                .id(role.getId().toString())
+                .name(role.getName())
+                .description(role.getPermissions()) // Using permissions as description
+                .createdAt(LocalDateTime.now()) // Role entity doesn't have createdAt
+                .build();
+    }
+}

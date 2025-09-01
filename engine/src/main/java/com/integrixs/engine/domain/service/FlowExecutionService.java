@@ -34,11 +34,11 @@ public interface FlowExecutionService {
     /**
      * Process message through source adapter
      * @param message The input message
-     * @param sourceAdapterId Source adapter ID
+     * @param inboundAdapterId Source adapter ID
      * @param context The execution context
      * @return Processed message
      */
-    Object processSourceAdapter(Object message, String sourceAdapterId, FlowExecutionContext context);
+    Object processSourceAdapter(Object message, String inboundAdapterId, FlowExecutionContext context);
     
     /**
      * Apply field mappings to message
@@ -52,10 +52,10 @@ public interface FlowExecutionService {
     /**
      * Send message through target adapter
      * @param message The message to send
-     * @param targetAdapterId Target adapter ID
+     * @param outboundAdapterId Target adapter ID
      * @param context The execution context
      */
-    void sendToTargetAdapter(Object message, String targetAdapterId, FlowExecutionContext context);
+    void sendToTargetAdapter(Object message, String outboundAdapterId, FlowExecutionContext context);
     
     /**
      * Validate flow configuration

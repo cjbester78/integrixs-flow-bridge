@@ -38,16 +38,16 @@ public class DirectFileTransferService {
     /**
      * Execute a direct file transfer without any conversion
      */
-    public void executeDirectTransfer(IntegrationFlow flow, CommunicationAdapter sourceAdapter, 
-                                     CommunicationAdapter targetAdapter) throws Exception {
+    public void executeDirectTransfer(IntegrationFlow flow, CommunicationAdapter inboundAdapter, 
+                                     CommunicationAdapter outboundAdapter) throws Exception {
         logger.info("Starting direct file transfer for flow: {}", flow.getName());
         
         try {
             // Determine if we should use streaming based on adapter types
-            if (shouldUseStreaming(sourceAdapter, targetAdapter)) {
-                executeStreamingTransfer(flow, sourceAdapter, targetAdapter);
+            if (shouldUseStreaming(inboundAdapter, outboundAdapter)) {
+                executeStreamingTransfer(flow, inboundAdapter, outboundAdapter);
             } else {
-                executeBufferedTransfer(flow, sourceAdapter, targetAdapter);
+                executeBufferedTransfer(flow, inboundAdapter, outboundAdapter);
             }
             
             logger.info("Direct transfer completed for flow: {}", flow.getName());
@@ -75,12 +75,12 @@ public class DirectFileTransferService {
     /**
      * Execute streaming transfer for large files using NIO
      */
-    private void executeStreamingTransfer(IntegrationFlow flow, CommunicationAdapter sourceAdapter,
-                                        CommunicationAdapter targetAdapter) throws Exception {
+    private void executeStreamingTransfer(IntegrationFlow flow, CommunicationAdapter inboundAdapter,
+                                        CommunicationAdapter outboundAdapter) throws Exception {
         logger.info("Using streaming transfer for flow: {}", flow.getName());
         
         // Get source file info from adapter
-        Object sourceDataObj = adapterExecutor.fetchDataAsObject(sourceAdapter.getId().toString());
+        Object sourceDataObj = adapterExecutor.fetchDataAsObject(inboundAdapter.getId().toString());
         Map<String, Object> sourceData = null;
         
         // Try to cast to Map if possible
@@ -96,23 +96,23 @@ public class DirectFileTransferService {
             
             // For very large files, use memory-mapped I/O
             if (fileSize > LARGE_FILE_THRESHOLD) {
-                streamLargeFile(sourcePath, targetAdapter);
+                streamLargeFile(sourcePath, outboundAdapter);
             } else {
-                streamSmallFile(sourcePath, targetAdapter);
+                streamSmallFile(sourcePath, outboundAdapter);
             }
         } else if (sourceData != null && sourceData.containsKey("inputStream")) {
             // Handle stream-based sources
-            streamFromInputStream((InputStream) sourceData.get("inputStream"), targetAdapter);
+            streamFromInputStream((InputStream) sourceData.get("inputStream"), outboundAdapter);
         } else {
             // Fallback to buffered transfer
-            executeBufferedTransfer(flow, sourceAdapter, targetAdapter);
+            executeBufferedTransfer(flow, inboundAdapter, outboundAdapter);
         }
     }
     
     /**
      * Stream large files using NIO channels
      */
-    private void streamLargeFile(Path sourcePath, CommunicationAdapter targetAdapter) throws Exception {
+    private void streamLargeFile(Path sourcePath, CommunicationAdapter outboundAdapter) throws Exception {
         try (FileChannel sourceChannel = FileChannel.open(sourcePath, StandardOpenOption.READ)) {
             
             // Prepare target for streaming
@@ -121,7 +121,7 @@ public class DirectFileTransferService {
                 "expectedSize", sourceChannel.size()
             );
             
-            WritableByteChannel targetChannel = adapterExecutor.getWritableChannel(targetAdapter.getId().toString(), targetConfig);
+            WritableByteChannel targetChannel = adapterExecutor.getWritableChannel(outboundAdapter.getId().toString(), targetConfig);
             
             // Transfer data using zero-copy when possible
             long position = 0;
@@ -144,19 +144,19 @@ public class DirectFileTransferService {
     /**
      * Stream smaller files using buffered approach
      */
-    private void streamSmallFile(Path sourcePath, CommunicationAdapter targetAdapter) throws Exception {
+    private void streamSmallFile(Path sourcePath, CommunicationAdapter outboundAdapter) throws Exception {
         byte[] content = Files.readAllBytes(sourcePath);
-        adapterExecutor.sendData(targetAdapter.getId().toString(), content);
+        adapterExecutor.sendData(outboundAdapter.getId().toString(), content);
     }
     
     /**
      * Stream from an InputStream source
      */
-    private void streamFromInputStream(InputStream source, CommunicationAdapter targetAdapter) throws Exception {
+    private void streamFromInputStream(InputStream source, CommunicationAdapter outboundAdapter) throws Exception {
         try (InputStream input = source) {
             Map<String, Object> targetConfig = Map.of("streamingMode", true);
             
-            try (OutputStream output = adapterExecutor.getOutputStream(targetAdapter.getId().toString(), targetConfig)) {
+            try (OutputStream output = adapterExecutor.getOutputStream(outboundAdapter.getId().toString(), targetConfig)) {
                 byte[] buffer = new byte[BUFFER_SIZE];
                 int bytesRead;
                 long totalBytes = 0;
@@ -179,12 +179,12 @@ public class DirectFileTransferService {
     /**
      * Execute buffered transfer for non-file adapters
      */
-    private void executeBufferedTransfer(IntegrationFlow flow, CommunicationAdapter sourceAdapter,
-                                       CommunicationAdapter targetAdapter) throws Exception {
+    private void executeBufferedTransfer(IntegrationFlow flow, CommunicationAdapter inboundAdapter,
+                                       CommunicationAdapter outboundAdapter) throws Exception {
         logger.info("Using buffered transfer for flow: {}", flow.getName());
         
         // Fetch data as-is without conversion
-        Object rawData = adapterExecutor.fetchData(sourceAdapter.getId().toString());
+        Object rawData = adapterExecutor.fetchData(inboundAdapter.getId().toString());
         
         // Detect and preserve encoding
         String encoding = detectEncoding(rawData);
@@ -192,19 +192,19 @@ public class DirectFileTransferService {
         
         // Send data preserving original format
         if (rawData instanceof byte[]) {
-            adapterExecutor.sendData(targetAdapter.getId().toString(), (Object) rawData);
+            adapterExecutor.sendData(outboundAdapter.getId().toString(), (Object) rawData);
         } else if (rawData instanceof InputStream) {
             try (InputStream is = (InputStream) rawData) {
                 byte[] data = is.readAllBytes();
-                adapterExecutor.sendData(targetAdapter.getId().toString(), data);
+                adapterExecutor.sendData(outboundAdapter.getId().toString(), data);
             }
         } else if (rawData instanceof String) {
             // Preserve string encoding
             byte[] data = ((String) rawData).getBytes(Charset.forName(encoding));
-            adapterExecutor.sendData(targetAdapter.getId().toString(), data);
+            adapterExecutor.sendData(outboundAdapter.getId().toString(), data);
         } else {
             // For other types, send as object
-            adapterExecutor.sendData(targetAdapter.getId().toString(), rawData);
+            adapterExecutor.sendData(outboundAdapter.getId().toString(), rawData);
         }
     }
     

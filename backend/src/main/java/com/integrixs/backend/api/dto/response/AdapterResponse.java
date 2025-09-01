@@ -32,8 +32,11 @@ public class AdapterResponse {
     
     private boolean active;
     private boolean healthy;
+    private String status;
     
     private LocalDateTime lastHealthCheck;
+    private LocalDateTime lastTestDate;
+    private String lastTestResult;
     
     private Map<String, Object> configuration;
     

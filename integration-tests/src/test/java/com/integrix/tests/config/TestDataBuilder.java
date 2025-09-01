@@ -22,8 +22,8 @@ public class TestDataBuilder {
         CreateFlowRequest request = new CreateFlowRequest();
         request.setName("Test HTTP to Database Flow");
         request.setDescription("Test flow for integration testing");
-        request.setSourceAdapterId(UUID.randomUUID().toString());
-        request.setTargetAdapterId(UUID.randomUUID().toString());
+        request.setInboundAdapterId(UUID.randomUUID().toString());
+        request.setOutboundAdapterId(UUID.randomUUID().toString());
         request.setSourceFlowStructureId(UUID.randomUUID().toString());
         request.setTargetFlowStructureId(UUID.randomUUID().toString());
         request.setActive(true);
@@ -31,13 +31,13 @@ public class TestDataBuilder {
     }
     
     /**
-     * Create a test HTTP sender adapter request
+     * Create a test HTTP inbound adapter request
      */
-    public static CreateAdapterRequest createHttpSenderAdapterRequest() {
+    public static CreateAdapterRequest createHttpInboundAdapterRequest() {
         CreateAdapterRequest request = new CreateAdapterRequest();
         request.setName("Test HTTP Sender");
         request.setType("REST");
-        request.setMode("SENDER");
+        request.setMode("INBOUND");
         request.setDirection("OUTBOUND");
         request.setDescription("HTTP adapter for receiving data");
         
@@ -59,13 +59,13 @@ public class TestDataBuilder {
     }
     
     /**
-     * Create a test JDBC receiver adapter request
+     * Create a test JDBC outbound adapter request
      */
-    public static CreateAdapterRequest createJdbcReceiverAdapterRequest() {
+    public static CreateAdapterRequest createJdbcOutboundAdapterRequest() {
         CreateAdapterRequest request = new CreateAdapterRequest();
         request.setName("Test JDBC Receiver");
         request.setType("JDBC");
-        request.setMode("RECEIVER");
+        request.setMode("OUTBOUND");
         request.setDirection("INBOUND");
         request.setDescription("JDBC adapter for sending data");
         

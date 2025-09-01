@@ -1,8 +1,8 @@
 package com.integrixs.adapters.factory;
 
 import com.integrixs.adapters.core.*;
-import com.integrixs.adapters.domain.port.SenderAdapterPort;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
 /**
@@ -12,24 +12,24 @@ import com.integrixs.adapters.domain.model.AdapterConfiguration;
 public interface AdapterFactory {
     
     /**
-     * Create a sender adapter instance.
+     * Create an inbound adapter instance.
      * 
      * @param adapterType the type of adapter to create
      * @param configuration the adapter configuration object
-     * @return configured sender adapter instance
+     * @return configured inbound adapter instance
      * @throws AdapterException if adapter creation fails
      */
-    SenderAdapterPort createSender(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException;
+    InboundAdapterPort createInboundAdapter(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException;
     
     /**
-     * Create a receiver adapter instance.
+     * Create an outbound adapter instance.
      * 
      * @param adapterType the type of adapter to create
      * @param configuration the adapter configuration object
-     * @return configured receiver adapter instance
+     * @return configured outbound adapter instance
      * @throws AdapterException if adapter creation fails
      */
-    ReceiverAdapterPort createReceiver(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException;
+    OutboundAdapterPort createOutboundAdapter(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException;
     
     /**
      * Check if the factory supports the given adapter type and mode.

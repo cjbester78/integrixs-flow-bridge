@@ -85,8 +85,8 @@ public class FieldMappingIntegrationTest {
         flow.setBusinessComponent(testBusinessComponent);
         flow.setFlowType(FlowType.DIRECT_MAPPING);
         flow.setMappingMode(MappingMode.WITH_MAPPING);
-        flow.setSourceAdapterId(UUID.randomUUID());
-        flow.setTargetAdapterId(UUID.randomUUID());
+        flow.setInboundAdapterId(UUID.randomUUID());
+        flow.setOutboundAdapterId(UUID.randomUUID());
         flow = integrationFlowRepository.save(flow);
 
         // Create a transformation
@@ -138,8 +138,8 @@ public class FieldMappingIntegrationTest {
         flow.setBusinessComponent(testBusinessComponent);
         flow.setFlowType(FlowType.DIRECT_MAPPING);
         flow.setMappingMode(MappingMode.WITH_MAPPING);
-        flow.setSourceAdapterId(UUID.randomUUID());
-        flow.setTargetAdapterId(UUID.randomUUID());
+        flow.setInboundAdapterId(UUID.randomUUID());
+        flow.setOutboundAdapterId(UUID.randomUUID());
         flow = integrationFlowRepository.save(flow);
 
         // Create a transformation
@@ -183,8 +183,8 @@ public class FieldMappingIntegrationTest {
         flow.setBusinessComponent(testBusinessComponent);
         flow.setFlowType(FlowType.DIRECT_MAPPING);
         flow.setMappingMode(MappingMode.WITH_MAPPING);
-        flow.setSourceAdapterId(UUID.randomUUID());
-        flow.setTargetAdapterId(UUID.randomUUID());
+        flow.setInboundAdapterId(UUID.randomUUID());
+        flow.setOutboundAdapterId(UUID.randomUUID());
         flow = integrationFlowRepository.save(flow);
 
         // Create a transformation

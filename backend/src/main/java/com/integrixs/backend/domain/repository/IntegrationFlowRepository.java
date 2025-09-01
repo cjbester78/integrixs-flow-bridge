@@ -26,9 +26,9 @@ public interface IntegrationFlowRepository {
     
     List<IntegrationFlow> findByIsActive(boolean active);
     
-    List<IntegrationFlow> findBySourceAdapterId(UUID sourceAdapterId);
+    List<IntegrationFlow> findBySourceAdapterId(UUID inboundAdapterId);
     
-    List<IntegrationFlow> findByTargetAdapterId(UUID targetAdapterId);
+    List<IntegrationFlow> findByTargetAdapterId(UUID outboundAdapterId);
     
     void flush();
 }

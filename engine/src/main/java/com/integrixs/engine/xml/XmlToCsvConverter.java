@@ -11,6 +11,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,12 @@ public class XmlToCsvConverter {
         private boolean quoteAllFields = false;
         private Map<String, String> fieldMappings; // XML path to CSV column mapping
         private List<String> columnOrder; // Explicit column ordering
+        private boolean trimWhitespace = false;
+        private boolean escapeUnicode = false;
+        private boolean preserveLineBreaks = false;
+        private boolean formatNumbers = false;
+        private DecimalFormat decimalFormat;
+        private SimpleDateFormat dateFormat;
         
         // Builder pattern for easy configuration
         public static CsvGenerationConfig builder() {
@@ -72,6 +80,36 @@ public class XmlToCsvConverter {
             return this;
         }
         
+        public CsvGenerationConfig trimWhitespace(boolean trimWhitespace) {
+            this.trimWhitespace = trimWhitespace;
+            return this;
+        }
+        
+        public CsvGenerationConfig escapeUnicode(boolean escapeUnicode) {
+            this.escapeUnicode = escapeUnicode;
+            return this;
+        }
+        
+        public CsvGenerationConfig preserveLineBreaks(boolean preserveLineBreaks) {
+            this.preserveLineBreaks = preserveLineBreaks;
+            return this;
+        }
+        
+        public CsvGenerationConfig formatNumbers(boolean formatNumbers) {
+            this.formatNumbers = formatNumbers;
+            return this;
+        }
+        
+        public CsvGenerationConfig decimalFormat(DecimalFormat decimalFormat) {
+            this.decimalFormat = decimalFormat;
+            return this;
+        }
+        
+        public CsvGenerationConfig dateFormat(SimpleDateFormat dateFormat) {
+            this.dateFormat = dateFormat;
+            return this;
+        }
+        
         // Getters
         public String getDelimiter() { return delimiter; }
         public String getLineTerminator() { return lineTerminator; }
@@ -80,6 +118,12 @@ public class XmlToCsvConverter {
         public boolean isQuoteAllFields() { return quoteAllFields; }
         public Map<String, String> getFieldMappings() { return fieldMappings; }
         public List<String> getColumnOrder() { return columnOrder; }
+        public boolean isTrimWhitespace() { return trimWhitespace; }
+        public boolean isEscapeUnicode() { return escapeUnicode; }
+        public boolean isPreserveLineBreaks() { return preserveLineBreaks; }
+        public boolean isFormatNumbers() { return formatNumbers; }
+        public DecimalFormat getDecimalFormat() { return decimalFormat; }
+        public SimpleDateFormat getDateFormat() { return dateFormat; }
     }
     
     /**
@@ -336,11 +380,36 @@ public class XmlToCsvConverter {
             value = "";
         }
         
+        // Handle edge cases
+        // 1. Trim whitespace if configured
+        if (config.isTrimWhitespace()) {
+            value = value.trim();
+        }
+        
+        // 2. Handle special characters and encoding
+        value = handleSpecialCharacters(value, config);
+        
+        // 3. Handle numeric formatting
+        if (config.isFormatNumbers() && isNumeric(value)) {
+            value = formatNumericValue(value, config);
+        }
+        
+        // 4. Handle date formatting
+        if (config.getDateFormat() != null && isDate(value)) {
+            value = formatDateValue(value, config);
+        }
+        
         boolean needsQuoting = config.isQuoteAllFields() ||
             value.contains(config.getDelimiter()) ||
             value.contains(config.getQuoteCharacter()) ||
             value.contains("\n") ||
-            value.contains("\r");
+            value.contains("\r") ||
+            value.startsWith(" ") ||
+            value.endsWith(" ") ||
+            value.startsWith("=") || // Excel formula protection
+            value.startsWith("+") || // Excel formula protection
+            value.startsWith("-") || // Excel formula protection
+            value.startsWith("@"); // Excel formula protection
         
         if (needsQuoting) {
             // Escape quotes by doubling them
@@ -349,6 +418,92 @@ public class XmlToCsvConverter {
             return config.getQuoteCharacter() + value + config.getQuoteCharacter();
         }
         
+        return value;
+    }
+    
+    /**
+     * Handle special characters in CSV values
+     */
+    private String handleSpecialCharacters(String value, CsvGenerationConfig config) {
+        // Replace null bytes which can cause issues
+        value = value.replace("\0", "");
+        
+        // Handle Unicode characters if needed
+        if (config.isEscapeUnicode()) {
+            StringBuilder escaped = new StringBuilder();
+            for (char c : value.toCharArray()) {
+                if (c > 127) {
+                    escaped.append("\\u").append(String.format("%04x", (int) c));
+                } else {
+                    escaped.append(c);
+                }
+            }
+            value = escaped.toString();
+        }
+        
+        // Handle line breaks based on configuration
+        if (config.isPreserveLineBreaks()) {
+            // Keep line breaks but ensure they're properly quoted
+        } else {
+            // Replace line breaks with spaces
+            value = value.replace("\r\n", " ").replace("\n", " ").replace("\r", " ");
+        }
+        
+        return value;
+    }
+    
+    /**
+     * Check if value is numeric
+     */
+    private boolean isNumeric(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Format numeric value
+     */
+    private String formatNumericValue(String value, CsvGenerationConfig config) {
+        try {
+            double num = Double.parseDouble(value);
+            if (config.getDecimalFormat() != null) {
+                return config.getDecimalFormat().format(num);
+            }
+            // Remove unnecessary decimal zeros
+            if (num == Math.floor(num) && !Double.isInfinite(num)) {
+                return String.valueOf((long) num);
+            }
+            return value;
+        } catch (Exception e) {
+            return value;
+        }
+    }
+    
+    /**
+     * Check if value is a date
+     */
+    private boolean isDate(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        // Simple date pattern matching
+        return value.matches("\\d{4}-\\d{2}-\\d{2}.*") || 
+               value.matches("\\d{2}/\\d{2}/\\d{4}.*");
+    }
+    
+    /**
+     * Format date value
+     */
+    private String formatDateValue(String value, CsvGenerationConfig config) {
+        // This is a simplified implementation
+        // In production, you would use proper date parsing and formatting
         return value;
     }
 }

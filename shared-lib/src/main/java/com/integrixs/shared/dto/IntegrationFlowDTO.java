@@ -18,8 +18,8 @@ public class IntegrationFlowDTO {
     private String id;
     private String name;
     private String description;
-    private String sourceAdapterId;
-    private String targetAdapterId;
+    private String inboundAdapterId;
+    private String outboundAdapterId;
     private String sourceFlowStructureId;
     private String targetFlowStructureId;
     private String status;
@@ -36,8 +36,8 @@ public class IntegrationFlowDTO {
     private String businessComponentId;
     
     // Adapter details
-    private String sourceAdapterName;
-    private String sourceAdapterType;
-    private String targetAdapterName;
-    private String targetAdapterType;
+    private String inboundAdapterName;
+    private String inboundAdapterType;
+    private String outboundAdapterName;
+    private String outboundAdapterType;
 }

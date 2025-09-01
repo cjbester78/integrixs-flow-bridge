@@ -20,17 +20,17 @@ public class FlowCreatedEvent extends AbstractDomainEvent {
     
     private String flowId;
     private String flowName;
-    private String sourceAdapterId;
-    private String targetAdapterId;
+    private String inboundAdapterId;
+    private String outboundAdapterId;
     private String createdBy;
     
-    public FlowCreatedEvent(String flowId, String flowName, String sourceAdapterId, 
-                           String targetAdapterId, String createdBy) {
+    public FlowCreatedEvent(String flowId, String flowName, String inboundAdapterId, 
+                           String outboundAdapterId, String createdBy) {
         super(flowId, createdBy);
         this.flowId = flowId;
         this.flowName = flowName;
-        this.sourceAdapterId = sourceAdapterId;
-        this.targetAdapterId = targetAdapterId;
+        this.inboundAdapterId = inboundAdapterId;
+        this.outboundAdapterId = outboundAdapterId;
         this.createdBy = createdBy;
     }
 }

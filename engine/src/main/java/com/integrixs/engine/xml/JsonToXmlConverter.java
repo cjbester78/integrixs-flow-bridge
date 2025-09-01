@@ -154,10 +154,8 @@ public class JsonToXmlConverter implements XmlConversionService {
             String fieldName = field.getKey();
             JsonNode fieldValue = field.getValue();
             
-            // Log problematic field names for debugging
-            if (fieldName.contains("…") || fieldName.contains("Credit_Token")) {
-                System.out.println("DEBUG: Processing field name: " + fieldName);
-            }
+            // Handle problematic field names
+            fieldName = sanitizeFieldName(fieldName);
             
             // Convert property name if configured
             if (config.isConvertPropertyNames()) {
@@ -281,5 +279,35 @@ public class JsonToXmlConverter implements XmlConversionService {
         return String.class.isAssignableFrom(dataType) || 
                JsonNode.class.isAssignableFrom(dataType) ||
                Map.class.isAssignableFrom(dataType);
+    }
+    
+    private String sanitizeFieldName(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            return "_field";
+        }
+        
+        // Handle special Unicode characters
+        fieldName = fieldName.replace("…", "___");
+        fieldName = fieldName.replace("–", "_");
+        fieldName = fieldName.replace("—", "_");
+        
+        // Handle spaces and special characters in field names
+        fieldName = fieldName.replaceAll("\\s+", "_");
+        fieldName = fieldName.replaceAll("[^a-zA-Z0-9_\\-]", "_");
+        
+        // Remove consecutive underscores
+        fieldName = fieldName.replaceAll("_{2,}", "_");
+        
+        // Remove leading/trailing underscores unless it's the only character
+        if (fieldName.length() > 1) {
+            fieldName = fieldName.replaceAll("^_+", "").replaceAll("_+$", "");
+        }
+        
+        // Ensure valid XML name
+        if (!fieldName.isEmpty() && !Character.isLetter(fieldName.charAt(0)) && fieldName.charAt(0) != '_') {
+            fieldName = "_" + fieldName;
+        }
+        
+        return fieldName.isEmpty() ? "_field" : fieldName;
     }
 }

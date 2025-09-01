@@ -45,23 +45,23 @@ public class AdapterConfigurationService {
     /**
      * Build conversion configuration for target adapter
      * @param flow The integration flow
-     * @param targetAdapter The target adapter
+     * @param outboundAdapter The target adapter
      * @param transformations List of transformations
      * @param fieldMappingProvider Provider for field mappings
      * @return Conversion configuration map
      */
     public Map<String, Object> buildConversionConfig(
             IntegrationFlow flow,
-            CommunicationAdapter targetAdapter,
+            CommunicationAdapter outboundAdapter,
             List<FlowTransformation> transformations,
             FieldMappingProvider fieldMappingProvider) {
         
         Map<String, Object> config = new HashMap<>();
         
         // Get adapter configuration
-        Map<String, Object> adapterConfig = parseAdapterConfiguration(targetAdapter.getConfiguration());
+        Map<String, Object> adapterConfig = parseAdapterConfiguration(outboundAdapter.getConfiguration());
         
-        String adapterType = targetAdapter.getType().name();
+        String adapterType = outboundAdapter.getType().name();
         
         // Configure based on adapter type
         switch (adapterType) {

@@ -90,120 +90,120 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         
         switch (configuration.getAdapterType()) {
             case HTTP:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    HttpSenderAdapterConfig httpSenderConfig = createHttpSenderConfig(configuration);
-                    return new HttpSenderAdapter(httpSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    HttpInboundAdapterConfig httpSenderConfig = createHttpSenderConfig(configuration);
+                    return new HttpInboundAdapter(httpSenderConfig);
                 } else {
-                    HttpReceiverAdapterConfig httpReceiverConfig = createHttpReceiverConfig(configuration);
-                    return new HttpReceiverAdapter(httpReceiverConfig);
+                    HttpOutboundAdapterConfig httpReceiverConfig = createHttpReceiverConfig(configuration);
+                    return new HttpOutboundAdapter(httpReceiverConfig);
                 }
                 
             case JDBC:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    JdbcSenderAdapterConfig jdbcSenderConfig = createJdbcSenderConfig(configuration);
-                    return new JdbcSenderAdapter(jdbcSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    JdbcInboundAdapterConfig jdbcSenderConfig = createJdbcSenderConfig(configuration);
+                    return new JdbcInboundAdapter(jdbcSenderConfig);
                 } else {
-                    JdbcReceiverAdapterConfig jdbcReceiverConfig = createJdbcReceiverConfig(configuration);
-                    return new JdbcReceiverAdapter(jdbcReceiverConfig);
+                    JdbcOutboundAdapterConfig jdbcReceiverConfig = createJdbcReceiverConfig(configuration);
+                    return new JdbcOutboundAdapter(jdbcReceiverConfig);
                 }
                 
             case FTP:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    FtpSenderAdapterConfig ftpSenderConfig = createFtpSenderConfig(configuration);
-                    return new FtpSenderAdapter(ftpSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    FtpInboundAdapterConfig ftpSenderConfig = createFtpSenderConfig(configuration);
+                    return new FtpInboundAdapter(ftpSenderConfig);
                 } else {
-                    FtpReceiverAdapterConfig ftpReceiverConfig = createFtpReceiverConfig(configuration);
-                    return new FtpReceiverAdapter(ftpReceiverConfig);
+                    FtpOutboundAdapterConfig ftpReceiverConfig = createFtpReceiverConfig(configuration);
+                    return new FtpOutboundAdapter(ftpReceiverConfig);
                 }
                 
             case SOAP:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    SoapSenderAdapterConfig soapSenderConfig = createSoapSenderConfig(configuration);
-                    return new SoapSenderAdapter(soapSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    SoapInboundAdapterConfig soapSenderConfig = createSoapSenderConfig(configuration);
+                    return new SoapInboundAdapter(soapSenderConfig);
                 } else {
-                    SoapReceiverAdapterConfig soapReceiverConfig = createSoapReceiverConfig(configuration);
-                    return new SoapReceiverAdapter(soapReceiverConfig);
+                    SoapOutboundAdapterConfig soapReceiverConfig = createSoapReceiverConfig(configuration);
+                    return new SoapOutboundAdapter(soapReceiverConfig);
                 }
                 
             case FILE:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    FileSenderAdapterConfig fileSenderConfig = createFileSenderConfig(configuration);
-                    return new FileSenderAdapter(fileSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    FileInboundAdapterConfig fileSenderConfig = createFileSenderConfig(configuration);
+                    return new FileInboundAdapter(fileSenderConfig);
                 } else {
-                    FileReceiverAdapterConfig fileReceiverConfig = createFileReceiverConfig(configuration);
-                    return new FileReceiverAdapter(fileReceiverConfig);
+                    FileOutboundAdapterConfig fileReceiverConfig = createFileReceiverConfig(configuration);
+                    return new FileOutboundAdapter(fileReceiverConfig);
                 }
                 
             case JMS:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    JmsSenderAdapterConfig jmsSenderConfig = createJmsSenderConfig(configuration);
-                    return new JmsSenderAdapter(jmsSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    JmsInboundAdapterConfig jmsSenderConfig = createJmsSenderConfig(configuration);
+                    return new JmsInboundAdapter(jmsSenderConfig);
                 } else {
-                    JmsReceiverAdapterConfig jmsReceiverConfig = createJmsReceiverConfig(configuration);
-                    return new JmsReceiverAdapter(jmsReceiverConfig);
+                    JmsOutboundAdapterConfig jmsReceiverConfig = createJmsReceiverConfig(configuration);
+                    return new JmsOutboundAdapter(jmsReceiverConfig);
                 }
                 
             case KAFKA:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    KafkaSenderAdapterConfig kafkaSenderConfig = createKafkaSenderConfig(configuration);
-                    return new KafkaSenderAdapter(kafkaSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    KafkaInboundAdapterConfig kafkaSenderConfig = createKafkaSenderConfig(configuration);
+                    return new KafkaInboundAdapter(kafkaSenderConfig);
                 } else {
-                    KafkaReceiverAdapterConfig kafkaReceiverConfig = createKafkaReceiverConfig(configuration);
-                    return new KafkaReceiverAdapter(kafkaReceiverConfig);
+                    KafkaOutboundAdapterConfig kafkaReceiverConfig = createKafkaReceiverConfig(configuration);
+                    return new KafkaOutboundAdapter(kafkaReceiverConfig);
                 }
                 
             case SFTP:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    SftpSenderAdapterConfig sftpSenderConfig = createSftpSenderConfig(configuration);
-                    return new SftpSenderAdapter(sftpSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    SftpInboundAdapterConfig sftpSenderConfig = createSftpSenderConfig(configuration);
+                    return new SftpInboundAdapter(sftpSenderConfig);
                 } else {
-                    SftpReceiverAdapterConfig sftpReceiverConfig = createSftpReceiverConfig(configuration);
-                    return new SftpReceiverAdapter(sftpReceiverConfig);
+                    SftpOutboundAdapterConfig sftpReceiverConfig = createSftpReceiverConfig(configuration);
+                    return new SftpOutboundAdapter(sftpReceiverConfig);
                 }
                 
             case MAIL:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    MailSenderAdapterConfig mailSenderConfig = createMailSenderConfig(configuration);
-                    return new MailSenderAdapter(mailSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    MailInboundAdapterConfig mailSenderConfig = createMailSenderConfig(configuration);
+                    return new MailInboundAdapter(mailSenderConfig);
                 } else {
-                    MailReceiverAdapterConfig mailReceiverConfig = createMailReceiverConfig(configuration);
-                    return new MailReceiverAdapter(mailReceiverConfig);
+                    MailOutboundAdapterConfig mailReceiverConfig = createMailReceiverConfig(configuration);
+                    return new MailOutboundAdapter(mailReceiverConfig);
                 }
                 
             case RFC:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    RfcSenderAdapterConfig rfcSenderConfig = createRfcSenderConfig(configuration);
-                    return new RfcSenderAdapter(rfcSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    RfcInboundAdapterConfig rfcSenderConfig = createRfcSenderConfig(configuration);
+                    return new RfcInboundAdapter(rfcSenderConfig);
                 } else {
-                    RfcReceiverAdapterConfig rfcReceiverConfig = createRfcReceiverConfig(configuration);
-                    return new RfcReceiverAdapter(rfcReceiverConfig);
+                    RfcOutboundAdapterConfig rfcReceiverConfig = createRfcReceiverConfig(configuration);
+                    return new RfcOutboundAdapter(rfcReceiverConfig);
                 }
                 
             case IDOC:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    IdocSenderAdapterConfig idocSenderConfig = createIdocSenderConfig(configuration);
-                    return new IdocSenderAdapter(idocSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    IdocInboundAdapterConfig idocSenderConfig = createIdocSenderConfig(configuration);
+                    return new IdocInboundAdapter(idocSenderConfig);
                 } else {
-                    IdocReceiverAdapterConfig idocReceiverConfig = createIdocReceiverConfig(configuration);
-                    return new IdocReceiverAdapter(idocReceiverConfig);
+                    IdocOutboundAdapterConfig idocReceiverConfig = createIdocReceiverConfig(configuration);
+                    return new IdocOutboundAdapter(idocReceiverConfig);
                 }
                 
             case ODATA:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    OdataSenderAdapterConfig odataSenderConfig = createOdataSenderConfig(configuration);
-                    return new OdataSenderAdapter(odataSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    OdataInboundAdapterConfig odataSenderConfig = createOdataSenderConfig(configuration);
+                    return new OdataInboundAdapter(odataSenderConfig);
                 } else {
-                    OdataReceiverAdapterConfig odataReceiverConfig = createOdataReceiverConfig(configuration);
-                    return new OdataReceiverAdapter(odataReceiverConfig);
+                    OdataOutboundAdapterConfig odataReceiverConfig = createOdataReceiverConfig(configuration);
+                    return new OdataOutboundAdapter(odataReceiverConfig);
                 }
                 
             case REST:
-                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.SENDER) {
-                    RestSenderAdapterConfig restSenderConfig = createRestSenderConfig(configuration);
-                    return new RestSenderAdapter(restSenderConfig);
+                if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
+                    RestInboundAdapterConfig restSenderConfig = createRestSenderConfig(configuration);
+                    return new RestInboundAdapter(restSenderConfig);
                 } else {
-                    RestReceiverAdapterConfig restReceiverConfig = createRestReceiverConfig(configuration);
-                    return new RestReceiverAdapter(restReceiverConfig);
+                    RestOutboundAdapterConfig restReceiverConfig = createRestReceiverConfig(configuration);
+                    return new RestOutboundAdapter(restReceiverConfig);
                 }
                 
             default:
@@ -251,10 +251,10 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
      */
     private void initializeMetadata() {
         // HTTP Source (Sender)
-        metadataCache.put("HTTP_SENDER", AdapterMetadata.builder()
+        metadataCache.put("HTTP_INBOUND", AdapterMetadata.builder()
                 .adapterName("HTTP Source Adapter")
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.HTTP)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.SENDER)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.INBOUND)
                 .version("1.0.0")
                 .description("Fetches data from HTTP/REST endpoints")
                 .supportedOperations(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"))
@@ -273,7 +273,7 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         metadataCache.put("HTTP_TARGET", AdapterMetadata.builder()
                 .adapterName("HTTP Target Adapter")
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.HTTP)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.RECEIVER)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.OUTBOUND)
                 .version("1.0.0")
                 .description("Sends data to HTTP/REST endpoints")
                 .supportedOperations(Arrays.asList("POST", "PUT", "PATCH", "DELETE"))
@@ -289,10 +289,10 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
                 .build());
         
         // JDBC Source
-        metadataCache.put("JDBC_SENDER", AdapterMetadata.builder()
+        metadataCache.put("JDBC_INBOUND", AdapterMetadata.builder()
                 .adapterName("JDBC Source Adapter")
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.JDBC)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.SENDER)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.INBOUND)
                 .version("1.0.0")
                 .description("Fetches data from relational databases")
                 .supportedOperations(Arrays.asList("SELECT", "STORED_PROCEDURE"))
@@ -311,7 +311,7 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         metadataCache.put("JDBC_TARGET", AdapterMetadata.builder()
                 .adapterName("JDBC Target Adapter")
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.JDBC)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.RECEIVER)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.OUTBOUND)
                 .version("1.0.0")
                 .description("Writes data to relational databases")
                 .supportedOperations(Arrays.asList("INSERT", "UPDATE", "DELETE", "UPSERT", "STORED_PROCEDURE"))
@@ -327,10 +327,10 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
                 .build());
         
         // FTP Source
-        metadataCache.put("FTP_SENDER", AdapterMetadata.builder()
+        metadataCache.put("FTP_INBOUND", AdapterMetadata.builder()
                 .adapterName("FTP Source Adapter")
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.FTP)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.SENDER)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.INBOUND)
                 .version("1.0.0")
                 .description("Downloads files from FTP/SFTP servers")
                 .supportedOperations(Arrays.asList("LIST", "GET", "POLL"))
@@ -349,7 +349,7 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         metadataCache.put("FTP_TARGET", AdapterMetadata.builder()
                 .adapterName("FTP Target Adapter")
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.FTP)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.RECEIVER)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.OUTBOUND)
                 .version("1.0.0")
                 .description("Uploads files to FTP/SFTP servers")
                 .supportedOperations(Arrays.asList("PUT", "APPEND", "DELETE"))
@@ -391,8 +391,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
     /**
      * Configuration creation helper methods
      */
-    private HttpSenderAdapterConfig createHttpSenderConfig(AdapterConfiguration configuration) {
-        HttpSenderAdapterConfig config = new HttpSenderAdapterConfig();
+    private HttpInboundAdapterConfig createHttpSenderConfig(AdapterConfiguration configuration) {
+        HttpInboundAdapterConfig config = new HttpInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setUrl((String) props.get("url"));
@@ -411,8 +411,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private HttpReceiverAdapterConfig createHttpReceiverConfig(AdapterConfiguration configuration) {
-        HttpReceiverAdapterConfig config = new HttpReceiverAdapterConfig();
+    private HttpOutboundAdapterConfig createHttpReceiverConfig(AdapterConfiguration configuration) {
+        HttpOutboundAdapterConfig config = new HttpOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setTargetEndpointUrl((String) props.get("url"));
@@ -427,8 +427,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private JdbcSenderAdapterConfig createJdbcSenderConfig(AdapterConfiguration configuration) {
-        JdbcSenderAdapterConfig config = new JdbcSenderAdapterConfig();
+    private JdbcInboundAdapterConfig createJdbcSenderConfig(AdapterConfiguration configuration) {
+        JdbcInboundAdapterConfig config = new JdbcInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setJdbcUrl((String) props.get("jdbcUrl"));
@@ -442,8 +442,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private JdbcReceiverAdapterConfig createJdbcReceiverConfig(AdapterConfiguration configuration) {
-        JdbcReceiverAdapterConfig config = new JdbcReceiverAdapterConfig();
+    private JdbcOutboundAdapterConfig createJdbcReceiverConfig(AdapterConfiguration configuration) {
+        JdbcOutboundAdapterConfig config = new JdbcOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setJdbcUrl((String) props.get("jdbcUrl"));
@@ -457,8 +457,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private FtpSenderAdapterConfig createFtpSenderConfig(AdapterConfiguration configuration) {
-        FtpSenderAdapterConfig config = new FtpSenderAdapterConfig();
+    private FtpInboundAdapterConfig createFtpSenderConfig(AdapterConfiguration configuration) {
+        FtpInboundAdapterConfig config = new FtpInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setServerAddress((String) props.getOrDefault("host", "localhost"));
@@ -470,8 +470,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private FtpReceiverAdapterConfig createFtpReceiverConfig(AdapterConfiguration configuration) {
-        FtpReceiverAdapterConfig config = new FtpReceiverAdapterConfig();
+    private FtpOutboundAdapterConfig createFtpReceiverConfig(AdapterConfiguration configuration) {
+        FtpOutboundAdapterConfig config = new FtpOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setServerAddress((String) props.getOrDefault("host", "localhost"));
@@ -483,8 +483,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private SoapSenderAdapterConfig createSoapSenderConfig(AdapterConfiguration configuration) {
-        SoapSenderAdapterConfig config = new SoapSenderAdapterConfig();
+    private SoapInboundAdapterConfig createSoapSenderConfig(AdapterConfiguration configuration) {
+        SoapInboundAdapterConfig config = new SoapInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setWsdlUrl((String) props.get("wsdlUrl"));
@@ -495,8 +495,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private SoapReceiverAdapterConfig createSoapReceiverConfig(AdapterConfiguration configuration) {
-        SoapReceiverAdapterConfig config = new SoapReceiverAdapterConfig();
+    private SoapOutboundAdapterConfig createSoapReceiverConfig(AdapterConfiguration configuration) {
+        SoapOutboundAdapterConfig config = new SoapOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setWsdlUrl((String) props.get("wsdlUrl"));
@@ -506,8 +506,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private FileSenderAdapterConfig createFileSenderConfig(AdapterConfiguration configuration) {
-        FileSenderAdapterConfig config = new FileSenderAdapterConfig();
+    private FileInboundAdapterConfig createFileSenderConfig(AdapterConfiguration configuration) {
+        FileInboundAdapterConfig config = new FileInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setSourceDirectory((String) props.getOrDefault("directory", "/"));
@@ -516,8 +516,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private FileReceiverAdapterConfig createFileReceiverConfig(AdapterConfiguration configuration) {
-        FileReceiverAdapterConfig config = new FileReceiverAdapterConfig();
+    private FileOutboundAdapterConfig createFileReceiverConfig(AdapterConfiguration configuration) {
+        FileOutboundAdapterConfig config = new FileOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setTargetDirectory((String) props.getOrDefault("directory", "/"));
@@ -526,8 +526,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private JmsSenderAdapterConfig createJmsSenderConfig(AdapterConfiguration configuration) {
-        JmsSenderAdapterConfig config = new JmsSenderAdapterConfig();
+    private JmsInboundAdapterConfig createJmsSenderConfig(AdapterConfiguration configuration) {
+        JmsInboundAdapterConfig config = new JmsInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setHost((String) props.getOrDefault("brokerUrl", "tcp://localhost:61616"));
@@ -538,8 +538,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private JmsReceiverAdapterConfig createJmsReceiverConfig(AdapterConfiguration configuration) {
-        JmsReceiverAdapterConfig config = new JmsReceiverAdapterConfig();
+    private JmsOutboundAdapterConfig createJmsReceiverConfig(AdapterConfiguration configuration) {
+        JmsOutboundAdapterConfig config = new JmsOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setProviderUrl((String) props.getOrDefault("brokerUrl", "tcp://localhost:61616"));
@@ -550,8 +550,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private KafkaSenderAdapterConfig createKafkaSenderConfig(AdapterConfiguration configuration) {
-        KafkaSenderAdapterConfig config = new KafkaSenderAdapterConfig();
+    private KafkaInboundAdapterConfig createKafkaSenderConfig(AdapterConfiguration configuration) {
+        KafkaInboundAdapterConfig config = new KafkaInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setBootstrapServers((String) props.getOrDefault("bootstrapServers", "localhost:9092"));
@@ -568,8 +568,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private KafkaReceiverAdapterConfig createKafkaReceiverConfig(AdapterConfiguration configuration) {
-        KafkaReceiverAdapterConfig config = new KafkaReceiverAdapterConfig();
+    private KafkaOutboundAdapterConfig createKafkaReceiverConfig(AdapterConfiguration configuration) {
+        KafkaOutboundAdapterConfig config = new KafkaOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setBootstrapServers((String) props.getOrDefault("bootstrapServers", "localhost:9092"));
@@ -585,8 +585,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private SftpSenderAdapterConfig createSftpSenderConfig(AdapterConfiguration configuration) {
-        SftpSenderAdapterConfig config = new SftpSenderAdapterConfig();
+    private SftpInboundAdapterConfig createSftpSenderConfig(AdapterConfiguration configuration) {
+        SftpInboundAdapterConfig config = new SftpInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setServerAddress((String) props.getOrDefault("host", "localhost"));
@@ -599,8 +599,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private SftpReceiverAdapterConfig createSftpReceiverConfig(AdapterConfiguration configuration) {
-        SftpReceiverAdapterConfig config = new SftpReceiverAdapterConfig();
+    private SftpOutboundAdapterConfig createSftpReceiverConfig(AdapterConfiguration configuration) {
+        SftpOutboundAdapterConfig config = new SftpOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setTargetServerAddress((String) props.getOrDefault("host", "localhost"));
@@ -613,8 +613,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private MailSenderAdapterConfig createMailSenderConfig(AdapterConfiguration configuration) {
-        MailSenderAdapterConfig config = new MailSenderAdapterConfig();
+    private MailInboundAdapterConfig createMailSenderConfig(AdapterConfiguration configuration) {
+        MailInboundAdapterConfig config = new MailInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setMailProtocol((String) props.getOrDefault("protocol", "imap"));
@@ -628,8 +628,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private MailReceiverAdapterConfig createMailReceiverConfig(AdapterConfiguration configuration) {
-        MailReceiverAdapterConfig config = new MailReceiverAdapterConfig();
+    private MailOutboundAdapterConfig createMailReceiverConfig(AdapterConfiguration configuration) {
+        MailOutboundAdapterConfig config = new MailOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setSmtpServerHost((String) props.getOrDefault("host", "localhost"));
@@ -642,8 +642,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private RfcSenderAdapterConfig createRfcSenderConfig(AdapterConfiguration configuration) {
-        RfcSenderAdapterConfig config = new RfcSenderAdapterConfig();
+    private RfcInboundAdapterConfig createRfcSenderConfig(AdapterConfiguration configuration) {
+        RfcInboundAdapterConfig config = new RfcInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setSapApplicationServerHost((String) props.get("sapHost"));
@@ -659,8 +659,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private RfcReceiverAdapterConfig createRfcReceiverConfig(AdapterConfiguration configuration) {
-        RfcReceiverAdapterConfig config = new RfcReceiverAdapterConfig();
+    private RfcOutboundAdapterConfig createRfcReceiverConfig(AdapterConfiguration configuration) {
+        RfcOutboundAdapterConfig config = new RfcOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setTargetSapApplicationServerHost((String) props.get("sapHost"));
@@ -674,8 +674,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private IdocSenderAdapterConfig createIdocSenderConfig(AdapterConfiguration configuration) {
-        IdocSenderAdapterConfig config = new IdocSenderAdapterConfig();
+    private IdocInboundAdapterConfig createIdocSenderConfig(AdapterConfiguration configuration) {
+        IdocInboundAdapterConfig config = new IdocInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setSourceSapApplicationServerHost((String) props.get("sapHost"));
@@ -688,8 +688,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private IdocReceiverAdapterConfig createIdocReceiverConfig(AdapterConfiguration configuration) {
-        IdocReceiverAdapterConfig config = new IdocReceiverAdapterConfig();
+    private IdocOutboundAdapterConfig createIdocReceiverConfig(AdapterConfiguration configuration) {
+        IdocOutboundAdapterConfig config = new IdocOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setTargetSapApplicationServerHost((String) props.get("sapHost"));
@@ -702,8 +702,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private OdataSenderAdapterConfig createOdataSenderConfig(AdapterConfiguration configuration) {
-        OdataSenderAdapterConfig config = new OdataSenderAdapterConfig();
+    private OdataInboundAdapterConfig createOdataSenderConfig(AdapterConfiguration configuration) {
+        OdataInboundAdapterConfig config = new OdataInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setSourceServiceEndpointUrl((String) props.get("serviceUrl"));
@@ -714,8 +714,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private OdataReceiverAdapterConfig createOdataReceiverConfig(AdapterConfiguration configuration) {
-        OdataReceiverAdapterConfig config = new OdataReceiverAdapterConfig();
+    private OdataOutboundAdapterConfig createOdataReceiverConfig(AdapterConfiguration configuration) {
+        OdataOutboundAdapterConfig config = new OdataOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setTargetServiceEndpointUrl((String) props.get("serviceUrl"));
@@ -726,8 +726,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private RestSenderAdapterConfig createRestSenderConfig(AdapterConfiguration configuration) {
-        RestSenderAdapterConfig config = new RestSenderAdapterConfig();
+    private RestInboundAdapterConfig createRestSenderConfig(AdapterConfiguration configuration) {
+        RestInboundAdapterConfig config = new RestInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setBaseEndpointUrl((String) props.get("url"));
@@ -742,8 +742,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private RestReceiverAdapterConfig createRestReceiverConfig(AdapterConfiguration configuration) {
-        RestReceiverAdapterConfig config = new RestReceiverAdapterConfig();
+    private RestOutboundAdapterConfig createRestReceiverConfig(AdapterConfiguration configuration) {
+        RestOutboundAdapterConfig config = new RestOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setEndpointUrl((String) props.get("url"));

@@ -16,8 +16,8 @@ public class FlowDTO {
     private String uniqueFlowId;
     private String description;
     private String type;
-    private String sourceAdapterId;
-    private String targetAdapterId;
+    private String inboundAdapterId;
+    private String outboundAdapterId;
     private String sourceBusinessComponentId;
     private String targetBusinessComponentId;
     private String sourceFlowStructureId;

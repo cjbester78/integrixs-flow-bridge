@@ -1,6 +1,6 @@
 package com.integrixs.backend.config;
 
-import com.integrixs.adapters.config.HttpSenderAdapterConfig;
+import com.integrixs.adapters.config.HttpInboundAdapterConfig;
 import com.integrixs.adapters.factory.AdapterFactory;
 import com.integrixs.adapters.factory.DefaultAdapterFactory;
 import org.springframework.context.annotation.Bean;
@@ -21,11 +21,11 @@ public class AdapterConfiguration {
     }
 
     /**
-     * Provides a default HttpSenderAdapterConfig bean for the HTTP adapter controller
+     * Provides a default HttpInboundAdapterConfig bean for the HTTP adapter controller
      */
     @Bean
-    public HttpSenderAdapterConfig httpSenderAdapterConfig() {
-        HttpSenderAdapterConfig config = new HttpSenderAdapterConfig();
+    public HttpInboundAdapterConfig httpInboundAdapterConfig() {
+        HttpInboundAdapterConfig config = new HttpInboundAdapterConfig();
         // Set default values for development
         config.setEndpointUrl("/api/http-adapter/receive");
         config.setConnectionTimeout(30);

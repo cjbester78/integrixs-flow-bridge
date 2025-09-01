@@ -1,11 +1,18 @@
 package com.integrixs.adapters.core;
 
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.monitoring.PerformanceMetricsCollector;
+import com.integrixs.adapters.monitoring.CustomMetricsRegistry;
+import com.integrixs.backend.resilience.CircuitBreakerService;
+import com.integrixs.backend.resilience.BulkheadService;
+import io.micrometer.core.instrument.Timer;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Abstract base implementation providing common adapter functionality.
@@ -20,10 +27,25 @@ public abstract class AbstractAdapter implements BaseAdapter {
     private Instant lastActivityTime;
     private String adapterId;
     
+    @Autowired(required = false)
+    private PerformanceMetricsCollector metricsCollector;
+    
+    @Autowired(required = false)
+    private CustomMetricsRegistry customMetricsRegistry;
+    
+    @Autowired(required = false)
+    private CircuitBreakerService circuitBreakerService;
+    
+    @Autowired(required = false)
+    private BulkheadService bulkheadService;
+    
     protected AbstractAdapter(AdapterConfiguration.AdapterTypeEnum adapterType) {
         this.adapterType = adapterType;
         this.lastActivityTime = Instant.now();
         this.adapterId = generateAdapterId();
+        
+        // Register with monitoring service
+        AdapterMonitoringService.getInstance().registerAdapter(this);
     }
     
     /**
@@ -83,6 +105,10 @@ public abstract class AbstractAdapter implements BaseAdapter {
             active.set(false);
             doDestroy();
             initialized.set(false);
+            
+            // Unregister from monitoring service
+            AdapterMonitoringService.getInstance().unregisterAdapter(this);
+            
             logger.info("Successfully destroyed {} adapter", getAdapterType());
         } catch (Exception e) {
             logger.error("Failed to destroy {} adapter", getAdapterType(), e);
@@ -97,6 +123,12 @@ public abstract class AbstractAdapter implements BaseAdapter {
         }
         
         long startTime = System.currentTimeMillis();
+        Timer.Sample sample = null;
+        
+        if (metricsCollector != null) {
+            sample = metricsCollector.startOperation(
+                getAdapterType().name(), getAdapterMode().name(), "testConnection");
+        }
         
         try {
             logger.debug("Testing connection for {} adapter", getAdapterType());
@@ -107,8 +139,28 @@ public abstract class AbstractAdapter implements BaseAdapter {
             
             if (result.isSuccess()) {
                 logger.debug("Connection test successful for {} adapter in {}ms", getAdapterType(), duration);
+                // Record success metrics
+                AdapterMonitoringService.getInstance().recordSuccess(
+                    getAdapterType(), getAdapterMode(), getAdapterId(), "testConnection", duration);
+                
+                if (metricsCollector != null && sample != null) {
+                    metricsCollector.recordOperation(
+                        getAdapterType().name(), getAdapterMode().name(), "testConnection", 
+                        sample, true, null);
+                }
             } else {
                 logger.warn("Connection test failed for {} adapter: {}", getAdapterType(), result.getMessage());
+                // Record failure metrics
+                Exception error = result.getError() != null ? result.getError() : 
+                    new Exception(result.getMessage());
+                AdapterMonitoringService.getInstance().recordFailure(
+                    getAdapterType(), getAdapterMode(), getAdapterId(), "testConnection", error, duration);
+                
+                if (metricsCollector != null && sample != null) {
+                    metricsCollector.recordOperation(
+                        getAdapterType().name(), getAdapterMode().name(), "testConnection", 
+                        sample, false, error.getClass().getSimpleName());
+                }
             }
             
             return result;
@@ -117,6 +169,17 @@ public abstract class AbstractAdapter implements BaseAdapter {
             logger.error("Connection test error for {} adapter", getAdapterType(), e);
             AdapterResult result = AdapterResult.failure("Connection test failed: " + e.getMessage(), e);
             result.setDurationMs(duration);
+            
+            // Record failure metrics
+            AdapterMonitoringService.getInstance().recordFailure(
+                getAdapterType(), getAdapterMode(), getAdapterId(), "testConnection", e, duration);
+            
+            if (metricsCollector != null && sample != null) {
+                metricsCollector.recordOperation(
+                    getAdapterType().name(), getAdapterMode().name(), "testConnection", 
+                    sample, false, e.getClass().getSimpleName());
+            }
+            
             return result;
         }
     }
@@ -169,26 +232,59 @@ public abstract class AbstractAdapter implements BaseAdapter {
         String adapterId = getAdapterId();
         Map<String, Object> context = RetryExecutor.createRetryContext(operationName, null);
         long startTime = System.currentTimeMillis();
+        Timer.Sample sample = null;
+        
+        if (metricsCollector != null) {
+            sample = metricsCollector.startOperation(
+                getAdapterType().name(), getAdapterMode().name(), operationName);
+        }
         
         try {
             logger.debug("Executing {} for {} adapter", operationName, getAdapterType());
             
-            AdapterResult result = RetryExecutor.executeWithRetry(
-                    getAdapterType(),
-                    getAdapterMode(),
-                    adapterId,
-                    () -> {
-                        try {
-                            return operation.execute();
-                        } catch (Exception e) {
-                            if (e instanceof RuntimeException) {
-                                throw (RuntimeException) e;
+            // Core operation wrapped with retry
+            Supplier<AdapterResult> baseOperation = () -> {
+                return RetryExecutor.executeWithRetry(
+                        getAdapterType(),
+                        getAdapterMode(),
+                        adapterId,
+                        () -> {
+                            try {
+                                return operation.execute();
+                            } catch (Exception e) {
+                                if (e instanceof RuntimeException) {
+                                    throw (RuntimeException) e;
+                                }
+                                throw new RuntimeException(e);
                             }
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    context
-            );
+                        },
+                        context
+                );
+            };
+            
+            // Wrap with bulkhead if available
+            Supplier<AdapterResult> bulkheadWrappedOperation = baseOperation;
+            if (bulkheadService != null) {
+                bulkheadWrappedOperation = () -> bulkheadService.executeWithFallback(
+                    getAdapterType().name(),
+                    adapterId,
+                    baseOperation,
+                    () -> AdapterResult.failure("Adapter resources exhausted - too many concurrent calls")
+                );
+            }
+            
+            // Wrap with circuit breaker if available
+            AdapterResult result;
+            if (circuitBreakerService != null) {
+                result = circuitBreakerService.executeWithFallback(
+                    getAdapterType().name(),
+                    adapterId,
+                    bulkheadWrappedOperation,
+                    () -> AdapterResult.failure("Circuit breaker open - adapter temporarily unavailable")
+                );
+            } else {
+                result = bulkheadWrappedOperation.get();
+            }
             
             long duration = System.currentTimeMillis() - startTime;
             result.setDurationMs(duration);
@@ -198,9 +294,29 @@ public abstract class AbstractAdapter implements BaseAdapter {
             if (result.isSuccess()) {
                 logger.debug("{} completed successfully for {} adapter in {}ms", 
                         operationName, getAdapterType(), duration);
+                // Record success metrics
+                AdapterMonitoringService.getInstance().recordSuccess(
+                    getAdapterType(), getAdapterMode(), adapterId, operationName, duration);
+                
+                if (metricsCollector != null && sample != null) {
+                    metricsCollector.recordOperation(
+                        getAdapterType().name(), getAdapterMode().name(), operationName, 
+                        sample, true, null);
+                }
             } else {
                 logger.warn("{} failed for {} adapter: {}", 
                         operationName, getAdapterType(), result.getMessage());
+                // Record failure metrics
+                Exception error = result.getError() != null ? result.getError() : 
+                    new Exception(result.getMessage());
+                AdapterMonitoringService.getInstance().recordFailure(
+                    getAdapterType(), getAdapterMode(), adapterId, operationName, error, duration);
+                
+                if (metricsCollector != null && sample != null) {
+                    metricsCollector.recordOperation(
+                        getAdapterType().name(), getAdapterMode().name(), operationName, 
+                        sample, false, error.getClass().getSimpleName());
+                }
             }
             
             return result;
@@ -211,6 +327,17 @@ public abstract class AbstractAdapter implements BaseAdapter {
             AdapterResult result = AdapterResult.failure(operationName + " failed: " + e.getMessage(), e);
             result.setDurationMs(duration);
             result.addMetadata("operation", operationName);
+            
+            // Record failure metrics
+            AdapterMonitoringService.getInstance().recordFailure(
+                getAdapterType(), getAdapterMode(), adapterId, operationName, e, duration);
+            
+            if (metricsCollector != null && sample != null) {
+                metricsCollector.recordOperation(
+                    getAdapterType().name(), getAdapterMode().name(), operationName, 
+                    sample, false, e.getClass().getSimpleName());
+            }
+            
             return result;
         }
     }
@@ -221,6 +348,90 @@ public abstract class AbstractAdapter implements BaseAdapter {
     @FunctionalInterface
     protected interface TimedOperation {
         AdapterResult execute() throws Exception;
+    }
+    
+    /**
+     * Record data volume metrics.
+     */
+    protected void recordDataVolume(String direction, long bytes) {
+        if (metricsCollector != null) {
+            metricsCollector.recordDataVolume(
+                getAdapterType().name(), getAdapterMode().name(), direction, bytes);
+        }
+    }
+    
+    /**
+     * Record message count metrics.
+     */
+    protected void recordMessageCount(String status, long count) {
+        if (metricsCollector != null) {
+            metricsCollector.recordMessageCount(
+                getAdapterType().name(), getAdapterMode().name(), status, count);
+        }
+    }
+    
+    /**
+     * Record custom metric.
+     */
+    protected void recordCustomMetric(String metricName, double value, String... tags) {
+        if (metricsCollector != null) {
+            metricsCollector.recordCustomMetric(
+                getAdapterType().name(), getAdapterMode().name(), metricName, value, tags);
+        }
+    }
+    
+    /**
+     * Set performance metrics collector (for non-Spring environments).
+     */
+    public void setMetricsCollector(PerformanceMetricsCollector metricsCollector) {
+        this.metricsCollector = metricsCollector;
+    }
+    
+    /**
+     * Set custom metrics registry (for non-Spring environments).
+     */
+    public void setCustomMetricsRegistry(CustomMetricsRegistry customMetricsRegistry) {
+        this.customMetricsRegistry = customMetricsRegistry;
+    }
+    
+    /**
+     * Register a custom gauge metric.
+     */
+    protected void registerCustomGauge(String metricName, Supplier<Number> supplier, String... tags) {
+        if (customMetricsRegistry != null) {
+            customMetricsRegistry.registerGauge(
+                getAdapterType().name(), getAdapterMode().name(), metricName, supplier, tags);
+        }
+    }
+    
+    /**
+     * Update a custom gauge value.
+     */
+    protected void updateCustomGauge(String metricName, double value, String... tags) {
+        if (customMetricsRegistry != null) {
+            customMetricsRegistry.updateGauge(
+                getAdapterType().name(), getAdapterMode().name(), metricName, value, tags);
+        }
+    }
+    
+    /**
+     * Increment a custom counter.
+     */
+    protected void incrementCustomCounter(String metricName, double amount, String... tags) {
+        if (customMetricsRegistry != null) {
+            customMetricsRegistry.incrementCounter(
+                getAdapterType().name(), getAdapterMode().name(), metricName, amount, tags);
+        }
+    }
+    
+    /**
+     * Record a custom distribution value.
+     */
+    protected void recordCustomDistribution(String metricName, double value, String... tags) {
+        if (customMetricsRegistry != null) {
+            customMetricsRegistry.recordDistribution(
+                getAdapterType().name(), getAdapterMode().name(), metricName, value, tags);
+        }
     }
     
     // Abstract methods that subclasses must implement

@@ -2,8 +2,8 @@ package com.integrixs.adapters.application.service;
 
 import com.integrixs.adapters.api.dto.*;
 import com.integrixs.adapters.domain.model.*;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
-import com.integrixs.adapters.domain.port.SenderAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.domain.service.AdapterManagementService;
 import com.integrixs.adapters.domain.service.AdapterRegistryService;
 import lombok.RequiredArgsConstructor;
@@ -158,7 +158,7 @@ public class AdapterApplicationService {
     }
     
     /**
-     * Fetch data using sender adapter
+     * Fetch data using inbound adapter
      * @param adapterId Adapter ID
      * @param request Fetch request
      * @return Fetch response
@@ -171,11 +171,11 @@ public class AdapterApplicationService {
             var adapter = adapterRegistryService.getAdapter(adapterId)
                     .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
             
-            if (!(adapter instanceof SenderAdapterPort)) {
-                throw new IllegalArgumentException("Adapter is not a sender adapter");
+            if (!(adapter instanceof InboundAdapterPort)) {
+                throw new IllegalArgumentException("Adapter is not a inbound adapter");
             }
             
-            SenderAdapterPort senderAdapter = (SenderAdapterPort) adapter;
+            InboundAdapterPort senderAdapter = (InboundAdapterPort) adapter;
             
             // Convert to domain model
             FetchRequest fetchRequest = FetchRequest.builder()
@@ -211,7 +211,7 @@ public class AdapterApplicationService {
     }
     
     /**
-     * Send data using receiver adapter
+     * Send data using outbound adapter
      * @param adapterId Adapter ID
      * @param request Send request
      * @return Send response
@@ -224,11 +224,11 @@ public class AdapterApplicationService {
             var adapter = adapterRegistryService.getAdapter(adapterId)
                     .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
             
-            if (!(adapter instanceof ReceiverAdapterPort)) {
-                throw new IllegalArgumentException("Adapter is not a receiver adapter");
+            if (!(adapter instanceof OutboundAdapterPort)) {
+                throw new IllegalArgumentException("Adapter is not a outbound adapter");
             }
             
-            ReceiverAdapterPort receiverAdapter = (ReceiverAdapterPort) adapter;
+            OutboundAdapterPort receiverAdapter = (OutboundAdapterPort) adapter;
             
             // Convert to domain model
             SendRequest sendRequest = SendRequest.builder()

@@ -37,7 +37,7 @@ public class FlowValidationService {
             throw new IllegalArgumentException("Flow name cannot be empty");
         }
         
-        if (flow.getSourceAdapterId() == null && flow.getTargetAdapterId() == null) {
+        if (flow.getInboundAdapterId() == null && flow.getOutboundAdapterId() == null) {
             throw new IllegalArgumentException("At least one adapter must be configured");
         }
     }
@@ -46,7 +46,7 @@ public class FlowValidationService {
      * Validates if flow can be activated
      */
     public void validateFlowActivation(IntegrationFlow flow) {
-        if (flow.getSourceAdapterId() == null || flow.getTargetAdapterId() == null) {
+        if (flow.getInboundAdapterId() == null || flow.getOutboundAdapterId() == null) {
             throw new IllegalStateException("Both source and target adapters must be configured before activation");
         }
     }

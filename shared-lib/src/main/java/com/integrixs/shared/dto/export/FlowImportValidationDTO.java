@@ -74,8 +74,8 @@ public class FlowImportValidationDTO {
         private String flowName;
         private String flowDescription;
         private String businessComponentName;
-        private String sourceAdapterName;
-        private String targetAdapterName;
+        private String inboundAdapterName;
+        private String outboundAdapterName;
         private int transformationCount;
         private int fieldMappingCount;
         private int certificateReferenceCount;

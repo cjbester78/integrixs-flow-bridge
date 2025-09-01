@@ -35,7 +35,7 @@ public class CommunicationAdapter {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private AdapterConfiguration.AdapterModeEnum mode; // SENDER or RECEIVER
+    private AdapterConfiguration.AdapterModeEnum mode; // INBOUND or OUTBOUND
     
     @Column(length = 20)
     private String direction; // INBOUND, OUTBOUND, BIDIRECTIONAL
@@ -233,7 +233,7 @@ public class CommunicationAdapter {
     
     // Direction enum for adapter types
     public enum Direction {
-        SENDER,    // Receives from external systems (outbound)
-        RECEIVER   // Sends to external systems (inbound)
+        INBOUND,    // Receives from external systems (outbound)
+        OUTBOUND   // Sends to external systems (inbound)
     }
 }

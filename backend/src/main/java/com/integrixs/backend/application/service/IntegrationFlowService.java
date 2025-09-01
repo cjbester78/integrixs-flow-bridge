@@ -74,11 +74,11 @@ public class IntegrationFlowService {
         flow.setErrorCount(0);
         
         // Set adapters if provided
-        if (request.getSourceAdapterId() != null) {
-            flow.setSourceAdapterId(UUID.fromString(request.getSourceAdapterId()));
+        if (request.getInboundAdapterId() != null) {
+            flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getTargetAdapterId() != null) {
-            flow.setTargetAdapterId(UUID.fromString(request.getTargetAdapterId()));
+        if (request.getOutboundAdapterId() != null) {
+            flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
         
         // Set structures if provided
@@ -125,16 +125,16 @@ public class IntegrationFlowService {
         flow.setActive(request.isActive());
         
         // Update adapters
-        if (request.getSourceAdapterId() != null) {
-            flow.setSourceAdapterId(UUID.fromString(request.getSourceAdapterId()));
+        if (request.getInboundAdapterId() != null) {
+            flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         } else {
-            flow.setSourceAdapterId(null);
+            flow.setInboundAdapterId(null);
         }
         
-        if (request.getTargetAdapterId() != null) {
-            flow.setTargetAdapterId(UUID.fromString(request.getTargetAdapterId()));
+        if (request.getOutboundAdapterId() != null) {
+            flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         } else {
-            flow.setTargetAdapterId(null);
+            flow.setOutboundAdapterId(null);
         }
         
         // Update structures
@@ -205,19 +205,19 @@ public class IntegrationFlowService {
                 .createdBy(flow.getCreatedBy() != null ? flow.getCreatedBy().getUsername() : null);
         
         // Add adapter information
-        if (flow.getSourceAdapterId() != null) {
-            builder.sourceAdapterId(flow.getSourceAdapterId().toString());
-            adapterRepository.findById(flow.getSourceAdapterId()).ifPresent(adapter -> {
-                builder.sourceAdapterName(adapter.getName())
-                       .sourceAdapterType(adapter.getType().name());
+        if (flow.getInboundAdapterId() != null) {
+            builder.inboundAdapterId(flow.getInboundAdapterId().toString());
+            adapterRepository.findById(flow.getInboundAdapterId()).ifPresent(adapter -> {
+                builder.inboundAdapterName(adapter.getName())
+                       .inboundAdapterType(adapter.getType().name());
             });
         }
         
-        if (flow.getTargetAdapterId() != null) {
-            builder.targetAdapterId(flow.getTargetAdapterId().toString());
-            adapterRepository.findById(flow.getTargetAdapterId()).ifPresent(adapter -> {
-                builder.targetAdapterName(adapter.getName())
-                       .targetAdapterType(adapter.getType().name());
+        if (flow.getOutboundAdapterId() != null) {
+            builder.outboundAdapterId(flow.getOutboundAdapterId().toString());
+            adapterRepository.findById(flow.getOutboundAdapterId()).ifPresent(adapter -> {
+                builder.outboundAdapterName(adapter.getName())
+                       .outboundAdapterType(adapter.getType().name());
             });
         }
         

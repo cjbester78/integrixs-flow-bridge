@@ -96,4 +96,24 @@ public class ExternalAuthenticationController {
         Map<String, String> result = tokenRefreshService.initiateAuthorizationFlow(id, redirectUri);
         return ResponseEntity.ok(result);
     }
+    
+    @PostMapping("/{id}/oauth2/callback")
+    @Operation(summary = "OAuth2 callback", description = "Handle OAuth2 authorization callback and exchange code for token")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
+    public ResponseEntity<Map<String, Object>> handleOAuth2Callback(
+            @PathVariable String id,
+            @RequestParam String code,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String redirectUri) {
+        Map<String, Object> result = tokenRefreshService.exchangeAuthorizationCode(id, code, state, redirectUri);
+        return ResponseEntity.ok(result);
+    }
+    
+    @PostMapping("/{id}/oauth2/client-credentials")
+    @Operation(summary = "Request client credentials token", description = "Request OAuth2 token using client credentials flow")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
+    public ResponseEntity<Map<String, Object>> requestClientCredentialsToken(@PathVariable String id) {
+        Map<String, Object> result = tokenRefreshService.requestClientCredentialsToken(id);
+        return ResponseEntity.ok(result);
+    }
 }

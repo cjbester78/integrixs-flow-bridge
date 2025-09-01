@@ -177,8 +177,8 @@ public class OrchestrationApplicationService {
             // Step 3: Fetch data from source adapter (if needed)
             if (execution.getInputData() == null) {
                 execution.setCurrentStep("FETCH_SOURCE_DATA");
-                String sourceAdapterId = flow.getSourceAdapterId().toString();
-                if (!orchestrationExecutor.fetchFromSourceAdapter(execution, sourceAdapterId)) {
+                String inboundAdapterId = flow.getInboundAdapterId().toString();
+                if (!orchestrationExecutor.fetchFromSourceAdapter(execution, inboundAdapterId)) {
                     return createErrorResult(execution, "Failed to fetch data from source adapter");
                 }
             }
@@ -191,8 +191,8 @@ public class OrchestrationApplicationService {
             
             // Step 5: Send to target adapter
             execution.setCurrentStep("PROCESS_TARGETS");
-            String targetAdapterId = flow.getTargetAdapterId().toString();
-            if (!orchestrationExecutor.sendToTargetAdapter(execution, targetAdapterId)) {
+            String outboundAdapterId = flow.getOutboundAdapterId().toString();
+            if (!orchestrationExecutor.sendToTargetAdapter(execution, outboundAdapterId)) {
                 return createErrorResult(execution, "Failed to send data to target adapter");
             }
             

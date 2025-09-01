@@ -32,11 +32,11 @@ public class OrchestrationManagementService {
             throw new IllegalStateException("Cannot orchestrate undeployed flow: " + flow.getName());
         }
         
-        if (flow.getSourceAdapterId() == null) {
+        if (flow.getInboundAdapterId() == null) {
             throw new IllegalStateException("Source adapter is required for orchestration");
         }
         
-        if (flow.getTargetAdapterId() == null) {
+        if (flow.getOutboundAdapterId() == null) {
             throw new IllegalStateException("Target adapter is required for orchestration");
         }
     }

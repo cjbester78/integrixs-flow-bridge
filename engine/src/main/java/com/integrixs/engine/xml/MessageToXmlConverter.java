@@ -42,12 +42,12 @@ public class MessageToXmlConverter {
         }
         
         // Determine adapter type and get appropriate configuration
-        if (adapterConfig instanceof JdbcSenderAdapterConfig) {
-            JdbcSenderAdapterConfig jdbcConfig = (JdbcSenderAdapterConfig) adapterConfig;
+        if (adapterConfig instanceof JdbcInboundAdapterConfig) {
+            JdbcInboundAdapterConfig jdbcConfig = (JdbcInboundAdapterConfig) adapterConfig;
             return jdbcToXmlConverter.convertToXml(messageData, jdbcConfig.getXmlMappingConfig());
             
-        } else if (adapterConfig instanceof FileSenderAdapterConfig) {
-            FileSenderAdapterConfig fileConfig = (FileSenderAdapterConfig) adapterConfig;
+        } else if (adapterConfig instanceof FileInboundAdapterConfig) {
+            FileInboundAdapterConfig fileConfig = (FileInboundAdapterConfig) adapterConfig;
             
             // Determine file type based on configuration or content
             if (isJsonContent(messageData)) {
@@ -63,12 +63,12 @@ public class MessageToXmlConverter {
                 return csvToXmlConverter.convertToXml(messageData, fileConfig.getXmlMappingConfig());
             }
             
-        } else if (adapterConfig instanceof HttpSenderAdapterConfig) {
-            HttpSenderAdapterConfig httpConfig = (HttpSenderAdapterConfig) adapterConfig;
+        } else if (adapterConfig instanceof HttpInboundAdapterConfig) {
+            HttpInboundAdapterConfig httpConfig = (HttpInboundAdapterConfig) adapterConfig;
             return jsonToXmlConverter.convertToXml(messageData, httpConfig.getJsonXmlWrapperConfig());
             
-        } else if (adapterConfig instanceof RestSenderAdapterConfig) {
-            RestSenderAdapterConfig restConfig = (RestSenderAdapterConfig) adapterConfig;
+        } else if (adapterConfig instanceof RestInboundAdapterConfig) {
+            RestInboundAdapterConfig restConfig = (RestInboundAdapterConfig) adapterConfig;
             return jsonToXmlConverter.convertToXml(messageData, restConfig.getJsonXmlWrapperConfig());
             
         } else if (isXmlContent(messageData)) {
@@ -137,14 +137,14 @@ public class MessageToXmlConverter {
      * @return The XML configuration (XmlMappingConfig or JsonXmlWrapperConfig)
      */
     public Object getXmlConfig(Object adapterConfig) {
-        if (adapterConfig instanceof JdbcSenderAdapterConfig) {
-            return ((JdbcSenderAdapterConfig) adapterConfig).getXmlMappingConfig();
-        } else if (adapterConfig instanceof FileSenderAdapterConfig) {
-            return ((FileSenderAdapterConfig) adapterConfig).getXmlMappingConfig();
-        } else if (adapterConfig instanceof HttpSenderAdapterConfig) {
-            return ((HttpSenderAdapterConfig) adapterConfig).getJsonXmlWrapperConfig();
-        } else if (adapterConfig instanceof RestSenderAdapterConfig) {
-            return ((RestSenderAdapterConfig) adapterConfig).getJsonXmlWrapperConfig();
+        if (adapterConfig instanceof JdbcInboundAdapterConfig) {
+            return ((JdbcInboundAdapterConfig) adapterConfig).getXmlMappingConfig();
+        } else if (adapterConfig instanceof FileInboundAdapterConfig) {
+            return ((FileInboundAdapterConfig) adapterConfig).getXmlMappingConfig();
+        } else if (adapterConfig instanceof HttpInboundAdapterConfig) {
+            return ((HttpInboundAdapterConfig) adapterConfig).getJsonXmlWrapperConfig();
+        } else if (adapterConfig instanceof RestInboundAdapterConfig) {
+            return ((RestInboundAdapterConfig) adapterConfig).getJsonXmlWrapperConfig();
         }
         return null;
     }

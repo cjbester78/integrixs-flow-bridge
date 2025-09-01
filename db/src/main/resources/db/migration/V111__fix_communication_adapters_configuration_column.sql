@@ -36,22 +36,22 @@ DROP COLUMN IF EXISTS deployment_info;
 
 -- Add mode column if it doesn't exist
 ALTER TABLE communication_adapters 
-ADD COLUMN IF NOT EXISTS mode VARCHAR(10) NOT NULL DEFAULT 'SENDER' 
-CHECK (mode IN ('SENDER', 'RECEIVER'));
+ADD COLUMN IF NOT EXISTS mode VARCHAR(10) NOT NULL DEFAULT 'INBOUND' 
+CHECK (mode IN ('INBOUND', 'OUTBOUND'));
 
 -- Update mode based on direction
 UPDATE communication_adapters 
 SET mode = direction 
-WHERE direction IN ('SENDER', 'RECEIVER');
+WHERE direction IN ('INBOUND', 'OUTBOUND');
 
--- For adapters with INBOUND direction, set mode to RECEIVER
+-- For adapters with INBOUND direction, set mode to OUTBOUND
 UPDATE communication_adapters 
-SET mode = 'RECEIVER' 
+SET mode = 'OUTBOUND' 
 WHERE direction = 'INBOUND';
 
--- For adapters with OUTBOUND direction, set mode to SENDER
+-- For adapters with OUTBOUND direction, set mode to INBOUND
 UPDATE communication_adapters 
-SET mode = 'SENDER' 
+SET mode = 'INBOUND' 
 WHERE direction = 'OUTBOUND';
 
 -- Add description column if it doesn't exist

@@ -49,26 +49,26 @@ public class FlowDeploymentApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + flowId));
             
             // Get adapters
-            CommunicationAdapter sourceAdapter = adapterRepository.findById(flow.getSourceAdapterId())
+            CommunicationAdapter inboundAdapter = adapterRepository.findById(flow.getInboundAdapterId())
                 .orElseThrow(() -> new ResourceNotFoundException("Source adapter not found"));
-            CommunicationAdapter targetAdapter = adapterRepository.findById(flow.getTargetAdapterId())
+            CommunicationAdapter outboundAdapter = adapterRepository.findById(flow.getOutboundAdapterId())
                 .orElseThrow(() -> new ResourceNotFoundException("Target adapter not found"));
             
             // Validate deployment
-            deploymentValidator.validateFlowForDeployment(flow, sourceAdapter, targetAdapter);
+            deploymentValidator.validateFlowForDeployment(flow, inboundAdapter, outboundAdapter);
             
             // Extract configured endpoint from adapter config if present
-            String configuredEndpoint = extractConfiguredEndpoint(sourceAdapter);
+            String configuredEndpoint = extractConfiguredEndpoint(inboundAdapter);
             
             // Generate endpoint
-            String endpoint = deploymentOrchestrator.generateEndpoint(flow, sourceAdapter, configuredEndpoint);
+            String endpoint = deploymentOrchestrator.generateEndpoint(flow, inboundAdapter, configuredEndpoint);
             
             // Create metadata
-            Map<String, Object> metadata = deploymentOrchestrator.createDeploymentMetadata(flow, sourceAdapter, endpoint);
+            Map<String, Object> metadata = deploymentOrchestrator.createDeploymentMetadata(flow, inboundAdapter, endpoint);
             
             // Register endpoints and initialize adapters
-            registerFlowEndpoint(flow, sourceAdapter);
-            initializeAdapters(flow, sourceAdapter);
+            registerFlowEndpoint(flow, inboundAdapter);
+            initializeAdapters(flow, inboundAdapter);
             
             // Update flow for deployment
             deploymentOrchestrator.prepareFlowForDeployment(flow, endpoint, metadata, deployedBy.getId());
@@ -206,13 +206,13 @@ public class FlowDeploymentApplicationService {
     /**
      * Register flow endpoint
      */
-    private void registerFlowEndpoint(IntegrationFlow flow, CommunicationAdapter sourceAdapter) {
+    private void registerFlowEndpoint(IntegrationFlow flow, CommunicationAdapter inboundAdapter) {
         log.info("Registering endpoint for flow: {} with adapter type: {}", 
-            flow.getName(), sourceAdapter.getType());
+            flow.getName(), inboundAdapter.getType());
         
         // File-based adapters may need directory setup
-        switch (sourceAdapter.getType()) {
-            case FILE, FTP, SFTP -> setupFileBasedEndpoint(flow, sourceAdapter);
+        switch (inboundAdapter.getType()) {
+            case FILE, FTP, SFTP -> setupFileBasedEndpoint(flow, inboundAdapter);
             default -> log.info("HTTP endpoint registered for flow: {}", flow.getName());
         }
     }
@@ -220,12 +220,12 @@ public class FlowDeploymentApplicationService {
     /**
      * Initialize adapters for the flow
      */
-    private void initializeAdapters(IntegrationFlow flow, CommunicationAdapter sourceAdapter) {
+    private void initializeAdapters(IntegrationFlow flow, CommunicationAdapter inboundAdapter) {
         log.info("Initializing adapters for flow: {}", flow.getName());
         
-        // Receiver adapters may need polling setup
-        if (sourceAdapter.getMode() == com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.RECEIVER) {
-            log.info("Polling setup would be configured here for adapter: {}", sourceAdapter.getName());
+        // Outbound adapters may need polling setup
+        if (inboundAdapter.getMode() == com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum.OUTBOUND) {
+            log.info("Polling setup would be configured here for adapter: {}", inboundAdapter.getName());
         }
     }
     

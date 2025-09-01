@@ -49,13 +49,13 @@ public class IntegrationFlowDTO {
      * Source adapter ID (sender - receives data FROM external systems)
      */
     @NotBlank(message = "Source adapter is required")
-    private String sourceAdapterId;
+    private String inboundAdapterId;
     
     /**
      * Target adapter ID (receiver - sends data TO external systems)
      */
     @NotBlank(message = "Target adapter is required")
-    private String targetAdapterId;
+    private String outboundAdapterId;
     
     /**
      * Source flow structure ID (for WSDL/SOAP flows)

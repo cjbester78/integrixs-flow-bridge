@@ -1,9 +1,9 @@
 package com.integrixs.webclient;
 
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
-import com.integrixs.adapters.config.SoapReceiverAdapterConfig;
+import com.integrixs.adapters.config.SoapOutboundAdapterConfig;
 import com.integrixs.adapters.domain.model.SendRequest;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import org.slf4j.Logger;
@@ -47,18 +47,18 @@ public class InboundSoapEndpoint {
         logger.info("Received inbound SOAP request");
         
         try {
-            // Create SOAP receiver adapter configuration
-            SoapReceiverAdapterConfig config = createSoapConfig();
+            // Create SOAP outbound adapter configuration
+            SoapOutboundAdapterConfig config = createSoapConfig();
             
             // Create and initialize adapter
-            ReceiverAdapterPort adapter = adapterFactory.createReceiver(AdapterConfiguration.AdapterTypeEnum.SOAP, config);
+            OutboundAdapterPort adapter = adapterFactory.createReceiver(AdapterConfiguration.AdapterTypeEnum.SOAP, config);
             
             // Create AdapterConfiguration for initialization
             AdapterConfiguration adapterConfig = AdapterConfiguration.builder()
                     .adapterId(UUID.randomUUID().toString())
                     .name("SOAP Receiver")
                     .adapterType(AdapterConfiguration.AdapterTypeEnum.SOAP)
-                    .adapterMode(AdapterConfiguration.AdapterModeEnum.RECEIVER)
+                    .adapterMode(AdapterConfiguration.AdapterModeEnum.OUTBOUND)
                     .connectionProperties(new java.util.HashMap<>())
                     .operationProperties(new java.util.HashMap<>())
                     .build();
@@ -91,10 +91,10 @@ public class InboundSoapEndpoint {
 
 
     /**
-     * Create SOAP receiver adapter configuration
+     * Create SOAP outbound adapter configuration
      */
-    private SoapReceiverAdapterConfig createSoapConfig() {
-        SoapReceiverAdapterConfig config = new SoapReceiverAdapterConfig();
+    private SoapOutboundAdapterConfig createSoapConfig() {
+        SoapOutboundAdapterConfig config = new SoapOutboundAdapterConfig();
         
         // Set basic SOAP configuration
         config.setServiceEndpointUrl("http://localhost:8080/ws/inbound");

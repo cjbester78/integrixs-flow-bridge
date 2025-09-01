@@ -1,6 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.integrixs.backend.security.AuditLogEncryptionService;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.specification.SystemLogSpecifications;
 import com.integrixs.data.model.User;
@@ -11,6 +12,7 @@ import com.integrixs.shared.dto.log.FrontendLogEntry;
 import com.integrixs.shared.dto.system.SystemLogDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing system logs including frontend application logs.
@@ -36,12 +39,18 @@ public class SystemLogService {
     private final SystemLogRepository systemLogRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    
+    @Autowired(required = false)
+    private AuditLogEncryptionService auditLogEncryptionService;
 
     @Value("${logging.frontend.level:INFO}")
     private String frontendLogLevel;
 
     @Value("${logging.frontend.enabled-categories:ALL}")
     private String enabledCategories;
+    
+    @Value("${systemlog.encryption.enabled:false}")
+    private boolean encryptionEnabled;
 
     /**
      * Log a frontend event to the system log.
@@ -66,6 +75,11 @@ public class SystemLogService {
                     .stackTrace(entry.getStackTrace())
                     .url(entry.getUrl())
                     .build();
+
+            // Encrypt sensitive data if enabled
+            if (encryptionEnabled && auditLogEncryptionService != null) {
+                systemLog = auditLogEncryptionService.encryptSystemLog(systemLog);
+            }
 
             systemLogRepository.save(systemLog);
 
@@ -272,7 +286,7 @@ public class SystemLogService {
             category = "FRONTEND_" + category;
         }
         
-        return systemLogRepository.findAll(
+        List<SystemLog> logs = systemLogRepository.findAll(
             SystemLogSpecifications.withFilters(
                 "FRONTEND", 
                 category, 
@@ -282,6 +296,15 @@ public class SystemLogService {
                 endDate
             )
         );
+        
+        // Decrypt sensitive data if enabled
+        if (encryptionEnabled && auditLogEncryptionService != null) {
+            return logs.stream()
+                .map(log -> auditLogEncryptionService.decryptSystemLog(log))
+                .collect(Collectors.toList());
+        }
+        
+        return logs;
     }
 
     /**
@@ -298,6 +321,14 @@ public class SystemLogService {
             SystemLog.LogLevel.ERROR, 
             since
         );
+        
+        // Decrypt sensitive data if enabled (for statistics, we might not need decryption)
+        // But keeping for consistency
+        if (encryptionEnabled && auditLogEncryptionService != null) {
+            errors = errors.stream()
+                .map(log -> auditLogEncryptionService.decryptSystemLog(log))
+                .collect(Collectors.toList());
+        }
         
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalErrors", errors.size());
@@ -370,6 +401,14 @@ public class SystemLogService {
             ),
             pageable
         );
+        
+        // Decrypt sensitive data if enabled before converting to DTOs
+        if (encryptionEnabled && auditLogEncryptionService != null) {
+            List<SystemLog> decryptedLogs = logs.getContent().stream()
+                .map(log -> auditLogEncryptionService.decryptSystemLog(log))
+                .collect(Collectors.toList());
+            logs = new org.springframework.data.domain.PageImpl<>(decryptedLogs, pageable, logs.getTotalElements());
+        }
         
         // Convert to DTOs
         return logs.map(this::convertToDTO);

@@ -24,9 +24,9 @@ public class UpdateFlowRequest {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
     
-    private String sourceAdapterId;
+    private String inboundAdapterId;
     
-    private String targetAdapterId;
+    private String outboundAdapterId;
     
     private String sourceFlowStructureId;
     

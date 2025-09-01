@@ -1,5 +1,6 @@
 package com.integrixs.backend.service;
 
+import com.integrixs.backend.security.AuditLogEncryptionService;
 import com.integrixs.data.repository.UserRepository;
 import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.User;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing audit trail entries.
@@ -46,6 +49,12 @@ public class AuditTrailService {
     @Autowired
     private UserRepository userRepository;
     
+    @Autowired(required = false)
+    private AuditLogEncryptionService auditLogEncryptionService;
+    
+    @Value("${audit.encryption.enabled:false}")
+    private boolean encryptionEnabled;
+    
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     /**
@@ -60,6 +69,11 @@ public class AuditTrailService {
             ObjectNode changes = objectMapper.createObjectNode();
             changes.set("new", objectMapper.valueToTree(newEntity));
             audit.setChanges(changes.toString());
+            
+            // Encrypt sensitive data if enabled
+            if (encryptionEnabled && auditLogEncryptionService != null) {
+                audit = auditLogEncryptionService.encryptAuditTrail(audit);
+            }
             
             auditTrailRepository.save(audit);
             log.debug("Created audit entry for CREATE operation on {} with ID {}", entityType, entityId);
@@ -82,6 +96,11 @@ public class AuditTrailService {
             changes.set("new", objectMapper.valueToTree(newEntity));
             audit.setChanges(changes.toString());
             
+            // Encrypt sensitive data if enabled
+            if (encryptionEnabled && auditLogEncryptionService != null) {
+                audit = auditLogEncryptionService.encryptAuditTrail(audit);
+            }
+            
             auditTrailRepository.save(audit);
             log.debug("Created audit entry for UPDATE operation on {} with ID {}", entityType, entityId);
         } catch (Exception e) {
@@ -102,6 +121,11 @@ public class AuditTrailService {
             changes.set("old", objectMapper.valueToTree(oldEntity));
             audit.setChanges(changes.toString());
             
+            // Encrypt sensitive data if enabled
+            if (encryptionEnabled && auditLogEncryptionService != null) {
+                audit = auditLogEncryptionService.encryptAuditTrail(audit);
+            }
+            
             auditTrailRepository.save(audit);
             log.debug("Created audit entry for DELETE operation on {} with ID {}", entityType, entityId);
         } catch (Exception e) {
@@ -119,6 +143,11 @@ public class AuditTrailService {
             
             if (details != null && !details.isEmpty()) {
                 audit.setChanges(objectMapper.writeValueAsString(details));
+            }
+            
+            // Encrypt sensitive data if enabled
+            if (encryptionEnabled && auditLogEncryptionService != null) {
+                audit = auditLogEncryptionService.encryptAuditTrail(audit);
             }
             
             auditTrailRepository.save(audit);
@@ -146,6 +175,11 @@ public class AuditTrailService {
                 HttpServletRequest request = attrs.getRequest();
                 audit.setUserIp(extractClientIp(request));
                 audit.setUserAgent(request.getHeader("User-Agent"));
+            }
+            
+            // Encrypt sensitive data if enabled
+            if (encryptionEnabled && auditLogEncryptionService != null) {
+                audit = auditLogEncryptionService.encryptAuditTrail(audit);
             }
             
             auditTrailRepository.save(audit);
@@ -246,6 +280,14 @@ public class AuditTrailService {
     public Page<AuditTrail> getEntityAuditHistory(String entityType, String entityId, Pageable pageable) {
         // Convert list to page
         List<AuditTrail> audits = auditTrailRepository.findByEntityTypeAndEntityIdOrderByCreatedAtDesc(entityType, entityId);
+        
+        // Decrypt sensitive data if enabled
+        if (encryptionEnabled && auditLogEncryptionService != null) {
+            audits = audits.stream()
+                .map(audit -> auditLogEncryptionService.decryptAuditTrail(audit))
+                .collect(Collectors.toList());
+        }
+        
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), audits.size());
         return new PageImpl<>(audits.subList(start, end), pageable, audits.size());
@@ -255,7 +297,17 @@ public class AuditTrailService {
      * Retrieve audit history by user
      */
     public Page<AuditTrail> getUserAuditHistory(String userId, Pageable pageable) {
-        return auditTrailRepository.findByUserIdOrderByCreatedAtDesc(UUID.fromString(userId), pageable);
+        Page<AuditTrail> audits = auditTrailRepository.findByUserIdOrderByCreatedAtDesc(UUID.fromString(userId), pageable);
+        
+        // Decrypt sensitive data if enabled
+        if (encryptionEnabled && auditLogEncryptionService != null) {
+            List<AuditTrail> decryptedList = audits.getContent().stream()
+                .map(audit -> auditLogEncryptionService.decryptAuditTrail(audit))
+                .collect(Collectors.toList());
+            return new PageImpl<>(decryptedList, pageable, audits.getTotalElements());
+        }
+        
+        return audits;
     }
     
     /**
@@ -264,6 +316,16 @@ public class AuditTrailService {
     public Page<AuditTrail> searchAuditTrail(String entityType, AuditTrail.AuditAction action, 
                                             String userId, LocalDateTime startDate, 
                                             LocalDateTime endDate, Pageable pageable) {
-        return auditTrailRepository.searchAuditTrail(entityType, action, userId != null ? UUID.fromString(userId) : null, startDate, endDate, pageable);
+        Page<AuditTrail> audits = auditTrailRepository.searchAuditTrail(entityType, action, userId != null ? UUID.fromString(userId) : null, startDate, endDate, pageable);
+        
+        // Decrypt sensitive data if enabled
+        if (encryptionEnabled && auditLogEncryptionService != null) {
+            List<AuditTrail> decryptedList = audits.getContent().stream()
+                .map(audit -> auditLogEncryptionService.decryptAuditTrail(audit))
+                .collect(Collectors.toList());
+            return new PageImpl<>(decryptedList, pageable, audits.getTotalElements());
+        }
+        
+        return audits;
     }
 }

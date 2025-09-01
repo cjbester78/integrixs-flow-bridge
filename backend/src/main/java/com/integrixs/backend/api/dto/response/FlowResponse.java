@@ -20,13 +20,13 @@ public class FlowResponse {
     private String name;
     private String description;
     
-    private String sourceAdapterId;
-    private String sourceAdapterName;
-    private String sourceAdapterType;
+    private String inboundAdapterId;
+    private String inboundAdapterName;
+    private String inboundAdapterType;
     
-    private String targetAdapterId;
-    private String targetAdapterName;
-    private String targetAdapterType;
+    private String outboundAdapterId;
+    private String outboundAdapterName;
+    private String outboundAdapterType;
     
     private String sourceFlowStructureId;
     private String sourceFlowStructureName;

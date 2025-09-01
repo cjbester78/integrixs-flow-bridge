@@ -2,34 +2,34 @@ package com.integrixs.engine.service;
 
 import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.core.AdapterException;
-import com.integrixs.adapters.config.FileSenderAdapterConfig;
-import com.integrixs.adapters.config.FileReceiverAdapterConfig;
+import com.integrixs.adapters.config.FileInboundAdapterConfig;
+import com.integrixs.adapters.config.FileOutboundAdapterConfig;
 
 /**
  * FileAdapterService handles file-based adapter operations using the new separated architecture.
- * Follows middleware convention: Sender = receives FROM files (inbound), Receiver = sends TO files (outbound)
+ * Follows middleware convention: Inbound = receives FROM files (inbound), Outbound = sends TO files (outbound)
  */
 public interface FileAdapterService {
     
     /**
-     * Read files from directory using sender adapter (inbound operation)
+     * Read files from directory using inbound adapter (inbound operation)
      */
-    AdapterResult readFiles(FileSenderAdapterConfig config) throws AdapterException;
+    AdapterResult readFiles(FileInboundAdapterConfig config) throws AdapterException;
     
     /**
-     * Write data to file using receiver adapter (outbound operation) 
+     * Write data to file using outbound adapter (outbound operation) 
      */
-    AdapterResult writeFile(FileReceiverAdapterConfig config, Object data) throws AdapterException;
+    AdapterResult writeFile(FileOutboundAdapterConfig config, Object data) throws AdapterException;
     
     /**
      * Start polling for files with callback
      */
-    void startFilePolling(FileSenderAdapterConfig config, FilePollingCallback callback) throws AdapterException;
+    void startFilePolling(FileInboundAdapterConfig config, FilePollingCallback callback) throws AdapterException;
     
     /**
      * Stop file polling
      */
-    void stopFilePolling(FileSenderAdapterConfig config) throws AdapterException;
+    void stopFilePolling(FileInboundAdapterConfig config) throws AdapterException;
     
     /**
      * Test file adapter configuration

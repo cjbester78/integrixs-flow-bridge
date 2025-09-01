@@ -182,11 +182,11 @@ public class MessageProcessingEngine {
             IntegrationFlow flow = flowOpt.get();
             
             // Validate flow configuration
-            if (flow.getSourceAdapterId() == null) {
+            if (flow.getInboundAdapterId() == null) {
                 result.addError("Source adapter is required for message processing");
             }
             
-            if (flow.getTargetAdapterId() == null) {
+            if (flow.getOutboundAdapterId() == null) {
                 result.addError("Target adapter is required for message processing");
             }
             

@@ -65,7 +65,7 @@ public class MetricsAggregatorService {
      */
     private boolean isFlowAssociatedWithBusinessComponent(IntegrationFlow flow, UUID businessComponentId) {
         // Check source adapter
-        boolean sourceMatch = adapterRepository.findById(flow.getSourceAdapterId())
+        boolean sourceMatch = adapterRepository.findById(flow.getInboundAdapterId())
             .map(adapter -> {
                 if (adapter.getBusinessComponent() != null) {
                     return businessComponentId.equals(adapter.getBusinessComponent().getId());
@@ -75,7 +75,7 @@ public class MetricsAggregatorService {
             .orElse(false);
         
         // Check target adapter
-        boolean targetMatch = adapterRepository.findById(flow.getTargetAdapterId())
+        boolean targetMatch = adapterRepository.findById(flow.getOutboundAdapterId())
             .map(adapter -> {
                 if (adapter.getBusinessComponent() != null) {
                     return businessComponentId.equals(adapter.getBusinessComponent().getId());

@@ -14,7 +14,7 @@ public interface BaseAdapter {
     AdapterConfiguration.AdapterTypeEnum getAdapterType();
     
     /**
-     * Get the adapter mode (SENDER or RECEIVER)
+     * Get the adapter mode (INBOUND or OUTBOUND)
      */
     AdapterConfiguration.AdapterModeEnum getAdapterMode();
     

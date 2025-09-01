@@ -18,11 +18,11 @@ public class FlowExecutionService {
     /**
      * Validate that a flow can be executed
      * @param flow The flow to validate
-     * @param sourceAdapter The source adapter
-     * @param targetAdapter The target adapter
+     * @param inboundAdapter The source adapter
+     * @param outboundAdapter The target adapter
      * @throws IllegalStateException if flow cannot be executed
      */
-    public void validateFlowExecution(IntegrationFlow flow, CommunicationAdapter sourceAdapter, CommunicationAdapter targetAdapter) {
+    public void validateFlowExecution(IntegrationFlow flow, CommunicationAdapter inboundAdapter, CommunicationAdapter outboundAdapter) {
         if (flow == null) {
             throw new IllegalArgumentException("Flow cannot be null");
         }
@@ -31,21 +31,21 @@ public class FlowExecutionService {
             throw new IllegalStateException("Cannot execute inactive flow: " + flow.getName());
         }
         
-        if (sourceAdapter == null) {
+        if (inboundAdapter == null) {
             throw new IllegalStateException("Source adapter not found for flow: " + flow.getName());
         }
         
-        if (targetAdapter == null) {
+        if (outboundAdapter == null) {
             throw new IllegalStateException("Target adapter not found for flow: " + flow.getName());
         }
         
-        if (!sourceAdapter.isActive()) {
-            throw new IllegalStateException("Cannot execute flow: Source adapter '" + sourceAdapter.getName() + 
+        if (!inboundAdapter.isActive()) {
+            throw new IllegalStateException("Cannot execute flow: Source adapter '" + inboundAdapter.getName() + 
                 "' is in a stopped status. Please activate the adapter before using it in a flow.");
         }
         
-        if (!targetAdapter.isActive()) {
-            throw new IllegalStateException("Cannot execute flow: Target adapter '" + targetAdapter.getName() + 
+        if (!outboundAdapter.isActive()) {
+            throw new IllegalStateException("Cannot execute flow: Target adapter '" + outboundAdapter.getName() + 
                 "' is in a stopped status. Please activate the adapter before using it in a flow.");
         }
     }

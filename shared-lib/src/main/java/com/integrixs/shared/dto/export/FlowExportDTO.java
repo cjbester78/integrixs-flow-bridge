@@ -43,12 +43,12 @@ public class FlowExportDTO {
     /**
      * Source adapter (sender - receives data FROM external systems)
      */
-    private CommunicationAdapterDTO sourceAdapter;
+    private CommunicationAdapterDTO inboundAdapter;
     
     /**
      * Target adapter (receiver - sends data TO external systems)
      */
-    private CommunicationAdapterDTO targetAdapter;
+    private CommunicationAdapterDTO outboundAdapter;
     
     /**
      * All transformations associated with this flow

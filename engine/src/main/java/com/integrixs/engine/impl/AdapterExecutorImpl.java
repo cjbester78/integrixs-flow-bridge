@@ -5,8 +5,8 @@ import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.domain.model.FetchRequest;
 import com.integrixs.adapters.domain.model.SendRequest;
-import com.integrixs.adapters.domain.port.ReceiverAdapterPort;
-import com.integrixs.adapters.domain.port.SenderAdapterPort;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
@@ -46,12 +46,12 @@ public class AdapterExecutorImpl implements AdapterExecutor {
     public Object fetchDataAsObject(String adapterId) {
         try {
             CommunicationAdapter adapter = getAdapter(adapterId);
-            validateSenderAdapter(adapter);
+            validateInboundAdapter(adapter);
             
             AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
             Map<String, Object> config = parseConfiguration(adapter.getConfiguration());
             
-            SenderAdapterPort senderAdapter = adapterFactoryManager.createSender(adapterType, config);
+            InboundAdapterPort senderAdapter = adapterFactoryManager.createSender(adapterType, config);
             
             // Create fetch request
             FetchRequest fetchRequest = FetchRequest.builder()
@@ -98,7 +98,7 @@ public class AdapterExecutorImpl implements AdapterExecutor {
     private void sendData(String adapterId, Object data, Map<String, Object> context) {
         try {
             CommunicationAdapter adapter = getAdapter(adapterId);
-            validateReceiverAdapter(adapter);
+            validateOutboundAdapter(adapter);
             
             AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
             Map<String, Object> config = parseConfiguration(adapter.getConfiguration());
@@ -108,7 +108,7 @@ public class AdapterExecutorImpl implements AdapterExecutor {
                 config.putAll(context);
             }
             
-            ReceiverAdapterPort receiverAdapter = adapterFactoryManager.createReceiver(adapterType, config);
+            OutboundAdapterPort receiverAdapter = adapterFactoryManager.createReceiver(adapterType, config);
             
             // Create send request
             SendRequest sendRequest = SendRequest.builder()
@@ -149,18 +149,18 @@ public class AdapterExecutorImpl implements AdapterExecutor {
                 .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
     }
     
-    private void validateSenderAdapter(CommunicationAdapter adapter) {
-        if (!"SENDER".equalsIgnoreCase(adapter.getDirection())) {
+    private void validateInboundAdapter(CommunicationAdapter adapter) {
+        if (!"INBOUND".equalsIgnoreCase(adapter.getDirection())) {
             throw new IllegalArgumentException(
-                "Adapter " + adapter.getId() + " is not a sender adapter (direction: " + adapter.getDirection() + ")"
+                "Adapter " + adapter.getId() + " is not a inbound adapter (direction: " + adapter.getDirection() + ")"
             );
         }
     }
     
-    private void validateReceiverAdapter(CommunicationAdapter adapter) {
-        if (!"RECEIVER".equalsIgnoreCase(adapter.getDirection())) {
+    private void validateOutboundAdapter(CommunicationAdapter adapter) {
+        if (!"OUTBOUND".equalsIgnoreCase(adapter.getDirection())) {
             throw new IllegalArgumentException(
-                "Adapter " + adapter.getId() + " is not a receiver adapter (direction: " + adapter.getDirection() + ")"
+                "Adapter " + adapter.getId() + " is not a outbound adapter (direction: " + adapter.getDirection() + ")"
             );
         }
     }

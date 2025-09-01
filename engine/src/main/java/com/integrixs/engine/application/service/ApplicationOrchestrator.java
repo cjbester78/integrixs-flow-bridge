@@ -181,14 +181,14 @@ public class ApplicationOrchestrator {
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
             
             boolean sourceHealthy = adapterExecutionApplicationService.isAdapterHealthy(
-                    flow.getSourceAdapterId().toString());
+                    flow.getInboundAdapterId().toString());
             boolean targetHealthy = adapterExecutionApplicationService.isAdapterHealthy(
-                    flow.getTargetAdapterId().toString());
+                    flow.getOutboundAdapterId().toString());
             
             return Map.of(
                 "flowId", flowId,
-                "sourceAdapterHealthy", sourceHealthy,
-                "targetAdapterHealthy", targetHealthy,
+                "inboundAdapterHealthy", sourceHealthy,
+                "outboundAdapterHealthy", targetHealthy,
                 "overallHealth", sourceHealthy && targetHealthy,
                 "timestamp", System.currentTimeMillis()
             );

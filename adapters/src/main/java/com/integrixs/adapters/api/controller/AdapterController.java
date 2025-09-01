@@ -134,13 +134,13 @@ public class AdapterController {
     }
     
     /**
-     * Fetch data using sender adapter
+     * Fetch data using inbound adapter
      * @param adapterId Adapter ID
      * @param request Fetch request
      * @return Fetch response
      */
     @PostMapping("/{adapterId}/fetch")
-    @Operation(summary = "Fetch data", description = "Fetches data using a sender adapter")
+    @Operation(summary = "Fetch data", description = "Fetches data using a inbound adapter")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Data fetched successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request"),
@@ -164,13 +164,13 @@ public class AdapterController {
     }
     
     /**
-     * Send data using receiver adapter
+     * Send data using outbound adapter
      * @param adapterId Adapter ID
      * @param request Send request
      * @return Send response
      */
     @PostMapping("/{adapterId}/send")
-    @Operation(summary = "Send data", description = "Sends data using a receiver adapter")
+    @Operation(summary = "Send data", description = "Sends data using a outbound adapter")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Data sent successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request"),

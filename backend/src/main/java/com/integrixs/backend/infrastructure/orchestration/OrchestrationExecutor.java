@@ -39,28 +39,28 @@ public class OrchestrationExecutor {
             execution.addLog("Initializing communication adapters");
             
             // Validate source adapter
-            CommunicationAdapter sourceAdapter = adapterRepository.findById(flow.getSourceAdapterId())
+            CommunicationAdapter inboundAdapter = adapterRepository.findById(flow.getInboundAdapterId())
                 .orElseThrow(() -> new RuntimeException("Source adapter not found"));
             
-            if (!sourceAdapter.isActive()) {
-                execution.addLog("Source adapter is not active: " + sourceAdapter.getName());
+            if (!inboundAdapter.isActive()) {
+                execution.addLog("Source adapter is not active: " + inboundAdapter.getName());
                 return false;
             }
             
             // Validate target adapter
-            CommunicationAdapter targetAdapter = adapterRepository.findById(flow.getTargetAdapterId())
+            CommunicationAdapter outboundAdapter = adapterRepository.findById(flow.getOutboundAdapterId())
                 .orElseThrow(() -> new RuntimeException("Target adapter not found"));
                 
-            if (!targetAdapter.isActive()) {
-                execution.addLog("Target adapter is not active: " + targetAdapter.getName());
+            if (!outboundAdapter.isActive()) {
+                execution.addLog("Target adapter is not active: " + outboundAdapter.getName());
                 return false;
             }
             
             // Store adapter info in context
-            execution.addContext("sourceAdapter", sourceAdapter.getName());
-            execution.addContext("targetAdapter", targetAdapter.getName());
-            execution.addContext("sourceAdapterId", sourceAdapter.getId().toString());
-            execution.addContext("targetAdapterId", targetAdapter.getId().toString());
+            execution.addContext("inboundAdapter", inboundAdapter.getName());
+            execution.addContext("outboundAdapter", outboundAdapter.getName());
+            execution.addContext("inboundAdapterId", inboundAdapter.getId().toString());
+            execution.addContext("outboundAdapterId", outboundAdapter.getId().toString());
             
             execution.addLog("Adapters initialized successfully");
             return true;
@@ -108,10 +108,10 @@ public class OrchestrationExecutor {
     /**
      * Send data to target adapter
      * @param execution The orchestration execution
-     * @param targetAdapterId The target adapter ID
+     * @param outboundAdapterId The target adapter ID
      * @return true if successful
      */
-    public boolean sendToTargetAdapter(OrchestrationExecution execution, String targetAdapterId) {
+    public boolean sendToTargetAdapter(OrchestrationExecution execution, String outboundAdapterId) {
         try {
             execution.addLog("Sending data to target adapter");
             
@@ -131,12 +131,12 @@ public class OrchestrationExecutor {
             } else {
                 payload = objectMapper.writeValueAsString(dataToSend);
             }
-            adapterExecutor.sendData(targetAdapterId, payload, context);
+            adapterExecutor.sendData(outboundAdapterId, payload, context);
             
             // Store output
             Map<String, Object> outputData = new HashMap<>();
             outputData.put("data", dataToSend);
-            outputData.put("targetAdapterId", targetAdapterId);
+            outputData.put("outboundAdapterId", outboundAdapterId);
             outputData.put("timestamp", System.currentTimeMillis());
             execution.setOutputData(outputData);
             
@@ -153,15 +153,15 @@ public class OrchestrationExecutor {
     /**
      * Fetch data from source adapter
      * @param execution The orchestration execution
-     * @param sourceAdapterId The source adapter ID
+     * @param inboundAdapterId The source adapter ID
      * @return true if successful
      */
-    public boolean fetchFromSourceAdapter(OrchestrationExecution execution, String sourceAdapterId) {
+    public boolean fetchFromSourceAdapter(OrchestrationExecution execution, String inboundAdapterId) {
         try {
             execution.addLog("Fetching data from source adapter");
             
             // Fetch data
-            Object data = adapterExecutor.fetchDataAsObject(sourceAdapterId);
+            Object data = adapterExecutor.fetchDataAsObject(inboundAdapterId);
             
             if (data != null) {
                 execution.setInputData(data);

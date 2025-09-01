@@ -30,8 +30,8 @@ import java.util.UUID;
         @Index(name = "idx_flow_name", columnList = "name"),
         @Index(name = "idx_flow_status", columnList = "status"),
         @Index(name = "idx_flow_active", columnList = "is_active"),
-        @Index(name = "idx_flow_source", columnList = "source_adapter_id"),
-        @Index(name = "idx_flow_target", columnList = "target_adapter_id")
+        @Index(name = "idx_flow_source", columnList = "inbound_adapter_id"),
+        @Index(name = "idx_flow_target", columnList = "outbound_adapter_id")
     }
 )
 @Data
@@ -68,16 +68,16 @@ public class IntegrationFlow {
     /**
      * Source adapter ID (sender - receives data FROM external systems)
      */
-    @Column(name = "source_adapter_id", nullable = false)
+    @Column(name = "inbound_adapter_id", nullable = false)
     @NotNull(message = "Source adapter is required")
-    private UUID sourceAdapterId;
+    private UUID inboundAdapterId;
 
     /**
      * Target adapter ID (receiver - sends data TO external systems)
      */
-    @Column(name = "target_adapter_id", nullable = false)
+    @Column(name = "outbound_adapter_id", nullable = false)
     @NotNull(message = "Target adapter is required")
-    private UUID targetAdapterId;
+    private UUID outboundAdapterId;
 
     /**
      * Source flow structure ID (for structured data flows)

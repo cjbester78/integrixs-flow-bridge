@@ -144,8 +144,8 @@ public class FlowCompositionController {
                     DirectMappingFlowRequest cloneRequest = new DirectMappingFlowRequest();
                     cloneRequest.setFlowName(newName + " (Copy)");
                     cloneRequest.setDescription("Cloned from: " + composition.getFlow().getName());
-                    cloneRequest.setSourceAdapterId(composition.getFlow().getSourceAdapterId() != null ? composition.getFlow().getSourceAdapterId().toString() : null);
-                    cloneRequest.setTargetAdapterId(composition.getFlow().getTargetAdapterId() != null ? composition.getFlow().getTargetAdapterId().toString() : null);
+                    cloneRequest.setInboundAdapterId(composition.getFlow().getInboundAdapterId() != null ? composition.getFlow().getInboundAdapterId().toString() : null);
+                    cloneRequest.setOutboundAdapterId(composition.getFlow().getOutboundAdapterId() != null ? composition.getFlow().getOutboundAdapterId().toString() : null);
                     cloneRequest.setSourceFlowStructureId(composition.getFlow().getSourceFlowStructureId() != null ? composition.getFlow().getSourceFlowStructureId().toString() : null);
                     cloneRequest.setTargetFlowStructureId(composition.getFlow().getTargetFlowStructureId() != null ? composition.getFlow().getTargetFlowStructureId().toString() : null);
                     
@@ -162,15 +162,15 @@ public class FlowCompositionController {
             result.addError("Flow name is required");
         }
         
-        if (request.getSourceAdapterId() == null) {
+        if (request.getInboundAdapterId() == null) {
             result.addError("Source adapter is required");
         }
         
-        if (request.getTargetAdapterId() == null) {
+        if (request.getOutboundAdapterId() == null) {
             result.addError("Target adapter is required");
         }
         
-        if (request.getSourceAdapterId() != null && request.getSourceAdapterId().equals(request.getTargetAdapterId())) {
+        if (request.getInboundAdapterId() != null && request.getInboundAdapterId().equals(request.getOutboundAdapterId())) {
             result.addError("Source and target adapters cannot be the same");
         }
         
@@ -185,11 +185,11 @@ public class FlowCompositionController {
             result.addError("Flow name is required");
         }
         
-        if (request.getSourceAdapterId() == null) {
+        if (request.getInboundAdapterId() == null) {
             result.addError("Source adapter is required");
         }
         
-        if (request.getTargetAdapterId() == null) {
+        if (request.getOutboundAdapterId() == null) {
             result.addError("Target adapter is required");
         }
         

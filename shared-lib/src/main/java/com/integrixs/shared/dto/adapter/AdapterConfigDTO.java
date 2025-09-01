@@ -13,8 +13,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * <p>This DTO represents the configuration for communication adapters in the integration platform.
  * It follows the REVERSED middleware convention where:</p>
  * <ul>
- *   <li><b>SENDER</b> adapters receive data FROM external systems (but are considered OUTBOUND)</li>
- *   <li><b>RECEIVER</b> adapters send data TO external systems (but are considered INBOUND)</li>
+ *   <li><b>INBOUND</b> adapters receive data FROM external systems (but are considered OUTBOUND)</li>
+ *   <li><b>OUTBOUND</b> adapters send data TO external systems (but are considered INBOUND)</li>
  * </ul>
  * 
  * <p>The adapter configuration includes both the adapter metadata and its specific
@@ -51,8 +51,8 @@ public class AdapterConfigDTO {
     
     /**
      * Adapter mode determining data flow direction (reversed convention).
-     * SENDER = receives FROM external systems (but is OUTBOUND)
-     * RECEIVER = sends TO external systems (but is INBOUND)
+     * INBOUND = receives FROM external systems (but is OUTBOUND)
+     * OUTBOUND = sends TO external systems (but is INBOUND)
      */
     private String mode;
     
@@ -76,8 +76,8 @@ public class AdapterConfigDTO {
     
     /**
      * Alternative direction indicator for clarity (reversed convention).
-     * OUTBOUND = SENDER mode (receives from external)
-     * INBOUND = RECEIVER mode (sends to external)
+     * OUTBOUND = INBOUND mode (receives from external)
+     * INBOUND = OUTBOUND mode (sends to external)
      * @deprecated Use {@link #mode} instead for consistency
      */
     private String direction;
@@ -107,23 +107,23 @@ public class AdapterConfigDTO {
 
     /**
      * Determines if this adapter receives data FROM external systems.
-     * Due to reversed convention, SENDER mode = OUTBOUND direction.
+     * Due to reversed convention, INBOUND mode = OUTBOUND direction.
      * 
-     * @return true if adapter is in SENDER mode or OUTBOUND direction
+     * @return true if adapter is in INBOUND mode or OUTBOUND direction
      */
     @JsonIgnore
     public boolean isSender() {
-        return "SENDER".equalsIgnoreCase(mode) || "OUTBOUND".equalsIgnoreCase(direction);
+        return "INBOUND".equalsIgnoreCase(mode) || "OUTBOUND".equalsIgnoreCase(direction);
     }
     
     /**
      * Determines if this adapter sends data TO external systems.
-     * Due to reversed convention, RECEIVER mode = INBOUND direction.
+     * Due to reversed convention, OUTBOUND mode = INBOUND direction.
      * 
-     * @return true if adapter is in RECEIVER mode or INBOUND direction
+     * @return true if adapter is in OUTBOUND mode or INBOUND direction
      */
     @JsonIgnore
     public boolean isReceiver() {
-        return "RECEIVER".equalsIgnoreCase(mode) || "INBOUND".equalsIgnoreCase(direction);
+        return "OUTBOUND".equalsIgnoreCase(mode) || "INBOUND".equalsIgnoreCase(direction);
     }
 }

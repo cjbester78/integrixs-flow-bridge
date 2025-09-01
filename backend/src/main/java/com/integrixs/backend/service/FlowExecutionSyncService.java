@@ -60,15 +60,15 @@ public class FlowExecutionSyncService {
         logger.info("Processing message through flow: {} with protocol: {}", flow.getName(), protocol);
         
         // Get source and target adapters
-        logger.info("Loading source adapter: {}", flow.getSourceAdapterId());
-        CommunicationAdapter sourceAdapter = adapterRepository.findById(flow.getSourceAdapterId())
+        logger.info("Loading source adapter: {}", flow.getInboundAdapterId());
+        CommunicationAdapter inboundAdapter = adapterRepository.findById(flow.getInboundAdapterId())
             .orElseThrow(() -> new IllegalArgumentException("Source adapter not found"));
-        logger.info("Source adapter: {} (Type: {}, Mode: {})", sourceAdapter.getName(), sourceAdapter.getType(), sourceAdapter.getMode());
+        logger.info("Source adapter: {} (Type: {}, Mode: {})", inboundAdapter.getName(), inboundAdapter.getType(), inboundAdapter.getMode());
         
-        logger.info("Loading target adapter: {}", flow.getTargetAdapterId());
-        CommunicationAdapter targetAdapter = adapterRepository.findById(flow.getTargetAdapterId())
+        logger.info("Loading target adapter: {}", flow.getOutboundAdapterId());
+        CommunicationAdapter outboundAdapter = adapterRepository.findById(flow.getOutboundAdapterId())
             .orElseThrow(() -> new IllegalArgumentException("Target adapter not found"));
-        logger.info("Target adapter: {} (Type: {}, Mode: {})", targetAdapter.getName(), targetAdapter.getType(), targetAdapter.getMode());
+        logger.info("Target adapter: {} (Type: {}, Mode: {})", outboundAdapter.getName(), outboundAdapter.getType(), outboundAdapter.getMode());
         
         // Track processing context
         Map<String, Object> context = new HashMap<>();
@@ -283,7 +283,7 @@ public class FlowExecutionSyncService {
             }
             
             // Step 3: Execute target adapter
-            logger.info("Executing target adapter: {} (ID: {})", targetAdapter.getName(), targetAdapter.getId());
+            logger.info("Executing target adapter: {} (ID: {})", outboundAdapter.getName(), outboundAdapter.getId());
             logger.debug("Original message: {}", validatedMessage);
             logger.debug("Transformed message: {}", transformedMessage);
             if (!validatedMessage.equals(transformedMessage)) {
@@ -293,21 +293,21 @@ public class FlowExecutionSyncService {
             }
             
             logger.info("Executing target adapter - correlationId: {}, flow: {}, adapter: {}, type: {}, mode: {}", 
-                correlationId, flow.getName(), targetAdapter.getName(), targetAdapter.getType(), targetAdapter.getMode());
+                correlationId, flow.getName(), outboundAdapter.getName(), outboundAdapter.getType(), outboundAdapter.getMode());
             
             // Note: Source adapter payload logging is handled by IntegrationEndpointService for SOAP/REST flows
             // Only log here if not coming from IntegrationEndpointService (check protocol type)
             if (!"SOAP".equals(protocol) && !"REST".equals(protocol)) {
                 // Log source payload for non-SOAP/REST flows (e.g., direct adapter tests)
-                logger.debug("Source adapter payload - correlationId: {}, adapter: {}, type: REQUEST", correlationId, sourceAdapter.getName());
+                logger.debug("Source adapter payload - correlationId: {}, adapter: {}, type: REQUEST", correlationId, inboundAdapter.getName());
             }
                 
-            String response = adapterExecutionService.executeAdapter(targetAdapter, transformedMessage, context);
+            String response = adapterExecutionService.executeAdapter(outboundAdapter, transformedMessage, context);
             
             // Note: Target adapter response logging is handled by IntegrationEndpointService for SOAP/REST flows
             if (response != null && !"SOAP".equals(protocol) && !"REST".equals(protocol)) {
                 // Log target response for non-SOAP/REST flows (e.g., direct adapter tests)
-                logger.debug("Target adapter response - correlationId: {}, adapter: {}, type: RESPONSE", correlationId, targetAdapter.getName());
+                logger.debug("Target adapter response - correlationId: {}, adapter: {}, type: RESPONSE", correlationId, outboundAdapter.getName());
             }
             
             logger.info("Target adapter execution completed");

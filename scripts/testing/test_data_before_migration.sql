@@ -32,7 +32,7 @@ INSERT INTO communication_adapters (id, name, type, description, configuration, 
 ('a50e8400-e29b-41d4-a716-446655440002', 'Test Target Adapter', 'JDBC', 'Test JDBC adapter', '{"connection": "test"}', '650e8400-e29b-41d4-a716-446655440002', '850e8400-e29b-41d4-a716-446655440002', true, NOW(), NOW());
 
 -- Create test integration flows with OLD structure columns (to be migrated)
-INSERT INTO integration_flows (id, name, description, source_adapter_id, target_adapter_id, source_structure_id, target_structure_id, source_flow_structure_id, target_flow_structure_id, flow_type, is_active, created_at, updated_at, created_by) VALUES
+INSERT INTO integration_flows (id, name, description, inbound_adapter_id, outbound_adapter_id, source_structure_id, target_structure_id, source_flow_structure_id, target_flow_structure_id, flow_type, is_active, created_at, updated_at, created_by) VALUES
 -- Flow with old structure IDs that need migration
 ('b50e8400-e29b-41d4-a716-446655440001', 'Test Flow for Migration', 'This flow has old structure IDs', 'a50e8400-e29b-41d4-a716-446655440001', 'a50e8400-e29b-41d4-a716-446655440002', '850e8400-e29b-41d4-a716-446655440001', '850e8400-e29b-41d4-a716-446655440002', NULL, NULL, 'DIRECT_MAPPING', true, NOW(), NOW(), 'test_admin'),
 -- Flow with new structure IDs already set

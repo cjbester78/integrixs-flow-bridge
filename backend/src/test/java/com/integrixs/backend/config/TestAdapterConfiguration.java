@@ -1,6 +1,6 @@
 package com.integrixs.backend.config;
 
-import com.integrixs.adapters.config.HttpSenderAdapterConfig;
+import com.integrixs.adapters.config.HttpInboundAdapterConfig;
 import com.integrixs.adapters.controller.HttpAdapterController;
 import com.integrixs.backend.service.AdapterHealthMonitor;
 import com.integrixs.backend.service.AdapterPoolManager;
@@ -40,6 +40,6 @@ public class TestAdapterConfiguration {
     private MessageQueueService messageQueueService;
     
     @MockBean
-    private HttpSenderAdapterConfig httpSenderAdapterConfig;
+    private HttpInboundAdapterConfig httpInboundAdapterConfig;
     
 }

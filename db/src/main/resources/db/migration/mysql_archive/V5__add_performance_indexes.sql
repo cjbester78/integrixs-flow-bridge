@@ -4,8 +4,8 @@
 CREATE INDEX IF NOT EXISTS idx_flow_name ON integration_flows(name);
 CREATE INDEX IF NOT EXISTS idx_flow_status ON integration_flows(status);
 CREATE INDEX IF NOT EXISTS idx_flow_active ON integration_flows(is_active);
-CREATE INDEX IF NOT EXISTS idx_flow_source ON integration_flows(source_adapter_id);
-CREATE INDEX IF NOT EXISTS idx_flow_target ON integration_flows(target_adapter_id);
+CREATE INDEX IF NOT EXISTS idx_flow_source ON integration_flows(inbound_adapter_id);
+CREATE INDEX IF NOT EXISTS idx_flow_target ON integration_flows(outbound_adapter_id);
 CREATE INDEX IF NOT EXISTS idx_flow_created_by ON integration_flows(created_by);
 CREATE INDEX IF NOT EXISTS idx_flow_updated_at ON integration_flows(updated_at);
 

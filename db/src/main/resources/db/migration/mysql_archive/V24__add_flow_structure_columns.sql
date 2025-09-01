@@ -1,6 +1,6 @@
 -- Add flow structure columns to integration_flows table
 ALTER TABLE `integration_flows` 
-ADD COLUMN `source_flow_structure_id` VARCHAR(36) AFTER `target_adapter_id`,
+ADD COLUMN `source_flow_structure_id` VARCHAR(36) AFTER `outbound_adapter_id`,
 ADD COLUMN `target_flow_structure_id` VARCHAR(36) AFTER `source_flow_structure_id`;
 
 -- Add indexes for performance
