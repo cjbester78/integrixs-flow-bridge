@@ -25,6 +25,7 @@ import {
   ApiKeyRequest 
 } from '@/types/externalAuth';
 import { Shield, Key, UserCheck, ShieldAlert } from 'lucide-react';
+import { isApiResponse } from '@/lib/api-response-utils';
 
 interface CreateExternalAuthDialogProps {
   open: boolean;
@@ -109,7 +110,20 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
 
       const response = await externalAuthService.createAuthConfig(request);
 
-      if (response.success) {
+      if (isApiResponse(response)) {
+        if (response.success) {
+          toast({
+            title: "Success",
+            description: "Authentication configuration created successfully"
+          });
+          onCreated();
+          onOpenChange(false);
+          resetForm();
+        } else {
+          throw new Error(response.message || 'Failed to create configuration');
+        }
+      } else {
+        // Handle direct response
         toast({
           title: "Success",
           description: "Authentication configuration created successfully"
@@ -117,8 +131,6 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
         onCreated();
         onOpenChange(false);
         resetForm();
-      } else {
-        throw new Error(response.message || 'Failed to create configuration');
       }
     } catch (error) {
       console.error('Error creating auth config:', error);
