@@ -25,9 +25,29 @@ export const useEnvironmentPermissions = () => {
         displayName: 'Development',
         description: 'Development Environment',
         enforceRestrictions: false,
-        permissions: { canRead: true, canWrite: true, canDelete: true, canManage: true }
+        permissions: { 
+          canCreateFlows: true,
+          canCreateAdapters: true,
+          canModifyAdapterConfig: true,
+          canImportFlows: true,
+          canDeployFlows: true,
+          canCreateBusinessComponents: true,
+          canCreateDataStructures: true,
+          isAdmin: false,
+          canAccessAdmin: false
+        }
       });
-      setPermissions({ canRead: true, canWrite: true, canDelete: true, canManage: true });
+      setPermissions({ 
+        canCreateFlows: true,
+        canCreateAdapters: true,
+        canModifyAdapterConfig: true,
+        canImportFlows: true,
+        canDeployFlows: true,
+        canCreateBusinessComponents: true,
+        canCreateDataStructures: true,
+        isAdmin: false,
+        canAccessAdmin: false
+      });
     } finally {
       setIsLoading(false);
     }

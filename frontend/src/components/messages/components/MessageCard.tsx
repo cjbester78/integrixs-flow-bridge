@@ -162,8 +162,8 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                                 return new Date(log.timestamp).toLocaleTimeString();
                               }
                               return log.timestamp;
-                            } else if (log.timestamp instanceof Date) {
-                              return (log.timestamp as Date).toLocaleTimeString();
+                            } else if (typeof log.timestamp === 'object' && log.timestamp !== null && log.timestamp instanceof Date) {
+                              return log.timestamp.toLocaleTimeString();
                             } else if (log.timestamp && typeof log.timestamp === 'object') {
                               // Handle cases where timestamp might be a complex object
                               return JSON.stringify(log.timestamp);

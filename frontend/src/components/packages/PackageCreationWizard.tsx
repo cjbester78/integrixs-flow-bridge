@@ -14,8 +14,8 @@ import { communicationAdapterService } from '@/services/communicationAdapterServ
 import { dataStructureService } from '@/services/dataStructureService';
 import { integrationFlowService } from '@/services/integrationFlowService';
 import { flowService } from '@/services/flowService';
-import type { IntegrationPackage, CreatePackageRequest, ComponentType } from '@/types/package';
-import type { CommunicationAdapter, AdapterType } from '@/types/communicationAdapter';
+import type { IntegrationPackage, CreatePackageRequest } from '@/types/package';
+import type { AdapterType } from '@/types/communicationAdapter';
 import { FieldMappingScreen } from '../FieldMappingScreen';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
