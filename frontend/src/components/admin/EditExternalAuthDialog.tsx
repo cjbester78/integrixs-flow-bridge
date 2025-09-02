@@ -25,6 +25,7 @@ import {
   OAuth2Request,
   ApiKeyRequest 
 } from '@/types/externalAuth';
+import { isApiResponse } from '@/lib/api-response-utils';
 
 interface EditExternalAuthDialogProps {
   config: ExternalAuthConfig;
@@ -173,15 +174,25 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
 
       const response = await externalAuthService.updateAuthConfig(config.id, request);
 
-      if (response.success) {
+      if (isApiResponse(response)) {
+        if (response.success) {
+          toast({
+            title: "Success",
+            description: "Authentication configuration updated successfully"
+          });
+          onUpdated();
+          onOpenChange(false);
+        } else {
+          throw new Error(response.message || 'Failed to update configuration');
+        }
+      } else {
+        // Handle direct response
         toast({
           title: "Success",
           description: "Authentication configuration updated successfully"
         });
         onUpdated();
         onOpenChange(false);
-      } else {
-        throw new Error(response.message || 'Failed to update configuration');
       }
     } catch (error) {
       console.error('Error updating auth config:', error);

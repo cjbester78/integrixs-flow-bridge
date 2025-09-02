@@ -158,19 +158,21 @@ export function DeploymentDetailsDialog({
                 <h3 className="text-sm font-medium">API Documentation</h3>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 p-2 bg-muted rounded text-sm">
-                    {deploymentInfo.metadata.apiDocsUrl}
+                    {deploymentInfo.metadata?.apiDocsUrl || 'N/A'}
                   </code>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => copyToClipboard(deploymentInfo.metadata.apiDocsUrl!, 'API Docs URL')}
+                    onClick={() => copyToClipboard(deploymentInfo.metadata?.apiDocsUrl || '', 'API Docs URL')}
+                    disabled={!deploymentInfo.metadata?.apiDocsUrl}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => window.open(deploymentInfo.metadata.apiDocsUrl!, '_blank')}
+                    onClick={() => window.open(deploymentInfo.metadata?.apiDocsUrl || '', '_blank')}
+                    disabled={!deploymentInfo.metadata?.apiDocsUrl}
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Button>
@@ -184,12 +186,13 @@ export function DeploymentDetailsDialog({
                 <h3 className="text-sm font-medium">OpenAPI Specification</h3>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 p-2 bg-muted rounded text-sm">
-                    {deploymentInfo.metadata.openApiUrl}
+                    {deploymentInfo.metadata?.openApiUrl || 'N/A'}
                   </code>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => copyToClipboard(deploymentInfo.metadata.openApiUrl!, 'OpenAPI URL')}
+                    onClick={() => copyToClipboard(deploymentInfo.metadata?.openApiUrl || '', 'OpenAPI URL')}
+                    disabled={!deploymentInfo.metadata?.openApiUrl}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
