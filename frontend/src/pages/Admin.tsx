@@ -141,10 +141,12 @@ export const Admin = () => {
       const response = await externalAuthService.getAllAuthConfigs();
       console.log('Auth configs fetch response:', response);
       
-      if (response.success && response.data) {
+      if ('success' in response && response.success && response.data) {
         setAuthConfigs(response.data);
+      } else if (Array.isArray(response)) {
+        setAuthConfigs(response);
       } else {
-        console.error('Failed to fetch auth configs:', response.message);
+        console.error('Failed to fetch auth configs:', 'message' in response ? response.message : 'Unknown error');
         setAuthConfigs([]);
         toast({ title: "Error", description: 'Failed to load authentication configurations', variant: "destructive" });
       }

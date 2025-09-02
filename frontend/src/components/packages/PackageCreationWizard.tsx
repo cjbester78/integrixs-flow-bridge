@@ -13,6 +13,7 @@ import { packageService } from '@/services/packageService';
 import { communicationAdapterService } from '@/services/communicationAdapterService';
 import { dataStructureService } from '@/services/dataStructureService';
 import { integrationFlowService } from '@/services/integrationFlowService';
+import { flowService } from '@/services/flowService';
 import type { IntegrationPackage, CreatePackageRequest, ComponentType } from '@/types/package';
 import type { CommunicationAdapter, AdapterType } from '@/types/communicationAdapter';
 import { FieldMappingScreen } from '../FieldMappingScreen';
@@ -442,7 +443,7 @@ export default function PackageCreationWizard({
         type: flowType,
         isActive: true,
         inboundAdapterId: inboundAdapterResponse.data.id,
-        outboundAdapterId: outboundAdapterResponse.data.id,
+        outboundAdapterId: outboundAdapterResponse?.data?.id || '',
         sourceStructureId,
         targetStructureId,
         responseStructureId,
@@ -467,7 +468,7 @@ export default function PackageCreationWizard({
           // For now, we'll create mappings for the first target as a proof of concept
           const firstTarget = wizardData.orchestrationTargets?.[0];
           if (firstTarget?.mapping && firstTarget.mapping.length > 0) {
-            await integrationFlowService.saveFieldMappings(flowId, firstTarget.mapping);
+            await flowService.saveFieldMappings(flowId, firstTarget.mapping);
           }
           
           // TODO: Loop through all targets when backend supports it
@@ -483,7 +484,7 @@ export default function PackageCreationWizard({
           // }
         } else if (wizardData.fieldMappings && wizardData.fieldMappings.length > 0) {
           // Create mappings for direct integration
-          await integrationFlowService.saveFieldMappings(flowId, wizardData.fieldMappings);
+          await flowService.saveFieldMappings(flowId, wizardData.fieldMappings);
         }
       }
       

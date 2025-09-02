@@ -48,7 +48,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
       } else {
         toast({
           title: "Error",
-          description: (response && typeof response === 'object' && 'error' in response ? response.error : undefined) || "Failed to reprocess message",
+          description: (response && typeof response === 'object' && 'error' in response ? (response as any).error : undefined) || "Failed to reprocess message",
           variant: "destructive",
         });
       }

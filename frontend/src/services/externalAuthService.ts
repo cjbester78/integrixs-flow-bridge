@@ -54,8 +54,8 @@ export const externalAuthService = {
   // Delete auth config
   deleteAuthConfig: async (id: string) => {
     try {
-      const response = await apiClient.delete<{ success: boolean; message?: string }>(`/external-auth/${id}`);
-      return response.data;
+      const response = await apiClient.delete(`/external-auth/${id}`);
+      return response;
     } catch (error) {
       console.error('Failed to delete auth config:', error);
       return { success: false, message: 'Failed to delete authentication configuration' };
@@ -78,8 +78,8 @@ export const externalAuthService = {
   // Test auth configuration
   testAuthConfig: async (id: string) => {
     try {
-      const response = await apiClient.post<{ success: boolean; message?: string }>(`/external-auth/${id}/test`);
-      return response.data;
+      const response = await apiClient.post(`/external-auth/${id}/test`);
+      return response;
     } catch (error) {
       console.error('Failed to test auth config:', error);
       return { success: false, message: 'Failed to test authentication configuration' };
@@ -89,12 +89,12 @@ export const externalAuthService = {
   // Link auth config to flow
   linkToFlow: async (authConfigId: string, flowId: string, adapterType: 'SOURCE' | 'TARGET') => {
     try {
-      const response = await apiClient.post<{ success: boolean; message?: string }>('/external-auth/link-flow', {
+      const response = await apiClient.post('/external-auth/link-flow', {
         authConfigId,
         flowId,
         adapterType
       });
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Failed to link auth config to flow:', error);
       return { success: false, message: 'Failed to link authentication to flow' };
@@ -104,8 +104,8 @@ export const externalAuthService = {
   // Unlink auth config from flow
   unlinkFromFlow: async (flowId: string, adapterType: 'SOURCE' | 'TARGET') => {
     try {
-      const response = await apiClient.delete<{ success: boolean; message?: string }>(`/external-auth/unlink-flow/${flowId}/${adapterType}`);
-      return response.data;
+      const response = await apiClient.delete(`/external-auth/unlink-flow/${flowId}/${adapterType}`);
+      return response;
     } catch (error) {
       console.error('Failed to unlink auth config from flow:', error);
       return { success: false, message: 'Failed to unlink authentication from flow' };

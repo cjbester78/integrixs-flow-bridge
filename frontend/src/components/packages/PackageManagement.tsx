@@ -45,8 +45,8 @@ export default function PackageManagement() {
     try {
       setIsLoading(true);
       const response = await packageService.getAllPackages();
-      if (response.success && response.data) {
-        setPackages(response.data.content || []);
+      if (response && typeof response === 'object' && 'success' in response && response.success && 'data' in response && response.data) {
+        setPackages((response.data as any).content || []);
       }
     } catch (error) {
       console.error('Error loading packages:', error);
@@ -63,19 +63,17 @@ export default function PackageManagement() {
   const handleValidatePackage = async (packageId: string) => {
     try {
       const response = await packageService.validatePackage(packageId);
-      if (response.success && response.data) {
-        if (response.data.isValid) {
-          toast({
-            title: 'Package Valid',
-            description: 'The package passed all validation checks',
-          });
-        } else {
-          toast({
-            title: 'Validation Failed',
-            description: response.data.errors.join(', '),
-            variant: 'destructive',
-          });
-        }
+      if (response.isValid) {
+        toast({
+          title: 'Package Valid',
+          description: 'The package passed all validation checks',
+        });
+      } else {
+        toast({
+          title: 'Validation Failed',
+          description: response.errors.join(', '),
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error validating package:', error);
@@ -90,7 +88,7 @@ export default function PackageManagement() {
   const handleDeployPackage = async (packageId: string) => {
     try {
       const response = await packageService.deployPackage(packageId, 'DEVELOPMENT');
-      if (response.success) {
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
         toast({
           title: 'Deployment Started',
           description: 'Package deployment has been initiated',
@@ -114,7 +112,7 @@ export default function PackageManagement() {
 
     try {
       const response = await packageService.deletePackage(packageId);
-      if (response.success) {
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
         toast({
           title: 'Success',
           description: 'Package deleted successfully',
@@ -151,7 +149,7 @@ export default function PackageManagement() {
   const handleImportPackage = async (file: File) => {
     try {
       const response = await packageService.importPackage(file);
-      if (response.success) {
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
         toast({
           title: 'Success',
           description: 'Package imported successfully',

@@ -17,13 +17,6 @@ import {
   ToggleRight,
   TestTube
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { externalAuthService } from '@/services/externalAuthService';
 import { AuthType, ExternalAuthConfig } from '@/types/externalAuth';
@@ -83,14 +76,14 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
         isActive: !config.isActive
       });
 
-      if ('success' in response && response.success) {
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
         toast({
           title: "Success",
           description: `Authentication configuration ${config.isActive ? 'deactivated' : 'activated'} successfully`
         });
         onRefresh();
       } else {
-        throw new Error(('message' in response ? response.message : undefined) || 'Failed to update configuration');
+        throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Failed to update configuration');
       }
     } catch (error) {
       console.error('Error toggling auth config status:', error);
@@ -111,14 +104,14 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
     try {
       const response = await externalAuthService.deleteAuthConfig(config.id);
 
-      if ('success' in response && response.success) {
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
         toast({
           title: "Success",
           description: "Authentication configuration deleted successfully"
         });
         onRefresh();
       } else {
-        throw new Error(('message' in response ? response.message : undefined) || 'Failed to delete configuration');
+        throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Failed to delete configuration');
       }
     } catch (error) {
       console.error('Error deleting auth config:', error);
@@ -136,13 +129,13 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
     try {
       const response = await externalAuthService.testAuthConfig(config.id);
 
-      if ('success' in response && response.success) {
+      if (response && typeof response === 'object' && 'success' in response && response.success) {
         toast({
           title: "Success",
           description: "Authentication test completed successfully"
         });
       } else {
-        throw new Error(('message' in response ? response.message : undefined) || 'Test failed');
+        throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Test failed');
       }
     } catch (error) {
       console.error('Error testing auth config:', error);
@@ -228,7 +221,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
       label: 'Delete',
       icon: Trash2,
       onClick: (config) => handleDelete(config),
-      variant: 'destructive',
+      variant: 'destructive' as const,
     },
   ];
 

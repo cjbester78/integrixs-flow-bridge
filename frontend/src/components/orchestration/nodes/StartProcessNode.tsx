@@ -31,9 +31,28 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
   const [isAsync, setIsAsync] = useState(data.isAsync ?? true); // Default to async
   const [availableAdapters, setAvailableAdapters] = useState<string[]>([]);
   
-  const { businessComponents, adapters, getAdaptersForBusinessComponent } = useBusinessComponentAdapters();
+  const { businessComponents, getAdaptersForBusinessComponent } = useBusinessComponentAdapters();
+  const [adapters, setAdapters] = useState<Array<{id: string; name: string}>>([]);
   
   const isConfigured = data.senderComponent && data.inboundAdapter;
+
+  // Load all adapters on mount
+  useEffect(() => {
+    const loadAllAdapters = async () => {
+      try {
+        // For now, just create mock adapters based on IDs
+        const mockAdapters = availableAdapters.map(id => ({
+          id,
+          name: id // Use ID as name for now
+        }));
+        setAdapters(mockAdapters);
+      } catch (error) {
+        console.error('Error loading adapters:', error);
+      }
+    };
+
+    loadAllAdapters();
+  }, [availableAdapters]);
 
   // Load available adapters when sender component changes
   useEffect(() => {
@@ -185,12 +204,16 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
                 </SelectTrigger>
                 <SelectContent>
                   {availableAdapters.map((adapterId) => {
-                    const adapter = adapters.find((a: any) => a.id === adapterId);
+                    const adapter = adapters.find((a) => a.id === adapterId);
                     return adapter ? (
                       <SelectItem key={adapter.id} value={adapter.id}>
                         {adapter.name}
                       </SelectItem>
-                    ) : null;
+                    ) : (
+                      <SelectItem key={adapterId} value={adapterId}>
+                        {adapterId}
+                      </SelectItem>
+                    );
                   })}
                 </SelectContent>
               </Select>
@@ -225,7 +248,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
                 <h4 className="font-medium text-sm mb-2">Output Payload</h4>
                 <p className="text-sm text-muted-foreground">
                   This start process will output the payload from the {senderComponent} component 
-                  using the {adapters.find((a: any) => a.id === inboundAdapter)?.name} adapter.
+                  using the {adapters.find((a) => a.id === inboundAdapter)?.name || inboundAdapter} adapter.
                 </p>
               </div>
             )}
