@@ -48,7 +48,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
       } else {
         toast({
           title: "Error",
-          description: response.error || "Failed to reprocess message",
+          description: (response && typeof response === 'object' && 'error' in response ? response.error : undefined) || "Failed to reprocess message",
           variant: "destructive",
         });
       }
@@ -95,7 +95,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                           try {
                             if (Array.isArray(message.timestamp)) {
                               // [year, month, day, hour, minute, second, nano]
-                              const [year, month, day, hour, minute, second] = message.timestamp;
+                              const [year, month, day, hour, minute, second] = message.timestamp as number[];
                               return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
                             }
                             return JSON.stringify(message.timestamp);
@@ -162,7 +162,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                                 return new Date(log.timestamp).toLocaleTimeString();
                               }
                               return log.timestamp;
-                            } else if (log.timestamp instanceof Date) {
+                            } else if (typeof log.timestamp === 'object' && log.timestamp instanceof Date) {
                               return log.timestamp.toLocaleTimeString();
                             } else if (log.timestamp && typeof log.timestamp === 'object') {
                               // Handle cases where timestamp might be a complex object

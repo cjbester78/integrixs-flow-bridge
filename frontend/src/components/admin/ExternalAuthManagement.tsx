@@ -31,7 +31,7 @@ import { CreateExternalAuthDialog } from './CreateExternalAuthDialog';
 import { EditExternalAuthDialog } from './EditExternalAuthDialog';
 import { AuthAttemptLogsDialog } from './AuthAttemptLogsDialog';
 import { format } from 'date-fns';
-import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumn, DataTableAction } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ExternalAuthManagementProps {
@@ -83,14 +83,14 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
         isActive: !config.isActive
       });
 
-      if (response.success) {
+      if ('success' in response && response.success) {
         toast({
           title: "Success",
           description: `Authentication configuration ${config.isActive ? 'deactivated' : 'activated'} successfully`
         });
         onRefresh();
       } else {
-        throw new Error(response.message || 'Failed to update configuration');
+        throw new Error(('message' in response ? response.message : undefined) || 'Failed to update configuration');
       }
     } catch (error) {
       console.error('Error toggling auth config status:', error);
@@ -111,14 +111,14 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
     try {
       const response = await externalAuthService.deleteAuthConfig(config.id);
 
-      if (response.success) {
+      if ('success' in response && response.success) {
         toast({
           title: "Success",
           description: "Authentication configuration deleted successfully"
         });
         onRefresh();
       } else {
-        throw new Error(response.message || 'Failed to delete configuration');
+        throw new Error(('message' in response ? response.message : undefined) || 'Failed to delete configuration');
       }
     } catch (error) {
       console.error('Error deleting auth config:', error);
@@ -136,13 +136,13 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
     try {
       const response = await externalAuthService.testAuthConfig(config.id);
 
-      if (response.success) {
+      if ('success' in response && response.success) {
         toast({
           title: "Success",
           description: "Authentication test completed successfully"
         });
       } else {
-        throw new Error(response.message || 'Test failed');
+        throw new Error(('message' in response ? response.message : undefined) || 'Test failed');
       }
     } catch (error) {
       console.error('Error testing auth config:', error);
@@ -154,105 +154,81 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
     }
   };
 
-  const columns: ColumnDef<ExternalAuthConfig>[] = [
+  const columns: DataTableColumn<ExternalAuthConfig>[] = [
     {
-      accessorKey: 'name',
+      key: 'name',
       header: 'Name',
-      cell: ({ row }) => (
+      cell: (config) => (
         <div className="flex items-center gap-2">
-          {getAuthTypeIcon(row.original.authType)}
-          <span className="font-medium">{row.getValue('name')}</span>
+          {getAuthTypeIcon(config.authType)}
+          <span className="font-medium">{config.name}</span>
         </div>
       ),
     },
     {
-      accessorKey: 'authType',
+      key: 'authType',
       header: 'Type',
-      cell: ({ row }) => (
-        <Badge variant={getAuthTypeBadgeVariant(row.original.authType)}>
-          {row.getValue('authType')}
+      cell: (config) => (
+        <Badge variant={getAuthTypeBadgeVariant(config.authType)}>
+          {config.authType}
         </Badge>
       ),
     },
     {
-      accessorKey: 'description',
+      key: 'description',
       header: 'Description',
-      cell: ({ row }) => (
+      cell: (config) => (
         <span className="text-sm text-muted-foreground">
-          {row.getValue('description') || '-'}
+          {config.description || '-'}
         </span>
       ),
     },
     {
-      accessorKey: 'isActive',
+      key: 'isActive',
       header: 'Status',
-      cell: ({ row }) => (
-        <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-          {row.original.isActive ? 'Active' : 'Inactive'}
+      cell: (config) => (
+        <Badge variant={config.isActive ? 'default' : 'secondary'}>
+          {config.isActive ? 'Active' : 'Inactive'}
         </Badge>
       ),
     },
     {
-      accessorKey: 'createdAt',
+      key: 'createdAt',
       header: 'Created',
-      cell: ({ row }) => (
+      cell: (config) => (
         <span className="text-sm text-muted-foreground">
-          {format(new Date(row.getValue('createdAt')), 'MMM d, yyyy')}
+          {format(new Date(config.createdAt), 'MMM d, yyyy')}
         </span>
       ),
     },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        const config = row.original;
+  ];
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditingConfig(config)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleToggleStatus(config)}>
-                {config.isActive ? (
-                  <>
-                    <ToggleLeft className="mr-2 h-4 w-4" />
-                    Deactivate
-                  </>
-                ) : (
-                  <>
-                    <ToggleRight className="mr-2 h-4 w-4" />
-                    Activate
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTest(config)}>
-                <TestTube className="mr-2 h-4 w-4" />
-                Test Connection
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewingLogsFor(config.id)}>
-                <Shield className="mr-2 h-4 w-4" />
-                View Attempts
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => handleDelete(config)}
-                className="text-destructive"
-                disabled={isDeleting === config.id}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
+  const actions: DataTableAction<ExternalAuthConfig>[] = [
+    {
+      label: 'Edit',
+      icon: Edit,
+      onClick: (config) => setEditingConfig(config),
+    },
+    {
+      label: 'Toggle Status',
+      icon: ToggleRight,
+      onClick: (config) => handleToggleStatus(config),
+    },
+    {
+      label: 'Test Connection',
+      icon: TestTube,
+      onClick: (config) => handleTest(config),
+    },
+    {
+      label: 'View Attempts',
+      icon: Shield,
+      onClick: (config) => setViewingLogsFor(config.id),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      onClick: (config) => handleDelete(config),
+      variant: 'destructive',
     },
   ];
 
@@ -300,7 +276,9 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
           <DataTable
             columns={columns}
             data={authConfigs}
-            searchKey="name"
+            actions={actions}
+            keyField="id"
+            searchable={true}
             searchPlaceholder="Search configurations..."
           />
         </CardContent>

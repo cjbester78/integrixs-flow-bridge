@@ -29,7 +29,7 @@ interface AdapterCardProps {
   onDelete?: () => void;
 }
 
-export const AdapterCard = ({ adapter, onUpdate, onDelete }: AdapterCardProps) => {
+export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
   const [isLogsExpanded, setIsLogsExpanded] = useState(false);
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false);
   
@@ -75,26 +75,7 @@ export const AdapterCard = ({ adapter, onUpdate, onDelete }: AdapterCardProps) =
     }
   };
 
-  const getHealthScoreColor = (score: number) => {
-    if (score >= 95) return 'text-success';
-    if (score >= 85) return 'text-warning';
-    return 'text-destructive';
-  };
 
-  const getAdapterStatusVariant = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'default' as const;
-      case 'inactive':
-        return 'secondary' as const;
-      case 'error':
-        return 'destructive' as const;
-      case 'testing':
-        return 'outline' as const;
-      default:
-        return 'outline' as const;
-    }
-  };
 
   return (
     <Card className="bg-gradient-secondary border-border/50 animate-fade-in">

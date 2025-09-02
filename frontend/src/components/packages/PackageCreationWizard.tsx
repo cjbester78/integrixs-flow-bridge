@@ -18,6 +18,7 @@ import type { CommunicationAdapter, AdapterType } from '@/types/communicationAda
 import { FieldMappingScreen } from '../FieldMappingScreen';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { isApiResponse } from '@/lib/api-response-utils';
 import { 
   Package, 
   Settings, 
@@ -270,11 +271,16 @@ export default function PackageCreationWizard({
       };
       
       const packageResponse = await packageService.createPackage(packageData);
-      if (!packageResponse.success || !packageResponse.data) {
-        throw new Error('Failed to create package');
-      }
       
-      const packageId = packageResponse.data.id;
+      let packageId: string;
+      if (isApiResponse<IntegrationPackage>(packageResponse)) {
+        if (!packageResponse.success || !packageResponse.data) {
+          throw new Error('Failed to create package');
+        }
+        packageId = packageResponse.data.id;
+      } else {
+        packageId = packageResponse.id;
+      }
       
       // Create source adapter
       const inboundAdapterResponse = await communicationAdapterService.createAdapter({

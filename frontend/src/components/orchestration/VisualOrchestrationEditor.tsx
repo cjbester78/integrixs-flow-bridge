@@ -111,7 +111,7 @@ const nodeTypes = {
   'jms-adapter': AdapterNode,
   'soap-adapter': AdapterNode,
   'rest-adapter': AdapterNode,
-};
+} as const;
 // Initial nodes with start and end process connected
 const createInitialNodes = (): Node[] => [
   {
@@ -305,7 +305,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
-          nodeTypes={nodeTypes}
+          nodeTypes={nodeTypes as any}
           fitView
           deleteKeyCode="Delete"
           multiSelectionKeyCode="Control"

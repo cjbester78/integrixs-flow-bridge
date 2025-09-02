@@ -23,7 +23,7 @@ interface StartProcessNodeProps {
   selected?: boolean;
 }
 
-export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data, selected }) => {
+export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) => {
   const [configOpen, setConfigOpen] = useState(false);
   const { setNodes, setEdges } = useReactFlow();
   const [senderComponent, setInboundComponent] = useState(data.senderComponent || '');
@@ -185,7 +185,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data, se
                 </SelectTrigger>
                 <SelectContent>
                   {availableAdapters.map((adapterId) => {
-                    const adapter = adapters.find(a => a.id === adapterId);
+                    const adapter = adapters.find((a: any) => a.id === adapterId);
                     return adapter ? (
                       <SelectItem key={adapter.id} value={adapter.id}>
                         {adapter.name}
@@ -225,7 +225,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data, se
                 <h4 className="font-medium text-sm mb-2">Output Payload</h4>
                 <p className="text-sm text-muted-foreground">
                   This start process will output the payload from the {senderComponent} component 
-                  using the {adapters.find(a => a.id === inboundAdapter)?.name} adapter.
+                  using the {adapters.find((a: any) => a.id === inboundAdapter)?.name} adapter.
                 </p>
               </div>
             )}
