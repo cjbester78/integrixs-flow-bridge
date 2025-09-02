@@ -116,7 +116,8 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
       const interval = setInterval(fetchDomainErrors, params.refreshInterval || 30000);
       return () => clearInterval(interval);
     }
-  }, [params.autoRefresh, params.refreshInterval]);
+    return undefined;
+  }, [params.autoRefresh, params.refreshInterval, fetchDomainErrors]);
 
   return {
     domainErrors: domainErrors || [],

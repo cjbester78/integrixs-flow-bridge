@@ -282,7 +282,7 @@ export const useDataStructures = () => {
         const structures = response.data.structures || response.data || [];
         
         // Check if response is actually HTML (endpoint doesn't exist)
-        if (typeof structures === 'string' && structures.includes('<!DOCTYPE html>')) {
+        if (typeof structures === 'string' && (structures as string).includes('<!DOCTYPE html>')) {
           console.log('API endpoint not implemented yet, showing sample data');
           setStructures(sampleStructures);
           toast({

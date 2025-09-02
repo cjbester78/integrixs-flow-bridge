@@ -78,7 +78,7 @@ export default function AllInterfaces() {
       const response = await flowService.getFlows();
       if (response.success && response.data) {
         // Handle both direct array response and wrapped response
-        const flowsData = Array.isArray(response.data) ? response.data : response.data.flows || [];
+        const flowsData = Array.isArray(response.data) ? response.data : ((response.data as any).flows || []);
         setFlows(flowsData);
       }
     } catch (error) {
@@ -244,7 +244,7 @@ export default function AllInterfaces() {
     };
 
     return (
-      <Badge className={`${statusColors[status] || 'bg-gray-500'} text-white`}>
+      <Badge className={`${statusColors[status as keyof typeof statusColors] || 'bg-gray-500'} text-white`}>
         {status.replace('_', ' ')}
       </Badge>
     );

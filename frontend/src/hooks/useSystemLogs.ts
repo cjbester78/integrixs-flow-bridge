@@ -62,7 +62,6 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
       const queryParams = new URLSearchParams();
       if (params.source) queryParams.append('source', params.source);
       if (params.sourceId) queryParams.append('sourceId', params.sourceId);
-      if (params.sourceName) queryParams.append('sourceName', params.sourceName);
       if (params.level) queryParams.append('level', params.level);
       if (params.search) queryParams.append('search', params.search);
       if (params.startDate) queryParams.append('startDate', params.startDate);
@@ -125,7 +124,8 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
       const interval = setInterval(fetchLogs, params.refreshInterval || 30000);
       return () => clearInterval(interval);
     }
-  }, [params.autoRefresh, params.refreshInterval]);
+    return undefined;
+  }, [params.autoRefresh, params.refreshInterval, fetchLogs]);
 
   // Listen for new logs from the system logger
   useEffect(() => {

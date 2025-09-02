@@ -245,7 +245,7 @@ export default function CommunicationAdapters() {
 
   const handleToggleActive = async (adapter: CommunicationAdapter) => {
     try {
-      const updates = { ...adapter, active: !adapter.active };
+      const updates: Partial<CommunicationAdapter> = { active: !adapter.active };
       const response = await adapterService.updateAdapter(adapter.id, updates);
       
       if (response.success) {

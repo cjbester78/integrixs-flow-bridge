@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { BusinessComponent } from '@/types/businessComponent';
 import { useBusinessComponentAdapters } from '@/hooks/useBusinessComponentAdapters';
-import { adapterMonitoringService, AdapterMonitoring } from '@/services/adapterMonitoringService';
+import { adapterMonitoringService, type AdapterMonitoring } from '@/services/adapterMonitoringService';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 

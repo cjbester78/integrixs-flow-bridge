@@ -532,4 +532,4 @@ class ContextLogger {
 export const logger = FrontendLogger.getInstance();
 
 // Export types
-export type { LogEntry, ContextLogger };
+export type { ContextLogger };

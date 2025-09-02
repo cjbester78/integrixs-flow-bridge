@@ -21,5 +21,6 @@ export const useMetaDescription = (description: string) => {
         }
       };
     }
+    return undefined;
   }, [description]);
 };

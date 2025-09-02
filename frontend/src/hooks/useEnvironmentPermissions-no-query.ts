@@ -20,8 +20,14 @@ export const useEnvironmentPermissions = () => {
     } catch (error) {
       console.error('Error fetching environment data:', error);
       // Set default values on error
-      setEnvironmentInfo({ type: 'DEVELOPMENT', name: 'Development' });
-      setPermissions({ isAdmin: false, canWrite: true, canRead: true });
+      setEnvironmentInfo({ 
+        type: 'DEVELOPMENT', 
+        displayName: 'Development',
+        description: 'Development Environment',
+        enforceRestrictions: false,
+        permissions: { canRead: true, canWrite: true, canDelete: true, canManage: true }
+      });
+      setPermissions({ canRead: true, canWrite: true, canDelete: true, canManage: true });
     } finally {
       setIsLoading(false);
     }

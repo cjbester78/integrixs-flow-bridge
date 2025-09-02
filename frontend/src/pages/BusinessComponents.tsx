@@ -59,7 +59,7 @@ export const BusinessComponents = () => {
 
     const response = await businessComponentService.createBusinessComponent(formData);
     if (response.success && response.data) {
-      setBusinessComponents(prevBusinessComponents => [...prevBusinessComponents, response.data]);
+      setBusinessComponents(prevBusinessComponents => [...prevBusinessComponents, response.data!]);
       setIsCreateDialogOpen(false);
       setFormData({ name: '', description: '', contactEmail: '', contactPhone: '' });
       toast({
@@ -239,7 +239,7 @@ export const BusinessComponents = () => {
 
       {businessComponents.length === 0 ? (
         <EmptyState
-          icon={<Building2 className="h-12 w-12" />}
+          icon={Building2}
           title="No businessComponents yet"
           description="Get started by adding your first businessComponent to organize your integrations by client."
           action={permissions?.canCreateBusinessComponents ? {

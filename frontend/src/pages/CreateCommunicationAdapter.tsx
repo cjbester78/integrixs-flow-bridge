@@ -406,8 +406,10 @@ export const CreateCommunicationAdapter = () => {
         setSelectedBusinessComponent({
           id: adapter.businessComponentId,
           name: adapter.businessComponentName || '',
-          description: ''
-        });
+          description: '',
+          contactEmail: '',
+          contactPhone: ''
+        } as BusinessComponent);
       }
     }
   }, [location.state]);

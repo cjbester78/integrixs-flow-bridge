@@ -63,11 +63,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   // Load current tenant
   const loadCurrentTenant = async () => {
     try {
-      const response = await apiClient.get('/tenants/current');
+      const response = await apiClient.get<Tenant>('/tenants/current');
       setCurrentTenant(response);
       
       // Store in localStorage for persistence
-      localStorage.setItem('currentTenantId', response.id);
+      if (response && 'id' in response) {
+        localStorage.setItem('currentTenantId', response.id);
+      }
       
       // TODO: Set tenant header for future requests when apiClient supports it
       // For now, the header can be included in individual requests if needed
@@ -79,7 +81,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   // Load user's tenants
   const loadUserTenants = async () => {
     try {
-      const response = await apiClient.get('/tenants/my-tenants');
+      const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
       setUserTenants(response);
     } catch (error) {
       console.error('Failed to load user tenants:', error);
@@ -91,7 +93,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (!currentTenant) return;
     
     try {
-      const response = await apiClient.get(`/tenants/${currentTenant.id}/subscription`);
+      const response = await apiClient.get<TenantSubscription>(`/tenants/${currentTenant.id}/subscription`);
       setSubscription(response);
     } catch (error) {
       console.error('Failed to load subscription:', error);
@@ -103,7 +105,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (!currentTenant) return;
     
     try {
-      const response = await apiClient.get(`/tenants/${currentTenant.id}/usage`);
+      const response = await apiClient.get<TenantUsage>(`/tenants/${currentTenant.id}/usage`);
       setUsage(response);
     } catch (error) {
       console.error('Failed to load usage:', error);
