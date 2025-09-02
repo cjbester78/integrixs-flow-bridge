@@ -84,7 +84,7 @@ export const AdapterValidationDialog: React.FC<AdapterValidationDialogProps> = (
  return <XCircle className="h-4 w-4 text-destructive" />;
  case 'warning':
  return <AlertTriangle className="h-4 w-4 text-warning" />;
- 'default':
+ default:
  return null;
  }
  };

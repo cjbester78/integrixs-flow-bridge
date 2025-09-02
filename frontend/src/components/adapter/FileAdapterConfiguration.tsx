@@ -220,7 +220,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Input
  id="exclusionMask"
  value={config.exclusionMask}
- onChange={(e) => updateConfig({ exclusionMask: e.target.value })
+ onChange={(e) => updateConfig({ exclusionMask: e.target.value })}
  placeholder="Enter exclusion pattern (e.g., *.tmp, backup_*)"
  />
  </div>
@@ -299,7 +299,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Input
  id="targetDirectory"
  value={config.targetDirectory}
- onChange={(e) => updateConfig({ targetDirectory: e.target.value })
+ onChange={(e) => updateConfig({ targetDirectory: e.target.value })}
  placeholder="Enter target directory path"
  />
  </div>
@@ -309,7 +309,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Input
  id="targetFileName"
  value={config.targetFileName}
- onChange={(e) => updateConfig({ targetFileName: e.target.value })
+ onChange={(e) => updateConfig({ targetFileName: e.target.value })}
  placeholder="Enter file name"
  />
  </div>
@@ -333,7 +333,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Input
  id="pollingInterval"
  value={config.pollingInterval}
- onChange={(e) => updateConfig({ pollingInterval: e.target.value })
+ onChange={(e) => updateConfig({ pollingInterval: e.target.value })}
  placeholder="Enter polling interval in seconds"
  type="number"
  />
@@ -374,7 +374,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Checkbox
  id="createFileDirectory"
  checked={config.createFileDirectory}
- onCheckedChange={(checked) => updateConfig({ createFileDirectory: checked === true })
+ onCheckedChange={(checked) => updateConfig({ createFileDirectory: checked === true })}
  />
  <Label htmlFor="createFileDirectory">Create File Directory</Label>
  </div>
@@ -383,7 +383,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Checkbox
  id="overwriteExistingFile"
  checked={config.overwriteExistingFile}
- onCheckedChange={(checked) => updateConfig({ overwriteExistingFile: checked === true })
+ onCheckedChange={(checked) => updateConfig({ overwriteExistingFile: checked === true })}
  />
  <Label htmlFor="overwriteExistingFile">Overwrite Existing File</Label>
  </div>
@@ -497,7 +497,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <TabsContent value="transformation" className="mt-6">
  <TransformationToggle
  config={config.transformationConfig || { mode: 'transform' }}
- onChange={(transformationConfig) => updateConfig({ transformationConfig })
+ onChange={(transformationConfig) => updateConfig({ transformationConfig })}
  adapterType="FILE"
  disabled={false}
  />
@@ -519,7 +519,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <XmlConversionTab
  mode={mode === 'sender' ? 'INBOUND' : 'OUTBOUND'}
  config={config.xmlConversion || {}}
- onChange={(xmlConversion) => updateConfig({ xmlConversion })
+ onChange={(xmlConversion) => updateConfig({ xmlConversion })}
  />
  </TabsContent>
  )}
@@ -528,4 +528,3 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  </Card>
  )
 }
-}}

@@ -121,7 +121,7 @@ export const AdapterTestSuite: React.FC<AdapterTestSuiteProps> = ({
  timestamp: new Date().toISOString(),
  adapterType: selectedAdapterType,
  testResults: testResults,
- testHistory: testHistory;
+ testHistory: testHistory
  };
 
  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -361,5 +361,4 @@ export const AdapterTestSuite: React.FC<AdapterTestSuiteProps> = ({
  )}
  </div>
  );
-};`
-}}}})))))
+};
