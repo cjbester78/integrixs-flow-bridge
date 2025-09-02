@@ -71,8 +71,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('currentTenantId', response.id);
       }
       
-      // TODO: Set tenant header for future requests when apiClient supports it
-      // For now, the header can be included in individual requests if needed
+      // Tenant header is now automatically included in all API requests via api-client.ts
     } catch (error) {
       logger.error(LogCategory.ERROR, 'Failed to load current tenant:', error)
     }
@@ -201,8 +200,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         // Check for saved tenant ID
         const savedTenantId = localStorage.getItem('currentTenantId');
         if (savedTenantId) {
-          // TODO: Set tenant header when apiClient supports it
-          // For now, tenant ID is stored in localStorage and can be sent with individual requests
+          // Tenant header is automatically included in all API requests via api-client.ts
+          // The tenant ID from localStorage is added as X-Tenant-ID header
         }
         
         await Promise.all([

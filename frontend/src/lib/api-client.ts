@@ -82,6 +82,12 @@ import { logger, LogCategory } from '@/lib/logger';
         const correlationId = this.generateCorrelationId();
         config.headers['X-Correlation-ID'] = correlationId;
         
+        // Add tenant header if available
+        const tenantId = localStorage.getItem('currentTenantId');
+        if (tenantId) {
+          config.headers['X-Tenant-ID'] = tenantId;
+        }
+        
         // Store correlation ID globally for logger
         (window as any).__currentCorrelationId = correlationId;
         

@@ -74,7 +74,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
     document.body.style.userSelect = 'none';
     document.body.style.webkitUserSelect = 'none';
     
-    logger.info(LogCategory.UI, '🎯 DRAG START - Field:', { data: field.name, 'Position:', { x: event.clientX, y: event.clientY } })
+    logger.info(LogCategory.UI, '🎯 DRAG START - Field:', { data: field.name, { extra: 'Position:', { x: event.clientX, y: event.clientY } } })
     logger.info(LogCategory.UI, '🎯 DRAG START - Event target:', { data: event.target })
     logger.info(LogCategory.UI, '🎯 DRAG START - Event currentTarget:', { data: event.currentTarget })
     
@@ -98,8 +98,8 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
     if (dragState.isDragging) {
-      logger.info(LogCategory.UI, '🎯 DRAG MOVE - Position:', { data: { x: event.clientX, y: event.clientY } })
-      logger.info(LogCategory.UI, '🎯 DRAG MOVE - Element under mouse:', { data: document.elementFromPoint(event.clientX, event.clientY) })
+      logger.info(LogCategory.UI, '🎯 DRAG MOVE - Position:', { data: { x: event.clientX, { extra: y: event.clientY } } })
+      logger.info(LogCategory.UI, '🎯 DRAG MOVE - Element under mouse:', { data: document.elementFromPoint(event.clientX, { extra: event.clientY }) })
       setDragState(prev => ({
         ...prev,
         currentPosition: { x: event.clientX, y: event.clientY }
@@ -117,7 +117,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
       return;
     }
 
-    logger.info(LogCategory.UI, '🎯 DRAG END - Position:', { data: { x: event.clientX, y: event.clientY } })
+    logger.info(LogCategory.UI, '🎯 DRAG END - Position:', { data: { x: event.clientX, { extra: y: event.clientY } } })
     
     // Check if we're over a drop zone
     const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY);

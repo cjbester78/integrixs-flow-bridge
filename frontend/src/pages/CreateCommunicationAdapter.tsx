@@ -465,7 +465,7 @@ export const CreateCommunicationAdapter = () => {
 
 
   const handleConfigurationChange = (fieldName: string, value: string | number | boolean) => {
-    logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Configuration change:', { data: fieldName, '=', value })
+    logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Configuration change:', { data: fieldName, { extra: '=', value } })
     setConfiguration(prev => {
       const newConfig = {
         ...prev,
@@ -544,13 +544,12 @@ export const CreateCommunicationAdapter = () => {
     }
 
     // Mode-specific validation
-    logger.info(LogCategory.VALIDATION, 'Log output', { data: '[CreateCommunicationAdapter] Validating adapter:', {
-      name: adapterName,
+    logger.info(LogCategory.VALIDATION, 'Log output', { message: '[CreateCommunicationAdapter] Validating adapter:', { extra: name: adapterName,
       type: selectedAdapter,
       mode: adapterMode,
       businessComponent: selectedBusinessComponent.id,
       configuration
-    } })
+     } })
 
     // Mode-specific required field validation
     if (adapterMode === 'receiver') {

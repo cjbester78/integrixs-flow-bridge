@@ -38,7 +38,7 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
   }, [customFields, setCustomFields]);
 
   const updateFieldAtPath = useCallback((path: number[], fieldUpdates: Partial<Field>) => {
-    logger.info(LogCategory.BUSINESS_LOGIC, 'updateFieldAtPath called:', { data: { path, field: fieldUpdates } })
+    logger.info(LogCategory.BUSINESS_LOGIC, 'updateFieldAtPath called:', { data: { path, { extra: field: fieldUpdates } } })
     
     const updated = [...customFields];
     let current = updated;
@@ -67,7 +67,7 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
       }
       
       current[finalIndex] = { ...current[finalIndex], ...fieldUpdates };
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Updated field at path:', { data: path, current[finalIndex] })
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Updated field at path:', { data: path, { extra: current[finalIndex] } })
     }
     
     setCustomFields(updated);

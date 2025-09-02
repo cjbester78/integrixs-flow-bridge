@@ -132,7 +132,7 @@ export function CreateDirectMappingFlow() {
         
         // Get the actual structure content
         const response = await api.get(`/structures/${structureId}`);
-        logger.info(LogCategory.SYSTEM, 'Log output', { data: 'Structure response:', response.data); // Debug log
+        logger.info(LogCategory.SYSTEM, 'Log output', { data: 'Structure response:', { extra: response.data }); // Debug log
         
         if (response.data) {
           // Try to find WSDL content in various places
@@ -563,7 +563,7 @@ export function CreateDirectMappingFlow() {
                       
                       return parsedMapping;
                     } catch (e) {
-                      logger.error(LogCategory.ERROR, 'Error parsing sourceFields for mapping:', mapping, e)
+                      logger.error(LogCategory.ERROR, 'Error parsing sourceFields for mapping:', mapping, { extra: e })
                       return {
                         ...mapping,
                         sourceFields: []
@@ -823,7 +823,7 @@ export function CreateDirectMappingFlow() {
       logger.info(LogCategory.SYSTEM, 'mappingRequired state:', { data: mappingRequired })
       logger.info(LogCategory.SYSTEM, 'skipXmlConversion state:', { data: skipXmlConversion })
       logger.info(LogCategory.SYSTEM, 'Calculated mappingMode:', { data: mappingRequired ? 'WITH_MAPPING' : 'PASS_THROUGH' })
-      logger.info(LogCategory.SYSTEM, 'Full flow request:', { data: JSON.stringify(flowRequest, null, 2) })
+      logger.info(LogCategory.SYSTEM, 'Full flow request:', { data: JSON.stringify(flowRequest, { extra: null, 2 }) })
       
       // Save the complete flow using the flow composition API
       const response = await api.post('/flow-composition/direct-mapping', flowRequest);

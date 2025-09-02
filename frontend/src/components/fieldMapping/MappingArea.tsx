@@ -135,10 +135,9 @@ export function MappingArea({
       return;
     }
 
-    logger.info(LogCategory.UI, 'Log output', { data: '✅ Opening visual flow editor with:', {
-      targetField: targetField.name,
+    logger.info(LogCategory.UI, 'Log output', { message: '✅ Opening visual flow editor with:', { extra: targetField: targetField.name,
       existingMapping: existingMapping.id
-    } })
+     } })
 
     setVisualFlowEditor({
       open: true,

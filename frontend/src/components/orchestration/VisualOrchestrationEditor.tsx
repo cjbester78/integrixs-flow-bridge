@@ -209,7 +209,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
-    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node clicked:', { data: { nodeId: node.id, nodeType: node.type } })
+    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node clicked:', { data: { nodeId: node.id, { extra: nodeType: node.type } } })
     setSelectedNode(node);
     setNodeWithDeleteButton(node.id);
     // Hide delete button after 3 seconds
@@ -218,7 +218,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
 
   // Function to add a new node based on type and category
   const addNode = useCallback((type: string, category: string) => {
-    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Adding new node:', { data: { type, category } })
+    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Adding new node:', { data: { type, { extra: category } } })
     
     const nodeId = `${type}-${Date.now()}`;
     const newNode: Node = {
@@ -235,7 +235,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
         configured: false,
         showDeleteButton: false,
         onConfigChange: (config: any) => {
-          logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node config changed:', { data: { nodeId, config } })
+          logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node config changed:', { data: { nodeId, { extra: config } } })
           setNodes((nds) =>
             nds.map((node) => (node.id === nodeId ? { ...node, data: { ...node.data, ...config, configured: true } } : node))
           );

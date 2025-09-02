@@ -393,7 +393,7 @@ export const useDataStructures = () => {
     };
 
     try {
-      logger.info(LogCategory.BUSINESS_LOGIC, 'Updating structure:', { data: id, updates })
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Updating structure:', { data: id, { extra: updates } })
       const response = await structureService.updateStructure(id, updates);
       
       if (response.success && response.data) {

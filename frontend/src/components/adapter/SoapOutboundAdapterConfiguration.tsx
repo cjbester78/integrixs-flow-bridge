@@ -115,7 +115,7 @@ export function SoapOutboundAdapterConfiguration({
         logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Structure:', { data: response.data })
         logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Metadata:', { data: response.data.metadata })
         logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Namespace:', { data: response.data.namespace })
-        logger.info(LogCategory.UI, 'SOAP Outbound - Full response data:', { data: JSON.stringify(response.data, null, 2) })
+        logger.info(LogCategory.UI, 'SOAP Outbound - Full response data:', { data: JSON.stringify(response.data, { extra: null, 2 }) })
         
         // Extract SOAP actions from the original WSDL content
         if (response.data.originalContent) {

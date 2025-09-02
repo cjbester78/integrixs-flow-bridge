@@ -36,15 +36,14 @@ export async function convertStructureToXml(
     );
     
     // Log the XML for debugging
-    logger.info(LogCategory.SYSTEM, 'Log output', { data: 'Received XML conversion result:', {
-      structureId: response.data?.structureId,
+    logger.info(LogCategory.SYSTEM, 'Log output', { message: 'Received XML conversion result:', { extra: structureId: response.data?.structureId,
       structureName: response.data?.structureName,
       xmlContent: response.data?.xmlContent
-    } })
+     } })
     
     return response.data;
   } catch (error: any) {
-    logger.error(LogCategory.ERROR, 'XML conversion error for structure:', structureId, error.response?.data)
+    logger.error(LogCategory.ERROR, 'XML conversion error for structure:', structureId, { extra: error.response?.data })
     throw error;
   }
 }

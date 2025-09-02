@@ -70,7 +70,7 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
 
     const javaCode = generateJavaFunctionCall(selectedFunction.name, paramValues);
     logger.info(LogCategory.UI, '🔍 FunctionPicker: Generated Java code:', { data: javaCode })
-    logger.info(LogCategory.UI, '🔍 FunctionPicker: Calling onFunctionSelect with:', { data: selectedFunction.name, javaCode })
+    logger.info(LogCategory.UI, '🔍 FunctionPicker: Calling onFunctionSelect with:', { data: selectedFunction.name, { extra: javaCode } })
     
     onFunctionSelect(selectedFunction.name, javaCode);
     setOpen(false);

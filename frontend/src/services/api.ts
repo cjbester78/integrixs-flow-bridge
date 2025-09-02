@@ -90,11 +90,10 @@ export async function apiRequest<T = any>(
   };
 
   try {
-    logger.info(LogCategory.API, 'Log output', { data: '[API] Making request:', {
-      method: requestOptions.method || 'GET',
+    logger.info(LogCategory.API, 'Log output', { message: '[API] Making request:', { extra: method: requestOptions.method || 'GET',
       url,
-      body: requestOptions.body ? JSON.parse(requestOptions.body as string) : undefined
-    } })
+      body: requestOptions.body ? JSON.parse(requestOptions.body as string }) : undefined
+     })
     
     let response = await fetch(url, requestOptions);
 

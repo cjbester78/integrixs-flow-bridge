@@ -15,17 +15,15 @@ export const useComponentLogger = (componentName: string, props?: Record<string,
     
     // Log component mount
     logger.debug(LogCategory.UI, `Component mounted: ${componentName}`, {
-      props,
-      renderCount: renderCount.current
-    });
+      props, { extra: renderCount: renderCount.current
+    } });
 
     return () => {
       // Log component unmount with lifetime
       const lifetime = Date.now() - mountTime.current;
       logger.debug(LogCategory.UI, `Component unmounted: ${componentName}`, {
-        lifetime,
-        renderCount: renderCount.current
-      });
+        lifetime, { extra: renderCount: renderCount.current
+      } });
     };
   }, []);
 
@@ -34,9 +32,8 @@ export const useComponentLogger = (componentName: string, props?: Record<string,
     useEffect(() => {
       if (renderCount.current > 1) {
         logger.debug(LogCategory.PERFORMANCE, `Component re-rendered: ${componentName}`, {
-          renderCount: renderCount.current,
-          props
-        });
+          renderCount: renderCount.current, { extra: props
+        } });
       }
     });
   }
@@ -177,21 +174,19 @@ export const useFormLogger = (formName: string) => {
     fieldChangeCount.current[fieldName] = (fieldChangeCount.current[fieldName] || 0) + 1;
     
     logger.debug(LogCategory.USER_ACTION, `Form field changed: ${formName}.${fieldName}`, {
-      fieldName,
-      changeCount: fieldChangeCount.current[fieldName],
+      fieldName, { extra: changeCount: fieldChangeCount.current[fieldName],
       hasValue: !!value,
       valueType: typeof value
-    });
+    } });
   }, [formName]);
 
   const logFormComplete = useCallback((success: boolean, data?: any) => {
     const duration = Date.now() - formStartTime.current;
     
     logger.info(LogCategory.USER_ACTION, `Form completed: ${formName}`, {
-      success,
-      duration,
+      success, { extra: duration,
       fieldChangeCount: fieldChangeCount.current,
-      totalFieldChanges: Object.values(fieldChangeCount.current).reduce((a, b) => a + b, 0),
+      totalFieldChanges: Object.values(fieldChangeCount.current }).reduce((a, b) => a + b, 0),
       data
     });
   }, [formName]);

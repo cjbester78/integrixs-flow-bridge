@@ -46,22 +46,20 @@ export const AdapterConfigurationCard = ({
   onInboundAdapterActiveChange,
   onOutboundAdapterActiveChange,
 }: AdapterConfigurationCardProps) => {
-  logger.info(LogCategory.UI, 'Log output', { data: '[AdapterConfigurationCard] Component rendered with props:', {
-    adapters: adapters.length,
+  logger.info(LogCategory.UI, 'Log output', { message: '[AdapterConfigurationCard] Component rendered with props:', { extra: adapters: adapters.length,
     sourceBusinessComponent,
     targetBusinessComponent,
     inboundAdapter,
     outboundAdapter,
     inboundAdapterActive,
     outboundAdapterActive
-  } })
+   } })
 
   const { businessComponents, loading, getAdaptersForBusinessComponent } = useBusinessComponentAdapters();
   
-  logger.info(LogCategory.UI, 'Log output', { data: '[AdapterConfigurationCard] Hook data:', {
-    businessComponents: businessComponents.length,
+  logger.info(LogCategory.UI, 'Log output', { message: '[AdapterConfigurationCard] Hook data:', { extra: businessComponents: businessComponents.length,
     loading
-  } })
+   } })
   
   const getAdapterById = (id: string) => adapters.find(adapter => adapter.id === id);
 

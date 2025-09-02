@@ -47,10 +47,10 @@ export const AdapterLogViewer = ({
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
   const [filteredLogs, setFilteredLogs] = useState<AdapterLog[]>([]);
   
-  logger.info(LogCategory.UI, '[AdapterLogViewer] Props:', { data: { adapterId: _adapterId, adapterName: _adapterName, logs, loading } })
+  logger.info(LogCategory.UI, '[AdapterLogViewer] Props:', { data: { adapterId: _adapterId, { extra: adapterName: _adapterName, logs, loading } } })
 
   useEffect(() => {
-    logger.info(LogCategory.UI, '[AdapterLogViewer] Effect running - logs:', { data: logs, 'searchTerm:', searchTerm, 'levelFilter:', levelFilter })
+    logger.info(LogCategory.UI, '[AdapterLogViewer] Effect running - logs:', { data: logs, { extra: 'searchTerm:', searchTerm, 'levelFilter:', levelFilter } })
     let filtered = logs;
 
     // Filter by search term

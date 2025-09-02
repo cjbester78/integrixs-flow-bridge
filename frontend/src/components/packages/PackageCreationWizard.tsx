@@ -460,18 +460,21 @@ export default function PackageCreationWizard({
       if (wizardData.transformationRequired) {
         if (wizardData.flowType === 'ORCHESTRATION') {
           // Create mappings for each orchestration target
-          // TODO: Backend Enhancement Required
+          // TODO: Backend Enhancement Required - JIRA-XXXX
           // The backend needs to support:
           // 1. Multiple field mapping sets per flow (one per target)
           // 2. Association of mappings with specific target adapters
           // 3. Orchestration engine to route messages to correct targets
-          // For now, we'll create mappings for the first target as a proof of concept
+          // Current workaround: Only creating mappings for the first target
+          // Impact: Limited orchestration functionality
+          // Priority: Medium - affects multi-target orchestration flows
           const firstTarget = wizardData.orchestrationTargets?.[0];
           if (firstTarget?.mapping && firstTarget.mapping.length > 0) {
             await flowService.saveFieldMappings(flowId, firstTarget.mapping);
           }
           
-          // TODO: Loop through all targets when backend supports it
+          // TODO: Enable multi-target mapping when backend API is ready
+          // Requires: flowService.saveFieldMappingsForTarget(flowId, targetId, mappings)
           // for (let i = 0; i < wizardData.orchestrationTargets.length; i++) {
           //   const target = wizardData.orchestrationTargets[i];
           //   if (target.mapping && target.mapping.length > 0) {

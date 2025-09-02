@@ -45,7 +45,7 @@ const getAdapterName = (type: string) => {
 };
 
 export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) => {
-  logger.info(LogCategory.UI, '[AdapterNode] Rendering node:', { data: { id, data } })
+  logger.info(LogCategory.UI, '[AdapterNode] Rendering node:', { data: { id, { extra: data } } })
   
   const [configOpen, setConfigOpen] = useState(false);
   const { setNodes, setEdges } = useReactFlow();
@@ -60,13 +60,12 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
   const adapterName = getAdapterName(data.adapterType);
   const isConfigured = data.adapterConfig && Object.keys(data.adapterConfig).length > 0;
   
-  logger.info(LogCategory.UI, 'Log output', { data: '[AdapterNode] Node state:', { 
-    id, 
+  logger.info(LogCategory.UI, 'Log output', { message: '[AdapterNode] Node state:', { extra: id, 
     adapterType: data.adapterType, 
     adapterName, 
     isConfigured,
     configOpen 
-  } })
+   } })
 
   const handleDelete = () => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
@@ -106,7 +105,7 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
             variant="outline"
             className="w-full bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
             onClick={(e) => {
-              logger.info(LogCategory.UI, '[AdapterNode] Configure button clicked:', { data: { id, adapterType: data.adapterType } })
+              logger.info(LogCategory.UI, '[AdapterNode] Configure button clicked:', { data: { id, { extra: adapterType: data.adapterType } } })
               e.stopPropagation();
               e.preventDefault();
               try {
@@ -143,7 +142,7 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
       <Dialog 
         open={configOpen} 
         onOpenChange={(open) => {
-          logger.info(LogCategory.UI, '[AdapterNode] Dialog state changing:', { data: { open, id } })
+          logger.info(LogCategory.UI, '[AdapterNode] Dialog state changing:', { data: { open, { extra: id } } })
           setConfigOpen(open);
         }}
       >

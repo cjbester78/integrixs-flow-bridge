@@ -168,12 +168,11 @@ export const TransformationNode: React.FC<TransformationNodeProps> = ({ id, data
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              logger.info(LogCategory.UI, 'Log output', { data: '[TransformationNode] Configure clicked:', { 
-                id, 
+              logger.info(LogCategory.UI, 'Log output', { message: '[TransformationNode] Configure clicked:', { extra: id, 
                 transformationType: data.transformationType, 
                 config: data.transformationConfig,
                 isFieldMapping: data.transformationType === 'field-mapping'
-              } })
+               } })
               setConfigOpen(true);
             }}
             onMouseDown={(e) => e.stopPropagation()}

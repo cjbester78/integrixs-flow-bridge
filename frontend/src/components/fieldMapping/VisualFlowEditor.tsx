@@ -335,7 +335,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
   const handleSave = useCallback(() => {
     if (!targetField) return;
 
-    logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - saving with nodes:', { data: nodes.length, 'edges:', edges.length })
+    logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - saving with nodes:', { data: nodes.length, { extra: 'edges:', edges.length } })
 
     // Find the target node and trace back all connections
     const targetNode = nodes.find(n => n.type === 'targetField');

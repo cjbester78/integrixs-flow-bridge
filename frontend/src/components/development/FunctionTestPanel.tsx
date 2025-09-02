@@ -77,7 +77,7 @@ export function FunctionTestPanel({
           return value;
       }
     } catch (error) {
-      logger.error(LogCategory.UI, 'Error occurred', `Error parsing ${type} value:`, error)
+      logger.error(LogCategory.UI, 'Error occurred', `Error parsing ${type} value:`, { extra: error })
       return value;
     }
   };

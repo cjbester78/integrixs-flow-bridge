@@ -40,7 +40,7 @@ export const Admin = () => {
     try {
       setIsLoadingUsers(true);
       const response = await userService.getAllUsers();
-      logger.info(LogCategory.SYSTEM, 'Log output', { data: 'User fetch response:', response); // Debug log
+      logger.info(LogCategory.SYSTEM, 'Log output', { data: 'User fetch response:', { extra: response }); // Debug log
       
       if (response.success && response.data) {
         // Handle different possible response structures

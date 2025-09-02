@@ -111,7 +111,7 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
           />
         ) : (
           filteredMessages.map((message) => {
-            logger.info(LogCategory.UI, '[MessageList] Rendering message:', { data: message.id, 'Type:', typeof message })
+            logger.info(LogCategory.UI, '[MessageList] Rendering message:', { data: message.id, { extra: 'Type:', typeof message } })
             return <MessageCard key={message.id} message={message} />;
           })
         )}

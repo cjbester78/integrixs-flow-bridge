@@ -74,7 +74,7 @@ export const Dashboard = () => {
     loadBusinessComponents();
   }, []);
   
-  logger.info(LogCategory.SYSTEM, 'Dashboard - business components:', { data: businessComponents, 'loading:', loadingComponents })
+  logger.info(LogCategory.SYSTEM, 'Dashboard - business components:', { data: businessComponents, { extra: 'loading:', loadingComponents } })
 
   // Fetch dashboard data
   useEffect(() => {

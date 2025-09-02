@@ -96,7 +96,7 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
       // API error, set empty array instead of mock data
       setDomainErrors([]);
       setError(`Failed to fetch domain errors for ${params.domainType}`);
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Error occurred', `Failed to fetch domain errors for ${params.domainType}:`, err)
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error occurred', `Failed to fetch domain errors for ${params.domainType}:`, { extra: err })
     } finally {
       setLoading(false);
     }

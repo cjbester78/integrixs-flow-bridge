@@ -21,10 +21,9 @@ export const MessageCard = ({ message }: MessageCardProps) => {
 
   // Debug logging to identify React error source
   logger.debug(LogCategory.UI, '[MessageCard] Rendering message', {
-    messageId: message.id,
-    hasLogs: !!message.logs,
+    messageId: message.id, { extra: hasLogs: !!message.logs,
     logsCount: message.logs?.length || 0
-  })
+  } })
 
   const handleReprocess = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent expanding/collapsing
@@ -92,7 +91,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                             }
                             return JSON.stringify(message.timestamp);
                           } catch (e) {
-                            logger.error(LogCategory.UI, 'Error formatting timestamp:', message.timestamp, e)
+                            logger.error(LogCategory.UI, 'Error formatting timestamp:', message.timestamp, { extra: e })
                             return 'Invalid timestamp';
                           }
                         }
@@ -137,7 +136,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {message.logs && message.logs.length > 0 ? (
                   message.logs.map((log, index) => {
-                    logger.debug(LogCategory.UI, '[MessageCard] Rendering log', { index, logLevel: log.level })
+                    logger.debug(LogCategory.UI, '[MessageCard] Rendering log', { index, { extra: logLevel: log.level } })
                     return (
                       <div key={index} className="flex items-start gap-3 text-xs">
                         {getLogLevelIcon(log.level)}
@@ -162,7 +161,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                             }
                             return 'Invalid timestamp';
                           } catch (e) {
-                            logger.error(LogCategory.UI, 'Error formatting log timestamp:', log.timestamp, e)
+                            logger.error(LogCategory.UI, 'Error formatting log timestamp:', log.timestamp, { extra: e })
                             return 'Invalid timestamp';
                           }
                         })()}

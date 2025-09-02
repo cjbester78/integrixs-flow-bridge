@@ -160,11 +160,10 @@ import { logger, LogCategory } from '@/lib/logger';
         setSelectedTarget(`Pre-converted XML (${mappingType})`);
         
         logger.info(LogCategory.UI, `Filtering XML for ${mappingType} mapping`, {
-          originalSource: sourceXml,
-          filteredSource: filteredSourceXml,
+          originalSource: sourceXml, { extra: filteredSource: filteredSourceXml,
           originalTarget: targetXml,
           filteredTarget: filteredTargetXml
-        })
+        } })
         
       } catch (error: any) {
         logger.error(LogCategory.UI, 'Error parsing pre-converted XML:', error)

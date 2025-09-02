@@ -91,6 +91,10 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
 
     // Subscribe to stats updates - disabled for now as it overrides filtered stats
     // TODO: Make WebSocket send filtered stats based on current filters
+    // Requires backend WebSocket enhancement to accept filter parameters:
+    // - flowId, status, dateRange, etc.
+    // This would reduce unnecessary data transfer and improve performance
+    // Priority: Low - current polling approach works, this is an optimization
     const unsubscribeStats = () => {}; // messageService.onStatsUpdate((newStats) => {
     //   setStats(newStats);
     // });

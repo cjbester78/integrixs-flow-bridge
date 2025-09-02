@@ -277,7 +277,7 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
     
     // Debug: Check what we're parsing
     const rootElement = doc.documentElement;
-    logger.info(LogCategory.SYSTEM, 'WSDL root element:', { data: rootElement.tagName, 'namespace:', rootElement.namespaceURI })
+    logger.info(LogCategory.SYSTEM, 'WSDL root element:', { data: rootElement.tagName, { extra: 'namespace:', rootElement.namespaceURI } })
     
     // Find all portType elements first - use namespace-agnostic approach
     const portTypes: Element[] = [];
@@ -307,7 +307,7 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
     logger.info(LogCategory.SYSTEM, 'Found operations in portType:', { data: operations.length })
     operations.forEach((operation) => {
       const name = operation.getAttribute('name');
-      logger.info(LogCategory.SYSTEM, 'Operation element:', { data: operation.tagName, 'name attribute:', name })
+      logger.info(LogCategory.SYSTEM, 'Operation element:', { data: operation.tagName, { extra: 'name attribute:', name } })
       if (name && !operationNames.includes(name)) {
         operationNames.push(name);
         logger.info(LogCategory.SYSTEM, 'Added operation:', { data: name })
@@ -359,7 +359,7 @@ export const extractWsdlPartName = (wsdlString: string): string | null => {
   try {
     // Always try to get operation names first - this is the primary source
     const { names, hasMultiple } = extractWsdlOperations(wsdlString);
-    logger.info(LogCategory.SYSTEM, 'WSDL operation extraction result:', { data: { names, hasMultiple } })
+    logger.info(LogCategory.SYSTEM, 'WSDL operation extraction result:', { data: { names, { extra: hasMultiple } } })
     
     if (names.length === 1) {
       // Single operation found - use it

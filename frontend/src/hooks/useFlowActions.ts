@@ -1,6 +1,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { flowService } from '@/services/flowService';
 import { logger, LogCategory } from '@/lib/logger';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface UseFlowActionsProps {
   flowName: string;
@@ -26,6 +27,7 @@ export const useFlowActions = ({
   resetForm,
 }: UseFlowActionsProps) => {
   const { toast } = useToast();
+  const user = useAuthStore((state) => state.user);
 
   const handleSaveFlow = async () => {
     if (!flowName || !inboundAdapter || !outboundAdapter) {
@@ -53,7 +55,7 @@ export const useFlowActions = ({
         status: 'DRAFT',
         mappingMode: 'WITH_MAPPING',
         isActive: true,
-        createdBy: 'user-integrator1' // TODO: Get from auth context
+        createdBy: user?.username || 'unknown'
       };
 
       const response = await flowService.createFlow(flowData);

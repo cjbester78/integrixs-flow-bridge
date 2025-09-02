@@ -73,9 +73,8 @@ const App = () => {
     }, 100);
     
     logger.info(LogCategory.SYSTEM, 'Application initialized', {
-      version: import.meta.env.VITE_APP_VERSION || '1.0.0',
-      environment: import.meta.env.MODE
-    })
+      version: import.meta.env.VITE_APP_VERSION || '1.0.0', { extra: environment: import.meta.env.MODE
+    } })
     
     return () => clearTimeout(timer);
   }, []);
