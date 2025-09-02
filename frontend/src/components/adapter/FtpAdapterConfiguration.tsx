@@ -158,7 +158,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
 
  return (
  <Card className="w-full">
- <CardHeader>;
+ <CardHeader>
  <CardTitle>FTP {mode === 'sender' ? 'Inbound' : 'Outbound'} Adapter Configuration</CardTitle>
  <CardDescription>Configure your FTP {mode} adapter settings</CardDescription>
  </CardHeader>
@@ -329,7 +329,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="port"
  value={config.port}
- onChange={(e) => updateConfig({ port: e.target.value })
+ onChange={(e) => updateConfig({ port: e.target.value })}
  placeholder="Enter port number"
  type="number"
  />
@@ -340,7 +340,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="timeout"
  value={config.timeout}
- onChange={(e) => updateConfig({ timeout: e.target.value })
+ onChange={(e) => updateConfig({ timeout: e.target.value })}
  placeholder="Timeout in seconds"
  type="number"
  />
@@ -365,7 +365,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="userName"
  value={config.userName}
- onChange={(e) => updateConfig({ userName: e.target.value })
+ onChange={(e) => updateConfig({ userName: e.target.value })}
  placeholder="Enter username"
  />
  </div>
@@ -377,7 +377,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  placeholder="Enter password"
  required={true}
  value={config.password}
- onValueChange={(value) => updateConfig({ password: value })
+ onValueChange={(value) => updateConfig({ password: value })}
  />
  </div>
 
@@ -454,7 +454,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="port"
  value={config.port}
- onChange={(e) => updateConfig({ port: e.target.value })
+ onChange={(e) => updateConfig({ port: e.target.value })}
  placeholder="Enter port number"
  type="number"
  />
@@ -465,7 +465,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="timeout"
  value={config.timeout}
- onChange={(e) => updateConfig({ timeout: e.target.value })
+ onChange={(e) => updateConfig({ timeout: e.target.value })}
  placeholder="Timeout in seconds"
  type="number"
  />
@@ -490,7 +490,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="userName"
  value={config.userName}
- onChange={(e) => updateConfig({ userName: e.target.value })
+ onChange={(e) => updateConfig({ userName: e.target.value })}
  placeholder="Enter username"
  />
  </div>
@@ -502,7 +502,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  placeholder="Enter password"
  required={true}
  value={config.password}
- onValueChange={(value) => updateConfig({ password: value })
+ onValueChange={(value) => updateConfig({ password: value })}
  />
  </div>
 
@@ -538,7 +538,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="pollingInterval"
  value={config.pollingInterval}
- onChange={(e) => updateConfig({ pollingInterval: e.target.value })
+ onChange={(e) => updateConfig({ pollingInterval: e.target.value })}
  placeholder="Enter polling interval in seconds"
  type="number"
  />
@@ -640,7 +640,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="maxConcurrentConnections"
  value={config.maxConcurrentConnections}
- onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })
+ onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })}
  placeholder="Enter maximum concurrent connections"
  type="number"
  />
@@ -676,7 +676,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="duplicateThreshold"
  value={config.duplicateMessageAlertThreshold}
- onChange={(e) => updateConfig({ duplicateMessageAlertThreshold: e.target.value })
+ onChange={(e) => updateConfig({ duplicateMessageAlertThreshold: e.target.value })}
  placeholder="Enter threshold value"
  type="number"
  />
@@ -703,7 +703,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <TabsContent value="transformation" className="mt-6">
  <TransformationToggle
  config={config.transformationConfig || { mode: 'passthrough' }}
- onChange={(transformationConfig) => updateConfig({ transformationConfig })
+ onChange={(transformationConfig) => updateConfig({ transformationConfig })}
  adapterType="FTP"
  disabled={false}
  />
@@ -715,7 +715,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <TabsContent value="fileFormat" className="mt-6">
  <FileFormatTab
  config={config.fileFormatConfig || {}}
- onChange={(fileFormatConfig) => updateConfig({ fileFormatConfig })
+ onChange={(fileFormatConfig) => updateConfig({ fileFormatConfig })}
  />
  </TabsContent>
  )}
@@ -726,7 +726,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <XmlConversionTab
  mode={mode === 'sender' ? 'INBOUND' : 'OUTBOUND'}
  config={config.xmlConversion || {}}
- onChange={(xmlConversion) => updateConfig({ xmlConversion })
+ onChange={(xmlConversion) => updateConfig({ xmlConversion })}
  />
  </TabsContent>
  )}
@@ -734,5 +734,4 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  </CardContent>
  </Card>
  );
-};`
-}}}}}}}}}}}}}}}}}}}}}}}}}})
+};

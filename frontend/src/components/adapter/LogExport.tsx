@@ -78,9 +78,8 @@ export const LogExport = ({ adapterId }: LogExportProps) => {
  title: 'Export Failed',
  description: 'An error occurred while exporting logs.',
  variant: 'destructive',
-}
-}
  });
+ }
  } finally {
  setExporting(false);
  }

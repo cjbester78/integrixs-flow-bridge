@@ -128,7 +128,7 @@ export const AdapterTestSuite: React.FC<AdapterTestSuiteProps> = ({
 ;
  const url = URL.createObjectURL(blob);
  const a = document.createElement('a');
- a.href = url;`
+ a.href = url;
  a.download = `adapter-test-results-${selectedAdapterType}-${new Date().getTime()}.json`;
  document.body.appendChild(a);
  a.click();

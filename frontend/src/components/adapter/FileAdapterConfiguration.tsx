@@ -139,7 +139,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
 
  return (
  <Card className="w-full">
- <CardHeader>;
+ <CardHeader>
  <CardTitle>File {mode === 'sender' ? 'Inbound' : 'Outbound'} Adapter Configuration</CardTitle>
  <CardDescription>Configure your File {mode} adapter settings</CardDescription>
  </CardHeader>
@@ -508,7 +508,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <TabsContent value="fileFormat" className="mt-6">
  <FileFormatTab
  config={config.fileFormatConfig || {}}
- onChange={(fileFormatConfig) => updateConfig({ fileFormatConfig })
+ onChange={(fileFormatConfig) => updateConfig({ fileFormatConfig })}
  />
  </TabsContent>
  )}
