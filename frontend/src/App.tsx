@@ -1,4 +1,4 @@
-
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -6,47 +6,49 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { BackendStartupOverlay } from "@/components/BackendStartupOverlay";
-
 import { Layout } from "@/components/layout/Layout";
 import { Login } from "@/pages/Login";
-import { Dashboard } from "@/pages/Dashboard";
-import { TestPage } from "@/pages/TestPage";
-// Deprecated - flow creation now handled through Package Creation Wizard
-import { DeprecatedCreateFlow } from "@/pages/DeprecatedCreateFlow";
-import { CreateCommunicationAdapter } from "@/pages/CreateCommunicationAdapter";
-import CommunicationAdapters from "@/pages/CommunicationAdapters";
-import { DataStructures } from "@/pages/DataStructures";
-import { CreateDataStructure } from "@/pages/CreateDataStructure";
-import { BusinessComponents } from "@/pages/BusinessComponents";
-import { Messages } from "@/pages/Messages";
-import AdapterMonitoring from "@/pages/AdapterMonitoring";
-import InterfaceDetails from "@/pages/InterfaceDetails";
-import { Admin } from "@/pages/Admin";
-import { Settings } from "@/pages/Settings";
-import { RetryManagement } from "@/pages/RetryManagement";
-import { DevelopmentFunctions } from "@/pages/DevelopmentFunctions";
-import AllInterfaces from "@/pages/AllInterfaces";
-import { Packages } from "@/pages/Packages";
-import NotFound from "./pages/NotFound";
-
-// Import providers and error boundary
 import { QueryProvider } from "@/providers/query-provider";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { NotificationDisplay } from "@/components/notification-display";
-
-// Import stores and effects
 import { useUIStore } from "@/stores/ui-store";
 import { useEffect, useState } from "react";
-
-// Temporarily removed logger import to debug error boundary issue
-// import { logger, LogCategory } from "@/lib/logger";
 import { setupAxiosInterceptors } from "@/lib/axios-interceptors";
+
+// Lazy load heavy pages
+const Dashboard = lazy(() => import("@/pages/Dashboard").then(m => ({ default: m.Dashboard })));
+const TestPage = lazy(() => import("@/pages/TestPage").then(m => ({ default: m.TestPage })));
+const DeprecatedCreateFlow = lazy(() => import("@/pages/DeprecatedCreateFlow").then(m => ({ default: m.DeprecatedCreateFlow })));
+const CreateCommunicationAdapter = lazy(() => import("@/pages/CreateCommunicationAdapter").then(m => ({ default: m.CreateCommunicationAdapter })));
+const CommunicationAdapters = lazy(() => import("@/pages/CommunicationAdapters"));
+const DataStructures = lazy(() => import("@/pages/DataStructures").then(m => ({ default: m.DataStructures })));
+const CreateDataStructure = lazy(() => import("@/pages/CreateDataStructure").then(m => ({ default: m.CreateDataStructure })));
+const BusinessComponents = lazy(() => import("@/pages/BusinessComponents").then(m => ({ default: m.BusinessComponents })));
+const Messages = lazy(() => import("@/pages/Messages").then(m => ({ default: m.Messages })));
+const AdapterMonitoring = lazy(() => import("@/pages/AdapterMonitoring"));
+const InterfaceDetails = lazy(() => import("@/pages/InterfaceDetails"));
+const Admin = lazy(() => import("@/pages/Admin").then(m => ({ default: m.Admin })));
+const Settings = lazy(() => import("@/pages/Settings").then(m => ({ default: m.Settings })));
+const RetryManagement = lazy(() => import("@/pages/RetryManagement").then(m => ({ default: m.RetryManagement })));
+const DevelopmentFunctions = lazy(() => import("@/pages/DevelopmentFunctions").then(m => ({ default: m.DevelopmentFunctions })));
+const AllInterfaces = lazy(() => import("@/pages/AllInterfaces"));
+const Packages = lazy(() => import("@/pages/Packages").then(m => ({ default: m.Packages })));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
 
 const ThemeEffect = () => {
   const theme = useUIStore((state) => state.theme);
   
   useEffect(() => {
-    // Apply theme on mount and when it changes
     if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
     } else {
@@ -57,30 +59,17 @@ const ThemeEffect = () => {
   return null;
 };
 
-// Navigation logger component - temporarily disabled to debug error
 const NavigationLoggerComponent = () => {
-  // useNavigationLogger(); // Disabled due to circular dependency
   return null;
 };
 
 const App = () => {
   const [backendReady, setBackendReady] = useState(false);
 
-  // Setup axios interceptors and log app initialization
   useEffect(() => {
-    // Delay interceptor setup to avoid initialization issues
     const timer = setTimeout(() => {
       setupAxiosInterceptors();
     }, 100);
-    
-    // Temporarily disabled logger to debug error boundary issue
-    // logger.info(LogCategory.SYSTEM, 'Application initialized', {
-    //   version: import.meta.env.VITE_APP_VERSION || '1.0.0',
-    //   environment: import.meta.env.MODE,
-    //   userAgent: navigator.userAgent,
-    //   screenResolution: `${window.screen.width}x${window.screen.height}`,
-    //   viewport: `${window.innerWidth}x${window.innerHeight}`
-    // });
     
     console.log('Application initialized', {
       version: import.meta.env.VITE_APP_VERSION || '1.0.0',
@@ -90,7 +79,6 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Show backend startup overlay if backend is not ready
   if (!backendReady) {
     return (
       <BackendStartupOverlay 
@@ -111,47 +99,131 @@ const App = () => {
             <AuthProvider>
               <TenantProvider>
                 <Routes>
-                  {/* Public route - no authentication required */}
                   <Route path="/login" element={<Login />} />
                   
-                  {/* Protected routes - require authentication */}
                   <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="test" element={<TestPage />} />
-                  {/* Deprecated routes - flow creation now handled through Package Creation Wizard */}
-                  <Route path="create-flow" element={<DeprecatedCreateFlow />} />
-                  <Route path="create-direct-mapping-flow" element={<DeprecatedCreateFlow />} />
-                  <Route path="create-orchestration-flow" element={<DeprecatedCreateFlow />} />
-                  {/* <Route path="flows/:flowId/edit" element={<CreateDirectMappingFlow />} /> */}
-                  <Route path="communication-adapters" element={<CommunicationAdapters />} />
-                  <Route path="communication-adapters/:id" element={<CreateCommunicationAdapter />} />
-                  <Route path="create-communication-adapter" element={<CreateCommunicationAdapter />} />
-                  <Route path="data-structures" element={<DataStructures />} />
-                  <Route path="data-structures/:id" element={<CreateDataStructure />} />
-                  <Route path="create-data-structure" element={<CreateDataStructure />} />
-                  <Route path="business-components" element={<BusinessComponents />} />
-                  <Route path="all-interfaces" element={<AllInterfaces />} />
-                  <Route path="interfaces" element={<Navigate to="/all-interfaces" replace />} />
-                  <Route path="interfaces/:flowId/details" element={<InterfaceDetails />} />
-                  <Route path="messages" element={<Messages />} />
-                  <Route path="adapter-monitoring" element={<AdapterMonitoring />} />
-                  <Route path="admin" element={<Admin />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="retry-management" element={<RetryManagement />} />
-                  <Route path="development-functions" element={<DevelopmentFunctions />} />
-                  <Route path="packages" element={<Packages />} />
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-              </Route>
-            </Routes>
+                    <Route path="/" element={<Layout />}>
+                      <Route index element={<Navigate to="/dashboard" replace />} />
+                      <Route path="dashboard" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Dashboard />
+                        </Suspense>
+                      } />
+                      <Route path="test" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <TestPage />
+                        </Suspense>
+                      } />
+                      <Route path="create-flow" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <DeprecatedCreateFlow />
+                        </Suspense>
+                      } />
+                      <Route path="create-direct-mapping-flow" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <DeprecatedCreateFlow />
+                        </Suspense>
+                      } />
+                      <Route path="create-orchestration-flow" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <DeprecatedCreateFlow />
+                        </Suspense>
+                      } />
+                      <Route path="communication-adapters" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <CommunicationAdapters />
+                        </Suspense>
+                      } />
+                      <Route path="communication-adapters/:id" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <CreateCommunicationAdapter />
+                        </Suspense>
+                      } />
+                      <Route path="create-communication-adapter" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <CreateCommunicationAdapter />
+                        </Suspense>
+                      } />
+                      <Route path="data-structures" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <DataStructures />
+                        </Suspense>
+                      } />
+                      <Route path="data-structures/:id" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <CreateDataStructure />
+                        </Suspense>
+                      } />
+                      <Route path="create-data-structure" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <CreateDataStructure />
+                        </Suspense>
+                      } />
+                      <Route path="business-components" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <BusinessComponents />
+                        </Suspense>
+                      } />
+                      <Route path="all-interfaces" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <AllInterfaces />
+                        </Suspense>
+                      } />
+                      <Route path="interfaces" element={<Navigate to="/all-interfaces" replace />} />
+                      <Route path="interfaces/:flowId/details" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <InterfaceDetails />
+                        </Suspense>
+                      } />
+                      <Route path="messages" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Messages />
+                        </Suspense>
+                      } />
+                      <Route path="adapter-monitoring" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <AdapterMonitoring />
+                        </Suspense>
+                      } />
+                      <Route path="admin" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Admin />
+                        </Suspense>
+                      } />
+                      <Route path="settings" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Settings />
+                        </Suspense>
+                      } />
+                      <Route path="retry-management" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <RetryManagement />
+                        </Suspense>
+                      } />
+                      <Route path="development-functions" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <DevelopmentFunctions />
+                        </Suspense>
+                      } />
+                      <Route path="packages" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Packages />
+                        </Suspense>
+                      } />
+                      <Route path="*" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <NotFound />
+                        </Suspense>
+                      } />
+                    </Route>
+                  </Route>
+                </Routes>
               </TenantProvider>
             </AuthProvider>
           </BrowserRouter>
-      </TooltipProvider>
-    </QueryProvider>
-  </ErrorBoundary>
+        </TooltipProvider>
+      </QueryProvider>
+    </ErrorBoundary>
   );
 };
 
