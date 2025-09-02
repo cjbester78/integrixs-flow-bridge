@@ -9,6 +9,7 @@ import { Play, Activity, Calendar, BarChart3, Loader2 } from 'lucide-react';
 import { flowService } from '@/services/flowService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 export default function FlowExecutionEngine() {
   const [selectedFlow, setSelectedFlow] = useState<FlowDefinition | null>(null);
@@ -41,7 +42,7 @@ export default function FlowExecutionEngine() {
           });
         }
       } catch (err) {
-        console.error('Error fetching flows:', err);
+        logger.error(LogCategory.ERROR, 'Error fetching flows:', err)
         setError('Failed to load flows');
         toast({
           variant: "destructive",

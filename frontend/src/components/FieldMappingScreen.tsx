@@ -111,7 +111,7 @@ export function FieldMappingScreen({
       
       // If we filtered out all children, return the original XML
       if (newRoot.children.length === 0) {
-        console.warn(`No matching elements found for ${messageType} mapping, returning original XML`);
+        logger.warn(LogCategory.UI, `No matching elements found for ${messageType} mapping, returning original XML`)
         return xml;
       }
       
@@ -126,6 +126,7 @@ export function FieldMappingScreen({
           const childElement = newRoot.children[0];
           const childDoc = document.implementation.createDocument(null, childElement.tagName, null);
           const newChildRoot = childDoc.importNode(childElement, true);
+import { logger, LogCategory } from '@/lib/logger';
           childDoc.replaceChild(newChildRoot, childDoc.documentElement);
           const serializer = new XMLSerializer();
           return serializer.serializeToString(childDoc);
@@ -136,7 +137,7 @@ export function FieldMappingScreen({
       const serializer = new XMLSerializer();
       return serializer.serializeToString(newDoc);
     } catch (error) {
-      console.error('Error filtering XML by message type:', error);
+      logger.error(LogCategory.UI, 'Error filtering XML by message type:', error)
       return xml;
     }
   };
@@ -158,15 +159,15 @@ export function FieldMappingScreen({
         setSelectedSource(`Pre-converted XML (${mappingType})`);
         setSelectedTarget(`Pre-converted XML (${mappingType})`);
         
-        console.log(`Filtering XML for ${mappingType} mapping:`, {
+        logger.info(LogCategory.UI, 'Log output', { data: `Filtering XML for ${mappingType} mapping:`, {
           originalSource: sourceXml,
           filteredSource: filteredSourceXml,
           originalTarget: targetXml,
           filteredTarget: filteredTargetXml
-        });
+        } })
         
       } catch (error: any) {
-        console.error('Error parsing pre-converted XML:', error);
+        logger.error(LogCategory.UI, 'Error parsing pre-converted XML:', error)
         toast({
           title: "XML Parse Error",
           description: error.message || "Failed to parse XML structures",
@@ -582,8 +583,8 @@ export function FieldMappingScreen({
       try {
         fieldNodes = parseXmlToFieldNodes(xmlContent);
       } catch (parseError) {
-        console.error('Error parsing XML:', parseError);
-        console.error('XML content that failed to parse:', xmlContent);
+        logger.error(LogCategory.UI, 'Error parsing XML:', parseError)
+        logger.error(LogCategory.UI, 'XML content that failed to parse:', xmlContent)
         throw parseError;
       }
       
@@ -603,7 +604,7 @@ export function FieldMappingScreen({
       });
       
     } catch (error: any) {
-      console.error('Error converting structure to XML:', error);
+      logger.error(LogCategory.UI, 'Error converting structure to XML:', error)
       toast({
         title: "Conversion failed",
         description: error.message || "Failed to convert structure to XML",

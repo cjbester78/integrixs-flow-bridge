@@ -99,12 +99,13 @@ class FlowMonitoringService {
     }
 
     const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/flows${businessComponentId ? `?businessComponentId=${businessComponentId}` : ''}`;
+import { logger, LogCategory } from '@/lib/logger';
     
     try {
       this.websocket = new WebSocket(wsUrl);
       
       this.websocket.onopen = () => {
-        console.log('WebSocket connected for flow monitoring');
+        logger.info(LogCategory.API, 'WebSocket connected for flow monitoring')
         this.reconnectAttempts = 0;
       };
       
@@ -120,27 +121,27 @@ class FlowMonitoringService {
             this.flowListeners.forEach(listener => listener(data.flow));
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          logger.error(LogCategory.API, 'Error parsing WebSocket message:', error)
         }
       };
       
       this.websocket.onclose = () => {
-        console.log('WebSocket connection closed');
+        logger.info(LogCategory.API, 'WebSocket connection closed')
         this.attemptReconnect(businessComponentId);
       };
       
       this.websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        logger.error(LogCategory.API, 'WebSocket error:', error)
       };
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      logger.error(LogCategory.API, 'Failed to create WebSocket connection:', error)
     }
   }
 
   private attemptReconnect(businessComponentId?: string): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
       
       setTimeout(() => {
         this.connectWebSocket(businessComponentId);

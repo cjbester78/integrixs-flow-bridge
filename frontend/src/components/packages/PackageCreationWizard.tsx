@@ -19,7 +19,7 @@ import type { AdapterType } from '@/types/communicationAdapter';
 import { FieldMappingScreen } from '../FieldMappingScreen';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { isApiResponse } from '@/lib/api-response-utils';
+import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
 import { 
   Package, 
   Settings, 
@@ -495,7 +495,7 @@ export default function PackageCreationWizard({
       
       onSuccess();
     } catch (error) {
-      console.error('Error creating package:', error);
+      logger.error(LogCategory.UI, 'Error creating package:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to create package',
@@ -999,7 +999,7 @@ export default function PackageCreationWizard({
             
             setShowFullScreenMapping(true);
           } catch (error) {
-            console.error('Error converting structures:', error);
+            logger.error(LogCategory.UI, 'Error converting structures:', error)
             toast({
               title: 'Conversion Failed',
               description: 'Failed to convert structures for field mapping',
@@ -1336,7 +1336,7 @@ export default function PackageCreationWizard({
             
             setShowFullScreenMapping(true);
           } catch (error) {
-            console.error('Error converting structures:', error);
+            logger.error(LogCategory.UI, 'Error converting structures:', error)
             toast({
               title: 'Conversion Failed',
               description: 'Failed to convert structures for field mapping',

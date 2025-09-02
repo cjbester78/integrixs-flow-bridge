@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, type User } from '../services/authService';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -42,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         // Skip auth check if we're on the login page
         if (window.location.pathname === '/login') {
-          console.log('AuthContext: On login page, skipping auth check');
+          logger.info(LogCategory.AUTH, 'AuthContext: On login page, skipping auth check')
           setIsLoading(false);
           return;
         }
@@ -50,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Check if we have a token stored
         const token = authService.getToken();
         if (!token) {
-          console.log('AuthContext: No token found, skipping initialization');
+          logger.info(LogCategory.AUTH, 'AuthContext: No token found, skipping initialization')
           setIsLoading(false);
           return;
         }
@@ -61,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const expiry = payload.exp * 1000; // Convert to milliseconds
           
           if (expiry < Date.now()) {
-            console.log('AuthContext: Token expired, clearing auth data');
+            logger.info(LogCategory.AUTH, 'AuthContext: Token expired, clearing auth data')
             localStorage.removeItem('integration_platform_token');
             localStorage.removeItem('integration_platform_refresh_token');
             localStorage.removeItem('integration_platform_user');
@@ -71,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           setTokenExpiry(expiry);
         } catch (error) {
-          console.warn('Failed to parse token:', error);
+          logger.warn(LogCategory.SYSTEM, 'Failed to parse token:', { data: error })
           setIsLoading(false);
           return;
         }
@@ -82,15 +83,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (response.success && response.data) {
             setUser(response.data);
           } else {
-            console.warn('AuthContext: Profile fetch failed');
+            logger.warn(LogCategory.AUTH, 'AuthContext: Profile fetch failed')
             // Don't clear auth data - let user retry
           }
         } catch (profileError) {
-          console.warn('AuthContext: Profile fetch error:', profileError);
+          logger.warn(LogCategory.AUTH, 'AuthContext: Profile fetch error:', { data: profileError })
           // Don't clear auth data on network errors
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        logger.error(LogCategory.AUTH, 'Auth initialization error:', error)
       } finally {
         setIsLoading(false);
       }
@@ -142,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error(LogCategory.AUTH, 'Login error:', error)
       toast({ title: "Error", description: 'Login failed. Please try again.', variant: "destructive" });
       return false;
     } finally {
@@ -158,14 +159,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Try to call logout API but don't wait for it
       authService.logout().catch(error => {
-        console.warn('Logout API call failed:', error);
+        logger.warn(LogCategory.SYSTEM, 'Logout API call failed:', { data: error })
       });
       
       // Navigate to login immediately
       navigate('/login');
       toast({ title: "Success", description: 'Logged out successfully' });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error(LogCategory.ERROR, 'Logout error:', error)
       // Still navigate to login
       navigate('/login');
     }
@@ -210,7 +211,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const payload = JSON.parse(atob(token.split('.')[1]));
             setTokenExpiry(payload.exp * 1000);
           } catch (error) {
-            console.warn('Failed to parse token expiry:', error);
+            logger.warn(LogCategory.SYSTEM, 'Failed to parse token expiry:', { data: error })
           }
         }
         
@@ -221,7 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
     } catch (error) {
-      console.error('Session check error:', error);
+      logger.error(LogCategory.ERROR, 'Session check error:', error)
       // On error, assume session is invalid
       await logout();
       return false;
@@ -246,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({ title: "Error", description: response.error || 'Failed to create user', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Create user error:', error);
+      logger.error(LogCategory.ERROR, 'Create user error:', error)
       toast({ title: "Error", description: 'Failed to create user', variant: "destructive" });
     }
   };
@@ -260,7 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ));
       toast({ title: "Success", description: 'User updated successfully' });
     } catch (error) {
-      console.error('Update user error:', error);
+      logger.error(LogCategory.ERROR, 'Update user error:', error)
       toast({ title: "Error", description: 'Failed to update user', variant: "destructive" });
     }
   };
@@ -272,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUsers(prev => prev.filter(user => user.id !== id));
       toast({ title: "Success", description: 'User deleted successfully' });
     } catch (error) {
-      console.error('Delete user error:', error);
+      logger.error(LogCategory.ERROR, 'Delete user error:', error)
       toast({ title: "Error", description: 'Failed to delete user', variant: "destructive" });
     }
   };

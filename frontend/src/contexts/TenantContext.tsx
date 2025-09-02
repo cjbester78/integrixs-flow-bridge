@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -74,7 +74,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       // TODO: Set tenant header for future requests when apiClient supports it
       // For now, the header can be included in individual requests if needed
     } catch (error) {
-      console.error('Failed to load current tenant:', error);
+      logger.error(LogCategory.ERROR, 'Failed to load current tenant:', error)
     }
   };
 
@@ -84,7 +84,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
       setUserTenants(response);
     } catch (error) {
-      console.error('Failed to load user tenants:', error);
+      logger.error(LogCategory.ERROR, 'Failed to load user tenants:', error)
     }
   };
 
@@ -96,7 +96,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       const response = await apiClient.get<TenantSubscription>(`/tenants/${currentTenant.id}/subscription`);
       setSubscription(response);
     } catch (error) {
-      console.error('Failed to load subscription:', error);
+      logger.error(LogCategory.ERROR, 'Failed to load subscription:', error)
     }
   };
 
@@ -108,7 +108,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       const response = await apiClient.get<TenantUsage>(`/tenants/${currentTenant.id}/usage`);
       setUsage(response);
     } catch (error) {
-      console.error('Failed to load usage:', error);
+      logger.error(LogCategory.ERROR, 'Failed to load usage:', error)
     }
   };
 

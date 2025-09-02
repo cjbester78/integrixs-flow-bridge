@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger, LogCategory } from '@/lib/logger';
 
 
 
@@ -13,7 +14,7 @@ interface AuthGuardProps {
  */
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   // Auth guard temporarily disabled for faster testing
-  console.warn('AuthGuard bypassed: auth checks disabled for testing');
+  logger.warn(LogCategory.AUTH, 'AuthGuard bypassed: auth checks disabled for testing')
   return <>{children}</>;
 };
 

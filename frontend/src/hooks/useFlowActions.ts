@@ -1,5 +1,6 @@
 import { useToast } from '@/hooks/use-toast';
 import { flowService } from '@/services/flowService';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface UseFlowActionsProps {
   flowName: string;
@@ -69,7 +70,7 @@ export const useFlowActions = ({
         throw new Error(response.error || 'Failed to save flow');
       }
     } catch (error) {
-      console.error('Error saving flow:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error saving flow:', error)
       toast({
         title: "Save Failed",
         description: error instanceof Error ? error.message : "Failed to save integration flow",

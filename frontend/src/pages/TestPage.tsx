@@ -1,6 +1,8 @@
+import { logger, LogCategory } from '@/lib/logger';
+
 
 export const TestPage = () => {
-  console.log('TestPage - rendering without React Query');
+  logger.info(LogCategory.SYSTEM, 'TestPage - rendering without React Query')
   
   return (
     <div className="p-6">

@@ -11,6 +11,7 @@ import { StructurePreview } from '@/components/dataStructures/StructurePreview';
 import { parseJsonStructure, parseWsdlStructure, buildNestedStructure } from '@/utils/structureParsers';
 import { Layers } from 'lucide-react';
 import { structureService } from '@/services/structureService';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const CreateDataStructure = () => {
   try {
@@ -23,7 +24,7 @@ export const CreateDataStructure = () => {
       loading
     } = useDataStructures();
     
-    console.log('CreateDataStructure component rendering, loading:', loading);
+    logger.info(LogCategory.SYSTEM, 'CreateDataStructure component rendering, loading:', { data: loading })
     const { toast } = useToast();
     
     // Edit mode state
@@ -53,7 +54,7 @@ export const CreateDataStructure = () => {
     const loadStructure = async () => {
       if (id) {
         try {
-          console.log('[CreateDataStructure] Loading structure for edit:', id);
+          logger.info(LogCategory.SYSTEM, '[CreateDataStructure] Loading structure for edit:', { data: id })
           const response = await structureService.getStructure(id);
           
           if (response.success && response.data) {
@@ -103,7 +104,7 @@ export const CreateDataStructure = () => {
             }
           }
         } catch (error) {
-          console.error('Error loading structure:', error);
+          logger.error(LogCategory.ERROR, 'Error loading structure:', error)
           toast({
             title: "Error",
             description: "Failed to load data structure",
@@ -114,7 +115,7 @@ export const CreateDataStructure = () => {
       } else if (location.state?.structure && location.state?.isEdit) {
         // Handle navigation from list page with structure data
         const structure = location.state.structure;
-        console.log('[CreateDataStructure] Loading structure from navigation state:', structure);
+        logger.info(LogCategory.SYSTEM, '[CreateDataStructure] Loading structure from navigation state:', { data: structure })
         
         setIsEditMode(true);
         setEditingStructureId(structure.id);
@@ -385,7 +386,7 @@ export const CreateDataStructure = () => {
     </div>
   );
   } catch (error) {
-    console.error('Error rendering DataStructures component:', error);
+    logger.error(LogCategory.ERROR, 'Error rendering DataStructures component:', error)
     return (
       <div className="p-6 space-y-6">
         <div className="text-center">

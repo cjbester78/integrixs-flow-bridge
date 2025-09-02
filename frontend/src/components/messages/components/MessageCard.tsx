@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { getStatusIcon, getLogLevelIcon } from './MessageIcons';
 import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface MessageCardProps {
   message: Message;
@@ -19,20 +20,11 @@ export const MessageCard = ({ message }: MessageCardProps) => {
   const { toast } = useToast();
 
   // Debug logging to identify React error source
-  console.log('[MessageCard] Rendering message:', {
-    id: message.id,
-    timestamp: message.timestamp,
-    timestampType: typeof message.timestamp,
-    logs: message.logs,
-    logsType: typeof message.logs,
-    logsIsArray: Array.isArray(message.logs),
-    firstLog: message.logs && message.logs[0] ? {
-      log: message.logs[0],
-      timestampType: typeof message.logs[0].timestamp,
-      levelType: typeof message.logs[0].level,
-      messageType: typeof message.logs[0].message
-    } : null
-  });
+  logger.debug(LogCategory.UI, '[MessageCard] Rendering message', {
+    messageId: message.id,
+    hasLogs: !!message.logs,
+    logsCount: message.logs?.length || 0
+  })
 
   const handleReprocess = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent expanding/collapsing
@@ -100,7 +92,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                             }
                             return JSON.stringify(message.timestamp);
                           } catch (e) {
-                            console.error('Error formatting timestamp:', message.timestamp, e);
+                            logger.error(LogCategory.UI, 'Error formatting timestamp:', message.timestamp, e)
                             return 'Invalid timestamp';
                           }
                         }
@@ -145,7 +137,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {message.logs && message.logs.length > 0 ? (
                   message.logs.map((log, index) => {
-                    console.log('[MessageCard] Rendering log:', index, log);
+                    logger.debug(LogCategory.UI, '[MessageCard] Rendering log', { index, logLevel: log.level })
                     return (
                       <div key={index} className="flex items-start gap-3 text-xs">
                         {getLogLevelIcon(log.level)}
@@ -170,7 +162,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
                             }
                             return 'Invalid timestamp';
                           } catch (e) {
-                            console.error('Error formatting log timestamp:', log.timestamp, e);
+                            logger.error(LogCategory.UI, 'Error formatting log timestamp:', log.timestamp, e)
                             return 'Invalid timestamp';
                           }
                         })()}

@@ -1,5 +1,6 @@
 import { api } from '@/services/api';
 import { FieldNode } from '@/components/fieldMapping/types';
+import { logger, LogCategory } from '@/lib/logger';
 
 export interface XmlConversionConfig {
   rootElementName?: string;
@@ -35,15 +36,15 @@ export async function convertStructureToXml(
     );
     
     // Log the XML for debugging
-    console.log('Received XML conversion result:', {
+    logger.info(LogCategory.SYSTEM, 'Log output', { data: 'Received XML conversion result:', {
       structureId: response.data?.structureId,
       structureName: response.data?.structureName,
       xmlContent: response.data?.xmlContent
-    });
+    } })
     
     return response.data;
   } catch (error: any) {
-    console.error('XML conversion error for structure:', structureId, error.response?.data);
+    logger.error(LogCategory.ERROR, 'XML conversion error for structure:', structureId, error.response?.data)
     throw error;
   }
 }
@@ -56,14 +57,14 @@ export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
   const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
   
   // Debug logging to check XML structure
-  console.log('Parsing XML content:', xmlContent);
+  logger.info(LogCategory.SYSTEM, 'Parsing XML content:', { data: xmlContent })
   
   // Check for parsing errors
   const parserError = xmlDoc.querySelector('parsererror');
   if (parserError) {
     // Log the problematic XML content for debugging
     const lines = xmlContent.split('\n');
-    console.error('XML parsing error details:', {
+    logger.error(LogCategory.ERROR, 'Error occurred', 'XML parsing error details:', {
       errorText: parserError.textContent,
       lineCount: lines.length,
       problematicLines: lines.map((line, idx) => ({
@@ -74,14 +75,14 @@ export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
     });
     
     // Also log the full line 17 and 18 without truncation
-    console.error('Full line 17:', lines[16]);
-    console.error('Full line 18:', lines[17]);
+    logger.error(LogCategory.ERROR, 'Full line 17:', lines[16])
+    logger.error(LogCategory.ERROR, 'Full line 18:', lines[17])
     
     // Log specific character codes around column 14 of line 18
     if (lines[17]) {
-      console.error('Line 18 character analysis around column 14:');
+      logger.error(LogCategory.ERROR, 'Line 18 character analysis around column 14:')
       for (let i = 10; i < 20 && i < lines[17].length; i++) {
-        console.error(`  Position ${i}: '${lines[17][i]}' (char code: ${lines[17].charCodeAt(i)})`);
+        logger.error(LogCategory.ERROR, 'Error occurred', `  Position ${i}: '${lines[17][i]}' (char code: ${lines[17].charCodeAt(i)})`)
       }
     }
     
@@ -141,11 +142,11 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
   }
   
   // Then process them in document order
-  console.log('Processing children in order for node:', xmlNode.tagName);
+  logger.info(LogCategory.SYSTEM, 'Processing children in order for node:', { data: xmlNode.tagName })
   for (let i = 0; i < xmlNode.children.length; i++) {
     const child = xmlNode.children[i] as Element;
     const tagName = child.tagName;
-    console.log(`  Child ${i}: ${tagName}`);
+    logger.info(LogCategory.SYSTEM, `  Child ${i}: ${tagName}`)
     
     // Skip if we've already processed this tag
     if (processedTags.has(tagName)) {

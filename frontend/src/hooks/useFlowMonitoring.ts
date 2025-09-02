@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { flowMonitoringService, FlowExecution, FlowMonitoringStats, FlowFilters } from '@/services/flowMonitoringService';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const useFlowMonitoring = (businessComponentId?: string) => {
   const [executions, setExecutions] = useState<FlowExecution[]>([]);
@@ -34,7 +35,7 @@ export const useFlowMonitoring = (businessComponentId?: string) => {
         setStats(response.data);
       }
     } catch (error) {
-      console.error('Failed to load execution stats:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load execution stats:', error)
     }
   }, []);
 

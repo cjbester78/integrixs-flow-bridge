@@ -14,6 +14,7 @@ import { NotificationDisplay } from "@/components/notification-display";
 import { useUIStore } from "@/stores/ui-store";
 import { useEffect, useState } from "react";
 import { setupAxiosInterceptors } from "@/lib/axios-interceptors";
+import { logger, LogCategory } from '@/lib/logger';
 
 // Lazy load heavy pages
 const Dashboard = lazy(() => import("@/pages/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -71,10 +72,10 @@ const App = () => {
       setupAxiosInterceptors();
     }, 100);
     
-    console.log('Application initialized', {
+    logger.info(LogCategory.SYSTEM, 'Application initialized', {
       version: import.meta.env.VITE_APP_VERSION || '1.0.0',
       environment: import.meta.env.MODE
-    });
+    })
     
     return () => clearTimeout(timer);
   }, []);

@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToast } from '@/hooks/use-toast';
 import { Pencil, Trash2, Plus, Network, Shield, FolderOpen, MessageSquare, Database, Globe, Mail, FileText, Cpu, Activity, Cloud, Inbox, Download, HardDrive, Zap } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface AdapterType {
   id: number;
@@ -94,7 +95,7 @@ export const AdapterTypesManagement = () => {
       }
     } catch (error) {
       // For now, just set empty array and don't show error for missing data
-      console.log('API not available yet, starting with empty data:', error);
+      logger.info(LogCategory.UI, 'API not available yet, starting with empty data:', { data: error })
       setAdapterTypes([]);
     } finally {
       setLoading(false);
@@ -142,7 +143,7 @@ export const AdapterTypesManagement = () => {
         description: `Failed to ${editingType ? 'update' : 'create'} adapter type`,
         variant: "destructive"
       });
-      console.error('Error saving adapter type:', error);
+      logger.error(LogCategory.UI, 'Error saving adapter type:', error)
     }
   };
 
@@ -187,7 +188,7 @@ export const AdapterTypesManagement = () => {
         description: "Failed to delete adapter type",
         variant: "destructive"
       });
-      console.error('Error deleting adapter type:', error);
+      logger.error(LogCategory.UI, 'Error deleting adapter type:', error)
     }
   };
 

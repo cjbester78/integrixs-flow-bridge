@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { AdapterLog, LogLevel } from '@/services/adapterMonitoringService';
 import { formatDistanceToNow } from 'date-fns';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface AdapterLogViewerProps {
   adapterId: string;
@@ -46,10 +47,10 @@ export const AdapterLogViewer = ({
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
   const [filteredLogs, setFilteredLogs] = useState<AdapterLog[]>([]);
   
-  console.log('[AdapterLogViewer] Props:', { adapterId: _adapterId, adapterName: _adapterName, logs, loading });
+  logger.info(LogCategory.UI, '[AdapterLogViewer] Props:', { data: { adapterId: _adapterId, adapterName: _adapterName, logs, loading } })
 
   useEffect(() => {
-    console.log('[AdapterLogViewer] Effect running - logs:', logs, 'searchTerm:', searchTerm, 'levelFilter:', levelFilter);
+    logger.info(LogCategory.UI, '[AdapterLogViewer] Effect running - logs:', { data: logs, 'searchTerm:', searchTerm, 'levelFilter:', levelFilter })
     let filtered = logs;
 
     // Filter by search term
@@ -66,7 +67,7 @@ export const AdapterLogViewer = ({
       filtered = filtered.filter(log => log.level === levelFilter);
     }
 
-    console.log('[AdapterLogViewer] Filtered logs:', filtered);
+    logger.info(LogCategory.UI, '[AdapterLogViewer] Filtered logs:', { data: filtered })
     setFilteredLogs(filtered);
   }, [logs, searchTerm, levelFilter]);
 

@@ -18,7 +18,7 @@ import {
 import { NavLink } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, logger, LogCategory } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';
 
@@ -120,7 +120,7 @@ export const Sidebar = () => {
   const filteredNavigation = useMemo(() => {
     // Ensure navigation is an array before filtering
     if (!Array.isArray(navigation)) {
-      console.error('Navigation is not an array:', navigation);
+      logger.error(LogCategory.UI, 'Navigation is not an array:', navigation)
       return [];
     }
     
@@ -148,7 +148,7 @@ export const Sidebar = () => {
         return true;
       });
     } catch (error) {
-      console.error('Error filtering navigation:', error);
+      logger.error(LogCategory.UI, 'Error filtering navigation:', error)
       return [];
     }
   }, [user, isDevelopment, permissions]);

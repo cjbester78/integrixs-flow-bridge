@@ -1,5 +1,5 @@
 import { SystemLogEntry } from '@/hooks/useSystemLogs';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 
 class SystemErrorLogger {
   private listeners: ((log: SystemLogEntry) => void)[] = [];
@@ -98,7 +98,7 @@ class SystemErrorLogger {
       
       await apiClient.post('/system/logs/batch', batchRequest);
     } catch (error) {
-      console.error('Failed to send log to backend:', error);
+      logger.error(LogCategory.API, 'Failed to send log to backend:', error)
     }
   }
 
@@ -107,7 +107,7 @@ class SystemErrorLogger {
       const response = await apiClient.get<SystemLogEntry[]>('/system-logs');
       return response.data || [];
     } catch (error) {
-      console.error('Failed to fetch logs from backend:', error);
+      logger.error(LogCategory.API, 'Failed to fetch logs from backend:', error)
       return [];
     }
   }
@@ -129,7 +129,7 @@ class SystemErrorLogger {
       const response = await apiClient.get<SystemLogEntry[]>(`/system-logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
       return response.data || [];
     } catch (error) {
-      console.error('Failed to fetch filtered logs from backend:', error);
+      logger.error(LogCategory.API, 'Failed to fetch filtered logs from backend:', error)
       return [];
     }
   }

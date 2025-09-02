@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { userService, CreateUserRequest } from '@/services/userService';
 import { Loader2 } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -32,7 +33,7 @@ export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUs
     setIsLoading(true);
 
     try {
-      console.log('Creating user with data:', formData);
+      logger.info(LogCategory.UI, 'Creating user with data:', { data: formData })
       const response = await userService.createUser(formData);
       
       if (response.success) {
@@ -62,7 +63,7 @@ export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUs
         });
       }
     } catch (error: any) {
-      console.error('User creation error:', error);
+      logger.error(LogCategory.UI, 'User creation error:', error)
       toast({
         title: "Error Creating User",
         description: error.message || "An unexpected error occurred.",

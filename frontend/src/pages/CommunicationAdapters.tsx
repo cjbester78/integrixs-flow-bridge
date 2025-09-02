@@ -56,6 +56,7 @@ import { api } from '@/services/api';
 import { adapterService } from '@/services/adapter';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface CommunicationAdapter {
   id: string;
@@ -115,17 +116,17 @@ export default function CommunicationAdapters() {
   const fetchAdapters = async () => {
     try {
       setLoading(true);
-      console.log('Fetching adapters...');
+      logger.info(LogCategory.SYSTEM, 'Fetching adapters...')
       const response = await api.get('/adapters');
-      console.log('Adapters response:', response);
+      logger.info(LogCategory.SYSTEM, 'Adapters response:', { data: response })
       if (response.success && response.data) {
         setAdapters(Array.isArray(response.data) ? response.data : []);
       } else {
-        console.warn('No adapter data in response');
+        logger.warn(LogCategory.SYSTEM, 'No adapter data in response')
         setAdapters([]);
       }
     } catch (error) {
-      console.error('Error fetching adapters:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching adapters:', error)
       toast({ title: "Error", description: 'Failed to load communication adapters', variant: "destructive" });
       setAdapters([]);
     } finally {
@@ -135,16 +136,16 @@ export default function CommunicationAdapters() {
 
   const fetchBusinessComponents = async () => {
     try {
-      console.log('Fetching business components...');
+      logger.info(LogCategory.SYSTEM, 'Fetching business components...')
       const response = await api.get('/business-components');
-      console.log('Business components response:', response);
+      logger.info(LogCategory.SYSTEM, 'Business components response:', { data: response })
       if (response.success && response.data) {
         setBusinessComponents(Array.isArray(response.data) ? response.data : []);
       } else {
         setBusinessComponents([]);
       }
     } catch (error) {
-      console.error('Error fetching business components:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching business components:', error)
       setBusinessComponents([]);
     }
   };

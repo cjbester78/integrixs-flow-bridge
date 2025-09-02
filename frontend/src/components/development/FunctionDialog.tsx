@@ -27,6 +27,7 @@ import { Loader2, Info } from 'lucide-react';
 import { parseFunctionSignature, inferParameterTypes, FunctionParameter } from '@/utils/functionSignatureParser';
 import { ParameterEditor } from './ParameterEditor';
 import { FunctionTestPanel } from './FunctionTestPanel';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface FunctionDialogProps {
   open: boolean;
@@ -97,7 +98,7 @@ export function FunctionDialog({
           setFunctionParameters(params);
           setParsedParameters(params);
         } catch (e) {
-          console.error('Failed to parse parameters:', e);
+          logger.error(LogCategory.UI, 'Failed to parse parameters:', e)
           // Fallback to parsing from signature
           if (functionData.functionSignature) {
             const parsed = parseFunctionSignature(functionData.functionSignature);
@@ -165,7 +166,7 @@ export function FunctionDialog({
       await onSave(dataToSave);
       onOpenChange(false);
     } catch (error) {
-      console.error('Failed to save:', error);
+      logger.error(LogCategory.UI, 'Failed to save:', error)
     } finally {
       setIsSaving(false);
     }

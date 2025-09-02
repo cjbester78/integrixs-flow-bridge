@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adapterService, CommunicationAdapter } from '@/services/adapter';
 import { api } from '@/services/api';
 import { systemErrorLogger } from '@/services/systemErrorLogger';
+import { logger, LogCategory } from '@/lib/logger';
 
 export interface SystemLogEntry {
   id: string;
@@ -49,7 +50,7 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
         flows: [] // Add flows API when available
       });
     } catch (err) {
-      console.error('Failed to fetch sources:', err);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to fetch sources:', err)
     }
   };
 

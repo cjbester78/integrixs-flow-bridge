@@ -1,5 +1,6 @@
 // Base API configuration and utilities
 import { systemErrorLogger } from './systemErrorLogger';
+import { logger, LogCategory } from '@/lib/logger';
 
 // Use the backend IP address
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -59,7 +60,7 @@ async function refreshAuthToken(): Promise<boolean> {
       return true;
     }
   } catch (error) {
-    console.warn('Token refresh failed:', error);
+    logger.warn(LogCategory.API, 'Token refresh failed:', { data: error })
   }
 
   removeTokens();
@@ -89,11 +90,11 @@ export async function apiRequest<T = any>(
   };
 
   try {
-    console.log('[API] Making request:', {
+    logger.info(LogCategory.API, 'Log output', { data: '[API] Making request:', {
       method: requestOptions.method || 'GET',
       url,
       body: requestOptions.body ? JSON.parse(requestOptions.body as string) : undefined
-    });
+    } })
     
     let response = await fetch(url, requestOptions);
 
@@ -131,7 +132,7 @@ export async function apiRequest<T = any>(
         data
       };
       
-      console.log('[API] Error response from backend:', errorDetails);
+      logger.info(LogCategory.API, '[API] Error response from backend:', { data: errorDetails })
       
       // Also log to system logs
       systemErrorLogger.logError(
@@ -177,7 +178,7 @@ export async function apiRequest<T = any>(
 
     // If we got HTML when expecting JSON, it's likely an error page
     if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
-      console.warn(`API endpoint ${endpoint} returned HTML instead of JSON`);
+      logger.warn(LogCategory.API, `API endpoint ${endpoint} returned HTML instead of JSON`)
       return {
         success: false,
         error: 'API endpoint returned HTML instead of JSON',

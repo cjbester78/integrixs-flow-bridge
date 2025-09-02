@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { messageService, Message, MessageStats, MessageFilters } from '@/services/messageService';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const useMessageMonitoring = (businessComponentId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -18,12 +19,12 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
         : await messageService.getMessages(filters);
         
       if (response.success && response.data) {
-        console.log('[useMessageMonitoring] Messages data:', response.data.messages);
+        logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] Messages data:', { data: response.data.messages })
         // Check first message for debugging
         if (response.data.messages && response.data.messages.length > 0) {
-          console.log('[useMessageMonitoring] First message:', response.data.messages[0]);
-          console.log('[useMessageMonitoring] First message timestamp:', response.data.messages[0].timestamp);
-          console.log('[useMessageMonitoring] Timestamp type:', typeof response.data.messages[0].timestamp);
+          logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] First message:', { data: response.data.messages[0] })
+          logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] First message timestamp:', { data: response.data.messages[0].timestamp })
+          logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] Timestamp type:', { data: typeof response.data.messages[0].timestamp })
         }
         setMessages(response.data.messages || []);
       } else {
@@ -53,7 +54,7 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
         setStats(response.data);
       }
     } catch (error) {
-      console.error('Failed to load message stats:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load message stats:', error)
     }
   }, [businessComponentId]);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { webserviceService, WebserviceFile } from '@/services/webserviceService';
 import { FieldNode } from '@/components/fieldMapping/types';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const useWebservices = (businessComponentId?: string) => {
   const [webservices, setWebservices] = useState<WebserviceFile[]>([]);
@@ -39,7 +40,7 @@ export const useWebservices = (businessComponentId?: string) => {
       }
       return null;
     } catch (err) {
-      console.error('Failed to load webservice structure:', err);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load webservice structure:', err)
       return null;
     }
   };

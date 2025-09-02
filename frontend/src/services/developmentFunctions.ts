@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 
 export interface FunctionParameter {
   name: string;
@@ -88,7 +88,7 @@ class DevelopmentFunctionsService {
 
       return transformedFunctions;
     } catch (error) {
-      console.error('Failed to fetch functions from API:', error);
+      logger.error(LogCategory.API, 'Failed to fetch functions from API:', error)
       // Return empty array on error
       return [];
     }
@@ -103,14 +103,14 @@ class DevelopmentFunctionsService {
         try {
           response.parameters = JSON.parse(response.parameters);
         } catch (e) {
-          console.error('Failed to parse parameters:', e);
+          logger.error(LogCategory.API, 'Failed to parse parameters:', e)
           response.parameters = [];
         }
       }
       
       return response;
     } catch (error) {
-      console.error('Failed to fetch function by name:', error);
+      logger.error(LogCategory.API, 'Failed to fetch function by name:', error)
       return null;
     }
   }

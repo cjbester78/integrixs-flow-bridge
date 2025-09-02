@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import type { IntegrationFlow } from '@/types/flow';
 
 const API_PREFIX = '/flows';
@@ -36,7 +36,7 @@ export const integrationFlowService = {
       const response = await apiClient.get<PaginatedResponse<IntegrationFlow>>(API_PREFIX);
       return { success: true, data: response };
     } catch (error) {
-      console.error('Error fetching flows:', error);
+      logger.error(LogCategory.API, 'Error fetching flows:', error)
       return { success: false, message: 'Failed to fetch flows' };
     }
   },
@@ -46,7 +46,7 @@ export const integrationFlowService = {
       const response = await apiClient.post<IntegrationFlow>(API_PREFIX, data);
       return { success: true, data: response };
     } catch (error) {
-      console.error('Error creating flow:', error);
+      logger.error(LogCategory.API, 'Error creating flow:', error)
       return { success: false, message: 'Failed to create flow' };
     }
   },

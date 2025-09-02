@@ -39,7 +39,7 @@ export const EnvironmentConfiguration = () => {
         toast({ title: "Error", description: 'Failed to load environment configuration', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error fetching environment configuration:', error);
+      logger.error(LogCategory.UI, 'Error fetching environment configuration:', error)
       toast({ title: "Error", description: 'Error loading environment configuration', variant: "destructive" });
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ export const EnvironmentConfiguration = () => {
       }, 1500);
       
     } catch (error) {
-      console.error('Error saving environment configuration:', error);
+      logger.error(LogCategory.UI, 'Error saving environment configuration:', error)
       toast({ title: "Error", description: 'Error saving environment configuration', variant: "destructive" });
     } finally {
       setIsSaving(false);
@@ -245,6 +245,7 @@ export const EnvironmentConfiguration = () => {
             </div>
             <div>
               <strong>Production:</strong> Limited to adapter configuration, import/export, and deployment
+import { logger, LogCategory } from '@/lib/logger';
             </div>
           </AlertDescription>
         </Alert>

@@ -22,6 +22,7 @@ import { TransformationNode } from './nodes/TransformationNode';
 import { RoutingNode } from './nodes/RoutingNode';
 import { OrchestrationNodePalette } from './OrchestrationNodePalette';
 import { OrchestrationPropertiesPanel } from './OrchestrationPropertiesPanel';
+import { logger, LogCategory } from '@/lib/logger';
 
 // Define comprehensive node types for all BPMN 2.0 orchestration components
 const nodeTypes = {
@@ -208,7 +209,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
-    console.log('[VisualOrchestrationEditor] Node clicked:', { nodeId: node.id, nodeType: node.type });
+    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node clicked:', { data: { nodeId: node.id, nodeType: node.type } })
     setSelectedNode(node);
     setNodeWithDeleteButton(node.id);
     // Hide delete button after 3 seconds
@@ -217,7 +218,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
 
   // Function to add a new node based on type and category
   const addNode = useCallback((type: string, category: string) => {
-    console.log('[VisualOrchestrationEditor] Adding new node:', { type, category });
+    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Adding new node:', { data: { type, category } })
     
     const nodeId = `${type}-${Date.now()}`;
     const newNode: Node = {
@@ -234,7 +235,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
         configured: false,
         showDeleteButton: false,
         onConfigChange: (config: any) => {
-          console.log('[VisualOrchestrationEditor] Node config changed:', { nodeId, config });
+          logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node config changed:', { data: { nodeId, config } })
           setNodes((nds) =>
             nds.map((node) => (node.id === nodeId ? { ...node, data: { ...node.data, ...config, configured: true } } : node))
           );
@@ -242,10 +243,10 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
       },
     };
     
-    console.log('[VisualOrchestrationEditor] Created new node:', newNode);
+    logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Created new node:', { data: newNode })
     setNodes((nds) => {
       const updatedNodes = nds.concat(newNode);
-      console.log('[VisualOrchestrationEditor] Updated nodes list:', updatedNodes);
+      logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Updated nodes list:', { data: updatedNodes })
       return updatedNodes;
     });
   }, [setNodes]);

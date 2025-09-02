@@ -21,6 +21,7 @@ import { api } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { parseWsdlStructure } from '@/utils/structureParsers';
+import { logger, LogCategory } from '@/lib/logger';
 
 // Adapter icon mapping
 const getAdapterIcon = (type: string) => {
@@ -55,9 +56,9 @@ export function CreateDirectMappingFlow() {
   const [skipXmlConversion, setSkipXmlConversion] = useState(false);
   
   // Log initial states
-  console.log('=== INITIAL TOGGLE STATES ===');
-  console.log('Initial mappingRequired:', true);
-  console.log('Initial skipXmlConversion:', false);
+  logger.info(LogCategory.SYSTEM, '=== INITIAL TOGGLE STATES ===')
+  logger.info(LogCategory.SYSTEM, 'Initial mappingRequired:', { data: true })
+  logger.info(LogCategory.SYSTEM, 'Initial skipXmlConversion:', { data: false })
   const [fieldMappings, setFieldMappings] = useState<any[]>([]);
   const [isAsynchronous, setIsAsynchronous] = useState(true); // Default to async
   const [additionalMappings, setAdditionalMappings] = useState<any[]>([]);
@@ -99,7 +100,7 @@ export function CreateDirectMappingFlow() {
   
   // Debug business components state
   useEffect(() => {
-    console.log('Business components state updated:', businessComponents);
+    logger.info(LogCategory.SYSTEM, 'Business components state updated:', { data: businessComponents })
   }, [businessComponents]);
 
   // No longer needed - handled by the onChange handlers
@@ -131,13 +132,13 @@ export function CreateDirectMappingFlow() {
         
         // Get the actual structure content
         const response = await api.get(`/structures/${structureId}`);
-        console.log('Structure response:', response.data); // Debug log
+        logger.info(LogCategory.SYSTEM, 'Log output', { data: 'Structure response:', response.data); // Debug log
         
         if (response.data) {
           // Try to find WSDL content in various places
           let wsdlContent = null;
           
-          // Check if structure is a string (raw WSDL)
+          // Check if structure is a string (raw WSDL })
           if (typeof response.data.structure === 'string' && response.data.structure.includes('wsdl:')) {
             wsdlContent = response.data.structure;
           } 
@@ -328,7 +329,7 @@ export function CreateDirectMappingFlow() {
           }
         }
       } catch (error) {
-        console.error('Error analyzing WSDL structure:', error);
+        logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure:', error)
       }
     };
     
@@ -343,12 +344,12 @@ export function CreateDirectMappingFlow() {
   
   // Debug state changes
   useEffect(() => {
-    console.log('State updated - additionalMappings:', additionalMappings);
+    logger.info(LogCategory.SYSTEM, 'State updated - additionalMappings:', { data: additionalMappings })
     additionalMappings.forEach((mapping, index) => {
-      console.log(`  Mapping ${index}: messageType=${mapping.messageType}, fieldMappings.length=${mapping.fieldMappings?.length || 0}`);
+      logger.info(LogCategory.SYSTEM, `  Mapping ${index}: messageType=${mapping.messageType}, fieldMappings.length=${mapping.fieldMappings?.length || 0}`)
     });
-    console.log('State updated - isAsynchronous:', isAsynchronous);
-    console.log('State updated - mappingRequired:', mappingRequired);
+    logger.info(LogCategory.SYSTEM, 'State updated - isAsynchronous:', { data: isAsynchronous })
+    logger.info(LogCategory.SYSTEM, 'State updated - mappingRequired:', { data: mappingRequired })
   }, [additionalMappings, isAsynchronous, mappingRequired]);
   
   const loadComponentData = async () => {
@@ -357,13 +358,13 @@ export function CreateDirectMappingFlow() {
       
       // Load business components
       const businessResult = await businessComponentService.getAllBusinessComponents();
-      console.log('Business components result:', businessResult);
+      logger.info(LogCategory.SYSTEM, 'Business components result:', { data: businessResult })
       if (businessResult.success && businessResult.data) {
         setBusinessComponents(businessResult.data);
-        console.log('Set business components:', businessResult.data);
+        logger.info(LogCategory.SYSTEM, 'Set business components:', { data: businessResult.data })
       } else {
-        console.error('Failed to load business components:', businessResult.error);
-        console.error('Business result full object:', businessResult);
+        logger.error(LogCategory.ERROR, 'Failed to load business components:', businessResult.error)
+        logger.error(LogCategory.ERROR, 'Business result full object:', businessResult)
       }
       
       // Load adapters
@@ -373,7 +374,7 @@ export function CreateDirectMappingFlow() {
           setAdapters(adaptersResponse.data);
         }
       } catch (error) {
-        console.warn('Could not load adapters:', error);
+        logger.warn(LogCategory.SYSTEM, 'Could not load adapters:', { data: error })
         setAdapters([]);
       }
       
@@ -388,12 +389,12 @@ export function CreateDirectMappingFlow() {
           setDataStructures(structures);
         }
       } catch (error) {
-        console.warn('Could not load data structures:', error);
+        logger.warn(LogCategory.SYSTEM, 'Could not load data structures:', { data: error })
         setDataStructures([]);
       }
       
     } catch (error) {
-      console.error('Error loading component data:', error);
+      logger.error(LogCategory.ERROR, 'Error loading component data:', error)
       toast({
         title: "Error",
         description: "Failed to load component data. Some features may not work properly.",
@@ -431,18 +432,18 @@ export function CreateDirectMappingFlow() {
         try {
           if (flowData.configuration) {
             const config = JSON.parse(flowData.configuration);
-            console.log('Flow configuration:', config);
+            logger.info(LogCategory.SYSTEM, 'Flow configuration:', { data: config })
             if (config.sourceBusinessComponentId) {
-              console.log('Setting source business component from config:', config.sourceBusinessComponentId);
+              logger.info(LogCategory.SYSTEM, 'Setting source business component from config:', { data: config.sourceBusinessComponentId })
               setSourceBusinessComponent(config.sourceBusinessComponentId);
             }
             if (config.targetBusinessComponentId) {
-              console.log('Setting target business component from config:', config.targetBusinessComponentId);
+              logger.info(LogCategory.SYSTEM, 'Setting target business component from config:', { data: config.targetBusinessComponentId })
               setTargetBusinessComponent(config.targetBusinessComponentId);
             }
           }
         } catch (e) {
-          console.error('Error parsing flow configuration:', e);
+          logger.error(LogCategory.ERROR, 'Error parsing flow configuration:', e)
         }
         
         // Set adapters
@@ -467,13 +468,13 @@ export function CreateDirectMappingFlow() {
           // For pass-through mode: no mapping required, skip XML conversion
           setMappingRequired(false);
           setSkipXmlConversion(true);
-          console.log('Loading PASS_THROUGH flow: mappingRequired=false, skipXmlConversion=true');
+          logger.info(LogCategory.SYSTEM, 'Loading PASS_THROUGH flow: mappingRequired=false, skipXmlConversion=true')
         } else if (flowData.mappingMode === 'WITH_MAPPING') {
           setIsAsynchronous(false);
           // For mapping mode: mapping required, don't skip XML conversion
           setMappingRequired(true);
           setSkipXmlConversion(false);
-          console.log('Loading WITH_MAPPING flow: mappingRequired=true, skipXmlConversion=false');
+          logger.info(LogCategory.SYSTEM, 'Loading WITH_MAPPING flow: mappingRequired=true, skipXmlConversion=false')
         } else {
           // Default case
           setIsAsynchronous(false);
@@ -503,7 +504,7 @@ export function CreateDirectMappingFlow() {
                   let config: any = {};
                   try {
                     config = JSON.parse(transformation.configuration || '{}');
-                    console.log('Transformation config:', config);
+                    logger.info(LogCategory.SYSTEM, 'Transformation config:', { data: config })
                     
                     // Use mappingType from config if available
                     if (config.mappingType) {
@@ -519,14 +520,14 @@ export function CreateDirectMappingFlow() {
                       }
                     }
                   } catch (e) {
-                    console.error('Error parsing transformation config:', e);
+                    logger.error(LogCategory.ERROR, 'Error parsing transformation config:', e)
                     // Default fallback
                     messageType = i === 0 ? 'request' : i === 1 ? 'response' : 'fault';
                   }
                   
                   // Use the transformation name directly
                   let mappingName = transformation.name || '';
-                  console.log(`Transformation ${i}: name="${transformation.name}", executionOrder=${transformation.executionOrder}, messageType: ${messageType}`);
+                  logger.info(LogCategory.SYSTEM, `Transformation ${i}: name="${transformation.name}", executionOrder=${transformation.executionOrder}, messageType: ${messageType}`)
                   
                   // Parse sourceFields from JSON string to array for each mapping
                   const parsedMappings = mappingsResponse.data.map((mapping: any) => {
@@ -545,7 +546,7 @@ export function CreateDirectMappingFlow() {
                             ? JSON.parse(mapping.visualFlowData)
                             : mapping.visualFlowData;
                         } catch (e) {
-                          console.error('Error parsing visualFlowData:', e);
+                          logger.error(LogCategory.ERROR, 'Error parsing visualFlowData:', e)
                         }
                       }
                       
@@ -556,13 +557,13 @@ export function CreateDirectMappingFlow() {
                             ? JSON.parse(mapping.functionNode)
                             : mapping.functionNode;
                         } catch (e) {
-                          console.error('Error parsing functionNode:', e);
+                          logger.error(LogCategory.ERROR, 'Error parsing functionNode:', e)
                         }
                       }
                       
                       return parsedMapping;
                     } catch (e) {
-                      console.error('Error parsing sourceFields for mapping:', mapping, e);
+                      logger.error(LogCategory.ERROR, 'Error parsing sourceFields for mapping:', mapping, e)
                       return {
                         ...mapping,
                         sourceFields: []
@@ -594,11 +595,11 @@ export function CreateDirectMappingFlow() {
           
           // Debug logging is now handled by useEffect
         } catch (error) {
-          console.error('Error loading transformations and mappings:', error);
+          logger.error(LogCategory.ERROR, 'Error loading transformations and mappings:', error)
         }
       }
     } catch (error) {
-      console.error('Error loading flow data:', error);
+      logger.error(LogCategory.ERROR, 'Error loading flow data:', error)
       toast({
         title: "Error",
         description: "Failed to load flow data for editing.",
@@ -818,11 +819,11 @@ export function CreateDirectMappingFlow() {
       };
 
       // Log the request payload for debugging
-      console.log('=== FLOW SAVE DEBUG ===');
-      console.log('mappingRequired state:', mappingRequired);
-      console.log('skipXmlConversion state:', skipXmlConversion);
-      console.log('Calculated mappingMode:', mappingRequired ? 'WITH_MAPPING' : 'PASS_THROUGH');
-      console.log('Full flow request:', JSON.stringify(flowRequest, null, 2));
+      logger.info(LogCategory.SYSTEM, '=== FLOW SAVE DEBUG ===')
+      logger.info(LogCategory.SYSTEM, 'mappingRequired state:', { data: mappingRequired })
+      logger.info(LogCategory.SYSTEM, 'skipXmlConversion state:', { data: skipXmlConversion })
+      logger.info(LogCategory.SYSTEM, 'Calculated mappingMode:', { data: mappingRequired ? 'WITH_MAPPING' : 'PASS_THROUGH' })
+      logger.info(LogCategory.SYSTEM, 'Full flow request:', { data: JSON.stringify(flowRequest, null, 2) })
       
       // Save the complete flow using the flow composition API
       const response = await api.post('/flow-composition/direct-mapping', flowRequest);
@@ -836,14 +837,14 @@ export function CreateDirectMappingFlow() {
       }
       
     } catch (error: any) {
-      console.error('Error saving flow:', error);
-      console.error('Error response:', error.response);
+      logger.error(LogCategory.ERROR, 'Error saving flow:', error)
+      logger.error(LogCategory.ERROR, 'Error response:', error.response)
       
       // Log detailed error information
       if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
-        console.error('Response headers:', error.response.headers);
+        logger.error(LogCategory.ERROR, 'Response status:', error.response.status)
+        logger.error(LogCategory.ERROR, 'Response data:', error.response.data)
+        logger.error(LogCategory.ERROR, 'Response headers:', error.response.headers)
       }
       
       // Extract error message - ApiError already has the message extracted
@@ -911,12 +912,12 @@ export function CreateDirectMappingFlow() {
       setShowFieldMapping(true);
       
     } catch (error: any) {
-      console.error('Error converting structures:', error);
+      logger.error(LogCategory.ERROR, 'Error converting structures:', error)
       const errorDetails = error.response?.data?.details || 
                           error.response?.data?.error || 
                           error.message || 
                           "Failed to convert structures to XML";
-      console.error('Error details:', error.response?.data);
+      logger.error(LogCategory.ERROR, 'Error details:', error.response?.data)
       toast({
         title: "Conversion Failed",
         description: errorDetails,
@@ -1263,11 +1264,11 @@ export function CreateDirectMappingFlow() {
                     id="mapping-required"
                     checked={mappingRequired}
                     onCheckedChange={(checked) => {
-                      console.log('Mapping Required toggle changed to:', checked);
+                      logger.info(LogCategory.SYSTEM, 'Mapping Required toggle changed to:', { data: checked })
                       setMappingRequired(checked);
                       // These are mutually exclusive
                       setSkipXmlConversion(!checked);
-                      console.log('Skip XML Conversion automatically set to:', !checked);
+                      logger.info(LogCategory.SYSTEM, 'Skip XML Conversion automatically set to:', { data: !checked })
                     }}
                   />
                 </div>
@@ -1284,11 +1285,11 @@ export function CreateDirectMappingFlow() {
                     id="skip-xml-conversion"
                     checked={skipXmlConversion}
                     onCheckedChange={(checked) => {
-                      console.log('Direct File Passthrough toggle changed to:', checked);
+                      logger.info(LogCategory.SYSTEM, 'Direct File Passthrough toggle changed to:', { data: checked })
                       setSkipXmlConversion(checked);
                       // These are mutually exclusive
                       setMappingRequired(!checked);
-                      console.log('Mapping Required automatically set to:', !checked);
+                      logger.info(LogCategory.SYSTEM, 'Mapping Required automatically set to:', { data: !checked })
                     }}
                   />
                 </div>

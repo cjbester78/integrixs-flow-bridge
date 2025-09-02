@@ -11,6 +11,7 @@ import { VisualOrchestrationEditor } from '@/components/orchestration/VisualOrch
 import { businessComponentService } from '@/services/businessComponentService';
 import { api } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 export function CreateOrchestrationFlow() {
   const { navigateBack } = useNavigationHistory();
@@ -71,12 +72,12 @@ export function CreateOrchestrationFlow() {
           setAdapters(adaptersResponse.data);
         }
       } catch (error) {
-        console.warn('Could not load adapters:', error);
+        logger.warn(LogCategory.SYSTEM, 'Could not load adapters:', { data: error })
         setAdapters([]);
       }
       
     } catch (error) {
-      console.error('Error loading component data:', error);
+      logger.error(LogCategory.ERROR, 'Error loading component data:', error)
       toast({
         title: "Error",
         description: "Failed to load component data. Some features may not work properly.",
@@ -125,7 +126,7 @@ export function CreateOrchestrationFlow() {
       }
       
     } catch (error) {
-      console.error('Error saving orchestration flow:', error);
+      logger.error(LogCategory.ERROR, 'Error saving orchestration flow:', error)
       toast({
         title: "Save Failed",
         description: error.response?.data?.message || "Failed to save the orchestration flow. Please try again.",

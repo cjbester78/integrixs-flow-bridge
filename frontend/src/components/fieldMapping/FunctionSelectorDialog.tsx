@@ -12,6 +12,7 @@ import {
   TransformationFunction 
 } from '@/services/transformationFunctions';
 import { developmentFunctionsService, TransformationFunctionWithParams } from '@/services/developmentFunctions';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface FunctionSelectorDialogProps {
   open: boolean;
@@ -37,7 +38,7 @@ export const FunctionSelectorDialog: React.FC<FunctionSelectorDialogProps> = ({
           const functions = await developmentFunctionsService.getAllFunctions();
           setDynamicFunctions(functions);
         } catch (error) {
-          console.error('Failed to load functions:', error);
+          logger.error(LogCategory.UI, 'Failed to load functions:', error)
         } finally {
           setIsLoading(false);
         }

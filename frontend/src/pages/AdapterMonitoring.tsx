@@ -10,6 +10,7 @@ import { useBusinessComponentAdapters } from '@/hooks/useBusinessComponentAdapte
 import { adapterMonitoringService, type AdapterMonitoring } from '@/services/adapterMonitoringService';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 export default function AdapterMonitoring() {
   const [selectedBusinessComponent, setSelectedBusinessComponent] = useState<BusinessComponent | null>(null);
@@ -41,7 +42,7 @@ export default function AdapterMonitoring() {
           });
         }
       } catch (err) {
-        console.error('Error fetching adapters:', err);
+        logger.error(LogCategory.ERROR, 'Error fetching adapters:', err)
         setError('Failed to load adapters');
         toast({
           variant: "destructive",
@@ -83,7 +84,7 @@ export default function AdapterMonitoring() {
         });
       }
     } catch (err) {
-      console.error('Error updating adapter:', err);
+      logger.error(LogCategory.ERROR, 'Error updating adapter:', err)
       toast({
         variant: "destructive",
         title: "Error",
@@ -113,7 +114,7 @@ export default function AdapterMonitoring() {
         });
       }
     } catch (err) {
-      console.error('Error deleting adapter:', err);
+      logger.error(LogCategory.ERROR, 'Error deleting adapter:', err)
       toast({
         variant: "destructive",
         title: "Error",

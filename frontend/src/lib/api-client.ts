@@ -48,6 +48,7 @@ class ApiClient {
   constructor() {
     // Use localhost for development
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+import { logger, LogCategory } from '@/lib/logger';
     
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -68,13 +69,13 @@ class ApiClient {
         // Get token from localStorage (where authService stores it)
         const token = localStorage.getItem('integration_platform_token');
         
-        console.log('API Request - Token present:', !!token);
+        logger.info(LogCategory.API, 'API Request - Token present:', { data: !!token })
         
         if (token && !(config as ApiRequestConfig).skipAuth) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log('API Request - Adding Authorization header');
+          logger.info(LogCategory.API, 'API Request - Adding Authorization header')
         } else {
-          console.log('API Request - No token or skipAuth=true');
+          logger.info(LogCategory.API, 'API Request - No token or skipAuth=true')
         }
         
         // Add correlation ID for tracking
@@ -85,8 +86,8 @@ class ApiClient {
         (window as any).__currentCorrelationId = correlationId;
         
         // Logger removed to avoid circular dependency
-        console.log(`API Call: ${config.method?.toUpperCase() || 'GET'} ${config.url || ''}`);
-        console.log('Request headers:', config.headers);
+        logger.info(LogCategory.API, `API Call: ${config.method?.toUpperCase() || 'GET'} ${config.url || ''}`)
+        logger.info(LogCategory.API, 'Request headers:', { data: config.headers })
         
         return config;
       },
@@ -99,7 +100,7 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => {
         // Logger removed to avoid circular dependency
-        console.log(`API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
+        logger.info(LogCategory.API, `API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`)
         return response;
       },
       async (error: AxiosError<ApiError>) => {
@@ -129,7 +130,7 @@ class ApiClient {
               return this.client(originalRequest);
             } catch (refreshError) {
               // Refresh failed, logout user
-              console.error('Token refresh failed:', refreshError);
+              logger.error(LogCategory.API, 'Token refresh failed:', refreshError)
               localStorage.removeItem('integration_platform_token');
               localStorage.removeItem('integration_platform_refresh_token');
               localStorage.removeItem('integration_platform_user');
@@ -155,7 +156,7 @@ class ApiClient {
 
   private handleError(error: AxiosError<ApiError>): ApiError {
     // Logger removed to avoid circular dependency
-    console.error(`API Error: ${error.config?.method?.toUpperCase() || 'UNKNOWN'} ${error.config?.url || 'unknown'}`, error);
+    logger.error(LogCategory.API, 'Error occurred', `API Error: ${error.config?.method?.toUpperCase() || 'UNKNOWN'} ${error.config?.url || 'unknown'}`, error)
     
     if (error.response?.data) {
       // Special handling for 503 Service Unavailable

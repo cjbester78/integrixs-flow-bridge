@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Settings, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EnvironmentConfiguration } from './EnvironmentConfiguration';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 
 interface SystemSetting {
   id: string;
@@ -42,14 +42,14 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
     try {
       setIsLoading(true);
       const data = await apiClient.get<SystemSetting[]>('/system-settings');
-      console.log('Fetched system settings:', data);
+      logger.info(LogCategory.UI, 'Fetched system settings:', { data: data })
       setSettings(data);
       
       // Extract categories
       const uniqueCategories = [...new Set(data.map((s: SystemSetting) => s.category || 'Uncategorized').filter(Boolean))];
       setCategories(['all', ...uniqueCategories]);
     } catch (error) {
-      console.error('Error fetching system settings:', error);
+      logger.error(LogCategory.UI, 'Error fetching system settings:', error)
       toast({ title: "Error", description: 'Failed to load system settings', variant: "destructive" });
     } finally {
       setIsLoading(false);
@@ -68,7 +68,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
       toast({ title: "Success", description: 'Default settings initialized' });
       fetchSettings();
     } catch (error) {
-      console.error('Error initializing settings:', error);
+      logger.error(LogCategory.UI, 'Error initializing settings:', error)
       toast({ title: "Error", description: 'Error initializing settings', variant: "destructive" });
     }
   };
@@ -98,7 +98,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
       });
       toast({ title: "Success", description: `Setting "${settingKey}" updated successfully` });
     } catch (error) {
-      console.error('Error saving setting:', error);
+      logger.error(LogCategory.UI, 'Error saving setting:', error)
       toast({ title: "Error", description: 'Error saving setting', variant: "destructive" });
     } finally {
       setIsSaving(false);

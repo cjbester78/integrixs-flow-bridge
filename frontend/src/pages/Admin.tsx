@@ -18,6 +18,7 @@ import { certificateService } from '@/services/certificateService';
 import { jarFileService } from '@/services/jarFileService';
 import { externalAuthService } from '@/services/externalAuthService';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 
 export const Admin = () => {
@@ -39,23 +40,23 @@ export const Admin = () => {
     try {
       setIsLoadingUsers(true);
       const response = await userService.getAllUsers();
-      console.log('User fetch response:', response); // Debug log
+      logger.info(LogCategory.SYSTEM, 'Log output', { data: 'User fetch response:', response); // Debug log
       
       if (response.success && response.data) {
         // Handle different possible response structures
         const userData = Array.isArray(response.data) ? response.data : response.data.users;
-        setUsers(userData || []);
+        setUsers(userData || [] })
       } else {
-        console.error('Failed to fetch users:', response.error);
+        logger.error(LogCategory.ERROR, 'Failed to fetch users:', response.error)
         // Show empty list when API fails
-        console.log('API not available, showing empty user list');
+        logger.info(LogCategory.SYSTEM, 'API not available, showing empty user list')
         setUsers([]);
         toast({ title: "Error", description: 'Failed to load users', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching users:', error)
       // Show empty list when API fails
-      console.log('API error, showing empty user list');
+      logger.info(LogCategory.SYSTEM, 'API error, showing empty user list')
       setUsers([]);
       toast({ title: "Error", description: 'Failed to load users', variant: "destructive" });
     } finally {
@@ -68,19 +69,19 @@ export const Admin = () => {
     try {
       setIsLoadingRoles(true);
       const response = await roleService.getAllRoles();
-      console.log('Role fetch response:', response);
+      logger.info(LogCategory.SYSTEM, 'Role fetch response:', { data: response })
       
       if (response.success && response.data) {
         // Backend returns array directly, not wrapped in {roles: [...]}
         const roleData = Array.isArray(response.data) ? response.data : [];
         setRoles(roleData);
       } else {
-        console.error('Failed to fetch roles:', response.error);
+        logger.error(LogCategory.ERROR, 'Failed to fetch roles:', response.error)
         setRoles([]);
         toast({ title: "Error", description: 'Failed to load roles', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error fetching roles:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching roles:', error)
       setRoles([]);
       toast({ title: "Error", description: 'Failed to load roles', variant: "destructive" });
     } finally {
@@ -93,17 +94,17 @@ export const Admin = () => {
     try {
       setIsLoadingCertificates(true);
       const response = await certificateService.getAllCertificates();
-      console.log('Certificate fetch response:', response);
+      logger.info(LogCategory.SYSTEM, 'Certificate fetch response:', { data: response })
       
       if (response.success && response.data) {
         setCertificates(response.data);
       } else {
-        console.error('Failed to fetch certificates:', response.error);
+        logger.error(LogCategory.ERROR, 'Failed to fetch certificates:', response.error)
         setCertificates([]);
         toast({ title: "Error", description: 'Failed to load certificates', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error fetching certificates:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching certificates:', error)
       setCertificates([]);
       toast({ title: "Error", description: 'Failed to load certificates', variant: "destructive" });
     } finally {
@@ -116,17 +117,17 @@ export const Admin = () => {
     try {
       setIsLoadingJarFiles(true);
       const response = await jarFileService.getAllJarFiles();
-      console.log('JAR files fetch response:', response);
+      logger.info(LogCategory.SYSTEM, 'JAR files fetch response:', { data: response })
       
       if (response.success && response.data) {
         setJarFiles(response.data);
       } else {
-        console.error('Failed to fetch JAR files:', response.error);
+        logger.error(LogCategory.ERROR, 'Failed to fetch JAR files:', response.error)
         setJarFiles([]);
         toast({ title: "Error", description: 'Failed to load JAR files', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error fetching JAR files:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching JAR files:', error)
       setJarFiles([]);
       toast({ title: "Error", description: 'Failed to load JAR files', variant: "destructive" });
     } finally {
@@ -139,19 +140,19 @@ export const Admin = () => {
     try {
       setIsLoadingAuthConfigs(true);
       const response = await externalAuthService.getAllAuthConfigs();
-      console.log('Auth configs fetch response:', response);
+      logger.info(LogCategory.AUTH, 'Auth configs fetch response:', { data: response })
       
       if ('success' in response && response.success && response.data) {
         setAuthConfigs(response.data);
       } else if (Array.isArray(response)) {
         setAuthConfigs(response);
       } else {
-        console.error('Failed to fetch auth configs:', 'message' in response ? response.message : 'Unknown error');
+        logger.error(LogCategory.AUTH, 'Failed to fetch auth configs:', 'message' in response ? response.message : 'Unknown error')
         setAuthConfigs([]);
         toast({ title: "Error", description: 'Failed to load authentication configurations', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error fetching auth configs:', error);
+      logger.error(LogCategory.AUTH, 'Error fetching auth configs:', error)
       setAuthConfigs([]);
       toast({ title: "Error", description: 'Failed to load authentication configurations', variant: "destructive" });
     } finally {

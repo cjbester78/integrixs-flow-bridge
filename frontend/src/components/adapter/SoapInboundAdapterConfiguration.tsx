@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/services/api';
 import { extractWsdlSoapActions } from '@/utils/structureParsers';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface SoapInboundAdapterConfigurationProps {
   configuration: any;
@@ -69,7 +70,7 @@ export function SoapInboundAdapterConfiguration({
       } as any);
       
       if (response.data && response.data.structures) {
-        console.log('SOAP Inbound - Raw structures from API:', response.data.structures);
+        logger.info(LogCategory.UI, 'SOAP Inbound - Raw structures from API:', { data: response.data.structures })
         
         // Transform the structures to match our expected format
         // Filter to ensure we only get WSDL type structures with source usage
@@ -84,7 +85,7 @@ export function SoapInboundAdapterConfiguration({
                            !structure.usage; // Include if usage is not set
             
             const included = isWsdl && isSource;
-            console.log(`SOAP Inbound - Structure ${structure.name}: type=${structure.type}, usage=${structure.usage}, metadata.usage=${structure.metadata?.usage}, included=${included}`);
+            logger.info(LogCategory.UI, `SOAP Inbound - Structure ${structure.name}: type=${structure.type}, usage=${structure.usage}, metadata.usage=${structure.metadata?.usage}, included=${included}`)
             return included;
           })
           .map((structure: any) => ({
@@ -93,13 +94,13 @@ export function SoapInboundAdapterConfiguration({
             endpointUrl: structure.metadata?.endpointUrl || ''
           }));
         
-        console.log('SOAP Inbound - Filtered WSDL list:', wsdlList);
+        logger.info(LogCategory.UI, 'SOAP Inbound - Filtered WSDL list:', { data: wsdlList })
         setWsdls(wsdlList);
       } else {
         setWsdls([]);
       }
     } catch (error) {
-      console.error('Error fetching WSDLs:', error);
+      logger.error(LogCategory.UI, 'Error fetching WSDLs:', error)
       setWsdls([]);
     } finally {
       setLoadingWsdls(false);
@@ -114,14 +115,14 @@ export function SoapInboundAdapterConfiguration({
       
       if (response.data) {
         const wsdlStructure = response.data;
-        console.log('SOAP Inbound - WSDL Structure:', wsdlStructure);
-        console.log('SOAP Inbound - WSDL Metadata:', wsdlStructure.metadata);
+        logger.info(LogCategory.UI, 'SOAP Inbound - WSDL Structure:', { data: wsdlStructure })
+        logger.info(LogCategory.UI, 'SOAP Inbound - WSDL Metadata:', { data: wsdlStructure.metadata })
         
         // Extract SOAP actions from the original WSDL content
         if (wsdlStructure.originalContent) {
           const extractedActions = extractWsdlSoapActions(wsdlStructure.originalContent);
           setSoapActions(extractedActions);
-          console.log('SOAP Inbound - Extracted SOAP actions:', extractedActions);
+          logger.info(LogCategory.UI, 'SOAP Inbound - Extracted SOAP actions:', { data: extractedActions })
           
           // If there's only one action, auto-select it
           if (extractedActions.length === 1) {
@@ -153,20 +154,20 @@ export function SoapInboundAdapterConfiguration({
             // If WSDL has synchronous operations, default to synchronous mode
             // User can still change it if needed
             if (hasSynchronousOperations) {
-              console.log('SOAP Inbound - WSDL has synchronous operations (request/response), setting to SYNCHRONOUS');
+              logger.info(LogCategory.UI, 'SOAP Inbound - WSDL has synchronous operations (request/response), setting to SYNCHRONOUS')
               onConfigurationChange('processingMode', 'SYNCHRONOUS');
             } else {
-              console.log('SOAP Inbound - WSDL appears to have one-way operations only, setting to ASYNCHRONOUS');
+              logger.info(LogCategory.UI, 'SOAP Inbound - WSDL appears to have one-way operations only, setting to ASYNCHRONOUS')
               onConfigurationChange('processingMode', 'ASYNCHRONOUS');
             }
           } catch (e) {
-            console.error('Error parsing WSDL for sync/async detection:', e);
+            logger.error(LogCategory.UI, 'Error parsing WSDL for sync/async detection:', e)
             // Default to synchronous for SOAP as most SOAP services are request/response
             onConfigurationChange('processingMode', 'SYNCHRONOUS');
           }
         } else {
           setSoapActions([]);
-          console.warn('SOAP Inbound - No originalContent in WSDL structure');
+          logger.warn(LogCategory.UI, 'SOAP Inbound - No originalContent in WSDL structure')
         }
         
         // Extract structure details from metadata
@@ -188,20 +189,20 @@ export function SoapInboundAdapterConfiguration({
         }
         
         setWsdlStructureDetails(structureDetails);
-        console.log('SOAP Inbound - Extracted structures:', structureDetails);
+        logger.info(LogCategory.UI, 'SOAP Inbound - Extracted structures:', { data: structureDetails })
         
         // Check if metadata contains sync/async information
         const hasInput = wsdlStructure.metadata?.hasInput || wsdlStructure.metadata?.operationInfo?.hasInput;
         const hasOutput = wsdlStructure.metadata?.hasOutput || wsdlStructure.metadata?.operationInfo?.hasOutput;
         const hasFault = wsdlStructure.metadata?.hasFault || wsdlStructure.metadata?.operationInfo?.hasFault;
         
-        console.log(`SOAP Inbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`);
+        logger.info(LogCategory.UI, `SOAP Inbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`)
         
         // Note: We've already determined sync/async based on WSDL parsing above
         // This metadata check is just for logging purposes - don't override the earlier decision
       }
     } catch (error) {
-      console.error('Error checking WSDL structure:', error);
+      logger.error(LogCategory.UI, 'Error checking WSDL structure:', error)
       // Default to async on error
       onConfigurationChange('processingMode', 'ASYNCHRONOUS');
       setWsdlStructureDetails({});

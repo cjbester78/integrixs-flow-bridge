@@ -25,7 +25,7 @@ import {
   OAuth2Request,
   ApiKeyRequest 
 } from '@/types/externalAuth';
-import { isApiResponse } from '@/lib/api-response-utils';
+import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
 
 interface EditExternalAuthDialogProps {
   config: ExternalAuthConfig;
@@ -195,7 +195,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
         onOpenChange(false);
       }
     } catch (error) {
-      console.error('Error updating auth config:', error);
+      logger.error(LogCategory.AUTH, 'Error updating auth config:', error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update authentication configuration",

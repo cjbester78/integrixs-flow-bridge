@@ -14,7 +14,7 @@ import { RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { externalAuthService } from '@/services/externalAuthService';
 import { AuthAttemptLog } from '@/types/externalAuth';
 import { format } from 'date-fns';
-import { isApiResponse } from '@/lib/api-response-utils';
+import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
 
 interface AuthAttemptLogsDialogProps {
   configId: string;
@@ -38,7 +38,7 @@ export function AuthAttemptLogsDialog({ configId, open, onOpenChange }: AuthAtte
         setAttempts(response);
       }
     } catch (error) {
-      console.error('Failed to fetch auth attempts:', error);
+      logger.error(LogCategory.AUTH, 'Failed to fetch auth attempts:', error)
       setAttempts([]);
     } finally {
       setIsLoading(false);

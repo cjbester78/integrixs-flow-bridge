@@ -7,6 +7,7 @@ import { ArrowRight, X, Zap } from 'lucide-react';
 import { FieldMapping, FieldNode } from './types';
 import { FunctionMappingModal } from './FunctionMappingModal';
 import { VisualFlowEditor } from './VisualFlowEditor';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface MappingAreaProps {
   mappings: FieldMapping[];
@@ -49,25 +50,25 @@ export function MappingArea({
   });
 
   useEffect(() => {
-    console.log('🔍 Modal state changed:', functionMappingModal);
+    logger.info(LogCategory.UI, '🔍 Modal state changed:', { data: functionMappingModal })
   }, [functionMappingModal]);
 
   useEffect(() => {
-    console.log('🔥 Visual flow editor state changed:', visualFlowEditor);
+    logger.info(LogCategory.UI, '🔥 Visual flow editor state changed:', { data: visualFlowEditor })
   }, [visualFlowEditor]);
 
 
   const handleOpenVisualFlowEditor = (mappingId: string) => {
-    console.log('🔥 handleOpenVisualFlowEditor called with mappingId:', mappingId);
-    console.log('🔥 Available mappings:', mappings);
-    console.log('🔥 Available targetFields:', targetFields);
-    console.log('🔥 Target fields names:', targetFields.map(f => f?.name));
+    logger.info(LogCategory.UI, '🔥 handleOpenVisualFlowEditor called with mappingId:', { data: mappingId })
+    logger.info(LogCategory.UI, '🔥 Available mappings:', { data: mappings })
+    logger.info(LogCategory.UI, '🔥 Available targetFields:', { data: targetFields })
+    logger.info(LogCategory.UI, '🔥 Target fields names:', { data: targetFields.map(f => f?.name) })
     
     const existingMapping = mappings.find(m => m.id === mappingId);
-    console.log('🔥 Found existing mapping:', existingMapping);
+    logger.info(LogCategory.UI, '🔥 Found existing mapping:', { data: existingMapping })
     
     if (!existingMapping) {
-      console.log('❌ No existing mapping found for ID:', mappingId);
+      logger.info(LogCategory.UI, '❌ No existing mapping found for ID:', { data: mappingId })
       return;
     }
 
@@ -97,12 +98,12 @@ export function MappingArea({
       targetField = findFieldRecursively(targetFields, existingMapping.targetField, existingMapping.targetPath);
     }
     
-    console.log('🔥 Looking for target field with name:', existingMapping.targetField);
-    console.log('🔥 Looking for target field with path:', existingMapping.targetPath);
-    console.log('🔥 Found target field:', targetField);
+    logger.info(LogCategory.UI, '🔥 Looking for target field with name:', { data: existingMapping.targetField })
+    logger.info(LogCategory.UI, '🔥 Looking for target field with path:', { data: existingMapping.targetPath })
+    logger.info(LogCategory.UI, '🔥 Found target field:', { data: targetField })
     
     if (!targetField) {
-      console.log('❌ Target field not found, attempting to create a proper target field from mapping data');
+      logger.info(LogCategory.UI, '❌ Target field not found, attempting to create a proper target field from mapping data')
       
       // Extract the actual field name from the path if available
       let fieldName = existingMapping.targetField;
@@ -124,7 +125,7 @@ export function MappingArea({
         expanded: false
       };
       
-      console.log('🔥 Created proper target field:', properTargetField);
+      logger.info(LogCategory.UI, '🔥 Created proper target field:', { data: properTargetField })
       
       setVisualFlowEditor({
         open: true,
@@ -134,10 +135,10 @@ export function MappingArea({
       return;
     }
 
-    console.log('✅ Opening visual flow editor with:', {
+    logger.info(LogCategory.UI, 'Log output', { data: '✅ Opening visual flow editor with:', {
       targetField: targetField.name,
       existingMapping: existingMapping.id
-    });
+    } })
 
     setVisualFlowEditor({
       open: true,
@@ -147,7 +148,7 @@ export function MappingArea({
   };
 
   const handleApplyVisualFlow = (newMapping: FieldMapping) => {
-    console.log('🔥 handleApplyVisualFlow called with:', newMapping);
+    logger.info(LogCategory.UI, '🔥 handleApplyVisualFlow called with:', { data: newMapping })
     
     if (visualFlowEditor.existingMapping) {
       // Update existing mapping - include ALL fields, especially visualFlowData
@@ -203,8 +204,8 @@ export function MappingArea({
   };
 
   // Debug logging for render
-  console.log('🔍 MappingArea render - mappings count:', mappings.length);
-  console.log('🔍 MappingArea render - mappings:', mappings);
+  logger.info(LogCategory.UI, '🔍 MappingArea render - mappings count:', { data: mappings.length })
+  logger.info(LogCategory.UI, '🔍 MappingArea render - mappings:', { data: mappings })
 
   return (
     <div className="w-1/3 relative bg-background animate-fade-in">
@@ -255,7 +256,7 @@ export function MappingArea({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            console.log('🔥 Lightning bolt clicked for mapping:', mapping.id);
+                            logger.info(LogCategory.UI, '🔥 Lightning bolt clicked for mapping:', { data: mapping.id })
                             handleOpenVisualFlowEditor(mapping.id);
                           }}
                           className="h-6 w-6 p-0 hover-scale"

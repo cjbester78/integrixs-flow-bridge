@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { userService, UpdateUserRequest } from '@/services/userService';
 import { User } from '@/types/admin';
 import { Loader2, Shield, Settings, Database, Users, MessageSquare, Radio } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface EditUserDialogProps {
   open: boolean;
@@ -121,7 +122,7 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
         permissions: useCustomPermissions ? customPermissions : undefined
       };
 
-      console.log('Updating user with data:', updateData);
+      logger.info(LogCategory.UI, 'Updating user with data:', { data: updateData })
       const response = await userService.updateUser(user.id, updateData);
       
       if (response.success) {
@@ -140,7 +141,7 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
         });
       }
     } catch (error: any) {
-      console.error('User update error:', error);
+      logger.error(LogCategory.UI, 'User update error:', error)
       toast({
         title: "Error Updating User",
         description: error.message || "An unexpected error occurred.",

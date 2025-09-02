@@ -25,7 +25,7 @@ import {
   ApiKeyRequest 
 } from '@/types/externalAuth';
 import { Shield, Key, UserCheck, ShieldAlert } from 'lucide-react';
-import { isApiResponse } from '@/lib/api-response-utils';
+import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
 
 interface CreateExternalAuthDialogProps {
   open: boolean;
@@ -133,7 +133,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
         resetForm();
       }
     } catch (error) {
-      console.error('Error creating auth config:', error);
+      logger.error(LogCategory.AUTH, 'Error creating auth config:', error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create authentication configuration",

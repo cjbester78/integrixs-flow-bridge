@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { adapterMonitoringService, AdapterLog, AdapterLogsFilters } from '@/services/adapterMonitoringService';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, autoLoad: boolean = false) => {
   const [logs, setLogs] = useState<AdapterLog[]>([]);
@@ -23,20 +24,20 @@ export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, 
     setError(null);
     
     try {
-      console.log(`[useAdapterLogs] Loading logs for adapter: ${adapterId}`);
+      logger.info(LogCategory.BUSINESS_LOGIC, `[useAdapterLogs] Loading logs for adapter: ${adapterId}`)
       const response = await adapterMonitoringService.getAdapterLogs(adapterId, filtersRef.current);
-      console.log('[useAdapterLogs] Response:', response);
+      logger.info(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Response:', { data: response })
       
       if (response.success && response.data) {
-        console.log(`[useAdapterLogs] Setting ${response.data.length} logs`);
+        logger.info(LogCategory.BUSINESS_LOGIC, `[useAdapterLogs] Setting ${response.data.length} logs`)
         setLogs(response.data);
       } else {
-        console.error('[useAdapterLogs] Error:', response.error);
+        logger.error(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Error:', response.error)
         setError(response.error || 'Failed to load adapter logs');
         setLogs([]);
       }
     } catch (err) {
-      console.error('[useAdapterLogs] Exception:', err);
+      logger.error(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Exception:', err)
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLogs([]);
     } finally {
@@ -51,7 +52,7 @@ export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, 
     refreshLogs: loadLogs,
     connected: false,
     exportLogs: async () => {
-      console.log('Export logs functionality will be implemented');
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Export logs functionality will be implemented')
     },
   };
 };

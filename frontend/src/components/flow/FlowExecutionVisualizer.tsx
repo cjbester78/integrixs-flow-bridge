@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FlowExecution, FlowDefinition } from '@/types/flow';
 import { flowExecutionEngine } from '@/services/flowExecutionEngine';
 import { Play, Pause, Square, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface FlowExecutionVisualizerProps {
   flowDefinition: FlowDefinition;
@@ -112,7 +113,7 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
 
     } catch (error) {
       setIsExecuting(false);
-      console.error('Failed to execute flow:', error);
+      logger.error(LogCategory.UI, 'Failed to execute flow:', error)
     }
   };
 

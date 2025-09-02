@@ -25,6 +25,7 @@ import {
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMetaDescription } from '@/hooks/useMetaDescription';
 import { ErrorAlert } from '@/components/ui/error-alert';
+import { logger, LogCategory } from '@/lib/logger';
 
 // Icon mapping for dynamic icon rendering
 const iconMap: Record<string, any> = {
@@ -42,7 +43,7 @@ const iconMap: Record<string, any> = {
 export const Dashboard = () => {
   useDocumentTitle('Dashboard');
   useMetaDescription('Monitor your integration flows, adapter status, and system performance in real-time with the Integrix Flow Bridge dashboard.');
-  console.log('Dashboard component loading...');
+  logger.info(LogCategory.SYSTEM, 'Dashboard component loading...')
   const [selectedBusinessComponent, setSelectedBusinessComponent] = useState<BusinessComponent | null>(null);
   const [metrics, setMetrics] = useState<DashboardMetric[]>([]);
   const [recentMessages, setRecentMessages] = useState<RecentMessage[]>([]);
@@ -58,13 +59,13 @@ export const Dashboard = () => {
   useEffect(() => {
     const loadBusinessComponents = async () => {
       try {
-        console.log('Dashboard - loading business components...');
+        logger.info(LogCategory.SYSTEM, 'Dashboard - loading business components...')
         const response = await businessComponentService.getAllBusinessComponents();
         if (response.success && response.data) {
           setBusinessComponents(response.data);
         }
       } catch (error) {
-        console.error('Error loading business components:', error);
+        logger.error(LogCategory.ERROR, 'Error loading business components:', error)
       } finally {
         setLoadingComponents(false);
       }
@@ -73,7 +74,7 @@ export const Dashboard = () => {
     loadBusinessComponents();
   }, []);
   
-  console.log('Dashboard - business components:', businessComponents, 'loading:', loadingComponents);
+  logger.info(LogCategory.SYSTEM, 'Dashboard - business components:', { data: businessComponents, 'loading:', loadingComponents })
 
   // Fetch dashboard data
   useEffect(() => {
@@ -85,11 +86,11 @@ export const Dashboard = () => {
         // Fetch metrics
         setLoadingMetrics(true);
         const metricsResponse = await dashboardService.getDashboardMetrics(businessComponentId);
-        console.log('Metrics response:', metricsResponse);
+        logger.info(LogCategory.SYSTEM, 'Metrics response:', { data: metricsResponse })
         if (metricsResponse.success && metricsResponse.data && Array.isArray(metricsResponse.data)) {
           setMetrics(metricsResponse.data);
         } else {
-          console.error('Failed to fetch metrics:', metricsResponse.error);
+          logger.error(LogCategory.ERROR, 'Failed to fetch metrics:', metricsResponse.error)
           // Set default metrics to prevent map error
           setMetrics([]);
         }
@@ -101,7 +102,7 @@ export const Dashboard = () => {
         if (messagesResponse.success && messagesResponse.data) {
           setRecentMessages(messagesResponse.data);
         } else {
-          console.error('Failed to fetch messages:', messagesResponse.error);
+          logger.error(LogCategory.ERROR, 'Failed to fetch messages:', messagesResponse.error)
           // Set default empty array to prevent map error
           setRecentMessages([]);
         }
@@ -113,14 +114,14 @@ export const Dashboard = () => {
         if (adaptersResponse.success && adaptersResponse.data) {
           setAdapterStatuses(adaptersResponse.data);
         } else {
-          console.error('Failed to fetch adapters:', adaptersResponse.error);
+          logger.error(LogCategory.ERROR, 'Failed to fetch adapters:', adaptersResponse.error)
           // Set default empty array to prevent map error
           setAdapterStatuses([]);
         }
         setLoadingAdapters(false);
 
       } catch (err) {
-        console.error('Dashboard data fetch error:', err);
+        logger.error(LogCategory.ERROR, 'Dashboard data fetch error:', err)
         setError('Failed to load dashboard data');
         // Ensure arrays are initialized even on error
         setMetrics([]);
@@ -139,7 +140,7 @@ export const Dashboard = () => {
     return () => clearInterval(interval);
   }, [selectedBusinessComponent]);
 
-  console.log('Dashboard render - about to return JSX');
+  logger.info(LogCategory.SYSTEM, 'Dashboard render - about to return JSX')
   
   return (
     <PageContainer className="max-w-none px-0 md:px-0">

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CertificateSelection } from '@/components/ui/certificate-selection';
 import { api } from '@/services/api';
 import { extractWsdlSoapActions } from '@/utils/structureParsers';
+import { logger, LogCategory } from '@/lib/logger';
 interface SoapOutboundAdapterConfigurationProps {
   configuration: any;
   onConfigurationChange: (field: string, value: any) => void;
@@ -83,7 +84,7 @@ export function SoapOutboundAdapterConfiguration({
                            !structure.usage; // Include if usage is not set
             
             const included = isWsdl && isTarget;
-            console.log(`SOAP Outbound - Structure ${structure.name}: type=${structure.type}, usage=${structure.usage}, metadata.usage=${structure.metadata?.usage}, included=${included}`);
+            logger.info(LogCategory.UI, `SOAP Outbound - Structure ${structure.name}: type=${structure.type}, usage=${structure.usage}, metadata.usage=${structure.metadata?.usage}, included=${included}`)
             return included;
           })
           .map((structure: any) => ({
@@ -96,7 +97,7 @@ export function SoapOutboundAdapterConfiguration({
         setWsdls([]);
       }
     } catch (error) {
-      console.error('Error fetching WSDLs:', error);
+      logger.error(LogCategory.UI, 'Error fetching WSDLs:', error)
       setWsdls([]);
     } finally {
       setLoadingWsdls(false);
@@ -110,17 +111,17 @@ export function SoapOutboundAdapterConfiguration({
       const response = await api.get(`/structures/${wsdlId}`);
       
       if (response.data) {
-        console.log('SOAP Outbound - WSDL Structure:', response.data);
-        console.log('SOAP Outbound - WSDL Structure:', response.data);
-        console.log('SOAP Outbound - WSDL Metadata:', response.data.metadata);
-        console.log('SOAP Outbound - WSDL Namespace:', response.data.namespace);
-        console.log('SOAP Outbound - Full response data:', JSON.stringify(response.data, null, 2));
+        logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Structure:', { data: response.data })
+        logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Structure:', { data: response.data })
+        logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Metadata:', { data: response.data.metadata })
+        logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Namespace:', { data: response.data.namespace })
+        logger.info(LogCategory.UI, 'SOAP Outbound - Full response data:', { data: JSON.stringify(response.data, null, 2) })
         
         // Extract SOAP actions from the original WSDL content
         if (response.data.originalContent) {
           const extractedActions = extractWsdlSoapActions(response.data.originalContent);
           setSoapActions(extractedActions);
-          console.log('SOAP Outbound - Extracted SOAP actions:', extractedActions);
+          logger.info(LogCategory.UI, 'SOAP Outbound - Extracted SOAP actions:', { data: extractedActions })
           
           // If there's only one action, auto-select it
           if (extractedActions.length === 1) {
@@ -149,20 +150,20 @@ export function SoapOutboundAdapterConfiguration({
             
             // If WSDL has synchronous operations, default to synchronous mode
             if (hasSynchronousOperations) {
-              console.log('SOAP Outbound - WSDL has synchronous operations (request/response), setting to SYNCHRONOUS');
+              logger.info(LogCategory.UI, 'SOAP Outbound - WSDL has synchronous operations (request/response), setting to SYNCHRONOUS')
               onConfigurationChange('processingMode', 'SYNCHRONOUS');
             } else {
-              console.log('SOAP Outbound - WSDL appears to have one-way operations only, setting to ASYNCHRONOUS');
+              logger.info(LogCategory.UI, 'SOAP Outbound - WSDL appears to have one-way operations only, setting to ASYNCHRONOUS')
               onConfigurationChange('processingMode', 'ASYNCHRONOUS');
             }
           } catch (e) {
-            console.error('Error parsing WSDL for sync/async detection:', e);
+            logger.error(LogCategory.UI, 'Error parsing WSDL for sync/async detection:', e)
             // Default to synchronous for SOAP as most SOAP services are request/response
             onConfigurationChange('processingMode', 'SYNCHRONOUS');
           }
         } else {
           setSoapActions([]);
-          console.warn('SOAP Outbound - No originalContent in WSDL structure');
+          logger.warn(LogCategory.UI, 'SOAP Outbound - No originalContent in WSDL structure')
         }
         
         // Extract structure details from metadata
@@ -184,26 +185,26 @@ export function SoapOutboundAdapterConfiguration({
         }
         
         setWsdlStructureDetails(structureDetails);
-        console.log('SOAP Outbound - Extracted structures:', structureDetails);
+        logger.info(LogCategory.UI, 'SOAP Outbound - Extracted structures:', { data: structureDetails })
         
         // Auto-populate endpoint URL from WSDL metadata or namespace
         if (response.data.metadata?.endpointUrl) {
           onConfigurationChange('targetEndpointUrl', response.data.metadata.endpointUrl);
-          console.log('SOAP Outbound - Using endpoint URL from metadata:', response.data.metadata.endpointUrl);
+          logger.info(LogCategory.UI, 'SOAP Outbound - Using endpoint URL from metadata:', { data: response.data.metadata.endpointUrl })
         } else if (response.data.namespace?.schemaLocation) {
           // Use schemaLocation from namespace as endpoint URL
           onConfigurationChange('targetEndpointUrl', response.data.namespace.schemaLocation);
-          console.log('SOAP Outbound - Using endpoint URL from namespace.schemaLocation:', response.data.namespace.schemaLocation);
+          logger.info(LogCategory.UI, 'SOAP Outbound - Using endpoint URL from namespace.schemaLocation:', { data: response.data.namespace.schemaLocation })
         } else if (response.data.namespace && typeof response.data.namespace === 'string') {
           // Try to parse namespace if it's a JSON string
           try {
             const namespaceObj = JSON.parse(response.data.namespace);
             if (namespaceObj.schemaLocation) {
               onConfigurationChange('targetEndpointUrl', namespaceObj.schemaLocation);
-              console.log('SOAP Outbound - Using endpoint URL from parsed namespace:', namespaceObj.schemaLocation);
+              logger.info(LogCategory.UI, 'SOAP Outbound - Using endpoint URL from parsed namespace:', { data: namespaceObj.schemaLocation })
             }
           } catch (e) {
-            console.log('SOAP Outbound - Could not parse namespace string');
+            logger.info(LogCategory.UI, 'SOAP Outbound - Could not parse namespace string')
           }
         } else if (response.data.originalContent) {
           // Parse the WSDL content to extract the endpoint URL from soap:address
@@ -215,11 +216,11 @@ export function SoapOutboundAdapterConfiguration({
               const endpointUrl = soapAddresses[0].getAttribute('location');
               if (endpointUrl) {
                 onConfigurationChange('targetEndpointUrl', endpointUrl);
-                console.log('SOAP Outbound - Extracted endpoint URL from WSDL:', endpointUrl);
+                logger.info(LogCategory.UI, 'SOAP Outbound - Extracted endpoint URL from WSDL:', { data: endpointUrl })
               }
             }
           } catch (error) {
-            console.error('Error parsing WSDL for endpoint URL:', error);
+            logger.error(LogCategory.UI, 'Error parsing WSDL for endpoint URL:', error)
           }
         }
         
@@ -228,13 +229,13 @@ export function SoapOutboundAdapterConfiguration({
         const hasOutput = response.data.metadata?.hasOutput || response.data.metadata?.operationInfo?.hasOutput;
         const hasFault = response.data.metadata?.hasFault || response.data.metadata?.operationInfo?.hasFault;
         
-        console.log(`SOAP Outbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`);
+        logger.info(LogCategory.UI, `SOAP Outbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`)
         
         // Note: We've already determined sync/async based on WSDL parsing above
         // This metadata check is just for logging purposes - don't override the earlier decision
       }
     } catch (error) {
-      console.error('Error fetching WSDL details:', error);
+      logger.error(LogCategory.UI, 'Error fetching WSDL details:', error)
       // Default to async on error
       onConfigurationChange('processingMode', 'ASYNCHRONOUS');
       setWsdlStructureDetails({});

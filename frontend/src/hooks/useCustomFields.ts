@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { Field } from '@/types/dataStructures';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const useCustomFields = (customFields: Field[], setCustomFields: (fields: Field[]) => void) => {
   const addCustomField = useCallback((fieldIndex?: number, parentIndex?: number) => {
@@ -37,7 +38,7 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
   }, [customFields, setCustomFields]);
 
   const updateFieldAtPath = useCallback((path: number[], fieldUpdates: Partial<Field>) => {
-    console.log('updateFieldAtPath called:', { path, field: fieldUpdates });
+    logger.info(LogCategory.BUSINESS_LOGIC, 'updateFieldAtPath called:', { data: { path, field: fieldUpdates } })
     
     const updated = [...customFields];
     let current = updated;
@@ -66,7 +67,7 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
       }
       
       current[finalIndex] = { ...current[finalIndex], ...fieldUpdates };
-      console.log('Updated field at path:', path, current[finalIndex]);
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Updated field at path:', { data: path, current[finalIndex] })
     }
     
     setCustomFields(updated);

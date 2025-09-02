@@ -49,7 +49,7 @@ export default function PackageManagement() {
         setPackages((response.data as any).content || []);
       }
     } catch (error) {
-      console.error('Error loading packages:', error);
+      logger.error(LogCategory.UI, 'Error loading packages:', error)
       toast({
         title: 'Error',
         description: 'Failed to load packages',
@@ -76,7 +76,7 @@ export default function PackageManagement() {
         });
       }
     } catch (error) {
-      console.error('Error validating package:', error);
+      logger.error(LogCategory.UI, 'Error validating package:', error)
       toast({
         title: 'Error',
         description: 'Failed to validate package',
@@ -96,7 +96,7 @@ export default function PackageManagement() {
         await loadPackages();
       }
     } catch (error) {
-      console.error('Error deploying package:', error);
+      logger.error(LogCategory.UI, 'Error deploying package:', error)
       toast({
         title: 'Error',
         description: 'Failed to deploy package',
@@ -120,7 +120,7 @@ export default function PackageManagement() {
         await loadPackages();
       }
     } catch (error) {
-      console.error('Error deleting package:', error);
+      logger.error(LogCategory.UI, 'Error deleting package:', error)
       toast({
         title: 'Error',
         description: 'Failed to delete package',
@@ -137,7 +137,7 @@ export default function PackageManagement() {
         description: 'Package exported successfully',
       });
     } catch (error) {
-      console.error('Error exporting package:', error);
+      logger.error(LogCategory.UI, 'Error exporting package:', error)
       toast({
         title: 'Error',
         description: 'Failed to export package',
@@ -158,10 +158,11 @@ export default function PackageManagement() {
         await loadPackages();
       }
     } catch (error) {
-      console.error('Error importing package:', error);
+      logger.error(LogCategory.UI, 'Error importing package:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to import package',
+import { logger, LogCategory } from '@/lib/logger';
         variant: 'destructive',
       });
     }

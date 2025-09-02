@@ -29,6 +29,7 @@ import { FunctionSelectorDialog } from './FunctionSelectorDialog';
 import { DeletableEdge } from './DeletableEdge';
 import { TransformationFunction } from '@/services/transformationFunctions';
 import { TransformationFunctionWithParams } from '@/services/developmentFunctions';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface VisualFlowEditorProps {
   open: boolean;
@@ -334,7 +335,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
   const handleSave = useCallback(() => {
     if (!targetField) return;
 
-    console.log('🔥 VisualFlowEditor handleSave - saving with nodes:', nodes.length, 'edges:', edges.length);
+    logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - saving with nodes:', { data: nodes.length, 'edges:', edges.length })
 
     // Find the target node and trace back all connections
     const targetNode = nodes.find(n => n.type === 'targetField');
@@ -354,8 +355,8 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
       }
     });
 
-    console.log('🔥 VisualFlowEditor handleSave - connectedSourcePaths:', connectedSourcePaths);
-    console.log('🔥 VisualFlowEditor handleSave - connectedSourceFields:', connectedSourceFields);
+    logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - connectedSourcePaths:', { data: connectedSourcePaths })
+    logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - connectedSourceFields:', { data: connectedSourceFields })
 
     // Create mapping object with complete flow state
     const mapping: FieldMapping = {
@@ -381,7 +382,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
       }
     };
 
-    console.log('🔥 VisualFlowEditor handleSave - final mapping:', mapping);
+    logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - final mapping:', { data: mapping })
 
     onApplyMapping(mapping);
     onClose();

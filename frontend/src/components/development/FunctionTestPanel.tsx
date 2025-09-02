@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Loader2, Play, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { FunctionParameter } from './ParameterEditor';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface FunctionTestPanelProps {
   functionId: string;
@@ -76,7 +77,7 @@ export function FunctionTestPanel({
           return value;
       }
     } catch (error) {
-      console.error(`Error parsing ${type} value:`, error);
+      logger.error(LogCategory.UI, 'Error occurred', `Error parsing ${type} value:`, error)
       return value;
     }
   };

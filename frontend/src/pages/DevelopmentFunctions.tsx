@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -247,7 +247,7 @@ export const DevelopmentFunctions = () => {
       const fullFunction = await apiClient.get<CustomFunction>(`/development/functions/built-in/${name}`);
       return fullFunction;
     } catch (error) {
-      console.error('Error finding built-in function:', error);
+      logger.error(LogCategory.ERROR, 'Error finding built-in function:', error)
       return null;
     }
   };

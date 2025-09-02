@@ -26,6 +26,7 @@ import { AuthAttemptLogsDialog } from './AuthAttemptLogsDialog';
 import { format } from 'date-fns';
 import { DataTableColumn, DataTableAction } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface ExternalAuthManagementProps {
   authConfigs: ExternalAuthConfig[];
@@ -86,7 +87,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
         throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Failed to update configuration');
       }
     } catch (error) {
-      console.error('Error toggling auth config status:', error);
+      logger.error(LogCategory.AUTH, 'Error toggling auth config status:', error)
       toast({
         title: "Error",
         description: "Failed to update authentication status",
@@ -114,7 +115,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
         throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Failed to delete configuration');
       }
     } catch (error) {
-      console.error('Error deleting auth config:', error);
+      logger.error(LogCategory.AUTH, 'Error deleting auth config:', error)
       toast({
         title: "Error",
         description: "Failed to delete authentication configuration",
@@ -138,7 +139,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
         throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Test failed');
       }
     } catch (error) {
-      console.error('Error testing auth config:', error);
+      logger.error(LogCategory.AUTH, 'Error testing auth config:', error)
       toast({
         title: "Error",
         description: "Authentication test failed",

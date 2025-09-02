@@ -1,5 +1,5 @@
 import { BusinessComponent, CreateBusinessComponentRequest, UpdateBusinessComponentRequest } from '@/types/businessComponent';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 
 class BusinessComponentService {
   async getAllBusinessComponents(): Promise<{ success: boolean; data?: BusinessComponent[]; error?: string }> {
@@ -7,7 +7,7 @@ class BusinessComponentService {
       const data = await apiClient.get<BusinessComponent[]>('/business-components');
       return { success: true, data };
     } catch (error) {
-      console.error('Failed to fetch business components:', error);
+      logger.error(LogCategory.API, 'Failed to fetch business components:', error)
       return { success: false, error: 'Failed to fetch business components' };
     }
   }
@@ -17,20 +17,20 @@ class BusinessComponentService {
       const data = await apiClient.get<BusinessComponent>(`/business-components/${id}`);
       return { success: true, data };
     } catch (error) {
-      console.error('Failed to fetch business component:', error);
+      logger.error(LogCategory.API, 'Failed to fetch business component:', error)
       return { success: false, error: 'Failed to fetch business component' };
     }
   }
 
   async createBusinessComponent(data: CreateBusinessComponentRequest): Promise<{ success: boolean; data?: BusinessComponent; error?: string }> {
     try {
-      console.log('Frontend: Creating business component with data:', data);
+      logger.info(LogCategory.API, 'Frontend: Creating business component with data:', { data: data })
       
       const result = await apiClient.post<BusinessComponent>('/business-components', data);
-      console.log('Frontend: Created business component:', result);
+      logger.info(LogCategory.API, 'Frontend: Created business component:', { data: result })
       return { success: true, data: result };
     } catch (error) {
-      console.error('Frontend: Failed to create business component:', error);
+      logger.error(LogCategory.API, 'Frontend: Failed to create business component:', error)
       return { success: false, error: 'Failed to create business component' };
     }
   }
@@ -41,7 +41,7 @@ class BusinessComponentService {
       
       return { success: true, data: result };
     } catch (error) {
-      console.error('Failed to update business component:', error);
+      logger.error(LogCategory.API, 'Failed to update business component:', error)
       return { success: false, error: 'Failed to update business component' };
     }
   }
@@ -51,7 +51,7 @@ class BusinessComponentService {
       await apiClient.delete(`/business-components/${id}`);
       return { success: true };
     } catch (error) {
-      console.error('Failed to delete business component:', error);
+      logger.error(LogCategory.API, 'Failed to delete business component:', error)
       return { success: false, error: 'Failed to delete business component' };
     }
   }

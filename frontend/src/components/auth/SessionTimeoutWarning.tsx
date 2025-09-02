@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Clock } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 /**
  * Component that warns users before their session expires
@@ -73,7 +74,7 @@ export const SessionTimeoutWarning: React.FC = () => {
         setTimeRemaining(0);
       }
     } catch (error) {
-      console.error('Failed to extend session:', error);
+      logger.error(LogCategory.AUTH, 'Failed to extend session:', error)
       logout();
     }
   };

@@ -8,6 +8,7 @@ import { TimeFilter } from './types/timeFilter';
 import { filterMessagesByTime, getFilterDescription } from './utils/timeFilters';
 import { TimeFilterSelect } from './components/TimeFilterSelect';
 import { MessageCard } from './components/MessageCard';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface MessageListProps {
   messages: Message[];
@@ -27,21 +28,21 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
   };
 
   // Debug logging
-  console.log('[MessageList] Received messages:', messages);
-  console.log('[MessageList] Messages type:', typeof messages);
-  console.log('[MessageList] Is array:', Array.isArray(messages));
+  logger.info(LogCategory.UI, '[MessageList] Received messages:', { data: messages })
+  logger.info(LogCategory.UI, '[MessageList] Messages type:', { data: typeof messages })
+  logger.info(LogCategory.UI, '[MessageList] Is array:', { data: Array.isArray(messages) })
   if (messages && messages.length > 0) {
-    console.log('[MessageList] First message:', messages[0]);
-    console.log('[MessageList] First message keys:', Object.keys(messages[0]));
-    console.log('[MessageList] First message logs:', messages[0].logs);
+    logger.info(LogCategory.UI, '[MessageList] First message:', { data: messages[0] })
+    logger.info(LogCategory.UI, '[MessageList] First message keys:', { data: Object.keys(messages[0]) })
+    logger.info(LogCategory.UI, '[MessageList] First message logs:', { data: messages[0].logs })
     if (messages[0].logs && messages[0].logs.length > 0) {
-      console.log('[MessageList] First log entry:', messages[0].logs[0]);
-      console.log('[MessageList] First log type:', typeof messages[0].logs[0]);
-      console.log('[MessageList] First log keys:', Object.keys(messages[0].logs[0]));
-      console.log('[MessageList] Log timestamp:', messages[0].logs[0].timestamp);
-      console.log('[MessageList] Log timestamp type:', typeof messages[0].logs[0].timestamp);
-      console.log('[MessageList] Log level:', messages[0].logs[0].level);
-      console.log('[MessageList] Log message:', messages[0].logs[0].message);
+      logger.info(LogCategory.UI, '[MessageList] First log entry:', { data: messages[0].logs[0] })
+      logger.info(LogCategory.UI, '[MessageList] First log type:', { data: typeof messages[0].logs[0] })
+      logger.info(LogCategory.UI, '[MessageList] First log keys:', { data: Object.keys(messages[0].logs[0]) })
+      logger.info(LogCategory.UI, '[MessageList] Log timestamp:', { data: messages[0].logs[0].timestamp })
+      logger.info(LogCategory.UI, '[MessageList] Log timestamp type:', { data: typeof messages[0].logs[0].timestamp })
+      logger.info(LogCategory.UI, '[MessageList] Log level:', { data: messages[0].logs[0].level })
+      logger.info(LogCategory.UI, '[MessageList] Log message:', { data: messages[0].logs[0].message })
     }
   }
 
@@ -55,8 +56,8 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
   // Sort by timestamp (newest first)
   filteredMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   
-  console.log('[MessageList] Filtered messages:', filteredMessages);
-  console.log('[MessageList] Filtered messages length:', filteredMessages.length);
+  logger.info(LogCategory.UI, '[MessageList] Filtered messages:', { data: filteredMessages })
+  logger.info(LogCategory.UI, '[MessageList] Filtered messages length:', { data: filteredMessages.length })
 
   return (
     <div className="space-y-4">
@@ -110,7 +111,7 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
           />
         ) : (
           filteredMessages.map((message) => {
-            console.log('[MessageList] Rendering message:', message.id, 'Type:', typeof message);
+            logger.info(LogCategory.UI, '[MessageList] Rendering message:', { data: message.id, 'Type:', typeof message })
             return <MessageCard key={message.id} message={message} />;
           })
         )}

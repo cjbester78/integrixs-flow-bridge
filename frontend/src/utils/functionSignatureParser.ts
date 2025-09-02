@@ -1,3 +1,5 @@
+import { logger, LogCategory } from '@/lib/logger';
+
 export interface FunctionParameter {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'array' | 'any';
@@ -64,7 +66,7 @@ export function parseFunctionSignature(signature: string): ParsedSignature | nul
       parameters
     };
   } catch (error) {
-    console.error('Error parsing function signature:', error);
+    logger.error(LogCategory.ERROR, 'Error parsing function signature:', error)
     return null;
   }
 }

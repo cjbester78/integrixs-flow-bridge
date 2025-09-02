@@ -1,4 +1,5 @@
 import { Field } from '@/types/dataStructures';
+import { logger, LogCategory } from '@/lib/logger';
 
 // Custom JSON stringify that preserves property order
 export const orderedStringify = (obj: any, space?: number): string => {
@@ -257,7 +258,7 @@ export const parseWsdlStructure = (wsdlString: string) => {
     
     return Object.keys(structure).length > 0 ? { structure, operationInfo } : null;
   } catch (error) {
-    console.error('Error parsing WSDL:', error);
+    logger.error(LogCategory.ERROR, 'Error parsing WSDL:', error)
     return null;
   }
 };
@@ -270,13 +271,13 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
     // Check for parsing errors
     const parserError = doc.querySelector('parsererror');
     if (parserError) {
-      console.error('WSDL parsing error:', parserError);
+      logger.error(LogCategory.ERROR, 'WSDL parsing error:', parserError)
       return { names: [], hasMultiple: false };
     }
     
     // Debug: Check what we're parsing
     const rootElement = doc.documentElement;
-    console.log('WSDL root element:', rootElement.tagName, 'namespace:', rootElement.namespaceURI);
+    logger.info(LogCategory.SYSTEM, 'WSDL root element:', { data: rootElement.tagName, 'namespace:', rootElement.namespaceURI })
     
     // Find all portType elements first - use namespace-agnostic approach
     const portTypes: Element[] = [];
@@ -287,7 +288,7 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
         portTypes.push(elem);
       }
     }
-    console.log('Found portTypes:', portTypes.length);
+    logger.info(LogCategory.SYSTEM, 'Found portTypes:', { data: portTypes.length })
     
     // Find all operation elements within portTypes
     const operations: Element[] = [];
@@ -303,19 +304,19 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
     });
     const operationNames: string[] = [];
     
-    console.log('Found operations in portType:', operations.length);
+    logger.info(LogCategory.SYSTEM, 'Found operations in portType:', { data: operations.length })
     operations.forEach((operation) => {
       const name = operation.getAttribute('name');
-      console.log('Operation element:', operation.tagName, 'name attribute:', name);
+      logger.info(LogCategory.SYSTEM, 'Operation element:', { data: operation.tagName, 'name attribute:', name })
       if (name && !operationNames.includes(name)) {
         operationNames.push(name);
-        console.log('Added operation:', name);
+        logger.info(LogCategory.SYSTEM, 'Added operation:', { data: name })
       }
     });
     
     // If no operations found in portType, look in binding
     if (operationNames.length === 0) {
-      console.log('No operations in portType, checking binding elements...');
+      logger.info(LogCategory.SYSTEM, 'No operations in portType, checking binding elements...')
       
       // Find all binding elements
       const bindings: Element[] = [];
@@ -325,7 +326,7 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
           bindings.push(elem);
         }
       }
-      console.log('Found bindings:', bindings.length);
+      logger.info(LogCategory.SYSTEM, 'Found bindings:', { data: bindings.length })
       
       // Find operations within bindings
       bindings.forEach(binding => {
@@ -337,7 +338,7 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
             const name = elem.getAttribute('name');
             if (name && !operationNames.includes(name)) {
               operationNames.push(name);
-              console.log('Found operation in binding:', name);
+              logger.info(LogCategory.SYSTEM, 'Found operation in binding:', { data: name })
             }
           }
         }
@@ -349,7 +350,7 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
       hasMultiple: operationNames.length > 1
     };
   } catch (error) {
-    console.error('Error extracting WSDL operations:', error);
+    logger.error(LogCategory.ERROR, 'Error extracting WSDL operations:', error)
     return { names: [], hasMultiple: false };
   }
 };
@@ -358,7 +359,7 @@ export const extractWsdlPartName = (wsdlString: string): string | null => {
   try {
     // Always try to get operation names first - this is the primary source
     const { names, hasMultiple } = extractWsdlOperations(wsdlString);
-    console.log('WSDL operation extraction result:', { names, hasMultiple });
+    logger.info(LogCategory.SYSTEM, 'WSDL operation extraction result:', { data: { names, hasMultiple } })
     
     if (names.length === 1) {
       // Single operation found - use it
@@ -372,7 +373,7 @@ export const extractWsdlPartName = (wsdlString: string): string | null => {
     // The operation name is what we want for WSDL naming
     return null;
   } catch (error) {
-    console.error('Error extracting WSDL part name:', error);
+    logger.error(LogCategory.ERROR, 'Error extracting WSDL part name:', error)
     return null;
   }
 };
@@ -427,7 +428,7 @@ export const extractWsdlSoapActions = (wsdlString: string): { operationName: str
     // Check for parsing errors
     const parserError = doc.querySelector('parsererror');
     if (parserError) {
-      console.error('WSDL parsing error:', parserError);
+      logger.error(LogCategory.ERROR, 'WSDL parsing error:', parserError)
       return [];
     }
     
@@ -492,7 +493,7 @@ export const extractWsdlSoapActions = (wsdlString: string): { operationName: str
     
     return uniqueActions;
   } catch (error) {
-    console.error('Error extracting SOAP actions:', error);
+    logger.error(LogCategory.ERROR, 'Error extracting SOAP actions:', error)
     return [];
   }
 };

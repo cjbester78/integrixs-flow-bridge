@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import type { DataStructure } from '@/types/dataStructure';
 
 const API_PREFIX = '/flow-structures';
@@ -31,7 +31,7 @@ export const dataStructureService = {
       const response = await apiClient.get<PaginatedResponse<DataStructure>>(API_PREFIX);
       return { success: true, data: response };
     } catch (error) {
-      console.error('Error fetching structures:', error);
+      logger.error(LogCategory.API, 'Error fetching structures:', error)
       return { success: false, message: 'Failed to fetch structures' };
     }
   },
@@ -41,7 +41,7 @@ export const dataStructureService = {
       const response = await apiClient.post<DataStructure>(API_PREFIX, data);
       return { success: true, data: response };
     } catch (error) {
-      console.error('Error creating structure:', error);
+      logger.error(LogCategory.API, 'Error creating structure:', error)
       return { success: false, message: 'Failed to create structure' };
     }
   },

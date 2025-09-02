@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 // Removed logger import to avoid circular dependency with logger.ts
 
 /**
@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         // Logger removed to avoid circular dependency
-        console.log('Login attempt:', username);
+        logger.info(LogCategory.AUTH, 'Login attempt:', { data: username })
         
         try {
           const response = await apiClient.post<LoginResponse>('/auth/login', {
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>()(
           });
 
           // Logger removed to avoid circular dependency
-          console.log('Login successful:', response.user.username);
+          logger.info(LogCategory.AUTH, 'Login successful:', { data: response.user.username })
 
           // Set token expiration reminder
           const expirationTime = response.expiresIn * 1000 * 0.9; // Refresh at 90% of expiration
@@ -110,7 +110,7 @@ export const useAuthStore = create<AuthState>()(
 
         } catch (error: any) {
           // Logger removed to avoid circular dependency
-          console.error('Login failed:', error);
+          logger.error(LogCategory.AUTH, 'Login failed:', error)
           
           set({
             user: null,
@@ -129,7 +129,7 @@ export const useAuthStore = create<AuthState>()(
         const currentUser = get().user;
         
         // Logger removed to avoid circular dependency
-        console.log('User logout:', currentUser?.username);
+        logger.info(LogCategory.AUTH, 'User logout:', { data: currentUser?.username })
         
         set({
           user: null,

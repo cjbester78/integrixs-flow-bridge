@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { TransformationFunction, functionsByCategory } from '@/services/transformationFunctions';
 import { developmentFunctionsService, TransformationFunctionWithParams } from '@/services/developmentFunctions';
 import { Settings, Zap, X, Code } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface FunctionNodeProps {
   id: string;
@@ -43,7 +44,7 @@ export const FunctionNode: React.FC<FunctionNodeProps> = ({ id, data }) => {
           }
         }
       } catch (error) {
-        console.error('Failed to load functions:', error);
+        logger.error(LogCategory.UI, 'Failed to load functions:', error)
       } finally {
         setIsLoadingFunctions(false);
       }

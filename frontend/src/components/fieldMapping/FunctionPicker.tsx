@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calculator, Search } from 'lucide-react';
 import { 
+import { logger, LogCategory } from '@/lib/logger';
   functionsByCategory, 
   TransformationFunction, 
   generateJavaFunctionCall 
@@ -41,7 +42,7 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
   }, {} as Record<string, TransformationFunction[]>);
 
   const handleFunctionClick = (func: TransformationFunction) => {
-    console.log('🔍 FunctionPicker: Function clicked:', func.name);
+    logger.info(LogCategory.UI, '🔍 FunctionPicker: Function clicked:', { data: func.name })
     // For visual mapper, immediately call onFunctionSelect when function is clicked
     onFunctionSelect(func.name, '');
     setOpen(false);
@@ -55,11 +56,11 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
   };
 
   const handleApplyFunction = () => {
-    console.log('🔍 FunctionPicker: handleApplyFunction called');
-    console.log('🔍 FunctionPicker: selectedFunction:', selectedFunction);
+    logger.info(LogCategory.UI, '🔍 FunctionPicker: handleApplyFunction called')
+    logger.info(LogCategory.UI, '🔍 FunctionPicker: selectedFunction:', { data: selectedFunction })
     
     if (!selectedFunction) {
-      console.log('❌ FunctionPicker: No function selected');
+      logger.info(LogCategory.UI, '❌ FunctionPicker: No function selected')
       return;
     }
 
@@ -68,8 +69,8 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
     );
 
     const javaCode = generateJavaFunctionCall(selectedFunction.name, paramValues);
-    console.log('🔍 FunctionPicker: Generated Java code:', javaCode);
-    console.log('🔍 FunctionPicker: Calling onFunctionSelect with:', selectedFunction.name, javaCode);
+    logger.info(LogCategory.UI, '🔍 FunctionPicker: Generated Java code:', { data: javaCode })
+    logger.info(LogCategory.UI, '🔍 FunctionPicker: Calling onFunctionSelect with:', { data: selectedFunction.name, javaCode })
     
     onFunctionSelect(selectedFunction.name, javaCode);
     setOpen(false);

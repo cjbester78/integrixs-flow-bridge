@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowRight } from 'lucide-react';
 import { useBusinessComponentAdapters } from '@/hooks/useBusinessComponentAdapters';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface Adapter {
   id: string;
@@ -45,7 +46,7 @@ export const AdapterConfigurationCard = ({
   onInboundAdapterActiveChange,
   onOutboundAdapterActiveChange,
 }: AdapterConfigurationCardProps) => {
-  console.log('[AdapterConfigurationCard] Component rendered with props:', {
+  logger.info(LogCategory.UI, 'Log output', { data: '[AdapterConfigurationCard] Component rendered with props:', {
     adapters: adapters.length,
     sourceBusinessComponent,
     targetBusinessComponent,
@@ -53,14 +54,14 @@ export const AdapterConfigurationCard = ({
     outboundAdapter,
     inboundAdapterActive,
     outboundAdapterActive
-  });
+  } })
 
   const { businessComponents, loading, getAdaptersForBusinessComponent } = useBusinessComponentAdapters();
   
-  console.log('[AdapterConfigurationCard] Hook data:', {
+  logger.info(LogCategory.UI, 'Log output', { data: '[AdapterConfigurationCard] Hook data:', {
     businessComponents: businessComponents.length,
     loading
-  });
+  } })
   
   const getAdapterById = (id: string) => adapters.find(adapter => adapter.id === id);
 
@@ -83,18 +84,18 @@ export const AdapterConfigurationCard = ({
   };
 
   const handleSourceBusinessComponentChange = async (businessComponentId: string) => {
-    console.log('[AdapterConfigurationCard] Source business component changing:', businessComponentId);
+    logger.info(LogCategory.UI, '[AdapterConfigurationCard] Source business component changing:', { data: businessComponentId })
     try {
       onSourceBusinessComponentChange(businessComponentId);
       // Reset source adapter if it's not available for the new business component
       const adaptersForBusinessComponent = await getAdaptersForBusinessComponent(businessComponentId);
-      console.log('[AdapterConfigurationCard] Available adapters for business component:', adaptersForBusinessComponent);
+      logger.info(LogCategory.UI, '[AdapterConfigurationCard] Available adapters for business component:', { data: adaptersForBusinessComponent })
       if (inboundAdapter && !adaptersForBusinessComponent.includes(inboundAdapter)) {
-        console.log('[AdapterConfigurationCard] Resetting source adapter - not available for new business component');
+        logger.info(LogCategory.UI, '[AdapterConfigurationCard] Resetting source adapter - not available for new business component')
         onInboundAdapterChange('');
       }
     } catch (error) {
-      console.error('[AdapterConfigurationCard] Error handling source business component change:', error);
+      logger.error(LogCategory.UI, '[AdapterConfigurationCard] Error handling source business component change:', error)
     }
   };
 

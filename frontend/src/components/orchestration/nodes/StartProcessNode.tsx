@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useBusinessComponentAdapters } from '@/hooks/useBusinessComponentAdapters';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface StartProcessNodeProps {
   id: string;
@@ -47,7 +48,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
         }));
         setAdapters(mockAdapters);
       } catch (error) {
-        console.error('Error loading adapters:', error);
+        logger.error(LogCategory.UI, 'Error loading adapters:', error)
       }
     };
 

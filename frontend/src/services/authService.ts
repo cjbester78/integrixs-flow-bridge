@@ -1,4 +1,5 @@
 import { api, ApiResponse } from './api';
+import { logger, LogCategory } from '@/lib/logger';
 
 export interface User {
   id: string;
@@ -65,7 +66,7 @@ class AuthService {
       }
     } catch (error) {
       // Continue with logout even if API call fails
-      console.warn('Logout API call failed:', error);
+      logger.warn(LogCategory.API, 'Logout API call failed:', { data: error })
     } finally {
       this.clearAuthData();
     }

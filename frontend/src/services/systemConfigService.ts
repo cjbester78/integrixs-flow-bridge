@@ -1,4 +1,5 @@
 import { api } from './api';
+import { logger, LogCategory } from '@/lib/logger';
 
 export interface EnvironmentInfo {
   type: 'DEVELOPMENT' | 'QUALITY_ASSURANCE' | 'PRODUCTION';
@@ -37,7 +38,7 @@ export const systemConfigService = {
         return response.data;
       }
       // Return default if response is invalid
-      console.warn('Invalid environment config response, using defaults');
+      logger.warn(LogCategory.API, 'Invalid environment config response, using defaults')
       return {
         type: 'DEVELOPMENT',
         displayName: 'Development',
@@ -56,7 +57,7 @@ export const systemConfigService = {
         }
       };
     } catch (error) {
-      console.error('Error fetching environment config:', error);
+      logger.error(LogCategory.API, 'Error fetching environment config:', error)
       // Return default on error
       return {
         type: 'DEVELOPMENT',
@@ -89,7 +90,7 @@ export const systemConfigService = {
         return response.data;
       }
       // Return default if response is invalid
-      console.warn('Invalid permissions response, using defaults');
+      logger.warn(LogCategory.API, 'Invalid permissions response, using defaults')
       return {
         canCreateFlows: true,
         canCreateAdapters: true,
@@ -102,7 +103,7 @@ export const systemConfigService = {
         canAccessAdmin: false
       };
     } catch (error) {
-      console.error('Error fetching permissions:', error);
+      logger.error(LogCategory.API, 'Error fetching permissions:', error)
       // Return default on error
       return {
         canCreateFlows: true,

@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error(LogCategory.UI, 'ErrorBoundary caught an error:', error, errorInfo)
     
     this.setState({
       error,
@@ -48,11 +48,11 @@ export class ErrorBoundary extends Component<Props, State> {
     // });
     
     // Log to console instead
-    console.error('React Error Boundary triggered:', {
+    logger.error(LogCategory.UI, 'Error occurred', 'React Error Boundary triggered:', {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack
-    });
+    })
 
     // Call custom error handler if provided
     if (this.props.onError) {
@@ -62,11 +62,11 @@ export class ErrorBoundary extends Component<Props, State> {
     // In production, you might want to log to an error reporting service
     if (import.meta.env.PROD) {
       // Log to error reporting service (e.g., Sentry)
-      console.error('Production error:', {
+      logger.error(LogCategory.UI, 'Error occurred', 'Production error:', {
         error: error.toString(),
         componentStack: errorInfo.componentStack,
         stack: error.stack,
-      });
+      })
     }
   }
 
@@ -104,6 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4">
               {import.meta.env.DEV && this.state.error && (
+import { logger, LogCategory } from '@/lib/logger';
                 <Alert variant="destructive">
                   <AlertTitle>Error Details (Development Only)</AlertTitle>
                   <AlertDescription className="mt-2">
@@ -155,7 +156,7 @@ export const useErrorHandler = () => {
 export const AsyncErrorBoundary: React.FC<Props> = ({ children, ...props }) => {
   React.useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      logger.error(LogCategory.UI, 'Unhandled promise rejection:', event.reason)
       // You could update state here to show an error
     };
 

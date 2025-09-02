@@ -5,6 +5,7 @@ import { certificateService } from '@/services/certificateService';
 import { Certificate } from '@/types/admin';
 import { toast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface CertificateSelectionProps {
   id: string;
@@ -37,11 +38,11 @@ export const CertificateSelection: React.FC<CertificateSelectionProps> = ({
         if (response.success && response.data) {
           setCertificates(response.data);
         } else {
-          console.error('Failed to fetch certificates:', response.error);
+          logger.error(LogCategory.UI, 'Failed to fetch certificates:', response.error)
           setCertificates([]);
         }
       } catch (error) {
-        console.error('Error fetching certificates:', error);
+        logger.error(LogCategory.UI, 'Error fetching certificates:', error)
         setCertificates([]);
         toast({ title: "Error", description: 'Failed to load certificates', variant: "destructive" });
       } finally {

@@ -22,6 +22,7 @@ import {
 import { AdapterMonitoring, AdapterMonitoringStatus } from '@/services/adapterMonitoringService';
 import { AdapterLogViewer } from './AdapterLogViewer';
 import { useAdapterLogs } from '@/hooks/useAdapterLogs';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface AdapterCardProps {
   adapter: AdapterMonitoring;
@@ -157,7 +158,7 @@ export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
             className="hover-scale"
             onClick={() => {
               // Handle start/stop adapter action
-              console.log(`${adapter.status === 'running' ? 'Stopping' : 'Starting'} adapter ${adapter.id}`);
+              logger.info(LogCategory.UI, `${adapter.status === 'running' ? 'Stopping' : 'Starting'} adapter ${adapter.id}`)
               if (onUpdate) {
                 onUpdate({ status: adapter.status === 'running' ? 'stopped' : 'running' });
               }
@@ -178,7 +179,7 @@ export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
             className="hover-scale"
             onClick={() => {
               // Handle adapter settings
-              console.log(`Opening settings for adapter ${adapter.id}`);
+              logger.info(LogCategory.UI, `Opening settings for adapter ${adapter.id}`)
             }}
           >
             <Settings className="h-4 w-4 mr-2" />

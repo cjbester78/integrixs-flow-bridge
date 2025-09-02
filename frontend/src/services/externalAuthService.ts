@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import type { 
   ExternalAuthConfig, 
   CreateExternalAuthRequest, 
@@ -13,7 +13,7 @@ export const externalAuthService = {
       const response = await apiClient.get<{ success: boolean; data: ExternalAuthConfig[]; message?: string }>('/external-auth');
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch auth configs:', error);
+      logger.error(LogCategory.API, 'Failed to fetch auth configs:', error)
       return { success: false, data: [], message: 'Failed to fetch authentication configurations' };
     }
   },
@@ -24,7 +24,7 @@ export const externalAuthService = {
       const response = await apiClient.get<{ success: boolean; data: ExternalAuthConfig; message?: string }>(`/external-auth/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch auth config:', error);
+      logger.error(LogCategory.API, 'Failed to fetch auth config:', error)
       return { success: false, data: null, message: 'Failed to fetch authentication configuration' };
     }
   },
@@ -35,7 +35,7 @@ export const externalAuthService = {
       const response = await apiClient.post<{ success: boolean; data: ExternalAuthConfig; message?: string }>('/external-auth', request);
       return response.data;
     } catch (error) {
-      console.error('Failed to create auth config:', error);
+      logger.error(LogCategory.API, 'Failed to create auth config:', error)
       return { success: false, data: null, message: 'Failed to create authentication configuration' };
     }
   },
@@ -46,7 +46,7 @@ export const externalAuthService = {
       const response = await apiClient.put<{ success: boolean; data: ExternalAuthConfig; message?: string }>(`/external-auth/${id}`, request);
       return response.data;
     } catch (error) {
-      console.error('Failed to update auth config:', error);
+      logger.error(LogCategory.API, 'Failed to update auth config:', error)
       return { success: false, data: null, message: 'Failed to update authentication configuration' };
     }
   },
@@ -57,7 +57,7 @@ export const externalAuthService = {
       const response = await apiClient.delete(`/external-auth/${id}`);
       return response;
     } catch (error) {
-      console.error('Failed to delete auth config:', error);
+      logger.error(LogCategory.API, 'Failed to delete auth config:', error)
       return { success: false, message: 'Failed to delete authentication configuration' };
     }
   },
@@ -70,7 +70,7 @@ export const externalAuthService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch auth attempts:', error);
+      logger.error(LogCategory.API, 'Failed to fetch auth attempts:', error)
       return { success: false, data: [], message: 'Failed to fetch authentication attempts' };
     }
   },
@@ -81,7 +81,7 @@ export const externalAuthService = {
       const response = await apiClient.post(`/external-auth/${id}/test`);
       return response;
     } catch (error) {
-      console.error('Failed to test auth config:', error);
+      logger.error(LogCategory.API, 'Failed to test auth config:', error)
       return { success: false, message: 'Failed to test authentication configuration' };
     }
   },
@@ -96,7 +96,7 @@ export const externalAuthService = {
       });
       return response;
     } catch (error) {
-      console.error('Failed to link auth config to flow:', error);
+      logger.error(LogCategory.API, 'Failed to link auth config to flow:', error)
       return { success: false, message: 'Failed to link authentication to flow' };
     }
   },
@@ -107,7 +107,7 @@ export const externalAuthService = {
       const response = await apiClient.delete(`/external-auth/unlink-flow/${flowId}/${adapterType}`);
       return response;
     } catch (error) {
-      console.error('Failed to unlink auth config from flow:', error);
+      logger.error(LogCategory.API, 'Failed to unlink auth config from flow:', error)
       return { success: false, message: 'Failed to unlink authentication from flow' };
     }
   }

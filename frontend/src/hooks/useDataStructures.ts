@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DataStructure, Field } from '@/types/dataStructures';
 import { parseJsonStructure, parseWsdlStructure, buildNestedStructure } from '@/utils/structureParsers';
 import { structureService, DataStructureCreate } from '@/services/structureService';
+import { logger, LogCategory } from '@/lib/logger';
 
 const sampleStructures: DataStructure[] = [
   {
@@ -274,16 +275,16 @@ export const useDataStructures = () => {
   const loadStructures = async () => {
     try {
       setLoading(true);
-      console.log('Loading data structures from backend...');
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Loading data structures from backend...')
       const response = await structureService.getStructures();
       
       if (response.success && response.data) {
-        console.log('API structures loaded:', response.data.structures || response.data);
+        logger.info(LogCategory.BUSINESS_LOGIC, 'API structures loaded:', { data: response.data.structures || response.data })
         const structures = response.data.structures || response.data || [];
         
         // Check if response is actually HTML (endpoint doesn't exist)
         if (typeof structures === 'string' && (structures as string).includes('<!DOCTYPE html>')) {
-          console.log('API endpoint not implemented yet, showing sample data');
+          logger.info(LogCategory.BUSINESS_LOGIC, 'API endpoint not implemented yet, showing sample data')
           setStructures(sampleStructures);
           toast({
             title: "Info",
@@ -293,14 +294,14 @@ export const useDataStructures = () => {
         }
         
         // Set structures from API, even if empty
-        console.log(`API returned ${structures.length} structures`);
+        logger.info(LogCategory.BUSINESS_LOGIC, `API returned ${structures.length} structures`)
         setStructures(structures);
       } else {
-        console.log('API failed, showing empty list');
+        logger.info(LogCategory.BUSINESS_LOGIC, 'API failed, showing empty list')
         setStructures([]);
       }
     } catch (error) {
-      console.error('Error loading structures, showing empty list:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error loading structures, showing empty list:', error)
       setStructures([]);
     } finally {
       setLoading(false);
@@ -392,11 +393,11 @@ export const useDataStructures = () => {
     };
 
     try {
-      console.log('Updating structure:', id, updates);
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Updating structure:', { data: id, updates })
       const response = await structureService.updateStructure(id, updates);
       
       if (response.success && response.data) {
-        console.log('Structure updated successfully:', response.data);
+        logger.info(LogCategory.BUSINESS_LOGIC, 'Structure updated successfully:', { data: response.data })
         // Reload structures to get the updated list
         await loadStructures();
         
@@ -406,7 +407,7 @@ export const useDataStructures = () => {
         });
         return true;
       } else {
-        console.error('Failed to update structure:', response.error);
+        logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to update structure:', response.error)
         toast({
           title: "Update Failed",
           description: "Failed to update data structure",
@@ -415,12 +416,12 @@ export const useDataStructures = () => {
         return false;
       }
     } catch (error: any) {
-      console.error('Error updating structure:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error updating structure:', error)
       
       // Extract the actual error message
       let errorMessage = "An error occurred while updating the data structure";
       if (error.response) {
-        console.error('Error response data:', error.response);
+        logger.error(LogCategory.BUSINESS_LOGIC, 'Error response data:', error.response)
         // Handle Spring Boot problem details response
         if (error.response.detail) {
           errorMessage = error.response.detail;
@@ -528,11 +529,11 @@ export const useDataStructures = () => {
     };
 
     try {
-      console.log('Saving structure to backend:', structureData);
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Saving structure to backend:', { data: structureData })
       const response = await structureService.createStructure(structureData);
       
       if (response.success && response.data) {
-        console.log('Structure saved successfully:', response.data);
+        logger.info(LogCategory.BUSINESS_LOGIC, 'Structure saved successfully:', { data: response.data })
         // Reload structures to get the updated list
         await loadStructures();
         
@@ -542,7 +543,7 @@ export const useDataStructures = () => {
         });
         return true;
       } else {
-        console.error('Failed to save structure:', response.error);
+        logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to save structure:', response.error)
         toast({
           title: "Save Failed",
           description: "Failed to save data structure to the backend",
@@ -551,12 +552,12 @@ export const useDataStructures = () => {
         return false;
       }
     } catch (error: any) {
-      console.error('Error saving structure:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error saving structure:', error)
       
       // Extract the actual error message
       let errorMessage = "An error occurred while saving the data structure";
       if (error.response) {
-        console.error('Error response data:', error.response);
+        logger.error(LogCategory.BUSINESS_LOGIC, 'Error response data:', error.response)
         // Handle Spring Boot problem details response
         if (error.response.detail) {
           errorMessage = error.response.detail;
@@ -582,11 +583,11 @@ export const useDataStructures = () => {
 
   const deleteStructure = async (id: string) => {
     try {
-      console.log('Deleting structure:', id);
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Deleting structure:', { data: id })
       const response = await structureService.deleteStructure(id);
       
       if (response.success) {
-        console.log('Structure deleted successfully');
+        logger.info(LogCategory.BUSINESS_LOGIC, 'Structure deleted successfully')
         // Reload structures to get the updated list
         await loadStructures();
         
@@ -599,7 +600,7 @@ export const useDataStructures = () => {
           description: "Data structure has been removed",
         });
       } else {
-        console.error('Failed to delete structure:', response.error);
+        logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to delete structure:', response.error)
         toast({
           title: "Delete Failed",
           description: "Failed to delete data structure",
@@ -607,7 +608,7 @@ export const useDataStructures = () => {
         });
       }
     } catch (error) {
-      console.error('Error deleting structure:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error deleting structure:', error)
       toast({
         title: "Delete Error",
         description: "An error occurred while deleting the data structure",
@@ -618,11 +619,11 @@ export const useDataStructures = () => {
 
   const duplicateStructure = async (structure: DataStructure) => {
     try {
-      console.log('Duplicating structure:', structure.name);
+      logger.info(LogCategory.BUSINESS_LOGIC, 'Duplicating structure:', { data: structure.name })
       const response = await structureService.cloneStructure(structure.id, `${structure.name} (Copy)`);
       
       if (response.success && response.data) {
-        console.log('Structure duplicated successfully:', response.data);
+        logger.info(LogCategory.BUSINESS_LOGIC, 'Structure duplicated successfully:', { data: response.data })
         // Reload structures to get the updated list
         await loadStructures();
         
@@ -631,7 +632,7 @@ export const useDataStructures = () => {
           description: `Created copy of "${structure.name}"`,
         });
       } else {
-        console.error('Failed to duplicate structure:', response.error);
+        logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to duplicate structure:', response.error)
         toast({
           title: "Duplicate Failed",
           description: "Failed to duplicate data structure",
@@ -639,7 +640,7 @@ export const useDataStructures = () => {
         });
       }
     } catch (error) {
-      console.error('Error duplicating structure:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error duplicating structure:', error)
       toast({
         title: "Duplicate Error",
         description: "An error occurred while duplicating the data structure",

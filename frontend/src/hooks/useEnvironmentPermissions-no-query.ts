@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { systemConfigService, EnvironmentInfo, EnvironmentPermissions } from '@/services/systemConfigService';
+import { logger, LogCategory } from '@/lib/logger';
 
 /**
  * Hook for managing environment-based permissions without React Query
@@ -18,7 +19,7 @@ export const useEnvironmentPermissions = () => {
       setEnvironmentInfo(envInfo);
       setPermissions(perms);
     } catch (error) {
-      console.error('Error fetching environment data:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error fetching environment data:', error)
       // Set default values on error
       setEnvironmentInfo({ 
         type: 'DEVELOPMENT', 

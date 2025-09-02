@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { systemMonitoringService, SystemHealth, SystemStats, SystemAlert } from '@/services/systemMonitoringService';
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 
 export const useSystemMonitoring = () => {
   const [health, setHealth] = useState<SystemHealth | null>(null);
@@ -17,7 +18,7 @@ export const useSystemMonitoring = () => {
         setHealth(response.data);
       }
     } catch (error) {
-      console.error('Failed to load system health:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system health:', error)
     }
   }, []);
 
@@ -28,7 +29,7 @@ export const useSystemMonitoring = () => {
         setStats(response.data);
       }
     } catch (error) {
-      console.error('Failed to load system stats:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system stats:', error)
     }
   }, []);
 
@@ -39,7 +40,7 @@ export const useSystemMonitoring = () => {
         setAlerts(response.data.alerts);
       }
     } catch (error) {
-      console.error('Failed to load system alerts:', error);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system alerts:', error)
     }
   }, []);
 

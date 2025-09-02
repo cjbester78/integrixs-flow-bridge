@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import type { CommunicationAdapter, AdapterType, AdapterMode } from '@/types/communicationAdapter';
 
 const API_PREFIX = '/adapters';
@@ -25,7 +25,7 @@ export const communicationAdapterService = {
       const response = await apiClient.get<CommunicationAdapter[]>(API_PREFIX);
       return { success: true, data: response };
     } catch (error) {
-      console.error('Error fetching adapters:', error);
+      logger.error(LogCategory.API, 'Error fetching adapters:', error)
       return { success: false, message: 'Failed to fetch adapters' };
     }
   },
@@ -35,7 +35,7 @@ export const communicationAdapterService = {
       const response = await apiClient.post<CommunicationAdapter>(API_PREFIX, data);
       return { success: true, data: response };
     } catch (error) {
-      console.error('Error creating adapter:', error);
+      logger.error(LogCategory.API, 'Error creating adapter:', error)
       return { success: false, message: 'Failed to create adapter' };
     }
   },

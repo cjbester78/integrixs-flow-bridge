@@ -1,5 +1,5 @@
 import { api, ApiResponse } from './api';
-import { getWebSocketUrl } from '@/lib/api-utils';
+import { getWebSocketUrl, logger, LogCategory } from '@/lib/api-utils';
 
 export interface SystemHealth {
   status: 'healthy' | 'warning' | 'critical';
@@ -140,7 +140,7 @@ class SystemMonitoringService {
       this.websocket = new WebSocket(wsUrl);
       
       this.websocket.onopen = () => {
-        console.log('WebSocket connected for system monitoring');
+        logger.info(LogCategory.API, 'WebSocket connected for system monitoring')
         this.reconnectAttempts = 0;
       };
       
@@ -156,27 +156,27 @@ class SystemMonitoringService {
             this.statsListeners.forEach(listener => listener(data.stats));
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          logger.error(LogCategory.API, 'Error parsing WebSocket message:', error)
         }
       };
       
       this.websocket.onclose = () => {
-        console.log('WebSocket connection closed');
+        logger.info(LogCategory.API, 'WebSocket connection closed')
         this.attemptReconnect();
       };
       
       this.websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        logger.error(LogCategory.API, 'WebSocket error:', error)
       };
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      logger.error(LogCategory.API, 'Failed to create WebSocket connection:', error)
     }
   }
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
       
       setTimeout(() => {
         this.connectWebSocket();

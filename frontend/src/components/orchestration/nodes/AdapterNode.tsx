@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Settings, Globe, Inbox, Workflow, RefreshCw, X, Play } from 'lucide-react';
 import { AdapterConfigurationCard } from '@/components/createFlow/AdapterConfigurationCard';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface AdapterNodeProps {
   id: string;
@@ -44,7 +45,7 @@ const getAdapterName = (type: string) => {
 };
 
 export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) => {
-  console.log('[AdapterNode] Rendering node:', { id, data });
+  logger.info(LogCategory.UI, '[AdapterNode] Rendering node:', { data: { id, data } })
   
   const [configOpen, setConfigOpen] = useState(false);
   const { setNodes, setEdges } = useReactFlow();
@@ -59,13 +60,13 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
   const adapterName = getAdapterName(data.adapterType);
   const isConfigured = data.adapterConfig && Object.keys(data.adapterConfig).length > 0;
   
-  console.log('[AdapterNode] Node state:', { 
+  logger.info(LogCategory.UI, 'Log output', { data: '[AdapterNode] Node state:', { 
     id, 
     adapterType: data.adapterType, 
     adapterName, 
     isConfigured,
     configOpen 
-  });
+  } })
 
   const handleDelete = () => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
@@ -105,18 +106,18 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
             variant="outline"
             className="w-full bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
             onClick={(e) => {
-              console.log('[AdapterNode] Configure button clicked:', { id, adapterType: data.adapterType });
+              logger.info(LogCategory.UI, '[AdapterNode] Configure button clicked:', { data: { id, adapterType: data.adapterType } })
               e.stopPropagation();
               e.preventDefault();
               try {
                 setConfigOpen(true);
-                console.log('[AdapterNode] Dialog opened successfully');
+                logger.info(LogCategory.UI, '[AdapterNode] Dialog opened successfully')
               } catch (error) {
-                console.error('[AdapterNode] Error opening dialog:', error);
+                logger.error(LogCategory.UI, '[AdapterNode] Error opening dialog:', error)
               }
             }}
             onMouseDown={(e) => {
-              console.log('[AdapterNode] Configure button mousedown');
+              logger.info(LogCategory.UI, '[AdapterNode] Configure button mousedown')
               e.stopPropagation();
             }}
           >
@@ -142,7 +143,7 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
       <Dialog 
         open={configOpen} 
         onOpenChange={(open) => {
-          console.log('[AdapterNode] Dialog state changing:', { open, id });
+          logger.info(LogCategory.UI, '[AdapterNode] Dialog state changing:', { data: { open, id } })
           setConfigOpen(open);
         }}
       >
@@ -152,11 +153,11 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
           </DialogHeader>
           <div className="mt-4">
             {(() => {
-              console.log('[AdapterNode] Rendering AdapterConfigurationCard with props:', {
+              logger.info(LogCategory.UI, 'Log output', { data: '[AdapterNode] Rendering AdapterConfigurationCard with props:', {
                 adapters: [{
                   id: data.adapterType,
                   name: adapterName,
-                  category: data.adapterType.split('-')[0].toUpperCase()
+                  category: data.adapterType.split('-')[0].toUpperCase( })
                 }],
                 inboundAdapter: data.adapterType
               });
@@ -175,27 +176,27 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
                   inboundAdapterActive={inboundAdapterActive}
                   outboundAdapterActive={outboundAdapterActive}
                   onSourceBusinessComponentChange={(value) => {
-                    console.log('[AdapterNode] Source business component changed:', value);
+                    logger.info(LogCategory.UI, '[AdapterNode] Source business component changed:', { data: value })
                     setSourceBusinessComponent(value);
                   }}
                   onTargetBusinessComponentChange={(value) => {
-                    console.log('[AdapterNode] Target business component changed:', value);
+                    logger.info(LogCategory.UI, '[AdapterNode] Target business component changed:', { data: value })
                     setTargetBusinessComponent(value);
                   }}
                   onInboundAdapterChange={(value) => {
-                    console.log('[AdapterNode] Source adapter changed:', value);
+                    logger.info(LogCategory.UI, '[AdapterNode] Source adapter changed:', { data: value })
                     setInboundAdapter(value);
                   }}
                   onOutboundAdapterChange={(value) => {
-                    console.log('[AdapterNode] Target adapter changed:', value);
+                    logger.info(LogCategory.UI, '[AdapterNode] Target adapter changed:', { data: value })
                     setOutboundAdapter(value);
                   }}
                   onInboundAdapterActiveChange={(active) => {
-                    console.log('[AdapterNode] Source adapter active changed:', active);
+                    logger.info(LogCategory.UI, '[AdapterNode] Source adapter active changed:', { data: active })
                     setInboundAdapterActive(active);
                   }}
                   onOutboundAdapterActiveChange={(active) => {
-                    console.log('[AdapterNode] Target adapter active changed:', active);
+                    logger.info(LogCategory.UI, '[AdapterNode] Target adapter active changed:', { data: active })
                     setOutboundAdapterActive(active);
                   }}
                 />

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Settings, ArrowRightLeft, Code, Filter, Plus, X } from 'lucide-react';
 import { FieldMappingScreen } from '@/components/FieldMappingScreen';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface TransformationNodeProps {
   id: string;
@@ -167,12 +168,12 @@ export const TransformationNode: React.FC<TransformationNodeProps> = ({ id, data
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              console.log('[TransformationNode] Configure clicked:', { 
+              logger.info(LogCategory.UI, 'Log output', { data: '[TransformationNode] Configure clicked:', { 
                 id, 
                 transformationType: data.transformationType, 
                 config: data.transformationConfig,
                 isFieldMapping: data.transformationType === 'field-mapping'
-              });
+              } })
               setConfigOpen(true);
             }}
             onMouseDown={(e) => e.stopPropagation()}

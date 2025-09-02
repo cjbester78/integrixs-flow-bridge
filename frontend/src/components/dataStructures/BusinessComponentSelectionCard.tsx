@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { BusinessComponent } from '@/types/businessComponent';
 import { businessComponentService } from '@/services/businessComponentService';
 import { Users } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface BusinessComponentSelectionCardProps {
   selectedBusinessComponent: BusinessComponent | null;
@@ -31,7 +32,7 @@ export const BusinessComponentSelectionCard: React.FC<BusinessComponentSelection
         setBusinessComponents(components);
       }
     } catch (error) {
-      console.error('Error loading business components:', error);
+      logger.error(LogCategory.UI, 'Error loading business components:', error)
       setBusinessComponents([]);
     } finally {
       setLoading(false);

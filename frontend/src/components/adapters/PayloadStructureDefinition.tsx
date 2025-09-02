@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Code2, FileJson, AlertCircle, CheckCircle } from 'lucide-react';
+import { logger, LogCategory } from '@/lib/logger';
 
 export interface PayloadStructureConfig {
   format: 'JSON' | 'XML';
@@ -76,7 +77,7 @@ export const PayloadStructureDefinition: FC<PayloadStructureDefinitionProps> = (
           setConversionPreview(xmlPreview);
           newConfig.convertedXml = xmlPreview;
         } catch (e) {
-          console.error('Error converting to XML preview:', e);
+          logger.error(LogCategory.UI, 'Error converting to XML preview:', e)
         }
       }
     }
@@ -132,7 +133,7 @@ export const PayloadStructureDefinition: FC<PayloadStructureDefinitionProps> = (
         jsonSchema: JSON.stringify(schema, null, 2)
       });
     } catch (e) {
-      console.error('Error generating schema:', e);
+      logger.error(LogCategory.UI, 'Error generating schema:', e)
     }
   };
 

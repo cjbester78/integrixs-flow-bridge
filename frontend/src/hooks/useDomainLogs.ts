@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/services/api';
 import { useSystemLogs } from './useSystemLogs';
+import { logger, LogCategory } from '@/lib/logger';
 
 // Domain-specific error types
 export interface DomainErrorEntry {
@@ -89,13 +90,13 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
       } else {
         // API returned empty data, set empty array
         setDomainErrors([]);
-        console.log(`No domain errors found for ${params.domainType}`);
+        logger.info(LogCategory.BUSINESS_LOGIC, `No domain errors found for ${params.domainType}`)
       }
     } catch (err) {
       // API error, set empty array instead of mock data
       setDomainErrors([]);
       setError(`Failed to fetch domain errors for ${params.domainType}`);
-      console.error(`Failed to fetch domain errors for ${params.domainType}:`, err);
+      logger.error(LogCategory.BUSINESS_LOGIC, 'Error occurred', `Failed to fetch domain errors for ${params.domainType}:`, err)
     } finally {
       setLoading(false);
     }

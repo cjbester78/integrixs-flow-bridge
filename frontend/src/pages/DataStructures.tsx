@@ -45,6 +45,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMetaDescription } from '@/hooks/useMetaDescription';
 
 import { useToast } from '@/hooks/use-toast';
+import { logger, LogCategory } from '@/lib/logger';
 interface DataStructure {
   id: string;
   name: string;
@@ -93,9 +94,9 @@ export const DataStructures = () => {
   const fetchStructures = async () => {
     try {
       setLoading(true);
-      console.log('Fetching data structures...');
+      logger.info(LogCategory.SYSTEM, 'Fetching data structures...')
       const response = await api.get('/structures');
-      console.log('Structures response:', response);
+      logger.info(LogCategory.SYSTEM, 'Structures response:', { data: response })
       
       if (response.success && response.data) {
         const structuresData = response.data.structures || response.data || [];
@@ -104,7 +105,7 @@ export const DataStructures = () => {
         setStructures([]);
       }
     } catch (error) {
-      console.error('Error fetching structures:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching structures:', error)
       toast({ title: "Error", description: 'Failed to fetch data structures', variant: "destructive" });
       setStructures([]);
     } finally {
@@ -119,7 +120,7 @@ export const DataStructures = () => {
         setBusinessComponents(Array.isArray(response.data) ? response.data : []);
       }
     } catch (error) {
-      console.error('Error fetching business components:', error);
+      logger.error(LogCategory.ERROR, 'Error fetching business components:', error)
       setBusinessComponents([]);
     }
   };
@@ -185,7 +186,7 @@ export const DataStructures = () => {
         toast({ title: "Error", description: 'Failed to delete data structure', variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error deleting structure:', error);
+      logger.error(LogCategory.ERROR, 'Error deleting structure:', error)
       toast({ title: "Error", description: 'Failed to delete data structure', variant: "destructive" });
     } finally {
       setDeleteDialogOpen(false);

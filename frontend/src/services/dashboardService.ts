@@ -1,4 +1,5 @@
 import { api } from './api';
+import { logger, LogCategory } from '@/lib/logger';
 
 export interface DashboardStats {
   activeIntegrations: number;
@@ -107,7 +108,7 @@ class DashboardService {
       // Return empty metrics if the API doesn't return the expected format
       return { success: false, data: [], error: 'Invalid response format' };
     } catch (error) {
-      console.error('Dashboard metrics error:', error);
+      logger.error(LogCategory.API, 'Dashboard metrics error:', error)
       return {
         success: false,
         data: [], // Return empty array to prevent map errors
