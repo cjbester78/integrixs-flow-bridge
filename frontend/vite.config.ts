@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -55,23 +54,6 @@ export default defineConfig(({ mode }) => ({
     target: 'esnext',
     loader: 'tsx',
     include: /\.(ts|tsx|js|jsx)$/,
-    exclude: [],
-    tsconfigRaw: `{
-      "compilerOptions": {
-        "jsx": "react-jsx",
-        "allowJs": true,
-        "skipLibCheck": true,
-        "noEmit": true,
-        "strict": false,
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
-        "noImplicitAny": false,
-        "noImplicitReturns": false,
-        "noFallthroughCasesInSwitch": false,
-        "exactOptionalPropertyTypes": false,
-        "noUncheckedIndexedAccess": false,
-        "suppressImplicitAnyIndexErrors": true
-      }
-    }`
+    exclude: []
   }
 }));

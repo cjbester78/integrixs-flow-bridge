@@ -435,7 +435,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Input
  id="maxConcurrentConnections"
  value={config.maxConcurrentConnections}
- onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })
+ onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })}
  placeholder="Enter maximum concurrent connections"
  type="number"
  />
