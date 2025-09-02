@@ -251,12 +251,6 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
   }, [setNodes]);
 
   // Function to delete selected nodes
-  const deleteSelectedNodes = useCallback(() => {
-    setNodes((nds) => nds.filter((node) => !node.selected));
-    setEdges((eds) => eds.filter((edge) => 
-      !selectedNodes.includes(edge.source) && !selectedNodes.includes(edge.target)
-    ));
-  }, [selectedNodes, setNodes, setEdges]);
 
   // Calculate flow statistics
   const flowStats = useMemo(() => {

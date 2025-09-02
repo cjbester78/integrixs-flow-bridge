@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { usePageReset } from '@/hooks/usePageReset';
@@ -155,7 +155,7 @@ export function CreateDirectMappingFlow() {
           // Check tags or other fields that might contain WSDL
           else if (response.data.tags && Array.isArray(response.data.tags)) {
             // Sometimes WSDL might be stored in tags
-            const wsdlTag = response.data.tags.find(tag => tag.includes('wsdl:'));
+            const wsdlTag = response.data.tags.find((tag: string) => tag.includes('wsdl:'));
             if (wsdlTag) {
               wsdlContent = wsdlTag;
             }

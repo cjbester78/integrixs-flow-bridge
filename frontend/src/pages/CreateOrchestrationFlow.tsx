@@ -136,64 +136,8 @@ export function CreateOrchestrationFlow() {
     }
   };
 
-  const handleTestFlow = async () => {
-    if (!inboundAdapter || !outboundAdapter) {
-      toast({
-        title: "Validation Error",
-        description: "Both source and target adapters are required for testing.",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    try {
-      setTesting(true);
-      
-      // Validate the orchestration flow configuration before testing
-      const validationRequest = {
-        flowName: flowName.trim() || 'Test Orchestration Flow',
-        inboundAdapterId: inboundAdapter,
-        outboundAdapterId: outboundAdapter,
-        sourceBusinessComponentId: sourceBusinessComponent || null,
-        targetBusinessComponentId: targetBusinessComponent || null,
-        orchestrationSteps: orchestrationSteps
-      };
 
-      const response = await api.post('/flow-composition/validate/orchestration', validationRequest);
-      
-      if (response.data?.valid) {
-        toast({
-          title: "Validation Passed",
-          description: "Orchestration flow configuration is valid and ready for execution.",
-        });
-      } else {
-        const errors = response.data?.errors?.join(', ') || 'Unknown validation errors';
-        toast({
-          title: "Validation Failed",
-          description: errors,
-          variant: "destructive",
-        });
-      }
-      
-    } catch (error) {
-      console.error('Error testing orchestration flow:', error);
-      toast({
-        title: "Test Failed",
-        description: error.response?.data?.message || "Failed to test the orchestration flow configuration.",
-        variant: "destructive",
-      });
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const handleCancel = () => {
-    navigateBack('/dashboard');
-  };
-
-  const handleOpenVisualEditor = () => {
-    setShowVisualEditor(true);
-  };
 
   if (showVisualEditor) {
     return (

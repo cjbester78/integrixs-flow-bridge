@@ -36,9 +36,9 @@ export async function convertStructureToXml(
     
     // Log the XML for debugging
     console.log('Received XML conversion result:', {
-      structureId: response.data.structureId,
-      structureName: response.data.structureName,
-      xmlContent: response.data.xmlContent
+      structureId: response.data?.structureId,
+      structureName: response.data?.structureName,
+      xmlContent: response.data?.xmlContent
     });
     
     return response.data;

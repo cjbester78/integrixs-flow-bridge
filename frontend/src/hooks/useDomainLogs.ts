@@ -129,17 +129,6 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
 };
 
 // Helper functions
-const getDomainTableName = (domainType: DomainType): string => {
-  const tableMap: Record<DomainType, string> = {
-    UserManagement: 'user-errors',
-    FlowEngine: 'flow-errors',
-    AdapterManagement: 'adapter-errors',
-    DataStructures: 'structure-errors',
-    ChannelManagement: 'channel-errors',
-    MessageProcessing: 'message-errors',
-  };
-  return tableMap[domainType];
-};
 
 // Specific domain hooks
 export const useUserManagementLogs = (userId?: string) => {

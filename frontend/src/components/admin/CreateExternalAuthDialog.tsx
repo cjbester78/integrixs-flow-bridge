@@ -173,20 +173,6 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
     setAllowedIpsInput('');
   };
 
-  const getAuthTypeIcon = (type: AuthType) => {
-    switch (type) {
-      case AuthType.BASIC:
-        return <UserCheck className="h-4 w-4" />;
-      case AuthType.API_KEY:
-        return <Key className="h-4 w-4" />;
-      case AuthType.OAUTH2:
-        return <Shield className="h-4 w-4" />;
-      case AuthType.OAUTH1:
-        return <ShieldAlert className="h-4 w-4" />;
-      default:
-        return <Shield className="h-4 w-4" />;
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

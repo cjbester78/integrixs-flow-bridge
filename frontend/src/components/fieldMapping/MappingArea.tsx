@@ -56,59 +56,6 @@ export function MappingArea({
     console.log('🔥 Visual flow editor state changed:', visualFlowEditor);
   }, [visualFlowEditor]);
 
-  const handleQuickFunction = (mappingId: string, functionName: string, javaCode: string) => {
-    console.log('🔍 handleQuickFunction called with:', { mappingId, functionName, javaCode });
-    
-    // Find the existing mapping to get the target field
-    const existingMapping = mappings.find(m => m.id === mappingId);
-    console.log('🔍 Found existing mapping:', existingMapping);
-    
-    if (!existingMapping) {
-      console.log('❌ No existing mapping found for ID:', mappingId);
-      return;
-    }
-
-    // Find the target field node
-    const targetField = targetFields.find(field => field.name === existingMapping.targetField);
-    console.log('🔍 Looking for target field:', existingMapping.targetField);
-    console.log('🔍 Available target fields:', targetFields.map(f => f.name));
-    console.log('🔍 Found target field:', targetField);
-    
-    if (!targetField) {
-      console.log('❌ Target field not found, falling back to simple function update');
-      // Fallback to simple function update if target field not found
-      if (onUpdateMapping) {
-        
-      }
-      return;
-    }
-
-    // Filter source fields to only show the ones already mapped in this mapping
-    const mappedSourceFields = sourceFields.filter(field => 
-      (existingMapping.sourceFields && existingMapping.sourceFields.includes(field.name)) || 
-      (existingMapping.sourcePaths && existingMapping.sourcePaths.includes(field.path))
-    );
-    
-    console.log('🔍 Existing mapping source fields:', existingMapping.sourceFields);
-    console.log('🔍 Existing mapping source paths:', existingMapping.sourcePaths);
-    console.log('🔍 Filtered source fields for visual mapper:', mappedSourceFields.map(f => f.name));
-
-    console.log('✅ Opening visual mapping modal with:', {
-      functionName,
-      targetField: targetField.name,
-      mappingId,
-      sourceFieldCount: mappedSourceFields.length
-    });
-    
-    // Open the visual mapping modal with filtered source fields
-    setFunctionMappingModal({
-      open: true,
-      selectedFunction: functionName,
-      targetField,
-      existingMappingId: mappingId,
-      filteredSourceFields: mappedSourceFields
-    });
-  };
 
   const handleOpenVisualFlowEditor = (mappingId: string) => {
     console.log('🔥 handleOpenVisualFlowEditor called with mappingId:', mappingId);

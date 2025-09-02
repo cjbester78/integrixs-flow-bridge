@@ -54,17 +54,6 @@ export const SystemLogs = () => {
     setDateRange(filters.dateRange);
   };
 
-  const getDomainTabIcon = (domainType: DomainType) => {
-    const iconMap = {
-      UserManagement: User,
-      FlowEngine: Workflow,
-      AdapterManagement: Network,
-      DataStructures: Database,
-      ChannelManagement: Settings,
-      MessageProcessing: MessageSquare,
-    };
-    return iconMap[domainType];
-  };
 
   return (
     <div className="space-y-6">

@@ -218,14 +218,14 @@ export default function InterfaceDetails() {
                   <div className="flex gap-2">
                     <Input
                       id="wsdl"
-                      value={deploymentInfo.metadata.wsdlUrl}
+                      value={deploymentInfo.metadata?.wsdlUrl || ''}
                       readOnly
                       className="font-mono text-sm"
                     />
                     <Button
                       size="icon"
                       variant="outline"
-                      onClick={() => copyToClipboard(deploymentInfo.metadata.wsdlUrl, 'WSDL URL')}
+                      onClick={() => copyToClipboard(deploymentInfo.metadata?.wsdlUrl || '', 'WSDL URL')}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
@@ -247,14 +247,14 @@ export default function InterfaceDetails() {
                   <div className="flex gap-2">
                     <Input
                       id="apidocs"
-                      value={deploymentInfo.metadata.apiDocsUrl}
+                      value={deploymentInfo.metadata?.apiDocsUrl || ''}
                       readOnly
                       className="font-mono text-sm"
                     />
                     <Button
                       size="icon"
                       variant="outline"
-                      onClick={() => window.open(deploymentInfo.metadata.apiDocsUrl, '_blank')}
+                      onClick={() => window.open(deploymentInfo.metadata?.apiDocsUrl || '', '_blank')}
                     >
                       <Globe className="h-4 w-4" />
                     </Button>

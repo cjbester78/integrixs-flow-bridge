@@ -135,7 +135,7 @@ export const systemConfigService = {
     const response = await api.get<{ allowed: boolean }>('/system/config/check-permission', {
       params: { action }
     });
-    return response.data.allowed;
+    return response.data?.allowed || false;
   },
 
   /**
@@ -145,6 +145,6 @@ export const systemConfigService = {
     const response = await api.get<UIVisibility>('/system/config/ui-visibility', {
       params: { element }
     });
-    return response.data.visible;
+    return response.data?.visible || false;
   }
 };
