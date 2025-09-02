@@ -4,252 +4,259 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface Tenant {
-  id: string;
-  name: string;
-  displayName: string;
-  subdomain?: string;
-  status: string;
-  planId: string;
-  userRole?: string;
-  primary?: boolean;
+ id: string;
+ name: string;
+ displayName: string;
+ subdomain?: string;
+ status: string;
+ planId: string;
+ userRole?: string;
+ primary?: boolean;
 }
 
 interface TenantSubscription {
-  id: number;
-  planId: string;
-  planName: string;
-  status: string;
-  features: string[];
-  quotas: Record<string, number>;
-  daysRemaining: number;
+ id: number;
+ planId: string;
+ planName: string;
+ status: string;
+ features: string[];
+ quotas: Record<string, number>;
+ daysRemaining: number;
 }
 
 interface TenantUsage {
-  executions: number;
-  messages: number;
-  apiCalls: number;
-  storageGb: number;
-  users: number;
-  flows: number;
-  quotas: Record<string, number>;
+ executions: number;
+ messages: number;
+ apiCalls: number;
+ storageGb: number;
+ users: number;
+ flows: number;
+ quotas: Record<string, number>;
 }
 
 interface TenantContextType {
-  currentTenant: Tenant | null;
-  userTenants: Tenant[];
-  subscription: TenantSubscription | null;
-  usage: TenantUsage | null;
-  loading: boolean;
-  switchTenant: (tenantId: string) => Promise<void>;
-  refreshTenants: () => Promise<void>;
-  refreshSubscription: () => Promise<void>;
-  refreshUsage: () => Promise<void>;
-  hasFeature: (feature: string) => boolean;
-  isOverQuota: (metric: string) => boolean;
-  getQuotaPercentage: (metric: string) => number;
+ currentTenant: Tenant | null;
+ userTenants: Tenant[];
+ subscription: TenantSubscription | null;
+ usage: TenantUsage | null;
+ loading: boolean;
+ switchTenant: (tenantId: string) => Promise<void>;
+ refreshTenants: () => Promise<void>;
+ refreshSubscription: () => Promise<void>;
+ refreshUsage: () => Promise<void>;
+ hasFeature: (feature: string) => boolean;
+ isOverQuota: (metric: string) => boolean;
+ getQuotaPercentage: (metric: string) => number;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
-
+;
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
-  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
-  const [userTenants, setUserTenants] = useState<Tenant[]>([]);
-  const [subscription, setSubscription] = useState<TenantSubscription | null>(null);
-  const [usage, setUsage] = useState<TenantUsage | null>(null);
-  const [loading, setLoading] = useState(true);
+ const { toast } = useToast();
+ const { isAuthenticated } = useAuth();
+ const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
+ const [userTenants, setUserTenants] = useState<Tenant[]>([]);
+ const [subscription, setSubscription] = useState<TenantSubscription | null>(null);
+ const [usage, setUsage] = useState<TenantUsage | null>(null);
+ const [loading, setLoading] = useState(true);
 
-  // Load current tenant
-  const loadCurrentTenant = async () => {
+ // Load current tenant
+ const loadCurrentTenant = async () => {
     try {
-      const response = await apiClient.get<Tenant>('/tenants/current');
-      setCurrentTenant(response);
-      
-      // Store in localStorage for persistence
-      if (response && 'id' in response) {
-        localStorage.setItem('currentTenantId', response.id);
-      }
-      
-      // Tenant header is now automatically included in all API requests via api-client.ts
-    } catch (error) {
-      logger.error(LogCategory.ERROR, 'Failed to load current tenant:', error)
-    }
-  };
+const response = await apiClient.get<Tenant>('/tenants/current');
+ setCurrentTenant(response);
 
-  // Load user's tenants
-  const loadUserTenants = async () => {
+ // Store in localStorage for persistence
+ if (response && 'id' in response) {
+ localStorage.setItem('currentTenantId', response.id);
+ 
+} catch (error) {
+  // Handle error
+}
+ // Tenant header is now automatically included in all API requests via api-client.ts
+ }
+} catch (error) {
+ logger.error(LogCategory.ERROR, 'Failed to load current tenant', { error: error });
+ };
+
+ // Load user's tenants
+ const loadUserTenants = async () => {
     try {
-      const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
-      setUserTenants(response);
-    } catch (error) {
-      logger.error(LogCategory.ERROR, 'Failed to load user tenants:', error)
-    }
-  };
+const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
+ setUserTenants(response);
+ 
+} catch (error) {
+  // Handle error
+}
+} catch (error) {
+ logger.error(LogCategory.ERROR, 'Failed to load user tenants', { error: error });
+ };
 
-  // Load subscription info
-  const loadSubscription = async () => {
-    if (!currentTenant) return;
-    
-    try {
-      const response = await apiClient.get<TenantSubscription>(`/tenants/${currentTenant.id}/subscription`);
-      setSubscription(response);
-    } catch (error) {
-      logger.error(LogCategory.ERROR, 'Failed to load subscription:', error)
-    }
-  };
+ // Load subscription info
+ const loadSubscription = async () => {
+ if (!currentTenant) return;
 
-  // Load usage info
-  const loadUsage = async () => {
-    if (!currentTenant) return;
-    
-    try {
-      const response = await apiClient.get<TenantUsage>(`/tenants/${currentTenant.id}/usage`);
-      setUsage(response);
-    } catch (error) {
-      logger.error(LogCategory.ERROR, 'Failed to load usage:', error)
-    }
-  };
+ try {
+ const response = await apiClient.get<TenantSubscription>(`/tenants/${currentTenant.id}/subscription`);
+ setSubscription(response);
+ }
+} catch (error) {
+ logger.error(LogCategory.ERROR, 'Failed to load subscription', { error: error });
+ };
 
-  // Switch tenant
-  const switchTenant = async (tenantId: string) => {
-    try {
-      await apiClient.post(`/tenants/switch/${tenantId}`);
-      
-      // Reload tenant data
-      await loadCurrentTenant();
-      await loadSubscription();
-      await loadUsage();
-      
-      toast({ title: "Success", description: 'Switched tenant successfully' });
-      
-      // Reload the page to ensure all data is refreshed
-      window.location.reload();
-    } catch (error) {
-      toast({ title: "Error", description: 'Failed to switch tenant', variant: "destructive" });
-      throw error;
-    }
-  };
+ // Load usage info
+ const loadUsage = async () => {
+ if (!currentTenant) return;
 
-  // Refresh functions
-  const refreshTenants = async () => {
-    await loadUserTenants();
-  };
+ try {`
+ const response = await apiClient.get<TenantUsage>(/tenants/${currentTenant.id}/usage`);
+ setUsage(response);
+ }
+} catch (error) {
+ logger.error(LogCategory.ERROR, 'Failed to load usage', { error: error });
+ };
 
-  const refreshSubscription = async () => {
-    await loadSubscription();
-  };
+ // Switch tenant
+ const switchTenant = async (tenantId: string) => {
+ try {`
+ await apiClient.post(`/tenants/switch/${tenantId}`);
 
-  const refreshUsage = async () => {
-    await loadUsage();
-  };
+ // Reload tenant data
+ await loadCurrentTenant();
+ await loadSubscription();
+ await loadUsage();
 
-  // Feature checking
-  const hasFeature = (feature: string): boolean => {
-    return subscription?.features?.includes(feature) ?? false;
-  };
+ toast({ title: "Success", description: 'Switched tenant successfully' });
 
-  // Quota checking
-  const isOverQuota = (metric: string): boolean => {
-    if (!usage || !usage.quotas) return false;
-    
-    const quota = usage.quotas[metric];
-    if (!quota || quota === -1) return false; // Unlimited
-    
-    const usageValue = getUsageValue(metric);
-    return usageValue > quota;
-  };
+ // Reload the page to ensure all data is refreshed
+ window.location.reload();
+ }
+} catch (error) {
+ toast({ title: "Error", description: 'Failed to switch tenant', variant: "destructive" });
+ throw error;
+ }
+ };
 
-  const getQuotaPercentage = (metric: string): number => {
-    if (!usage || !usage.quotas) return 0;
-    
-    const quota = usage.quotas[metric];
-    if (!quota || quota === -1) return 0; // Unlimited
-    
-    const usageValue = getUsageValue(metric);
-    return Math.min((usageValue / quota) * 100, 100);
-  };
+ // Refresh functions
+ const refreshTenants = async () => {
+ await loadUserTenants()
+ };
 
-  const getUsageValue = (metric: string): number => {
-    if (!usage) return 0;
-    
-    switch (metric) {
-      case 'executions_per_month':
-        return usage.executions;
-      case 'messages_per_month':
-        return usage.messages;
-      case 'api_calls_per_month':
-        return usage.apiCalls;
-      case 'storage_gb':
-        return usage.storageGb;
-      case 'users':
-        return usage.users;
-      case 'flows':
-        return usage.flows;
-      default:
-        return 0;
-    }
-  };
+ const refreshSubscription = async () => {
+ await loadSubscription()
+ };
 
-  // Initialize on mount
-  useEffect(() => {
-    if (isAuthenticated) {
-      const initialize = async () => {
-        setLoading(true);
-        
-        // Check for saved tenant ID
-        const savedTenantId = localStorage.getItem('currentTenantId');
-        if (savedTenantId) {
-          // Tenant header is automatically included in all API requests via api-client.ts
-          // The tenant ID from localStorage is added as X-Tenant-ID header
-        }
-        
-        await Promise.all([
-          loadCurrentTenant(),
-          loadUserTenants()
-        ]);
-        
-        setLoading(false);
-      };
-      
-      initialize();
-    }
-  }, [isAuthenticated]);
+ const refreshUsage = async () => {
+ await loadUsage()
+ };
 
-  // Load subscription and usage when tenant changes
-  useEffect(() => {
-    if (currentTenant) {
-      loadSubscription();
-      loadUsage();
-    }
-  }, [currentTenant]);
+ // Feature checking
+ const hasFeature = (feature: string): boolean => {
+ return subscription?.features?.includes(feature) ?? false;
+ };
 
-  const value: TenantContextType = {
-    currentTenant,
-    userTenants,
-    subscription,
-    usage,
-    loading,
-    switchTenant,
-    refreshTenants,
-    refreshSubscription,
-    refreshUsage,
-    hasFeature,
-    isOverQuota,
-    getQuotaPercentage
-  };
+ // Quota checking
+ const isOverQuota = (metric: string): boolean => {
+ if (!usage || !usage.quotas) return false;
 
-  return (
-    <TenantContext.Provider value={value}>
-      {children}
-    </TenantContext.Provider>
-  );
+ const quota = usage.quotas[metric];
+ if (!quota || quota === -1) return false; // Unlimited
+
+ const usageValue = getUsageValue(metric);
+ return usageValue > quota;
+ };
+
+ const getQuotaPercentage = (metric: string): number => {
+ if (!usage || !usage.quotas) return 0;
+
+ const quota = usage.quotas[metric];
+ if (!quota || quota === -1) return 0; // Unlimited
+
+ const usageValue = getUsageValue(metric);
+ return Math.min((usageValue / quota) * 100, 100);
+ };
+
+ const getUsageValue = (metric: string): number => {
+ if (!usage) return 0;
+
+ switch (metric) {
+ case 'executions_per_month':
+ return usage.executions;
+ case 'messages_per_month':
+ return usage.messages;
+ case 'api_calls_per_month':
+ return usage.apiCalls;
+ case 'storage_gb':
+ return usage.storageGb;
+ case 'users':
+ return usage.users;
+ case 'flows':
+ return usage.flows;
+ 'default':
+ return 0;
+ }
+ };
+
+ // Initialize on mount
+ useEffect(() => {
+ if (isAuthenticated) {
+ const initialize = async () => {
+ setLoading(true);
+
+ // Check for saved tenant ID
+ const savedTenantId = localStorage.getItem('currentTenantId');
+ if (savedTenantId) {
+ // Tenant header is automatically included in all API requests via api-client.ts
+ // The tenant ID from localStorage is added as X-Tenant-ID header
+ }
+
+ await Promise.all([
+ loadCurrentTenant(),
+ loadUserTenants();
+ ]);
+
+ setLoading(false);
+ };
+
+ initialize();
+ }
+ }, [isAuthenticated]);
+
+ // Load subscription and usage when tenant changes
+ useEffect(() => {
+ if (currentTenant) {
+ loadSubscription();
+ loadUsage()
+ }
+ }, [currentTenant]);
+
+ const value: TenantContextType = {
+ currentTenant,
+ userTenants,
+ subscription,
+ usage,
+ loading,
+ switchTenant,
+ refreshTenants,
+ refreshSubscription,
+ refreshUsage,
+ hasFeature,
+ isOverQuota,
+ getQuotaPercentage
+ };
+
+ return (
+ <TenantContext.Provider value={value}>
+ {children}
+ </TenantContext.Provider>
+ );
 }
 
 export function useTenant() {
-  const context = useContext(TenantContext);
-  if (context === undefined) {
-    throw new Error('useTenant must be used within a TenantProvider');
-  }
-  return context;
+ const context = useContext(TenantContext);
+ if (context === undefined) {
+ throw new Error('useTenant must be used within a TenantProvider');
+ }
+ return context;
+}`
 }

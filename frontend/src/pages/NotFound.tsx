@@ -6,35 +6,36 @@ import { AlertTriangle } from "lucide-react";
 import { logger, LogCategory } from '@/lib/logger';
 
 const NotFound = () => {
-  const location = useLocation();
+ const location = useLocation();
+;
+ useEffect(() => {
+ logger.error(LogCategory.NAVIGATION, 404 Error: User attempted to access non-existent route: location.pathname);, [location.pathname]);
 
-  useEffect(() => {
-    logger.error(LogCategory.NAVIGATION, '404 Error: User attempted to access non-existent route:', location.pathname)
-  }, [location.pathname]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary">
-      <Card className="w-full max-w-md shadow-elegant text-center">
-        <CardHeader className="space-y-4">
-          <div className="flex items-center justify-center">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-primary-foreground" />
-            </div>
-          </div>
-          <CardTitle className="text-4xl font-bold text-foreground">404</CardTitle>
-          <CardDescription className="text-xl">Oops! Page not found</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-6">
-            The page you're looking for doesn't exist or has been moved.
-          </p>
-          <Button asChild className="bg-primary hover:opacity-90">
-            <a href="/dashboard">Return to Dashboard</a>
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+ return (
+ <div className="min-h-screen flex items-center justify-center bg-secondary">
+ <Card className="w-full max-w-md shadow-elegant text-center">
+ <CardHeader className="space-y-4">
+ <div className="flex items-center justify-center">
+ <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
+ <AlertTriangle className="h-6 w-6 text-primary-foreground" />
+ </div>
+ </div>
+ <CardTitle className="text-4xl font-bold text-foreground">404</CardTitle>
+ <CardDescription className="text-xl">Oops! Page not found</CardDescription>
+ </CardHeader>
+ <CardContent>
+ <p className="text-muted-foreground mb-6">
+ The page you're looking for doesn't exist or has been moved.
+ </p>
+ <Button asChild className="bg-primary hover:opacity-90">
+ <a href="/dashboard">Return to Dashboard</a>
+ </Button>
+ </CardContent>
+ </Card>
+ </div>
+ );
 };
 
 export default NotFound;
+
+}

@@ -4,156 +4,157 @@ import { useToast } from '@/hooks/use-toast';
 import { logger, LogCategory } from '@/lib/logger';
 
 export const useMessageMonitoring = (businessComponentId?: string) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [stats, setStats] = useState<MessageStats | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const { toast } = useToast();
+ const [messages, setMessages] = useState<Message[]>([]);
+ const [stats, setStats] = useState<MessageStats | null>(null);
+ const [loading, setLoading] = useState(false);
+ const [connected, setConnected] = useState(false);
+ const { toast } = useToast();
 
-  // Load initial data
-  const loadMessages = useCallback(async (filters?: MessageFilters) => {
-    setLoading(true);
-    try {
-      const response = businessComponentId 
-        ? await messageService.getBusinessComponentMessages(businessComponentId, filters)
-        : await messageService.getMessages(filters);
-        
-      if (response.success && response.data) {
-        logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] Messages data:', { data: response.data.messages })
-        // Check first message for debugging
-        if (response.data.messages && response.data.messages.length > 0) {
-          logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] First message:', { data: response.data.messages[0] })
-          logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] First message timestamp:', { data: response.data.messages[0].timestamp })
-          logger.info(LogCategory.BUSINESS_LOGIC, '[useMessageMonitoring] Timestamp type:', { data: typeof response.data.messages[0].timestamp })
-        }
-        setMessages(response.data.messages || []);
-      } else {
-        // Ensure messages is always an array even on error
-        setMessages([]);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load messages",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [businessComponentId, toast]);
+ // Load initial data
+ const loadMessages = useCallback(async (filters?: MessageFilters) => {
+ setLoading(true);
+ try {
+ const response = businessComponentId;
+ ? await messageService.getBusinessComponentMessages(businessComponentId, filters)
+ : await messageService.getMessages(filters);
 
-  const loadStats = useCallback(async (filters?: Omit<MessageFilters, 'limit' | 'offset'>) => {
-    try {
-      // Add businessComponentId to filters if present
-      const statsFilters = businessComponentId 
-        ? { ...filters, source: businessComponentId } 
-        : filters;
-      
-      const response = await messageService.getMessageStats(statsFilters);
-      if (response.success && response.data) {
-        setStats(response.data);
-      }
-    } catch (error) {
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load message stats:', error)
-    }
-  }, [businessComponentId]);
+ if (response.success && response.data) {
+ logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] Messages data: { data: response.data.messages });
+ // Check first message for debugging
+ if (response.data.messages && response.data.messages.length > 0) {
+ logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] First message: { data: response.data.messages[0] });
+ logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] First message timestamp: { data: response.data.messages[0].timestamp });
+ logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] Timestamp type: { data: typeof response.data.messages[0].timestamp });
+ setMessages(response.data.messages || []);
+ } else {
+ // Ensure messages is always an array even on error
+ setMessages([]);}
+} catch (error) {
+ toast({
+ title: "Error",
+ description: "Failed to load messages",
+ variant: "destructive",
+}
+ });
+ } finally {
+ setLoading(false);
+ }
+ }, [businessComponentId, toast]);
 
-  // Real-time updates
-  useEffect(() => {
-    // Connect WebSocket
-    messageService.connectWebSocket(businessComponentId);
-    setConnected(true);
+ const loadStats = useCallback(async (filters?: Omit<MessageFilters, 'limit' | 'offset'>) => {
+ try {
+// Add businessComponentId to filters if present
+ const statsFilters = businessComponentId;
+ ? { ...filters, source: businessComponentId 
+} catch (error) {
+  // Handle error
+}
+ : filters;
 
-    // Subscribe to message updates
-    const unsubscribeMessages = messageService.onMessageUpdate((newMessage) => {
-      setMessages(prev => {
-        const existingIndex = prev.findIndex(m => m.id === newMessage.id);
-        if (existingIndex >= 0) {
-          // Update existing message
-          const updated = [...prev];
-          updated[existingIndex] = newMessage;
-          return updated;
-        } else {
-          // Add new message at the beginning
-          return [newMessage, ...prev];
-        }
-      });
+ const response = await messageService.getMessageStats(statsFilters);
+ if (response.success && response.data) {
+ setStats(response.data);}
+} catch (error) {
+ logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load message stats', { error: error });
+ }, [businessComponentId]);
 
-      // Show toast for failed messages
-      if (newMessage.status === 'failed') {
-        toast({
-          title: "Message Failed",
-          description: `Message ${newMessage.id} failed processing`,
-          variant: "destructive",
-        });
-      }
-    });
+ // Real-time updates
+ useEffect(() => {
+ // Connect WebSocket
+ messageService.connectWebSocket(businessComponentId);
+ setConnected(true);
 
-    // Subscribe to stats updates - disabled for now as it overrides filtered stats
-    // TODO: Make WebSocket send filtered stats based on current filters
-    // Requires backend WebSocket enhancement to accept filter parameters:
-    // - flowId, status, dateRange, etc.
-    // This would reduce unnecessary data transfer and improve performance
-    // Priority: Low - current polling approach works, this is an optimization
-    const unsubscribeStats = () => {}; // messageService.onStatsUpdate((newStats) => {
-    //   setStats(newStats);
-    // });
+ // Subscribe to message updates
+ const unsubscribeMessages = messageService.onMessageUpdate((newMessage) => {
+ setMessages(prev => {
+ const existingIndex = prev.findIndex(m => m.id === newMessage.id);
+ if (existingIndex >= 0) {
+ // Update existing message
+ const updated = [...prev];
+ updated[existingIndex] = newMessage;
+ return updated;
+ } else {
+ // Add new message at the beginning
+ return [newMessage, ...prev];
+ }
+ });
 
-    // Don't load initial data - let the parent component control this with filters
+ // Show toast for failed messages
+ if (newMessage.status === 'failed') {
+ toast({
+ title: "Message Failed",
+ description: `Message ${newMessage.id} failed processing`,
+ variant: "destructive",
+ });
+ }
+ });
 
-    // Cleanup on unmount
-    return () => {
-      unsubscribeMessages();
-      unsubscribeStats();
-      messageService.disconnectWebSocket();
-      setConnected(false);
-    };
-  }, [businessComponentId, loadMessages, loadStats, toast]);
+ // Subscribe to stats updates - disabled for now as it overrides filtered stats
+ // TODO: Make WebSocket send filtered stats based on current filters
+ // Requires backend WebSocket enhancement to accept filter parameters:
+ // - flowId, status, dateRange, etc.
+ // This would reduce unnecessary data transfer and improve performance
+ // Priority: Low - current polling approach works, this is an optimization
+ const unsubscribeStats = () => {}; // messageService.onStatsUpdate((newStats) => {
+ // setStats(newStats);
+ // });
 
-  const reprocessMessage = useCallback(async (messageId: string) => {
-    try {
-      const response = await messageService.reprocessMessage(messageId);
-      if (response.success) {
-        toast({
-          title: "Success",
-          description: "Message queued for reprocessing",
-        });
-        // The WebSocket will handle the real-time update
-      } else {
-        throw new Error(response.error || 'Failed to reprocess message');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reprocess message",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
+ // Don't load initial data - let the parent component control this with filters
 
-  const refreshData = useCallback((filters?: MessageFilters) => {
-    loadMessages(filters);
-    loadStats(filters);
-  }, [loadMessages, loadStats]);
+ // Cleanup on unmount
+ return () => {
+ unsubscribeMessages();
+ unsubscribeStats();
+ messageService.disconnectWebSocket();
+ setConnected(false);
+ }
+}, [businessComponentId, loadMessages, loadStats, toast]);
 
-  const subscribeToMessageType = useCallback((messageType: string) => {
-    messageService.sendCommand('subscribe', { messageType });
-  }, []);
+ const reprocessMessage = useCallback(async (messageId: string) => {
+ try {
+ const response = await messageService.reprocessMessage(messageId);
+ if (response.success) {
+ toast({
+ title: "Success",
+ description: "Message queued for reprocessing",
+ });
+ // The WebSocket will handle the real-time update
+ } else {
+ throw new Error(response.error || 'Failed to reprocess message');}
+} catch (error) {
+ toast({
+ title: "Error",
+ description: "Failed to reprocess message",
+ variant: "destructive",
+}
+ });
+ }
+ }, [toast]);
 
-  const unsubscribeFromMessageType = useCallback((messageType: string) => {
-    messageService.sendCommand('unsubscribe', { messageType });
-  }, []);
+ const refreshData = useCallback((filters?: MessageFilters) => {
+ loadMessages(filters);
+ loadStats(filters);
+ }, [loadMessages, loadStats]);
 
-  return {
-    messages,
-    stats,
-    loading,
-    connected,
-    loadMessages,
-    loadStats,
-    reprocessMessage,
-    refreshData,
-    subscribeToMessageType,
-    unsubscribeFromMessageType,
-  };
-};
+ const subscribeToMessageType = useCallback((messageType: string) => {
+ messageService.sendCommand('subscribe', { messageType });
+ }, []);
+
+ const unsubscribeFromMessageType = useCallback((messageType: string) => {
+ messageService.sendCommand('unsubscribe', { messageType });
+ }, []);
+
+ return {
+ messages,
+ stats,
+ loading,
+ connected,
+ loadMessages,
+ loadStats,
+ reprocessMessage,
+ refreshData,
+ subscribeToMessageType,
+ unsubscribeFromMessageType,
+ }
+};`
+}}})

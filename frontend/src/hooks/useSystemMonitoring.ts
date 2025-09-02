@@ -4,142 +4,146 @@ import { useToast } from '@/hooks/use-toast';
 import { logger, LogCategory } from '@/lib/logger';
 
 export const useSystemMonitoring = () => {
-  const [health, setHealth] = useState<SystemHealth | null>(null);
-  const [stats, setStats] = useState<SystemStats | null>(null);
-  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [connected, setConnected] = useState(false);
-  const { toast } = useToast();
+ const [health, setHealth] = useState<SystemHealth | null>(null);
+ const [stats, setStats] = useState<SystemStats | null>(null);
+ const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [connected, setConnected] = useState(false);
+ const { toast } = useToast();
 
-  const loadHealth = useCallback(async () => {
+ const loadHealth = useCallback(async () => {
     try {
-      const response = await systemMonitoringService.getSystemHealth();
-      if (response.success && response.data) {
-        setHealth(response.data);
-      }
-    } catch (error) {
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system health:', error)
-    }
-  }, []);
+const response = await systemMonitoringService.getSystemHealth();
+ if (response.success && response.data) {
+ setHealth(response.data);
+} catch (error) {
+  // Handle error
+}
+} catch (error) {
+ logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system health', { error: error });
+ }, []);
 
-  const loadStats = useCallback(async () => {
+ const loadStats = useCallback(async () => {
     try {
-      const response = await systemMonitoringService.getSystemStats();
-      if (response.success && response.data) {
-        setStats(response.data);
-      }
-    } catch (error) {
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system stats:', error)
-    }
-  }, []);
+const response = await systemMonitoringService.getSystemStats();
+ if (response.success && response.data) {
+ setStats(response.data);
+} catch (error) {
+  // Handle error
+}
+} catch (error) {
+ logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system stats', { error: error });
+ }, []);
 
-  const loadAlerts = useCallback(async () => {
+ const loadAlerts = useCallback(async () => {
     try {
-      const response = await systemMonitoringService.getSystemAlerts({ acknowledged: false });
-      if (response.success && response.data) {
-        setAlerts(response.data.alerts);
-      }
-    } catch (error) {
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system alerts:', error)
-    }
-  }, []);
+ const response = await systemMonitoringService.getSystemAlerts({ acknowledged: false });
+ if (response.success && response.data) {
+ setAlerts(response.data.alerts);}
+} catch (error) {
+ logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system alerts', { error: error });
+ }, []);
 
-  useEffect(() => {
-    systemMonitoringService.connectWebSocket();
-    setConnected(true);
+ useEffect(() => {
+ systemMonitoringService.connectWebSocket();
+ setConnected(true);
 
-    const unsubscribeHealth = systemMonitoringService.onHealthUpdate((newHealth) => {
-      setHealth(newHealth);
-    });
+ const unsubscribeHealth = systemMonitoringService.onHealthUpdate((newHealth) => {
+ setHealth(newHealth);
+ });
 
-    const unsubscribeStats = systemMonitoringService.onStatsUpdate((newStats) => {
-      setStats(newStats);
-    });
 
-    const unsubscribeAlerts = systemMonitoringService.onAlert((alert) => {
-      setAlerts(prev => [alert, ...prev]);
-      
-      // Show toast for critical alerts
-      if (alert.type === 'critical' || alert.type === 'error') {
-        toast({
-          title: alert.title,
-          description: alert.message,
-          variant: "destructive",
-        });
-      }
-    });
+ const unsubscribeStats = systemMonitoringService.onStatsUpdate((newStats) => {
+ setStats(newStats);
+ });
 
-    const loadInitialData = async () => {
-      setLoading(true);
-      await Promise.all([loadHealth(), loadStats(), loadAlerts()]);
-      setLoading(false);
-    };
 
-    loadInitialData();
+ const unsubscribeAlerts = systemMonitoringService.onAlert((alert) => {
+ setAlerts(prev => [alert, ...prev]);
 
-    return () => {
-      unsubscribeHealth();
-      unsubscribeStats();
-      unsubscribeAlerts();
-      systemMonitoringService.disconnectWebSocket();
-      setConnected(false);
-    };
-  }, [loadHealth, loadStats, loadAlerts, toast]);
+ // Show toast for critical alerts
+ if (alert.type === 'critical' || alert.type === 'error') {
+ toast({
+ title: alert.title,
+ description: alert.message,
+ variant: "destructive",
+ });
+ }
+ });
 
-  const acknowledgeAlert = useCallback(async (alertId: string) => {
-    try {
-      const response = await systemMonitoringService.acknowledgeAlert(alertId);
-      if (response.success) {
-        setAlerts(prev => prev.map(alert => 
-          alert.id === alertId ? { ...alert, acknowledged: true } : alert
-        ));
-        toast({
-          title: "Success",
-          description: "Alert acknowledged",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to acknowledge alert",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
 
-  const resolveAlert = useCallback(async (alertId: string) => {
-    try {
-      const response = await systemMonitoringService.resolveAlert(alertId);
-      if (response.success) {
-        setAlerts(prev => prev.filter(alert => alert.id !== alertId));
-        toast({
-          title: "Success",
-          description: "Alert resolved",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to resolve alert",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
+ const loadInitialData = async () => {
+ setLoading(true);
+ await Promise.all([loadHealth(), loadStats(), loadAlerts()]);
+ setLoading(false);
+ };
 
-  const refreshData = useCallback(() => {
-    loadHealth();
-    loadStats();
-    loadAlerts();
-  }, [loadHealth, loadStats, loadAlerts]);
+ loadInitialData();
 
-  return {
-    health,
-    stats,
-    alerts,
-    loading,
-    connected,
-    acknowledgeAlert,
-    resolveAlert,
-    refreshData,
-  };
+ return () => {
+ unsubscribeHealth();
+ unsubscribeStats();
+ unsubscribeAlerts();
+ systemMonitoringService.disconnectWebSocket();
+ setConnected(false);
+ }
+}, [loadHealth, loadStats, loadAlerts, toast]);
+
+ const acknowledgeAlert = useCallback(async (alertId: string) => {
+ try {
+ const response = await systemMonitoringService.acknowledgeAlert(alertId);
+ if (response.success) {
+ setAlerts(prev => prev.map(alert =>
+ alert.id === alertId ? { ...alert, acknowledged: true } : alert
+ ));
+ toast({
+ title: "Success",
+ description: "Alert acknowledged",
+ })}
+} catch (error) {
+ toast({
+ title: "Error",
+ description: "Failed to acknowledge alert",
+ variant: "destructive",
+}
+ });
+ }
+ }, [toast]);
+
+ const resolveAlert = useCallback(async (alertId: string) => {
+ try {
+ const response = await systemMonitoringService.resolveAlert(alertId);
+ if (response.success) {
+ setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+ toast({
+ title: "Success",
+ description: "Alert resolved",
+ })}
+} catch (error) {
+ toast({
+ title: "Error",
+ description: "Failed to resolve alert",
+ variant: "destructive",
+}
+ });
+ }
+ }, [toast]);
+
+ const refreshData = useCallback(() => {
+ loadHealth();
+ loadStats();
+ loadAlerts();
+ }, [loadHealth, loadStats, loadAlerts]);
+
+ return {
+ health,
+ stats,
+ alerts,
+ loading,
+ connected,
+ acknowledgeAlert,
+ resolveAlert,
+ refreshData,
+ }
 };
+}

@@ -46,23 +46,29 @@ export const AdapterConfigurationCard = ({
   onInboundAdapterActiveChange,
   onOutboundAdapterActiveChange,
 }: AdapterConfigurationCardProps) => {
-  logger.info(LogCategory.UI, 'Log output', { message: '[AdapterConfigurationCard] Component rendered with props:', { extra: adapters: adapters.length,
+  logger.info(LogCategory.UI, 'Debug info', { 
+    message: 'AdapterConfigurationCard - Component rendered with props', 
+    adapters: adapters.length,
     sourceBusinessComponent,
     targetBusinessComponent,
     inboundAdapter,
     outboundAdapter,
     inboundAdapterActive,
     outboundAdapterActive
-   } })
+  });
+
 
   const { businessComponents, loading, getAdaptersForBusinessComponent } = useBusinessComponentAdapters();
-  
-  logger.info(LogCategory.UI, 'Log output', { message: '[AdapterConfigurationCard] Hook data:', { extra: businessComponents: businessComponents.length,
-    loading
-   } })
-  
-  const getAdapterById = (id: string) => adapters.find(adapter => adapter.id === id);
 
+  logger.info(LogCategory.UI, 'Debug info', { 
+    message: 'AdapterConfigurationCard - Hook data', 
+    businessComponents: businessComponents.length,
+    loading: loading;
+  });
+
+
+  const getAdapterById = (id: string) => adapters.find(adapter => adapter.id === id);
+;
   const [businessComponentAdapters, setBusinessComponentAdapters] = useState<string[]>([]);
 
   useEffect(() => {
@@ -82,18 +88,18 @@ export const AdapterConfigurationCard = ({
   };
 
   const handleSourceBusinessComponentChange = async (businessComponentId: string) => {
-    logger.info(LogCategory.UI, '[AdapterConfigurationCard] Source business component changing:', { data: businessComponentId })
+    logger.info(LogCategory.UI, '[AdapterConfigurationCard] Source business component changing', { data: businessComponentId });
     try {
       onSourceBusinessComponentChange(businessComponentId);
       // Reset source adapter if it's not available for the new business component
       const adaptersForBusinessComponent = await getAdaptersForBusinessComponent(businessComponentId);
-      logger.info(LogCategory.UI, '[AdapterConfigurationCard] Available adapters for business component:', { data: adaptersForBusinessComponent })
+      logger.info(LogCategory.UI, '[AdapterConfigurationCard] Available adapters for business component', { data: adaptersForBusinessComponent });
       if (inboundAdapter && !adaptersForBusinessComponent.includes(inboundAdapter)) {
-        logger.info(LogCategory.UI, '[AdapterConfigurationCard] Resetting source adapter - not available for new business component')
+        logger.info(LogCategory.UI, '[AdapterConfigurationCard] Resetting source adapter - not available for new business component');
         onInboundAdapterChange('');
       }
-    } catch (error) {
-      logger.error(LogCategory.UI, '[AdapterConfigurationCard] Error handling source business component change:', error)
+} catch (error) {
+      logger.error(LogCategory.UI, '[AdapterConfigurationCard] Error handling source business component change', { error });
     }
   };
 
@@ -136,11 +142,11 @@ export const AdapterConfigurationCard = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-3">
               <Label>Source Adapter *</Label>
-              <Select 
-                value={inboundAdapter} 
+              <Select
+                value={inboundAdapter}
                 onValueChange={onInboundAdapterChange}
                 disabled={!sourceBusinessComponent}
               >
@@ -180,7 +186,7 @@ export const AdapterConfigurationCard = ({
                 </div>
               )}
             </div>
-            
+
             {/* Source Adapter Active Status */}
             {inboundAdapter && (
               <div className="flex items-center space-x-2">
@@ -221,11 +227,11 @@ export const AdapterConfigurationCard = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-3">
               <Label>Target Adapter *</Label>
-              <Select 
-                value={outboundAdapter} 
+              <Select
+                value={outboundAdapter}
                 onValueChange={onOutboundAdapterChange}
                 disabled={!targetBusinessComponent}
               >
@@ -265,7 +271,7 @@ export const AdapterConfigurationCard = ({
                 </div>
               )}
             </div>
-            
+
             {/* Target Adapter Active Status */}
             {outboundAdapter && (
               <div className="flex items-center space-x-2">

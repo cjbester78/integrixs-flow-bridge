@@ -7,30 +7,31 @@ import { useNavigationHistory } from './useNavigationHistory';
  * @param resetCallback Function to call when page should be reset
  */
 export const usePageReset = (resetCallback: () => void) => {
-  const location = useLocation();
-  const { isDirectNavigation } = useNavigationHistory();
-  const hasResetRef = useRef(false);
-  const previousPathRef = useRef(location.pathname);
+ const location = useLocation();
+ const { isDirectNavigation } = useNavigationHistory();
+ const hasResetRef = useRef(false);
+ const previousPathRef = useRef(location.pathname);
+;
+ useEffect(() => {
+ // Check if this is a new navigation to this page
+ const isNewNavigation = previousPathRef.current !== location.pathname;
+;
+ if (isNewNavigation) {
+ previousPathRef.current = location.pathname;
 
-  useEffect(() => {
-    // Check if this is a new navigation to this page
-    const isNewNavigation = previousPathRef.current !== location.pathname;
-    
-    if (isNewNavigation) {
-      previousPathRef.current = location.pathname;
-      
-      // Reset if it's direct navigation (from menu)
-      if (isDirectNavigation()) {
-        resetCallback();
-        hasResetRef.current = true;
-      } else {
-        hasResetRef.current = false;
-      }
-    }
-  }, [location.pathname, isDirectNavigation, resetCallback]);
+ // Reset if it's direct navigation (from menu)
+ if (isDirectNavigation()) {
+ resetCallback();
+ hasResetRef.current = true;
+ } else {
+ hasResetRef.current = false;
+ }
+ }
+ }, [location.pathname, isDirectNavigation, resetCallback]);
 
-  return {
-    isDirectNavigation: isDirectNavigation(),
-    hasReset: hasResetRef.current
-  };
+ return {
+ isDirectNavigation: isDirectNavigation(),
+ hasReset: hasResetRef.current
+ }
 };
+}}})

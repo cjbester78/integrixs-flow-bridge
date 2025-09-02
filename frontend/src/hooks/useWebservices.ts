@@ -4,84 +4,95 @@ import { FieldNode } from '@/components/fieldMapping/types';
 import { logger, LogCategory } from '@/lib/logger';
 
 export const useWebservices = (businessComponentId?: string) => {
-  const [webservices, setWebservices] = useState<WebserviceFile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+ const [webservices, setWebservices] = useState<WebserviceFile[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadWebservices();
-  }, [businessComponentId]);
+ useEffect(() => {
+ loadWebservices();
+ }, [businessComponentId]);
 
-  const loadWebservices = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await webserviceService.getWebserviceFiles(businessComponentId);
-      if (response.success && response.data) {
-        setWebservices(response.data);
-      } else {
-        setError(response.error || 'Failed to load webservices');
-        setWebservices([]);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setWebservices([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const loadWebservices = async () => {
+ setLoading(true);
+ setError(null);
 
-  const getWebserviceStructure = async (filename: string): Promise<FieldNode[] | null> => {
-    try {
-      const response = await webserviceService.getWebserviceStructure(filename);
-      if (response.success && response.data) {
-        return response.data;
-      }
-      return null;
-    } catch (err) {
-      logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load webservice structure:', err)
-      return null;
-    }
-  };
+ try {
+ const response = await webserviceService.getWebserviceFiles(businessComponentId);
+ if (response.success && response.data) {
+ setWebservices(response.data);
+ } else {
+ setError(response.error || 'Failed to load webservices');
+ setWebservices([]);}
+} catch (err) {
+ setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+ setWebservices([]);
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  const uploadWebservice = async (file: File, businessComponentId: string) => {
-    try {
-      const response = await webserviceService.uploadWebservice(file, businessComponentId);
-      if (response.success) {
-        await loadWebservices(); // Refresh the list
-      }
-      return response;
-    } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to upload webservice'
-      };
-    }
-  };
+ const getWebserviceStructure = async (filename: string): Promise<FieldNode[] | null> => {
+ try {
+const response = await webserviceService.getWebserviceStructure(filename);
+ if (response.success && response.data) {
+ return response.data;
+ 
+} catch (error) {
+  // Handle error
+}
+ return null;
+ }
+} catch (err) {
+ logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load webservice structure', { error: err });
+ return null;
+ }
+ };
 
-  const deleteWebservice = async (filename: string) => {
-    try {
-      const response = await webserviceService.deleteWebservice(filename);
-      if (response.success) {
-        await loadWebservices(); // Refresh the list
-      }
-      return response;
-    } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to delete webservice'
-      };
-    }
-  };
+ const uploadWebservice = async (file: File, businessComponentId: string) => {
+ try {
+const response = await webserviceService.uploadWebservice(file, businessComponentId);
+ if (response.success) {
+ await loadWebservices(); // Refresh the list
+ 
+} catch (error) {
+  // Handle error
+}
+ return response;
+ }
+} catch (err) {
+ return {
+ success: false,
+ error: err instanceof Error ? err.message : 'Failed to upload webservice'
+ }
+}
+ };
 
-  return {
-    webservices,
-    loading,
-    error,
-    refreshWebservices: loadWebservices,
-    getWebserviceStructure,
-    uploadWebservice,
-    deleteWebservice,
-  };
+ const deleteWebservice = async (filename: string) => {
+ try {
+const response = await webserviceService.deleteWebservice(filename);
+ if (response.success) {
+ await loadWebservices(); // Refresh the list
+ 
+} catch (error) {
+  // Handle error
+}
+ return response;
+ }
+} catch (err) {
+ return {
+ success: false,
+ error: err instanceof Error ? err.message : 'Failed to delete webservice'
+ }
+}
+ };
+
+ return {
+ webservices,
+ loading,
+ error,
+ refreshWebservices: loadWebservices,
+ getWebserviceStructure,
+ uploadWebservice,
+ deleteWebservice,
+ }
 };
