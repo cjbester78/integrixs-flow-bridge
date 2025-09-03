@@ -277,11 +277,9 @@ export const useDataStructures = () => {
  setLoading(true);
  logger.info(LogCategory.BUSINESS_LOGIC, 'Loading data structures from backend...');
  const response = await structureService.getStructures();
-;
  if (response.success && response.data) {
- logger.info(LogCategory.BUSINESS_LOGIC, 'API structures loaded', { data: response.data.structures || response.data }))
+ logger.info(LogCategory.BUSINESS_LOGIC, 'API structures loaded', { data: response.data.structures || response.data });
  const structures = response.data.structures || response.data || [];
-;
  // Check if response is actually HTML (endpoint doesn't exist)
  if (typeof structures === 'string' && (structures as string).includes('<!DOCTYPE html>')) {
  logger.info(LogCategory.BUSINESS_LOGIC, 'API endpoint not implemented yet, showing sample data');
@@ -294,11 +292,12 @@ export const useDataStructures = () => {
  }
 
  // Set structures from API, even if empty
- logger.info(LogCategory.BUSINESS_LOGIC, 'API returned ${structures.length} structures');
+ logger.info(LogCategory.BUSINESS_LOGIC, `API returned ${structures.length} structures`);
  setStructures(structures);
  } else {
  logger.info(LogCategory.BUSINESS_LOGIC, 'API failed, showing empty list');
- setStructures([]);}
+ setStructures([]);
+ }
 } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error loading structures, showing empty list', { error: error });
  setStructures([]);
@@ -307,7 +306,7 @@ export const useDataStructures = () => {
  }
  };
 
- const updateStructure = async (;
+ const updateStructure = async (
  id: string,
  structureName: string,
  structureDescription: string,
@@ -319,7 +318,7 @@ export const useDataStructures = () => {
  customFields: Field[],
  selectedStructureType: string,
  namespaceConfig: any,
- businessComponentId?: string;
+ businessComponentId?: string
  ) => {
  if (!structureName) {
  toast({
@@ -346,9 +345,9 @@ export const useDataStructures = () => {
  structure = wsdlResult;
  }
  } else if (xsdInput) {
- structure = { message: 'XSD parsing not fully implemented yet' }
+ structure = { message: 'XSD parsing not fully implemented yet' };
 } else if (edmxInput) {
- structure = { message: 'EDMX parsing not fully implemented yet' }
+ structure = { message: 'EDMX parsing not fully implemented yet' };
 } else if (customFields.length > 0) {
  structure = buildNestedStructure(customFields);
  } else {
@@ -392,11 +391,10 @@ export const useDataStructures = () => {
  };
 
  try {
- logger.info(LogCategory.BUSINESS_LOGIC, Updating structure: { data: id, updates });
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Updating structure:', { data: id, updates });
  const response = await structureService.updateStructure(id, updates);
-;
  if (response.success && response.data) {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Structure updated successfully', { data: response.data }))
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Structure updated successfully', { data: response.data });
  // Reload structures to get the updated list
  await loadStructures();
 
@@ -412,7 +410,8 @@ export const useDataStructures = () => {
  description: "Failed to update data structure",
  variant: "destructive",
  });
- return false;}
+ return false;
+ }
 } catch (error: any) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error updating structure', { error: error });
  // Extract the actual error message
@@ -442,7 +441,7 @@ export const useDataStructures = () => {
  }
  };
 
- const saveStructure = async (;
+ const saveStructure = async (
  structureName: string,
  structureDescription: string,
  structureUsage: 'source' | 'target',
@@ -453,7 +452,7 @@ export const useDataStructures = () => {
  customFields: Field[],
  selectedStructureType: string,
  namespaceConfig: any,
- businessComponentId?: string;
+ businessComponentId?: string
  ) => {
  if (!structureName) {
  toast({
@@ -480,9 +479,9 @@ export const useDataStructures = () => {
  structure = wsdlResult;
  }
  } else if (xsdInput) {
- structure = { message: 'XSD parsing not fully implemented yet' }
+ structure = { message: 'XSD parsing not fully implemented yet' };
 } else if (edmxInput) {
- structure = { message: 'EDMX parsing not fully implemented yet' }
+ structure = { message: 'EDMX parsing not fully implemented yet' };
 } else if (customFields.length > 0) {
  structure = buildNestedStructure(customFields);
  } else {
@@ -526,16 +525,15 @@ export const useDataStructures = () => {
  };
 
  try {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Saving structure to backend', { data: structureData }))
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Saving structure to backend', { data: structureData });
  const response = await structureService.createStructure(structureData);
-;
  if (response.success && response.data) {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Structure saved successfully', { data: response.data }))
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Structure saved successfully', { data: response.data });
  // Reload structures to get the updated list
  await loadStructures();
 
  toast({
- title: "Structure Saved",`
+ title: "Structure Saved",
  description: `Data structure "${structureName}" has been created successfully`,
  });
  return true;
@@ -546,7 +544,8 @@ export const useDataStructures = () => {
  description: "Failed to save data structure to the backend",
  variant: "destructive",
  });
- return false;}
+ return false;
+ }
 } catch (error: any) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error saving structure', { error: error });
  // Extract the actual error message
@@ -578,9 +577,8 @@ export const useDataStructures = () => {
 
  const deleteStructure = async (id: string) => {
  try {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Deleting structure', { data: id }))
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Deleting structure', { data: id });
  const response = await structureService.deleteStructure(id);
-;
  if (response.success) {
  logger.info(LogCategory.BUSINESS_LOGIC, 'Structure deleted successfully');
  // Reload structures to get the updated list
@@ -600,8 +598,9 @@ export const useDataStructures = () => {
  title: "Delete Failed",
  description: "Failed to delete data structure",
  variant: "destructive",
- })}
-} catch (error) {
+ });
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error deleting structure', { error: error });
  toast({
  title: "Delete Error",
@@ -613,16 +612,15 @@ export const useDataStructures = () => {
 
  const duplicateStructure = async (structure: DataStructure) => {
  try {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Duplicating structure', { data: structure.name }))`
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Duplicating structure', { data: structure.name });
  const response = await structureService.cloneStructure(structure.id, `${structure.name} (Copy)`);
-;
  if (response.success && response.data) {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Structure duplicated successfully', { data: response.data }))
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Structure duplicated successfully', { data: response.data });
  // Reload structures to get the updated list
  await loadStructures();
 
  toast({
- title: "Structure Duplicated",`
+ title: "Structure Duplicated",
  description: `Created copy of "${structure.name}"`,
  });
  } else {
@@ -631,8 +629,9 @@ export const useDataStructures = () => {
  title: "Duplicate Failed",
  description: "Failed to duplicate data structure",
  variant: "destructive",
- })}
-} catch (error) {
+ });
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error duplicating structure', { error: error });
  toast({
  title: "Duplicate Error",
@@ -651,7 +650,6 @@ export const useDataStructures = () => {
  deleteStructure,
  duplicateStructure,
  loading,
- refreshStructures: loadStructures;
- }
-};`
-}}}}
+ refreshStructures: loadStructures
+ };
+};
