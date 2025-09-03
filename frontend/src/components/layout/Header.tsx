@@ -23,7 +23,7 @@ export const Header = () => {
  <div className="flex items-center space-x-4">
  <Button
  variant="ghost"
- size="icon";
+ size="icon"
  onClick={toggleSidebar}
  className="md:hidden"
  aria-label="Toggle sidebar"

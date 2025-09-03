@@ -40,8 +40,7 @@ export const Breadcrumb = () => {
  )}
  </div>
  );
- })
+ })}
  </nav>
  );
 };
-}

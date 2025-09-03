@@ -22,7 +22,7 @@ import { cn, logger, LogCategory } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';
 
-const navigation = [;
+const navigation = [
  {
  name: 'Dashboard',
  href: '/dashboard',
