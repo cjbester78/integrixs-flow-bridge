@@ -7,7 +7,7 @@ import type {
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
-;
+
 type ToasterToast = ToastProps & {
  id: string;
  title?: React.ReactNode
@@ -23,7 +23,7 @@ const actionTypes = {
 } as const
 
 let count = 0;
-;
+
 function genId() {
  count = (count + 1) % Number.MAX_SAFE_INTEGER
  return count.toString();
@@ -31,7 +31,7 @@ function genId() {
 
 type ActionType = typeof actionTypes
 
-type Action =;
+type Action =
  | {
  type: ActionType["ADD_TOAST"]
  toast: ToasterToast;
@@ -54,12 +54,12 @@ interface State {
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
-;
+
 const addToRemoveQueue = (toastId: string) => {
  if (toastTimeouts.has(toastId)) {
  return;
  }
-;
+
  const timeout = setTimeout(() => {
  toastTimeouts.delete(toastId);
  dispatch({
@@ -141,14 +141,14 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
  const id = genId();
-;
- const update = (props: ToasterToast) =>;
+
+ const update = (props: ToasterToast) =>
  dispatch({
  type: "UPDATE_TOAST",
  toast: { ...props, id },
  });
  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
-;
+
  dispatch({
  type: "ADD_TOAST",
  toast: {
@@ -188,5 +188,3 @@ function useToast() {
 }
 
 export { useToast, toast }
-
-}}}
