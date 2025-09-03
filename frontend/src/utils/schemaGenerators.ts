@@ -5,11 +5,10 @@ const buildJsonStructure = (fields: Field[]): any => {
 
  fields.forEach(field => {
  if (field.name) {
- const isArray = field.type === 'array' ||;
+ const isArray = field.type === 'array' ||
  (typeof field.maxOccurs === 'number' && field.maxOccurs > 1) ||
  field.maxOccurs === 'unbounded';
  const isComplexType = field.isComplexType || (field.children && field.children.length > 0);
-;
  if (isComplexType) {
  if (isArray) {
  // For arrays with children, create array with sample object

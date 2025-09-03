@@ -56,7 +56,7 @@ export const parseWsdlStructure = (wsdlString: string) => {
  // Helper function to resolve type references
     const resolveType = (typeName: string, schemas: NodeListOf<Element>): any => {
       // Remove namespace prefix
-      const cleanTypeName = typeName.split(':').pop() || ';
+      const cleanTypeName = typeName.split(':').pop() || '';
  // Check if we already processed this type
  if (complexTypes.has(cleanTypeName)) {
         return complexTypes.get(cleanTypeName);

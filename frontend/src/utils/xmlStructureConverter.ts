@@ -27,10 +27,10 @@ export interface XmlConversionResult {
  */
 export async function convertStructureToXml(
  structureId: string,
- config?: XmlConversionConfig;
+ config?: XmlConversionConfig
 ): Promise<XmlConversionResult> {
  try {
- const response = await api.post<XmlConversionResult>(;
+ const response = await api.post<XmlConversionResult>(
  `/structures/${structureId}/convert-to-xml`,
  config || {}
  );

@@ -95,6 +95,5 @@ export function validateStrictPassword(password: string): PasswordValidationResu
  requireNumbers: true,
  requireSpecialChars: true,
  allowEmpty: false,
- })
-}`
-})
+ });
+}
