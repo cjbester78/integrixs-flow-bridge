@@ -13,10 +13,8 @@ id: string;
  source: 'adapter' | 'system' | 'channel' | 'flow' | 'api';
  sourceId?: string;
  sourceName?: string;
-
-} catch (error) {
-  // Handle error
 }
+
 interface UseSystemLogsParams {
  source?: 'adapter' | 'system' | 'channel' | 'flow' | 'api';
  sourceId?: string;
@@ -44,17 +42,17 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  const [error, setError] = useState<string>();
 
  const fetchSources = async () => {
-    try {
+ try {
  const adaptersRes = await adapterService.getAdapters();
-;
+
  setSources({
  adapters: adaptersRes.success ? adaptersRes.data?.adapters || [] : [],
  channels: [], // Channels have been removed from the system
  flows: [] // Add flows API when available
  });
- }
-} catch (err) {
+ } catch (err) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to fetch sources', { error: err });
+ }
  };
 
  const fetchLogs = async () => {
@@ -74,9 +72,8 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  if (params.domainReferenceId) queryParams.append('domainReferenceId', params.domainReferenceId);
 
  // Try to fetch from API first
- const endpoint = `/logs/system${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/logs/system${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  const response = await api.get(endpoint);
-;
  if (response.success && response.data) {
  setLogs(response.data);
  } else {
@@ -87,8 +84,9 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  level: params.level,
  search: params.search,
  });
- setLogs(systemLogs);}
-} catch (err) {
+ setLogs(systemLogs);
+ }
+ } catch (err) {
  // Fallback to mock system logger on API error
  try {
  const systemLogs = await systemErrorLogger.getFilteredLogs({
@@ -144,5 +142,5 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  loading,
  error,
  refetch,
- }
-};`
+ };
+};
