@@ -14,27 +14,28 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  const loadMessages = useCallback(async (filters?: MessageFilters) => {
  setLoading(true);
  try {
- const response = businessComponentId;
+ const response = businessComponentId
  ? await messageService.getBusinessComponentMessages(businessComponentId, filters)
  : await messageService.getMessages(filters);
 
  if (response.success && response.data) {
- logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] Messages data: { data: response.data.messages });
+ logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] Messages data:`, { data: response.data.messages });
  // Check first message for debugging
  if (response.data.messages && response.data.messages.length > 0) {
- logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] First message: { data: response.data.messages[0] });
- logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] First message timestamp: { data: response.data.messages[0].timestamp });
- logger.info(LogCategory.BUSINESS_LOGIC, [useMessageMonitoring] Timestamp type: { data: typeof response.data.messages[0].timestamp });
+ logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] First message:`, { data: response.data.messages[0] });
+ logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] First message timestamp:`, { data: response.data.messages[0].timestamp });
+ logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] Timestamp type:`, { data: typeof response.data.messages[0].timestamp });
  setMessages(response.data.messages || []);
  } else {
  // Ensure messages is always an array even on error
- setMessages([]);}
-} catch (error) {
+ setMessages([]);
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to load messages",
  variant: "destructive",
-}
+ });
  });
  } finally {
  setLoading(false);
@@ -43,19 +44,18 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
 
  const loadStats = useCallback(async (filters?: Omit<MessageFilters, 'limit' | 'offset'>) => {
  try {
-// Add businessComponentId to filters if present
- const statsFilters = businessComponentId;
- ? { ...filters, source: businessComponentId 
-} catch (error) {
-  // Handle error
-}
+ // Add businessComponentId to filters if present
+ const statsFilters = businessComponentId
+ ? { ...filters, source: businessComponentId }
  : filters;
 
  const response = await messageService.getMessageStats(statsFilters);
  if (response.success && response.data) {
- setStats(response.data);}
-} catch (error) {
+ setStats(response.data);
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load message stats', { error: error });
+ }
  }, [businessComponentId]);
 
  // Real-time updates
@@ -107,8 +107,8 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  unsubscribeStats();
  messageService.disconnectWebSocket();
  setConnected(false);
- }
-}, [businessComponentId, loadMessages, loadStats, toast]);
+ };
+ }, [businessComponentId, loadMessages, loadStats, toast]);
 
  const reprocessMessage = useCallback(async (messageId: string) => {
  try {
@@ -120,13 +120,14 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  });
  // The WebSocket will handle the real-time update
  } else {
- throw new Error(response.error || 'Failed to reprocess message');}
-} catch (error) {
+ throw new Error(response.error || 'Failed to reprocess message');
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to reprocess message",
  variant: "destructive",
-}
+ });
  });
  }
  }, [toast]);
@@ -155,6 +156,5 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  refreshData,
  subscribeToMessageType,
  unsubscribeFromMessageType,
- }
-};`
-}}})
+ };
+};
