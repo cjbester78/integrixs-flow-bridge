@@ -241,7 +241,7 @@ class FrontendLogger {
  case LogLevel.ERROR:
  case LogLevel.FATAL:
  return console.error;
- 'default':
+ default:
  return console.log;
  }
  }

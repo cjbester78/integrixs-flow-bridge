@@ -144,5 +144,4 @@ export const addSessionInterceptor = (onSessionExpired: () => void) => {
 
  // Return function to remove interceptor
  return () => axios.interceptors.response.eject(interceptorId);
-};`
-}})
+};
