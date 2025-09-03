@@ -113,6 +113,5 @@ export const useFlowState = () => {
 
  // Utilities
  resetForm,
- }
+ };
 };
-}})
