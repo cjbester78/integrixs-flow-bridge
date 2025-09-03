@@ -26,23 +26,21 @@ setError(null);
  setLoadingFlows(true);
 
  const response = await flowService.getFlows();
-;
+
  if (response.success && response.data) {
  setFlows(response.data);
  // Select the first flow by default if available
  if (response.data.length > 0 && !selectedFlow) {
  setSelectedFlow(response.data[0]);
- 
-} catch (error) {
-  // Handle error
-}
+ }
  } else {
  setError(response.error || 'Failed to fetch flows');
  toast({
  variant: "destructive",
  title: "Error",
  description: response.error || 'Failed to fetch flows',
- })}
+ });
+ }
 } catch (err) {
  logger.error(LogCategory.ERROR, 'Error fetching flows', { error: err });
  setError('Failed to load flows');
@@ -73,7 +71,7 @@ setError(null);
  <h1 className="text-3xl font-bold mb-2">Flow Execution Engine</h1>
  <p className="text-gray-600">Monitor, execute, and schedule your integration flows</p>
  </div>
-;
+
  {/* Flow Selection */}
  <div className="mb-6">
  <Card>
@@ -95,7 +93,7 @@ setError(null);
  </div>
  ) : (
  <Select
- value={selectedFlow?.id || '}
+ value={selectedFlow?.id || ''}
  onValueChange={handleFlowSelection}
  >
  <SelectTrigger className="w-full">
