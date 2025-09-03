@@ -43,7 +43,7 @@ export function FunctionEditor({
  return 'java'; // Groovy syntax is similar to Java
  case 'PYTHON':
  return 'python';
- 'default':
+ default:
  return 'plaintext';
  }
  };

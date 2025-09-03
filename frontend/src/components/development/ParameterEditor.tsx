@@ -18,7 +18,7 @@ interface ParameterEditorProps {
  readOnly?: boolean;
 }
 
-const JAVA_TYPES = [;
+const JAVA_TYPES = [
  { value: 'string', label: 'String' },
  { value: 'number', label: 'Number (int/double/float)' },
  { value: 'boolean', label: 'Boolean' },

@@ -53,11 +53,11 @@ export function FunctionDialog({
  developmentMode = false
 }: FunctionDialogProps) {
  const [formData, setFormData] = useState({
- name: ',
+ name: '',
  description: '',
  category: 'general',
  language: 'JAVA' as 'JAVA' | 'JAVASCRIPT' | 'GROOVY' | 'PYTHON',
- functionSignature: ',
+ functionSignature: '',
  functionBody: '',
  isSafe: true,
  isPublic: true,

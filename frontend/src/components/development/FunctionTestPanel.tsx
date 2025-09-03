@@ -34,7 +34,7 @@ export function FunctionTestPanel({
  const [result, setResult] = useState<TestResult | null>(null);
 
  const handleInputChange = (paramName: string, value: string) => {
- setInputs(prev => ({ ...prev, [paramName]: value });
+ setInputs(prev => ({ ...prev, [paramName]: value }));
  };
 
  const parseInputValue = (value: string, type: string): any => {
