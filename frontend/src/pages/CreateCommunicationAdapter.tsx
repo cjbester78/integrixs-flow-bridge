@@ -365,14 +365,13 @@ export const CreateCommunicationAdapter = () => {
  const [configuration, setConfiguration] = useState<Record<string, any>>({});
 
  const [isTestingConnection, setIsTestingConnection] = useState(false);
- const [connectionStatus, setConnectionStatus] = useState<$1>('idle');
+ const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
  const [showMappingScreen, setShowMappingScreen] = useState(false);
  const [isEditMode, setIsEditMode] = useState(false);
  const [editingAdapterId, setEditingAdapterId] = useState<string | null>(null);
  const { toast } = useToast();
 
  const selectedAdapterConfig = communicationAdapters.find(adapter => adapter.id === selectedAdapter);
-;
  // Load adapter data when editing
  useEffect(() => {
  if (location.state?.adapter && location.state?.isEdit) {
@@ -395,23 +394,20 @@ export const CreateCommunicationAdapter = () => {
  // Parse configuration JSON
  if (adapter.configJson) {
  try {
-const configData = JSON.parse(adapter.configJson);
+ const configData = JSON.parse(adapter.configJson);
  setConfiguration(configData);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error parsing adapter configuration', { error: error });
+ }
  }
 
  // Set business component
  if (adapter.businessComponentId) {
  setSelectedBusinessComponent({
  id: adapter.businessComponentId,
- name: adapter.businessComponentName || ',
+ name: adapter.businessComponentName || '',
  description: '',
- contactEmail: ',
+ contactEmail: '',
  contactPhone: ''
  } as BusinessComponent);
  }
@@ -422,22 +418,22 @@ const configData = JSON.parse(adapter.configJson);
  const getAuthFields = (authType: string) => {
  switch (authType) {
  case 'Basic Auth':
- return [;
+ return [
  { name: 'authUsername', label: 'Username', type: 'text', required: true, placeholder: 'Enter username' },
  { name: 'authPassword', label: 'Password', type: 'password', required: true, placeholder: 'Enter password' }
  ];
  case 'Bearer Token':
- return [;
+ return [
  { name: 'bearerToken', label: 'Bearer Token', type: 'password', required: true, placeholder: 'Enter bearer token' }
  ];
  case 'API Key':
- return [;
+ return [
  { name: 'apiKeyValue', label: 'API Key', type: 'password', required: true, placeholder: 'Enter API key' },
  { name: 'apiKeyLocation', label: 'API Key Location', type: 'select', required: true, options: ['Header', 'Query Parameter'] },
  { name: 'apiKeyName', label: 'API Key Name', type: 'text', required: true, placeholder: 'e.g., X-API-Key or api_key' }
  ];
  case 'OAuth':
- return [;
+ return [
  { name: 'oauthClientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Enter client ID' },
  { name: 'oauthClientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Enter client secret' },
  { name: 'oauthAuthUrl', label: 'Authorization URL', type: 'text', required: true, placeholder: 'https://auth.example.com/oauth/authorize' },
@@ -445,7 +441,7 @@ const configData = JSON.parse(adapter.configJson);
  { name: 'oauthScope', label: 'Scope', type: 'text', required: false, placeholder: 'read write' }
  ];
  case 'OAuth 2.0':
- return [;
+ return [
  { name: 'oauth2ClientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Enter client ID' },
  { name: 'oauth2ClientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Enter client secret' },
  { name: 'oauth2AuthUrl', label: 'Authorization URL', type: 'text', required: true, placeholder: 'https://auth.example.com/oauth2/authorize' },
@@ -454,14 +450,14 @@ const configData = JSON.parse(adapter.configJson);
  { name: 'oauth2Scope', label: 'Scope', type: 'text', required: false, placeholder: 'read write' }
  ];
  case 'SSL Certificate':
- return [;
+ return [
  { name: 'sslCertPath', label: 'Certificate Path', type: 'text', required: true, placeholder: '/path/to/certificate.pem' },
  { name: 'sslKeyPath', label: 'Private Key Path', type: 'text', required: true, placeholder: '/path/to/private-key.pem' },
  { name: 'sslKeyPassword', label: 'Key Password', type: 'password', required: false, placeholder: 'Private key password (if encrypted)' },
  { name: 'sslCaPath', label: 'CA Certificate Path', type: 'text', required: false, placeholder: '/path/to/ca-certificate.pem' },
  { name: 'sslVerifyPeer', label: 'Verify Peer', type: 'select', required: false, options: ['true', 'false'] }
  ];
- 'default':
+ default:
  return [];
  }
  };
@@ -497,8 +493,7 @@ const configData = JSON.parse(adapter.configJson);
  await new Promise(resolve => setTimeout(resolve, 2000));
 
  // Mock success for demo
- const success = Math.random() > 0.3; // 70% success rate for demo;
-;
+ const success = Math.random() > 0.3; // 70% success rate for demo
  if (success) {
  setConnectionStatus('success');
  toast({
@@ -512,14 +507,14 @@ const configData = JSON.parse(adapter.configJson);
  title: "Connection Failed",
  description: "Please check your configuration and try again",
  variant: "destructive",
- })}
-} catch (error) {
+ });
+ }
+ } catch (error) {
  setConnectionStatus('error');
  toast({
  title: "Connection Error",
  description: "An error occurred while testing the connection",
  variant: "destructive",
-}
  });
  } finally {
  setIsTestingConnection(false);
@@ -547,12 +542,14 @@ const configData = JSON.parse(adapter.configJson);
  }
 
  // Mode-specific validation
- logger.info(LogCategory.VALIDATION, 'Debug info', { message: [CreateCommunicationAdapter] Validating adapter: name: adapterName,
+ logger.info(LogCategory.VALIDATION, 'Debug info', { 
+ message: `[CreateCommunicationAdapter] Validating adapter`,
+ name: adapterName,
  type: selectedAdapter,
  mode: adapterMode,
  businessComponent: selectedBusinessComponent.id,
- configuration);
- })
+ configuration
+ });
 
  // Mode-specific required field validation
  if (adapterMode === 'receiver') {
@@ -635,11 +632,10 @@ const configData = JSON.parse(adapter.configJson);
  }) || [];
 
  const missingFields = requiredFields.filter(field => !configuration[field.name]);
-;
  if (missingFields.length > 0) {
  logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Missing required fields', { data: missingFields });
  toast({
- title: "Missing Required Fields",`
+ title: "Missing Required Fields",
  description: `Please fill in: ${missingFields.map(f => f.label).join(', ')}`,
  variant: "destructive",
  });
@@ -652,7 +648,6 @@ const configData = JSON.parse(adapter.configJson);
  // Outbound Adapter = Sends data TO external systems (INBOUND)
  const backendMode = adapterMode === 'sender' ? 'INBOUND' : 'OUTBOUND';
  const direction = adapterMode === 'sender' ? 'OUTBOUND' : 'INBOUND';
-;
  // Prepare adapter data for backend matching AdapterConfigDTO format
  const adapterData = {
  name: adapterName,
@@ -668,13 +663,13 @@ const configData = JSON.parse(adapter.configJson);
  try {
  logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Sending adapter data to backend', { data: adapterData });
  // Call backend service with mode-specific handling
- const response = isEditMode && editingAdapterId;
+ const response = isEditMode && editingAdapterId
  ? await adapterService.updateAdapter(editingAdapterId, adapterData)
  : await adapterService.createAdapter(adapterData);
 
  if (response.success) {
  toast({
- title: isEditMode ? "Adapter Updated Successfully" : "Adapter Saved Successfully",`
+ title: isEditMode ? "Adapter Updated Successfully" : "Adapter Saved Successfully",
  description: `Communication adapter "${adapterName}" has been ${isEditMode ? 'updated' : 'created'}`,
  variant: "default",
  });
@@ -689,18 +684,19 @@ const configData = JSON.parse(adapter.configJson);
  title: "Save Failed",
  description: response.error || "Failed to save adapter configuration",
  variant: "destructive",
- })}
-} catch (error: any) {
+ });
+ }
+ } catch (error: any) {
  logger.error(LogCategory.ERROR, '[CreateCommunicationAdapter] Error saving adapter', error);
- logger.error(LogCategory.ERROR, 'Error occurred', { error: [CreateCommunicationAdapter] Error details: {
+ logger.error(LogCategory.ERROR, 'Error occurred', { 
+ error: `[CreateCommunicationAdapter] Error details:`,
  message: error?.message,
  response: error?.response,
- data: error?.response?.data);
-}
- } })
+ data: error?.response?.data
+ });
 
  // Extract error message from various possible sources
- const errorMessage = error?.response?.data?.message ||;
+ const errorMessage = error?.response?.data?.message ||
  error?.response?.data?.error ||
  error?.message ||
  "An error occurred while saving the adapter";
@@ -716,7 +712,7 @@ const configData = JSON.parse(adapter.configJson);
 
  return (
  <RestrictedPage>
- <>;
+ <>
  {showMappingScreen && (
  <FieldMappingScreen onClose={() => setShowMappingScreen(false)} />
  )}
@@ -835,6 +831,7 @@ const configData = JSON.parse(adapter.configJson);
  // Don't clear configuration when mode changes
  // The user might have already filled in some fields
  logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Adapter mode changed to', { data: value });
+ }}>
  <SelectTrigger className="transition-all duration-300 hover:bg-accent/50">
  <SelectValue placeholder="Select adapter mode" />
  </SelectTrigger>
@@ -880,7 +877,7 @@ const configData = JSON.parse(adapter.configJson);
  ) : selectedAdapter === 'jms' && adapterMode === 'sender' ? (
  <JmsInboundAdapterConfiguration
  adapter={{
- name: ',
+ name: '',
  type: 'jms',
  mode: 'outbound',
  configuration: configuration,
@@ -891,7 +888,7 @@ const configData = JSON.parse(adapter.configJson);
  ) : selectedAdapter === 'jms' && adapterMode === 'receiver' ? (
  <JmsOutboundAdapterConfiguration
  adapter={{
- name: ',
+ name: '',
  type: 'jms',
  mode: 'inbound',
  configuration: configuration,
@@ -983,7 +980,7 @@ const configData = JSON.parse(adapter.configJson);
  return true;
  })
  .map((field) => (
- <div key={field.name} className={field.name === 'url' || field.name === 'webhookUrl' || field.name === 'customHeaders' || field.type === 'password' ? 'md:col-span-2' : '}>
+ <div key={field.name} className={field.name === 'url' || field.name === 'webhookUrl' || field.name === 'customHeaders' || field.type === 'password' ? 'md:col-span-2' : ''}>
  {field.type === 'jar-selector' ? (
  <>
  <Label htmlFor={field.name} className="flex items-center gap-1">
@@ -991,9 +988,9 @@ const configData = JSON.parse(adapter.configJson);
  {field.required && <span className="text-destructive">*</span>}
  </Label>
  <JarSelector
- selectedJarId={configuration[field.name] || '}
+ selectedJarId={configuration[field.name] || ''}
  onJarSelect={(jarId) => handleConfigurationChange(field.name, jarId)}
- label=""`
+ label=""
  placeholder={`Choose ${field.label}`}
  driverTypeFilter={field.driverTypeFilter || undefined}
  />
@@ -1005,10 +1002,10 @@ const configData = JSON.parse(adapter.configJson);
  {field.required && <span className="text-destructive">*</span>}
  </Label>
  <Select
- value={configuration[field.name] || '}
+ value={configuration[field.name] || ''}
  onValueChange={(value) => handleConfigurationChange(field.name, value)}
  >
- <SelectTrigger className="transition-all duration-300 hover:bg-accent/50">`
+ <SelectTrigger className="transition-all duration-300 hover:bg-accent/50">
  <SelectValue placeholder={`Select ${field.label}`} />
  </SelectTrigger>
  <SelectContent className="bg-card border-border shadow-lg z-50">
@@ -1029,7 +1026,7 @@ const configData = JSON.parse(adapter.configJson);
  <Textarea
  id={field.name}
  placeholder={field.placeholder}
- value={configuration[field.name] || '}
+ value={configuration[field.name] || ''}
  onChange={(e) => handleConfigurationChange(field.name, e.target.value)}
  className="transition-all duration-300 focus:scale-[1.01]"
  rows={3}
@@ -1054,7 +1051,7 @@ const configData = JSON.parse(adapter.configJson);
  label={field.label}
  placeholder={field.placeholder}
  required={field.required}
- value={configuration[field.name] || '}
+ value={configuration[field.name] || ''}
  onValueChange={(value) => handleConfigurationChange(field.name, value)}
  />
  ) : (
@@ -1086,7 +1083,7 @@ const configData = JSON.parse(adapter.configJson);
  </h4>
  </div>
  {getAuthFields(configuration.authType).map((authField) => (
- <div key={authField.name} className={authField.name.includes('Url') || authField.name.includes('url') || authField.type === 'password' ? 'md:col-span-2' : '}>
+ <div key={authField.name} className={authField.name.includes('Url') || authField.name.includes('url') || authField.type === 'password' ? 'md:col-span-2' : ''}>
  {authField.type === 'select' ? (
  <>
  <Label htmlFor={authField.name} className="flex items-center gap-1">
@@ -1094,10 +1091,10 @@ const configData = JSON.parse(adapter.configJson);
  {authField.required && <span className="text-destructive">*</span>}
  </Label>
  <Select
- value={configuration[authField.name] || '}
+ value={configuration[authField.name] || ''}
  onValueChange={(value) => handleConfigurationChange(authField.name, value)}
  >
- <SelectTrigger className="transition-all duration-300 hover:bg-accent/50">`
+ <SelectTrigger className="transition-all duration-300 hover:bg-accent/50">
  <SelectValue placeholder={`Select ${authField.label}`} />
  </SelectTrigger>
  <SelectContent className="bg-card border-border shadow-lg z-50">
@@ -1115,7 +1112,7 @@ const configData = JSON.parse(adapter.configJson);
  label={authField.label}
  placeholder={authField.placeholder}
  required={authField.required}
- value={configuration[authField.name] || '}
+ value={configuration[authField.name] || ''}
  onValueChange={(value) => handleConfigurationChange(authField.name, value)}
  />
  ) : (
@@ -1186,11 +1183,11 @@ const configData = JSON.parse(adapter.configJson);
 
 
 
- {connectionStatus !== 'idle' && (`
+ {connectionStatus !== 'idle' && (
  <div className={`flex items-center gap-2 p-3 rounded-lg ${
  connectionStatus === 'success'
  ? 'bg-success/10 text-success'
- : 'bg-destructive/10 text-destructive'`
+ : 'bg-destructive/10 text-destructive'
  }`}>
  {connectionStatus === 'success' ? (
  <CheckCircle className="h-4 w-4" />
@@ -1207,7 +1204,7 @@ const configData = JSON.parse(adapter.configJson);
 
  <div className="space-y-2">
  <AdapterValidationDialog
- adapterType={selectedAdapterConfig?.id || '}
+ adapterType={selectedAdapterConfig?.id || ''}
  configuration={configuration}
  >
  <Button
@@ -1303,5 +1300,4 @@ const configData = JSON.parse(adapter.configJson);
  </>
  </RestrictedPage>
  );
-};`
-}}}})))))
+};
