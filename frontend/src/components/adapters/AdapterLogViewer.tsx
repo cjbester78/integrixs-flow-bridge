@@ -323,5 +323,4 @@ export const AdapterLogViewer = ({
  </CardContent>
  </Card>
  );
-};`
-})
+};

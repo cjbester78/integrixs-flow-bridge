@@ -130,13 +130,13 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  rootElementName: 'Message',
  encoding: 'UTF-8',
  includeXmlDeclaration: true,
- prettyPrint: true;
+ prettyPrint: true
  },
 
  // Transformation Configuration
  transformationConfig: {
  mode: 'passthrough',
- requiresStructure: false;
+ requiresStructure: false
  }
  });
 

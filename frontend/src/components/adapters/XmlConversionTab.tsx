@@ -232,15 +232,15 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <div className="grid grid-cols-2 gap-4">
  <div>
  <Label>Original CSV</Label>
- <pre className="text-xs bg-muted p-2 rounded">`
+ <pre className="text-xs bg-muted p-2 rounded">
 {`orderId,customer,amount
-12345,John Doe,99.99`
+12345,John Doe,99.99
 12346,Jane Smith,149.99`}
  </pre>
  </div>
  <div>
  <Label>Converted XML</Label>
- <pre className="text-xs bg-muted p-2 rounded">`
+ <pre className="text-xs bg-muted p-2 rounded">
 {`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>`
 <${config.rootElementName || 'Message'}${config.targetNamespace ? `} xmlns${config.namespacePrefix ? :${config.namespacePrefix}` : '}="${config.targetNamespace}"` : ''}>
  <record>
@@ -262,7 +262,7 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <div className="grid grid-cols-2 gap-4">
  <div>
  <Label>SQL Result</Label>
- <pre className="text-xs bg-muted p-2 rounded">`
+ <pre className="text-xs bg-muted p-2 rounded">
 {`SELECT * FROM orders
 -----------------
 orderId | customer | amount
@@ -272,7 +272,7 @@ orderId | customer | amount
  </div>
  <div>
  <Label>Converted XML</Label>
- <pre className="text-xs bg-muted p-2 rounded">`
+ <pre className="text-xs bg-muted p-2 rounded">
 {`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>`
 <${config.rootElementName || 'Message'}${config.targetNamespace ? `} xmlns${config.namespacePrefix ? :${config.namespacePrefix}` : '}="${config.targetNamespace}"` : ''}>
  <row>
@@ -295,5 +295,4 @@ orderId | customer | amount
  </Card>
  </div>
  );
-};`
-}}}}}})
+};

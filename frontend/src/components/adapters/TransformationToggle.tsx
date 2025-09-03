@@ -86,7 +86,7 @@ export const TransformationToggle: FC<TransformationToggleProps> = ({
  File adapters require an XML data structure when transformation is enabled.
  The file content will be converted to/from XML for processing.
  </AlertDescription>
- </Alert>;
+ </Alert>
  );
  }
 
@@ -97,7 +97,7 @@ export const TransformationToggle: FC<TransformationToggleProps> = ({
  <AlertDescription>
  SOAP adapters always require a WSDL which defines the data structures.
  </AlertDescription>
- </Alert>;
+ </Alert>
  );
  }
 

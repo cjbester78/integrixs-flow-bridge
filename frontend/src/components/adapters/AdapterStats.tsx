@@ -61,7 +61,7 @@ export const AdapterStats = ({
 
  <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
- statusFilter === 'stopped' ? 'ring-2 ring-muted-foreground' : '`
+ statusFilter === 'stopped' ? 'ring-2 ring-muted-foreground' : ''
  }`}
  onClick={() => handleStatusClick('stopped')}
  >

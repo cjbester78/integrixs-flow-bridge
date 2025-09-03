@@ -23,12 +23,10 @@ export interface FileFormatConfig {
  fieldOrder?: string[];
  padCharacter?: string;
  padDirection?: 'LEFT' | 'RIGHT';
-;
  // JSON specific
  prettyPrint?: boolean;
  includeNullValues?: boolean;
  dateFormat?: string;
-;
  // XML specific (handled in XmlConversionTab)
 
  // Common

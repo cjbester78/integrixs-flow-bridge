@@ -181,7 +181,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  <div className="space-y-2">
  <Label htmlFor="serviceBaseUrl">Service Base URL</Label>
  <Input
- id="serviceBaseUrl";
+ id="serviceBaseUrl"
  value={configuration.baseUrl || ''}
  onChange={(e) => onConfigurationChange('baseUrl', e.target.value)}
  placeholder="https://odata.example.com/service"

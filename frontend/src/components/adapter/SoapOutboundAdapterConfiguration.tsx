@@ -225,7 +225,7 @@ export function SoapOutboundAdapterConfiguration({
  // Note: We've already determined sync/async based on WSDL parsing above
  // This metadata check is just for logging purposes - don't override the earlier decision
  }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error fetching WSDL details', { error: error });
  // Default to async on error
  onConfigurationChange('processingMode', 'ASYNCHRONOUS');

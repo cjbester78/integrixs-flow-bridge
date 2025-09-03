@@ -158,7 +158,7 @@ export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
  className="hover-scale"
  onClick={() => {
  // Handle start/stop adapter action`
- logger.info(LogCategory.UI, `${adapter.status === 'running' ? 'Stopping' : 'Starting'} adapter ${adapter.id}``);
+ logger.info(LogCategory.UI, `${adapter.status === 'running' ? 'Stopping' : 'Starting'} adapter ${adapter.id}`);
  if (onUpdate) {
  onUpdate({ status: adapter.status === 'running' ? 'stopped' : 'running' });
  }

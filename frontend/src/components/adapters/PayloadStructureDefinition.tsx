@@ -75,11 +75,7 @@ const jsonObj = JSON.parse(payload);
  const xmlPreview = convertJsonToXmlPreview(jsonObj);
  setConversionPreview(xmlPreview);
  newConfig.convertedXml = xmlPreview;
- 
-} catch (error) {
-  // Handle error
-}
-        } catch (e) {
+            } catch (e) {
  logger.error(LogCategory.UI, 'Error converting to XML preview', { error: e });
  }
  }
