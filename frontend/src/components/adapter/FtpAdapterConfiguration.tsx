@@ -414,7 +414,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="targetDirectory"
  value={config.targetDirectory}
- onChange={(e) => updateConfig({ targetDirectory: e.target.value })
+ onChange={(e) => updateConfig({ targetDirectory: e.target.value })}
  placeholder="Enter target directory path"
  />
  </div>
@@ -424,7 +424,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Input
  id="targetFileName"
  value={config.targetFileName}
- onChange={(e) => updateConfig({ targetFileName: e.target.value })
+ onChange={(e) => updateConfig({ targetFileName: e.target.value })}
  placeholder="Enter file name"
  />
  </div>
@@ -663,7 +663,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Checkbox
  id="enableDuplicateHandling"
  checked={config.enableDuplicateHandling}
- onCheckedChange={(checked) => updateConfig({ enableDuplicateHandling: checked === true })
+ onCheckedChange={(checked) => updateConfig({ enableDuplicateHandling: checked === true })}
  />
  <Label htmlFor="enableDuplicateHandling">Enable Duplicate Handling</Label>
  </div>
@@ -687,7 +687,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Checkbox
  id="disableChannelOnExceed"
  checked={config.disableChannelOnExceed}
- onCheckedChange={(checked) => updateConfig({ disableChannelOnExceed: checked === true })
+ onCheckedChange={(checked) => updateConfig({ disableChannelOnExceed: checked === true })}
  />
  <Label htmlFor="disableChannelOnExceed">Disable Channel if Duplicate threshold has been exceeded</Label>
  </div>

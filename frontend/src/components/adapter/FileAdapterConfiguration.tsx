@@ -458,7 +458,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Checkbox
  id="enableDuplicateHandling"
  checked={config.enableDuplicateHandling}
- onCheckedChange={(checked) => updateConfig({ enableDuplicateHandling: checked === true })
+ onCheckedChange={(checked) => updateConfig({ enableDuplicateHandling: checked === true })}
  />
  <Label htmlFor="enableDuplicateHandling">Enable Duplicate Handling</Label>
  </div>
@@ -471,7 +471,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Input
  id="duplicateThreshold"
  value={config.duplicateMessageAlertThreshold}
- onChange={(e) => updateConfig({ duplicateMessageAlertThreshold: e.target.value })
+ onChange={(e) => updateConfig({ duplicateMessageAlertThreshold: e.target.value })}
  placeholder="Enter threshold value"
  type="number"
  />
@@ -482,7 +482,7 @@ export const FileAdapterConfiguration = ({ mode, onConfigChange }: FileAdapterCo
  <Checkbox
  id="disableChannelOnExceed"
  checked={config.disableChannelOnExceed}
- onCheckedChange={(checked) => updateConfig({ disableChannelOnExceed: checked === true })
+ onCheckedChange={(checked) => updateConfig({ disableChannelOnExceed: checked === true })}
  />
  <Label htmlFor="disableChannelOnExceed">Disable Channel if Duplicate threshold has been exceeded</Label>
  </div>
