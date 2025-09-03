@@ -23,7 +23,7 @@ export class ChannelStatsService {
  })
  }
 
- const endpoint = `/channels/stats${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/channels/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
-}`
+}

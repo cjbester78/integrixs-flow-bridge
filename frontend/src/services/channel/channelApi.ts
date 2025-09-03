@@ -47,13 +47,13 @@ export class ChannelApi {
  })
  }
 
- const endpoint = `/channels${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/channels${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // Get a specific channel by ID
- async getChannel(id: string): Promise<ApiResponse<Channel>> {`
- return api.get<Channel>(/channels/${id}`);
+ async getChannel(id: string): Promise<ApiResponse<Channel>> {
+ return api.get<Channel>(`/channels/${id}`);
  }
 
  // Control channel operations

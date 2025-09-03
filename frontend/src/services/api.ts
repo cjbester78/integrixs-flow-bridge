@@ -77,7 +77,7 @@ export async function apiRequest<T = any>(
  'Content-Type': 'application/json',
  };
 
- if (token && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/refresh')) {`
+ if (token && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/refresh')) {
  defaultHeaders['Authorization'] = `Bearer ${token}`;
  }
 

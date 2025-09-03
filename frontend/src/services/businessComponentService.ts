@@ -5,15 +5,11 @@ class BusinessComponentService {
  async getAllBusinessComponents(): Promise<{ success: boolean; data?: BusinessComponent[]; error?: string }> {
  try {
 const data = await apiClient.get<BusinessComponent[]>('/business-components');
- return { success: true, data 
-} catch (error) {
-  // Handle error
-}
-}
-} catch (error) {
+ return { success: true, data };
+ } catch (error) {
  logger.error(LogCategory.API, 'Failed to fetch business components', { error: error });
- return { success: false, error: 'Failed to fetch business components' }
-}
+ return { success: false, error: 'Failed to fetch business components' };
+ }
  }
 
  async getBusinessComponentById(id: string): Promise<{ success: boolean; data?: BusinessComponent; error?: string }> {

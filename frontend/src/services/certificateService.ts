@@ -25,12 +25,12 @@ export interface CertificateListResponse {
 class CertificateService {
  // Get all certificates
  async getAllCertificates(businessComponentId?: string): Promise<ApiResponse<Certificate[]>> {
- const params = businessComponentId ? `?businessComponentId=${businessComponentId}` : ';`;
- return api.get<Certificate[]>(/certificates${params}`);
+ const params = businessComponentId ? `?businessComponentId=${businessComponentId}` : '';
+ return api.get<Certificate[]>(`/certificates${params}`);
  }
 
  // Get certificate by ID
- async getCertificateById(certificateId: string): Promise<ApiResponse<Certificate>> {`
+ async getCertificateById(certificateId: string): Promise<ApiResponse<Certificate>> {
  return api.get<Certificate>(`/certificates/${certificateId}`);
  }
 

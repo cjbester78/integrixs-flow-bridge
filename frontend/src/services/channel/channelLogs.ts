@@ -12,7 +12,7 @@ export class ChannelLogsService {
  })
  }
 
- const endpoint = `/channels/${channelId}/logs${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/channels/${channelId}/logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 

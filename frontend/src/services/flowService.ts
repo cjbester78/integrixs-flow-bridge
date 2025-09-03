@@ -66,13 +66,13 @@ class FlowService {
  })
  }
 
- const endpoint = `/flows${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/flows${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // Get a specific flow by ID
- async getFlow(id: string): Promise<ApiResponse<IntegrationFlow>> {`
- return api.get<IntegrationFlow>(/flows/${id}`);
+ async getFlow(id: string): Promise<ApiResponse<IntegrationFlow>> {
+ return api.get<IntegrationFlow>(`/flows/${id}`);
  }
 
  // Update an existing flow
