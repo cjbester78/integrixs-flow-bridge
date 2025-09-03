@@ -338,9 +338,11 @@ export function CreateDirectMappingFlow() {
  useEffect(() => {
  logger.info(LogCategory.SYSTEM, 'State updated - additionalMappings', { data: additionalMappings });
  additionalMappings.forEach((mapping, index) => {
- logger.info(LogCategory.SYSTEM, ' Mapping ${index}: messageType=${mapping.messageType}, fieldMappings.length=${mapping.fieldMappings?.length || 0}'));
+ logger.info(LogCategory.SYSTEM, `Mapping ${index}: messageType=${mapping.messageType}, fieldMappings.length=${mapping.fieldMappings?.length || 0}`);
+ });
  logger.info(LogCategory.SYSTEM, 'State updated - isAsynchronous', { data: isAsynchronous });
- logger.info(LogCategory.SYSTEM, 'State updated - mappingRequired', { data: mappingRequired });, [additionalMappings, isAsynchronous, mappingRequired]);
+ logger.info(LogCategory.SYSTEM, 'State updated - mappingRequired', { data: mappingRequired });
+ }, [additionalMappings, isAsynchronous, mappingRequired]);
 
  const loadComponentData = async () => {
     try {
@@ -351,37 +353,37 @@ export function CreateDirectMappingFlow() {
  logger.info(LogCategory.SYSTEM, 'Business components result', { data: businessResult });
  if (businessResult.success && businessResult.data) {
  setBusinessComponents(businessResult.data);
- logger.info(LogCategory.SYSTEM, 'Set business components', { data: businessResult.data }); else {
+ logger.info(LogCategory.SYSTEM, 'Set business components', { data: businessResult.data });
+ } else {
  logger.error(LogCategory.ERROR, 'Failed to load business components', { error: businessResult.error });
  logger.error(LogCategory.ERROR, 'Business result full object', { error: businessResult });
+ }
+ 
  // Load adapters
  try {
-const adaptersResponse = await api.get('/adapters');
+ const adaptersResponse = await api.get('/adapters');
  if (adaptersResponse.data) {
  setAdapters(adaptersResponse.data);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.warn(LogCategory.SYSTEM, 'Could not load adapters', { data: error });
  setAdapters([]);
  }
 
  // Load data structures
  try {
-const structuresResponse = await api.get('/structures');
+ const structuresResponse = await api.get('/structures');
  if (structuresResponse.data) {
  // Ensure we have an array
- const structures = Array.isArray(structuresResponse.data);
+ const structures = Array.isArray(structuresResponse.data)
  ? structuresResponse.data
  : (structuresResponse.data.structures || []);
  setDataStructures(structures);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.warn(LogCategory.SYSTEM, 'Could not load data structures', { data: error });
- setDataStructures([]);}
+ setDataStructures([]);
+ }
 } catch (error) {
  logger.error(LogCategory.ERROR, 'Error loading component data', { error: error });
  toast({
@@ -397,10 +399,9 @@ const structuresResponse = await api.get('/structures');
  const loadExistingFlow = async () => {
     try {
  let flowData = editingFlow;
-;
  // If no flow data passed through state, fetch it
- if (!flowData && flowId) {`
- const response = await api.get(/flows/${flowId}`);
+ if (!flowData && flowId) {
+ const response = await api.get(`/flows/${flowId}`);
  if (response.data) {
  flowData = response.data;
  }
@@ -430,8 +431,9 @@ const structuresResponse = await api.get('/structures');
  logger.info(LogCategory.SYSTEM, 'Setting target business component from config', { data: config.targetBusinessComponentId });
  setTargetBusinessComponent(config.targetBusinessComponentId);
  }
-        } catch (e) {
+ } catch (e) {
  logger.error(LogCategory.ERROR, 'Error parsing flow configuration', { error: e });
+ }
  // Set adapters
  if (flowData.inboundAdapterId) {
  setInboundAdapter(flowData.inboundAdapterId);
@@ -454,12 +456,14 @@ const structuresResponse = await api.get('/structures');
  // For pass-through mode: no mapping required, skip XML conversion
  setMappingRequired(false);
  setSkipXmlConversion(true);
- logger.info(LogCategory.SYSTEM, 'Loading PASS_THROUGH flow: mappingRequired=false, skipXmlConversion=true'); else if (flowData.mappingMode === 'WITH_MAPPING') {
+ logger.info(LogCategory.SYSTEM, 'Loading PASS_THROUGH flow: mappingRequired=false, skipXmlConversion=true');
+ } else if (flowData.mappingMode === 'WITH_MAPPING') {
  setIsAsynchronous(false);
  // For mapping mode: mapping required, don't skip XML conversion
  setMappingRequired(true);
  setSkipXmlConversion(false);
- logger.info(LogCategory.SYSTEM, 'Loading WITH_MAPPING flow: mappingRequired=true, skipXmlConversion=false'); else {
+ logger.info(LogCategory.SYSTEM, 'Loading WITH_MAPPING flow: mappingRequired=true, skipXmlConversion=false');
+ } else {
  // Default case
  setIsAsynchronous(false);
  setMappingRequired(true);
@@ -467,21 +471,19 @@ const structuresResponse = await api.get('/structures');
  }
 
  // Load transformations and field mappings
- try {`
+ try {
  const transformationsResponse = await api.get(`/flows/${flowData.id}/transformations`);
  if (transformationsResponse.data && Array.isArray(transformationsResponse.data)) {
  // Sort transformations by execution order
  const sortedTransformations = transformationsResponse.data.sort((a, b) => a.executionOrder - b.executionOrder);
-;
  // Collect all additional mappings first
  const allAdditionalMappings: any[] = [];
 
  // Determine mapping types based on order and sync/async mode
  for (let i = 0; i < sortedTransformations.length; i++) {
  const transformation = sortedTransformations[i];
-;
- if (transformation.type === 'FIELD_MAPPING') {`
- const mappingsResponse = await api.get(/transformations/${transformation.id}/mappings`);
+ if (transformation.type === 'FIELD_MAPPING') {
+ const mappingsResponse = await api.get(`/transformations/${transformation.id}/mappings`);
  if (mappingsResponse.data && Array.isArray(mappingsResponse.data)) {
  // Check configuration first for mapping type
  let messageType;
@@ -508,8 +510,8 @@ const structuresResponse = await api.get('/structures');
  }
 
  // Use the transformation name directly
- let mappingName = transformation.name || ';
- logger.info(LogCategory.SYSTEM, 'Transformation ${i}: name="${transformation.name}", executionOrder=${transformation.executionOrder}, messageType: ${messageType}');
+ let mappingName = transformation.name || '';
+ logger.info(LogCategory.SYSTEM, `Transformation ${i}: name="${transformation.name}", executionOrder=${transformation.executionOrder}, messageType: ${messageType}`);
  // Parse sourceFields from JSON string to array for each mapping
  const parsedMappings = mappingsResponse.data.map((mapping: any) => {
  try {
@@ -523,40 +525,34 @@ const structuresResponse = await api.get('/structures');
  // Parse visualFlowData if present
  if (mapping.visualFlowData) {
  try {
-parsedMapping.visualFlowData = typeof mapping.visualFlowData === 'string'
+ parsedMapping.visualFlowData = typeof mapping.visualFlowData === 'string'
  ? JSON.parse(mapping.visualFlowData)
  : mapping.visualFlowData;
- 
-} catch (error) {
-  // Handle error
-}
-        } catch (e) {
+ } catch (e) {
  logger.error(LogCategory.ERROR, 'Error parsing visualFlowData', { error: e });
+ }
  }
 
  // Parse functionNode if present
  if (mapping.functionNode) {
  try {
-parsedMapping.functionNode = typeof mapping.functionNode === 'string'
+ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  ? JSON.parse(mapping.functionNode)
  : mapping.functionNode;
- 
-} catch (error) {
-  // Handle error
-}
-        } catch (e) {
+ } catch (e) {
  logger.error(LogCategory.ERROR, 'Error parsing functionNode', { error: e });
+ }
  }
 
  return parsedMapping;
- }
-        } catch (e) {
- logger.error(LogCategory.ERROR, Error parsing sourceFields for mapping: { data: mapping, extra: e });
+ } catch (e) {
+ logger.error(LogCategory.ERROR, 'Error parsing sourceFields for mapping', { data: mapping, error: e });
  return {
  ...mapping,
  sourceFields: []
+ };
  }
-});
+ });
 
  if (messageType === 'request') {
  setFieldMappings(parsedMappings);
@@ -567,9 +563,10 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  id: transformation.id,
  name: mappingName || (messageType === 'response' ? 'Response Mapping' : 'Fault Mapping'),
  fieldMappings: parsedMappings,
- messageType: messageType;
- })
- }}
+ messageType: messageType
+ });
+ }
+ }
  }
  }
  }
@@ -582,9 +579,11 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
 
  // Debug logging is now handled by useEffect
  }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error loading transformations and mappings', { error: error });
-} catch (error) {
+ }
+ }
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error loading flow data', { error: error });
  toast({
  title: "Error",
@@ -606,7 +605,6 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  const config = adapter.configuration;
  if (config && typeof config === 'object') {
  const transformationConfig = config.transformationConfig;
-;
  // If passthrough mode, disable mapping
  if (transformationConfig?.mode === 'passthrough') {
  setMappingRequired(false);
@@ -642,7 +640,6 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  const config = adapter.configuration;
  if (config && typeof config === 'object') {
  const transformationConfig = config.transformationConfig;
-;
  // If passthrough mode, disable mapping
  if (transformationConfig?.mode === 'passthrough') {
  setMappingRequired(false);
@@ -966,7 +963,9 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  title: "Mappings Saved",`
  description: `${mappings.length} ${currentMappingType} mappings have been configured.`,
  });
- }}}
+ }
+ }
+ }
  initialMappingName={(() => {
  if (currentMappingType === 'request') {`
  return requestMappingName || (flowName ? `${flowName} Request` : '');
