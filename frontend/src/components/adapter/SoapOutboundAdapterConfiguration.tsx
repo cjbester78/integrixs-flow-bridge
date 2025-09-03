@@ -67,20 +67,19 @@ export function SoapOutboundAdapterConfiguration({
           type: 'wsdl',
           usage: 'target',
           businessComponentId: businessComponentId,
-          limit: 100;
+          limit: 100
         }
       });
 
       if (response.data && response.data.structures) {
         // Transform the structures to match our expected format
         // Filter to ensure we only get WSDL type structures with target usage
-        const wsdlList = response.data.structures;
+        const wsdlList = response.data.structures
           .filter((structure: any) => {
             // Must be WSDL type
             const isWsdl = structure.type?.toLowerCase() === 'wsdl';
-;
             // Check usage - target for receiver adapter
-            const isTarget = structure.usage === 'target' ||;
+            const isTarget = structure.usage === 'target' ||
               structure.metadata?.usage === 'target' ||
               !structure.usage; // Include if usage is not set
 
@@ -91,7 +90,7 @@ export function SoapOutboundAdapterConfiguration({
           .map((structure: any) => ({
             id: structure.id,
             name: structure.name,
-            endpointUrl: structure.metadata?.endpointUrl || '
+            endpointUrl: structure.metadata?.endpointUrl || ''
           }));
         setWsdls(wsdlList);
       } else {
@@ -109,21 +108,19 @@ export function SoapOutboundAdapterConfiguration({
  try {
  setLoadingSoapActions(true);
  // Get the WSDL structure details
- const response = await api.get(`/structures/${wsdlId}`);
-;
+      const response = await api.get(`/structures/${wsdlId}`);
  if (response.data) {
  logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Structure', { data: response.data });
  logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Structure', { data: response.data });
  logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Metadata', { data: response.data.metadata });
  logger.info(LogCategory.UI, 'SOAP Outbound - WSDL Namespace', { data: response.data.namespace });
- logger.info(LogCategory.UI, 'SOAP Outbound - Full response data', { data: JSON.stringify(response.data, null, 2)))
+        logger.info(LogCategory.UI, 'SOAP Outbound - Full response data', { data: JSON.stringify(response.data, null, 2)});
 
  // Extract SOAP actions from the original WSDL content
  if (response.data.originalContent) {
  const extractedActions = extractWsdlSoapActions(response.data.originalContent);
  setSoapActions(extractedActions);
- logger.info(LogCategory.UI, 'SOAP Outbound - Extracted SOAP actions', { data: extractedActions });
-;
+          logger.info(LogCategory.UI, 'SOAP Outbound - Extracted SOAP actions', { data: extractedActions });
  // If there's only one action, auto-select it
  if (extractedActions.length === 1) {
  onConfigurationChange('soapAction', extractedActions[0].soapAction);
@@ -132,12 +129,10 @@ export function SoapOutboundAdapterConfiguration({
  // Check sync/async based on WSDL operations
  try {
  const parser = new DOMParser();
- const doc = parser.parseFromString(response.data.originalContent, 'text/xml');
-;
+            const doc = parser.parseFromString(response.data.originalContent, 'text/xml');
  // Find all operations in portType
  const portTypes = doc.querySelectorAll('portType, wsdl\\:portType');
- let hasSynchronousOperations = false;
-;
+            let hasSynchronousOperations = false;
  portTypes.forEach((portType) => {
  const operations = portType.querySelectorAll('operation, wsdl\\:operation');
  operations.forEach((op) => {
@@ -164,8 +159,7 @@ export function SoapOutboundAdapterConfiguration({
  }
  } else {
  setSoapActions([]);
- logger.warn(LogCategory.UI, 'SOAP Outbound - No originalContent in WSDL structure');
-;
+        logger.warn(LogCategory.UI, 'SOAP Outbound - No originalContent in WSDL structure');
  // Extract structure details from metadata
  const structureDetails: any = {};
 
@@ -185,8 +179,7 @@ export function SoapOutboundAdapterConfiguration({
                     }
 
  setWsdlStructureDetails(structureDetails);
- logger.info(LogCategory.UI, 'SOAP Outbound - Extracted structures', { data: structureDetails });
-;
+        logger.info(LogCategory.UI, 'SOAP Outbound - Extracted structures', { data: structureDetails });
  // Auto-populate endpoint URL from WSDL metadata or namespace
  if (response.data.metadata?.endpointUrl) {
  onConfigurationChange('targetEndpointUrl', response.data.metadata.endpointUrl);

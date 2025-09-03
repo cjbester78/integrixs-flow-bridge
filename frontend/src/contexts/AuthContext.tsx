@@ -41,15 +41,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  useEffect(() => {
  const initAuth = async () => {
     try {
-// Skip auth check if we're on the login page
- if (window.location.pathname === '/login') {
- logger.info(LogCategory.AUTH, 'AuthContext: On login page, skipping auth check');
- setIsLoading(false);
- return;
- 
-} catch (error) {
-  // Handle error
-}
+      // Skip auth check if we're on the login page
+      if (window.location.pathname === '/login') {
+        logger.info(LogCategory.AUTH, 'AuthContext: On login page, skipping auth check');
+        setIsLoading(false);
+        return;
+      }
  // Check if we have a token stored
  const token = authService.getToken();
  if (!token) {
@@ -59,44 +56,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  }
 
  // Check if token is expired
- try {
-const payload = JSON.parse(atob(token.split('.')[1]));
- const expiry = payload.exp * 1000; // Convert to milliseconds;
-;
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expiry = payload.exp * 1000; // Convert to milliseconds
  if (expiry < Date.now()) {
- logger.info(LogCategory.AUTH, 'AuthContext: Token expired, clearing auth data');
- localStorage.removeItem('integration_platform_token');
- localStorage.removeItem('integration_platform_refresh_token');
- localStorage.removeItem('integration_platform_user');
- setIsLoading(false);
- return;
- 
-} catch (error) {
-  // Handle error
-}
- setTokenExpiry(expiry);
- }
-} catch (error) {
- logger.warn(LogCategory.SYSTEM, 'Failed to parse token', { data: error });
- setIsLoading(false);
- return;
- }
+          logger.info(LogCategory.AUTH, 'AuthContext: Token expired, clearing auth data');
+          localStorage.removeItem('integration_platform_token');
+          localStorage.removeItem('integration_platform_refresh_token');
+          localStorage.removeItem('integration_platform_user');
+          setIsLoading(false);
+          return;
+        }
+        
+        setTokenExpiry(expiry);
+      } catch (error) {
+        logger.warn(LogCategory.SYSTEM, 'Failed to parse token', { data: error });
+        setIsLoading(false);
+        return;
+      }
 
  // Try to get user profile
- try {
- const response = await authService.getProfile();
- if (response.success && response.data) {
- setUser(response.data);
- } else {
- logger.warn(LogCategory.AUTH, 'AuthContext: Profile fetch failed');
- // Don't clear auth data - let user retry}
-} catch (profileError) {
- logger.warn(LogCategory.AUTH, 'AuthContext: Profile fetch error', { data: profileError });
- // Don't clear auth data on network errors}
-} catch (error) {
- logger.error(LogCategory.AUTH, 'Auth initialization error', { error: error }); finally {
- setIsLoading(false);
- }
+      try {
+        const response = await authService.getProfile();
+        if (response.success && response.data) {
+          setUser(response.data);
+        } else {
+          logger.warn(LogCategory.AUTH, 'AuthContext: Profile fetch failed');
+          // Don't clear auth data - let user retry
+        }
+      } catch (profileError) {
+        logger.warn(LogCategory.AUTH, 'AuthContext: Profile fetch error', { data: profileError });
+        // Don't clear auth data on network errors
+      }
+    } catch (error) {
+      logger.error(LogCategory.AUTH, 'Auth initialization error', { error: error });
+    } finally {
+      setIsLoading(false);
+    }
  };
 
  initAuth();
@@ -123,7 +119,6 @@ const payload = JSON.parse(atob(token.split('.')[1]));
  try {
  setIsLoading(true);
  const response = await authService.login({ username, password });
-;
  if (response.success && response.data) {
  setUser(response.data.user);
 
@@ -154,24 +149,24 @@ const payload = JSON.parse(atob(token.split('.')[1]));
 
  const logout = async () => {
     try {
- // Clear state first to prevent any auth checks
- setUser(null);
- setTokenExpiry(null);
+      // Clear state first to prevent any auth checks
+      setUser(null);
+      setTokenExpiry(null);
 
- // Try to call logout API but don't wait for it
- authService.logout().} catch (error => {
- logger.warn(LogCategory.SYSTEM, 'Logout API call failed', { data: error }));
+      // Try to call logout API but don't wait for it
+      authService.logout().catch(error => {
+        logger.warn(LogCategory.SYSTEM, 'Logout API call failed', { data: error });
+      });
 
- // Navigate to login immediately
- navigate('/login');
- toast({ title: "Success", description: 'Logged out successfully' });
- }
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Logout error', { error: error });
- // Still navigate to login
- navigate('/login');
- }
- };
+      // Navigate to login immediately
+      navigate('/login');
+      toast({ title: "Success", description: 'Logged out successfully' });
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Logout error', { error: error });
+      // Still navigate to login
+      navigate('/login');
+    }
+  };
 
  const isSessionValid = (): boolean => {
  // Check if we have a token
@@ -223,10 +218,11 @@ const payload = JSON.parse(atob(token.split('.')[1]));
 
  return true;
  } else {
- // Session is invalid, logout
- await logout();
- return false;}
-} catch (error) {
+        // Session is invalid, logout
+        await logout();
+        return false;
+      }
+    } catch (error) {
  logger.error(LogCategory.ERROR, 'Session check error', { error: error });
  // On error, assume session is invalid
  await logout();
@@ -249,8 +245,9 @@ const payload = JSON.parse(atob(token.split('.')[1]));
  setUsers(prev => [...prev, response.data!]);
  toast({ title: "Success", description: 'User created successfully' });
  } else {
- toast({ title: "Error", description: response.error || 'Failed to create user', variant: "destructive" })}
-} catch (error) {
+        toast({ title: "Error", description: response.error || 'Failed to create user', variant: "destructive" });
+      }
+    } catch (error) {
  logger.error(LogCategory.ERROR, 'Create user error', { error: error });
  toast({ title: "Error", description: 'Failed to create user', variant: "destructive" });
  }
@@ -262,10 +259,9 @@ const payload = JSON.parse(atob(token.split('.')[1]));
  // For now, we'll update the local state
  setUsers(prev => prev.map(user =>
  user.id === id ? { ...user, ...userData } : user
- ));
+ ))
  toast({ title: "Success", description: 'User updated successfully' });
- }
-} catch (error) {
+    } catch (error) {
  logger.error(LogCategory.ERROR, 'Update user error', { error: error });
  toast({ title: "Error", description: 'Failed to update user', variant: "destructive" });
  }
@@ -276,9 +272,8 @@ const payload = JSON.parse(atob(token.split('.')[1]));
  // Note: This would need a specific API endpoint for admin user deletion
  // For now, we'll update the local state
  setUsers(prev => prev.filter(user => user.id !== id));
- toast({ title: "Success", description: 'User deleted successfully' });
- }
-} catch (error) {
+      toast({ title: "Success", description: 'User deleted successfully' });
+    } catch (error) {
  logger.error(LogCategory.ERROR, 'Delete user error', { error: error });
  toast({ title: "Error", description: 'Failed to delete user', variant: "destructive" });
  }
@@ -300,4 +295,4 @@ const payload = JSON.parse(atob(token.split('.')[1]));
  };
 
  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};)
+}

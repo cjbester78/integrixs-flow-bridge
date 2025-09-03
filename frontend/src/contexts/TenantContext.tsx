@@ -50,7 +50,6 @@ interface TenantContextType {
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
-;
 export function TenantProvider({ children }: { children: ReactNode }) {
  const { toast } = useToast();
  const { isAuthenticated } = useAuth();
@@ -63,63 +62,57 @@ export function TenantProvider({ children }: { children: ReactNode }) {
  // Load current tenant
  const loadCurrentTenant = async () => {
     try {
-const response = await apiClient.get<Tenant>('/tenants/current');
- setCurrentTenant(response);
+      const response = await apiClient.get<Tenant>('/tenants/current');
+      setCurrentTenant(response);
 
- // Store in localStorage for persistence
- if (response && 'id' in response) {
- localStorage.setItem('currentTenantId', response.id);
- 
-} catch (error) {
-  // Handle error
-}
- // Tenant header is now automatically included in all API requests via api-client.ts
- }
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Failed to load current tenant', { error: error });
- };
+      // Store in localStorage for persistence
+      if (response && 'id' in response) {
+        localStorage.setItem('currentTenantId', response.id);
+      }
+      // Tenant header is now automatically included in all API requests via api-client.ts
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Failed to load current tenant', { error: error });
+    }
+  };
 
  // Load user's tenants
  const loadUserTenants = async () => {
     try {
-const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
- setUserTenants(response);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Failed to load user tenants', { error: error });
- };
+      const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
+      setUserTenants(response);
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Failed to load user tenants', { error: error });
+    }
+  };
 
  // Load subscription info
  const loadSubscription = async () => {
- if (!currentTenant) return;
+    if (!currentTenant) return;
 
- try {
- const response = await apiClient.get<TenantSubscription>(`/tenants/${currentTenant.id}/subscription`);
- setSubscription(response);
- }
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Failed to load subscription', { error: error });
- };
+    try {
+      const response = await apiClient.get<TenantSubscription>(`/tenants/${currentTenant.id}/subscription`);
+      setSubscription(response);
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Failed to load subscription', { error: error });
+    }
+  };
 
  // Load usage info
  const loadUsage = async () => {
- if (!currentTenant) return;
+    if (!currentTenant) return;
 
- try {`
- const response = await apiClient.get<TenantUsage>(/tenants/${currentTenant.id}/usage`);
- setUsage(response);
- }
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Failed to load usage', { error: error });
- };
+    try {
+      const response = await apiClient.get<TenantUsage>(`/tenants/${currentTenant.id}/usage`);
+      setUsage(response);
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Failed to load usage', { error: error });
+    }
+  };
 
  // Switch tenant
  const switchTenant = async (tenantId: string) => {
- try {`
- await apiClient.post(`/tenants/switch/${tenantId}`);
+    try {
+      await apiClient.post(`/tenants/switch/${tenantId}`);
 
  // Reload tenant data
  await loadCurrentTenant();
@@ -129,26 +122,25 @@ const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
  toast({ title: "Success", description: 'Switched tenant successfully' });
 
  // Reload the page to ensure all data is refreshed
- window.location.reload();
- }
-} catch (error) {
- toast({ title: "Error", description: 'Failed to switch tenant', variant: "destructive" });
- throw error;
- }
- };
+      window.location.reload();
+    } catch (error) {
+      toast({ title: "Error", description: 'Failed to switch tenant', variant: "destructive" });
+      throw error;
+    }
+  };
 
  // Refresh functions
  const refreshTenants = async () => {
- await loadUserTenants()
- };
+    await loadUserTenants();
+  };
 
  const refreshSubscription = async () => {
- await loadSubscription()
- };
+    await loadSubscription();
+  };
 
  const refreshUsage = async () => {
- await loadUsage()
- };
+    await loadUsage();
+  };
 
  // Feature checking
  const hasFeature = (feature: string): boolean => {
@@ -192,7 +184,7 @@ const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
  return usage.users;
  case 'flows':
  return usage.flows;
- 'default':
+ default:
  return 0;
  }
  };
@@ -212,7 +204,7 @@ const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
 
  await Promise.all([
  loadCurrentTenant(),
- loadUserTenants();
+ loadUserTenants()
  ]);
 
  setLoading(false);
@@ -226,7 +218,7 @@ const response = await apiClient.get<Tenant[]>('/tenants/my-tenants');
  useEffect(() => {
  if (currentTenant) {
  loadSubscription();
- loadUsage()
+ loadUsage();
  }
  }, [currentTenant]);
 
@@ -258,5 +250,4 @@ export function useTenant() {
  throw new Error('useTenant must be used within a TenantProvider');
  }
  return context;
-}`
 }
