@@ -50,7 +50,7 @@ export function CreateFlowSelection() {
  </div>
  </div>
  <Button
- className="w-full";
+ className="w-full"
  onClick={() => navigate('/create-orchestration-flow')}
  >
  Create Orchestration Flow
