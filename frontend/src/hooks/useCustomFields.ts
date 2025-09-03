@@ -5,10 +5,10 @@ import { logger, LogCategory } from '@/lib/logger';
 export const useCustomFields = (customFields: Field[], setCustomFields: (fields: Field[]) => void) => {
  const addCustomField = useCallback((fieldIndex?: number, parentIndex?: number) => {
  const newField: Field = {
- name: ',
+ name: '',
  type: 'string',
  required: false,
- description: ',
+ description: '',
  isComplexType: false,
  minOccurs: 0,
  maxOccurs: 1,
@@ -38,10 +38,9 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
  }, [customFields, setCustomFields]);
 
  const updateFieldAtPath = useCallback((path: number[], fieldUpdates: Partial<Field>) => {
- logger.info(LogCategory.BUSINESS_LOGIC, updateFieldAtPath called: { path, field: fieldUpdates });
+ logger.info(LogCategory.BUSINESS_LOGIC, 'updateFieldAtPath called:', { path, field: fieldUpdates });
  const updated = [...customFields];
  let current = updated;
-;
  // Navigate to the parent of the field we want to update
  for (let i = 0; i < path.length - 1; i++) {
  const index = path[i];
@@ -66,8 +65,9 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
  }
 
  current[finalIndex] = { ...current[finalIndex], ...fieldUpdates };
- logger.info(LogCategory.BUSINESS_LOGIC, Updated field at path: { data: path, current[finalIndex] });
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Updated field at path:', { data: path, field: current[finalIndex] });
  setCustomFields(updated);
+ }
  }, [customFields, setCustomFields]);
 
  const removeFieldAtPath = useCallback((path: number[]) => {
@@ -87,7 +87,6 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
 
  const parentIndex = path[path.length - 2];
  const childIndex = path[path.length - 1];
-;
  if (current[parentIndex] && current[parentIndex].children) {
  current[parentIndex].children = current[parentIndex].children!.filter((_, i) => i !== childIndex);
  }
@@ -98,10 +97,10 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
 
  const addChildAtPath = useCallback((path: number[]) => {
  const newField: Field = {
- name: ',
+ name: '',
  type: 'string',
  required: false,
- description: ',
+ description: '',
  isComplexType: false,
  minOccurs: 0,
  maxOccurs: 1,
@@ -110,7 +109,6 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
 
  const updated = [...customFields];
  let current = updated;
-;
  // Navigate to the target field
  for (let i = 0; i < path.length; i++) {
  const index = path[i];
@@ -133,6 +131,5 @@ export const useCustomFields = (customFields: Field[], setCustomFields: (fields:
  updateFieldAtPath,
  removeFieldAtPath,
  addChildAtPath
- }
+ };
 };
-}
