@@ -24,18 +24,19 @@ export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, 
  setError(null);
 
  try {
- logger.info(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Loading logs for adapter: ${adapterId}');
+ logger.info(LogCategory.BUSINESS_LOGIC, `[useAdapterLogs] Loading logs for adapter: ${adapterId}`);
  const response = await adapterMonitoringService.getAdapterLogs(adapterId, filtersRef.current);
- logger.info(LogCategory.BUSINESS_LOGIC, [useAdapterLogs] Response: { data: response });
+ logger.info(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Response:', { data: response });
  if (response.success && response.data) {
- logger.info(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Setting ${response.data.length} logs');
+ logger.info(LogCategory.BUSINESS_LOGIC, `[useAdapterLogs] Setting ${response.data.length} logs`);
  setLogs(response.data);
  } else {
- logger.error(LogCategory.BUSINESS_LOGIC, [useAdapterLogs] Error: response.error);
+ logger.error(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Error:', response.error);
  setError(response.error || 'Failed to load adapter logs');
- setLogs([]);}
+ setLogs([]);
+ }
 } catch (err) {
- logger.error(LogCategory.BUSINESS_LOGIC, [useAdapterLogs] Exception: err);
+ logger.error(LogCategory.BUSINESS_LOGIC, '[useAdapterLogs] Exception:', err);
  setError(err instanceof Error ? err.message : 'An unexpected error occurred');
  setLogs([]);
  } finally {
@@ -50,7 +51,7 @@ export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, 
  refreshLogs: loadLogs,
  connected: false,
  exportLogs: async () => {
- logger.info(LogCategory.BUSINESS_LOGIC, 'Export logs functionality will be implemented');,
+ logger.info(LogCategory.BUSINESS_LOGIC, 'Export logs functionality will be implemented');
  }
-};
+ };
 }
