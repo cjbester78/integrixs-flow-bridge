@@ -11,11 +11,10 @@ export const usePageReset = (resetCallback: () => void) => {
  const { isDirectNavigation } = useNavigationHistory();
  const hasResetRef = useRef(false);
  const previousPathRef = useRef(location.pathname);
-;
+
  useEffect(() => {
  // Check if this is a new navigation to this page
  const isNewNavigation = previousPathRef.current !== location.pathname;
-;
  if (isNewNavigation) {
  previousPathRef.current = location.pathname;
 
@@ -32,6 +31,5 @@ export const usePageReset = (resetCallback: () => void) => {
  return {
  isDirectNavigation: isDirectNavigation(),
  hasReset: hasResetRef.current
- }
+ };
 };
-}}})
