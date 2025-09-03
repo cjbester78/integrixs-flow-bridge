@@ -58,64 +58,61 @@ export function SoapInboundAdapterConfiguration({
  }, [configuration.selectedWsdl]);
 
  const fetchWsdls = async () => {
-    try {
-setLoadingWsdls(true);
- // Fetch WSDLs as DataStructures filtered by type, usage and business component
- const response = await api.get('/structures', {
- params: {
- type: 'wsdl',
- usage: 'source',
- businessComponentId: businessComponentId,
- limit: 100;
-} catch (error) {
-  // Handle error
-}
- } as any);
+        try {
+            setLoadingWsdls(true);
+            // Fetch WSDLs as DataStructures filtered by type, usage and business component
+            const response = await api.get('/structures', {
+                params: {
+                    type: 'wsdl',
+                    usage: 'source',
+                    businessComponentId: businessComponentId,
+                    limit: 100
+                }
+            } as any);
 
- if (response.data && response.data.structures) {
- logger.info(LogCategory.UI, 'SOAP Inbound - Raw structures from API', { data: response.data.structures });
- // Transform the structures to match our expected format
- // Filter to ensure we only get WSDL type structures with source usage
- const wsdlList = response.data.structures;
- .filter((structure: any) => {
- // Must be WSDL type;
- const isWsdl = structure.type?.toLowerCase() === 'wsdl';
-;
- // Check usage - source for sender adapter
- const isSource = structure.usage === 'source' ||;
- structure.metadata?.usage === 'source' ||;
- !structure.usage; // Include if usage is not set
+            if (response.data && response.data.structures) {
+                logger.info(LogCategory.UI, 'SOAP Inbound - Raw structures from API', { data: response.data.structures });
+                // Transform the structures to match our expected format
+                // Filter to ensure we only get WSDL type structures with source usage
+                const wsdlList = response.data.structures
+                    .filter((structure: any) => {
+                        // Must be WSDL type
+                        const isWsdl = structure.type?.toLowerCase() === 'wsdl';
+                        // Check usage - source for sender adapter
+                        const isSource = structure.usage === 'source' ||
+                            structure.metadata?.usage === 'source' ||
+                            !structure.usage; // Include if usage is not set
 
- const included = isWsdl && isSource;
- logger.info(LogCategory.UI, ``SOAP Inbound - Structure ${structure.name}: type=${structure.type}, usage=${structure.usage}, metadata.usage=${structure.metadata?.usage}, included=${included}`);
- return included;
- });
- .map((structure: any) => ({
- id: structure.id,
- name: structure.name,
- endpointUrl: structure.metadata?.endpointUrl || '
- });
+                        const included = isWsdl && isSource;
+                        logger.info(LogCategory.UI, `SOAP Inbound - Structure ${structure.name}: type=${structure.type}, usage=${structure.usage}, metadata.usage=${structure.metadata?.usage}, included=${included}`);
+                        return included;
+                    })
+                    .map((structure: any) => ({
+                        id: structure.id,
+                        name: structure.name,
+                        endpointUrl: structure.metadata?.endpointUrl || ''
+                    }));
 
- logger.info(LogCategory.UI, 'SOAP Inbound - Filtered WSDL list', { data: wsdlList });
- setWsdls(wsdlList);
- } else {
- setWsdls([])}
-} catch (error) {
- logger.error(LogCategory.UI, 'Error fetching WSDLs', { error: error });
- setWsdls([]);
- } finally {
- setLoadingWsdls(false);
- }
- };
+                logger.info(LogCategory.UI, 'SOAP Inbound - Filtered WSDL list', { data: wsdlList });
+                setWsdls(wsdlList);
+            } else {
+                setWsdls([]);
+            }
+        } catch (error) {
+            logger.error(LogCategory.UI, 'Error fetching WSDLs', { error: error });
+            setWsdls([]);
+        } finally {
+            setLoadingWsdls(false);
+        }
+    };
 
- const checkWsdlStructure = async (wsdlId: string) => {
- try {
- setLoadingSoapActions(true);
- // Get the WSDL structure details`
- const response = await api.get(`/structures/${wsdlId}`);
-;
- if (response.data) {
- const wsdlStructure = response.data;
+    const checkWsdlStructure = async (wsdlId: string) => {
+        try {
+            setLoadingSoapActions(true);
+            // Get the WSDL structure details
+            const response = await api.get(`/structures/${wsdlId}`);
+            if (response.data) {
+                const wsdlStructure = response.data;
  logger.info(LogCategory.UI, 'SOAP Inbound - WSDL Structure', { data: wsdlStructure });
  logger.info(LogCategory.UI, 'SOAP Inbound - WSDL Metadata', { data: wsdlStructure.metadata });
  // Extract SOAP actions from the original WSDL content
@@ -133,12 +130,10 @@ setLoadingWsdls(true);
  // For now, if ANY operation in the WSDL has both input and output, consider it potentially synchronous
  try {
  const parser = new DOMParser();
- const doc = parser.parseFromString(wsdlStructure.originalContent, 'text/xml');
-;
+                    const doc = parser.parseFromString(wsdlStructure.originalContent, 'text/xml');
  // Find all operations in portType
  const portTypes = doc.querySelectorAll('portType, wsdl\\:portType');
- let hasSynchronousOperations = false;
-;
+                    let hasSynchronousOperations = false;
  portTypes.forEach((portType) => {
  const operations = portType.querySelectorAll('operation, wsdl\\:operation');
  operations.forEach((op) => {
@@ -146,17 +141,19 @@ setLoadingWsdls(true);
  const hasOutput = !!op.querySelector('output, wsdl\\:output');
  if (hasInput && hasOutput) {
  hasSynchronousOperations = true;
- }})
- });
+                            }
+                        });
+                    });
 
  // If WSDL has synchronous operations, default to synchronous mode
  // User can still change it if needed
  if (hasSynchronousOperations) {
- logger.info(LogCategory.UI, 'SOAP Inbound - WSDL has synchronous operations (request/response);, setting to SYNCHRONOUS')
+                        logger.info(LogCategory.UI, 'SOAP Inbound - WSDL has synchronous operations (request/response), setting to SYNCHRONOUS');
  onConfigurationChange('processingMode', 'SYNCHRONOUS');
  } else {
  logger.info(LogCategory.UI, 'SOAP Inbound - WSDL appears to have one-way operations only, setting to ASYNCHRONOUS');
- onConfigurationChange('processingMode', 'ASYNCHRONOUS')}
+                        onConfigurationChange('processingMode', 'ASYNCHRONOUS');
+                    }
         } catch (e) {
  logger.error(LogCategory.UI, 'Error parsing WSDL for sync/async detection', { error: e });
  // Default to synchronous for SOAP as most SOAP services are request/response
@@ -170,39 +167,41 @@ setLoadingWsdls(true);
 
  // Extract request structure
  if (wsdlStructure.metadata?.requestStructure || wsdlStructure.metadata?.operationInfo?.request) {
- structureDetails.request = wsdlStructure.metadata?.requestStructure || wsdlStructure.metadata?.operationInfo?.request
- }
+                        structureDetails.request = wsdlStructure.metadata?.requestStructure || wsdlStructure.metadata?.operationInfo?.request;
+                    }
 
  // Extract response structure
  if (wsdlStructure.metadata?.responseStructure || wsdlStructure.metadata?.operationInfo?.response) {
- structureDetails.response = wsdlStructure.metadata?.responseStructure || wsdlStructure.metadata?.operationInfo?.response
- }
+                        structureDetails.response = wsdlStructure.metadata?.responseStructure || wsdlStructure.metadata?.operationInfo?.response;
+                    }
 
  // Extract fault structure
  if (wsdlStructure.metadata?.faultStructure || wsdlStructure.metadata?.operationInfo?.fault) {
- structureDetails.fault = wsdlStructure.metadata?.faultStructure || wsdlStructure.metadata?.operationInfo?.fault
- }
+                        structureDetails.fault = wsdlStructure.metadata?.faultStructure || wsdlStructure.metadata?.operationInfo?.fault;
+                    }
 
  setWsdlStructureDetails(structureDetails);
  logger.info(LogCategory.UI, 'SOAP Inbound - Extracted structures', { data: structureDetails });
  // Check if metadata contains sync/async information
  const hasInput = wsdlStructure.metadata?.hasInput || wsdlStructure.metadata?.operationInfo?.hasInput;
  const hasOutput = wsdlStructure.metadata?.hasOutput || wsdlStructure.metadata?.operationInfo?.hasOutput;
- const hasFault = wsdlStructure.metadata?.hasFault || wsdlStructure.metadata?.operationInfo?.hasFault;
-`
- logger.info(LogCategory.UI, `SOAP Inbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`);
- // Note: We've already determined sync/async based on WSDL parsing above
- // This metadata check is just for logging purposes - don't override the earlier decision}
-} catch (error) {
- logger.error(LogCategory.UI, 'Error checking WSDL structure', { error: error });
- // Default to async on error
- onConfigurationChange('processingMode', 'ASYNCHRONOUS');
- setWsdlStructureDetails({});
- setSoapActions([]);
- } finally {
- setLoadingSoapActions(false);
- }
- };
+                    const hasFault = wsdlStructure.metadata?.hasFault || wsdlStructure.metadata?.operationInfo?.hasFault;
+                    
+                    logger.info(LogCategory.UI, `SOAP Inbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`);
+                    // Note: We've already determined sync/async based on WSDL parsing above
+                    // This metadata check is just for logging purposes - don't override the earlier decision
+                }
+            }
+        } catch (error) {
+            logger.error(LogCategory.UI, 'Error checking WSDL structure', { error: error });
+            // Default to async on error
+            onConfigurationChange('processingMode', 'ASYNCHRONOUS');
+            setWsdlStructureDetails({});
+            setSoapActions([]);
+        } finally {
+            setLoadingSoapActions(false);
+        }
+    };
 
  return (
  <Card>
@@ -239,9 +238,9 @@ setLoadingWsdls(true);
  <Switch
  id="connectionMode"
  checked={(configuration.connectionMode || 'PUSH') === 'PUSH'}
- onCheckedChange={(checked) =>
- onConfigurationChange('connectionMode', checked ? 'PUSH' : 'POLL');
- }
+                    onCheckedChange={(checked) =>
+                        onConfigurationChange('connectionMode', checked ? 'PUSH' : 'POLL')
+                    }
  />
  </div>
  </div>
@@ -285,7 +284,7 @@ setLoadingWsdls(true);
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="none">None (Leave blank)</SelectItem>
- {soapActions.map((action, index) => (`
+                                {soapActions.map((action, index) => (
  <SelectItem key={index} value={action.soapAction || `action_${index}`}>
  {action.operationName} - {action.soapAction || '(empty)'}
  </SelectItem>
@@ -403,9 +402,9 @@ setLoadingWsdls(true);
  <Switch
  id="processingMode"
  checked={(configuration.processingMode || 'ASYNCHRONOUS') === 'ASYNCHRONOUS'}
- onCheckedChange={(checked) =>
- onConfigurationChange('processingMode', checked ? 'ASYNCHRONOUS' : 'SYNCHRONOUS');
- }
+                    onCheckedChange={(checked) =>
+                        onConfigurationChange('processingMode', checked ? 'ASYNCHRONOUS' : 'SYNCHRONOUS')
+                    }
  />
  </div>
 
