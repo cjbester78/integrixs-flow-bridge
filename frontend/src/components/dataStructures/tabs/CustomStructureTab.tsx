@@ -125,4 +125,3 @@ export const CustomStructureTab: React.FC<CustomStructureTabProps> = ({
  </div>
  );
 };
-})

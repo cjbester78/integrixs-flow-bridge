@@ -45,7 +45,7 @@ export const FieldConfiguration: React.FC<FieldConfigurationProps> = ({
  <Input
  placeholder="fieldName"
  value={field.name}
- onChange={(e) => onUpdate({ name: e.target.value })
+ onChange={(e) => onUpdate({ name: e.target.value })}
  className="text-sm animate-fade-in"
  />
  </div>

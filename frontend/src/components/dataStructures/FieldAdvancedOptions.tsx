@@ -25,9 +25,9 @@ export const FieldAdvancedOptions: React.FC<FieldAdvancedOptionsProps> = ({
  <div className="col-span-2">
  <label className="flex items-center space-x-1 text-xs">
  <input
- type="checkbox";
+ type="checkbox"
  checked={field.isComplexType || false}
- onChange={(e) => onUpdate({ isComplexType: e.target.checked })
+ onChange={(e) => onUpdate({ isComplexType: e.target.checked })}
  className="rounded"
  />
  <span>Complex Type</span>

@@ -25,7 +25,7 @@ const getTypeIcon = (type: string) => {
  case 'json': return FileJson;
  case 'xsd': case 'soap': case 'wsdl': return FileCode;
  case 'custom': return Database;
- 'default': return FileText;
+ default: return FileText;
  }
 };
 

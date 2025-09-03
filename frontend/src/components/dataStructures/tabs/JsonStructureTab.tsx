@@ -26,18 +26,17 @@ export const JsonStructureTab: React.FC<JsonStructureTabProps> = ({
  const reader = new FileReader();
  reader.onload = (e) => {
  const content = e.target?.result as string;
-;
  try {
-const parsed = JSON.parse(content);
+ const parsed = JSON.parse(content);
  setJsonInput(JSON.stringify(parsed, null, 2));
 
  // Call onFileUploaded with the filename
  if (onFileUploaded) {
  onFileUploaded(file.name);
- 
-} catch (error) {
-  // Handle error
-}
+ }
+ } catch (error) {
+ // Handle error
+ }
  toast({
  title: "JSON File Loaded",
  description: `Successfully loaded ${file.name}`,

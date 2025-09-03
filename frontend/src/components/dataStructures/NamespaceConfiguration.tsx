@@ -40,7 +40,7 @@ export const NamespaceConfiguration: React.FC<NamespaceConfigurationProps> = ({
  <Input
  placeholder={isWsdl ? "http://example.com/service" : "http://example.com/namespace"}
  value={namespaceConfig.uri}
- onChange={(e) => setNamespaceConfig({...namespaceConfig, uri: e.target.value})
+ onChange={(e) => setNamespaceConfig({...namespaceConfig, uri: e.target.value})}
  className="text-sm"
  />
  </div>

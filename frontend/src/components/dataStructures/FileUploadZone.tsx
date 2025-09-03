@@ -52,5 +52,4 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({ icon: Icon,
  </Button>
  </div>
  );
-};`
-})
+};

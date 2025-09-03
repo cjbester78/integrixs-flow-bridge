@@ -84,4 +84,4 @@ export const StructurePreview: React.FC<StructurePreviewProps> = ({ selectedStru
  </CardContent>
  </Card>
  );
-};`
+};

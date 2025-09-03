@@ -25,15 +25,13 @@ export const BusinessComponentSelectionCard: React.FC<BusinessComponentSelection
 
  const loadBusinessComponents = async () => {
     try {
-setLoading(true);
- const response = await businessComponentService.getAllBusinessComponents();
- if (response.success && response.data) {
- const components = Array.isArray(response.data) ? response.data : [];
- setBusinessComponents(components);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+        setLoading(true);
+        const response = await businessComponentService.getAllBusinessComponents();
+        if (response.success && response.data) {
+            const components = Array.isArray(response.data) ? response.data : [];
+            setBusinessComponents(components);
+        }
+    } catch (error) {
  logger.error(LogCategory.UI, 'Error loading business components', { error: error });
  setBusinessComponents([]);
  } finally {

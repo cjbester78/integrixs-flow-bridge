@@ -74,7 +74,7 @@ export const WsdlStructureTab: React.FC<WsdlStructureTabProps> = ({
  }
 
  toast({
- title: "WSDL File Loaded",`
+ title: "WSDL File Loaded",
  description: `Successfully loaded ${file.name}`,
  });
  };

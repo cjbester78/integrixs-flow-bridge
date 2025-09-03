@@ -67,7 +67,7 @@ export const XsdStructureTab: React.FC<XsdStructureTabProps> = ({
  return (
  <div className="space-y-4">
  <NamespaceConfiguration
- type="xml";
+ type="xml"
  namespaceConfig={namespaceConfig}
  setNamespaceConfig={setNamespaceConfig}
  />

@@ -123,4 +123,4 @@ export const EdmxStructureTab: React.FC<EdmxStructureTabProps> = ({
  />
  </div>
  );
-};`
+};
