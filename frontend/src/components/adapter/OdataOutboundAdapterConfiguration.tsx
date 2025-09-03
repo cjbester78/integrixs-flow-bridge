@@ -19,7 +19,6 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
 }) => {
  const renderAuthFields = () => {
  const authType = configuration.authentication?.type || 'none';
-;
  switch (authType) {
  case 'basic':
  return (
@@ -71,7 +70,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  ...configuration.authentication?.credentials,
  clientId: e.target.value
  }
- })
+ })}
  placeholder="Enter client ID"
  />
  </div>
@@ -87,7 +86,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  ...configuration.authentication?.credentials,
  clientSecret: e.target.value
  }
- })
+ })}
  placeholder="Enter client secret"
  />
  </div>
@@ -102,7 +101,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  ...configuration.authentication?.credentials,
  tokenUrl: e.target.value
  }
- })
+ })}
  placeholder="https://oauth.example.com/token"
  />
  </div>
@@ -117,7 +116,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  ...configuration.authentication?.credentials,
  scope: e.target.value
  }
- })
+ })}
  placeholder="read write"
  />
  </div>
@@ -138,7 +137,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  ...configuration.authentication?.credentials,
  apiKey: e.target.value
  }
- })
+ })}
  placeholder="Enter API key"
  />
  </div>
@@ -153,7 +152,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  ...configuration.authentication?.credentials,
  apiKeyHeader: e.target.value
  }
- })
+ })}
  placeholder="X-API-Key"
  />
  </div>
@@ -222,7 +221,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  <Label htmlFor="authenticationType">Authentication Type</Label>
  <Select
  value={configuration.authentication?.type || 'none'}
- onValueChange={(value) => onConfigurationChange('authentication', { type: value, credentials: {} })
+ onValueChange={(value) => onConfigurationChange('authentication', { type: value, credentials: {} })}
  >
  <SelectTrigger>
  <SelectValue />
