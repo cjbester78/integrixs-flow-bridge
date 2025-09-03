@@ -7,9 +7,9 @@ import { logger, LogCategory } from '@/lib/logger';
 
 const NotFound = () => {
  const location = useLocation();
-;
  useEffect(() => {
- logger.error(LogCategory.NAVIGATION, 404 Error: User attempted to access non-existent route: location.pathname);, [location.pathname]);
+ logger.error(LogCategory.NAVIGATION, `404 Error: User attempted to access non-existent route: ${location.pathname}`);
+ }, [location.pathname]);
 
  return (
  <div className="min-h-screen flex items-center justify-center bg-secondary">
@@ -37,5 +37,3 @@ const NotFound = () => {
 };
 
 export default NotFound;
-
-}
