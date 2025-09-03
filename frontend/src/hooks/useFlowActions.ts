@@ -28,7 +28,6 @@ export const useFlowActions = ({
 }: UseFlowActionsProps) => {
  const { toast } = useToast();
  const user = useAuthStore((state) => state.user);
-;
  const handleSaveFlow = async () => {
  if (!flowName || !inboundAdapter || !outboundAdapter) {
  toast({
@@ -59,7 +58,6 @@ export const useFlowActions = ({
  };
 
  const response = await flowService.createFlow(flowData);
-;
  if (response.success) {
  toast({
  title: "Flow Saved Successfully",
@@ -69,7 +67,8 @@ export const useFlowActions = ({
 
  resetForm();
  } else {
- throw new Error(response.error || 'Failed to save flow');}
+ throw new Error(response.error || 'Failed to save flow');
+ }
 } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error saving flow', { error: error });
  toast({
@@ -100,5 +99,5 @@ export const useFlowActions = ({
  return {
  handleSaveFlow,
  handleTestFlow,
- }
-};`
+ };
+};
