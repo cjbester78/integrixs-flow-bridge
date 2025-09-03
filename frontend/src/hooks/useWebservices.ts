@@ -22,8 +22,9 @@ export const useWebservices = (businessComponentId?: string) => {
  setWebservices(response.data);
  } else {
  setError(response.error || 'Failed to load webservices');
- setWebservices([]);}
-} catch (err) {
+ setWebservices([]);
+ }
+ } catch (err) {
  setError(err instanceof Error ? err.message : 'An unexpected error occurred');
  setWebservices([]);
  } finally {
@@ -33,16 +34,12 @@ export const useWebservices = (businessComponentId?: string) => {
 
  const getWebserviceStructure = async (filename: string): Promise<FieldNode[] | null> => {
  try {
-const response = await webserviceService.getWebserviceStructure(filename);
+ const response = await webserviceService.getWebserviceStructure(filename);
  if (response.success && response.data) {
  return response.data;
- 
-} catch (error) {
-  // Handle error
-}
- return null;
  }
-} catch (err) {
+ return null;
+ } catch (err) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load webservice structure', { error: err });
  return null;
  }
@@ -50,40 +47,32 @@ const response = await webserviceService.getWebserviceStructure(filename);
 
  const uploadWebservice = async (file: File, businessComponentId: string) => {
  try {
-const response = await webserviceService.uploadWebservice(file, businessComponentId);
+ const response = await webserviceService.uploadWebservice(file, businessComponentId);
  if (response.success) {
  await loadWebservices(); // Refresh the list
- 
-} catch (error) {
-  // Handle error
-}
- return response;
  }
-} catch (err) {
+ return response;
+ } catch (err) {
  return {
  success: false,
  error: err instanceof Error ? err.message : 'Failed to upload webservice'
+ };
  }
-}
  };
 
  const deleteWebservice = async (filename: string) => {
  try {
-const response = await webserviceService.deleteWebservice(filename);
+ const response = await webserviceService.deleteWebservice(filename);
  if (response.success) {
  await loadWebservices(); // Refresh the list
- 
-} catch (error) {
-  // Handle error
-}
- return response;
  }
-} catch (err) {
+ return response;
+ } catch (err) {
  return {
  success: false,
  error: err instanceof Error ? err.message : 'Failed to delete webservice'
+ };
  }
-}
  };
 
  return {
@@ -94,5 +83,5 @@ const response = await webserviceService.deleteWebservice(filename);
  getWebserviceStructure,
  uploadWebservice,
  deleteWebservice,
- }
+ };
 };
