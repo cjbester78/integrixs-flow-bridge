@@ -18,12 +18,12 @@ interface CreateUserDialogProps {
 export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUserDialogProps) => {
  const [isLoading, setIsLoading] = useState(false);
  const [formData, setFormData] = useState<CreateUserRequest>({
- username: ',
+ username: '',
  email: '',
- firstName: ',
+ firstName: '',
  lastName: '',
  role: 'viewer',
- password: ',
+ password: '',
  status: 'active';
  });
 
@@ -45,12 +45,12 @@ export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUs
 
  // Reset form
  setFormData({
- username: ',
+ username: '',
  email: '',
- firstName: ',
+ firstName: '',
  lastName: '',
  role: 'viewer',
- password: ',
+ password: '',
  status: 'active';
  });
 

@@ -41,7 +41,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  const [formData, setFormData] = useState<UpdateExternalAuthRequest>({
  name: config.name,
  description: config.description,
- isActive: config.isActive;
+ isActive: config.isActive
  });
 
 
@@ -83,7 +83,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  setFormData({
  name: config.name,
  description: config.description,
- isActive: config.isActive;
+ isActive: config.isActive
  });
 
  if (config.authType === AuthType.BASIC && config.basicAuth) {

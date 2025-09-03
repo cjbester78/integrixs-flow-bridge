@@ -39,11 +39,11 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  const [authType, setAuthType] = useState<AuthType>(AuthType.BASIC);
 
  const [formData, setFormData] = useState<CreateExternalAuthRequest>({
- name: ',
+ name: '',
  description: '',
  authType: AuthType.BASIC,
  basicAuth: {
- username: ',
+ username: '',
  password: '',
  confirmPassword: ',
  realm: ';
@@ -147,11 +147,11 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  const resetForm = () => {
  setAuthType(AuthType.BASIC);
  setFormData({
- name: ',
+ name: '',
  description: '',
  authType: AuthType.BASIC,
  basicAuth: {
- username: ',
+ username: '',
  password: '',
  confirmPassword: ',
  realm: ';

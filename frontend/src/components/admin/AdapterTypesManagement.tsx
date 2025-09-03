@@ -29,7 +29,7 @@ interface AdapterType {
  updatedAt: string;
 }
 
-const categoryOptions = [;
+const categoryOptions = [
  { value: 'FILE_TRANSFER', label: 'File Transfer' },
  { value: 'MESSAGING', label: 'Messaging' },
  { value: 'DATABASE', label: 'Database' },

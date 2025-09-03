@@ -22,7 +22,7 @@ export const CertificateManagement = ({ certificates, isLoading = false, onRefre
  return 'secondary';
  case 'expiring':
  return 'destructive';
- 'default':
+ default:
  return 'outline';
  }
  };

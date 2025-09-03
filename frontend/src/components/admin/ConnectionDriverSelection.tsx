@@ -71,11 +71,11 @@ export const ConnectionDriverSelection = ({ jarFiles, isLoading = false, onRefre
  <h3 className="text-lg font-semibold">Uploaded Connection Drivers</h3>
  <div className="flex items-center gap-2">
  <div className="text-sm text-muted-foreground">
- {jarFiles.length} driver{jarFiles.length !== 1 ? 's' : '} uploaded
+ {jarFiles.length} driver{jarFiles.length !== 1 ? 's' : ''} uploaded
  </div>
  {onRefresh && (
  <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
- <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : '}`} />
+ <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
  </Button>
  )}
  </div>

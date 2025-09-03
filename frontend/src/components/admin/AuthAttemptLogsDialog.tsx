@@ -30,15 +30,13 @@ export function AuthAttemptLogsDialog({ configId, open, onOpenChange }: AuthAtte
  setIsLoading(true);
  try {
 const response = await externalAuthService.getAuthAttempts(configId, 100);
- if (isApiResponse<AuthAttemptLog[]>(response)) {
- if (response.success && response.data) {
- setAttempts(response.data);
- 
-} catch (error) {
-  // Handle error
-}
- } else if (Array.isArray(response)) {
- setAttempts(response);}
+      if (isApiResponse<AuthAttemptLog[]>(response)) {
+        if (response.success && response.data) {
+          setAttempts(response.data);
+        }
+      } else if (Array.isArray(response)) {
+        setAttempts(response);
+      }
 } catch (error) {
  logger.error(LogCategory.AUTH, 'Failed to fetch auth attempts', { error: error });
  setAttempts([]);
