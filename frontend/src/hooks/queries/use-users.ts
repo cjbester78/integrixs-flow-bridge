@@ -56,12 +56,11 @@ export const useUser = (userId: string, enabled = true) => {
  */
 export const useCreateUser = () => {
  const notify = useNotify();
-;
  return useMutation({
  mutationFn: (data: CreateUserDTO) =>
  apiClient.post<User>('/users', data),
 
- onSuccess: (user) => {`
+ onSuccess: (user) => {
  notify.success('User created', `User ${user.username} has been created successfully`);
  invalidateRelatedQueries('user');
  },
@@ -77,12 +76,11 @@ export const useCreateUser = () => {
  */
 export const useUpdateUser = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: ({ userId, data }: { userId: string; data: UpdateUserDTO }) =>`
- apiClient.put<User>(/users/${userId}`, data),
+ mutationFn: ({ userId, data }: { userId: string; data: UpdateUserDTO }) =>
+ apiClient.put<User>(`/users/${userId}`, data),
 
- onSuccess: (user) => {`
+ onSuccess: (user) => {
  notify.success('User updated', `User ${user.username} has been updated successfully`);
  invalidateRelatedQueries('user', user.id);
  },
@@ -98,10 +96,9 @@ export const useUpdateUser = () => {
  */
 export const useDeleteUser = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: (userId: string) =>`
- apiClient.delete(/users/${userId}`),
+ mutationFn: (userId: string) =>
+ apiClient.delete(`/users/${userId}`),
 
  onSuccess: (_, userId) => {
  notify.success('User deleted', 'User has been deleted successfully');
@@ -119,9 +116,8 @@ export const useDeleteUser = () => {
  */
 export const useResetUserPassword = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: ({ userId, newPassword }: { userId: string; newPassword: string }) =>`
+ mutationFn: ({ userId, newPassword }: { userId: string; newPassword: string }) =>
  apiClient.post(`/users/${userId}/reset-password`, { newPassword }),
 
  onSuccess: () => {
@@ -139,10 +135,9 @@ export const useResetUserPassword = () => {
  */
 export const useToggleUserStatus = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) =>`
- apiClient.patch<User>(/users/${userId}/status`, { isActive }),
+ mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) =>
+ apiClient.patch<User>(`/users/${userId}/status`, { isActive }),
 
  onMutate: async ({ userId, isActive }) => {
  // Cancel outgoing refetches
@@ -150,17 +145,16 @@ export const useToggleUserStatus = () => {
 
  // Snapshot previous value
  const previousUser = queryClient.getQueryData<User>(queryKeys.users.detail(userId));
-;
  // Optimistically update
  if (previousUser) {
  queryClient.setQueryData<User>(queryKeys.users.detail(userId), {
  ...previousUser,
  isActive,
- })
+ });
  }
 
- return { previousUser }
-},
+ return { previousUser };
+ },
 
  onError: (err, variables, context) => {
  // Rollback on error
@@ -176,14 +170,14 @@ export const useToggleUserStatus = () => {
  onSettled: (_, __, { userId }) => {
  // Always refetch after error or success
  queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(userId) });
- queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
+ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
  },
 
  onSuccess: (_, { isActive }) => {
  notify.success(
- 'User status updated',`
+ 'User status updated',
  `User has been ${isActive ? 'activated' : 'deactivated'}`
  );
  },
  })
-};`
+}
