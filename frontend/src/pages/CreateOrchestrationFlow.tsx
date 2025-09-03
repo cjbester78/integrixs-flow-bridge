@@ -63,22 +63,19 @@ setLoading(true);
  const businessResult = await businessComponentService.getAllBusinessComponents();
  if (businessResult.success && businessResult.data) {
  setBusinessComponents(businessResult.data);
- 
-} catch (error) {
-  // Handle error
-}
+ }
+
  // Load adapters
  try {
-const adaptersResponse = await api.get('/adapters');
+ const adaptersResponse = await api.get('/adapters');
  if (adaptersResponse.data) {
  setAdapters(adaptersResponse.data);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.warn(LogCategory.SYSTEM, 'Could not load adapters', { data: error });
- setAdapters([]);}
-} catch (error) {
+ setAdapters([]);
+ }
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error loading component data', { error: error });
  toast({
  title: "Error",
@@ -118,13 +115,14 @@ const adaptersResponse = await api.get('/adapters');
 
  // Save the complete orchestration flow using the flow composition API
  const response = await api.post('/flow-composition/orchestration', flowRequest);
-;
+
  if (response.data) {
  toast({
- title: "Success",`
+ title: "Success",
  description: `Orchestration flow "${uniqueFlowId}" has been created successfully.`,
  });
- navigateBack('/dashboard');}
+ navigateBack('/dashboard');
+ }
 } catch (error) {
  logger.error(LogCategory.ERROR, 'Error saving orchestration flow', { error: error });
  toast({
@@ -227,5 +225,4 @@ const adaptersResponse = await api.get('/adapters');
  // Since we're going directly to visual editor, this should not be reached
  // but keeping as fallback
  return null;
-}`
-}}}})
+}
