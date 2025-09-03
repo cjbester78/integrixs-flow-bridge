@@ -86,8 +86,8 @@ export const setupAxiosInterceptors = () => {
  authService.refreshToken()
  .then((response) => {
  if (response.success && response.data) {
- authService.setToken(response.data.token);`
- axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;`
+ authService.setToken(response.data.token);
+ axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
  originalRequest.headers.Authorization = `Bearer ${response.data.token}`;
  processQueue(null, response.data.token);
  resolve(axios(originalRequest));

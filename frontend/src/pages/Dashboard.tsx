@@ -59,18 +59,17 @@ export const Dashboard = () => {
  useEffect(() => {
  const loadBusinessComponents = async () => {
     try {
-logger.info(LogCategory.SYSTEM, 'Dashboard - loading business components...');
- const response = await businessComponentService.getAllBusinessComponents();
- if (response.success && response.data) {
- setBusinessComponents(response.data);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Error loading business components', { error: error }); finally {
- setLoadingComponents(false);
- }
- };
+      logger.info(LogCategory.SYSTEM, 'Dashboard - loading business components...');
+      const response = await businessComponentService.getAllBusinessComponents();
+      if (response.success && response.data) {
+        setBusinessComponents(response.data);
+      }
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Error loading business components', { error: error });
+    } finally {
+      setLoadingComponents(false);
+    }
+  };
 
  loadBusinessComponents();
  }, []);
