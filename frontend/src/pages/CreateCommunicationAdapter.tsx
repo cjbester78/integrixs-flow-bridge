@@ -377,7 +377,7 @@ export const CreateCommunicationAdapter = () => {
  useEffect(() => {
  if (location.state?.adapter && location.state?.isEdit) {
  const adapter = location.state.adapter;
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Loading adapter for edit: { data: adapter });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Loading adapter for edit', { data: adapter });
  setIsEditMode(true);
  setEditingAdapterId(adapter.id);
  setAdapterName(adapter.name || '');
@@ -468,13 +468,13 @@ const configData = JSON.parse(adapter.configJson);
 
 
  const handleConfigurationChange = (fieldName: string, value: string | number | boolean) => {
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Configuration change: { data: fieldName, '= ', value });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Configuration change', { data: { fieldName, value } });
  setConfiguration(prev => {
  const newConfig = {
  ...prev,
  [fieldName]: value
  };
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] New configuration state: { data: newConfig });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] New configuration state', { data: newConfig });
  return newConfig;
  })
  };
@@ -637,7 +637,7 @@ const configData = JSON.parse(adapter.configJson);
  const missingFields = requiredFields.filter(field => !configuration[field.name]);
 ;
  if (missingFields.length > 0) {
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Missing required fields: { data: missingFields });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Missing required fields', { data: missingFields });
  toast({
  title: "Missing Required Fields",`
  description: `Please fill in: ${missingFields.map(f => f.label).join(', ')}`,
@@ -666,7 +666,7 @@ const configData = JSON.parse(adapter.configJson);
  };
 
  try {
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Sending adapter data to backend: { data: adapterData });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Sending adapter data to backend', { data: adapterData });
  // Call backend service with mode-specific handling
  const response = isEditMode && editingAdapterId;
  ? await adapterService.updateAdapter(editingAdapterId, adapterData)
@@ -684,14 +684,14 @@ const configData = JSON.parse(adapter.configJson);
  navigateBack('/communication-adapters');
  }, 500);
  } else {
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Error response from backend: { data: response });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Error response from backend', { data: response });
  toast({
  title: "Save Failed",
  description: response.error || "Failed to save adapter configuration",
  variant: "destructive",
  })}
 } catch (error: any) {
- logger.error(LogCategory.ERROR, [CreateCommunicationAdapter] Error saving adapter: error);
+ logger.error(LogCategory.ERROR, '[CreateCommunicationAdapter] Error saving adapter', error);
  logger.error(LogCategory.ERROR, 'Error occurred', { error: [CreateCommunicationAdapter] Error details: {
  message: error?.message,
  response: error?.response,
@@ -800,7 +800,7 @@ const configData = JSON.parse(adapter.configJson);
  value={selectedAdapter}
  onValueChange={(value) => {
  setSelectedAdapter(value);
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Adapter type changed to: { data: value });
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Adapter type changed to', { data: value });
  // Only clear configuration if changing to a different adapter type
  // This prevents losing data when re-selecting the same adapter
  if (selectedAdapter && selectedAdapter !== value) {
@@ -834,7 +834,7 @@ const configData = JSON.parse(adapter.configJson);
  setAdapterMode(value);
  // Don't clear configuration when mode changes
  // The user might have already filled in some fields
- logger.info(LogCategory.SYSTEM, [CreateCommunicationAdapter] Adapter mode changed to: { data: value });}>
+ logger.info(LogCategory.SYSTEM, '[CreateCommunicationAdapter] Adapter mode changed to', { data: value });
  <SelectTrigger className="transition-all duration-300 hover:bg-accent/50">
  <SelectValue placeholder="Select adapter mode" />
  </SelectTrigger>

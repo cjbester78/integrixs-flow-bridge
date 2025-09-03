@@ -453,7 +453,6 @@ class FrontendLogger {
  return result;
  } catch (error) {
  const duration = performance.now() - start;
-}
  this.logPerformance(name, duration, { status: 'error', error });
  throw error;
  }
