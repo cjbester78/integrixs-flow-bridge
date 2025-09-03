@@ -118,15 +118,13 @@ export const Dashboard = () => {
  setAdapterStatuses([]);
  }
  setLoadingAdapters(false);
-
- }
-} catch (err) {
- logger.error(LogCategory.ERROR, 'Dashboard data fetch error', { error: err });
- setError('Failed to load dashboard data');
- // Ensure arrays are initialized even on error
- setMetrics([]);
- setRecentMessages([]);
- setAdapterStatuses([]);
+    } catch (err) {
+      logger.error(LogCategory.ERROR, 'Dashboard data fetch error', { error: err });
+      setError('Failed to load dashboard data');
+      // Ensure arrays are initialized even on error
+      setMetrics([]);
+      setRecentMessages([]);
+      setAdapterStatuses([]);
  setLoadingMetrics(false);
  setLoadingMessages(false);
  setLoadingAdapters(false);
@@ -145,7 +143,7 @@ export const Dashboard = () => {
  <PageContainer className="max-w-none px-0 md:px-0">
  <PageHeader
  title="Integration Dashboard"
- description="Monitor your integration flows and system health";
+ description="Monitor your integration flows and system health"
  icon={<LayoutDashboard />}
  />
 
