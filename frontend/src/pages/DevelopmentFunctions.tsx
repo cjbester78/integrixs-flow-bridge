@@ -70,10 +70,9 @@ export const DevelopmentFunctions = () => {
  const [selectedCategory, setSelectedCategory] = useState('all');
  const [dialogOpen, setDialogOpen] = useState(false);
  const [selectedFunction, setSelectedFunction] = useState<CustomFunction | null>(null);
- const [dialogMode, setDialogMode] = useState<$1>('view');
+ const [dialogMode, setDialogMode] = useState<string>('view');
 
  const queryClient = useQueryClient();
-;
  // Check development mode
  const { data: devModeData } = useQuery({
  queryKey: ['development-mode'],
@@ -116,8 +115,8 @@ export const DevelopmentFunctions = () => {
 
  // Update function mutation
  const updateMutation = useMutation({
- mutationFn: async ({ functionId, data }: { functionId: string; data: any }) => {`
- const response = await apiClient.put(/development/functions/${functionId}`, data);
+ mutationFn: async ({ functionId, data }: { functionId: string; data: any }) => {
+ const response = await apiClient.put(`/development/functions/${functionId}`, data);
  return response;
  },
  onSuccess: () => {
@@ -132,7 +131,7 @@ export const DevelopmentFunctions = () => {
 
  // Delete function mutation
  const deleteMutation = useMutation({
- mutationFn: async (functionId: string) => {`
+ mutationFn: async (functionId: string) => {
  await apiClient.delete(`/development/functions/${functionId}`);
  },
  onSuccess: () => {
@@ -152,35 +151,31 @@ export const DevelopmentFunctions = () => {
  code
  });
  return response;
- }
-} catch (error: any) {
+ } catch (error: any) {
  throw error.response?.data || error;
-}
  }
  };
 
  // Test function
  const testFunction = async (functionId: string, inputs: any) => {
- try {`
- const response = await apiClient.post(/development/functions/${functionId}/test`, inputs);
+ try {
+ const response = await apiClient.post(`/development/functions/${functionId}/test`, inputs);
  return response;
- }
-} catch (error: any) {
+ } catch (error: any) {
  throw error.response?.data || error;
-}
  }
  };
 
  // Filter functions based on search and category
  const filteredBuiltInFunctions = functionsData?.builtInFunctions.filter(func => {
- const matchesSearch = func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||;
+ const matchesSearch = func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  func.description.toLowerCase().includes(searchTerm.toLowerCase());
  const matchesCategory = selectedCategory === 'all' || func.category === selectedCategory;
  return matchesSearch && matchesCategory;
  }) || [];
 
  const filteredCustomFunctions = functionsData?.customFunctions.content.filter(func => {
- const matchesSearch = func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||;
+ const matchesSearch = func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  func.description.toLowerCase().includes(searchTerm.toLowerCase());
  const matchesCategory = selectedCategory === 'all' || func.category === selectedCategory;
  return matchesSearch && matchesCategory;
@@ -188,9 +183,7 @@ export const DevelopmentFunctions = () => {
 
  // Get unique categories
  const categories = ['all', ...new Set(functionsData?.builtInFunctions.map(f => f.category) || [])];
-;
  const isDevelopmentMode = devModeData?.developmentMode || false;
-;
  const handleCreate = () => {
  setSelectedFunction(null);
  setDialogMode('create');
@@ -203,11 +196,7 @@ const func = await getFunctionById(functionId);
  setSelectedFunction(func);
  setDialogMode('view');
  setDialogOpen(true);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ } catch (error) {
  toast({ title: "Error", description: 'Failed to load function details', variant: "destructive" });
  }
  };
@@ -218,11 +207,7 @@ const func = await getFunctionById(functionId);
  setSelectedFunction(func);
  setDialogMode('edit');
  setDialogOpen(true);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ } catch (error) {
  toast({ title: "Error", description: 'Failed to load function details', variant: "destructive" });
  }
  };
@@ -247,7 +232,7 @@ const func = await getFunctionById(functionId);
  return <Zap className="h-3 w-3 text-green-500" />;
  case 'SLOW':
  return <Clock className="h-3 w-3 text-orange-500" />;
- 'default':
+ default:
  return <CheckCircle2 className="h-3 w-3 text-blue-500" />;
  }
  };
@@ -255,11 +240,10 @@ const func = await getFunctionById(functionId);
  // Find built-in function details by name
  const findBuiltInFunctionByName = async (name: string) => {
  try {
- // Use the new endpoint to get built-in function by name`
+ // Use the new endpoint to get built-in function by name
  const fullFunction = await apiClient.get<CustomFunction>(`/development/functions/built-in/${name}`);
  return fullFunction;
- }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error finding built-in function', { error: error });
  return null;
  }
@@ -274,8 +258,9 @@ const func = await getFunctionById(functionId);
  setDialogMode(isDevelopmentMode ? 'edit' : 'view');
  setDialogOpen(true);
  } else {
- toast({ title: "Error", description: 'Function details not found', variant: "destructive" })}
-} catch (error) {
+ toast({ title: "Error", description: 'Function details not found', variant: "destructive" });
+ }
+ } catch (error) {
  toast({ title: "Error", description: 'Failed to load function details', variant: "destructive" });
  }
  };
@@ -375,8 +360,8 @@ const func = await getFunctionById(functionId);
  <ScrollArea className="h-[600px]">
  <div className="space-y-2">
  {filteredBuiltInFunctions.map((func, index) => (
- <div`
- key={${func.category}-${func.name}`}
+ <div
+ key={`${func.category}-${func.name}`}
  className="p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
  onClick={() => handleBuiltInFunctionClick(func)}
  >
@@ -541,5 +526,4 @@ const func = await getFunctionById(functionId);
  />
  </div>
  );
-};`
-})
+}
