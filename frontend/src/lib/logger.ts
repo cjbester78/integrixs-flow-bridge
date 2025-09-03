@@ -116,12 +116,13 @@ class FrontendLogger {
  document.addEventListener('visibilitychange', () => {
  if (document.hidden) {
  this.flush(); // Flush logs when page becomes hidden
+ }
  });
 
  // Before unload
  window.addEventListener('beforeunload', () => {
  this.flush(true); // Force sync flush
- })
+ });
  }
 
  /**

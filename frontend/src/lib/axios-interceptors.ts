@@ -93,6 +93,7 @@ export const setupAxiosInterceptors = () => {
  resolve(axios(originalRequest));
  } else {
  throw new Error('Token refresh failed');
+ }
  }).catch((err) => {
  processQueue(err, null);
 
