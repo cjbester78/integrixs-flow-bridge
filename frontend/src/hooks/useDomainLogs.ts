@@ -5,56 +5,35 @@ import { logger, LogCategory } from '@/lib/logger';
 
 // Domain-specific error types
 export interface DomainErrorEntry {
-id: string;
+ id: string;
  action: string;
  description?: string;
  payload: string;
  createdAt: string;
  systemLogId?: string;
  userId?: string;
-
-} catch (error) {
-  // Handle error
 }
 export interface UserManagementError extends DomainErrorEntry {
-userId?: string;
-
-} catch (error) {
-  // Handle error
+ userId?: string;
 }
 export interface FlowManagementError extends DomainErrorEntry {
-flowId?: string;
-
-} catch (error) {
-  // Handle error
+ flowId?: string;
 }
 export interface AdapterManagementError extends DomainErrorEntry {
-adapterId?: string;
+ adapterId?: string;
  adapterType?: 'source' | 'target' | 'bidirectional';
-
-} catch (error) {
-  // Handle error
 }
 export interface StructureManagementError extends DomainErrorEntry {
-structureId?: string;
+ structureId?: string;
  structureType?: 'XSD' | 'JSON' | 'WSDL' | 'EDMX' | 'Custom';
-
-} catch (error) {
-  // Handle error
 }
 export interface ChannelManagementError extends DomainErrorEntry {
-channelId?: string;
-
-} catch (error) {
-  // Handle error
+ channelId?: string;
 }
 export interface MessageProcessingError extends DomainErrorEntry {
-messageId?: string;
+ messageId?: string;
  flowId?: string;
  channelId?: string;
-
-} catch (error) {
-  // Handle error
 }
 export type DomainType = 'UserManagement' | 'FlowEngine' | 'AdapterManagement' | 'DataStructures' | 'ChannelManagement' | 'MessageProcessing';
 
@@ -95,25 +74,22 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
  queryParams.append('level', 'error'); // Only fetch error-level logs
  if (params.referenceId) {
  queryParams.append('domainReferenceId', params.referenceId);
- 
-} catch (error) {
-  // Handle error
-}
+ }
  const endpoint = `/logs/system?${queryParams.toString()}`;
  const response = await api.get(endpoint);
-;
  if (response.success && response.data) {
  setDomainErrors(response.data);
  } else {
  // API returned empty data, set empty array
  setDomainErrors([]);
- logger.info(LogCategory.BUSINESS_LOGIC, 'No domain errors found for ${params.domainType}');
+ logger.info(LogCategory.BUSINESS_LOGIC, `No domain errors found for ${params.domainType}`);
  }
 } catch (err) {
  // API error, set empty array instead of mock data
- setDomainErrors([]);`
+ setDomainErrors([]);
  setError(`Failed to fetch domain errors for ${params.domainType}`);
- logger.error(LogCategory.BUSINESS_LOGIC, 'Error occurred', { error: { data: Failed to fetch domain errors for ${params.domainType}: extra: err } }); finally {
+ logger.error(LogCategory.BUSINESS_LOGIC, 'Error occurred', { error: { data: `Failed to fetch domain errors for ${params.domainType}`, extra: err } });
+ } finally {
  setLoading(false);
  }
  };
@@ -142,7 +118,7 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
  loading: loading || (params.includeSystemLogs ? systemLogsLoading : false),
  error: error || (params.includeSystemLogs ? systemLogsError : undefined),
  refetch,
- }
+ };
 };
 
 // Helper functions
@@ -153,7 +129,7 @@ export const useUserManagementLogs = (userId?: string) => {
  domainType: 'UserManagement',
  referenceId: userId,
  includeSystemLogs: true,
- })
+ });
 };
 
 export const useFlowManagementLogs = (flowId?: string) => {
@@ -161,7 +137,7 @@ export const useFlowManagementLogs = (flowId?: string) => {
  domainType: 'FlowEngine',
  referenceId: flowId,
  includeSystemLogs: true,
- })
+ });
 };
 
 export const useAdapterManagementLogs = (adapterId?: string) => {
@@ -169,7 +145,7 @@ export const useAdapterManagementLogs = (adapterId?: string) => {
  domainType: 'AdapterManagement',
  referenceId: adapterId,
  includeSystemLogs: true,
- })
+ });
 };
 
 export const useStructureManagementLogs = (structureId?: string) => {
@@ -177,7 +153,7 @@ export const useStructureManagementLogs = (structureId?: string) => {
  domainType: 'DataStructures',
  referenceId: structureId,
  includeSystemLogs: true,
- })
+ });
 };
 
 export const useChannelManagementLogs = (channelId?: string) => {
@@ -185,14 +161,14 @@ export const useChannelManagementLogs = (channelId?: string) => {
  domainType: 'ChannelManagement',
  referenceId: channelId,
  includeSystemLogs: true,
- })
+ });
 };
 
 export const useMessageProcessingLogs = (messageId?: string, flowId?: string, channelId?: string) => {
  const referenceId = messageId || flowId || channelId;
- return useDomainLogs({ domainType: 'MessageProcessing',
-  referenceId: referenceId,
+ return useDomainLogs({
+ domainType: 'MessageProcessing',
+ referenceId: referenceId,
  includeSystemLogs: true,
- })
-};`
-}}}
+ });
+};
