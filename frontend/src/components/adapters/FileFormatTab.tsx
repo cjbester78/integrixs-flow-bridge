@@ -10,7 +10,6 @@ import { Plus, Trash2 } from 'lucide-react';
 
 export interface FileFormatConfig {
  fileFormat?: 'CSV' | 'FIXED' | 'JSON' | 'XML' | 'TEXT';
-;
  // CSV specific
  delimiter?: string;
  lineTerminator?: string;

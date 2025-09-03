@@ -27,7 +27,7 @@ export const AdapterStats = ({
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
  <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
- statusFilter === 'running' ? 'ring-2 ring-success' : '`
+ statusFilter === 'running' ? 'ring-2 ring-success' : ''
  }`}
  onClick={() => handleStatusClick('running')}
  >

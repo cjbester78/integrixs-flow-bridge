@@ -38,9 +38,6 @@ export const PayloadStructureDefinition: FC<PayloadStructureDefinitionProps> = (
  const errors: string[] = [];
  try {
 JSON.parse(payload);
-} catch (error) {
-  // Handle error
-}
 } catch (error: any) {
  errors.push(`Invalid JSON: ${error.message}`);
  }

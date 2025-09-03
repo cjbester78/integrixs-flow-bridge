@@ -13,11 +13,9 @@ interface XmlConversionConfig {
  encoding?: string;
  includeXmlDeclaration?: boolean;
  prettyPrint?: boolean;
-;
  // Namespace settings
  targetNamespace?: string;
  namespacePrefix?: string;
-;
  // Outbound-specific settings
  removeRootElement?: boolean;
  handleNamespaces?: boolean;

@@ -66,7 +66,7 @@ export const AdapterLogViewer = ({
  filtered = filtered.filter(log => log.level === levelFilter);
  }
 
- logger.info(LogCategory.UI, [AdapterLogViewer] Filtered logs: { data: filtered });
+ logger.info(LogCategory.UI, '[AdapterLogViewer] Filtered logs:', { data: filtered });
  setFilteredLogs(filtered);
  }, [logs, searchTerm, levelFilter]);
 

@@ -36,7 +36,7 @@ export const TransformationToggle: FC<TransformationToggleProps> = ({
  const handleModeChange = (mode: string) => {
  const newConfig: TransformationConfig = {
  ...config,
- mode: mode as 'transform' | 'passthrough';
+ mode: mode as 'transform' | 'passthrough'
  };
 
  // Clear structure if passthrough mode
