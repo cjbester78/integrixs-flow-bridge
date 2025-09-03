@@ -93,11 +93,10 @@ export const AdapterTypesManagement = () => {
  } else {
  throw new Error('Failed to fetch adapter types');
  }
-} catch (error) {
- // For now, just set empty array and don't show error for missing data
-}
- logger.info(LogCategory.UI, 'API not available yet, starting with empty data', { data: error });
- setAdapterTypes([]);
+    } catch (error) {
+        // For now, just set empty array and don't show error for missing data
+        logger.info(LogCategory.UI, 'API not available yet, starting with empty data', { data: error });
+        setAdapterTypes([]);
  } finally {
  setLoading(false);
  }

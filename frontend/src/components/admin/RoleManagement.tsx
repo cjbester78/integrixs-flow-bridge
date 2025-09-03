@@ -21,7 +21,7 @@ export const RoleManagement = ({ roles, isLoading = false, onRefresh }: RoleMana
  return <Settings className="h-4 w-4 text-info" />;
  case 'viewer':
  return <UserCheck className="h-4 w-4 text-muted-foreground" />;
- 'default':
+ default:
  return <Users className="h-4 w-4" />;
  }
  };

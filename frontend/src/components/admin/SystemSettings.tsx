@@ -47,8 +47,8 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
 
  // Extract categories
  const uniqueCategories = [...new Set(data.map((s: SystemSetting) => s.category || 'Uncategorized').filter(Boolean))];
- setCategories(['all', ...uniqueCategories]);}
-} catch (error) {
+ setCategories(['all', ...uniqueCategories]);
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error fetching system settings', { error: error });
  toast({ title: "Error", description: 'Failed to load system settings', variant: "destructive" });
  } finally {

@@ -38,7 +38,8 @@ export const EnvironmentConfiguration = () => {
  setHasChanges(false);
  } else {
  toast({ title: "Error", description: 'Failed to load environment configuration', variant: "destructive" });
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error fetching environment configuration', { error: error });
  toast({ title: "Error", description: 'Error loading environment configuration', variant: "destructive" });
  } finally {

@@ -337,7 +337,7 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
  onCheckedChange={() => handlePermissionToggle(category.key, permission)}
  disabled={isLoading || !useCustomPermissions}
  />
- <Label`
+ <Label
  htmlFor={`${category.key}-${permission}`}
  className="text-sm capitalize"
  >

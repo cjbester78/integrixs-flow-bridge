@@ -26,7 +26,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
 
  const { toast } = useToast();
 
- const brokerTypes = [;
+ const brokerTypes = [
  { value: 'activemq', label: 'ActiveMQ' },
  { value: 'rabbitmq', label: 'RabbitMQ' },
  { value: 'artemis', label: 'Apache Artemis' },

@@ -54,13 +54,13 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
 
  const [oauth2, setOauth2] = useState<Partial<OAuth2Request>>({
  clientId: config.oauth2?.clientId || '',
- clientSecret: ',
+ clientSecret: '',
  authorizationUrl: config.oauth2?.authorizationUrl || '',
- tokenUrl: config.oauth2?.tokenUrl || ',
+ tokenUrl: config.oauth2?.tokenUrl || '',
  redirectUri: config.oauth2?.redirectUri || '',
- scope: config.oauth2?.scope || ',
+ scope: config.oauth2?.scope || '',
  grantType: config.oauth2?.grantType || OAuth2GrantType.CLIENT_CREDENTIALS,
- usePkce: config.oauth2?.usePkce || false;
+ usePkce: config.oauth2?.usePkce || false
  });
 
 

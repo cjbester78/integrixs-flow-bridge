@@ -59,7 +59,7 @@ export const UserManagement = ({ users, isLoading = false, onRefresh }: UserMana
  onClick={onRefresh}
  disabled={isLoading}
  >
- <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : '}`} />
+ <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
  Refresh
  </Button>
  )}

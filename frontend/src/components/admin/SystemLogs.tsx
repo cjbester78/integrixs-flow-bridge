@@ -322,4 +322,4 @@ export const SystemLogs = () => {
  </Tabs>
  </div>
  );
-};`
+};

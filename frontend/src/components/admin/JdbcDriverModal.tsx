@@ -26,7 +26,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
 
  const { toast } = useToast();
 
- const databaseTypes = [;
+ const databaseTypes = [
  { value: 'mariadb', label: 'MariaDB' },
  { value: 'oracle', label: 'Oracle' },
  { value: 'db2', label: 'DB2' },

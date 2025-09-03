@@ -76,7 +76,7 @@ export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUs
  };
 
  const handleInputChange = (field: keyof CreateUserRequest) => (value: string) => {
- setFormData(prev => ({ ...prev, [field]: value });
+ setFormData(prev => ({ ...prev, [field]: value }));
  };
 
  return (

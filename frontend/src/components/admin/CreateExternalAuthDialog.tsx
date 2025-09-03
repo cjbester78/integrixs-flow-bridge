@@ -75,7 +75,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  const request: CreateExternalAuthRequest = {
  name: formData.name,
  description: formData.description,
- authType: authType;
+ authType: authType
  };
 
  // Add type-specific data
