@@ -54,7 +54,7 @@ export const EnvironmentConfiguration = () => {
 
  // Save environment type
  const typeResponse = await api.put('/admin/system-configuration/environment/type', {
- environmentType: config.environmentType;
+ environmentType: config.environmentType
  });
 
  if (!typeResponse.success) {

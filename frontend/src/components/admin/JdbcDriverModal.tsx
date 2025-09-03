@@ -18,9 +18,9 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  const [selectedFile, setSelectedFile] = useState<File | null>(null);
  const [uploading, setUploading] = useState(false);
  const [formData, setFormData] = useState({
- databaseType: ',
+ databaseType: '',
  name: '',
- version: ';
+ version: ''
  });
 
 
@@ -92,7 +92,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
 
  // Reset form
  setSelectedFile(null);
- setFormData({ databaseType: ', name: '', version: ' });
+ setFormData({ databaseType: '', name: '', version: '' });
  onOpenChange(false);
 
  toast({
@@ -114,7 +114,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
 
  const resetForm = () => {
  setSelectedFile(null);
- setFormData({ databaseType: ', name: '', version: ' });
+ setFormData({ databaseType: '', name: '', version: '' });
  };
 
  return (

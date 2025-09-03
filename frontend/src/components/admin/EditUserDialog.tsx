@@ -311,7 +311,7 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
  <CardHeader>
  <CardDescription>
  {useCustomPermissions
- ? "Customize individual permissions for this user"`
+ ? "Customize individual permissions for this user"
  : `Using default permissions for ${formData.role || 'selected'} role`
  }
  </CardDescription>

@@ -51,7 +51,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  return <Shield className="h-4 w-4" />;
  case AuthType.OAUTH1:
  return <ShieldAlert className="h-4 w-4" />;
- 'default':
+ default:
  return <Shield className="h-4 w-4" />;
  }
  };
@@ -66,7 +66,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  return "default";
  case AuthType.OAUTH1:
  return "destructive";
- 'default':
+ default:
  return "default";
  }
  };

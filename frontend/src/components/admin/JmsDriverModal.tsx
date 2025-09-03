@@ -18,9 +18,9 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  const [selectedFile, setSelectedFile] = useState<File | null>(null);
  const [uploading, setUploading] = useState(false);
  const [formData, setFormData] = useState({
- brokerType: ',
+ brokerType: '',
  name: '',
- version: ';
+ version: ''
  });
 
 
@@ -92,7 +92,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
 
  // Reset form
  setSelectedFile(null);
- setFormData({ brokerType: ', name: '', version: ' });
+ setFormData({ brokerType: '', name: '', version: '' });
  onOpenChange(false);
 
  toast({
@@ -114,7 +114,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
 
  const resetForm = () => {
  setSelectedFile(null);
- setFormData({ brokerType: ', name: '', version: ' });
+ setFormData({ brokerType: '', name: '', version: '' });
  };
 
  return (
