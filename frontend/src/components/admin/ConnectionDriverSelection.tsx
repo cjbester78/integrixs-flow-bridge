@@ -174,5 +174,4 @@ export const ConnectionDriverSelection = ({ jarFiles, isLoading = false, onRefre
  />
  </div>
  );
-};`
-}}}))))
+};

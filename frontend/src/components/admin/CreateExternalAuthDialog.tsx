@@ -45,21 +45,21 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  basicAuth: {
  username: '',
  password: '',
- confirmPassword: ',
- realm: ';
+ confirmPassword: '',
+ realm: ''
  },
  oauth2: {
- clientId: ',
+ clientId: '',
  clientSecret: '',
- grantType: OAuth2GrantType.CLIENT_CREDENTIALS;
+ grantType: OAuth2GrantType.CLIENT_CREDENTIALS
  },
  apiKey: {
- apiKey: ',
+ apiKey: '',
  headerName: 'X-API-Key',
- queryParamName: ',
+ queryParamName: '',
  keyPrefix: '',
  rateLimitPerHour: undefined,
- allowedIps: [];
+ allowedIps: []
  }
  });
 
@@ -153,21 +153,21 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  basicAuth: {
  username: '',
  password: '',
- confirmPassword: ',
- realm: ';
+ confirmPassword: '',
+ realm: ''
  },
  oauth2: {
- clientId: ',
+ clientId: '',
  clientSecret: '',
- grantType: OAuth2GrantType.CLIENT_CREDENTIALS;
+ grantType: OAuth2GrantType.CLIENT_CREDENTIALS
  },
  apiKey: {
- apiKey: ',
+ apiKey: '',
  headerName: 'X-API-Key',
- queryParamName: ',
+ queryParamName: '',
  keyPrefix: '',
  rateLimitPerHour: undefined,
- allowedIps: [];
+ allowedIps: []
  }
  });
  setAllowedIpsInput(');

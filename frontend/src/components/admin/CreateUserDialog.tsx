@@ -24,7 +24,7 @@ export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUs
  lastName: '',
  role: 'viewer',
  password: '',
- status: 'active';
+ status: 'active'
  });
 
  const { toast } = useToast();
@@ -51,7 +51,7 @@ export const CreateUserDialog = ({ open, onOpenChange, onUserCreated }: CreateUs
  lastName: '',
  role: 'viewer',
  password: '',
- status: 'active';
+ status: 'active'
  });
 
  onOpenChange(false);

@@ -35,10 +35,10 @@ const categoryOptions = [
  { value: 'DATABASE', label: 'Database' },
  { value: 'WEB_SERVICE', label: 'Web Service' },
  { value: 'MAIL', label: 'Mail' },
- { value: 'OTHER', label: 'Other' };
+ { value: 'OTHER', label: 'Other' }
 ];
 
-const iconOptions = [;
+const iconOptions = [
  { value: 'network', icon: Network },
  { value: 'shield', icon: Shield },
  { value: 'folder', icon: FolderOpen },
