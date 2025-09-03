@@ -331,7 +331,7 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
  <div className="flex flex-wrap gap-4 pl-6">
  {category.permissions.map((permission) => (
  <div key={permission} className="flex items-center space-x-2">
- <Checkbox`
+ <Checkbox
  id={`${category.key}-${permission}`}
  checked={categoryPermissions.includes(permission)}
  onCheckedChange={() => handlePermissionToggle(category.key, permission)}

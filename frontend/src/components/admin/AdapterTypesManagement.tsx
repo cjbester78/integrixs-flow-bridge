@@ -53,7 +53,7 @@ const iconOptions = [
  { value: 'inbox', icon: Inbox },
  { value: 'download', icon: Download },
  { value: 'hard-drive', icon: HardDrive },
- { value: 'zap', icon: Zap };
+ { value: 'zap', icon: Zap }
 ];
 
 export const AdapterTypesManagement = () => {
@@ -64,15 +64,15 @@ export const AdapterTypesManagement = () => {
  const { toast } = useToast();
 
  const [formData, setFormData] = useState({
- name: ',
+ name: '',
  displayName: '',
- description: ',
- category: ' as AdapterType['category'],
+ description: '',
+ category: 'FILE_TRANSFER' as AdapterType['category'],
  iconName: 'network',
  isActive: true,
  supportsInbound: true,
  supportsOutbound: true,
- configurationSchema: ';
+ configurationSchema: ''
  });
 
  useEffect(() => {
@@ -96,7 +96,7 @@ export const AdapterTypesManagement = () => {
 } catch (error) {
  // For now, just set empty array and don't show error for missing data
 }
- logger.info(LogCategory.UI, API not available yet, starting with empty data: { data: error });
+ logger.info(LogCategory.UI, 'API not available yet, starting with empty data', { data: error });
  setAdapterTypes([]);
  } finally {
  setLoading(false);
@@ -109,41 +109,39 @@ export const AdapterTypesManagement = () => {
  try {
  const payload = {
  ...formData,
- configurationSchema: formData.configurationSchema ? JSON.parse(formData.configurationSchema) : null;
+ configurationSchema: formData.configurationSchema ? JSON.parse(formData.configurationSchema) : null
  };
 
- const url = editingType;
- ? `/api/admin/adapter-types/${editingType.id}`;
+ const url = editingType
+ ? `/api/admin/adapter-types/${editingType.id}`
  : '/api/admin/adapter-types';
 
  const method = editingType ? 'PUT' : 'POST';
-;
  const response = await fetch(url, {
  method,
  headers: {
  'Content-Type': 'application/json',
  },
- body: JSON.stringify(payload),;
+ body: JSON.stringify(payload)
  });
 
  if (response.ok) {
  toast({
- title: "Success",`
+ title: "Success",
  description: `Adapter type ${editingType ? 'updated' : 'created'} successfully`,
  });
 
  setDialogOpen(false);
  resetForm();
  fetchAdapterTypes();
- } else {`
+ } else {
  throw new Error(`Failed to ${editingType ? 'update' : 'create'} adapter type`);
  }
 } catch (error) {
  toast({
  title: "Error",
-}`
  description: `Failed to ${editingType ? 'update' : 'create'} adapter type`,
- variant: "destructive";
+ variant: "destructive"
  });
  logger.error(LogCategory.UI, 'Error saving adapter type', { error: error });
  };
@@ -159,7 +157,7 @@ export const AdapterTypesManagement = () => {
  isActive: adapterType.isActive,
  supportsInbound: adapterType.supportsInbound,
  supportsOutbound: adapterType.supportsOutbound,
- configurationSchema: adapterType.configurationSchema ? JSON.stringify(adapterType.configurationSchema, null, 2) : ';
+ configurationSchema: adapterType.configurationSchema ? JSON.stringify(adapterType.configurationSchema, null, 2) : ''
  });
  setDialogOpen(true);
  };
@@ -168,10 +166,10 @@ export const AdapterTypesManagement = () => {
  if (!confirm('Are you sure you want to delete this adapter type?')) {
  return;
  }
-;
- try {`
- const response = await fetch(/api/admin/adapter-types/${id}`, {
- method: 'DELETE',;
+
+ try {
+ const response = await fetch(`/api/admin/adapter-types/${id}`, {
+ method: 'DELETE'
  });
 
  if (response.ok) {
@@ -187,23 +185,22 @@ export const AdapterTypesManagement = () => {
  toast({
  title: "Error",
  description: "Failed to delete adapter type",
- variant: "destructive";
-}
+ variant: "destructive"
  });
  logger.error(LogCategory.UI, 'Error deleting adapter type', { error: error });
- };
+ }
 
  const resetForm = () => {
  setFormData({
- name: ',
+ name: '',
  displayName: '',
- description: ',
- category: ' as AdapterType['category'],
+ description: '',
+ category: 'FILE_TRANSFER' as AdapterType['category'],
  iconName: 'network',
  isActive: true,
  supportsInbound: true,
  supportsOutbound: true,
- configurationSchema: ';
+ configurationSchema: ''
  });
  setEditingType(null);
  };
@@ -220,7 +217,7 @@ export const AdapterTypesManagement = () => {
  DATABASE: 'bg-purple-100 text-primary',
  WEB_SERVICE: 'bg-orange-100 text-warning',
  MAIL: 'bg-red-100 text-destructive',
- OTHER: 'bg-gray-100 text-muted-foreground';
+ OTHER: 'bg-gray-100 text-muted-foreground'
  };
  return colors[category as keyof typeof colors] || colors.OTHER;
  };
@@ -260,7 +257,7 @@ export const AdapterTypesManagement = () => {
  <Input
  id="name"
  value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })
+ onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  placeholder="e.g., sftp, rest, jms"
  required
  />
@@ -271,7 +268,7 @@ export const AdapterTypesManagement = () => {
  <Input
  id="displayName"
  value={formData.displayName}
- onChange={(e) => setFormData({ ...formData, displayName: e.target.value })
+ onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
  placeholder="e.g., SFTP Adapter, REST API"
  required
  />
@@ -282,7 +279,7 @@ export const AdapterTypesManagement = () => {
  <Textarea
  id="description"
  value={formData.description}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })
+ onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  placeholder="Brief description of the adapter type"
  rows={3}
  />
@@ -321,7 +318,7 @@ export const AdapterTypesManagement = () => {
  </div>
  </SelectItem>
  );
- })
+ })}
  </SelectContent>
  </Select>
  </div>
@@ -332,7 +329,7 @@ export const AdapterTypesManagement = () => {
  <Checkbox
  id="isActive"
  checked={formData.isActive}
- onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked === true })
+ onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked === true })}
  />
  <Label htmlFor="isActive">Active</Label>
  </div>
@@ -341,7 +338,7 @@ export const AdapterTypesManagement = () => {
  <Checkbox
  id="supportsInbound"
  checked={formData.supportsInbound}
- onCheckedChange={(checked) => setFormData({ ...formData, supportsInbound: checked === true })
+ onCheckedChange={(checked) => setFormData({ ...formData, supportsInbound: checked === true })}
  />
  <Label htmlFor="supportsInbound">Supports Inbound</Label>
  </div>
@@ -350,7 +347,7 @@ export const AdapterTypesManagement = () => {
  <Checkbox
  id="supportsOutbound"
  checked={formData.supportsOutbound}
- onCheckedChange={(checked) => setFormData({ ...formData, supportsOutbound: checked === true })
+ onCheckedChange={(checked) => setFormData({ ...formData, supportsOutbound: checked === true })}
  />
  <Label htmlFor="supportsOutbound">Supports Outbound</Label>
  </div>
@@ -361,7 +358,7 @@ export const AdapterTypesManagement = () => {
  <Textarea
  id="configurationSchema"
  value={formData.configurationSchema}
- onChange={(e) => setFormData({ ...formData, configurationSchema: e.target.value })
+ onChange={(e) => setFormData({ ...formData, configurationSchema: e.target.value })}
  placeholder="Optional JSON schema for adapter configuration"
  rows={6}
  className="font-mono text-sm"
@@ -461,12 +458,11 @@ export const AdapterTypesManagement = () => {
  </TableCell>
  </TableRow>
  );
- })
+ })}
  </TableBody>
  </Table>
  )}
  </CardContent>
  </Card>
  );
-};`
-}}}}}}}}}
+};

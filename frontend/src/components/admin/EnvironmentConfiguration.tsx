@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Save, RefreshCw, AlertCircle, CheckCircle2, Layers } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/services/api';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface EnvironmentConfig {
  environmentType: string;
@@ -36,7 +37,7 @@ export const EnvironmentConfiguration = () => {
  setOriginalConfig(response.data);
  setHasChanges(false);
  } else {
- toast({ title: "Error", description: 'Failed to load environment configuration', variant: "destructive" })}
+ toast({ title: "Error", description: 'Failed to load environment configuration', variant: "destructive" });
 } catch (error) {
  logger.error(LogCategory.UI, 'Error fetching environment configuration', { error: error });
  toast({ title: "Error", description: 'Error loading environment configuration', variant: "destructive" });
@@ -64,7 +65,7 @@ export const EnvironmentConfiguration = () => {
 
  // Save enforce restrictions
  const restrictionsResponse = await api.put('/admin/system-configuration/environment/enforce-restrictions', {
- enforceRestrictions: config.enforceRestrictions;
+ enforceRestrictions: config.enforceRestrictions
  });
 
  if (!restrictionsResponse.success) {
@@ -74,7 +75,7 @@ export const EnvironmentConfiguration = () => {
 
  // Save restriction message
  const messageResponse = await api.put('/admin/system-configuration/environment/restriction-message', {
- restrictionMessage: config.restrictionMessage;
+ restrictionMessage: config.restrictionMessage
  });
 
  if (!messageResponse.success) {
@@ -92,7 +93,7 @@ export const EnvironmentConfiguration = () => {
  }, 1500);
 
  }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error saving environment configuration', { error: error });
  toast({ title: "Error", description: 'Error saving environment configuration', variant: "destructive" });
  } finally {
@@ -121,9 +122,9 @@ export const EnvironmentConfiguration = () => {
  return { color: 'text-warning', bgColor: 'bg-yellow-100', label: 'Quality Assurance' };
  case 'PRODUCTION':
  return { color: 'text-destructive', bgColor: 'bg-red-100', label: 'Production' };
- 'default':
- return { color: 'text-muted-foreground', bgColor: 'bg-gray-100', label: 'Unknown' }
-}
+ default:
+ return { color: 'text-muted-foreground', bgColor: 'bg-gray-100', label: 'Unknown' };
+ }
  };
 
  useEffect(() => {
@@ -136,7 +137,7 @@ export const EnvironmentConfiguration = () => {
  <CardContent className="flex items-center justify-center h-64">
  <RefreshCw className="h-8 w-8 animate-spin" />
  </CardContent>
- </Card>;
+ </Card>
  );
  }
 
@@ -182,7 +183,7 @@ export const EnvironmentConfiguration = () => {
  <Label htmlFor="environment-type">Environment Type</Label>
  <Select
  value={config.environmentType}
- onValueChange={(value) => handleConfigChange({ environmentType: value })
+ onValueChange={(value) => handleConfigChange({ environmentType: value })}
  >
  <SelectTrigger id="environment-type">
  <SelectValue />
@@ -195,7 +196,7 @@ export const EnvironmentConfiguration = () => {
  <span className={style.color}>{style.label}</span>
  </SelectItem>
  );
- })
+ })}
  </SelectContent>
  </Select>
  <p className="text-sm text-muted-foreground">
@@ -214,7 +215,7 @@ export const EnvironmentConfiguration = () => {
  <Switch
  id="enforce-restrictions"
  checked={config.enforceRestrictions}
- onCheckedChange={(checked) => handleConfigChange({ enforceRestrictions: checked })
+ onCheckedChange={(checked) => handleConfigChange({ enforceRestrictions: checked })}
  />
  </div>
 
@@ -224,7 +225,7 @@ export const EnvironmentConfiguration = () => {
  <Input
  id="restriction-message"
  value={config.restrictionMessage}
- onChange={(e) => handleConfigChange({ restrictionMessage: e.target.value })
+ onChange={(e) => handleConfigChange({ restrictionMessage: e.target.value })}
  placeholder="Enter custom restriction message"
  />
  <p className="text-sm text-muted-foreground">
@@ -245,7 +246,6 @@ export const EnvironmentConfiguration = () => {
  </div>
  <div>
  <strong>Production:</strong> Limited to adapter configuration, import/export, and deployment
-import { logger, LogCategory } from '@/lib/logger';
  </div>
  </AlertDescription>
  </Alert>
@@ -299,5 +299,4 @@ import { logger, LogCategory } from '@/lib/logger';
  </CardContent>
  </Card>
  );
-};`
-}}}
+};

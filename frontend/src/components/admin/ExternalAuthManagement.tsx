@@ -74,13 +74,13 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  const handleToggleStatus = async (config: ExternalAuthConfig) => {
  try {
  const response = await externalAuthService.updateAuthConfig(config.id, {
- isActive: !config.isActive;
+ isActive: !config.isActive
  });
 
  if (response && typeof response === 'object' && 'success' in response && response.success) {
  toast({
  title: "Success",
- description: `Authentication configuration ${config.isActive ? 'deactivated' : 'activated'} successfully`;
+ description: `Authentication configuration ${config.isActive ? 'deactivated' : 'activated'} successfully`
  });
  onRefresh();
  } else {
@@ -90,12 +90,12 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  toast({
  title: "Error",
  description: "Failed to update authentication status",
- variant: "destructive";
+ variant: "destructive"
  });
  }
  };
 
- const handleDelete = async (config: ExternalAuthConfig) => {`;
+ const handleDelete = async (config: ExternalAuthConfig) => {
  if (!confirm(`Are you sure you want to delete "${config.name}"? This action cannot be undone.`)) {
  return;
  }
@@ -103,11 +103,10 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  setIsDeleting(config.id);
  try {
  const response = await externalAuthService.deleteAuthConfig(config.id);
-;
  if (response && typeof response === 'object' && 'success' in response && response.success) {
  toast({
  title: "Success",
- description: "Authentication configuration deleted successfully";
+ description: "Authentication configuration deleted successfully"
  });
  onRefresh();
  } else {
@@ -117,7 +116,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  toast({
  title: "Error",
  description: "Failed to delete authentication configuration",
- variant: "destructive";
+ variant: "destructive"
  });
  } finally {
  setIsDeleting(null);
@@ -127,11 +126,10 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  const handleTest = async (config: ExternalAuthConfig) => {
  try {
  const response = await externalAuthService.testAuthConfig(config.id);
-;
  if (response && typeof response === 'object' && 'success' in response && response.success) {
  toast({
  title: "Success",
- description: "Authentication test completed successfully";
+ description: "Authentication test completed successfully"
  });
  } else {
  throw new Error((response && typeof response === 'object' && 'message' in response ? response.message as string : undefined) || 'Test failed');}
@@ -140,7 +138,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  toast({
  title: "Error",
  description: "Authentication test failed",
- variant: "destructive";
+ variant: "destructive"
  });
  }
  };
@@ -236,7 +234,7 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  <Skeleton className="h-32 w-full" />
  </div>
  </CardContent>
- </Card>;
+ </Card>
  );
  }
 
@@ -299,5 +297,4 @@ export function ExternalAuthManagement({ authConfigs, isLoading, onRefresh }: Ex
  )}
  </>
  );
-}`
-}}
+}

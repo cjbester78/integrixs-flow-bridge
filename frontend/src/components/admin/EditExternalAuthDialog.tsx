@@ -46,9 +46,9 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
 
 
  const [basicAuth, setBasicAuth] = useState<Partial<BasicAuthRequest>>({
- username: config.basicAuth?.username || ',
+ username: config.basicAuth?.username || '',
  password: '',
- realm: config.basicAuth?.realm || ';
+ realm: config.basicAuth?.realm || ''
  });
 
 

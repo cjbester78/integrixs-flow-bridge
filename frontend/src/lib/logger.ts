@@ -402,28 +402,28 @@ class FrontendLogger {
  /**
  * Log API error
  */
- public logApiError(method: string, url: string, error: any, details?: Record<string, any>): void {`
+ public logApiError(method: string, url: string, error: any, details?: Record<string, any>): void {
  this.error(LogCategory.API, `API Error: ${method} ${url}`, error, details);
  }
 
  /**
  * Log validation error
  */
- public logValidationError(form: string, errors: Record<string, any>): void {`
+ public logValidationError(form: string, errors: Record<string, any>): void {
  this.warn(LogCategory.VALIDATION, `Validation failed: ${form}`, { errors });
  }
 
  /**
  * Log navigation
  */
- public logNavigation(from: string, to: string, details?: Record<string, any>): void {`
+ public logNavigation(from: string, to: string, details?: Record<string, any>): void {
  this.info(LogCategory.NAVIGATION, `Navigate: ${from} -> ${to}`, details);
  }
 
  /**
  * Log performance metric
  */
- public logPerformance(metric: string, value: number, details?: Record<string, any>): void {`
+ public logPerformance(metric: string, value: number, details?: Record<string, any>): void {
  this.debug(LogCategory.PERFORMANCE, `Performance: ${metric}`, {
  value,
  ...details
@@ -433,7 +433,7 @@ class FrontendLogger {
  /**
  * Log security event
  */
- public logSecurityEvent(event: string, details?: Record<string, any>): void {`
+ public logSecurityEvent(event: string, details?: Record<string, any>): void {
  this.warn(LogCategory.SECURITY, `Security: ${event}`, details);
  }
 
@@ -532,4 +532,4 @@ class ContextLogger {
 export const logger = FrontendLogger.getInstance();
 
 // Export types
-export type { ContextLogger };`
+export type { ContextLogger };
