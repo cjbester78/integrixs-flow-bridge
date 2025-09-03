@@ -256,7 +256,7 @@ export function RestOutboundAdapterConfiguration({
  id="processingMode"
  checked={(configuration.processingMode || 'ASYNCHRONOUS') === 'ASYNCHRONOUS'}
  onCheckedChange={(checked) =>
- onConfigurationChange('processingMode', checked ? 'ASYNCHRONOUS' : 'SYNCHRONOUS');
+ onConfigurationChange('processingMode', checked ? 'ASYNCHRONOUS' : 'SYNCHRONOUS')
  }
  />
  </div>
@@ -536,7 +536,7 @@ export function RestOutboundAdapterConfiguration({
  includeXmlDeclaration: true,
  prettyPrint: true,
  removeRootElement: true,
- handleNamespaces: true;
+ handleNamespaces: true
  }}
  onChange={(xmlConversion) => onConfigurationChange('xmlConversion', xmlConversion)}
  />
@@ -547,4 +547,3 @@ export function RestOutboundAdapterConfiguration({
  </Card>
  )
 }
-})
