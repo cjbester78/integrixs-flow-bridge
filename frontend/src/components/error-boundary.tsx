@@ -3,7 +3,7 @@ import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// Temporarily removed logger import to avoid circular dependency issues
+import { logger, LogCategory } from '@/lib/api-client';
 
 interface Props {
  children: ReactNode;
@@ -101,9 +101,8 @@ export class ErrorBoundary extends Component<Props, State> {
  An unexpected error occurred. Don't worry, we've logged this issue.
  </CardDescription>
  </CardHeader>
- <CardContent className="space-y-4">;
+ <CardContent className="space-y-4">
  {import.meta.env.DEV && this.state.error && (
-import { logger, LogCategory } from '@/lib/logger';
  <Alert variant="destructive">
  <AlertTitle>Error Details (Development Only)</AlertTitle>
  <AlertDescription className="mt-2">

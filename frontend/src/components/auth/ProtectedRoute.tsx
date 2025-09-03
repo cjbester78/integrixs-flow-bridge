@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC = () => {
 
  const isLoading: boolean = auth?.isLoading ?? false;
  const isAuthenticated: boolean =
- (auth?.isAuthenticated as boolean | undefined) ?? !!auth?.user || authService.isAuthenticated();
+ ((auth?.isAuthenticated as boolean | undefined) ?? !!auth?.user) || authService.isAuthenticated();
 
  if (isLoading) {
  return <div className="p-6">Checking session...</div>
