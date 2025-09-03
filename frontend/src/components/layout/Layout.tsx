@@ -24,6 +24,6 @@ export const Layout = () => {
  <SessionTimeoutNotification />
  <SessionTimeoutWarning />
  </div>
- </SidebarProvider>;
+ </SidebarProvider>
  );
 };
