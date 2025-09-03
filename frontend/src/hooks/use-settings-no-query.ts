@@ -28,7 +28,7 @@ export const useSystemSettings = () => {
  refetch();
  }, []);
 
- return { data, isLoading, error, refetch }
+ return { data, isLoading, error, refetch };
 };
 
 /**
@@ -54,7 +54,7 @@ export const useUpdateSystemSettings = () => {
  }
  };
 
- return { mutate, isLoading, error }
+ return { mutate, isLoading, error };
 };
 
 /**
@@ -80,7 +80,7 @@ export const useTestEmailSettings = () => {
  }
  };
 
- return { mutate, isLoading, error }
+ return { mutate, isLoading, error };
 };
 
 /**
@@ -100,7 +100,7 @@ export const useExportSettings = () => {
  // Create download link
  const url = window.URL.createObjectURL(response);
  const a = document.createElement('a');
- a.href = url;`
+ a.href = url;
  a.download = `integrix-settings-${new Date().toISOString().split('T')[0]}.json`;
  document.body.appendChild(a);
  a.click();
@@ -116,7 +116,7 @@ export const useExportSettings = () => {
  }
  };
 
- return { mutate, isLoading }
+ return { mutate, isLoading };
 };
 
 /**
@@ -147,6 +147,5 @@ export const useImportSettings = () => {
  }
  };
 
- return { mutate, isLoading }
-};`
-}}}
+ return { mutate, isLoading };
+};
