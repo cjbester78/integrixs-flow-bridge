@@ -42,7 +42,7 @@ export const AdapterStats = ({
  </CardContent>
  </Card>
 
- <Card`
+ <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
  statusFilter === 'idle' ? 'ring-2 ring-warning' : '`
  }`}
@@ -59,7 +59,7 @@ export const AdapterStats = ({
  </CardContent>
  </Card>
 
- <Card`
+ <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
  statusFilter === 'stopped' ? 'ring-2 ring-muted-foreground' : '`
  }`}
@@ -76,7 +76,7 @@ export const AdapterStats = ({
  </CardContent>
  </Card>
 
- <Card`
+ <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
  statusFilter === 'error' ? 'ring-2 ring-destructive' : '`
  }`}

@@ -179,7 +179,8 @@ export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
  className="hover-scale"
  onClick={() => {
  // Handle adapter settings
- logger.info(LogCategory.UI, `Opening settings for adapter ${adapter.id}`);}
+ logger.info(LogCategory.UI, `Opening settings for adapter ${adapter.id}`);
+                }}
  >
  <Settings className="h-4 w-4 mr-2" />
  Settings

@@ -579,7 +579,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Checkbox
  id="createFileDirectory"
  checked={config.createFileDirectory}
- onCheckedChange={(checked) => updateConfig({ createFileDirectory: checked === true })
+ onCheckedChange={(checked) => updateConfig({ createFileDirectory: checked === true })}
  />
  <Label htmlFor="createFileDirectory">Create File Directory</Label>
  </div>

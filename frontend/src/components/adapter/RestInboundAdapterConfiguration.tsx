@@ -525,7 +525,7 @@ export function RestInboundAdapterConfiguration({
  rootElementName: 'Message',
  encoding: 'UTF-8',
  includeXmlDeclaration: true,
- prettyPrint: true;
+ prettyPrint: true
  }}
  onChange={(xmlConversion) => onConfigurationChange('xmlConversion', xmlConversion)}
  />

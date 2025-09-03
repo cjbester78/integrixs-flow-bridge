@@ -129,7 +129,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  <Label htmlFor="apiKey">API Key</Label>
  <Input
  id="apiKey"
- type="password";
+ type="password"
  value={configuration.authentication?.credentials?.apiKey || ''}
  onChange={(e) => onConfigurationChange('authentication', {
  ...configuration.authentication,

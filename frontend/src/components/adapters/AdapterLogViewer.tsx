@@ -80,7 +80,7 @@ export const AdapterLogViewer = ({
  return <Info className="h-4 w-4 text-info" />;
  case 'debug':
  return <Bug className="h-4 w-4 text-muted-foreground" />;
- 'default':
+ default:
  return <Info className="h-4 w-4 text-info" />
  }
 };
@@ -95,7 +95,7 @@ export const AdapterLogViewer = ({
  return 'default' as const;
  case 'debug':
  return 'outline' as const;
- 'default':
+ default:
  return 'default' as const
  }
 };

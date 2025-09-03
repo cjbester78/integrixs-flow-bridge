@@ -196,11 +196,10 @@ export function SoapOutboundAdapterConfiguration({
  onConfigurationChange('targetEndpointUrl', namespaceObj.schemaLocation);
  logger.info(LogCategory.UI, 'SOAP Outbound - Using endpoint URL from parsed namespace', { data: namespaceObj.schemaLocation });
                             }
-                                } catch (e) {
+                        } catch (e) {
                             logger.info(LogCategory.UI, 'SOAP Outbound - Could not parse namespace');
                         }
-                    }
-                 } else if (response.data.originalContent) {
+                    } else if (response.data.originalContent) {
  // Parse the WSDL content to extract the endpoint URL from soap:address
  try {
  const parser = new DOMParser();
