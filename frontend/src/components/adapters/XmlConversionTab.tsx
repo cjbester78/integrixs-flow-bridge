@@ -211,7 +211,7 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
 {`{
  "orderId": "12345",
  "customer": "John Doe",
- "amount": 99.99`
+ "amount": 99.99
 }`}
  </pre>
  </div>

@@ -54,7 +54,7 @@ export const TransformationToggle: FC<TransformationToggleProps> = ({
  const handleStructureChange = (structureId: string) => {
  onChange({
  ...config,
- dataStructureId: structureId;
+ dataStructureId: structureId
  });
  };
 

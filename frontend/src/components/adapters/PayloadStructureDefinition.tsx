@@ -47,18 +47,15 @@ JSON.parse(payload);
  const validateXmlPayload = (payload: string): string[] => {
  const errors: string[] = [];
  try {
-const parser = new DOMParser();
- const doc = parser.parseFromString(payload, 'text/xml');
- const parserError = doc.querySelector('parsererror');
- if (parserError) {
- errors.push('Invalid XML format');
- 
-} catch (error) {
-  // Handle error
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(payload, 'text/xml');
+  const parserError = doc.querySelector('parsererror');
+  if (parserError) {
+    errors.push('Invalid XML format');
+  }
+} catch (error: any) {
+  errors.push(`XML parsing error: ${error.message}`);
 }
-} catch (error: any) {`
- errors.push(`XML parsing error: ${error.message}`);
- }
  return errors;
  };
 
