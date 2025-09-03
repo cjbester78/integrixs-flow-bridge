@@ -14,15 +14,11 @@ export const useEnvironmentPermissions = () => {
     try {
 const [envInfo, perms] = await Promise.all([
  systemConfigService.getEnvironmentConfig(),
- systemConfigService.getPermissions();
+ systemConfigService.getPermissions()
  ]);
  setEnvironmentInfo(envInfo);
  setPermissions(perms);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error fetching environment data', { error: error });
  // Set default values on error
  setEnvironmentInfo({
@@ -39,7 +35,7 @@ const [envInfo, perms] = await Promise.all([
  canCreateBusinessComponents: true,
  canCreateDataStructures: true,
  isAdmin: false,
- canAccessAdmin: false;
+ canAccessAdmin: false
  }
  });
  setPermissions({
@@ -51,7 +47,7 @@ const [envInfo, perms] = await Promise.all([
  canCreateBusinessComponents: true,
  canCreateDataStructures: true,
  isAdmin: false,
- canAccessAdmin: false;
+ canAccessAdmin: false
  });
  } finally {
  setIsLoading(false);
@@ -95,7 +91,7 @@ const [envInfo, perms] = await Promise.all([
  isDevelopment: environmentInfo?.type === 'DEVELOPMENT',
  isQA: environmentInfo?.type === 'QUALITY_ASSURANCE',
  isProduction: environmentInfo?.type === 'PRODUCTION',
- }
+ };
 };
 
 /**
@@ -117,7 +113,7 @@ export const useUIVisibility = (element: string) => {
  case 'adminPanel':
  setVisible(permissions?.isAdmin || false);
  break;
- 'default':
+ default:
  setVisible(true);
  }
  };
