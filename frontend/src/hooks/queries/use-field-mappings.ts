@@ -57,8 +57,8 @@ export const useFieldMappings = (flowId: string, enabled = true) => {
  */
 export const useFieldMapping = (mappingId: string, enabled = true) => {
  return useQuery({
- queryKey: queryKeys.mappings.detail(mappingId),`
- queryFn: () => apiClient.get<FieldMappingDTO>(/field-mappings/${mappingId}`),
+ queryKey: queryKeys.mappings.detail(mappingId),
+ queryFn: () => apiClient.get<FieldMappingDTO>(`/field-mappings/${mappingId}`),
  enabled: enabled && !!mappingId,
  })
 };
@@ -69,7 +69,6 @@ export const useFieldMapping = (mappingId: string, enabled = true) => {
 export const useCreateFieldMapping = () => {
  const notify = useNotify();
  const queryClient = useQueryClient();
-;
  return useMutation({
  mutationFn: (data: CreateFieldMappingDTO) =>
  apiClient.post<FieldMappingDTO>('/field-mappings', data),
@@ -81,12 +80,12 @@ export const useCreateFieldMapping = () => {
  });
 
  // Snapshot previous value
- const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(;
- queryKeys.mappings.byFlow(newMapping.integrationFlowId);
+ const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(
+ queryKeys.mappings.byFlow(newMapping.integrationFlowId)
  );
 
  // Optimistically update with temporary data
- const tempMapping: FieldMappingDTO = {`
+ const tempMapping: FieldMappingDTO = {
  id: `temp-${Date.now()}`,
  ...newMapping,
  isRequired: newMapping.isRequired ?? false,
@@ -100,8 +99,8 @@ export const useCreateFieldMapping = () => {
  (old) => [...(old || []), tempMapping]
  );
 
- return { previousMappings, tempMapping }
-},
+ return { previousMappings, tempMapping };
+ },
 
  onError: (err, newMapping, context) => {
  // Rollback on error
@@ -129,8 +128,8 @@ export const useCreateFieldMapping = () => {
  onSettled: (_, __, variables) => {
  // Always refetch to ensure consistency
  queryClient.invalidateQueries({
- queryKey: queryKeys.mappings.byFlow(variables.integrationFlowId);
- })
+ queryKey: queryKeys.mappings.byFlow(variables.integrationFlowId)
+ });
  },
  })
 };
@@ -141,18 +140,17 @@ export const useCreateFieldMapping = () => {
 export const useUpdateFieldMapping = () => {
  const notify = useNotify();
  const queryClient = useQueryClient();
-;
  return useMutation({
- mutationFn: ({ mappingId, data }: { mappingId: string; data: UpdateFieldMappingDTO }) =>`
- apiClient.put<FieldMappingDTO>(/field-mappings/${mappingId}`, data),
+ mutationFn: ({ mappingId, data }: { mappingId: string; data: UpdateFieldMappingDTO }) =>
+ apiClient.put<FieldMappingDTO>(`/field-mappings/${mappingId}`, data),
 
  onMutate: async ({ mappingId, data }) => {
  // Cancel outgoing refetches
  await queryClient.cancelQueries({ queryKey: queryKeys.mappings.detail(mappingId) });
 
  // Get current mapping to find flow ID
- const currentMapping = queryClient.getQueryData<FieldMappingDTO>(;
- queryKeys.mappings.detail(mappingId);
+ const currentMapping = queryClient.getQueryData<FieldMappingDTO>(
+ queryKeys.mappings.detail(mappingId)
  );
 
  if (!currentMapping) return;
@@ -164,8 +162,8 @@ export const useUpdateFieldMapping = () => {
 
  // Snapshot previous values
  const previousMapping = currentMapping;
- const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(;
- queryKeys.mappings.byFlow(currentMapping.integrationFlowId);
+ const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(
+ queryKeys.mappings.byFlow(currentMapping.integrationFlowId)
  );
 
  // Optimistically update single mapping
@@ -188,8 +186,8 @@ export const useUpdateFieldMapping = () => {
  ) || []
  );
 
- return { previousMapping, previousMappings, flowId: currentMapping.integrationFlowId }
-},
+ return { previousMapping, previousMappings, flowId: currentMapping.integrationFlowId };
+ },
 
  onError: (err, { mappingId }, context) => {
  // Rollback on error
@@ -215,8 +213,8 @@ export const useUpdateFieldMapping = () => {
  queryClient.invalidateQueries({ queryKey: queryKeys.mappings.detail(mappingId) });
  if (context?.flowId) {
  queryClient.invalidateQueries({
- queryKey: queryKeys.mappings.byFlow(context.flowId);
- })
+ queryKey: queryKeys.mappings.byFlow(context.flowId)
+ });
  }
  },
  })
@@ -228,15 +226,14 @@ export const useUpdateFieldMapping = () => {
 export const useDeleteFieldMapping = () => {
  const notify = useNotify();
  const queryClient = useQueryClient();
-;
  return useMutation({
- mutationFn: (mappingId: string) =>`
+ mutationFn: (mappingId: string) =>
  apiClient.delete(`/field-mappings/${mappingId}`),
 
  onMutate: async (mappingId) => {
  // Get mapping to find flow ID
- const mapping = queryClient.getQueryData<FieldMappingDTO>(;
- queryKeys.mappings.detail(mappingId);
+ const mapping = queryClient.getQueryData<FieldMappingDTO>(
+ queryKeys.mappings.detail(mappingId)
  );
 
  if (!mapping) return;
@@ -247,8 +244,8 @@ export const useDeleteFieldMapping = () => {
  });
 
  // Snapshot previous value
- const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(;
- queryKeys.mappings.byFlow(mapping.integrationFlowId);
+ const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(
+ queryKeys.mappings.byFlow(mapping.integrationFlowId)
  );
 
  // Optimistically remove from list
@@ -257,8 +254,8 @@ export const useDeleteFieldMapping = () => {
  (old) => old?.filter(m => m.id !== mappingId) || []
  );
 
- return { previousMappings, flowId: mapping.integrationFlowId }
-},
+ return { previousMappings, flowId: mapping.integrationFlowId };
+ },
 
  onError: (err, mappingId, context) => {
  // Rollback on error
@@ -279,11 +276,11 @@ export const useDeleteFieldMapping = () => {
  // Always refetch to ensure consistency
  if (context?.flowId) {
  queryClient.invalidateQueries({
- queryKey: queryKeys.mappings.byFlow(context.flowId);
- })
+ queryKey: queryKeys.mappings.byFlow(context.flowId)
+ });
  }
  // Remove from cache
- queryClient.removeQueries({ queryKey: queryKeys.mappings.detail(mappingId) })
+ queryClient.removeQueries({ queryKey: queryKeys.mappings.detail(mappingId) });
  },
  })
 };
@@ -294,13 +291,12 @@ export const useDeleteFieldMapping = () => {
 export const useReorderFieldMappings = () => {
  const notify = useNotify();
  const queryClient = useQueryClient();
-;
  return useMutation({
  mutationFn: ({ flowId, mappingOrders }: {
  flowId: string;
  mappingOrders: { id: string; sequence: number }[]
- }) =>`
- apiClient.put<FieldMappingDTO[]>(/field-mappings/flow/${flowId}/reorder`, {
+ }) =>
+ apiClient.put<FieldMappingDTO[]>(`/field-mappings/flow/${flowId}/reorder`, {
  mappingOrders
  }),
 
@@ -311,8 +307,8 @@ export const useReorderFieldMappings = () => {
  });
 
  // Snapshot previous value
- const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(;
- queryKeys.mappings.byFlow(flowId);
+ const previousMappings = queryClient.getQueryData<FieldMappingDTO[]>(
+ queryKeys.mappings.byFlow(flowId)
  );
 
  // Optimistically update order
@@ -322,12 +318,12 @@ export const useReorderFieldMappings = () => {
  if (!old) return [];
 
  // Create a map of new sequences
- const sequenceMap = new Map(;
- mappingOrders.map(order => [order.id, order.sequence]);
+ const sequenceMap = new Map(
+ mappingOrders.map(order => [order.id, order.sequence])
  );
 
  // Update sequences and sort
- return [...old];
+ return [...old]
  .map(mapping => ({
  ...mapping,
  sequence: sequenceMap.get(mapping.id) ?? mapping.sequence,
@@ -336,8 +332,8 @@ export const useReorderFieldMappings = () => {
  }
  );
 
- return { previousMappings, flowId }
-},
+ return { previousMappings, flowId };
+ },
 
  onError: (err, { flowId }, context) => {
  // Rollback on error
@@ -357,9 +353,8 @@ export const useReorderFieldMappings = () => {
  onSettled: (_, __, { flowId }) => {
  // Always refetch to ensure consistency
  queryClient.invalidateQueries({
- queryKey: queryKeys.mappings.byFlow(flowId);
- })
+ queryKey: queryKeys.mappings.byFlow(flowId)
+ });
  },
  })
-};`
-}}
+}
