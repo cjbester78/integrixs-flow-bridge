@@ -53,19 +53,16 @@ setLoading(true);
  flowId: flowResponse.data.id,
  status: flowResponse.data.status,
  endpoints: [],
- metadata: {
-} catch (error) {
-  // Handle error
-}
+ metadata: {}
  };
  setDeploymentInfo(mockDeploymentInfo);
-      }
-} catch (error) {
+ }
+ } catch (error) {
  toast({
  variant: 'destructive',
  title: 'Error',
  description: 'Failed to fetch interface details',
-}
+ });
  });
  } finally {
  setLoading(false);
@@ -118,7 +115,6 @@ setLoading(true);
  const adapterType = deploymentInfo.metadata?.adapterType || 'Unknown';
  const isHttpBased = ['HTTP', 'REST', 'SOAP'].includes(adapterType);
  const isSoap = adapterType === 'SOAP';
-;
  return (
  <div className="w-full">
  <Breadcrumb className="mb-4 px-6 py-3">
@@ -222,14 +218,14 @@ setLoading(true);
  <div className="flex gap-2">
  <Input
  id="wsdl"
- value={deploymentInfo.metadata?.wsdlUrl || '}
+ value={deploymentInfo.metadata?.wsdlUrl || ''}
  readOnly
  className="font-mono text-sm"
  />
  <Button
  size="icon"
  variant="outline"
- onClick={() => copyToClipboard(deploymentInfo.metadata?.wsdlUrl || ', 'WSDL URL')}
+ onClick={() => copyToClipboard(deploymentInfo.metadata?.wsdlUrl || '', 'WSDL URL')}
  >
  <Copy className="h-4 w-4" />
  </Button>
@@ -251,14 +247,14 @@ setLoading(true);
  <div className="flex gap-2">
  <Input
  id="apidocs"
- value={deploymentInfo.metadata?.apiDocsUrl || '}
+ value={deploymentInfo.metadata?.apiDocsUrl || ''}
  readOnly
  className="font-mono text-sm"
  />
  <Button
  size="icon"
  variant="outline"
- onClick={() => window.open(deploymentInfo.metadata?.apiDocsUrl || ', '_blank')}
+ onClick={() => window.open(deploymentInfo.metadata?.apiDocsUrl || '', '_blank')}
  >
  <Globe className="h-4 w-4" />
  </Button>
@@ -350,7 +346,7 @@ setLoading(true);
  Back to Interfaces
  </Button>
  <Button
- variant="outline"`
+ variant="outline"
  onClick={() => navigate(`/flows/${flowId}/edit`)}
  >
  <FileText className="h-4 w-4 mr-2" />
@@ -361,4 +357,4 @@ setLoading(true);
  </div>
  </div>
  );
-}`)
+}
