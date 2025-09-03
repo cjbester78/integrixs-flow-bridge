@@ -395,7 +395,7 @@ class FrontendLogger {
  /**
  * Log API call
  */
- public logApiCall(method: string, url: string, details?: Record<string, any>): void {`
+ public logApiCall(method: string, url: string, details?: Record<string, any>): void {
  this.debug(LogCategory.API, `${method} ${url}`, details);
  }
 
