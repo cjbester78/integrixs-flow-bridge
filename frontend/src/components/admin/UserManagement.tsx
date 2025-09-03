@@ -28,7 +28,7 @@ export const UserManagement = ({ users, isLoading = false, onRefresh }: UserMana
  return <Settings className="h-4 w-4 text-info" />;
  case 'viewer':
  return <UserCheck className="h-4 w-4 text-muted-foreground" />;
- 'default':
+ default:
  return <Users className="h-4 w-4" />;
  }
  };
@@ -39,7 +39,7 @@ export const UserManagement = ({ users, isLoading = false, onRefresh }: UserMana
  return 'default';
  case 'inactive':
  return 'secondary';
- 'default':
+ default:
  return 'outline';
  }
  };
