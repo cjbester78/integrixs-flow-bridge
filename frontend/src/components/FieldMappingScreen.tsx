@@ -383,12 +383,11 @@ const parser = new DOMParser();
  sourceChildren.forEach(sourceField => {
  const sourceFieldName = getFieldName(sourceField);
  const matchingTargetFields = targetChildMap.get(sourceFieldName) || [];
-;
  // Find the best matching target field (prefer same type)
- const targetField = matchingTargetFields.find(tf =>;
+ const targetField = matchingTargetFields.find(tf =>
  !existingTargetPaths.has(tf.path) && tf.type === sourceField.type
  ) || matchingTargetFields.find(tf =>
- !existingTargetPaths.has(tf.path);
+ !existingTargetPaths.has(tf.path)
  );
 
  if (targetField) {
@@ -493,10 +492,10 @@ const parser = new DOMParser();
  const matchingTargetFields = targetFieldMap.get(sourceFieldName) || [];
 ;
  // Find the best matching target field (prefer same type)
- const targetField = matchingTargetFields.find(tf =>;
+ const targetField = matchingTargetFields.find(tf =>
  !existingTargetPaths.has(tf.path) && tf.type === sourceField.type
  ) || matchingTargetFields.find(tf =>
- !existingTargetPaths.has(tf.path);
+ !existingTargetPaths.has(tf.path)
  );
 
  if (targetField) {
