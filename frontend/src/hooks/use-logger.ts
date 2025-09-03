@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth-store';
 export const useComponentLogger = (componentName: string, props?: Record<string, any>) => {
  const mountTime = useRef<number>(Date.now());
  const renderCount = useRef<number>(0);
-;
+
  useEffect(() => {
  renderCount.current++;
 
@@ -19,21 +19,20 @@ export const useComponentLogger = (componentName: string, props?: Record<string,
 
  return () => {
  // Log component unmount with lifetime
- const lifetime = Date.now() - mountTime.current;`;
- logger.debug(LogCategory.UI, `Component unmounted: ${componentName}`, { lifetime: lifetime, renderCount: renderCount.current);
- })
- }
+ const lifetime = Date.now() - mountTime.current;
+ logger.debug(LogCategory.UI, `Component unmounted: ${componentName}`, { lifetime: lifetime, renderCount: renderCount.current });
+ };
 }, []);
 
  // Log renders in development
  if (import.meta.env.DEV) {
  useEffect(() => {
- if (renderCount.current > 1) {`
+ if (renderCount.current > 1) {
  logger.debug(LogCategory.PERFORMANCE, `Component re-rendered: ${componentName}`, {
- renderCount: renderCount.current, extra: props);
- })
+ renderCount: renderCount.current, extra: props
+ });
  }
- })
+ });
  }
 };
 
@@ -44,7 +43,7 @@ export const useNavigationLogger = () => {
  const location = useLocation();
  const navigationType = useNavigationType();
  const previousPath = useRef<string>(location.pathname);
-;
+
  useEffect(() => {
  if (previousPath.current !== location.pathname) {
  logger.logNavigation(previousPath.current, location.pathname, {
@@ -62,7 +61,7 @@ export const useNavigationLogger = () => {
  */
 export const useActionLogger = (context?: string) => {
  const user = useAuthStore(state => state.user);
-;
+
  const logAction = useCallback((action: string, details?: Record<string, any>) => {
  logger.logUserAction(action, {
  context,
@@ -72,11 +71,11 @@ export const useActionLogger = (context?: string) => {
  });
  }, [context, user]);
 
- const logClick = useCallback((elementName: string, details?: Record<string, any>) => {`;
+ const logClick = useCallback((elementName: string, details?: Record<string, any>) => {
  logAction(`Clicked: ${elementName}`, details);
  }, [logAction]);
 
- const logFormSubmit = useCallback((formName: string, data?: Record<string, any>) => {`;
+ const logFormSubmit = useCallback((formName: string, data?: Record<string, any>) => {
  logAction(`Form submitted: ${formName}`, { formData: data });
  }, [logAction]);
 
@@ -89,7 +88,7 @@ export const useActionLogger = (context?: string) => {
  logClick,
  logFormSubmit,
  logValidationError
- }
+ };
 };
 
 /**
@@ -97,7 +96,7 @@ export const useActionLogger = (context?: string) => {
  */
 export const usePerformanceLogger = (metricName: string) => {
  const startTime = useRef<number>();
-;
+
  const startMeasure = useCallback(() => {
  startTime.current = performance.now();
  }, []);
@@ -110,7 +109,7 @@ export const usePerformanceLogger = (metricName: string) => {
  }
  }, [metricName]);
 
- const measure = useCallback(async <T,>(;
+ const measure = useCallback(async <T,>(
  fn: () => Promise<T>,
  details?: Record<string, any>
  ): Promise<T> => {
@@ -121,7 +120,7 @@ export const usePerformanceLogger = (metricName: string) => {
  startMeasure,
  endMeasure,
  measure
- }
+ };
 };
 
 /**
@@ -129,7 +128,7 @@ export const usePerformanceLogger = (metricName: string) => {
  */
 export const useContextLogger = (context: Record<string, any>): ContextLogger => {
  const contextLogger = useRef<ContextLogger>();
-;
+
  if (!contextLogger.current) {
  contextLogger.current = logger.createContextLogger(context);
  }
@@ -144,21 +143,21 @@ export const useErrorLogger = (context?: string) => {
  const logError = useCallback((message: string, error: Error | any, details?: Record<string, any>) => {
  logger.error(LogCategory.ERROR, message, error, {
  context,
- ...details);
- })
+ ...details
+ });
  }, [context]);
 
  const logWarning = useCallback((message: string, details?: Record<string, any>) => {
  logger.warn(LogCategory.ERROR, message, {
  context,
- ...details);
- })
+ ...details
+ });
  }, [context]);
 
  return {
  logError,
  logWarning
- }
+ };
 };
 
 /**
@@ -166,50 +165,53 @@ export const useErrorLogger = (context?: string) => {
  */
 export const useFormLogger = (formName: string) => {
  const fieldChangeCount = useRef<Record<string, number>>({});
-;
  const formStartTime = useRef<number>(Date.now());
-;
+
  const logFieldChange = useCallback((fieldName: string, value: any, previousValue?: any) => {
  fieldChangeCount.current[fieldName] = (fieldChangeCount.current[fieldName] || 0) + 1;
-`
- logger.debug(LogCategory.USER_ACTION, `Form field changed: ${formName}.${fieldName}`, { fieldName: fieldName, changeCount: fieldChangeCount.current[fieldName],
+
+ logger.debug(LogCategory.USER_ACTION, `Form field changed: ${formName}.${fieldName}`, { 
+ fieldName: fieldName, 
+ changeCount: fieldChangeCount.current[fieldName],
  hasValue: !!value,
- valueType: typeof value);
- })
+ valueType: typeof value
+ });
  }, [formName]);
 
  const logFormComplete = useCallback((success: boolean, data?: any) => {
  const duration = Date.now() - formStartTime.current;
-`
- logger.info(LogCategory.USER_ACTION, `Form completed: ${formName}`, { data: { success: success, duration,
- fieldChangeCount: fieldChangeCount.current,);
+
+ logger.info(LogCategory.USER_ACTION, `Form completed: ${formName}`, { 
+ success: success, 
+ duration,
+ fieldChangeCount: fieldChangeCount.current,
  totalFieldChanges: Object.values(fieldChangeCount.current).reduce((a, b) => a + b, 0),
  data
- })
+ });
  }, [formName]);
 
  return {
  logFieldChange,
  logFormComplete
- }
+ };
 };
 
 /**
  * Hook to automatically log fetch operations
  */
 export const useFetchLogger = (resourceName: string) => {
- const logFetchStart = useCallback((params?: Record<string, any>) => {`;
+ const logFetchStart = useCallback((params?: Record<string, any>) => {
  logger.debug(LogCategory.API, `Fetching ${resourceName}`, params);
  }, [resourceName]);
 
- const logFetchSuccess = useCallback((data: any, duration?: number) => {`;
- logger.debug(LogCategory.API, `Fetched ${resourceName} successfully`, {);
+ const logFetchSuccess = useCallback((data: any, duration?: number) => {
+ logger.debug(LogCategory.API, `Fetched ${resourceName} successfully`, {
  recordCount: Array.isArray(data) ? data.length : 1,
  duration
- })
+ });
  }, [resourceName]);
 
- const logFetchError = useCallback((error: Error | any) => {`;
+ const logFetchError = useCallback((error: Error | any) => {
  logger.error(LogCategory.API, `Failed to fetch ${resourceName}`, error);
  }, [resourceName]);
 
@@ -217,6 +219,5 @@ export const useFetchLogger = (resourceName: string) => {
  logFetchStart,
  logFetchSuccess,
  logFetchError
- }
-};`
-}}
+ };
+};
