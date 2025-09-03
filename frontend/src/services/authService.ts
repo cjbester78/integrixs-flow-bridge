@@ -44,7 +44,6 @@ class AuthService {
  // Login user
  async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
  const response = await api.post<LoginResponse>('/auth/login', credentials);
-;
  if (response.success && response.data) {
  this.setAuthData(response.data);
  }
@@ -62,23 +61,24 @@ class AuthService {
  try {
  const refreshToken = this.getRefreshToken();
  if (refreshToken) {
- await api.post('/auth/logout', { refreshToken })}
-} catch (error) {
+ await api.post('/auth/logout', { refreshToken });
+ }
+ } catch (error) {
  // Continue with logout even if API call fails
-}
- logger.warn(LogCategory.API, 'Logout API call failed', { data: error }); finally {
+ logger.warn(LogCategory.API, 'Logout API call failed', { data: error });
+ } finally {
  this.clearAuthData();
  }
 
- return { success: true }
-}
+ return { success: true };
+ }
 
  // Refresh authentication token
  async refreshToken(): Promise<ApiResponse<{ token: string; expiresIn: number }>> {
  const refreshToken = this.getRefreshToken();
  if (!refreshToken) {
- return { success: false, error: 'No refresh token available' }
-}
+ return { success: false, error: 'No refresh token available' };
+ }
 
  const response = await api.post<{ token: string; expiresIn: number }>('/auth/refresh', {
  refreshToken
@@ -106,22 +106,22 @@ class AuthService {
  return api.post('/auth/change-password', {
  currentPassword,
  newPassword
- })
+ });
  }
 
  // Request password reset
  async requestPasswordReset(email: string): Promise<ApiResponse<void>> {
- return api.post('/auth/forgot-password', { email })
+ return api.post('/auth/forgot-password', { email });
  }
 
  // Reset password with token
  async resetPassword(token: string, newPassword: string): Promise<ApiResponse<void>> {
- return api.post('/auth/reset-password', { token, newPassword })
+ return api.post('/auth/reset-password', { token, newPassword });
  }
 
  // Verify email
  async verifyEmail(token: string): Promise<ApiResponse<void>> {
- return api.post('/auth/verify-email', { token })
+ return api.post('/auth/verify-email', { token });
  }
 
  // Check if user is authenticated

@@ -60,11 +60,15 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(
             @RequestHeader("Authorization") String authHeader,
+            @RequestBody(required = false) Map<String, String> request,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        // Extract refresh token from request body or header
-        // For now, simplified implementation
-        authenticationService.logout(null, null);
+        // Extract refresh token from request body
+        String refreshToken = request != null ? request.get("refreshToken") : null;
+        String username = userDetails != null ? userDetails.getUsername() : null;
+        
+        // Call logout service with refresh token
+        authenticationService.logout(username, refreshToken);
         
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
