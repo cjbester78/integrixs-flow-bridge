@@ -19,7 +19,6 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
 }) => {
  const renderAuthFields = () => {
  const authType = configuration.authentication?.type || 'none';
-;
  switch (authType) {
  case 'basic':
  return (
@@ -71,7 +70,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  ...configuration.authentication?.credentials,
  clientId: e.target.value
  }
- })
+ })}
  placeholder="Enter client ID"
  />
  </div>
@@ -87,7 +86,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  ...configuration.authentication?.credentials,
  clientSecret: e.target.value
  }
- })
+ })}
  placeholder="Enter client secret"
  />
  </div>
@@ -102,7 +101,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  ...configuration.authentication?.credentials,
  tokenUrl: e.target.value
  }
- })
+ })}
  placeholder="https://oauth.example.com/token"
  />
  </div>
@@ -117,7 +116,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  ...configuration.authentication?.credentials,
  scope: e.target.value
  }
- })
+ })}
  placeholder="read write"
  />
  </div>
@@ -130,7 +129,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  <Label htmlFor="apiKey">API Key</Label>
  <Input
  id="apiKey"
- type="password";
+ type="password"
  value={configuration.authentication?.credentials?.apiKey || ''}
  onChange={(e) => onConfigurationChange('authentication', {
  ...configuration.authentication,
@@ -138,7 +137,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  ...configuration.authentication?.credentials,
  apiKey: e.target.value
  }
- })
+ })}
  placeholder="Enter API key"
  />
  </div>
@@ -153,13 +152,13 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  ...configuration.authentication?.credentials,
  apiKeyHeader: e.target.value
  }
- })
+ })}
  placeholder="X-API-Key"
  />
  </div>
  </div>
  );
- 'default':
+ default:
  return null;
  }
  };
@@ -182,7 +181,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  <div className="space-y-2">
  <Label htmlFor="serviceBaseUrl">Service Base URL</Label>
  <Input
- id="serviceBaseUrl";
+ id="serviceBaseUrl"
  value={configuration.baseUrl || ''}
  onChange={(e) => onConfigurationChange('baseUrl', e.target.value)}
  placeholder="https://odata.example.com/service"
@@ -222,7 +221,7 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  <Label htmlFor="authenticationType">Authentication Type</Label>
  <Select
  value={configuration.authentication?.type || 'none'}
- onValueChange={(value) => onConfigurationChange('authentication', { type: value, credentials: {} })
+ onValueChange={(value) => onConfigurationChange('authentication', { type: value, credentials: {} })}
  >
  <SelectTrigger>
  <SelectValue />
@@ -291,4 +290,3 @@ export const OdataInboundAdapterConfiguration: React.FC<OdataInboundAdapterConfi
  </div>
  );
 };
-}}}}}}}}}
