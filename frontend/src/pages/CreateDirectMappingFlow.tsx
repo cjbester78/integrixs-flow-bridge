@@ -42,7 +42,6 @@ export function CreateDirectMappingFlow() {
  const { user } = useAuth();
  const [showFieldMapping, setShowFieldMapping] = useState(false);
  const editingFlow = location.state?.flow || null;
-;
  // Flow state
  const [flowName, setFlowName] = useState('');
  const [description, setDescription] = useState('');
@@ -56,7 +55,7 @@ export function CreateDirectMappingFlow() {
  const [skipXmlConversion, setSkipXmlConversion] = useState(false);
 
  // Log initial states
- logger.info(LogCategory.SYSTEM, '=== INITIAL TOGGLE STATES === ');
+ logger.info(LogCategory.SYSTEM, '=== INITIAL TOGGLE STATES ===');
  logger.info(LogCategory.SYSTEM, 'Initial mappingRequired', { data: true });
  logger.info(LogCategory.SYSTEM, 'Initial skipXmlConversion', { data: false });
  const [fieldMappings, setFieldMappings] = useState<any[]>([]);
@@ -72,9 +71,9 @@ export function CreateDirectMappingFlow() {
  const [loading, setLoading] = useState(true);
  const [saving, setSaving] = useState(false);
  const [convertingStructures, setConvertingStructures] = useState(false);
- const [sourceXml, setSourceXml] = useState<$1>('');
- const [targetXml, setTargetXml] = useState<$1>('');
- const [currentMappingType, setCurrentMappingType] = useState<$1>('request');
+ const [sourceXml, setSourceXml] = useState<string>('');
+ const [targetXml, setTargetXml] = useState<string>('');
+ const [currentMappingType, setCurrentMappingType] = useState<string>('request');
 
 
  // Reset form when navigating directly from menu
@@ -100,7 +99,8 @@ export function CreateDirectMappingFlow() {
 
  // Debug business components state
  useEffect(() => {
- logger.info(LogCategory.SYSTEM, 'Business components state updated', { data: businessComponents });, [businessComponents]);
+ logger.info(LogCategory.SYSTEM, 'Business components state updated', { data: businessComponents });
+ }, [businessComponents]);
 
  // No longer needed - handled by the onChange handlers
 
@@ -131,12 +131,11 @@ export function CreateDirectMappingFlow() {
 
  // Get the actual structure content
  const response = await api.get(`/structures/${structureId}`);
- logger.info(LogCategory.SYSTEM, 'Debug info', { data: { data: Structure response:, extra: response.data }); // Debug log
+ logger.info(LogCategory.SYSTEM, 'Structure response', { data: response.data }); // Debug log
 
  if (response.data) {
  // Try to find WSDL content in various places
  let wsdlContent = null;
-;
  // Check if structure is a string (raw WSDL })
  if (typeof response.data.structure === 'string' && response.data.structure.includes('wsdl:')) {
  wsdlContent = response.data.structure;
@@ -173,16 +172,15 @@ export function CreateDirectMappingFlow() {
  setIsAsynchronous(false);
 
  toast({
- title: "Synchronous Service Detected",`
+ title: "Synchronous Service Detected",
  description: `This WSDL structure defines a synchronous service with ${operationInfo.messageTypes.join(', ')} messages. The flow has been switched to synchronous mode.`,
  });
 
  // Auto-create mapping sets
  const newMappings = [];
-;
  if (operationInfo.hasOutput) {
- newMappings.push({`
- id: `response_mapping_${Date.now()}`,`
+ newMappings.push({
+ id: `response_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Response` : 'Response Mapping',
  fieldMappings: [],
  messageType: 'response'
@@ -190,8 +188,8 @@ export function CreateDirectMappingFlow() {
  }
 
  if (operationInfo.hasFault) {
- newMappings.push({`
- id: `fault_mapping_${Date.now() + 1}`,`
+ newMappings.push({
+ id: `fault_mapping_${Date.now() + 1}`,
  name: flowName ? `${flowName} Fault` : 'Fault Mapping',
  fieldMappings: [],
  messageType: 'fault'
@@ -202,7 +200,7 @@ export function CreateDirectMappingFlow() {
  // Only set new mappings if we don't already have mappings loaded
  setAdditionalMappings(newMappings);
  toast({
- title: "Mapping Sets Created",`
+ title: "Mapping Sets Created",
  description: `Created mapping sets for ${newMappings.map(m => m.name).join(' and ')}. Please configure each mapping.`,
  })
  }
@@ -212,16 +210,16 @@ export function CreateDirectMappingFlow() {
  } else if (!wsdlContent && response.data.structure && typeof response.data.structure === 'object') {
  // Fall back to checking structure patterns if no metadata
  const structureKeys = Object.keys(response.data.structure);
- const hasRequest = structureKeys.some(key =>;
+ const hasRequest = structureKeys.some(key =>
  key.toLowerCase().includes('req') ||
  key.toLowerCase().includes('request') ||
  key.toLowerCase().includes('_mt') // SAP message type pattern
  );
- const hasResponse = structureKeys.some(key =>;
+ const hasResponse = structureKeys.some(key =>
  key.toLowerCase().includes('resp') ||
  key.toLowerCase().includes('response')
  );
- const hasFault = structureKeys.some(key =>;
+ const hasFault = structureKeys.some(key =>
  key.toLowerCase().includes('fault') ||
  key.toLowerCase().includes('error')
  );
@@ -239,16 +237,15 @@ export function CreateDirectMappingFlow() {
  setIsAsynchronous(false);
 
  toast({
- title: "Synchronous Service Detected",`
+ title: "Synchronous Service Detected",
  description: `This structure appears to define a synchronous service with request and response messages. The flow has been switched to synchronous mode.`,
  });
 
  // Auto-create mapping sets
  const newMappings = [];
-;
  if (hasResponse) {
- newMappings.push({`
- id: `response_mapping_${Date.now()}`,`
+ newMappings.push({
+ id: `response_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Response` : 'Response Mapping',
  fieldMappings: [],
  messageType: 'response'
@@ -256,8 +253,8 @@ export function CreateDirectMappingFlow() {
  }
 
  if (hasFault) {
- newMappings.push({`
- id: `fault_mapping_${Date.now() + 1}`,`
+ newMappings.push({
+ id: `fault_mapping_${Date.now() + 1}`,
  name: flowName ? `${flowName} Fault` : 'Fault Mapping',
  fieldMappings: [],
  messageType: 'fault'
@@ -268,7 +265,7 @@ export function CreateDirectMappingFlow() {
  // Only set new mappings if we don't already have mappings loaded
  setAdditionalMappings(newMappings);
  toast({
- title: "Mapping Sets Created",`
+ title: "Mapping Sets Created",
  description: `Created mapping sets for ${newMappings.map(m => m.name).join(' and ')}. Please configure each mapping.`,
  })
  }
@@ -288,18 +285,17 @@ export function CreateDirectMappingFlow() {
 
  // Show a message to the user
  toast({
- title: "Synchronous Service Detected",`
+ title: "Synchronous Service Detected",
  description: `This WSDL defines a synchronous service with ${wsdlResult.operationInfo.messageTypes.join(', ')} messages. The flow has been switched to synchronous mode.`,
  });
 
  // Auto-create mapping sets for each message type
  const newMappings = [];
-;
  // Primary mapping is always for the request/input
  // Additional mappings for output and fault
  if (wsdlResult.operationInfo.hasOutput) {
- newMappings.push({`
- id: `response_mapping_${Date.now()}`,`
+ newMappings.push({
+ id: `response_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Response` : 'Response Mapping',
  fieldMappings: [],
  messageType: 'response'
@@ -307,8 +303,8 @@ export function CreateDirectMappingFlow() {
  }
 
  if (wsdlResult.operationInfo.hasFault) {
- newMappings.push({`
- id: `fault_mapping_${Date.now()}`,`
+ newMappings.push({
+ id: `fault_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Fault` : 'Fault Mapping',
  fieldMappings: [],
  messageType: 'fault'
@@ -319,7 +315,7 @@ export function CreateDirectMappingFlow() {
  // Only set new mappings if we don't already have mappings loaded
  setAdditionalMappings(newMappings);
  toast({
- title: "Mapping Sets Created",`
+ title: "Mapping Sets Created",
  description: `Created mapping sets for ${newMappings.map(m => m.name).join(' and ')}. Please configure each mapping.`,
  })
  }
@@ -327,7 +323,7 @@ export function CreateDirectMappingFlow() {
 }
 } catch (error) {
  logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error });
- };
+ }
 
  // Analyze both source and target structures
  if (sourceStructure) {
@@ -1334,7 +1330,7 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  const existingResponseMapping = additionalMappings.find(m => m.messageType === 'response');
  if (!existingResponseMapping) {
  const newMapping = {`;
- id: `response_mapping_${Date.now()}`,`
+ id: `response_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Response` : 'Response Mapping',
  fieldMappings: [],
  messageType: 'response'
@@ -1376,7 +1372,7 @@ parsedMapping.functionNode = typeof mapping.functionNode === 'string'
  const existingFaultMapping = additionalMappings.find(m => m.messageType === 'fault');
  if (!existingFaultMapping) {
  const newMapping = {`;
- id: `fault_mapping_${Date.now()}`,`
+ id: `fault_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Fault` : 'Fault Mapping',
  fieldMappings: [],
  messageType: 'fault'
