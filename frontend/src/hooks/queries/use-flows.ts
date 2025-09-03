@@ -97,8 +97,8 @@ export const useFlow = (flowId: string, enabled = true) => {
  */
 export const useFlowExecutions = (flowId: string, enabled = true) => {
  return useQuery({
- queryKey: queryKeys.flows.executions(flowId),`
- queryFn: () => apiClient.get<FlowExecutionDTO[]>(/integration-flows/${flowId}/executions`),
+ queryKey: queryKeys.flows.executions(flowId),
+ queryFn: () => apiClient.get<FlowExecutionDTO[]>(`/integration-flows/${flowId}/executions`),
  enabled: enabled && !!flowId,
  refetchInterval: 5000, // Poll every 5 seconds for live updates
  })
@@ -109,7 +109,7 @@ export const useFlowExecutions = (flowId: string, enabled = true) => {
  */
 export const useFlowMetrics = (flowId: string, enabled = true) => {
  return useQuery({
- queryKey: queryKeys.flows.metrics(flowId),`
+ queryKey: queryKeys.flows.metrics(flowId),
  queryFn: () => apiClient.get<FlowMetricsDTO>(`/integration-flows/${flowId}/metrics`),
  enabled: enabled && !!flowId,
  refetchInterval: 30000, // Refresh every 30 seconds
@@ -121,12 +121,11 @@ export const useFlowMetrics = (flowId: string, enabled = true) => {
  */
 export const useCreateFlow = () => {
  const notify = useNotify();
-;
  return useMutation({
  mutationFn: (data: CreateFlowDTO) =>
  apiClient.post<IntegrationFlowDTO>('/integration-flows', data),
 
- onSuccess: (flow) => {`
+ onSuccess: (flow) => {
  notify.success('Flow created', `Integration flow "${flow.name}" has been created successfully`);
  invalidateRelatedQueries('flow');
  },
@@ -142,12 +141,11 @@ export const useCreateFlow = () => {
  */
 export const useUpdateFlow = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: ({ flowId, data }: { flowId: string; data: UpdateFlowDTO }) =>`
- apiClient.put<IntegrationFlowDTO>(/integration-flows/${flowId}`, data),
+ mutationFn: ({ flowId, data }: { flowId: string; data: UpdateFlowDTO }) =>
+ apiClient.put<IntegrationFlowDTO>(`/integration-flows/${flowId}`, data),
 
- onSuccess: (flow) => {`
+ onSuccess: (flow) => {
  notify.success('Flow updated', `Integration flow "${flow.name}" has been updated successfully`);
  invalidateRelatedQueries('flow', flow.id);
  },
@@ -163,10 +161,9 @@ export const useUpdateFlow = () => {
  */
 export const useDeleteFlow = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: (flowId: string) =>`
- apiClient.delete(/integration-flows/${flowId}`),
+ mutationFn: (flowId: string) =>
+ apiClient.delete(`/integration-flows/${flowId}`),
 
  onSuccess: (_, flowId) => {
  notify.success('Flow deleted', 'Integration flow has been deleted successfully');
@@ -185,9 +182,8 @@ export const useDeleteFlow = () => {
 export const useExecuteFlow = () => {
  const notify = useNotify();
  const queryClient = useQueryClient();
-;
  return useMutation({
- mutationFn: (flowId: string) =>`
+ mutationFn: (flowId: string) =>
  apiClient.post<FlowExecutionDTO>(`/integration-flows/${flowId}/execute`),
 
  onMutate: async (flowId) => {
@@ -200,7 +196,7 @@ export const useExecuteFlow = () => {
 
  // Immediately refetch executions and metrics
  queryClient.invalidateQueries({ queryKey: queryKeys.flows.executions(flowId) });
- queryClient.invalidateQueries({ queryKey: queryKeys.flows.metrics(flowId) })
+ queryClient.invalidateQueries({ queryKey: queryKeys.flows.metrics(flowId) });
  },
 
  onError: (error: any) => {
@@ -215,18 +211,17 @@ export const useExecuteFlow = () => {
 export const useToggleFlowStatus = () => {
  const notify = useNotify();
  const queryClient = useQueryClient();
-;
  return useMutation({
- mutationFn: ({ flowId, isActive }: { flowId: string; isActive: boolean }) =>`
- apiClient.patch<IntegrationFlowDTO>(/integration-flows/${flowId}/status`, { isActive }),
+ mutationFn: ({ flowId, isActive }: { flowId: string; isActive: boolean }) =>
+ apiClient.patch<IntegrationFlowDTO>(`/integration-flows/${flowId}/status`, { isActive }),
 
  onMutate: async ({ flowId, isActive }) => {
  // Cancel outgoing refetches
  await queryClient.cancelQueries({ queryKey: queryKeys.flows.detail(flowId) });
 
  // Snapshot previous value
- const previousFlow = queryClient.getQueryData<IntegrationFlowDTO>(;
- queryKeys.flows.detail(flowId);
+ const previousFlow = queryClient.getQueryData<IntegrationFlowDTO>(
+ queryKeys.flows.detail(flowId)
  );
 
  // Optimistically update
@@ -245,14 +240,14 @@ export const useToggleFlowStatus = () => {
  { queryKey: queryKeys.flows.lists() },
  (old) => {
  if (!old) return old;
- return old.map((flow) =>;
+ return old.map((flow) =>
  flow.id === flowId ? { ...flow, isActive } : flow
  );
  }
  );
 
- return { previousFlow }
-},
+ return { previousFlow };
+ },
 
  onError: (err, variables, context) => {
  // Rollback on error
@@ -268,12 +263,12 @@ export const useToggleFlowStatus = () => {
  onSettled: (_, __, { flowId }) => {
  // Always refetch after error or success
  queryClient.invalidateQueries({ queryKey: queryKeys.flows.detail(flowId) });
- queryClient.invalidateQueries({ queryKey: queryKeys.flows.lists() })
+ queryClient.invalidateQueries({ queryKey: queryKeys.flows.lists() });
  },
 
  onSuccess: (_, { isActive }) => {
  notify.success(
- 'Flow status updated',`
+ 'Flow status updated',
  `Integration flow has been ${isActive ? 'activated' : 'deactivated'}`
  );
  },
@@ -285,12 +280,11 @@ export const useToggleFlowStatus = () => {
  */
 export const useDeployFlow = () => {
  const notify = useNotify();
-;
  return useMutation({
- mutationFn: (flowId: string) =>`
- apiClient.post<{ sagaId: string; status: string }>(/integration-flows/${flowId}/deploy`),
+ mutationFn: (flowId: string) =>
+ apiClient.post<{ sagaId: string; status: string }>(`/integration-flows/${flowId}/deploy`),
 
- onSuccess: (result, flowId) => {`
+ onSuccess: (result, flowId) => {
  notify.success('Flow deployment started', `Deployment saga ${result.sagaId} initiated`);
  invalidateRelatedQueries('flow', flowId);
  },
@@ -299,4 +293,4 @@ export const useDeployFlow = () => {
  notify.error('Failed to deploy flow', error.message);
  },
  })
-};`
+}
