@@ -69,7 +69,7 @@ class FrontendLogger {
  maxBatchSize: 50,
  flushInterval: 5000, // 5 seconds
  retryAttempts: 3,
- retryDelay: 1000;
+ retryDelay: 1000
  };
 
  private constructor() {

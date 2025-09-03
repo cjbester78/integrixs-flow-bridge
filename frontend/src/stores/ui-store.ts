@@ -165,6 +165,6 @@ export const useAnimations = () => {
  return {
  enabled,
  duration: enabled ? 'duration-200' : 'duration-0',
- transition: enabled ? 'transition-all' : ',
+ transition: enabled ? 'transition-all' : '',
  }
 };
