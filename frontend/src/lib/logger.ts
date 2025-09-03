@@ -277,11 +277,12 @@ class FrontendLogger {
  navigator.sendBeacon('/api/system/logs/batch', blob);
  } else {
  // Async request
- await this.sendLogs(logsToSend);} catch (error) {
+ await this.sendLogs(logsToSend);
+ }
+ } catch (error) {
  // Re-queue failed logs
  this.logQueue.unshift(...logsToSend);
- console.error(Failed to send logs: error);
-}
+ console.error('Failed to send logs:', error);
  }
  }
 
