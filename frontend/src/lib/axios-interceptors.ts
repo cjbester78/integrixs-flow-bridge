@@ -131,7 +131,7 @@ export const setupAxiosInterceptors = () => {
  * Add a response interceptor specifically for session validation
  */
 export const addSessionInterceptor = (onSessionExpired: () => void) => {
- const interceptorId = axios.interceptors.response.use(;
+ const interceptorId = axios.interceptors.response.use(
  (response) => response,
  (error: AxiosError) => {
  if (error.response?.status === 401) {

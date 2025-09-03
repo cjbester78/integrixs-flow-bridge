@@ -189,9 +189,10 @@ class FrontendLogger {
  const userStr = localStorage.getItem('integration_platform_user');
  if (userStr) {
  const user = JSON.parse(userStr);
- userId = user.id;} catch (error) {
+ userId = user.id;
+ }
+ } catch (error) {
  // Ignore JSON parse errors
-}
  }
 
  const enrichedEntry: LogEntry = {
@@ -213,8 +214,8 @@ class FrontendLogger {
 
  // Also log to console in development
  if (import.meta.env.DEV) {
- const consoleMethod = this.getConsoleMethod(entry.level);`;
- consoleMethod([${entry.category}]`, entry.message, entry.details || '');
+ const consoleMethod = this.getConsoleMethod(entry.level);
+ consoleMethod(`[${entry.category}]`, entry.message, entry.details || '');
  }
  }
 
