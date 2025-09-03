@@ -116,10 +116,8 @@ export const DataStructures = () => {
 const response = await api.get('/business-components');
  if (response.success && response.data) {
  setBusinessComponents(Array.isArray(response.data) ? response.data : []);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error fetching business components', { error: error });
  setBusinessComponents([]);
  }
@@ -127,7 +125,7 @@ const response = await api.get('/business-components');
 
  const filterStructures = () => {
  let filtered = [...structures];
-;
+
  // Search filter
  if (searchTerm) {
  filtered = filtered.filter(structure =>
@@ -163,9 +161,10 @@ const response = await api.get('/business-components');
  navigate(`/data-structures/${structureId}`);
  };
 
- const handleEditStructure = (structure: DataStructure) => {`;
- navigate(/data-structures/${structure.id}`, {
- state: { structure, isEdit: true });
+ const handleEditStructure = (structure: DataStructure) => {
+ navigate(`/data-structures/${structure.id}`, {
+ state: { structure, isEdit: true }
+ });
  };
 
  const handleDeleteClick = (structure: DataStructure) => {
@@ -176,14 +175,15 @@ const response = await api.get('/business-components');
  const handleDeleteConfirm = async () => {
  if (!structureToDelete) return;
 
- try {`
+ try {
  const response = await api.delete(`/structures/${structureToDelete.id}`);
  if (response.success) {
  toast({ title: "Success", description: 'Data structure deleted successfully' });
  fetchStructures();
  } else {
- toast({ title: "Error", description: 'Failed to delete data structure', variant: "destructive" })}
-} catch (error) {
+ toast({ title: "Error", description: 'Failed to delete data structure', variant: "destructive" });
+ }
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error deleting structure', { error: error });
  toast({ title: "Error", description: 'Failed to delete data structure', variant: "destructive" });
  } finally {
@@ -202,7 +202,7 @@ const response = await api.get('/business-components');
  custom: 'bg-gray-500'
  };
 
- return (`
+ return (
  <Badge className={`${typeColors[type] || 'bg-gray-500'} text-white`}>
  {type.toUpperCase()}
  </Badge>
@@ -222,8 +222,8 @@ const response = await api.get('/business-components');
  both: 'Source & Target'
  };
 
- return (`
- <Badge variant="outline" className={`${usageColors[usage as keyof typeof usageColors] || '}`}>
+ return (
+ <Badge variant="outline" className={`${usageColors[usage as keyof typeof usageColors] || ''}`}>
  {usageLabels[usage as keyof typeof usageLabels] || usage}
  </Badge>
  );
@@ -233,7 +233,7 @@ const response = await api.get('/business-components');
  <PageContainer>
  <PageHeader
  title="Data Structures"
- description="Manage and view all data structures";
+ description="Manage and view all data structures"
  icon={<Layers />}
  actions={
  isDevelopment && (
@@ -433,4 +433,4 @@ const response = await api.get('/business-components');
  </AlertDialog>
  </PageContainer>
  );
-};`)
+}
