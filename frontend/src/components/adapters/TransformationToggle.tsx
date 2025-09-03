@@ -65,7 +65,7 @@ export const TransformationToggle: FC<TransformationToggleProps> = ({
 
  const getAdapterSpecificMessage = () => {
  const upperType = adapterType.toUpperCase();
-;
+
  if (['REST', 'HTTP', 'HTTPS'].includes(upperType)) {
  return (
  <Alert className="mt-4">
@@ -74,7 +74,7 @@ export const TransformationToggle: FC<TransformationToggleProps> = ({
  For REST/HTTP adapters with transformation enabled, you must define the payload structure.
  The payload will be automatically converted to XML for mapping.
  </AlertDescription>
- </Alert>;
+ </Alert>
  );
  }
 

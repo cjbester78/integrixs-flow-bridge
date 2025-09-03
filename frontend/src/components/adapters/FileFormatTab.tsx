@@ -17,7 +17,7 @@ export interface FileFormatConfig {
  includeHeaders?: boolean;
  quoteAllFields?: boolean;
  skipEmptyLines?: boolean;
-;
+
  // Fixed-length specific
  fieldLengths?: Record<string, number>;
  fieldOrder?: string[];

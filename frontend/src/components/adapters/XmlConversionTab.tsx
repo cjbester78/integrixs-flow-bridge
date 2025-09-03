@@ -217,12 +217,12 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  </div>
  <div>
  <Label>Converted XML</Label>
- <pre className="text-xs bg-muted p-2 rounded">`
-{`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>`
-<${config.rootElementName || 'Message'}${config.targetNamespace ? `} xmlns${config.namespacePrefix ? :${config.namespacePrefix}` : '}="${config.targetNamespace}"` : ''}>
- <orderId>12345</orderId>
- <customer>John Doe</customer>
- <amount>99.99</amount>`
+ <pre className="text-xs bg-muted p-2 rounded">
+{`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
+<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>
+  <orderId>12345</orderId>
+  <customer>John Doe</customer>
+  <amount>99.99</amount>
 </${config.rootElementName || 'Message'}>`}
  </pre>
  </div>

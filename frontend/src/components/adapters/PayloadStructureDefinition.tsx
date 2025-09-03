@@ -61,11 +61,10 @@ JSON.parse(payload);
 
  const handleSamplePayloadChange = (payload: string) => {
  const newConfig = { ...config, samplePayload: payload };
-;
  // Validate based on format
  if (payload) {
- const errors = config.format === 'JSON';
- ? validateJsonPayload(payload);
+ const errors = config.format === 'JSON'
+ ? validateJsonPayload(payload)
  : validateXmlPayload(payload);
  newConfig.validationErrors = errors;
 
