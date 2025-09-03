@@ -241,4 +241,3 @@ export const MailInboundAdapterConfiguration: React.FC<MailInboundAdapterConfigu
  </div>
  );
 };
-})
