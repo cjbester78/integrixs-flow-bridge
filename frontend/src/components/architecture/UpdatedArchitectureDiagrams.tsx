@@ -139,9 +139,8 @@ export const UpdatedArchitectureDiagrams: React.FC = () => {
  style U2 fill:#fff8e1
  style T1 fill:#f1f8e9
  style T2 fill:#f1f8e9
- style EE fill:#fce4ec`
+ style EE fill:#fce4ec
  style FF fill:#fce4ec`;
-`
  const updatedMindmap = `mindmap;
  root((Integrix Flow Bridge Platform))
  Authentication

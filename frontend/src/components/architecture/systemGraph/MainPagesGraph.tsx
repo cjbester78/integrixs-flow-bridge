@@ -28,7 +28,7 @@ export const MainPagesGraph: React.FC = () => {
  D --> L
  D --> M
  D --> N
-`
+
  style D fill:#fff3e0`;
 
  return (

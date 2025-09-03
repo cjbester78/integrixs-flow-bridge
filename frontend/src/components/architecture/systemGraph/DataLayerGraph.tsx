@@ -47,7 +47,7 @@ export const DataLayerGraph: React.FC = () => {
  FF --> FF5
  FF --> FF6
 
- style EE fill:#fce4ec`
+ style EE fill:#fce4ec
  style FF fill:#fce4ec`;
 
  return (

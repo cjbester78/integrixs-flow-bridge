@@ -41,7 +41,7 @@ export const LoggingArchitectureGraph: React.FC = () => {
  L --> U7
  K --> U8
 
- style U1 fill:#fff8e1`
+ style U1 fill:#fff8e1
  style U2 fill:#fff8e1`;
 
  return (

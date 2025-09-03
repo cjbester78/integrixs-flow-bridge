@@ -19,7 +19,7 @@ import {
 export const LoggingArchitectureDiagrams: React.FC = () => {
  const [activeTab, setActiveTab] = useState('database');
 
- const DatabaseSchemaDigram = () => (;
+ const DatabaseSchemaDigram = () => (
  <div className="space-y-4">
  <div className="flex items-center justify-between">
  <h3 className="text-lg font-semibold flex items-center gap-2">

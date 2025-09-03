@@ -35,7 +35,7 @@ export const ServicesLayerGraph: React.FC = () => {
  S --> T
  U1 --> T
  U2 --> Z2
-`
+
  style T fill:#e8f5e8`;
 
  return (

@@ -59,5 +59,4 @@ export const CoreComponentsGraph: React.FC = () => {
  </CardContent>
  </Card>
  );
-};`
-}
+};

@@ -22,7 +22,7 @@ export const FrontendApplicationGraph: React.FC = () => {
  end
 
  style A fill:#e1f5fe
- style B fill:#f3e5f5`
+ style B fill:#f3e5f5
  style D fill:#fff3e0`;
 
  return (

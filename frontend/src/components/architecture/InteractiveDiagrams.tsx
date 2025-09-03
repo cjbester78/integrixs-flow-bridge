@@ -95,9 +95,8 @@ export const InteractiveDiagrams: React.FC = () => {
  SYSTEM_LOGS ||--o{ FLOW_MANAGEMENT_ERRORS : "references"
  SYSTEM_LOGS ||--o{ ADAPTER_MANAGEMENT_ERRORS : "references"
  SYSTEM_LOGS ||--o{ STRUCTURE_MANAGEMENT_ERRORS : "references"
- SYSTEM_LOGS ||--o{ CHANNEL_MANAGEMENT_ERRORS : "references"`
+ SYSTEM_LOGS ||--o{ CHANNEL_MANAGEMENT_ERRORS : "references"
  SYSTEM_LOGS ||--o{ MESSAGE_PROCESSING_ERRORS : "references"`;
-`
  const flowchartCode = `flowchart TD;
  A[User Action] --> B{Error Occurred?}
  B -->|Yes| C[Backend API Error]
