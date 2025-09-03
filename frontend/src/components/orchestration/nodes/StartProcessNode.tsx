@@ -36,7 +36,6 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  const [adapters, setAdapters] = useState<Array<{id: string; name: string}>>([]);
 
  const isConfigured = data.senderComponent && data.inboundAdapter;
-;
  // Load all adapters on mount
  useEffect(() => {
  const loadAllAdapters = async () => {
@@ -47,8 +46,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  name: id // Use ID as name for now
  }));
  setAdapters(mockAdapters);
- }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error loading adapters', { error: error });
  };
 

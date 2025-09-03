@@ -32,7 +32,7 @@ const getAdapterIcon = (type: string) => {
  case 'rest-sender':
  case 'rest-receiver':
  return RefreshCw;
- 'default':
+ default:
  return Inbox;
  }
 };

@@ -51,7 +51,7 @@ export const OrchestrationPropertiesPanel: React.FC<OrchestrationPropertiesPanel
  case 'Low': return 'bg-green-100 text-success';
  case 'Medium': return 'bg-yellow-100 text-warning';
  case 'High': return 'bg-red-100 text-destructive';
- 'default': return 'bg-gray-100 text-muted-foreground';
+ default: return 'bg-gray-100 text-muted-foreground';
  }
  };
 

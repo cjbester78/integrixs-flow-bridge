@@ -32,7 +32,7 @@ export const RoutingNode: React.FC<RoutingNodeProps> = ({ id, data, selected }) 
  };
 
  const addCondition = () => {
- setConditions([...conditions, { field: ', operator: 'equals', value: ', route: ' }]);
+ setConditions([...conditions, { field: '', operator: 'equals', value: '', route: '' }]);
  };
 
  const updateCondition = (index: number, field: string, value: string) => {

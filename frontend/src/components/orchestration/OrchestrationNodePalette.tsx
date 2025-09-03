@@ -40,7 +40,7 @@ interface OrchestrationNodePaletteProps {
 }
 
 export const OrchestrationNodePalette: React.FC<OrchestrationNodePaletteProps> = ({ onAddNode }) => {
- const nodeCategories = [;
+ const nodeCategories = [
  {
  category: 'BPMN Events',
  icon: Circle,

@@ -114,7 +114,7 @@ const nodeTypes = {
  'rest-adapter': AdapterNode,
 } as const;
 // Initial nodes with start and end process connected
-const createInitialNodes = (): Node[] => [;
+const createInitialNodes = (): Node[] => [
  {
  id: 'start-process-1',
  type: 'start-process',

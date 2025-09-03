@@ -29,7 +29,7 @@ const getTransformationIcon = (type: string) => {
  return Filter;
  case 'enrichment':
  return Plus;
- 'default':
+ default:
  return ArrowRightLeft;
  }
 };
@@ -114,7 +114,7 @@ const getTransformationName = (type: string) => {
  case 'enrichment':
  return 'Data Enrichment';
 
- 'default':
+ default:
  return 'Transformation';
  }
 };
