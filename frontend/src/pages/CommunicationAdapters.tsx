@@ -77,13 +77,12 @@ interface BusinessComponent {
  name: string;
 }
 
-const adapterTypes = [;
+const adapterTypes = [
  'FILE', 'FTP', 'HTTP', 'IDOC', 'JDBC', 'JMS',
  'MAIL', 'ODATA', 'REST', 'RFC', 'SFTP', 'SOAP'
 ];
 
 const adapterModes = ['INBOUND', 'OUTBOUND'];
-;
 export default function CommunicationAdapters() {
  const navigate = useNavigate();
  const { isDevelopment } = useEnvironmentPermissions();
@@ -95,9 +94,9 @@ export default function CommunicationAdapters() {
 
  // Filter states
  const [searchTerm, setSearchTerm] = useState('');
- const [selectedBusinessComponent, setSelectedBusinessComponent] = useState<$1>('all');
- const [selectedType, setSelectedType] = useState<$1>('all');
- const [selectedMode, setSelectedMode] = useState<$1>('all');
+ const [selectedBusinessComponent, setSelectedBusinessComponent] = useState<string>('all');
+ const [selectedType, setSelectedType] = useState<string>('all');
+ const [selectedMode, setSelectedMode] = useState<string>('all');
 
  // Dialog states
  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -123,7 +122,8 @@ export default function CommunicationAdapters() {
  setAdapters(Array.isArray(response.data) ? response.data : []);
  } else {
  logger.warn(LogCategory.SYSTEM, 'No adapter data in response');
- setAdapters([]);}
+ setAdapters([]);
+ }
 } catch (error) {
  logger.error(LogCategory.ERROR, 'Error fetching adapters', { error: error });
  toast({ title: "Error", description: 'Failed to load communication adapters', variant: "destructive" });
@@ -141,7 +141,8 @@ export default function CommunicationAdapters() {
  if (response.success && response.data) {
  setBusinessComponents(Array.isArray(response.data) ? response.data : []);
  } else {
- setBusinessComponents([]);}
+ setBusinessComponents([]);
+ }
 } catch (error) {
  logger.error(LogCategory.ERROR, 'Error fetching business components', { error: error });
  setBusinessComponents([]);
@@ -150,7 +151,6 @@ export default function CommunicationAdapters() {
 
  const filterAdapters = () => {
  let filtered = [...adapters];
-;
  // Search filter
  if (searchTerm) {
  filtered = filtered.filter(adapter =>
@@ -189,18 +189,19 @@ export default function CommunicationAdapters() {
  navigate(`/create-communication-adapter`, { state: { adapter, isEdit: true, viewMode: true } });
  };
 
- const handleEditAdapter = (adapter: CommunicationAdapter) => {`;
- navigate(/create-communication-adapter`, { state: { adapter, isEdit: true } });
+ const handleEditAdapter = (adapter: CommunicationAdapter) => {
+ navigate(`/create-communication-adapter`, { state: { adapter, isEdit: true } });
  };
 
  const handleCloneAdapter = async (adapter: CommunicationAdapter) => {
- try {`
+ try {
  const response = await adapterService.cloneAdapter(adapter.id, `${adapter.name} (Copy)`);
  if (response.success) {
  toast({ title: "Success", description: 'Adapter cloned successfully' });
  fetchAdapters(); // Refresh the list
  } else {
- throw new Error(response.error || 'Failed to clone adapter');}
+ throw new Error(response.error || 'Failed to clone adapter');
+ }
 } catch (error) {
  toast({ title: "Error", description: error instanceof Error ? error.message : 'Failed to clone adapter', variant: "destructive" });
  }
@@ -217,7 +218,8 @@ export default function CommunicationAdapters() {
  setDeleteDialogOpen(false);
  setAdapterToDelete(null);
  } else {
- throw new Error(response.error || 'Failed to delete adapter');}
+ throw new Error(response.error || 'Failed to delete adapter');
+ }
 } catch (error) {
  toast({ title: "Error", description: error instanceof Error ? error.message : 'Failed to delete adapter', variant: "destructive" });
  }
@@ -227,11 +229,11 @@ export default function CommunicationAdapters() {
  try {
  setTestingAdapter(adapter.id);
  const response = await adapterService.testAdapter(adapter.id, '{}');
-;
  if (response.success && response.data) {
  toast({ title: "Success", description: response.data.message || 'Connection test successful' });
  } else {
- throw new Error(response.error || 'Connection test failed');}
+ throw new Error(response.error || 'Connection test failed');
+ }
 } catch (error) {
  toast({ title: "Error", description: error instanceof Error ? error.message : 'Failed to test adapter connection', variant: "destructive" });
  } finally {
@@ -243,12 +245,12 @@ export default function CommunicationAdapters() {
  try {
  const updates: Partial<CommunicationAdapter> = { active: !adapter.active };
  const response = await adapterService.updateAdapter(adapter.id, updates);
-;
- if (response.success) {`
+ if (response.success) {
  toast({ title: "Success", description: `Adapter ${adapter.active ? 'deactivated' : 'activated'} successfully` });
  fetchAdapters(); // Refresh the list
  } else {
- throw new Error(response.error || 'Failed to update adapter');}
+ throw new Error(response.error || 'Failed to update adapter');
+ }
 } catch (error) {
  toast({ title: "Error", description: error instanceof Error ? error.message : 'Failed to update adapter status', variant: "destructive" });
  }
@@ -273,8 +275,8 @@ export default function CommunicationAdapters() {
  OUTBOUND: 'Outbound'
  };
 
- return (`
- <Badge variant="outline" className={`${modeColors[mode as keyof typeof modeColors] || '}`}>
+ return (
+ <Badge variant="outline" className={`${modeColors[mode as keyof typeof modeColors] || ''}`}>
  {modeLabels[mode as keyof typeof modeLabels] || mode}
  </Badge>
  );
@@ -514,4 +516,4 @@ export default function CommunicationAdapters() {
  </Dialog>
  </div>
  );
-}`)
+}
