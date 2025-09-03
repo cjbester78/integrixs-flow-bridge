@@ -16,15 +16,13 @@ export const useFlowMonitoring = (businessComponentId?: string) => {
 const response = await flowMonitoringService.getFlowExecutions(filters);
  if (response.success && response.data) {
  setExecutions(response.data.executions);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to load flow executions",
  variant: "destructive",
-}
+ });
  });
  } finally {
  setLoading(false);
@@ -36,11 +34,10 @@ const response = await flowMonitoringService.getFlowExecutions(filters);
 const response = await flowMonitoringService.getExecutionStats(filters);
  if (response.success && response.data) {
  setStats(response.data);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load execution stats', { error: error });
+ }
  }, []);
 
  useEffect(() => {
@@ -68,7 +65,6 @@ const response = await flowMonitoringService.getExecutionStats(filters);
  }
  });
 
-
  const unsubscribeStats = flowMonitoringService.onStatsUpdate((newStats) => {
  setStats(newStats);
  });
@@ -93,13 +89,14 @@ const response = await flowMonitoringService.getExecutionStats(filters);
  description: "Execution stopped successfully",
  });
  } else {
- throw new Error(response.error || 'Failed to stop execution');}
-} catch (error) {
+ throw new Error(response.error || 'Failed to stop execution');
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to stop execution",
  variant: "destructive",
-}
+ });
  });
  }
  }, [toast]);
@@ -113,13 +110,14 @@ const response = await flowMonitoringService.getExecutionStats(filters);
  description: "Execution queued for retry",
  });
  } else {
- throw new Error(response.error || 'Failed to retry execution');}
-} catch (error) {
+ throw new Error(response.error || 'Failed to retry execution');
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to retry execution",
  variant: "destructive",
-}
+ });
  });
  }
  }, [toast]);
@@ -139,5 +137,5 @@ const response = await flowMonitoringService.getExecutionStats(filters);
  stopExecution,
  retryExecution,
  refreshData,
- }
-};`
+ };
+}
