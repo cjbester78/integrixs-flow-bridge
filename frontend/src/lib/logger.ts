@@ -45,9 +45,6 @@ level: LogLevel;
  userId?: string;
  sessionId?: string;
  correlationId?: string;
-
-} catch (error) {
-  // Handle error
 }
 /**
  * Batch configuration

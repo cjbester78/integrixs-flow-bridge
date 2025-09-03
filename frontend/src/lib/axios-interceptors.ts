@@ -71,7 +71,7 @@ export const setupAxiosInterceptors = () => {
  if (isRefreshing) {
  return new Promise((resolve, reject) => {
  failedQueue.push({ resolve, reject });
- }).then(token => {`
+ }).then(token => {
  originalRequest.headers.Authorization = `Bearer ${token}`;
  return axios(originalRequest);
  }).catch(err => {
