@@ -592,6 +592,5 @@ export function SoapInboundAdapterConfiguration({
  </Tabs>
  </CardContent>
  </Card>
- )
-}`
-}}}}
+ );
+};

@@ -84,9 +84,9 @@ interface SftpAdapterConfig {
 export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterConfigurationProps) => {
  const [config, setConfig] = useState<SftpAdapterConfig>({
  // Common connection parameters
- serverAddress: ',
+ serverAddress: '',
  port: '22',
- timeout: ',
+ timeout: '',
  authenticationType: '',
  userName: ',
  password: '',

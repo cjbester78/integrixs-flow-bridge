@@ -244,7 +244,7 @@ export function RestInboundAdapterConfiguration({
  id="processingMode"
  checked={(configuration.processingMode || 'ASYNCHRONOUS') === 'ASYNCHRONOUS'}
  onCheckedChange={(checked) =>
- onConfigurationChange('processingMode', checked ? 'ASYNCHRONOUS' : 'SYNCHRONOUS');
+ onConfigurationChange('processingMode', checked ? 'ASYNCHRONOUS' : 'SYNCHRONOUS')
  }
  />
  </div>
