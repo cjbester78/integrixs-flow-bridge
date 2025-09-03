@@ -106,7 +106,6 @@ export const useAuthStore = create<AuthState>()(
  get().refreshAccessToken();
  }, expirationTime);
 
- }
  } catch (error: any) {
  // Logger removed to avoid circular dependency
  logger.error(LogCategory.AUTH, 'Login failed', { error: error });

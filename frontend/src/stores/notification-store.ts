@@ -79,7 +79,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
  */
 export const useNotify = () => {
  const addNotification = useNotificationStore((state) => state.addNotification);
-;
+
  return {
  success: (title: string, message?: string, options?: Partial<Notification>) =>
  addNotification({ ...options, type: 'success', title, message }),
@@ -92,6 +92,5 @@ export const useNotify = () => {
 
  info: (title: string, message?: string, options?: Partial<Notification>) =>
  addNotification({ ...options, type: 'info', title, message }),
- }
-};`
-}}
+ };
+}
