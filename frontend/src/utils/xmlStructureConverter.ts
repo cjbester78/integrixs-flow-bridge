@@ -39,8 +39,8 @@ export async function convertStructureToXml(
  logger.info(LogCategory.SYSTEM, 'Received XML conversion result', {
  structureId: response.data?.structureId,
  structureName: response.data?.structureName,
- xmlContent: response.data?.xmlContent);
- })
+ xmlContent: response.data?.xmlContent
+ });
 
  return response.data;
  }

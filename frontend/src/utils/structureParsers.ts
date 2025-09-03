@@ -78,7 +78,7 @@ export const parseWsdlStructure = (wsdlString: string) => {
  const restriction = simpleType.querySelector('restriction, xs\\:restriction, xsd\\:restriction');
  if (restriction) {
  const base = restriction.getAttribute('base') || 'string';
-            return base.replace(/^(xs:|xsd:|tns:)/, ');
+            return base.replace(/^(xs:|xsd:|tns:)/, '');
  }
  }
  }

@@ -12,14 +12,14 @@ const buildJsonStructure = (fields: Field[]): any => {
  if (isComplexType) {
  if (isArray) {
  // For arrays with children, create array with sample object
- result[field.name] = [buildJsonStructure(field.children!)]
+ result[field.name] = [buildJsonStructure(field.children!)];
  } else {
  // For complex types, build nested structure (no type property)
- result[field.name] = buildJsonStructure(field.children!)
+ result[field.name] = buildJsonStructure(field.children!);
  }
  } else {
  // Simple primitive field - show default values
- result[field.name] = field.type === 'integer' ? 0 : ""
+ result[field.name] = field.type === 'integer' ? 0 : "";
  }
  }
  });
@@ -36,7 +36,7 @@ export const generateJsonSchema = (fields: Field[]): string => {
  const structure = {
  [rootField.name]: buildJsonStructure(rootField.children || [])
  };
- return JSON.stringify(structure, null, 2)
+ return JSON.stringify(structure, null, 2);
  }
 
  // Fallback: wrap all fields in a root container
@@ -44,11 +44,11 @@ export const generateJsonSchema = (fields: Field[]): string => {
  root: buildJsonStructure(fields)
  };
 
- return JSON.stringify(structure, null, 2)
+ return JSON.stringify(structure, null, 2);
 };
 
 export const generateXmlSchema = (fields: Field[]): string => {
- let xsd = `<?xml version="1.0" encoding="UTF-8"?>;
+ let xsd = `<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
  <xs:element name="root">
  <xs:complexType>
@@ -57,7 +57,7 @@ export const generateXmlSchema = (fields: Field[]): string => {
  fields.forEach(field => {
  if (field.name) {
  if (field.isComplexType || (field.children && field.children.length > 0)) {
- xsd += 
+ xsd += `
  <xs:element name="${field.name}">
  <xs:complexType>
  <xs:sequence>`;
@@ -65,11 +65,10 @@ export const generateXmlSchema = (fields: Field[]): string => {
  field.children?.forEach(child => {
  if (child.name) {
  const childMinOccurs = child.minOccurs || (child.required ? 1 : 0);
- const childMaxOccurs = child.maxOccurs === 'unbounded' ? 'unbounded' : (child.maxOccurs || 1);`;
+ const childMaxOccurs = child.maxOccurs === 'unbounded' ? 'unbounded' : (child.maxOccurs || 1);
  const childOccursAttr = `minOccurs="${childMinOccurs}" maxOccurs="${childMaxOccurs}"`;
-;
  if (child.isComplexType || (child.children && child.children.length > 0)) {
- xsd += 
+ xsd += `
  <xs:element name="${child.name}">
  <xs:complexType>
  <xs:sequence>`;
@@ -77,41 +76,39 @@ export const generateXmlSchema = (fields: Field[]): string => {
  child.children?.forEach(grandchild => {
  if (grandchild.name) {
  const grandchildMinOccurs = grandchild.minOccurs || (grandchild.required ? 1 : 0);
- const grandchildMaxOccurs = grandchild.maxOccurs === 'unbounded' ? 'unbounded' : (grandchild.maxOccurs || 1);`;
+ const grandchildMaxOccurs = grandchild.maxOccurs === 'unbounded' ? 'unbounded' : (grandchild.maxOccurs || 1);
  const grandchildOccursAttr = `minOccurs="${grandchildMinOccurs}" maxOccurs="${grandchildMaxOccurs}"`;
-;
- xsd += 
- <xs:element name="${grandchild.name}" type="xs:${grandchild.type === 'array' ? 'string' : grandchild.type}" ${grandchildOccursAttr}/>`
+ xsd += `
+ <xs:element name="${grandchild.name}" type="xs:${grandchild.type === 'array' ? 'string' : grandchild.type}" ${grandchildOccursAttr}/>`;
  }
  });
 
- xsd += 
+ xsd += `
  </xs:sequence>
  </xs:complexType>
  </xs:element>`
  } else {
- xsd += 
+ xsd += `
  <xs:element name="${child.name}" type="xs:${child.type === 'array' ? 'string' : child.type}" ${childOccursAttr}/>`
  }
  }
  });
 
- xsd += 
+ xsd += `
  </xs:sequence>
  </xs:complexType>
  </xs:element>`
  } else {
  const minOccurs = field.minOccurs || (field.required ? 1 : 0);
- const maxOccurs = field.maxOccurs === 'unbounded' ? 'unbounded' : (field.maxOccurs || 1);`;
+ const maxOccurs = field.maxOccurs === 'unbounded' ? 'unbounded' : (field.maxOccurs || 1);
  const occursAttr = `minOccurs="${minOccurs}" maxOccurs="${maxOccurs}"`;
-;
- xsd += 
+ xsd += `
  <xs:element name="${field.name}" type="xs:${field.type === 'array' ? 'string' : field.type}" ${occursAttr}/>`
  }
  }
  });
 
- xsd += 
+ xsd += `
  </xs:sequence>
  </xs:complexType>
  </xs:element>
@@ -121,7 +118,7 @@ export const generateXmlSchema = (fields: Field[]): string => {
 };
 
 const generateComplexType = (field: Field, indent: string = '  '): string => {
- let xsd = ';
+ let xsd = '';
  if (field.isComplexType || (field.children && field.children.length > 0)) {
  xsd += `${indent}<xsd:complexType name="${field.name}Type">
 ${indent} <xsd:sequence>`;
@@ -129,21 +126,20 @@ ${indent} <xsd:sequence>`;
  field.children?.forEach(child => {
  if (child.name) {
  const minOccurs = child.minOccurs || (child.required ? 1 : 0);
- const maxOccurs = child.maxOccurs === 'unbounded' ? 'unbounded' : (child.maxOccurs || 1);`;
+ const maxOccurs = child.maxOccurs === 'unbounded' ? 'unbounded' : (child.maxOccurs || 1);
  const occursAttr = `minOccurs="${minOccurs}" maxOccurs="${maxOccurs}"`;
-;
  if (child.isComplexType || (child.children && child.children.length > 0)) {
- xsd += 
+ xsd += `
 ${indent} <xsd:element name="${child.name}" type="tns:${child.name}Type" ${occursAttr}/>`
  } else {
- const xsdType = child.type === 'array' ? 'string' : child.type === 'integer' ? 'int' : child.type;`;
- xsd += 
+ const xsdType = child.type === 'array' ? 'string' : child.type === 'integer' ? 'int' : child.type;
+ xsd += `
 ${indent} <xsd:element name="${child.name}" type="xsd:${xsdType}" ${occursAttr}/>`
  }
  }
  });
 
- xsd += 
+ xsd += `
 ${indent} </xsd:sequence>
 ${indent}</xsd:complexType>`
  }
@@ -152,9 +148,9 @@ ${indent}</xsd:complexType>`
 };
 
 export const generateWsdlSchema = (fields: Field[], serviceName: string = 'DataService', operationName: string = 'ProcessData'): string => {
- if (fields.length === 0) return ';
+ if (fields.length === 0) return '';
 
- let wsdl = `<?xml version="1.0" encoding="UTF-8"?>;
+ let wsdl = `<?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://schemas.xmlsoap.org/wsdl/",
   xmlns:tns="http://example.com/service",
   xmlns:xsd="http://www.w3.org/2001/XMLSchema",
@@ -176,21 +172,20 @@ export const generateWsdlSchema = (fields: Field[], serviceName: string = 'DataS
  fields.forEach(field => {
  if (field.name) {
  const minOccurs = field.minOccurs || (field.required ? 1 : 0);
- const maxOccurs = field.maxOccurs === 'unbounded' ? 'unbounded' : (field.maxOccurs || 1);`;
+ const maxOccurs = field.maxOccurs === 'unbounded' ? 'unbounded' : (field.maxOccurs || 1);
  const occursAttr = `minOccurs="${minOccurs}" maxOccurs="${maxOccurs}"`;
-;
  if (field.isComplexType || (field.children && field.children.length > 0)) {
- wsdl += 
+ wsdl += `
  <xsd:element name="${field.name}" type="tns:${field.name}Type" ${occursAttr}/>`
  } else {
- const xsdType = field.type === 'array' ? 'string' : field.type === 'integer' ? 'int' : field.type;`;
- wsdl += 
+ const xsdType = field.type === 'array' ? 'string' : field.type === 'integer' ? 'int' : field.type;
+ wsdl += `
  <xsd:element name="${field.name}" type="xsd:${xsdType}" ${occursAttr}/>`
  }
  }
  });
 
- wsdl += 
+ wsdl += `
  </xsd:sequence>
  </xsd:complexType>
  </xsd:element>
@@ -218,13 +213,13 @@ export const generateWsdlSchema = (fields: Field[], serviceName: string = 'DataS
  // Add complex type definitions
  fields.forEach(field => {
  if (field.isComplexType || (field.children && field.children.length > 0)) {
- wsdl += 
+ wsdl += `
 
  ${generateComplexType(field)}`
  }
  });
 
- wsdl += 
+ wsdl += `
  </xsd:schema>
  </types>
 
@@ -283,7 +278,7 @@ export const generateWsdlSchema = (fields: Field[], serviceName: string = 'DataS
 };
 
 export const generateSchemaPreview = (fields: Field[], schemaType: string): string => {
- if (fields.length === 0) return ';
+ if (fields.length === 0) return '';
 
  switch (schemaType) {
  case 'json':
@@ -294,6 +289,6 @@ export const generateSchemaPreview = (fields: Field[], schemaType: string): stri
  case 'wsdl':
  return generateWsdlSchema(fields);
  default:
- return JSON.stringify(fields, null, 2)
+ return JSON.stringify(fields, null, 2);
  }
 };
