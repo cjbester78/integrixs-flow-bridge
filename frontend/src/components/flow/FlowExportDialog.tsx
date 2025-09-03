@@ -45,7 +45,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  includeAuditInfo: false,
  format: 'JSON',
  compress: false,
- environment: ',
+ environment: '',
  description: '',
  tags: []
  });

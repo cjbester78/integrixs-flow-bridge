@@ -92,7 +92,7 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  targetStructureId: flowConfig.targetStructure,
  fieldMappings: flowConfig.fieldMappings || [],
  testData: testData,
- testMode: true;
+ testMode: true
  };
 
  // Add initial log

@@ -35,7 +35,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  flowId: flowDefinition.id,
  cronExpression: '0 9 * * 1-5', // Default: 9 AM weekdays
  timezone: 'UTC',
- enabled: true;
+ enabled: true
  });
 
  const [newWebhook, setNewWebhook] = useState<Partial<FlowWebhook>>({
@@ -98,9 +98,9 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  setSchedules(prev => [...prev, schedule]);
  setNewSchedule({
  flowId: flowDefinition.id,
- cronExpression: ',
+ cronExpression: '',
  timezone: 'UTC',
- enabled: true;
+ enabled: true
  });
 
  toast({

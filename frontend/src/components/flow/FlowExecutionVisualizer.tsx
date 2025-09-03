@@ -54,7 +54,7 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  data: {
  ...step,
  status: 'pending',
- execution: null;
+ execution: null
  }
  }));
 

@@ -64,7 +64,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  importCertificateReferences: true,
  validateReferences: true,
  activateAfterImport: false,
- namePrefix: ',
+ namePrefix: '',
  nameSuffix: ''
  });
 

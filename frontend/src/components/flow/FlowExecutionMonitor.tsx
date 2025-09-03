@@ -78,13 +78,13 @@ export const FlowExecutionMonitor: React.FC<FlowExecutionMonitorProps> = ({
  switch (status) {
  case 'completed':
  return <CheckCircle className={`h-4 w-4 ${colorClass}`} />;
- case 'failed':`
+ case 'failed':
  return <XCircle className={`h-4 w-4 ${colorClass}`} />;
- case 'running':`
+ case 'running':
  return <RefreshCw className={`h-4 w-4 ${colorClass} animate-spin`} />;
- case 'paused':`
+ case 'paused':
  return <Pause className={`h-4 w-4 ${colorClass}`} />;
- case 'cancelled':`
+ case 'cancelled':
  return <Square className={`h-4 w-4 ${colorClass}`} />;
  'default':`
  return <Clock className={`h-4 w-4 ${colorClass}`} />;

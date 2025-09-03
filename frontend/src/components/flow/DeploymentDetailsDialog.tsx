@@ -50,12 +50,12 @@ export function DeploymentDetailsDialog({
  title: 'Error',
  description: response.error || 'Failed to fetch deployment information',
  });
-} catch (error) {
+ }
+ } catch (error) {
  toast({
  variant: 'destructive',
  title: 'Error',
  description: 'Failed to fetch deployment information',
-}
  });
  } finally {
  setLoading(false);
