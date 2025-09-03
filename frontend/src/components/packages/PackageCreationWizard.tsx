@@ -78,15 +78,15 @@ interface WizardData {
  targetNamespace: string;
 
  // Flow type
- flowType: 'DIRECT_INTEGRATION' | 'ORCHESTRATION' | ';
+ flowType: 'DIRECT_INTEGRATION' | 'ORCHESTRATION' | '';
 
  // Adapters
  inboundAdapterName: string;
- inboundAdapterType: AdapterType | ';
+ inboundAdapterType: AdapterType | '';
  inboundAdapterConfig: any;
 
  outboundAdapterName: string;
- outboundAdapterType: AdapterType | ';
+ outboundAdapterType: AdapterType | '';
  outboundAdapterConfig: any;
 
  // Structures

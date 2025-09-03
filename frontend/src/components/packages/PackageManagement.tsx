@@ -43,14 +43,12 @@ export default function PackageManagement() {
 
  const loadPackages = async () => {
     try {
-setIsLoading(true);
- const response = await packageService.getAllPackages();
- if (response && typeof response === 'object' && 'success' in response && response.success && 'data' in response && response.data) {
- setPackages((response.data as any).content || []);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+        setIsLoading(true);
+        const response = await packageService.getAllPackages();
+        if (response && typeof response === 'object' && 'success' in response && response.success && 'data' in response && response.data) {
+            setPackages((response.data as any).content || []);
+        }
+    } catch (error) {
  logger.error(LogCategory.UI, 'Error loading packages', { error: error });
  toast({
  title: 'Error',
