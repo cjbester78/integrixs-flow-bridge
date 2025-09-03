@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { packageService } from '@/services/packageService';
 import type { IntegrationPackage } from '@/types/package';
 import PackageCreationWizard from './PackageCreationWizard';
+import { logger, LogCategory } from '@/lib/logger';
 import {
  Table,
  TableBody,
@@ -73,8 +74,9 @@ export default function PackageManagement() {
  title: 'Validation Failed',
  description: response.errors.join(', '),
  variant: 'destructive',
- })}
-} catch (error) {
+ });
+ }
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error validating package', { error: error });
  toast({
  title: 'Error',
@@ -92,8 +94,9 @@ export default function PackageManagement() {
  title: 'Deployment Started',
  description: 'Package deployment has been initiated',
  });
- await loadPackages();}
-} catch (error) {
+ await loadPackages();
+ }
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error deploying package', { error: error });
  toast({
  title: 'Error',
@@ -115,8 +118,9 @@ export default function PackageManagement() {
  title: 'Success',
  description: 'Package deleted successfully',
  });
- await loadPackages();}
-} catch (error) {
+ await loadPackages();
+ }
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error deleting package', { error: error });
  toast({
  title: 'Error',
@@ -133,8 +137,7 @@ export default function PackageManagement() {
  title: 'Success',
  description: 'Package exported successfully',
  });
- }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error exporting package', { error: error });
  toast({
  title: 'Error',
@@ -153,13 +156,13 @@ export default function PackageManagement() {
  description: 'Package imported successfully',
  });
  setShowImportDialog(false);
- await loadPackages();}
-} catch (error) {
+ await loadPackages();
+ }
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error importing package', { error: error });
  toast({
  title: 'Error',
  description: error instanceof Error ? error.message : 'Failed to import package',
-import { logger, LogCategory } from '@/lib/logger';
  variant: 'destructive',
  });
  }
@@ -179,7 +182,7 @@ import { logger, LogCategory } from '@/lib/logger';
 
  const getSyncTypeBadge = (syncType: IntegrationPackage['syncType']) => {
  return (
- <Badge variant="outline">;
+ <Badge variant="outline">
  {syncType === 'SYNCHRONOUS' ? 'Sync' : 'Async'}
  </Badge>
  );
@@ -445,4 +448,3 @@ function ImportPackageDialog({
  </Dialog>
  );
 }
-}}}}}))

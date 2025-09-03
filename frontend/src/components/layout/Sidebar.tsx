@@ -28,7 +28,7 @@ const navigation = [
  href: '/dashboard',
  icon: LayoutDashboard,
  roles: ['administrator', 'integrator', 'viewer'],
- requiresDevEnv: false;
+ requiresDevEnv: false,
  },
  {
  name: 'Data Structures',
@@ -70,21 +70,21 @@ const navigation = [
  href: '/messages',
  icon: MessageSquare,
  roles: ['administrator', 'integrator', 'viewer'],
- requiresDevEnv: false;
+ requiresDevEnv: false,
  },
  {
  name: 'Adapter Monitoring',
  href: '/adapter-monitoring',
  icon: Activity,
  roles: ['administrator', 'integrator', 'viewer'],
- requiresDevEnv: false;
+ requiresDevEnv: false,
  },
  {
  name: 'Retry Management',
  href: '/retry-management',
  icon: RefreshCw,
  roles: ['administrator', 'integrator'],
- requiresDevEnv: false;
+ requiresDevEnv: false,
  },
  {
  name: 'Development Functions',
@@ -130,13 +130,9 @@ return navigation.filter(item => {
  // Check role permission
  // Convert role to lowercase for comparison (backend returns uppercase)
  const userRole = user?.role?.toLowerCase();
-;
  if (!user || !userRole || !item.roles.includes(userRole)) {
  return false;
- 
-} catch (error) {
-  // Handle error
-}
+ }
  // Check environment restriction
  if (item.requiresDevEnv && !isDevelopment) {
  return false;
@@ -148,9 +144,8 @@ return navigation.filter(item => {
  }
 
  return true;
- })
- }
-} catch (error) {
+ });
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error filtering navigation', { error: error });
  return [];
  }

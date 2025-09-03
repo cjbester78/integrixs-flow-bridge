@@ -124,7 +124,6 @@ export const useAuthStore = create<AuthState>()(
  // Logout action
  logout: () => {
  const currentUser = get().user;
-;
  // Logger removed to avoid circular dependency
  logger.info(LogCategory.AUTH, 'User logout', { data: currentUser?.username });
  set({
@@ -162,7 +161,6 @@ export const useAuthStore = create<AuthState>()(
  get().refreshAccessToken();
  }, expirationTime);
 
- }
  } catch (error: any) {
  // Refresh failed, logout user
  get().logout();
@@ -240,7 +238,7 @@ export const useHasAnyPermission = (permissions: string[]): boolean => {
  if (!user) return false;
 
  return permissions.some(permission =>
- user.role.permissions.includes(permission);
+ user.role.permissions.includes(permission)
  );
 };
 
@@ -252,7 +250,7 @@ export const useHasAllPermissions = (permissions: string[]): boolean => {
  if (!user) return false;
 
  return permissions.every(permission =>
- user.role.permissions.includes(permission);
+ user.role.permissions.includes(permission)
  );
 };
 
