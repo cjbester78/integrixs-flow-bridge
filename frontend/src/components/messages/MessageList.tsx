@@ -28,13 +28,13 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
  };
 
  // Debug logging
- logger.info(LogCategory.UI, [MessageList] Received messages: { data: messages });
- logger.info(LogCategory.UI, [MessageList] Messages type: { data: typeof messages });
- logger.info(LogCategory.UI, [MessageList] Is array: { data: Array.isArray(messages))
+ logger.info(LogCategory.UI, '[MessageList] Received messages:', { data: messages });
+ logger.info(LogCategory.UI, '[MessageList] Messages type:', { data: typeof messages });
+ logger.info(LogCategory.UI, '[MessageList] Is array:', { data: Array.isArray(messages) });
  if (messages && messages.length > 0) {
- logger.info(LogCategory.UI, [MessageList] First message: { data: messages[0] });
- logger.info(LogCategory.UI, [MessageList] First message keys: { data: Object.keys(messages[0]))
- logger.info(LogCategory.UI, [MessageList] First message logs: { data: messages[0].logs });
+ logger.info(LogCategory.UI, '[MessageList] First message:', { data: messages[0] });
+ logger.info(LogCategory.UI, '[MessageList] First message keys:', { data: Object.keys(messages[0]) });)
+ logger.info(LogCategory.UI, '[MessageList] First message logs:', { data: messages[0].logs });
  if (messages[0].logs && messages[0].logs.length > 0) {
  logger.info(LogCategory.UI, [MessageList] First log entry: { data: messages[0].logs[0] });
  logger.info(LogCategory.UI, [MessageList] First log type: { data: typeof messages[0].logs[0] });

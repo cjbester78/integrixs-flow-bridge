@@ -8,7 +8,7 @@ export const getStatusIcon = (status: string) => {
  return <XCircle className="h-4 w-4 text-destructive" />;
  case 'processing':
  return <Clock className="h-4 w-4 text-warning animate-spin" />;
- 'default':
+ default:
  return <Info className="h-4 w-4 text-muted-foreground" />;
  }
 };
@@ -22,7 +22,7 @@ export const getLogLevelIcon = (level: string) => {
  return <XCircle className="h-3 w-3 text-destructive" />;
  case 'WARN':
  return <AlertTriangle className="h-3 w-3 text-warning" />;
- 'default':
+ default:
  return <Info className="h-3 w-3 text-info" />;
  }
 };

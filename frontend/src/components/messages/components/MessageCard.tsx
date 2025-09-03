@@ -20,9 +20,11 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  const { toast } = useToast();
 
  // Debug logging to identify React error source
- logger.debug(LogCategory.UI, '[MessageCard] Rendering message', { messageId: message.id, hasLogs: !!message.logs,
- logsCount: message.logs?.length || 0);
- })
+ logger.debug(LogCategory.UI, '[MessageCard] Rendering message', { 
+ messageId: message.id, 
+ hasLogs: !!message.logs,
+ logsCount: message.logs?.length || 0
+ });
 
  const handleReprocess = async (e: React.MouseEvent) => {
  e.stopPropagation(); // Prevent expanding/collapsing

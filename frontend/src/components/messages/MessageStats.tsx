@@ -31,7 +31,7 @@ export const MessageStats = ({
  const successRate = stats?.successRate ?? (totalMessages > 0 ? ((successfulMessages / totalMessages) * 100) : 0);
  const avgProcessingTime = stats?.avgProcessingTime ?? (() => {
  const completedMessages = safeMessages.filter(msg => msg.status !== 'processing' && msg.processingTime !== '-');
- return completedMessages.length > 0;
+ return completedMessages.length > 0
  ? Math.round(completedMessages.reduce((sum, msg) => {
  const time = parseFloat(msg.processingTime.replace(/[^\d.]/g, ''));
  return sum + (isNaN(time) ? 0 : time);
