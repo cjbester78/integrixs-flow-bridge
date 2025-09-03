@@ -111,9 +111,8 @@ export const parseWsdlStructure = (wsdlString: string) => {
  const elementRef = element.getAttribute('ref');
  const maxOccurs = element.getAttribute('maxOccurs');
  const isArray = maxOccurs === 'unbounded' || (maxOccurs && parseInt(maxOccurs) > 1);
-;
  if (elementName || elementRef) {
- const name = elementName || elementRef?.split(':').pop() || ';
+ const name = elementName || elementRef?.split(':').pop() || '';
  const fieldName = isArray ? `${name}[]` : name;
  let fieldValue: any;
 

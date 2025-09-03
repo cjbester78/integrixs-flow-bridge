@@ -43,10 +43,9 @@ export async function convertStructureToXml(
  });
 
  return response.data;
- }
-} catch (error: any) {
+ } catch (error: any) {
  logger.error(LogCategory.ERROR, 'XML conversion error for structure', { structureId: structureId, error: error.response?.data });
- throw error
+ throw error;
  }
 }
 
