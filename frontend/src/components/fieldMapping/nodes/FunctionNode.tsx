@@ -41,12 +41,11 @@ const functions = await developmentFunctionsService.getAllFunctions();
  const updatedFunc = functions.find(f => f.name === data.function.name);
  if (updatedFunc) {
  setSelectedFunction(updatedFunc);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
- logger.error(LogCategory.UI, 'Failed to load functions', { error: error }); finally {
+ }
+ }
+ } catch (error) {
+ logger.error(LogCategory.UI, 'Failed to load functions', { error: error });
+ } finally {
  setIsLoadingFunctions(false);
  }
  };

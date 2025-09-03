@@ -31,7 +31,7 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  targetField: FieldNode | null;
  }>({
  open: false,
- targetField: null;
+ targetField: null
  });
 
  // Filter fields based on current context

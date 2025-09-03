@@ -30,7 +30,7 @@ export function MappingArea({
  const [functionMappingModal, setFunctionMappingModal] = useState<{
  open: boolean;
  selectedFunction: string;
- , targetField: FieldNode | null;
+ targetField: FieldNode | null;
  existingMappingId?: string;
  filteredSourceFields?: FieldNode[];
  }>({

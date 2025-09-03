@@ -33,7 +33,7 @@ export const TransformationPreview: React.FC<TransformationPreviewProps> = ({
  case 'number': return 0;
  case 'boolean': return false;
  case 'array': return [];
- 'default': return ';
+ default: return '';
  }
  });
  setParameters(defaultParams);

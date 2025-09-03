@@ -39,10 +39,8 @@ const functions = await developmentFunctionsService.getAllFunctions();
  setDynamicFunctions(functions);
  
 } catch (error) {
-  // Handle error
-}
-} catch (error) {
- logger.error(LogCategory.UI, 'Failed to load functions', { error: error }); finally {
+ logger.error(LogCategory.UI, 'Failed to load functions', { error: error });
+ } finally {
  setIsLoading(false);
  }
  };

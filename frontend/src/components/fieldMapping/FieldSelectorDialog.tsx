@@ -48,9 +48,8 @@ export const FieldSelectorDialog: React.FC<FieldSelectorDialogProps> = ({
  const isLeaf = !field.children || field.children.length === 0;
  const isExpanded = expandedNodes.has(field.id);
  const isExcluded = excludeFields.includes(field.id);
-;
  // Filter based on search term
- const matchesSearch = !searchTerm ||;
+ const matchesSearch = !searchTerm ||
  field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  field.path.toLowerCase().includes(searchTerm.toLowerCase()) ||
  field.type.toLowerCase().includes(searchTerm.toLowerCase());

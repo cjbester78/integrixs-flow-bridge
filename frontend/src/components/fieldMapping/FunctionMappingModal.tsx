@@ -29,8 +29,8 @@ interface Connection {
 interface DragState {
  isDragging: boolean;
  draggedItem: FieldNode | null;
- startPosition: { x: number;, y: number };
- currentPosition: { x: number;, y: number }
+ startPosition: { x: number; y: number };
+ currentPosition: { x: number; y: number };
 }
 
 export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({

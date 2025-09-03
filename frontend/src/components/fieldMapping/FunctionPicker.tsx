@@ -9,8 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calculator, Search } from 'lucide-react';
-import {
 import { logger, LogCategory } from '@/lib/logger';
+import {
  functionsByCategory,
  TransformationFunction,
  generateJavaFunctionCall

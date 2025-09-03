@@ -45,11 +45,11 @@ const nodeTypes = {
  'function': FunctionNode,
  constant: ConstantNode,
  targetField: TargetFieldNode,
- conditional: ConditionalNode,;
+ conditional: ConditionalNode
 };
 
 const edgeTypes = {
- deletable: DeletableEdge,;
+ deletable: DeletableEdge
 };
 
 export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({

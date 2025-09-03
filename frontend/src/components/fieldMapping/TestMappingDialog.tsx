@@ -80,7 +80,7 @@ export function TestMappingDialog({
  })),
  mappingType: mappingType,
  sourceStructureXml: sourceXml,
- targetStructureXml: targetXml;
+ targetStructureXml: targetXml
  });
 
  if (response.data.success) {

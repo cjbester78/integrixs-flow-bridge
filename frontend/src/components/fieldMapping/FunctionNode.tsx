@@ -38,7 +38,7 @@ export const FunctionNode: React.FC<FunctionNodeProps> = ({
 }) => {
  return (
  <div
- className="absolute bg-card border-2 border-primary/20 rounded-lg shadow-lg min-w-[200px] animate-scale-in z-10";
+ className="absolute bg-card border-2 border-primary/20 rounded-lg shadow-lg min-w-[200px] animate-scale-in z-10"
  style={{ left: position.x, top: position.y }}
  >
  {/* Function Header */}

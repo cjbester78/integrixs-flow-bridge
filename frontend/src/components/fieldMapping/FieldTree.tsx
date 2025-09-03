@@ -55,9 +55,9 @@ export function FieldTree({
  className={`flex items-center p-2 border rounded-md transition-colors ${
  isSelected ? 'bg-primary/20 border-primary ring-1 ring-primary' :
  isMapped ? 'bg-primary/10 border-primary border-dotted border-2' : 'bg-background hover:bg-muted/50'
- } ${isDraggable ? 'cursor-grab active:cursor-grabbing' : '} ${
- isDroppable && !isMapped ? 'border-dashed border-2 hover:border-primary cursor-pointer' : '`
- }`}`
+ } ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''} ${
+ isDroppable && !isMapped ? 'border-dashed border-2 hover:border-primary cursor-pointer' : ''
+ }`}
  style={{ marginLeft: `${level * 16}px` }}
  draggable={isDraggable}
  onClick={() => {
