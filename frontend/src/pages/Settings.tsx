@@ -50,24 +50,24 @@ export const Settings = () => {
  emailNotifications: true,
  browserNotifications: false,
  soundAlerts: true,
- showHelperText: true;
+ showHelperText: true
  });
 
  // Profile state
  const [profile, setProfile] = useState({
- firstName: user?.first_name || ',
+ firstName: user?.first_name || '',
  lastName: user?.last_name || '',
- email: user?.email || ',
+ email: user?.email || '',
  phone: '',
- department: ',
+ department: '',
  title: ''
  });
 
  // Password change state
  const [passwordForm, setPasswordForm] = useState({
- currentPassword: ',
+ currentPassword: '',
  newPassword: '',
- confirmPassword: '
+ confirmPassword: ''
  });
 
 
@@ -84,7 +84,7 @@ export const Settings = () => {
  title: "Error",
  description: "Failed to update profile",
  variant: "destructive",
-}
+ });
  });
  } finally {
  setIsSaving(false);
@@ -105,7 +105,7 @@ export const Settings = () => {
  title: "Error",
  description: "Failed to save preferences",
  variant: "destructive",
-}
+ });
  });
  } finally {
  setIsSaving(false);
@@ -130,16 +130,16 @@ export const Settings = () => {
  description: "Your password has been changed successfully",
  });
  setPasswordForm({
- currentPassword: ',
+ currentPassword: '',
  newPassword: '',
- confirmPassword: '
+ confirmPassword: ''
  });
  } catch (error) {
  toast({
  title: "Error",
  description: "Failed to change password",
  variant: "destructive",
-}
+ });
  });
  } finally {
  setIsSaving(false);
@@ -158,7 +158,7 @@ export const Settings = () => {
  <PageContainer>
  <PageHeader
  title="User Settings"
- description="Manage your profile and personal preferences";
+ description="Manage your profile and personal preferences"
  icon={<SettingsIcon />}
  />
 
@@ -196,7 +196,7 @@ export const Settings = () => {
  <Input
  id="firstName"
  value={profile.firstName}
- onChange={(e) => setProfile({...profile, firstName: e.target.value})
+ onChange={(e) => setProfile({...profile, firstName: e.target.value})}
  placeholder="Enter first name"
  />
  </div>
@@ -296,7 +296,7 @@ export const Settings = () => {
  <Label htmlFor="language">Language</Label>
  <Select
  value={preferences.language}
- onValueChange={(value) => setPreferences({...preferences, language: value})
+ onValueChange={(value) => setPreferences({...preferences, language: value})}
  >
  <SelectTrigger>
  <SelectValue />
@@ -391,7 +391,7 @@ export const Settings = () => {
  <Switch
  id="showHelperText"
  checked={preferences.showHelperText}
- onCheckedChange={(checked) => setPreferences({...preferences, showHelperText: checked})
+ onCheckedChange={(checked) => setPreferences({...preferences, showHelperText: checked})}
  />
  </div>
  </div>
@@ -507,7 +507,7 @@ export const Settings = () => {
  id="currentPassword"
  type="password"
  value={passwordForm.currentPassword}
- onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})
+ onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
  placeholder="Enter current password"
  />
  </div>
@@ -591,4 +591,3 @@ export const Settings = () => {
  </PageContainer>
  );
 };
-}}}}}}}}}}}}}}
