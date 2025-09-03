@@ -24,13 +24,13 @@ export const CreateDataStructure = () => {
  loading
  } = useDataStructures();
 
- logger.info(LogCategory.SYSTEM, CreateDataStructure component rendering, loading: { data: loading });
+ logger.info(LogCategory.SYSTEM, 'CreateDataStructure component rendering, loading', { data: loading });
  const { toast } = useToast();
 
  // Edit mode state
  const [isEditMode, setIsEditMode] = useState(false);
  const [editingStructureId, setEditingStructureId] = useState<string | null>(null);
- const [structureUsage, setStructureUsage] = useState<$1>('source');
+ const [structureUsage, setStructureUsage] = useState<string>('source');
 
  // Form state
  const [structureName, setStructureName] = useState('');
@@ -41,11 +41,11 @@ export const CreateDataStructure = () => {
  const [xsdInput, setXsdInput] = useState('');
  const [edmxInput, setEdmxInput] = useState('');
  const [wsdlInput, setWsdlInput] = useState('');
- const [selectedStructureType, setSelectedStructureType] = useState<$1>('json');
+ const [selectedStructureType, setSelectedStructureType] = useState<string>('json');
  const [namespaceConfig, setNamespaceConfig] = useState({
- uri: ',
+ uri: '',
  prefix: '',
- targetNamespace: ',
+ targetNamespace: '',
  schemaLocation: ''
  });
 
@@ -54,14 +54,13 @@ export const CreateDataStructure = () => {
  const loadStructure = async () => {
  if (id) {
  try {
- logger.info(LogCategory.SYSTEM, [CreateDataStructure] Loading structure for edit: { data: id });
+ logger.info(LogCategory.SYSTEM, '[CreateDataStructure] Loading structure for edit', { data: id });
  const response = await structureService.getStructure(id);
-;
  if (response.success && response.data) {
  const structure = response.data;
  setIsEditMode(true);
  setEditingStructureId(structure.id);
- setStructureName(structure.name || ');
+ setStructureName(structure.name || '');
  setStructureDescription(structure.description || '');
  setStructureUsage(structure.usage || 'source');
  setSelectedStructureType(structure.type || 'json');
@@ -99,7 +98,7 @@ export const CreateDataStructure = () => {
  setSelectedBusinessComponent({
  id: structure.businessComponent.id,
  name: structure.businessComponent.name,
- description: structure.businessComponent.description || '
+ description: structure.businessComponent.description || ''
  });
  }
 } catch (error) {
@@ -114,7 +113,7 @@ export const CreateDataStructure = () => {
  } else if (location.state?.structure && location.state?.isEdit) {
  // Handle navigation from list page with structure data
  const structure = location.state.structure;
- logger.info(LogCategory.SYSTEM, [CreateDataStructure] Loading structure from navigation state: { data: structure });
+ logger.info(LogCategory.SYSTEM, '[CreateDataStructure] Loading structure from navigation state', { data: structure });
  setIsEditMode(true);
  setEditingStructureId(structure.id);
  setStructureName(structure.name || '');
@@ -141,9 +140,10 @@ export const CreateDataStructure = () => {
  setSelectedBusinessComponent({
  id: structure.businessComponent.id,
  name: structure.businessComponent.name,
- description: structure.businessComponent.description || '
+ description: structure.businessComponent.description || ''
  });
- }}
+ }
+ }
  }
  };
 
@@ -162,9 +162,9 @@ export const CreateDataStructure = () => {
  const wsdlResult = parseWsdlStructure(wsdlInput);
  structure = wsdlResult?.structure || wsdlResult;
  } else if (selectedStructureType === 'xsd' && xsdInput) {
- structure = { message: 'XSD parsing not fully implemented yet' }
+ structure = { message: 'XSD parsing not fully implemented yet' };
 } else if (selectedStructureType === 'edmx' && edmxInput) {
- structure = { message: 'EDMX parsing not fully implemented yet' }
+ structure = { message: 'EDMX parsing not fully implemented yet' };
 } else if (selectedStructureType === 'custom' && customFields.length > 0) {
  structure = buildNestedStructure(customFields);
  }
@@ -220,7 +220,6 @@ export const CreateDataStructure = () => {
  }
 
  let success = false;
-;
  if (isEditMode && editingStructureId) {
  success = await updateStructure(
  editingStructureId,
@@ -267,17 +266,18 @@ export const CreateDataStructure = () => {
  setWsdlInput('');
  setCustomFields([]);
  setNamespaceConfig({
- uri: ',
+ uri: '',
  prefix: '',
- targetNamespace: ',
+ targetNamespace: '',
  schemaLocation: ''
  });
- }}
+ }
+ }
  }
  };
 
  const handleResetAllFields = () => {
- setStructureName(');
+ setStructureName('');
  setStructureDescription('');
  setSelectedBusinessComponent(null);
  setJsonInput('');
@@ -287,9 +287,9 @@ export const CreateDataStructure = () => {
  setCustomFields([]);
  setNamespaceConfig({
  uri: '',
- prefix: ',
+ prefix: '',
  targetNamespace: '',
- schemaLocation: '
+ schemaLocation: ''
  });
  setSelectedStructureType('json');
  };
@@ -344,7 +344,8 @@ export const CreateDataStructure = () => {
  if (structureName) {
  setStructureName(addUsageSuffix(structureName));
  }
- }}
+ }
+ }
  isEditMode={isEditMode}
  />
 
@@ -372,7 +373,8 @@ export const CreateDataStructure = () => {
  const baseName = fileName.replace(/\.[^/.]+$/, '');
  setStructureName(addUsageSuffix(baseName));
  }
- }}
+ }
+ }
  />
 
  {previewStructure && (
@@ -407,4 +409,3 @@ export const CreateDataStructure = () => {
  );
  }
 };
-}}}}}}}})))
