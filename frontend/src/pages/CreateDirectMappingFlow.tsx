@@ -320,10 +320,12 @@ export function CreateDirectMappingFlow() {
  })
  }
  }
-}
-} catch (error) {
+ }
+ }
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error });
  }
+ };
 
  // Analyze both source and target structures
  if (sourceStructure) {
@@ -967,13 +969,13 @@ export function CreateDirectMappingFlow() {
  }
  }
  initialMappingName={(() => {
- if (currentMappingType === 'request') {`
+ if (currentMappingType === 'request') {
  return requestMappingName || (flowName ? `${flowName} Request` : '');
  } else {
- const mapping = additionalMappings.find(m =>;
+ const mapping = additionalMappings.find(m =>
  m.messageType === (currentMappingType === 'response' ? 'response' : 'fault')
- );`
- return mapping?.name || (flowName ? `${flowName} ${currentMappingType.charAt(0).toUpperCase() + currentMappingType.slice(1)}` : ');
+ );
+ return mapping?.name || (flowName ? `${flowName} ${currentMappingType.charAt(0).toUpperCase() + currentMappingType.slice(1)}` : '');
  })()}
  initialMappings={(() => {
  // Return the appropriate mappings based on the current mapping type
@@ -1069,13 +1071,13 @@ export function CreateDirectMappingFlow() {
  : "Synchronous - Wait for processing to complete before responding"}
  </p>
  </div>
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <span className={`text-sm ${!isAsynchronous ? 'font-medium' : 'text-muted-foreground'}`}>Sync</span>
  <Switch
  id="async-mode"
  checked={isAsynchronous}
  onCheckedChange={setIsAsynchronous}
- />`
+ />
  <span className={`text-sm ${isAsynchronous ? 'font-medium' : 'text-muted-foreground'}`}>Async</span>
  </div>
  </div>
@@ -1328,7 +1330,7 @@ export function CreateDirectMappingFlow() {
  // Check if response mapping already exists
  const existingResponseMapping = additionalMappings.find(m => m.messageType === 'response');
  if (!existingResponseMapping) {
- const newMapping = {`;
+ const newMapping = {
  id: `response_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Response` : 'Response Mapping',
  fieldMappings: [],
@@ -1370,7 +1372,7 @@ export function CreateDirectMappingFlow() {
  // Check if fault mapping already exists
  const existingFaultMapping = additionalMappings.find(m => m.messageType === 'fault');
  if (!existingFaultMapping) {
- const newMapping = {`;
+ const newMapping = {
  id: `fault_mapping_${Date.now()}`,
  name: flowName ? `${flowName} Fault` : 'Fault Mapping',
  fieldMappings: [],
@@ -1475,5 +1477,4 @@ export function CreateDirectMappingFlow() {
  </div>
  </div>
  );
-}`
-}}}}}}}}}}}}}}}}}}
+}
