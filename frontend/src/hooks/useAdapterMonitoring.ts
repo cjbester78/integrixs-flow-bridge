@@ -20,7 +20,9 @@ export const useAdapterMonitoring = (businessComponentId?: string) => {
  setAdapters(response.data);
  } else {
  setError(response.error || 'Failed to load adapters');
- setAdapters([]);} catch (err) {
+ setAdapters([]);
+ }
+ } catch (err) {
  setError(err instanceof Error ? err.message : 'An unexpected error occurred');
  setAdapters([]);
  } finally {
@@ -33,6 +35,5 @@ export const useAdapterMonitoring = (businessComponentId?: string) => {
  loading,
  error,
  refreshAdapters: loadAdapters,
- }
+ };
 };
-}
