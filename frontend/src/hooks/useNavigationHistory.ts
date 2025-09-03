@@ -10,7 +10,6 @@ interface NavigationHistoryItem {
 // Global navigation history (max 10 items)
 const navigationHistory: NavigationHistoryItem[] = [];
 const MAX_HISTORY_SIZE = 10;
-;
 /**
  * Hook to track navigation history and provide smart back navigation
  */
@@ -18,7 +17,6 @@ export const useNavigationHistory = () => {
  const navigate = useNavigate();
  const location = useLocation();
  const previousPathRef = useRef<string | null>(null);
-;
  useEffect(() => {
  // Only track if it's a different path
  if (location.pathname !== previousPathRef.current) {
@@ -26,7 +24,7 @@ export const useNavigationHistory = () => {
  navigationHistory.push({
  pathname: location.pathname,
  state: location.state,
- timestamp: Date.now();
+ timestamp: Date.now()
  });
 
  // Keep history size limited
@@ -46,7 +44,7 @@ export const useNavigationHistory = () => {
  */
  const navigateBack = (defaultPath: string = '/dashboard') => {
  // Check if we have history (excluding current page)
- const historyWithoutCurrent = navigationHistory.filter(;
+ const historyWithoutCurrent = navigationHistory.filter(
  item => item.pathname !== location.pathname
  );
 
@@ -70,14 +68,12 @@ export const useNavigationHistory = () => {
  // Check if previous page was from a different section
  const currentPath = location.pathname;
  const previousPath = navigationHistory[navigationHistory.length - 2]?.pathname;
-;
  // If no previous path or significant path change, consider it direct
  if (!previousPath) return true;
 
  // Check if paths are in same section
  const currentSection = currentPath.split('/')[1];
  const previousSection = previousPath?.split('/')[1];
-;
  return currentSection !== previousSection;
  };
 
@@ -87,14 +83,14 @@ export const useNavigationHistory = () => {
  const getBreadcrumbs = () => {
  const paths = location.pathname.split('/').filter(Boolean);
  const breadcrumbs = [{ label: 'Home', path: '/' }];
-;
- let currentPath = ';
+
+ let currentPath = '';
  paths.forEach((segment) => {
  currentPath += `/${segment}`;
  breadcrumbs.push({
  label: formatSegmentLabel(segment),
- path: currentPath;
- })
+ path: currentPath
+ });
  });
 
  return breadcrumbs;
@@ -106,7 +102,7 @@ export const useNavigationHistory = () => {
  getBreadcrumbs,
  currentPath: location.pathname,
  hasHistory: navigationHistory.length > 1
- }
+ };
 };
 
 /**
@@ -123,9 +119,8 @@ function formatSegmentLabel(segment: string): string {
  return 'Development Functions';
  }
 
- return segment;
+ return segment
  .split('-')
- .map(word => word.charAt(0).toUpperCase() + word.slice(1));
+ .map(word => word.charAt(0).toUpperCase() + word.slice(1))
  .join(' ');
-}`
-}}))
+}
