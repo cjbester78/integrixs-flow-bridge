@@ -27,10 +27,8 @@ export const SessionTimeoutWarning: React.FC = () => {
  const checkTimeout = () => {
  const now = Date.now();
  const remaining = tokenExpiry - now;
-;
  // Show warning 5 minutes before expiry
- const warningThreshold = 5 * 60 * 1000; // 5 minutes;
-;
+ const warningThreshold = 5 * 60 * 1000; // 5 minutes
  if (remaining <= 0) {
  // Token already expired
  logout();
@@ -45,7 +43,6 @@ export const SessionTimeoutWarning: React.FC = () => {
 
  // Check every 30 seconds
  const interval = setInterval(checkTimeout, 30000);
-;
  return () => clearInterval(interval);
  }, [tokenExpiry, logout, showWarning]);
 
@@ -60,7 +57,7 @@ export const SessionTimeoutWarning: React.FC = () => {
  return 0;
  }
  return prev - 1;
- })
+ });
  }, 1000);
 
  return () => clearInterval(countdown);
@@ -72,10 +69,8 @@ const isValid = await checkSession();
  if (isValid) {
  setShowWarning(false);
  setTimeRemaining(0);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.AUTH, 'Failed to extend session', { error: error });
  logout();
  }

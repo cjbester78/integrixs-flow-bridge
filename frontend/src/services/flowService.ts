@@ -63,7 +63,7 @@ class FlowService {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
 
  const endpoint = `/flows${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
@@ -76,23 +76,23 @@ class FlowService {
  }
 
  // Update an existing flow
- async updateFlow(id: string, updates: Partial<IntegrationFlow>): Promise<ApiResponse<IntegrationFlow>> {`
+ async updateFlow(id: string, updates: Partial<IntegrationFlow>): Promise<ApiResponse<IntegrationFlow>> {
  return api.put<IntegrationFlow>(`/flows/${id}`, updates);
  }
 
  // Delete a flow
- async deleteFlow(id: string): Promise<ApiResponse<void>> {`
- return api.delete(/flows/${id}`);
+ async deleteFlow(id: string): Promise<ApiResponse<void>> {
+ return api.delete(`/flows/${id}`);
  }
 
  // Test a flow configuration
- async testFlow(flowId: string, testData?: any): Promise<ApiResponse<FlowTestResult>> {`
- return api.post<FlowTestResult>(`/flows/${flowId}/test`, { testData })
+ async testFlow(flowId: string, testData?: any): Promise<ApiResponse<FlowTestResult>> {
+ return api.post<FlowTestResult>(`/flows/${flowId}/test`, { testData });
  }
 
  // Start/Stop flow execution
- async updateFlowStatus(id: string, status: 'active' | 'inactive'): Promise<ApiResponse<IntegrationFlow>> {`
- return api.patch<IntegrationFlow>(/flows/${id}/status`, { status })
+ async updateFlowStatus(id: string, status: 'active' | 'inactive'): Promise<ApiResponse<IntegrationFlow>> {
+ return api.patch<IntegrationFlow>(`/flows/${id}/status`, { status });
  }
 
  // Get flow execution history
@@ -109,21 +109,20 @@ class FlowService {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
-`
- const endpoint = `/flows/${flowId}/executions${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/flows/${flowId}/executions${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // Save field mappings for a flow
- async saveFieldMappings(flowId: string, mappings: FieldMapping[]): Promise<ApiResponse<FieldMapping[]>> {`
- return api.post<FieldMapping[]>(/flows/${flowId}/field-mappings`, { mappings })
+ async saveFieldMappings(flowId: string, mappings: FieldMapping[]): Promise<ApiResponse<FieldMapping[]>> {
+ return api.post<FieldMapping[]>(`/flows/${flowId}/field-mappings`, { mappings });
  }
 
  // Clone an existing flow
- async cloneFlow(id: string, newName: string): Promise<ApiResponse<IntegrationFlow>> {`
- return api.post<IntegrationFlow>(`/flows/${id}/clone`, { name: newName })
+ async cloneFlow(id: string, newName: string): Promise<ApiResponse<IntegrationFlow>> {
+ return api.post<IntegrationFlow>(`/flows/${id}/clone`, { name: newName });
  }
 
  // Validate flow configuration
@@ -132,4 +131,4 @@ class FlowService {
  }
 }
 
-export const flowService = new FlowService();`
+export const flowService = new FlowService();

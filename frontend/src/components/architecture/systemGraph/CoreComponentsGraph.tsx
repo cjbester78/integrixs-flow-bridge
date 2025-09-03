@@ -35,7 +35,7 @@ export const CoreComponentsGraph: React.FC = () => {
  M --> T1
  M --> T2
 
- style T1 fill:#f1f8e9`
+ style T1 fill:#f1f8e9
  style T2 fill:#f1f8e9`;
 
  return (
