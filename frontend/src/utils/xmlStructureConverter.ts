@@ -65,7 +65,7 @@ export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
  const lines = xmlContent.split('\n');
  logger.error(LogCategory.ERROR, 'XML parsing error', {
  errorText: parserError.textContent,
- lineCount: lines.length,);
+ lineCount: lines.length,
  problematicLines: lines.map((line, idx) => ({
  lineNumber: idx + 1,
  content: line,
@@ -80,11 +80,11 @@ export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
  if (lines[17]) {
  logger.error(LogCategory.ERROR, 'Line 18 character analysis around column 14:');
  for (let i = 10; i < 20 && i < lines[17].length; i++) {
- logger.error(LogCategory.ERROR, 'Error occurred', { error: ` Position ${i}: '${lines[17][i]}' (char code: ${lines[17].charCodeAt(i }))`)
+ logger.error(LogCategory.ERROR, 'Error occurred', { error: ` Position ${i}: '${lines[17][i]}' (char code: ${lines[17].charCodeAt(i)})` });
  }
  }
 
- throw new Error('Invalid XML: ' + parserError.textContent)
+ throw new Error('Invalid XML: ' + parserError.textContent);
  }
 
  const rootElement = xmlDoc.documentElement;

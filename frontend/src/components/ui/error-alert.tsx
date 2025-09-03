@@ -15,7 +15,7 @@ export function ErrorAlert({
  className,
  variant = 'destructive'
 }: ErrorAlertProps) {
-  const errorMessage = error instanceof Error;
+  const errorMessage = error instanceof Error
     ? error.message
     : typeof error === 'string'
     ? error
