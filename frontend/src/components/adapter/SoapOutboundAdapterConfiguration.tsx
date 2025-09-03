@@ -210,7 +210,9 @@ export function SoapOutboundAdapterConfiguration({
  if (endpointUrl) {
  onConfigurationChange('targetEndpointUrl', endpointUrl);
  logger.info(LogCategory.UI, 'SOAP Outbound - Extracted endpoint URL from WSDL', { data: endpointUrl });
-} catch (error) {
+ }
+ }
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error parsing WSDL for endpoint URL', { error: error });
  }
 
@@ -218,9 +220,8 @@ export function SoapOutboundAdapterConfiguration({
  const hasInput = response.data.metadata?.hasInput || response.data.metadata?.operationInfo?.hasInput;
  const hasOutput = response.data.metadata?.hasOutput || response.data.metadata?.operationInfo?.hasOutput;
  const hasFault = response.data.metadata?.hasFault || response.data.metadata?.operationInfo?.hasFault;
-;
+
  logger.info(LogCategory.UI, `SOAP Outbound - WSDL Analysis from metadata: hasInput=${hasInput}, hasOutput=${hasOutput}, hasFault=${hasFault}`);
-;
  // Note: We've already determined sync/async based on WSDL parsing above
  // This metadata check is just for logging purposes - don't override the earlier decision
  }

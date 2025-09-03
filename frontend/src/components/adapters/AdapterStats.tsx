@@ -44,7 +44,7 @@ export const AdapterStats = ({
 
  <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
- statusFilter === 'idle' ? 'ring-2 ring-warning' : '`
+ statusFilter === 'idle' ? 'ring-2 ring-warning' : ''
  }`}
  onClick={() => handleStatusClick('idle')}
  >

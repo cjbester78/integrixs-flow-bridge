@@ -96,29 +96,29 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  maxConcurrentConnections: '',
  retryConnection: '',
  retryConnectionDelay: '',
- connectionMode: ',
+ connectionMode: '',
 
  // Inbound-specific fields
  sourceDirectory: '',
- fileName: ',
+ fileName: '',
  advancedSelection: false,
  exclusionMask: '',
- advancedEntries: [{ directory: ', fileName: '', exclusionMask: ' }],
- pollingInterval: ',
+ advancedEntries: [{ directory: '', fileName: '', exclusionMask: '' }],
+ pollingInterval: '',
  processingMode: '',
- emptyFileHandling: ',
+ emptyFileHandling: '',
  enableDuplicateHandling: false,
  duplicateMessageAlertThreshold: '',
  disableChannelOnExceed: false,
 
  // Outbound-specific fields
- targetDirectory: ',
+ targetDirectory: '',
  targetFileName: '',
- fileConstructionMode: ',
+ fileConstructionMode: '',
  overwriteExistingFile: false,
  createFileDirectory: false,
  filePlacement: '',
- emptyMessageHandling_receiver: ',
+ emptyMessageHandling_receiver: '',
 
  // File Format Configuration
  fileFormatConfig: {
@@ -148,7 +148,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  };
 
  const addAdvancedEntry = () => {
- const newEntries = [...config.advancedEntries, { directory: ', fileName: '', exclusionMask: ' }];
+ const newEntries = [...config.advancedEntries, { directory: '', fileName: '', exclusionMask: ' }];
  updateConfig({ advancedEntries: newEntries });
  };
 

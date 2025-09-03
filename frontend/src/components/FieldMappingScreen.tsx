@@ -391,7 +391,7 @@ const parser = new DOMParser();
  );
 
  if (targetField) {
- const isNodeMapping = (sourceField.type === 'array' || sourceField.type === 'object') &&;
+ const isNodeMapping = (sourceField.type === 'array' || sourceField.type === 'object') &&
  (targetField.type === 'array' || targetField.type === 'object');
 
  const newMapping: FieldMapping = {
@@ -499,7 +499,7 @@ const parser = new DOMParser();
  );
 
  if (targetField) {
- const isNodeMapping = (sourceField.type === 'array' || sourceField.type === 'object') &&;
+ const isNodeMapping = (sourceField.type === 'array' || sourceField.type === 'object') &&
  (targetField.type === 'array' || targetField.type === 'object');
 
  const newMapping: FieldMapping = {

@@ -588,7 +588,7 @@ export const FtpAdapterConfiguration = ({ mode, onConfigChange }: FtpAdapterConf
  <Checkbox
  id="overwriteExistingFile"
  checked={config.overwriteExistingFile}
- onCheckedChange={(checked) => updateConfig({ overwriteExistingFile: checked === true })
+ onCheckedChange={(checked) => updateConfig({ overwriteExistingFile: checked === true })}
  />
  <Label htmlFor="overwriteExistingFile">Overwrite Existing File</Label>
  </div>

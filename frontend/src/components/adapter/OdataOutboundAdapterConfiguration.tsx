@@ -158,7 +158,7 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  </div>
  </div>
  );
- 'default':
+ default:
  return null;
  }
  };

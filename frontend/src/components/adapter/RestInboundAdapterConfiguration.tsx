@@ -534,6 +534,5 @@ export function RestInboundAdapterConfiguration({
  </Tabs>
  </CardContent>
  </Card>
- )
+ );
 }
-})
