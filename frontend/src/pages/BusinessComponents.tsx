@@ -21,9 +21,9 @@ export const BusinessComponents = () => {
  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
  const [editingBusinessComponent, setEditingBusinessComponent] = useState<BusinessComponent | null>(null);
  const [formData, setFormData] = useState<CreateBusinessComponentRequest>({
- name: ',
+ name: '',
  description: '',
- contactEmail: ',
+ contactEmail: '',
  contactPhone: ''
  });
 
@@ -62,7 +62,7 @@ export const BusinessComponents = () => {
  if (response.success && response.data) {
  setBusinessComponents(prevBusinessComponents => [...prevBusinessComponents, response.data!]);
  setIsCreateDialogOpen(false);
- setFormData({ name: ', description: '', contactEmail: ', contactPhone: ' });
+ setFormData({ name: '', description: '', contactEmail: '', contactPhone: '' });
  toast({
  title: "Success",
  description: "BusinessComponent created successfully",
@@ -93,11 +93,11 @@ export const BusinessComponents = () => {
 
  if (response.success && response.data) {
  setBusinessComponents(prevBusinessComponents =>
- prevBusinessComponents.map(c => c.id === editingBusinessComponent.id ? response.data! : c);
+ prevBusinessComponents.map(c => c.id === editingBusinessComponent.id ? response.data! : c)
  );
  setIsEditDialogOpen(false);
  setEditingBusinessComponent(null);
- setFormData({ name: ', description: '', contactEmail: ', contactPhone: ' });
+ setFormData({ name: '', description: '', contactEmail: '', contactPhone: '' });
  toast({
  title: "Success",
  description: "BusinessComponent updated successfully",
@@ -115,7 +115,7 @@ export const BusinessComponents = () => {
  const response = await businessComponentService.deleteBusinessComponent(businessComponent.id);
  if (response.success) {
  setBusinessComponents(prevBusinessComponents =>
- prevBusinessComponents.filter(c => c.id !== businessComponent.id);
+ prevBusinessComponents.filter(c => c.id !== businessComponent.id)
  );
  toast({
  title: "Success",
@@ -134,15 +134,15 @@ export const BusinessComponents = () => {
  setEditingBusinessComponent(businessComponent);
  setFormData({
  name: businessComponent.name,
- description: businessComponent.description || ',
+ description: businessComponent.description || '',
  contactEmail: businessComponent.contactEmail || '',
- contactPhone: businessComponent.contactPhone || '
+ contactPhone: businessComponent.contactPhone || ''
  });
  setIsEditDialogOpen(true);
  };
 
  const resetForm = () => {
- setFormData({ name: ', description: '', contactEmail: ', contactPhone: ' });
+ setFormData({ name: '', description: '', contactEmail: '', contactPhone: '' });
  setEditingBusinessComponent(null);
  };
 
@@ -190,7 +190,7 @@ export const BusinessComponents = () => {
  <Input
  id="name"
  value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })
+ onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  placeholder="Enter businessComponent name"
  />
  </div>
@@ -199,7 +199,7 @@ export const BusinessComponents = () => {
  <Textarea
  id="description"
  value={formData.description}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })
+ onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  placeholder="Enter businessComponent description"
  rows={3}
  />
@@ -210,7 +210,7 @@ export const BusinessComponents = () => {
  id="email"
  type="email"
  value={formData.contactEmail}
- onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })
+ onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
  placeholder="contact@example.com"
  />
  </div>
@@ -219,7 +219,7 @@ export const BusinessComponents = () => {
  <Input
  id="phone"
  value={formData.contactPhone}
- onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })
+ onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
  placeholder="+1-555-0123"
  />
  </div>
@@ -326,7 +326,7 @@ export const BusinessComponents = () => {
  <Input
  id="edit-name"
  value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })
+ onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  placeholder="Enter businessComponent name"
  />
  </div>
@@ -335,7 +335,7 @@ export const BusinessComponents = () => {
  <Textarea
  id="edit-description"
  value={formData.description}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })
+ onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  placeholder="Enter businessComponent description"
  rows={3}
  />
@@ -346,7 +346,7 @@ export const BusinessComponents = () => {
  id="edit-email"
  type="email"
  value={formData.contactEmail}
- onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })
+ onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
  placeholder="contact@example.com"
  />
  </div>
@@ -355,7 +355,7 @@ export const BusinessComponents = () => {
  <Input
  id="edit-phone"
  value={formData.contactPhone}
- onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })
+ onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
  placeholder="+1-555-0123"
  />
  </div>
@@ -373,4 +373,3 @@ export const BusinessComponents = () => {
  </div>
  );
 };
-}}}}}}}}

@@ -79,7 +79,9 @@ export default function AllInterfaces() {
  if (response.success && response.data) {
  // Handle both direct array response and wrapped response
  const flowsData = Array.isArray(response.data) ? response.data : ((response.data as any).flows || []);
- setFlows(flowsData);} catch (error) {
+ setFlows(flowsData);
+ }
+ } catch (error) {
  toast({
  variant: 'destructive',
  title: 'Error',

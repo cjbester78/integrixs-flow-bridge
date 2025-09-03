@@ -64,12 +64,11 @@ export default function AdapterMonitoring() {
  const handleUpdateAdapter = async (adapterId: string, updates: Partial<AdapterMonitoring>) => {
  try {
  const response = await adapterMonitoringService.updateAdapter(adapterId, updates);
-;
  if (response.success && response.data) {
  setAdapters(prevAdapters =>
  prevAdapters.map(adapter =>
  adapter.id === adapterId ? response.data! : adapter
- );
+ )
  );
  toast({
  title: "Success",
