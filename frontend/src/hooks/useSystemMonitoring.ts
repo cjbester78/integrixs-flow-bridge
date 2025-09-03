@@ -12,36 +12,36 @@ export const useSystemMonitoring = () => {
  const { toast } = useToast();
 
  const loadHealth = useCallback(async () => {
-    try {
-const response = await systemMonitoringService.getSystemHealth();
+ try {
+ const response = await systemMonitoringService.getSystemHealth();
  if (response.success && response.data) {
  setHealth(response.data);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system health', { error: error });
+ }
  }, []);
 
  const loadStats = useCallback(async () => {
-    try {
-const response = await systemMonitoringService.getSystemStats();
+ try {
+ const response = await systemMonitoringService.getSystemStats();
  if (response.success && response.data) {
  setStats(response.data);
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system stats', { error: error });
+ }
  }, []);
 
  const loadAlerts = useCallback(async () => {
-    try {
+ try {
  const response = await systemMonitoringService.getSystemAlerts({ acknowledged: false });
  if (response.success && response.data) {
- setAlerts(response.data.alerts);}
-} catch (error) {
+ setAlerts(response.data.alerts);
+ }
+ } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Failed to load system alerts', { error: error });
+ }
  }, []);
 
  useEffect(() => {
@@ -52,11 +52,9 @@ const response = await systemMonitoringService.getSystemStats();
  setHealth(newHealth);
  });
 
-
  const unsubscribeStats = systemMonitoringService.onStatsUpdate((newStats) => {
  setStats(newStats);
  });
-
 
  const unsubscribeAlerts = systemMonitoringService.onAlert((alert) => {
  setAlerts(prev => [alert, ...prev]);
@@ -70,7 +68,6 @@ const response = await systemMonitoringService.getSystemStats();
  });
  }
  });
-
 
  const loadInitialData = async () => {
  setLoading(true);
@@ -86,8 +83,8 @@ const response = await systemMonitoringService.getSystemStats();
  unsubscribeAlerts();
  systemMonitoringService.disconnectWebSocket();
  setConnected(false);
- }
-}, [loadHealth, loadStats, loadAlerts, toast]);
+ };
+ }, [loadHealth, loadStats, loadAlerts, toast]);
 
  const acknowledgeAlert = useCallback(async (alertId: string) => {
  try {
@@ -99,13 +96,14 @@ const response = await systemMonitoringService.getSystemStats();
  toast({
  title: "Success",
  description: "Alert acknowledged",
- })}
-} catch (error) {
+ });
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to acknowledge alert",
  variant: "destructive",
-}
+ });
  });
  }
  }, [toast]);
@@ -118,13 +116,14 @@ const response = await systemMonitoringService.getSystemStats();
  toast({
  title: "Success",
  description: "Alert resolved",
- })}
-} catch (error) {
+ });
+ }
+ } catch (error) {
  toast({
  title: "Error",
  description: "Failed to resolve alert",
  variant: "destructive",
-}
+ });
  });
  }
  }, [toast]);
@@ -144,6 +143,5 @@ const response = await systemMonitoringService.getSystemStats();
  acknowledgeAlert,
  resolveAlert,
  refreshData,
- }
+ };
 };
-}
