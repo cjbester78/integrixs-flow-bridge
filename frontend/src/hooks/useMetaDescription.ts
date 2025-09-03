@@ -4,9 +4,9 @@ export const useMetaDescription = (description: string) => {
  useEffect(() => {
  const metaDescription = document.querySelector('meta[name="description"]');
  const ogDescription = document.querySelector('meta[property="og:description"]');
-;
+
  if (metaDescription) {
- const originalDescription = metaDescription.getAttribute('content') || ';
+ const originalDescription = metaDescription.getAttribute('content') || '';
  metaDescription.setAttribute('content', description);
 
  // Also update Open Graph description
@@ -19,8 +19,8 @@ export const useMetaDescription = (description: string) => {
  if (ogDescription && originalDescription) {
  ogDescription.setAttribute('content', originalDescription);
  }
+ };
  }
-}
  return undefined;
  }, [description]);
 };
