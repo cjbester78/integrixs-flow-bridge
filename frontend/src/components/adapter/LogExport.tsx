@@ -12,7 +12,7 @@ interface LogExportProps {
 
 export const LogExport = ({ adapterId }: LogExportProps) => {
  const [isOpen, setIsOpen] = useState(false);
- const [exportFormat, setExportFormat] = useState<'checking' | 'unavailable' | 'starting' | 'ready'>('csv');
+ const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv');
  const [exporting, setExporting] = useState(false);
  const { logs } = useSystemLogs({ sourceId: adapterId });
 
@@ -57,7 +57,6 @@ export const LogExport = ({ adapterId }: LogExportProps) => {
 
  // Create and download file
  const blob = new Blob([content], { type: mimeType });
-;
  const url = URL.createObjectURL(blob);
  const link = document.createElement('a');
  link.href = url;
@@ -79,7 +78,6 @@ export const LogExport = ({ adapterId }: LogExportProps) => {
  description: 'An error occurred while exporting logs.',
  variant: 'destructive',
  });
- }
  } finally {
  setExporting(false);
  }
@@ -137,5 +135,4 @@ export const LogExport = ({ adapterId }: LogExportProps) => {
  </DialogContent>
  </Dialog>
  );
-};`
-}}}
+};
