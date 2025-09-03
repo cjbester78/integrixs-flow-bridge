@@ -40,7 +40,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
  return permissions?.canCreateDataStructures ?? false;
  case 'admin.access':
  return permissions?.isAdmin ?? false;
- 'default':
+ default:
  return true;
  }
  }, [permissions, action]);
@@ -54,7 +54,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
  return (
  <Alert variant="destructive">
  <Lock className="h-4 w-4" />
- <AlertDescription>;
+ <AlertDescription>
  This action is not available in {environmentInfo?.displayName || 'this'} environment.
  {environmentInfo?.type !== 'DEVELOPMENT' && (
  <span className="block mt-1 text-sm">
@@ -92,7 +92,7 @@ export const usePermissionVisibility = (element: string): boolean => {
  return true;
  case 'adminPanel':
  return permissions?.isAdmin ?? false;
- 'default':
+ default:
  return true;
  }
  }, [element, permissions, isDevelopment]);

@@ -59,7 +59,7 @@ export const ConfirmDialog = ({
  <AlertDialogAction
  onClick={handleConfirm}
  disabled={isLoading}
- className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : '}
+ className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : ''}
  >
  {confirmLabel}
  </AlertDialogAction>

@@ -22,7 +22,6 @@ export const RestrictedPage: React.FC<RestrictedPageProps> = ({
 }) => {
  const { isDevelopment, environmentInfo } = useEnvironmentPermissions();
  const navigate = useNavigate();
-;
  if (requireDevelopment && !isDevelopment) {
  return (
  <div className="p-6 max-w-2xl mx-auto">
@@ -35,10 +34,9 @@ export const RestrictedPage: React.FC<RestrictedPageProps> = ({
 
  <div className="space-y-2">
  <h2 className="text-2xl font-bold">Page Restricted</h2>
- <p className="text-muted-foreground">;
+ <p className="text-muted-foreground">
  {customMessage ||
- `This page is only available in development environment.`
- The system is currently configured as ${environmentInfo?.displayName || 'non-development'}.`}
+ `This page is only available in development environment. The system is currently configured as ${environmentInfo?.displayName || 'non-development'}.`}
  </p>
  </div>
 
@@ -68,5 +66,4 @@ export const RestrictedPage: React.FC<RestrictedPageProps> = ({
  }
 
  return <>{children}</>;
-};`
-}}})
+};

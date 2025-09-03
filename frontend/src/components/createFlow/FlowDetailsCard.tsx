@@ -27,7 +27,7 @@ export const FlowDetailsCard = ({
  <Label htmlFor="flowName">Flow Name *</Label>
  <Input
  id="flowName"
- placeholder="e.g., Customer Data Sync";
+ placeholder="e.g., Customer Data Sync"
  value={flowName}
  onChange={(e) => onFlowNameChange(e.target.value)}
  className="transition-all duration-300 focus:scale-[1.01]"

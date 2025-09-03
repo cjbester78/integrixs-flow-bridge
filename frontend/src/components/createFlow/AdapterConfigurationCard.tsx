@@ -63,12 +63,11 @@ export const AdapterConfigurationCard = ({
   logger.info(LogCategory.UI, 'Debug info', { 
     message: 'AdapterConfigurationCard - Hook data', 
     businessComponents: businessComponents.length,
-    loading: loading;
+    loading: loading
   });
 
 
   const getAdapterById = (id: string) => adapters.find(adapter => adapter.id === id);
-;
   const [businessComponentAdapters, setBusinessComponentAdapters] = useState<string[]>([]);
 
   useEffect(() => {
@@ -98,7 +97,7 @@ export const AdapterConfigurationCard = ({
         logger.info(LogCategory.UI, '[AdapterConfigurationCard] Resetting source adapter - not available for new business component');
         onInboundAdapterChange('');
       }
-} catch (error) {
+    } catch (error) {
       logger.error(LogCategory.UI, '[AdapterConfigurationCard] Error handling source business component change', { error });
     }
   };

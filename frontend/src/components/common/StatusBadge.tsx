@@ -47,10 +47,10 @@ const statusConfig: Record<StatusType, { variant: any; icon: any; className: str
  icon: Clock,
  className: 'text-warning'
  },
- 'default': {
+ default: {
  variant: 'secondary',
  icon: null,
- className: '
+ className: ''
  }
 };
 
@@ -62,7 +62,6 @@ export const StatusBadge = ({
 }: StatusBadgeProps) => {
  const config = statusConfig[type] || statusConfig.default;
  const Icon = config.icon;
-;
  return (
  <Badge
  variant={config.variant}
