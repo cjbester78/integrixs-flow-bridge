@@ -296,7 +296,7 @@ class FrontendLogger {
  'Content-Type': 'application/json',
  };
 
- if (token) {`
+ if (token) {
  headers['Authorization'] = `Bearer ${token}`;
  }
 
@@ -306,12 +306,13 @@ class FrontendLogger {
  body: JSON.stringify({ logs }),
  });
 
- if (!response.ok) {`
- throw new Error(`HTTP ${response.status}`);} catch (error) {
+ if (!response.ok) {
+ throw new Error(`HTTP ${response.status}`);
+ }
+ } catch (error) {
  if (attempt < this.config.retryAttempts) {
  await new Promise(resolve => setTimeout(resolve, this.config.retryDelay * attempt));
  return this.sendLogs(logs, attempt + 1);
-}
  }
  throw error;
  }
