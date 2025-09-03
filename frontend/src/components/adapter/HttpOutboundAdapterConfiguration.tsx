@@ -443,7 +443,7 @@ export function HttpOutboundAdapterConfiguration({
  includeXmlDeclaration: true,
  prettyPrint: true,
  removeRootElement: true,
- handleNamespaces: true;
+ handleNamespaces: true
  }}
  onChange={(xmlConversion) => onConfigurationChange('xmlConversion', xmlConversion)}
  />
