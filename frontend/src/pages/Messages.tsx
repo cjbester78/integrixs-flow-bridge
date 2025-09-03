@@ -18,7 +18,7 @@ export const Messages = () => {
  useMetaDescription('Track and monitor all integration messages, view processing status, and analyze message flow through your Integrix Flow Bridge system.');
  const [selectedBusinessComponent, setSelectedBusinessComponent] = useState<BusinessComponent | null>(null);
  const [statusFilter, setStatusFilter] = useState<string | null>(null);
- const [timeFilter, setTimeFilter] = useState<$1>('today');
+ const [timeFilter, setTimeFilter] = useState<string>('today');
  const { businessComponents, loading } = useBusinessComponentAdapters();
  const {
  messages,
@@ -31,7 +31,6 @@ export const Messages = () => {
 
  // Messages are already filtered by the backend based on our filters
  const displayMessages = messages;
-;
  const handleRefresh = () => {
  const filters: any = {};
 
@@ -63,29 +62,28 @@ export const Messages = () => {
  const getDateRangeFromTimeFilter = (filter: string) => {
  const now = new Date();
  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-;
  switch (filter) {
  case 'today':
  return { dateFrom: today.toISOString(), dateTo: now.toISOString() };
  case 'yesterday': {
  const yesterday = new Date(today);
  yesterday.setDate(yesterday.getDate() - 1);
- return { dateFrom: yesterday.toISOString(), dateTo: today.toISOString() }
-}
+ return { dateFrom: yesterday.toISOString(), dateTo: today.toISOString() };
+ }
  case 'last7days': {
  const last7days = new Date(today);
  last7days.setDate(last7days.getDate() - 7);
- return { dateFrom: last7days.toISOString(), dateTo: now.toISOString() }
-}
+ return { dateFrom: last7days.toISOString(), dateTo: now.toISOString() };
+ }
  case 'last30days': {
  const last30days = new Date(today);
  last30days.setDate(last30days.getDate() - 30);
- return { dateFrom: last30days.toISOString(), dateTo: now.toISOString() }
-}
+ return { dateFrom: last30days.toISOString(), dateTo: now.toISOString() };
+ }
  case 'all':
- 'default':
- return {}
-}
+ default:
+ return {};
+ }
  };
 
  // Reload data when filters change
@@ -112,7 +110,7 @@ export const Messages = () => {
  <PageContainer>
  <PageHeader
  title="Message Monitor"
- description="Track and analyze integration message flows";
+ description="Track and analyze integration message flows"
  icon={<MessageSquare />}
  actions={
  <div className="flex items-center gap-3">
@@ -126,7 +124,7 @@ export const Messages = () => {
  onClick={handleRefresh}
  disabled={messagesLoading}
  >
- <RefreshCw className={`h-4 w-4 mr-2 ${messagesLoading ? 'animate-spin' : '}`} />
+ <RefreshCw className={`h-4 w-4 mr-2 ${messagesLoading ? 'animate-spin' : ''}`} />
  Refresh
  </Button>
  </div>
@@ -161,4 +159,4 @@ export const Messages = () => {
  />
  </PageContainer>
  );
-};`
+}
