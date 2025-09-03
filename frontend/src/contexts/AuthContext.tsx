@@ -188,33 +188,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  };
 
  const checkSession = async (): Promise<boolean> => {
- try {
-// First check local session validity
- if (!isSessionValid()) {
- await logout();
- return false;
- 
-} catch (error) {
-  // Handle error
-}
+    try {
+      // First check local session validity
+      if (!isSessionValid()) {
+        await logout();
+        return false;
+      }
  // Verify session with backend
- const response = await authService.getProfile();
- if (response.success && response.data) {
- setUser(response.data);
+      const response = await authService.getProfile();
+      if (response.success && response.data) {
+        setUser(response.data);
 
- // Update token expiry if we get a refreshed token
- const token = authService.getToken();
- if (token) {
- try {
-const payload = JSON.parse(atob(token.split('.')[1]));
- setTokenExpiry(payload.exp * 1000);
- 
-} catch (error) {
-  // Handle error
-}
-} catch (error) {
- logger.warn(LogCategory.SYSTEM, 'Failed to parse token expiry', { data: error });
- }
+        // Update token expiry if we get a refreshed token
+        const token = authService.getToken();
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            setTokenExpiry(payload.exp * 1000);
+          } catch (error) {
+            logger.warn(LogCategory.SYSTEM, 'Failed to parse token expiry', { data: error });
+          }
+        }
 
  return true;
  } else {

@@ -61,10 +61,11 @@ export class ErrorBoundary extends Component<Props, State> {
  // In production, you might want to log to an error reporting service
  if (import.meta.env.PROD) {
  // Log to error reporting service (e.g., Sentry)
- logger.error(LogCategory.,, '$3', {$4});$5
+ logger.error(LogCategory.ERROR, 'React Error Boundary', {
+ error: error.toString(),
  componentStack: errorInfo.componentStack,
  stack: error.stack,
- })
+ });
  }
  }
 
