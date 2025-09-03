@@ -69,12 +69,14 @@ export const RetryManagement = () => {
  setRetryPolicies(response.data);
  } else if (activeTab === 'dlq') {
  const response = await apiClient.get<DeadLetterMessage[]>('/retry-management/dead-letter-queue');
- setDeadLetterMessages(response.data);} catch (error) {
+ setDeadLetterMessages(response.data);
+ }
+ } catch (error) {
  toast({
  title: 'Error',
  description: 'Failed to fetch data',
  variant: 'destructive',
-}
+ });
  });
  } finally {
  setIsLoading(false);
@@ -94,7 +96,7 @@ export const RetryManagement = () => {
  title: 'Error',
  description: 'Failed to reprocess message',
  variant: 'destructive',
-}
+ });
  });
  }
  };
@@ -102,8 +104,8 @@ export const RetryManagement = () => {
  const getDelayDisplay = (policy: RetryPolicy) => {
  const delays = [];
  let delay = policy.initialDelayMs;
- for (let i = 1; i <= policy.maxAttempts; i++) {`
- delays.push(${delay}ms`);
+ for (let i = 1; i <= policy.maxAttempts; i++) {
+ delays.push(`${delay}ms`);
  delay = Math.min(delay * policy.multiplier, policy.maxDelayMs);
  }
  return delays.join(' → ');
@@ -292,7 +294,7 @@ export const RetryManagement = () => {
  </TableCell>
  <TableCell>{message.totalRetryAttempts}</TableCell>
  <TableCell className="text-xs">
- {formatDistanceToNow(new Date(message.lastErrorAt), { addSuffix: true })
+ {formatDistanceToNow(new Date(message.lastErrorAt), { addSuffix: true })}
  </TableCell>
  <TableCell>
  <Button
@@ -332,4 +334,4 @@ export const RetryManagement = () => {
  </Tabs>
  </div>
  );
-};`
+}
