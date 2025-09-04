@@ -85,7 +85,6 @@ export const Settings = () => {
  description: "Failed to update profile",
  variant: "destructive",
  });
- });
  } finally {
  setIsSaving(false);
  }

@@ -63,7 +63,6 @@ setLoading(true);
  title: 'Error',
  description: 'Failed to fetch interface details',
  });
- });
  } finally {
  setLoading(false);
  }

@@ -77,7 +77,6 @@ export const RetryManagement = () => {
  description: 'Failed to fetch data',
  variant: 'destructive',
  });
- });
  } finally {
  setIsLoading(false);
  }

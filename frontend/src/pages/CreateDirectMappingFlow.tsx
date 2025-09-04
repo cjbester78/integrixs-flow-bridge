@@ -321,7 +321,6 @@ export function CreateDirectMappingFlow() {
  }
  }
  }
- }
  } catch (error) {
  logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error });
  }

@@ -86,7 +86,6 @@ export default function AllInterfaces() {
  variant: 'destructive',
  title: 'Error',
  description: 'Failed to fetch interfaces',
-}
  });
  } finally {
  setLoading(false);
