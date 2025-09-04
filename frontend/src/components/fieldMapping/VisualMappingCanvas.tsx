@@ -35,7 +35,7 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  });
 
  // Filter fields based on current context
- const filteredSourceFields = currentTargetField && selectedSourceStructure;
+ const filteredSourceFields = currentTargetField && selectedSourceStructure
  ? sourceFields
  : sourceFields;
 
@@ -54,8 +54,8 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  // Close the editor
  setVisualFlowEditor({
  open: false,
- targetField: null;
- });
+ targetField: null
+ })};
  }, [mappings, onCreateMapping, onRemoveMapping]);
 
  return (
@@ -72,7 +72,7 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  if (currentTargetField) {
  setVisualFlowEditor({
  open: true,
- targetField: currentTargetField;
+ targetField: currentTargetField
  });
  }
  }}
@@ -133,9 +133,9 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  onClick={() => {
  setVisualFlowEditor({
  open: true,
- targetField: currentTargetField;
+ targetField: currentTargetField
  });
- }}}
+ }}
  >
  <Plus className="h-4 w-4 mr-1" />
  Open Flow Editor
@@ -152,7 +152,7 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  <div>
  Visual flow mapping • Select target field and open editor to create complex mappings
  </div>
- <div>`
+ <div>
  {selectedSourceStructure && `Source: ${selectedSourceStructure}`}
  </div>
  </div>
@@ -164,8 +164,8 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  open={visualFlowEditor.open}
  onClose={() => setVisualFlowEditor({
  open: false,
- targetField: null;
- })
+ targetField: null
+ })}
  sourceFields={filteredSourceFields}
  targetField={visualFlowEditor.targetField}
  onApplyMapping={handleApplyFlowMapping}
@@ -174,4 +174,4 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  )}
  </div>
  );
-};`)
+};

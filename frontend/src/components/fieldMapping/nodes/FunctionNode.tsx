@@ -57,7 +57,6 @@ const functions = await developmentFunctionsService.getAllFunctions();
  const isDraggableParameter = (param: any) => {
  // Parameters that are typically draggable (input fields)
  const draggableNames = ['string1', 'string2', 'text', 'input', 'value', 'a', 'b', 'array', 'object', 'source', 'target'];
-;
  // If parameter name suggests it's input data, it's draggable
  if (draggableNames.some(name => param.name.toLowerCase().includes(name))) {
  return true;
@@ -81,18 +80,16 @@ const functions = await developmentFunctionsService.getAllFunctions();
  // Combine static functions with dynamic functions from API
  const allFunctions = useMemo(() => {
  const staticFunctions = Object.values(functionsByCategory).flat();
-;
  // Create a map to avoid duplicates, preferring dynamic functions
  const functionMap = new Map<string, TransformationFunction | TransformationFunctionWithParams>();
-;
  // Add static functions first
  staticFunctions.forEach(func => {
- functionMap.set(func.name, func)})
+ functionMap.set(func.name, func);
  });
 
  // Override with dynamic functions (which have updated parameters)
  dynamicFunctions.forEach(func => {
- functionMap.set(func.name, func)})
+ functionMap.set(func.name, func);
  });
 
  return Array.from(functionMap.values());
@@ -121,10 +118,10 @@ const functions = await developmentFunctionsService.getAllFunctions();
  ...node,
  data: {
  ...node.data,
- parameters: newParameters;
+ parameters: newParameters
  }
+ };
  }
-}
  return node;
  })
  );
@@ -165,7 +162,7 @@ const functions = await developmentFunctionsService.getAllFunctions();
  }}
  className="h-6 w-6 p-0 hover:bg-muted rounded"
  >
- <Settings className={`h-3 w-3 ${showConfig ? 'text-primary' : '}`} />
+ <Settings className={`h-3 w-3 ${showConfig ? 'text-primary' : ''}`} />
  </Button>
  </div>
 
@@ -240,7 +237,7 @@ const functions = await developmentFunctionsService.getAllFunctions();
  {param.required && <span className="text-destructive ml-1">*</span>}
  </Label>
 
- <Input`
+ <Input
  placeholder={`${param.type} value`}
  value={parameters[param.name] || ''}
  onChange={(e) => handleParameterChange(param.name, e.target.value)}
@@ -264,12 +261,12 @@ const functions = await developmentFunctionsService.getAllFunctions();
  if (!isDraggable) return null; // No handle for configurable parameters
 
  return (
- <Handle`
- key={input-${param.name}`}
+ <Handle
+ key={`input-${param.name}`}
  type="target"
  position={Position.Left}
  id={param.name}
- style={{`
+ style={{
  top: `${60 + index * 20}px`,
  background: '#f97316',
  width: '8px',
@@ -278,7 +275,7 @@ const functions = await developmentFunctionsService.getAllFunctions();
  className="border-2 border-white"
  />
  );
- })
+ })}
 
  {/* Output handle */}
  <Handle
@@ -288,5 +285,4 @@ const functions = await developmentFunctionsService.getAllFunctions();
  />
  </div>
  );
-};`
-})
+};
