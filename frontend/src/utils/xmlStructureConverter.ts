@@ -88,10 +88,9 @@ export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
  }
 
  const rootElement = xmlDoc.documentElement;
-;
  // Create a field node for the root element itself
  const rootFieldNode: FieldNode = {
- id: ${rootElement.tagName}_root`,
+ id: `${rootElement.tagName}_root`,
  name: rootElement.tagName,
  type: 'object',
  path: rootElement.tagName,

@@ -42,7 +42,6 @@ class FlowExecutionEngine {
  userId: string = 'system'
  ): Promise<FlowExecution> {
  const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-;
  const execution: FlowExecution = {
  id: executionId,
  flowId: flowDefinition.id,
@@ -64,7 +63,7 @@ class FlowExecutionEngine {
  completedSteps: 0,
  failedSteps: 0,
  skippedSteps: 0,
- dataProcessed: 0;
+ dataProcessed: 0
  }
  };
 
@@ -79,11 +78,11 @@ class FlowExecutionEngine {
  code: 'EXECUTION_FAILED',
  message: error instanceof Error ? error.message : 'Unknown error',
  timestamp: new Date().toISOString()
-}
  };
+ }
 
  toast({
- title: "Flow Execution Failed",`
+ title: "Flow Execution Failed",
  description: `Flow "${flowDefinition.name}" failed: ${execution.error.message}`,
  variant: "destructive"
  });
@@ -113,7 +112,6 @@ class FlowExecutionEngine {
  for (let i = 0; i < flowDefinition.steps.length; i++) {
  const step = flowDefinition.steps[i];
  const stepExecution = execution.steps[i];
-;
  context.currentStep = step.id;
 
  try {
@@ -124,7 +122,6 @@ class FlowExecutionEngine {
 
  if (flowDefinition.settings.errorHandling === 'stop') {
  throw error;
-}
  } else if (flowDefinition.settings.errorHandling === 'retry') {
  // Retry logic would go here
  throw error;
@@ -138,7 +135,7 @@ class FlowExecutionEngine {
  execution.status = execution.metrics.failedSteps > 0 ? 'failed' : 'completed';
 
  toast({
- title: "Flow Execution Complete",`
+ title: "Flow Execution Complete",
  description: `Flow "${flowDefinition.name}" executed successfully`,
  variant: execution.status === 'completed' ? "default" : "destructive"
  });
@@ -149,16 +146,16 @@ class FlowExecutionEngine {
  step: any,
  stepExecution: StepExecution,
  context: ExecutionContext,
- settings: any;
+ settings: any
  ): Promise<void> {
  stepExecution.status = 'running';
  stepExecution.startTime = new Date().toISOString();
-`
+ 
  this.addLog(stepExecution, 'info', `Starting step: ${step.name}`);
 
  const processor = this.stepProcessors.get(step.type);
- if (!processor) {`
- throw new Error(`No processor found for step type: ${step.type}`);
+ if (!processor) {
+  throw new Error(`No processor found for step type: ${step.type}`);
  }
 
  try {
@@ -167,13 +164,12 @@ class FlowExecutionEngine {
  setTimeout(() => reject(new Error('Step execution timeout')), settings.timeout || 30000);
  });
 
-
  const executionPromise = processor.process(step, context);
  stepExecution.output = await Promise.race([executionPromise, timeoutPromise]);
 
  context.stepResults[step.id] = stepExecution.output;
  stepExecution.status = 'completed';
-`
+ 
  this.addLog(stepExecution, 'info', `Step completed successfully`);
 
  } catch (error) {
@@ -182,9 +178,8 @@ class FlowExecutionEngine {
  code: 'STEP_EXECUTION_FAILED',
  message: error instanceof Error ? error.message : 'Unknown error',
  timestamp: new Date().toISOString()
-}
  };
-`
+ 
  this.addLog(stepExecution, 'error', `Step failed: ${stepExecution.error.message}`);
  throw error;
  } finally {
@@ -195,11 +190,12 @@ class FlowExecutionEngine {
 
  // Add log entry to step execution
  private addLog(stepExecution: StepExecution, level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: any) {
- stepExecution.logs.push({ timestamp: new Date().toISOString(),
-  level: level,
- message,
- data
- })
+  stepExecution.logs.push({
+   timestamp: new Date().toISOString(),
+   level: level,
+   message,
+   data
+  });
  }
 
  // Pause flow execution
@@ -266,8 +262,8 @@ class FlowExecutionEngine {
 
 // Step Processors Implementation
 class AdapterStepProcessor implements StepProcessor {
- async process(step: any, context: ExecutionContext): Promise<any> {`
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/adapters/${step.adapterId}/execute`, {
+ async process(step: any, context: ExecutionContext): Promise<any> {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/adapters/${step.adapterId}/execute`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -280,8 +276,8 @@ class AdapterStepProcessor implements StepProcessor {
  }),
  });
 
- if (!response.ok) {`
- throw new Error(`Adapter execution failed: ${response.statusText}`);
+ if (!response.ok) {
+  throw new Error(`Adapter execution failed: ${response.statusText}`);
  }
 
  return await response.json();
@@ -293,8 +289,8 @@ class AdapterStepProcessor implements StepProcessor {
 }
 
 class TransformationStepProcessor implements StepProcessor {
- async process(step: any, context: ExecutionContext): Promise<any> {`
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/transformations/execute`, {
+ async process(step: any, context: ExecutionContext): Promise<any> {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/transformations/execute`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -308,8 +304,8 @@ class TransformationStepProcessor implements StepProcessor {
  }),
  });
 
- if (!response.ok) {`
- throw new Error(`Transformation execution failed: ${response.statusText}`);
+ if (!response.ok) {
+  throw new Error(`Transformation execution failed: ${response.statusText}`);
  }
 
  return await response.json();
@@ -321,8 +317,8 @@ class TransformationStepProcessor implements StepProcessor {
 }
 
 class ConditionStepProcessor implements StepProcessor {
- async process(step: any, context: ExecutionContext): Promise<any> {`
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/conditions/evaluate`, {
+ async process(step: any, context: ExecutionContext): Promise<any> {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/conditions/evaluate`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -336,8 +332,8 @@ class ConditionStepProcessor implements StepProcessor {
  }),
  });
 
- if (!response.ok) {`
- throw new Error(`Condition evaluation failed: ${response.statusText}`);
+ if (!response.ok) {
+  throw new Error(`Condition evaluation failed: ${response.statusText}`);
  }
 
  return await response.json();
@@ -349,8 +345,8 @@ class ConditionStepProcessor implements StepProcessor {
 }
 
 class LoopStepProcessor implements StepProcessor {
- async process(step: any, context: ExecutionContext): Promise<any> {`
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/loops/execute`, {
+ async process(step: any, context: ExecutionContext): Promise<any> {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/loops/execute`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -363,8 +359,8 @@ class LoopStepProcessor implements StepProcessor {
  }),
  });
 
- if (!response.ok) {`
- throw new Error(`Loop execution failed: ${response.statusText}`);
+ if (!response.ok) {
+  throw new Error(`Loop execution failed: ${response.statusText}`);
  }
 
  return await response.json();
@@ -378,7 +374,7 @@ class LoopStepProcessor implements StepProcessor {
 class DelayStepProcessor implements StepProcessor {
  async process(step: any, context: ExecutionContext): Promise<any> {
  const delay = step.configuration?.delay || 1000;
-`
+ 
  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/flows/executions/${context.executionId}/delay`, {
  method: 'POST',
  headers: {
@@ -386,12 +382,12 @@ class DelayStepProcessor implements StepProcessor {
  },
  body: JSON.stringify({
  stepId: step.id,
- delay: delay;
+ delay: delay
  }),
  });
 
- if (!response.ok) {`
- throw new Error(`Delay execution failed: ${response.statusText}`);
+ if (!response.ok) {
+  throw new Error(`Delay execution failed: ${response.statusText}`);
  }
 
  return await response.json();
@@ -402,4 +398,4 @@ class DelayStepProcessor implements StepProcessor {
  }
 }
 
-export const flowExecutionEngine = new FlowExecutionEngine();`
+export const flowExecutionEngine = new FlowExecutionEngine();

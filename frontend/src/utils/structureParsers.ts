@@ -128,7 +128,7 @@ export const parseWsdlStructure = (wsdlString: string) => {
  fieldValue = resolveType(elementType, schemas);
  } else if (elementRef) {
  // Element reference - find the element definition
- const refName = elementRef.split(':').pop() || ';
+ const refName = elementRef.split(':').pop() || '';
  for (const schema of schemas) {
  const refElement = schema.querySelector(`element[name="${refName}"], xs\\:element[name="${refName}"], xsd\\:element[name="${refName}"]`);
  if (refElement) {
