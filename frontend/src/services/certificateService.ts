@@ -1,6 +1,8 @@
 import { api, ApiResponse } from './api';
 import { Certificate } from '@/types/admin';
 
+const API_BASE_URL = 'http://localhost:8080/api';
+
 export interface CreateCertificateRequest {
  name: string;
  type: string;
@@ -40,12 +42,12 @@ class CertificateService {
  }
 
  // Update certificate
- async updateCertificate(certificateId: string, updates: Partial<CreateCertificateRequest>): Promise<ApiResponse<Certificate>> {`
- return api.put<Certificate>(/certificates/${certificateId}`, updates);
+ async updateCertificate(certificateId: string, updates: Partial<CreateCertificateRequest>): Promise<ApiResponse<Certificate>> {
+ return api.put<Certificate>(`/certificates/${certificateId}`, updates);
  }
 
  // Delete certificate
- async deleteCertificate(certificateId: string): Promise<ApiResponse<void>> {`
+ async deleteCertificate(certificateId: string): Promise<ApiResponse<void>> {
  return api.delete(`/certificates/${certificateId}`);
  }
 
@@ -65,14 +67,16 @@ class CertificateService {
  headers: {
  'Content-Type': 'multipart/form-data'
  }
- })
+ });
  }
 
  // Download certificate
- async downloadCertificate(certificateId: string): Promise<Blob> {`
- const response = await fetch(${api.baseURL}/certificates/${certificateId}/download`, {
+ async downloadCertificate(certificateId: string): Promise<Blob> {
+ const response = await fetch(`${API_BASE_URL}/certificates/${certificateId}/download`, {
  method: 'GET',
- headers: api.getAuthHeaders()
+ headers: {
+ 'Authorization': `Bearer ${localStorage.getItem('integration_platform_token')}`
+ }
  });
 
  if (!response.ok) {
@@ -83,7 +87,7 @@ class CertificateService {
  }
 
  // Get certificates by business component
- async getCertificatesByBusinessComponent(businessComponentId: string): Promise<ApiResponse<Certificate[]>> {`
+ async getCertificatesByBusinessComponent(businessComponentId: string): Promise<ApiResponse<Certificate[]>> {
  return api.get<Certificate[]>(`/business-components/${businessComponentId}/certificates`);
  }
 
@@ -92,15 +96,14 @@ class CertificateService {
  valid: boolean;
  errors: string[];
  warnings: string[];
- }>> {`
- return api.get(/certificates/${certificateId}/validate`);
+ }>> {
+ return api.get(`/certificates/${certificateId}/validate`);
  }
 
  // Get expiring certificates
- async getExpiringCertificates(days: number = 30): Promise<ApiResponse<Certificate[]>> {`
+ async getExpiringCertificates(days: number = 30): Promise<ApiResponse<Certificate[]>> {
  return api.get<Certificate[]>(`/certificates/expiring?days=${days}`);
  }
 }
 
-export const certificateService = new CertificateService();`
-}}
+export const certificateService = new CertificateService();
