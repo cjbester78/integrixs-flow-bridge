@@ -124,3 +124,73 @@ Total: 151 errors, 21 warnings
 - Reduced total issues by 16 (~9%)
 
 Note: Many files appear to have multiple errors, and some errors may have been reintroduced by auto-formatting or other processes. A more comprehensive fix would require reviewing each file individually for all syntax issues.
+
+## Remaining Errors to Fix
+
+### Components - Field Mapping
+- [ ] FieldMappingScreen.tsx - Line 529: ',' expected
+- [ ] fieldMapping/FieldSelectorDialog.tsx - Line 58: Expression expected
+- [ ] fieldMapping/FieldTree.tsx - Line 131: Unterminated template literal
+- [ ] fieldMapping/FunctionMappingModal.tsx - Line 52: ',' expected
+- [ ] fieldMapping/FunctionNode.tsx - Line 157: Unterminated template literal
+- [ ] fieldMapping/FunctionPicker.tsx - Line 35: Expression expected
+- [ ] fieldMapping/FunctionSelectorDialog.tsx - Line 77: Expression expected
+- [ ] fieldMapping/MappingArea.tsx - Line 38: Unterminated string literal
+- [ ] fieldMapping/TestMappingDialog.tsx - Line 94: 'try' expected
+- [ ] fieldMapping/TransformationPreview.tsx - Line 61: ';' expected
+- [ ] fieldMapping/VisualFlowEditor.tsx - Line 110: Expression expected
+- [ ] fieldMapping/VisualMappingCanvas.tsx - Line 39: Declaration expected
+- [ ] fieldMapping/nodes/FunctionNode.tsx - Line 96: ',' expected
+
+### Components - Adapters
+- [ ] adapter/SftpAdapterConfiguration.tsx - Line 207: Identifier expected
+- [ ] adapter/SoapOutboundAdapterConfiguration.tsx - Line 228: 'try' expected
+- [ ] adapters/FileFormatTab.tsx - Line 83: ',' expected
+- [ ] adapters/PayloadStructureDefinition.tsx - Line 289: '}' expected
+
+### Components - Data Structures
+- [ ] dataStructures/FieldAdvancedOptions.tsx - Line 44: '}' expected
+- [ ] dataStructures/FieldConfiguration.tsx - Line 71: '}' expected
+- [ ] dataStructures/FileUploadZone.tsx - Line 55: Unterminated template literal
+- [ ] dataStructures/NamespaceConfiguration.tsx - Line 55: '}' expected
+- [ ] dataStructures/StructureLibrary.tsx - Line 108: Identifier expected
+- [ ] dataStructures/tabs/JsonStructureTab.tsx - Line 44: ';' expected
+- [ ] dataStructures/tabs/WsdlStructureTab.tsx - Line 169: Unterminated template literal
+- [ ] dataStructures/tabs/XsdStructureTab.tsx - Line 115: Unterminated template literal
+
+### Components - Flow
+- [ ] flow/DeploymentDetailsDialog.tsx - Line 142: ',' expected
+- [ ] flow/FlowExecutionMonitor.tsx - Line 89: ';' expected
+- [ ] flow/FlowExecutionVisualizer.tsx - Line 77: ')' expected
+- [ ] flow/FlowExportDialog.tsx - Line 73: ',' expected
+- [ ] flow/FlowImportDialog.tsx - Line 103: ',' expected
+- [ ] flow/FlowScheduler.tsx - Line 88: Property assignment expected
+- [ ] flow/TestFlowDialog.tsx - Line 115: ')' expected
+
+### Components - Development
+- [ ] development/FunctionDialog.tsx - Line 79: Unterminated string literal
+- [ ] development/FunctionEditor.tsx - Line 175: Declaration expected
+- [ ] development/FunctionTestPanel.tsx - Line 67: ')' expected
+- [ ] development/ParameterEditor.tsx - Line 52: ';' expected
+
+### Components - Create Flow
+- [ ] createFlow/TransformationConfigurationCard.tsx - Line 237: Identifier expected
+
+### Components - Other
+- [ ] layout/Sidebar.tsx - Line 188: '}' expected
+- [ ] messages/MessageList.tsx - Line 36: Declaration expected
+
+### Remaining Admin Components
+- [ ] AdapterTypesManagement.tsx - Line 468: '}' expected
+- [ ] CreateExternalAuthDialog.tsx - Line 95: ',' expected
+- [ ] EditExternalAuthDialog.tsx - Line 78: Unterminated string literal
+- [ ] EditUserDialog.tsx - Line 351: '}' expected
+- [ ] JdbcDriverModal.tsx - Line 56: ',' expected
+- [ ] JmsDriverModal.tsx - Line 56: ',' expected
+- [ ] RoleManagement.tsx - Line 129: Unterminated template literal
+- [ ] SystemSettings.tsx - Line 99: ';' expected
+- [ ] UserManagement.tsx - Line 177: Unterminated template literal
+
+### Remaining Architecture Components
+- [ ] LoggingArchitectureDiagrams.tsx - Line 95: Invalid character
+- [ ] UpdatedArchitectureDiagrams.tsx - Line 444: Unterminated template literal

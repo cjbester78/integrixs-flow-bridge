@@ -157,15 +157,12 @@ export const parseWsdlStructure = (wsdlString: string) => {
 
  // Get all schemas
  const schemas = doc.querySelectorAll('schema, xs\\:schema, xsd\\:schema');
-;
  // Try to find message definitions and their corresponding elements
  const messages = doc.querySelectorAll('message, wsdl\\:message');
  messages.forEach((message) => {
  const parts = message.querySelectorAll('part, wsdl\\:part');
-;
  parts.forEach((part) => {
  const partElement = part.getAttribute('element');
-;
  if (partElement) {
  // Find the element definition
  const elementName = partElement.split(':').pop();
@@ -191,7 +188,11 @@ export const parseWsdlStructure = (wsdlString: string) => {
  }
  }
  break;
- })
+ }
+ }
+ }
+ });
+ });
  });
 
  // If no message elements found, try root elements in schemas
@@ -215,23 +216,22 @@ export const parseWsdlStructure = (wsdlString: string) => {
  const nestedStructure = {};
  extractElements(complexType, nestedStructure, 0, schemas);
  structureEntries.push([rootName, nestedStructure]);
- })
- })
+ }
+ }
+ });  
+ });
  }
 
  // Build the structure object from entries to preserve order
  const structure = createOrderedObject(structureEntries);
-;
  // Detect operation pattern for sync/async determination
  const operations = doc.querySelectorAll('operation, wsdl\\:operation');
  let operationInfo = null;
-;
  if (operations.length > 0) {
  const operation = operations[0];
  const hasInput = !!operation.querySelector('input, wsdl\\:input');
  const hasOutput = !!operation.querySelector('output, wsdl\\:output');
  const hasFault = !!operation.querySelector('fault, wsdl\\:fault');
-;
  operationInfo = {
  hasInput,
  hasOutput,
@@ -257,7 +257,6 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  try {
  const parser = new DOMParser();
  const doc = parser.parseFromString(wsdlString, 'text/xml');
-;
  // Check for parsing errors
  const parserError = doc.querySelector('parsererror');
  if (parserError) {
@@ -268,7 +267,6 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  // Debug: Check what we're parsing
  const rootElement = doc.documentElement;
  logger.info(LogCategory.SYSTEM, 'WSDL root element', { data: rootElement.tagName, namespace: rootElement.namespaceURI });
-;
  // Find all portType elements first - use namespace-agnostic approach
  const portTypes: Element[] = [];
  const allElements = doc.getElementsByTagName('*');
@@ -279,7 +277,6 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  }
  }
  logger.info(LogCategory.SYSTEM, 'Found portTypes', { data: portTypes.length });
-;
  // Find all operation elements within portTypes
  const operations: Element[] = [];
  portTypes.forEach(portType => {
@@ -289,6 +286,8 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  if ((elem.localName === 'operation' || elem.tagName === 'operation' || elem.tagName === 'wsdl:operation') &&
  elem.parentElement === portType) {
  operations.push(elem);
+ }
+ }
  });
 
  const operationNames: string[] = [];
@@ -300,11 +299,12 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  if (name && !operationNames.includes(name)) {
  operationNames.push(name);
  logger.info(LogCategory.SYSTEM, 'Added operation', { data: name });
+ }
+ });
 
  // If no operations found in portType, look in binding
  if (operationNames.length === 0) {
  logger.info(LogCategory.SYSTEM, 'No operations in portType, checking binding elements...');
-;
  // Find all binding elements
  const bindings: Element[] = [];
  for (let i = 0; i < allElements.length; i++) {
@@ -314,7 +314,6 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  }
  }
  logger.info(LogCategory.SYSTEM, 'Found bindings', { data: bindings.length });
-;
  // Find operations within bindings
  bindings.forEach(binding => {
  const bindingOps = binding.getElementsByTagName('*');
@@ -327,13 +326,16 @@ export const extractWsdlOperations = (wsdlString: string): { names: string[], ha
  operationNames.push(name);
  logger.info(LogCategory.SYSTEM, 'Found operation in binding', { data: name });
  }
+ }
+ }
+ });
+ }
 
  return {
  names: operationNames,
  hasMultiple: operationNames.length > 1
- }
-}
-} catch (error) {
+ };
+ } catch (error) {
  logger.error(LogCategory.ERROR, 'Error extracting WSDL operations', { error: error });
  return { names: [], hasMultiple: false };
  }
@@ -344,7 +346,6 @@ export const extractWsdlPartName = (wsdlString: string): string | null => {
  // Always try to get operation names first - this is the primary source
  const { names, hasMultiple } = extractWsdlOperations(wsdlString);
  logger.info(LogCategory.SYSTEM, 'WSDL operation extraction result', { names, hasMultiple });
-;
  if (names.length === 1) {
  // Single operation found - use it
  return names[0];
@@ -356,8 +357,7 @@ export const extractWsdlPartName = (wsdlString: string): string | null => {
  // If no operations found, don't fall back to element names
  // The operation name is what we want for WSDL naming
  return null;
-    }
-} catch (error) {
+    } catch (error) {
  logger.error(LogCategory.ERROR, 'Error extracting WSDL part name', { error: error });
  return null;
  }
@@ -367,19 +367,18 @@ export const extractWsdlNamespaceInfo = (wsdlString: string) => {
  try {
 const parser = new DOMParser();
  const doc = parser.parseFromString(wsdlString, 'text/xml');
-;
  // Check for parsing errors
  const parserError = doc.querySelector('parsererror');
  if (parserError) {
  return null;
     }
  const root = doc.documentElement;
- const targetNamespace = root.getAttribute('targetNamespace') || ';
+ const targetNamespace = root.getAttribute('targetNamespace') || '';
  // Extract WSDL location from soap:address location
  const soapAddresses = doc.querySelectorAll('address, soap\\:address, soap12\\:address');
- let schemaLocation = ';
+ let schemaLocation = '';
  if (soapAddresses.length > 0) {
- schemaLocation = soapAddresses[0].getAttribute('location') || ';
+ schemaLocation = soapAddresses[0].getAttribute('location') || '';
  }
 
  // Extract namespace prefix from xmlns attributes
@@ -407,14 +406,12 @@ export const extractWsdlSoapActions = (wsdlString: string): { operationName: str
  try {
  const parser = new DOMParser();
  const doc = parser.parseFromString(wsdlString, 'text/xml');
-;
  // Check for parsing errors
  const parserError = doc.querySelector('parsererror');
  if (parserError) {
  logger.error(LogCategory.ERROR, 'WSDL parsing error', { error: parserError });
  return [];
  }
-;
  const soapActions: { operationName: string, soapAction: string }[] = [];
 
  // Find all binding elements
@@ -432,39 +429,39 @@ export const extractWsdlSoapActions = (wsdlString: string): { operationName: str
  bindings.forEach(binding => {
  // Find all operation elements within this binding
  const operations = binding.getElementsByTagName('*');
-;
  for (let i = 0; i < operations.length; i++) {
  const elem = operations[i];
-;
  // Check if this is an operation element
  if ((elem.localName === 'operation' || elem.tagName === 'operation' || elem.tagName === 'wsdl:operation') &&
  elem.parentElement === binding) {
 
  const operationName = elem.getAttribute('name');
-;
  if (operationName) {
  // Look for soap:operation within this operation
  const soapOperations = elem.getElementsByTagName('*');
-;
  for (let j = 0; j < soapOperations.length; j++) {
  const soapOp = soapOperations[j];
-;
  // Check for soap:operation or soap12:operation
  if (soapOp.localName === 'operation' &&
  (soapOp.namespaceURI === 'http://schemas.xmlsoap.org/wsdl/soap/' ||
  soapOp.namespaceURI === 'http://schemas.xmlsoap.org/wsdl/soap12/')) {
 
  const soapAction = soapOp.getAttribute('soapAction');
-;
  if (soapAction !== null) { // Include empty string soap actions
  soapActions.push({
  operationName,
  soapAction
  });
+ }
+ }
+ }
+ }
+ }
+ }
  });
 
  // Remove duplicates based on operation name
- const uniqueActions = soapActions.filter((item, index, self) =>;
+ const uniqueActions = soapActions.filter((item, index, self) =>
  index === self.findIndex(t => t.operationName === item.operationName)
     );
 
@@ -481,7 +478,7 @@ export const buildNestedStructure = (fields: Field[]): any => {
  fields.forEach(field => {
  if (field.children && field.children.length > 0) {
  // Complex type with children
- structure[field.name] = buildNestedStructure(field.children)
+ structure[field.name] = buildNestedStructure(field.children);
  } else {
  // Simple field
  structure[field.name] = field.type;
@@ -489,5 +486,4 @@ export const buildNestedStructure = (fields: Field[]): any => {
     });
 
  return structure;
-}
-}}}}}}}})
+};

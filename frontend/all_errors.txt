@@ -1,0 +1,137 @@
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/FieldMappingScreen.tsx   529:2  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/adapter/SftpAdapterConfiguration.tsx   207:14  error  Parsing error: Identifier expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/adapter/SoapOutboundAdapterConfiguration.tsx   228:3  error  Parsing error: 'try' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/adapters/FileFormatTab.tsx   83:27  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/adapters/PayloadStructureDefinition.tsx   289:2  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/AdapterTypesManagement.tsx   468:2  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/CreateExternalAuthDialog.tsx   95:32  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/EditExternalAuthDialog.tsx   78:43  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/EditUserDialog.tsx   351:1  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/JdbcDriverModal.tsx   56:33  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/JmsDriverModal.tsx   56:33  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/RoleManagement.tsx   129:3  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/SystemSettings.tsx   99:41  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/admin/UserManagement.tsx   177:3  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/architecture/LoggingArchitectureDiagrams.tsx   95:0  error  Parsing error: Invalid character
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/architecture/UpdatedArchitectureDiagrams.tsx   444:1  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/createFlow/TransformationConfigurationCard.tsx   237:18  error  Parsing error: Identifier expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/FieldAdvancedOptions.tsx   44:1  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/FieldConfiguration.tsx   71:1  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/FileUploadZone.tsx   55:2  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/NamespaceConfiguration.tsx   55:1  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/StructureLibrary.tsx   108:1  error  Parsing error: Identifier expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/tabs/JsonStructureTab.tsx   44:3  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/tabs/WsdlStructureTab.tsx   169:5  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/dataStructures/tabs/XsdStructureTab.tsx   115:3  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/development/FunctionDialog.tsx   79:30  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/development/FunctionEditor.tsx   175:0  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/development/FunctionTestPanel.tsx   67:42  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/development/ParameterEditor.tsx   52:37  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/FieldSelectorDialog.tsx   58:58  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/FieldTree.tsx   131:2  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/FunctionMappingModal.tsx   52:25  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/FunctionNode.tsx   157:3  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/FunctionPicker.tsx   35:40  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/FunctionSelectorDialog.tsx   77:40  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/MappingArea.tsx   38:21  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/TestMappingDialog.tsx   94:57  error  Parsing error: 'try' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/TransformationPreview.tsx   61:10  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/VisualFlowEditor.tsx   110:45  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/VisualMappingCanvas.tsx   39:1  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/fieldMapping/nodes/FunctionNode.tsx   96:2  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/DeploymentDetailsDialog.tsx   142:72  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/FlowExecutionMonitor.tsx   89:10  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/FlowExecutionVisualizer.tsx   77:31  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/FlowExportDialog.tsx   73:1  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/FlowImportDialog.tsx   103:1  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/FlowScheduler.tsx   88:33  error  Parsing error: Property assignment expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/flow/TestFlowDialog.tsx   115:35  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/layout/Sidebar.tsx   188:2  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/messages/MessageList.tsx   36:102  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/messages/MessageStats.tsx   42:25  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/messages/components/MessageCard.tsx   52:1  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/messages/utils/timeFilters.ts   45:10  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/orchestration/OrchestrationPropertiesPanel.tsx   158:3  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/orchestration/VisualOrchestrationEditor.tsx   123:20  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/orchestration/nodes/AdapterNode.tsx   43:45  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/orchestration/nodes/RoutingNode.tsx   240:0  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/orchestration/nodes/StartProcessNode.tsx   54:23  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/orchestration/nodes/TransformationNode.tsx   171:92  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/packages/PackageCreationWizard.tsx   112:30  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/accordion.tsx   9:39  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/alert-dialog.tsx   13:44  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/alert.tsx   6:26  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/avatar.tsx   6:32  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/badge.tsx   6:26  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/breadcrumb.tsx   7:36  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/button.tsx   7:27  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/card.tsx   5:30  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/carousel.tsx   43:34  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/certificate-selection.tsx   74:84  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/chart.tsx   35:40  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/checkbox.tsx   7:34  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/combobox.tsx   127:2  error  Parsing error: Unterminated template literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/command.tsx   9:33  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/context-menu.tsx   19:47  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/data-table.tsx   77:1  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/dialog.tsx   15:39  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/drawer.tsx   23:39  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/dropdown-menu.tsx   19:48  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/form.tsx   25:68  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/hover-card.tsx   10:42  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/input-otp.tsx   7:34  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/input.tsx   5:80  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/label.tsx   7:26  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/loading-skeleton.tsx   81:10  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/menubar.tsx   17:33  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/navigation-menu.tsx   8:40  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/pagination.tsx   17:43  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/password-confirmation.tsx   116:7  error  Parsing error: Identifier expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/popover.tsx   10:40  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/progress.tsx   6:34  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/radio-group.tsx   7:36  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/scroll-area.tsx   6:36  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/select.tsx   13:39  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/separator.tsx   6:35  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/sheet.tsx   16:38  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/sidebar.tsx   48:41  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/slider.tsx   6:32  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/switch.tsx   6:32  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/table.tsx   5:31  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/tabs.tsx   8:34  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/textarea.tsx   7:70  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/toast.tsx   10:39  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/toggle-group.tsx   8:47  error  Parsing error: Expression expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/ui/toggle.tsx   7:27  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/components/wsdl/WSDLGeneratorModal.tsx   147:48  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/hooks/use-logger.ts   17:117  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/hooks/useBusinessComponentAdapters.ts   95:2  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/hooks/useFlowMonitoring.ts   26:2  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/hooks/useMessageMonitoring.ts   33:3  error  Parsing error: 'try' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/hooks/useSystemMonitoring.ts   126:2  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/lib/api-client.ts   93:71  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/lib/api-response-utils.ts   11:38  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/lib/query-logger.ts   21:2  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/pages/AdapterMonitoring.tsx   132:1  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/pages/Admin.tsx   142:39  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/pages/AllInterfaces.tsx   125:1  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/pages/CreateDataStructure.tsx   103:3  error  Parsing error: 'try' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/pages/CreateDirectMappingFlow.tsx   323:3  error  Parsing error: 'try' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/pages/Settings.tsx   141:2  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/api.ts   222:2  error  Parsing error: '}' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/flowExportImportService.ts   93:58  error  Parsing error: ')' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/flowMonitoringService.ts   80:70  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/integrationFlowService.ts   52:1  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/jarFileService.ts   51:38  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/messageService.ts   90:35  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/packageService.ts   66:39  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/roleService.ts   44:36  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/structureService.ts   79:37  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/systemConfigService.ts   63:2  error  Parsing error: ',' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/systemErrorLogger.ts   101:0  error  Parsing error: 'catch' or 'finally' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/systemMonitoringService.ts   122:33  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/transformationFunctions.ts   802:21  error  Parsing error: Unterminated string literal
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/userService.ts   60:36  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/services/webserviceService.ts   51:31  error  Parsing error: ';' expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/utils/structureParsers.ts   150:2  error  Parsing error: Declaration or statement expected
+/Users/cjbester/git/Integrixs-Flow-Bridge/frontend/src/utils/xmlStructureConverter.ts   121:16  error  Parsing error: ',' expected

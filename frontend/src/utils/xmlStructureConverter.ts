@@ -12,7 +12,7 @@ export interface XmlConversionConfig {
  namespaceUri?: string;
  namespacePrefix?: string;
  additionalNamespaces?: Record<string, string>;
- arrayElementNames?: Record<string, string>
+ arrayElementNames?: Record<string, string>;
 }
 
 export interface XmlConversionResult {
@@ -55,7 +55,6 @@ export async function convertStructureToXml(
 export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
  const parser = new DOMParser();
  const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
-;
  // Debug logging to check XML structure
  logger.info(LogCategory.SYSTEM, 'Parsing XML content', { data: xmlContent });
  // Check for parsing errors
@@ -118,16 +117,15 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
  name: `@${attr.name}`,
  type: 'attribute',
  path,
- expanded: false;
+ expanded: false
  });
- }}
+ }
  }
  }
 
  // Process child elements while preserving order
  const processedTags = new Set<string>();
  const elementGroups = new Map<string, Element[]>();
-;
  // First, collect all elements by tag name
  for (let i = 0; i < xmlNode.children.length; i++) {
  const child = xmlNode.children[i] as Element;
@@ -135,7 +133,7 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
  if (!elementGroups.has(tagName)) {
  elementGroups.set(tagName, []);
  }
- elementGroups.get(tagName)!.push(child)
+ elementGroups.get(tagName)!.push(child);
  }
 
  // Then process them in document order
@@ -143,21 +141,19 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
  for (let i = 0; i < xmlNode.children.length; i++) {
  const child = xmlNode.children[i] as Element;
  const tagName = child.tagName;
- logger.info(LogCategory.SYSTEM, ' Child ${i}: ${tagName}');
+ logger.info(LogCategory.SYSTEM, `Child ${i}: ${tagName}`);
  // Skip if we've already processed this tag
  if (processedTags.has(tagName)) {
- continue
+ continue;
  }
  processedTags.add(tagName);
 
  const elements = elementGroups.get(tagName)!;
-;
  if (elements.length === 1) {
  // Single element
- const element = elements[0];`;
+ const element = elements[0];
  const path = parentPath ? `${parentPath}.${tagName}` : tagName;
  const hasChildren = element.children.length > 0 || element.attributes.length > 0;
-;
  const fieldNode: FieldNode = {
  id: `${path}_${Date.now()}_${Math.random()}`,
  name: tagName,
@@ -170,10 +166,10 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
  fieldNodes.push(fieldNode);
  } else {
  // Array of elements
- const path = parentPath ? ${parentPath}.${tagName}[]` : `${tagName}[]`;
+ const path = parentPath ? `${parentPath}.${tagName}[]` : `${tagName}[]`;
  const fieldNode: FieldNode = {
  id: `${path}_array_${Date.now()}`,
- name: ${tagName}[]`,
+ name: `${tagName}[]`,
  type: 'array',
  path,
  expanded: false,
@@ -188,13 +184,13 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
 
  // If node has text content and no children, add it as a value
  if (xmlNode.textContent && xmlNode.children.length === 0 && fieldNodes.length === 0) {
- const path = parentPath ? ${parentPath}._text` : '_text';
+ const path = parentPath ? `${parentPath}._text` : '_text';
  fieldNodes.push({
  id: `${path}_text`,
  name: '_text',
  type: 'string',
  path,
- expanded: false;
+ expanded: false
  });
  }
 
@@ -206,9 +202,10 @@ function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): 
  */
 export function extractXmlPaths(nodes: FieldNode[], paths: string[] = []): string[] {
  nodes.forEach(node => {
- paths.push(node.path)});
+ paths.push(node.path);
  if (node.children) {
  extractXmlPaths(node.children, paths);
+ }
  });
  return paths;
 }
