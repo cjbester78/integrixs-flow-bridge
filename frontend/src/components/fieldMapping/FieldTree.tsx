@@ -128,4 +128,4 @@ export function FieldTree({
  {fields.map(field => renderField(field, 0))}
  </div>
  );
-}`
+};
