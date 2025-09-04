@@ -43,10 +43,7 @@ class AdapterValidationService {
  if (!configValidation.isValid) {
  errors.push(...configValidation.errors);
  warnings.push(...configValidation.warnings);
- 
-} catch (error) {
-  // Handle error
-}
+ }
  // 2. Setup mock servers if needed
  await this.setupMockServers(config.adapterType);
 
@@ -64,27 +61,28 @@ class AdapterValidationService {
  await this.cleanupMockServers(config.adapterType);
 
  const totalDuration = Date.now() - startTime;
-;
  toast({
- title: "Adapter Validation Complete",`
+ title: "Adapter Validation Complete",
  description: `${testResults.length} tests completed in ${totalDuration}ms`,
  variant: testResults.some(t => t.status === 'failed') ? "destructive" : "default"
  });
 
- return { isValid: errors.length === 0,
-  errors: errors,
+ return {
+ isValid: errors.length === 0,
+ errors,
  warnings,
  testResults
- }
-} catch (error) {`
+ };
+ } catch (error) {
  errors.push(`Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
 
- return { isValid: false,
-  errors: errors,
+ return {
+ isValid: false,
+ errors,
  warnings,
  testResults
+ };
  }
-}
  }
 
  // Configuration validation rules
@@ -95,7 +93,7 @@ class AdapterValidationService {
  // Required fields validation
  const requiredFields = this.getRequiredFields(config.adapterType);
  for (const field of requiredFields) {
- if (!config.configuration[field]) {`
+ if (!config.configuration[field]) {
  errors.push(`Required field '${field}' is missing`);
  }
  }
@@ -121,11 +119,12 @@ class AdapterValidationService {
  // Add more adapter types as needed
  }
 
- return { isValid: errors.length === 0,
-  errors: errors,
+ return {
+ isValid: errors.length === 0,
+ errors,
  warnings
+ };
  }
-}
 
  // HTTP adapter validation
  private validateHttpConfiguration(config: Record<string, any>, errors: string[], warnings: string[]) {
@@ -194,7 +193,6 @@ class AdapterValidationService {
  // Test scenario execution
  private async runTestScenario(config: AdapterTestConfig, scenario: TestScenario): Promise<TestResult> {
  const startTime = Date.now();
-;
  try {
  switch (scenario.type) {
  case 'connection':
@@ -205,56 +203,52 @@ class AdapterValidationService {
  return await this.testDataTransmission(config, scenario);
  case 'error_handling':
  return await this.testErrorHandling(config, scenario);
- 'default':`
- throw new Error(`Unknown test scenario type: ${scenario.type}`);} catch (error) {
+ default:
+ throw new Error(`Unknown test scenario type: ${scenario.type}`);
+ }
+ } catch (error) {
  return {
  testName: scenario.name,
  status: 'failed',
  message: error instanceof Error ? error.message : 'Unknown error',
  duration: Date.now() - startTime
-}
+ };
  }
-}
  }
 
  // Connection testing
  private async testConnection(config: AdapterTestConfig, scenario: TestScenario): Promise<TestResult> {
  const startTime = Date.now();
-;
  // Simulate connection test based on adapter type
  await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
 
  const mockServer = this.mockServers.get(config.adapterType);
  const isConnected = mockServer?.isRunning() ?? true;
-;
  return {
  testName: scenario.name,
  status: isConnected ? 'passed' : 'failed',
  message: isConnected ? 'Connection successful' : 'Connection failed',
  duration: Date.now() - startTime
+ };
  }
-}
 
  // Authentication testing
  private async testAuthentication(config: AdapterTestConfig, scenario: TestScenario): Promise<TestResult> {
  const startTime = Date.now();
-;
  await new Promise(resolve => setTimeout(resolve, 800));
 
  const hasCredentials = config.configuration.username && config.configuration.password;
-;
  return {
  testName: scenario.name,
  status: hasCredentials ? 'passed' : 'failed',
  message: hasCredentials ? 'Authentication successful' : 'Authentication failed',
  duration: Date.now() - startTime
+ };
  }
-}
 
  // Data transmission testing
  private async testDataTransmission(config: AdapterTestConfig, scenario: TestScenario): Promise<TestResult> {
  const startTime = Date.now();
-;
  await new Promise(resolve => setTimeout(resolve, 1500));
 
  return {
@@ -262,13 +256,12 @@ class AdapterValidationService {
  status: 'passed',
  message: 'Data transmission successful',
  duration: Date.now() - startTime
+ };
  }
-}
 
  // Error handling testing
  private async testErrorHandling(config: AdapterTestConfig, scenario: TestScenario): Promise<TestResult> {
  const startTime = Date.now();
-;
  await new Promise(resolve => setTimeout(resolve, 600));
 
  return {
@@ -276,8 +269,8 @@ class AdapterValidationService {
  status: 'passed',
  message: 'Error handling working correctly',
  duration: Date.now() - startTime
+ };
  }
-}
 
  // Mock server management
  private async setupMockServers(adapterType: string): Promise<void> {
@@ -321,8 +314,8 @@ class AdapterValidationService {
  };
 
  return fieldMap[adapterType] || [];
+ };
  }
-}
 
 // Mock server class for testing
 class MockServer {
@@ -342,8 +335,7 @@ class MockServer {
 
  isRunning(): boolean {
  return this.running;
+ };
  }
-}
 
-export const adapterValidationService = new AdapterValidationService();`
-})
+export const adapterValidationService = new AdapterValidationService();
