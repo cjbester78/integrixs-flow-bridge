@@ -78,7 +78,7 @@ export const AdapterStats = ({
 
  <Card
  className={`cursor-pointer transition-all hover:shadow-md ${
- statusFilter === 'error' ? 'ring-2 ring-destructive' : '`
+ statusFilter === 'error' ? 'ring-2 ring-destructive' : ''
  }`}
  onClick={() => handleStatusClick('error')}
  >

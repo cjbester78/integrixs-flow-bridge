@@ -85,11 +85,10 @@ const jsonObj = JSON.parse(payload);
 
  const convertJsonToXmlPreview = (jsonObj: any): string => {
  // Simple JSON to XML conversion for preview
- const convert = (obj: any, indent: string = '''): string => {
- let xml = ';
-;
+ const convert = (obj: any, indent: string = ''): string => {
+ let xml = '';
  if (Array.isArray(obj)) {
- obj.forEach(item => {`
+ obj.forEach(item => {
  xml += `${indent}<item>\n${convert(item, indent + ' ')}${indent}</item>\n`;
  })
  } else if (typeof obj === 'object' && obj !== null) {

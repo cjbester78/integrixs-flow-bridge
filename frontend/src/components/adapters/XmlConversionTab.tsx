@@ -241,8 +241,8 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <div>
  <Label>Converted XML</Label>
  <pre className="text-xs bg-muted p-2 rounded">
-{`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>`
-<${config.rootElementName || 'Message'}${config.targetNamespace ? `} xmlns${config.namespacePrefix ? :${config.namespacePrefix}` : '}="${config.targetNamespace}"` : ''}>
+{`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
+<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>`}
  <record>
  <orderId>12345</orderId>
  <customer>John Doe</customer>
@@ -252,7 +252,7 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <orderId>12346</orderId>
  <customer>Jane Smith</customer>
  <amount>149.99</amount>
- </record>`
+ </record>
 </${config.rootElementName || 'Message'}>`}
  </pre>
  </div>
@@ -273,8 +273,8 @@ orderId | customer | amount
  <div>
  <Label>Converted XML</Label>
  <pre className="text-xs bg-muted p-2 rounded">
-{`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>`
-<${config.rootElementName || 'Message'}${config.targetNamespace ? `} xmlns${config.namespacePrefix ? :${config.namespacePrefix}` : '}="${config.targetNamespace}"` : ''}>
+{`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
+<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>`}
  <row>
  <orderId>12345</orderId>
  <customer>John Doe</customer>

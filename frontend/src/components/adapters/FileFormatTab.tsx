@@ -45,7 +45,7 @@ interface FileFormatTabProps {
 }
 
 export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
- const [newField, setNewField] = useState<FieldLength>({ fieldName: ', length: 0 });
+ const [newField, setNewField] = useState<FieldLength>({ fieldName: '', length: 0 });
 
 
  const handleChange = (field: keyof FileFormatConfig, value: any) => {

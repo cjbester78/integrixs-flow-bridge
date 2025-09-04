@@ -283,5 +283,4 @@ export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
  </CardContent>
  </Card>
  );
-};`
-}
+};
