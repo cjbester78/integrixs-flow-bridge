@@ -40,7 +40,7 @@ export const FieldAdvancedOptions: React.FC<FieldAdvancedOptionsProps> = ({
  min="0"
  placeholder="0"
  value={field.minOccurs || 0}
- onChange={(e) => onUpdate({ minOccurs: parseInt(e.target.value) || 0 })
+ onChange={(e) => onUpdate({ minOccurs: parseInt(e.target.value) || 0 })}
  className="text-sm"
  />
  </div>
@@ -48,7 +48,7 @@ export const FieldAdvancedOptions: React.FC<FieldAdvancedOptionsProps> = ({
  <Label className="text-xs">Max Occurs</Label>
  <Select
  value={field.maxOccurs?.toString() || '1'}
- onValueChange={(value) => onUpdate({ maxOccurs: value === 'unbounded' ? 'unbounded' : parseInt(value) })
+ onValueChange={(value) => onUpdate({ maxOccurs: value === 'unbounded' ? 'unbounded' : parseInt(value) })}
  >
  <SelectTrigger className="text-sm">
  <SelectValue />
@@ -78,4 +78,3 @@ export const FieldAdvancedOptions: React.FC<FieldAdvancedOptionsProps> = ({
  </div>
  );
 };
-}}}

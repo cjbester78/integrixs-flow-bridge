@@ -49,7 +49,7 @@ export const WsdlStructureTab: React.FC<WsdlStructureTabProps> = ({
 
  const extractedName = extractWsdlPartName(content);
  const namespaceInfo = extractWsdlNamespaceInfo(content);
-;
+
  if (namespaceInfo) {
  setNamespaceConfig(namespaceInfo);
  }
@@ -165,5 +165,4 @@ export const WsdlStructureTab: React.FC<WsdlStructureTabProps> = ({
  </div>
  </div>
  );
-};`
-}}}})
+};

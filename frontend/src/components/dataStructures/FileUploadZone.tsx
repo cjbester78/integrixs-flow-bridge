@@ -31,7 +31,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({ icon: Icon,
  return (
  <div
  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
- dragOver ? 'border-primary bg-primary/10' : 'border-border'`
+ dragOver ? 'border-primary bg-primary/10' : 'border-border'
  }`}
  onDrop={onDrop}
  onDragOver={onDragOver}

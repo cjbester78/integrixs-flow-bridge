@@ -112,4 +112,4 @@ export const XsdStructureTab: React.FC<XsdStructureTabProps> = ({
  </div>
  </div>
  );
-};`
+};

@@ -25,11 +25,10 @@ export const NamespaceConfiguration: React.FC<NamespaceConfigurationProps> = ({
  hideSchemaLocation = false
 }) => {
  const isWsdl = type === 'wsdl';
-;
  return (
  <Card className="p-4 bg-muted/30">
  <h4 className="font-medium mb-3 flex items-center gap-2">
- <Settings className="h-4 w-4" />;
+ <Settings className="h-4 w-4" />
  {isWsdl ? 'WSDL' : 'XML'} Namespace Configuration
  </h4>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,7 +50,7 @@ export const NamespaceConfiguration: React.FC<NamespaceConfigurationProps> = ({
  <Input
  placeholder={isWsdl ? "svc" : "ns1"}
  value={namespaceConfig.prefix}
- onChange={(e) => setNamespaceConfig({...namespaceConfig, prefix: e.target.value})
+ onChange={(e) => setNamespaceConfig({...namespaceConfig, prefix: e.target.value})}
  className="text-sm"
  />
  </div>
@@ -60,7 +59,7 @@ export const NamespaceConfiguration: React.FC<NamespaceConfigurationProps> = ({
  <Input
  placeholder="http://example.com/target"
  value={namespaceConfig.targetNamespace}
- onChange={(e) => setNamespaceConfig({...namespaceConfig, targetNamespace: e.target.value})
+ onChange={(e) => setNamespaceConfig({...namespaceConfig, targetNamespace: e.target.value})}
  className="text-sm"
  />
  </div>
@@ -72,7 +71,7 @@ export const NamespaceConfiguration: React.FC<NamespaceConfigurationProps> = ({
  <Input
  placeholder={isWsdl ? "http://example.com/service.wsdl" : "http://example.com/schema.xsd"}
  value={namespaceConfig.schemaLocation}
- onChange={(e) => setNamespaceConfig({...namespaceConfig, schemaLocation: e.target.value})
+ onChange={(e) => setNamespaceConfig({...namespaceConfig, schemaLocation: e.target.value})}
  className="text-sm"
  />
  </div>
@@ -81,4 +80,3 @@ export const NamespaceConfiguration: React.FC<NamespaceConfigurationProps> = ({
  </Card>
  );
 };
-}}}}

@@ -47,20 +47,20 @@
 - [ ] toggle-group.tsx - Line 8: Expression expected
 - [ ] toggle.tsx - Line 7: ')' expected
 
-## Field Mapping Components (13 files)
+## Field Mapping Components (13 files) - ALL FIXED ✓
 - [x] FieldMappingScreen.tsx - Line 529: ',' expected - Fixed in previous session
 - [x] FieldSelectorDialog.tsx - Line 58: Expression expected - Fixed in previous session
 - [x] FieldTree.tsx - Line 131: Unterminated template literal - Fixed in previous session
 - [x] FunctionMappingModal.tsx - Line 52: ',' expected - Fixed in previous session
 - [x] FunctionNode.tsx - Line 157: Unterminated template literal - Fixed in previous session
-- [ ] FunctionPicker.tsx - Line 35: Expression expected
-- [ ] FunctionSelectorDialog.tsx - Line 77: Expression expected
-- [ ] MappingArea.tsx - Line 38: Unterminated string literal
-- [ ] nodes/FunctionNode.tsx - Line 96: ',' expected
-- [ ] TestMappingDialog.tsx - Line 94: 'try' expected
-- [ ] TransformationPreview.tsx - Line 61: ';' expected
-- [ ] VisualFlowEditor.tsx - Line 110: Expression expected
-- [ ] VisualMappingCanvas.tsx - Line 39: Declaration expected
+- [x] FunctionPicker.tsx - Line 35: Expression expected - Fixed syntax errors
+- [x] FunctionSelectorDialog.tsx - Line 77: Expression expected - Fixed filter syntax
+- [x] MappingArea.tsx - Line 38: Unterminated string literal - Fixed multiple template literals
+- [x] nodes/FunctionNode.tsx - Line 96: ',' expected - Fixed syntax errors and template literals
+- [x] TestMappingDialog.tsx - Line 94: 'try' expected - Fixed try-catch syntax
+- [x] TransformationPreview.tsx - Line 61: ';' expected - Fixed multiple syntax issues
+- [x] VisualFlowEditor.tsx - Line 110: Expression expected - Fixed multiple template literal errors
+- [x] VisualMappingCanvas.tsx - Line 39: Declaration expected - Fixed syntax errors
 
 ## Services (15 files)
 - [ ] api.ts - Line 222: '}' expected

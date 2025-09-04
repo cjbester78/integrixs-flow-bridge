@@ -67,7 +67,7 @@ export const FieldConfiguration: React.FC<FieldConfigurationProps> = ({
  <Input
  placeholder="Field description..."
  value={field.description || ''}
- onChange={(e) => onUpdate({ description: e.target.value })
+ onChange={(e) => onUpdate({ description: e.target.value })}
  className="text-sm animate-fade-in"
  />
  </div>
@@ -76,7 +76,7 @@ export const FieldConfiguration: React.FC<FieldConfigurationProps> = ({
  <input
  type="checkbox"
  checked={field.required}
- onChange={(e) => onUpdate({ required: e.target.checked })
+ onChange={(e) => onUpdate({ required: e.target.checked })}
  className="rounded"
  />
  <span>Required</span>
@@ -95,4 +95,3 @@ export const FieldConfiguration: React.FC<FieldConfigurationProps> = ({
  </div>
  );
 };
-}}}

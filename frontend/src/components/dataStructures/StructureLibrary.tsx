@@ -49,7 +49,7 @@ export const StructureLibrary: React.FC<StructureLibraryProps> = ({
  <div
  key={structure.id}
  className={`p-3 border rounded-lg cursor-pointer transition-all duration-300 hover:shadow-soft ${
- selectedStructure?.id === structure.id ? 'border-primary bg-primary/10' : 'border-border'`
+ selectedStructure?.id === structure.id ? 'border-primary bg-primary/10' : 'border-border'
  }`}
  onClick={() => onSelectStructure(structure)}
  >
@@ -93,7 +93,7 @@ export const StructureLibrary: React.FC<StructureLibraryProps> = ({
  </div>
  </div>
  );
- })
+ })}
 
  {structures.length === 0 && (
  <div className="text-center py-8 text-muted-foreground">
@@ -104,5 +104,4 @@ export const StructureLibrary: React.FC<StructureLibraryProps> = ({
  </CardContent>
  </Card>
  );
-};`
-}}})))
+};

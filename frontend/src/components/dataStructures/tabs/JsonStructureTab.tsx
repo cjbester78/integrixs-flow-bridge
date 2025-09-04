@@ -34,9 +34,6 @@ export const JsonStructureTab: React.FC<JsonStructureTabProps> = ({
  if (onFileUploaded) {
  onFileUploaded(file.name);
  }
- } catch (error) {
- // Handle error
- }
  toast({
  title: "JSON File Loaded",
  description: `Successfully loaded ${file.name}`,
@@ -46,7 +43,6 @@ export const JsonStructureTab: React.FC<JsonStructureTabProps> = ({
  title: "Invalid JSON",
  description: "The uploaded file contains invalid JSON",
  variant: "destructive",
-}
  });
  }
  };
@@ -105,7 +101,7 @@ export const JsonStructureTab: React.FC<JsonStructureTabProps> = ({
  )}
  </div>
  <Textarea
- placeholder= '{"orderId": "string", "amount": 100.50, "items": []}'
+ placeholder='{"orderId": "string", "amount": 100.50, "items": []}'
  value={jsonInput}
  onChange={(e) => setJsonInput(e.target.value)}
  className="font-mono text-sm"
@@ -114,4 +110,4 @@ export const JsonStructureTab: React.FC<JsonStructureTabProps> = ({
  </div>
  </div>
  );
-};`
+};
