@@ -51,7 +51,7 @@ export function RestOutboundAdapterConfiguration({
  if (!configuration.processingMode) {
  onConfigurationChange('processingMode', 'ASYNCHRONOUS');
  }
- }, []);
+ }, [configuration.processingMode, onConfigurationChange]);
 
  // Filter structures based on selected business component
  useEffect(() => {

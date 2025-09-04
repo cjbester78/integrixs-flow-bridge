@@ -32,7 +32,7 @@ export const PayloadStructureDefinition: FC<PayloadStructureDefinitionProps> = (
  mode,
  disabled = false
 }) => {
- const [conversionPreview, setConversionPreview] = useState<$1>('');
+ const [conversionPreview, setConversionPreview] = useState<string>('');
 
  const validateJsonPayload = (payload: string): string[] => {
  const errors: string[] = [];
@@ -94,23 +94,24 @@ const jsonObj = JSON.parse(payload);
  } else if (typeof obj === 'object' && obj !== null) {
  Object.entries(obj).forEach(([key, value]) => {
  const validKey = key.replace(/[^a-zA-Z0-9_-]/g, '_');
- if (typeof value === 'object' && value !== null) {`
+ if (typeof value === 'object' && value !== null) {
  xml += `${indent}<${validKey}>\n${convert(value, indent + ' ')}${indent}</${validKey}>\n`;
- } else {`
+ } else {
  xml += `${indent}<${validKey}>${escapeXml(String(value))}</${validKey}>\n`;
- })
- } else {`
+ }
+ });
+ } else {
  xml += `${indent}${escapeXml(String(obj))}\n`;
  }
 
  return xml;
  };
-`
+
  return `<?xml version="1.0" encoding="UTF-8"?>\n<Message>\n${convert(jsonObj, ' ')}</Message>`;
  };
 
  const escapeXml = (unsafe: string): string => {
- return unsafe;
+ return unsafe
  .replace(/&/g, '&amp;')
  .replace(/</g, '&lt;')
  .replace(/>/g, '&gt;')
@@ -126,12 +127,11 @@ const jsonObj = JSON.parse(payload);
  const schema = generateSchemaFromObject(jsonObj);
  onChange({
  ...config,
- jsonSchema: JSON.stringify(schema, null, 2);
- })
- }
+ jsonSchema: JSON.stringify(schema, null, 2)
+ });
         } catch (e) {
  logger.error(LogCategory.UI, 'Error generating schema', { error: e });
- };
+ }
 
  const generateSchemaFromObject = (obj: any): any => {
  const schema: any = {
@@ -149,8 +149,8 @@ const jsonObj = JSON.parse(payload);
  if (value.length > 0) {
  return {
  type: "array",
- items: processValue(value[0]);
- }
+ items: processValue(value[0])
+ };
 }
  return { type: "array" }
 }
@@ -161,8 +161,8 @@ const jsonObj = JSON.parse(payload);
  });
  return objSchema;
  }
- return { type: "string" }
-};
+ return { type: "string" };
+ };
 
  Object.entries(obj).forEach(([key, value]) => {
  schema.properties[key] = processValue(value);
@@ -175,7 +175,7 @@ const jsonObj = JSON.parse(payload);
  <Card>
  <CardHeader>
  <CardTitle>Payload Structure Definition</CardTitle>
- <CardDescription>;
+ <CardDescription>
  Define the structure of {mode === 'sender' ? 'incoming' : 'outgoing'} payloads for your {adapterType} adapter
  </CardDescription>
  </CardHeader>
@@ -253,7 +253,7 @@ const jsonObj = JSON.parse(payload);
  onChange={(e) => onChange({
  ...config,
  [config.format === 'JSON' ? 'jsonSchema' : 'xmlSchema']: e.target.value
- })
+ })}
  disabled={disabled}
  />
  <p className="text-sm text-muted-foreground">
@@ -286,5 +286,4 @@ const jsonObj = JSON.parse(payload);
  </CardContent>
  </Card>
  );
-};`
-}))
+};

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { usePageReset } from '@/hooks/usePageReset';
@@ -53,9 +53,9 @@ export function CreateOrchestrationFlow() {
  // Load data on component mount
  useEffect(() => {
  loadComponentData();
- }, []);
+ }, [loadComponentData]);
 
- const loadComponentData = async () => {
+ const loadComponentData = useCallback(async () => {
     try {
 setLoading(true);
 
@@ -85,7 +85,7 @@ setLoading(true);
  } finally {
  setLoading(false);
  }
- };
+ }, [toast]);
 
  const handleSave = async () => {
  if (!uniqueFlowId.trim()) {

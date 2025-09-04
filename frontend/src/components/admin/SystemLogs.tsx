@@ -14,9 +14,9 @@ import { LogExport } from '@/components/adapter/LogExport';
 import { ScrollText, Search, Filter, RefreshCw, Database, Workflow, Network, User, Settings, MessageSquare } from 'lucide-react';
 
 export const SystemLogs = () => {
- const [selectedSource, setSelectedSource] = useState<$1>('');
- const [selectedSourceId, setSelectedSourceId] = useState<$1>('');
- const [logLevel, setLogLevel] = useState<$1>('');
+ const [selectedSource, setSelectedSource] = useState<string>('');
+ const [selectedSourceId, setSelectedSourceId] = useState<string>('');
+ const [logLevel, setLogLevel] = useState<string>('');
  const [searchQuery, setSearchQuery] = useState('');
  const [dateRange, setDateRange] = useState<{ start?: string; end?: string }>({});
 
@@ -33,17 +33,11 @@ export const SystemLogs = () => {
 
  // Domain-specific log hooks
  const userLogs = useDomainLogs({ domainType: 'UserManagement', includeSystemLogs: false });
-;
  const flowLogs = useDomainLogs({ domainType: 'FlowEngine', includeSystemLogs: false });
-;
  const adapterLogs = useDomainLogs({ domainType: 'AdapterManagement', includeSystemLogs: false });
-;
  const structureLogs = useDomainLogs({ domainType: 'DataStructures', includeSystemLogs: false });
-;
  const channelLogs = useDomainLogs({ domainType: 'ChannelManagement', includeSystemLogs: false });
-;
  const messageLogs = useDomainLogs({ domainType: 'MessageProcessing', includeSystemLogs: false });
-;
  const handleRefresh = () => {
  refetch();
  // Refetch domain logs as well

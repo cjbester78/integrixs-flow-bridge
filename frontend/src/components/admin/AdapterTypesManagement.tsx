@@ -188,6 +188,7 @@ export const AdapterTypesManagement = () => {
  });
  logger.error(LogCategory.UI, 'Error deleting adapter type', { error: error });
  }
+ };
 
  const resetForm = () => {
  setFormData({

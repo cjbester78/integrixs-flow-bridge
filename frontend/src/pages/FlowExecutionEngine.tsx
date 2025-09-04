@@ -55,7 +55,7 @@ setError(null);
  };
 
  fetchFlows();
- }, [toast]);
+ }, [toast, selectedFlow]);
 
  // Handle flow selection
  const handleFlowSelection = (flowId: string) => {

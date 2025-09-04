@@ -40,7 +40,7 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <div className="space-y-4">
  <Alert>
  <Info className="h-4 w-4" />
- <AlertDescription>;
+ <AlertDescription>
  {mode === 'INBOUND'
  ? 'Configure how incoming data is converted to XML for mapping'
  : 'Configure how XML is converted back to the target format after mapping'
@@ -242,8 +242,8 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <Label>Converted XML</Label>
  <pre className="text-xs bg-muted p-2 rounded">
 {`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
-<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>`}
- <record>
+<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>
+ <record>`}
  <orderId>12345</orderId>
  <customer>John Doe</customer>
  <amount>99.99</amount>
@@ -252,7 +252,7 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <orderId>12346</orderId>
  <customer>Jane Smith</customer>
  <amount>149.99</amount>
- </record>
+{` </record>
 </${config.rootElementName || 'Message'}>`}
  </pre>
  </div>
@@ -266,7 +266,7 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
 {`SELECT * FROM orders
 -----------------
 orderId | customer | amount
-12345 | John Doe | 99.99`
+12345 | John Doe | 99.99
 12346 | Jane Smith | 149.99`}
  </pre>
  </div>
@@ -274,8 +274,8 @@ orderId | customer | amount
  <Label>Converted XML</Label>
  <pre className="text-xs bg-muted p-2 rounded">
 {`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
-<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>`}
- <row>
+<${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>
+ <row>`}
  <orderId>12345</orderId>
  <customer>John Doe</customer>
  <amount>99.99</amount>
@@ -284,7 +284,7 @@ orderId | customer | amount
  <orderId>12346</orderId>
  <customer>Jane Smith</customer>
  <amount>149.99</amount>
- </row>`
+{` </row>
 </${config.rootElementName || 'Message'}>`}
  </pre>
  </div>

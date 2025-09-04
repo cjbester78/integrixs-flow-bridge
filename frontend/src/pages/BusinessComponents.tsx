@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, Building2, Mail, Phone } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,9 +32,9 @@ export const BusinessComponents = () => {
 
  useEffect(() => {
  loadBusinessComponents();
- }, []);
+ }, [loadBusinessComponents]);
 
- const loadBusinessComponents = async () => {
+ const loadBusinessComponents = useCallback(async () => {
  const response = await businessComponentService.getAllBusinessComponents();
  if (response.success && response.data) {
  setBusinessComponents(response.data);
@@ -46,7 +46,7 @@ export const BusinessComponents = () => {
  });
  }
  setLoading(false);
- };
+ }, [toast]);
 
  const handleCreate = async () => {
  if (!formData.name.trim()) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter, Search, Database, RefreshCw, Layers, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,13 +85,13 @@ export const DataStructures = () => {
  useEffect(() => {
  fetchStructures();
  fetchBusinessComponents();
- }, []);
+ }, [fetchStructures, fetchBusinessComponents]);
 
  useEffect(() => {
  filterStructures();
- }, [structures, searchTerm, selectedBusinessComponent, selectedUsage]);
+ }, [filterStructures]);
 
- const fetchStructures = async () => {
+ const fetchStructures = useCallback(async () => {
     try {
  setLoading(true);
  logger.info(LogCategory.SYSTEM, 'Fetching data structures...');
@@ -109,9 +109,9 @@ export const DataStructures = () => {
  } finally {
  setLoading(false);
  }
- };
+ }, [toast]);
 
- const fetchBusinessComponents = async () => {
+ const fetchBusinessComponents = useCallback(async () => {
     try {
 const response = await api.get('/business-components');
  if (response.success && response.data) {
@@ -121,9 +121,9 @@ const response = await api.get('/business-components');
  logger.error(LogCategory.ERROR, 'Error fetching business components', { error: error });
  setBusinessComponents([]);
  }
- };
+ }, []);
 
- const filterStructures = () => {
+ const filterStructures = useCallback(() => {
  let filtered = [...structures];
 
  // Search filter
@@ -150,7 +150,7 @@ const response = await api.get('/business-components');
  }
 
  setFilteredStructures(filtered);
- };
+ }, [structures, searchTerm, selectedBusinessComponent, selectedUsage]);
 
  const handleRefresh = () => {
  fetchStructures();

@@ -48,7 +48,7 @@ export function HttpOutboundAdapterConfiguration({
  if (!configuration.processingMode) {
  onConfigurationChange('processingMode', 'ASYNCHRONOUS');
  }
- }, []);
+ }, [configuration.processingMode, onConfigurationChange]);
 
  return (
  <Card>

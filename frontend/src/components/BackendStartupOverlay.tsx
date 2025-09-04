@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Loader2, ServerCrash, CheckCircle } from 'lucide-react';
 
 interface BackendStartupOverlayProps {
@@ -10,7 +10,7 @@ export const BackendStartupOverlay: React.FC<BackendStartupOverlayProps> = ({ on
  const [retryCount, setRetryCount] = useState(0);
  const [lastError, setLastError] = useState<string>('');
 
- const checkBackendHealth = async () => {
+ const checkBackendHealth = useCallback(async () => {
     try {
  const response = await fetch('http://localhost:8080/api/health', {
  method: 'GET',
@@ -39,7 +39,7 @@ export const BackendStartupOverlay: React.FC<BackendStartupOverlayProps> = ({ on
  setLastError('Connection refused - Backend may be starting');
  }
  }
- };
+ }, [onBackendReady]);
 
  useEffect(() => {
  // Initial check
@@ -54,7 +54,7 @@ export const BackendStartupOverlay: React.FC<BackendStartupOverlayProps> = ({ on
  }, 2000); // Check every 2 seconds
 
         return () => clearInterval(interval);
-    }, [status]);
+    }, [status, checkBackendHealth]);
 
     if (status === 'ready') {
         return (

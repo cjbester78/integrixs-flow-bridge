@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
  Plus,
@@ -106,13 +106,13 @@ export default function CommunicationAdapters() {
  useEffect(() => {
  fetchAdapters();
  fetchBusinessComponents();
- }, []);
+ }, [fetchAdapters, fetchBusinessComponents]);
 
  useEffect(() => {
  filterAdapters();
- }, [adapters, searchTerm, selectedBusinessComponent, selectedType, selectedMode]);
+ }, [filterAdapters]);
 
- const fetchAdapters = async () => {
+ const fetchAdapters = useCallback(async () => {
     try {
  setLoading(true);
  logger.info(LogCategory.SYSTEM, 'Fetching adapters...');
@@ -131,9 +131,9 @@ export default function CommunicationAdapters() {
  } finally {
  setLoading(false);
  }
- };
+ }, [toast]);
 
- const fetchBusinessComponents = async () => {
+ const fetchBusinessComponents = useCallback(async () => {
     try {
  logger.info(LogCategory.SYSTEM, 'Fetching business components...');
  const response = await api.get('/business-components');
@@ -147,9 +147,9 @@ export default function CommunicationAdapters() {
  logger.error(LogCategory.ERROR, 'Error fetching business components', { error: error });
  setBusinessComponents([]);
  }
- };
+ }, []);
 
- const filterAdapters = () => {
+ const filterAdapters = useCallback(() => {
  let filtered = [...adapters];
  // Search filter
  if (searchTerm) {
@@ -177,7 +177,7 @@ export default function CommunicationAdapters() {
  }
 
  setFilteredAdapters(filtered);
- };
+ }, [adapters, searchTerm, selectedBusinessComponent, selectedType, selectedMode]);
 
  const handleRefresh = () => {
  fetchAdapters();

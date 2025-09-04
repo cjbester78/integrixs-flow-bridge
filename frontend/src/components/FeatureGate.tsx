@@ -41,11 +41,3 @@ export function FeatureGate({
 
  return null;
 }
-
-/**
- * Hook to check feature availability
- */
-export function useFeature(feature: string): boolean {
- const { hasFeature } = useTenant();
- return hasFeature(feature);
-}
