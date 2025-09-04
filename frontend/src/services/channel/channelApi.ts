@@ -44,7 +44,7 @@ export class ChannelApi {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
 
  const endpoint = `/channels${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
@@ -57,7 +57,7 @@ export class ChannelApi {
  }
 
  // Control channel operations
- async controlChannel(action: ChannelAction): Promise<ApiResponse<Channel>> {`
+ async controlChannel(action: ChannelAction): Promise<ApiResponse<Channel>> {
  return api.post<Channel>(`/channels/${action.channelId}/control`, action);
  }
 
@@ -69,10 +69,10 @@ export class ChannelApi {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
-`
- const endpoint = `/business-components/${businessComponentId}/channels${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+
+ const endpoint = `/business-components/${businessComponentId}/channels${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
-}`
+}
