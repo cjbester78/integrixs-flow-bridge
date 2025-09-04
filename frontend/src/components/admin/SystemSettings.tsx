@@ -88,7 +88,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
 
  const savedSetting = await apiClient.put<SystemSetting>(`/system-settings/${settingKey}`, updatedSetting);
  setSettings(prev =>
- prev.map(s => s.settingKey === settingKey ? savedSetting : s);
+ prev.map(s => s.settingKey === settingKey ? savedSetting : s)
  );
  // Remove from edited settings
  setEditedSettings(prev => {

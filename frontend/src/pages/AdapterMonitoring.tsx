@@ -94,10 +94,9 @@ export default function AdapterMonitoring() {
  const handleDeleteAdapter = async (adapterId: string) => {
  try {
  const response = await adapterMonitoringService.deleteAdapter(adapterId);
-;
  if (response.success) {
  setAdapters(prevAdapters =>
- prevAdapters.filter(adapter => adapter.id !== adapterId);
+ prevAdapters.filter(adapter => adapter.id !== adapterId)
  );
  toast({
  title: "Success",

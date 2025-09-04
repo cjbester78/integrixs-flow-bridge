@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,9 +37,9 @@ export default function InterfaceDetails() {
  if (flowId) {
  fetchFlowAndDeploymentInfo();
  }
- }, [flowId]);
+ }, [flowId, fetchFlowAndDeploymentInfo]);
 
- const fetchFlowAndDeploymentInfo = async () => {
+ const fetchFlowAndDeploymentInfo = useCallback(async () => {
     try {
 setLoading(true);
 
@@ -66,7 +66,7 @@ setLoading(true);
  } finally {
  setLoading(false);
  }
- };
+ }, [flowId, toast]);
 
  const copyToClipboard = (text: string, label: string) => {
  navigator.clipboard.writeText(text);

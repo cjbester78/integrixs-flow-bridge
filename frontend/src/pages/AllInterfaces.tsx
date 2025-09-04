@@ -114,7 +114,9 @@ export default function AllInterfaces() {
  });
  fetchFlows();
  } else {
- throw new Error(response.error || 'Failed to delete interface');} catch (error) {
+ throw new Error(response.error || 'Failed to delete interface');
+ }
+ } catch (error) {
  toast({
  variant: 'destructive',
  title: 'Error',

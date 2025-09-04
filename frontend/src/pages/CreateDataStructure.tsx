@@ -14,7 +14,6 @@ import { structureService } from '@/services/structureService';
 import { logger, LogCategory } from '@/lib/logger';
 
 export const CreateDataStructure = () => {
- try {
  const { id } = useParams();
  const navigate = useNavigate();
  const location = useLocation();
@@ -385,27 +384,4 @@ export const CreateDataStructure = () => {
  </div>
  </div>
  );
- }
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Error rendering DataStructures component', { error: error });
- return (
- <div className="p-6 space-y-6">
- <div className="text-center">
- <h1 className="text-3xl font-bold text-foreground flex items-center justify-center gap-3">
- <Layers className="h-8 w-8" />
- Data Structures
- </h1>
- <p className="text-muted-foreground mt-4">
- There was an error loading the data structures page. Please check the browser console for details.
- </p>
- <button
- onClick={() => window.location.reload()}
- className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
- >
- Reload Page
- </button>
- </div>
- </div>
- );
- }
 };

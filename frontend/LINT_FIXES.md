@@ -39,6 +39,7 @@ Total: 151 errors, 21 warnings
 - [x] JmsDriverModal.tsx - Line 45: ',' expected - Fixed semicolons in toast calls
 - [x] RoleManagement.tsx - Line 40: Unterminated string literal - Fixed missing closing quote
 - [x] SystemSettings.tsx - Line 70: 'catch' or 'finally' expected - Fixed missing line break
+- [x] SystemSettings.tsx - Line 91: ')' expected - Fixed semicolon in setSettings
 - [x] UserManagement.tsx - Line 98: ',' expected - Fixed semicolon in action object
 
 ## Architecture Components (8 files)
@@ -54,14 +55,14 @@ Total: 151 errors, 21 warnings
 
 ## Pages (7 files)
 
-- [ ] AdapterMonitoring.tsx - Line 100: ')' expected
-- [ ] Admin.tsx - Line 48: ',' expected
-- [ ] AllInterfaces.tsx - Line 117: 'try' expected
-- [ ] CreateDataStructure.tsx - Line 104: 'try' expected
-- [ ] CreateDirectMappingFlow.tsx - Line 324: 'try' expected
-- [ ] InterfaceDetails.tsx - Line 40: Hook dependency warning
-- [ ] RetryManagement.tsx - Line 99: Declaration expected
-- [ ] Settings.tsx - Line 108: Declaration expected
+- [x] AdapterMonitoring.tsx - Line 100: ')' expected - Fixed extra semicolon and missing parenthesis
+- [x] Admin.tsx - Line 48: ',' expected - Fixed missing parenthesis in setUsers
+- [x] AllInterfaces.tsx - Line 117: 'try' expected - Fixed missing line break before catch block
+- [x] CreateDataStructure.tsx - Line 104: 'try' expected - Removed invalid try-catch at component level
+- [x] CreateDirectMappingFlow.tsx - Line 324: 'try' expected - Fixed extra closing brace
+- [x] InterfaceDetails.tsx - Line 40: Hook dependency warning - Added useCallback and dependencies
+- [x] RetryManagement.tsx - Line 99: Declaration expected - Fixed extra closing parenthesis
+- [x] Settings.tsx - Line 108: Declaration expected - Fixed extra closing parenthesis
 
 ## Services (14 files)
 

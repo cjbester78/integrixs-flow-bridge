@@ -105,7 +105,6 @@ export const Settings = () => {
  description: "Failed to save preferences",
  variant: "destructive",
  });
- });
  } finally {
  setIsSaving(false);
  }

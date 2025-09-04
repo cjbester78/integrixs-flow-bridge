@@ -96,7 +96,6 @@ export const RetryManagement = () => {
  description: 'Failed to reprocess message',
  variant: 'destructive',
  });
- });
  }
  };
 

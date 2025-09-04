@@ -45,7 +45,7 @@ export const Admin = () => {
  if (response.success && response.data) {
  // Handle different possible response structures
  const userData = Array.isArray(response.data) ? response.data : response.data.users;
- setUsers(userData || [] });
+ setUsers(userData || []);
  } else {
  logger.error(LogCategory.ERROR, 'Failed to fetch users', { error: response.error });
  // Show empty list when API fails
