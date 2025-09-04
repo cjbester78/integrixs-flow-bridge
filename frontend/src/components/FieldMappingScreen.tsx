@@ -413,11 +413,13 @@ const parser = new DOMParser();
  },
  sourceConnections: {},
  position: { x: 0, y: 0 }
- });
+ }
+ })
+ };
 
  newMappings.push(newMapping);
  existingTargetPaths.add(targetField.path);
- mappedCount++
+ mappedCount++;
  }});
 
  if (mappedCount > 0) {

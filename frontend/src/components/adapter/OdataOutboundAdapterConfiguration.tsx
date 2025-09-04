@@ -302,4 +302,3 @@ export const OdataOutboundAdapterConfiguration: React.FC<OdataOutboundAdapterCon
  </div>
  );
 };
-}}}}}}}}}

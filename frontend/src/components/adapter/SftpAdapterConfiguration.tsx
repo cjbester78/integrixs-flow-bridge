@@ -148,7 +148,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  };
 
  const addAdvancedEntry = () => {
- const newEntries = [...config.advancedEntries, { directory: '', fileName: '', exclusionMask: ' }];
+ const newEntries = [...config.advancedEntries, { directory: '', fileName: '', exclusionMask: '' }];
  updateConfig({ advancedEntries: newEntries });
  };
 
