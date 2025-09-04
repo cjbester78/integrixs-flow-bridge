@@ -49,7 +49,8 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  functionName: selectedFunction,
  parameters: {},
  sourceConnections: {},
- position: { x: 0, y: 0 });
+ position: { x: 0, y: 0 }
+ };
 
 
  const [connections, setConnections] = useState<Connection[]>([]);
