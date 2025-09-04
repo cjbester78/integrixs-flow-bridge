@@ -65,12 +65,12 @@ class StructureService {
  }
 
  // Get a specific structure by ID
- async getStructure(id: string): Promise<ApiResponse<DataStructure>> {`
- return api.get<DataStructure>(/structures/${id}`);
+ async getStructure(id: string): Promise<ApiResponse<DataStructure>> {
+ return api.get<DataStructure>(`/structures/${id}`);
  }
 
  // Update an existing structure
- async updateStructure(id: string, updates: Partial<DataStructureCreate>): Promise<ApiResponse<DataStructure>> {`
+ async updateStructure(id: string, updates: Partial<DataStructureCreate>): Promise<ApiResponse<DataStructure>> {
  return api.put<DataStructure>(`/structures/${id}`, updates);
  }
 

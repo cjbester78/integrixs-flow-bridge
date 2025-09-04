@@ -66,21 +66,21 @@ Total: 151 errors, 21 warnings
 
 ## Services (14 files)
 
-- [ ] api.ts - Line 222: '}' expected
-- [ ] flowExportImportService.ts - Line 66: ')' expected
-- [ ] flowMonitoringService.ts - Line 75: ';' expected
-- [ ] integrationFlowService.ts - Line 48: ';' expected
-- [ ] jarFileService.ts - Line 41: ';' expected
-- [ ] messageService.ts - Line 72: ';' expected
-- [ ] packageService.ts - Line 39: ';' expected
-- [ ] roleService.ts - Line 39: ';' expected
-- [ ] structureService.ts - Line 69: ';' expected
-- [ ] systemConfigService.ts - Line 59: ',' expected
-- [ ] systemErrorLogger.ts - Line 101: 'catch' or 'finally' expected
-- [ ] systemMonitoringService.ts - Line 96: ';' expected
-- [ ] transformationFunctions.ts - Line 791: ',' expected
-- [ ] userService.ts - Line 55: ';' expected
-- [ ] webserviceService.ts - Line 46: Unexpected keyword
+- [x] api.ts - Line 222: '}' expected - Issue was in other files, api.ts was correct
+- [x] flowExportImportService.ts - Line 66: ')' expected - Fixed semicolon and backtick after api.post
+- [x] flowMonitoringService.ts - Line 75: ';' expected - Removed extra backtick
+- [x] integrationFlowService.ts - Line 48: ';' expected - Fixed missing closing brace and duplicate catch
+- [x] jarFileService.ts - Line 41: ';' expected - Removed extra backtick from function declaration
+- [x] messageService.ts - Line 72: ';' expected - Fixed backtick and missing quotes in api call
+- [x] packageService.ts - Line 39: ';' expected - Removed extra backtick
+- [x] roleService.ts - Line 39: ';' expected - Removed extra backtick from function declaration
+- [x] structureService.ts - Line 69: ';' expected - Fixed backticks and missing quotes in api calls
+- [x] systemConfigService.ts - Line 59: ',' expected - Fixed semicolons in object literal
+- [x] systemErrorLogger.ts - Line 101: 'catch' or 'finally' expected - Added missing closing brace
+- [x] systemMonitoringService.ts - Line 96: ';' expected - Fixed backticks and missing quotes
+- [x] transformationFunctions.ts - Line 791: ',' expected - Fixed semicolon to comma in object
+- [x] userService.ts - Line 55: ';' expected - Removed extra backtick from function declaration
+- [x] webserviceService.ts - Line 46: Unexpected keyword - Fixed extra closing brace
 
 ## Hooks (4 files)
 

@@ -35,7 +35,7 @@ class RoleService {
  }
 
  // Update role
- async updateRole(roleId: string, updates: Partial<CreateRoleRequest>): Promise<ApiResponse<Role>> {`
+ async updateRole(roleId: string, updates: Partial<CreateRoleRequest>): Promise<ApiResponse<Role>> {
  return api.put<Role>(`/roles/${roleId}`, updates);
  }
 

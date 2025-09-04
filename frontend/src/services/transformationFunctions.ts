@@ -788,7 +788,7 @@ export const functionsByCategory = {
  conversion: conversionFunctions,
  date: dateFunctions,
  node: nodeFunctions,
- constants: constantFunctions;
+ constants: constantFunctions
 };
 
 // Helper to get function by name

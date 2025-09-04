@@ -56,7 +56,7 @@ export const systemConfigService = {
  canCreateBusinessComponents: true,
  canCreateDataStructures: true,
  isAdmin: false,
- canAccessAdmin: false;
+ canAccessAdmin: false
  }
  }
 }
@@ -77,7 +77,7 @@ export const systemConfigService = {
  canCreateBusinessComponents: true,
  canCreateDataStructures: true,
  isAdmin: false,
- canAccessAdmin: false;
+ canAccessAdmin: false
  }
  }
 }
@@ -107,7 +107,7 @@ const response = await api.get<EnvironmentPermissions>('/system/config/permissio
  canCreateBusinessComponents: true,
  canCreateDataStructures: true,
  isAdmin: false,
- canAccessAdmin: false;
+ canAccessAdmin: false
  }
 }
 } catch (error) {
@@ -122,7 +122,7 @@ const response = await api.get<EnvironmentPermissions>('/system/config/permissio
  canCreateBusinessComponents: true,
  canCreateDataStructures: true,
  isAdmin: false,
- canAccessAdmin: false;
+ canAccessAdmin: false
  }
 }
  },

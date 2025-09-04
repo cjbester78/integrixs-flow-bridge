@@ -35,7 +35,6 @@ export const packageService = {
  size: size.toString()
  });
  if (sort) params.append('sort', sort);
-`
  const response = await apiClient.get(`${API_PREFIX}?${params.toString()}`);
  return response;
  },

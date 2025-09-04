@@ -101,6 +101,7 @@ class SystemErrorLogger {
 } catch (error) {
  logger.error(LogCategory.API, 'Failed to send log to backend', { error: error });
  }
+ }
 
  async getAllLogs(): Promise<SystemLogEntry[]> {
  try {

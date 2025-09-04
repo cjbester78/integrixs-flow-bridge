@@ -51,7 +51,7 @@ class UserService {
  }
 
  // Update user
- async updateUser(userId: string, updates: UpdateUserRequest): Promise<ApiResponse<User>> {`
+ async updateUser(userId: string, updates: UpdateUserRequest): Promise<ApiResponse<User>> {
  return api.put<User>(`/users/${userId}`, updates);
  }
 

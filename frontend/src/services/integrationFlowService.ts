@@ -44,14 +44,9 @@ export const integrationFlowService = {
  createFlow: async (data: CreateFlowRequest): Promise<ApiResponse<IntegrationFlow>> => {
  try {
 const response = await apiClient.post<IntegrationFlow>(API_PREFIX, data);
- return { success: true, data: response 
-} catch (error) {
+ return { success: true, data: response };
+ } catch (error) {
   // Handle error
-}
-}
-} catch (error) {
- logger.error(LogCategory.API, 'Error creating flow', { error: error });
- return { success: false, message: 'Failed to create flow' }
-}
- },
+  throw error;
+ }
 };

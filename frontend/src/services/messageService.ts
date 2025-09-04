@@ -68,8 +68,8 @@ class MessageService {
  }
 
  // Get a specific message by ID
- async getMessage(id: string): Promise<ApiResponse<Message>> {`
- return api.get<Message>(/messages/${id}`);
+ async getMessage(id: string): Promise<ApiResponse<Message>> {
+ return api.get<Message>(`/messages/${id}`);
  }
 
  // Get message statistics

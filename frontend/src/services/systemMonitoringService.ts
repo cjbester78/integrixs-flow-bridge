@@ -92,12 +92,12 @@ class SystemMonitoringService {
  }
 
  // Acknowledge alert
- async acknowledgeAlert(alertId: string): Promise<ApiResponse<SystemAlert>> {`
- return api.post<SystemAlert>(/system/alerts/${alertId}/acknowledge`);
+ async acknowledgeAlert(alertId: string): Promise<ApiResponse<SystemAlert>> {
+ return api.post<SystemAlert>(`/system/alerts/${alertId}/acknowledge`);
  }
 
  // Resolve alert
- async resolveAlert(alertId: string): Promise<ApiResponse<SystemAlert>> {`
+ async resolveAlert(alertId: string): Promise<ApiResponse<SystemAlert>> {
  return api.post<SystemAlert>(`/system/alerts/${alertId}/resolve`);
  }
 

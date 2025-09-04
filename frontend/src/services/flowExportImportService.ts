@@ -63,7 +63,7 @@ export const flowExportImportService = {
  if (options.namePrefix) params.append('namePrefix', options.namePrefix);
  if (options.nameSuffix) params.append('nameSuffix', options.nameSuffix);
 
- const response = await api.post<FlowImportResultDTO>(;`;
+ const response = await api.post<FlowImportResultDTO>(
  `/flows/export-import/import/file?${params.toString()}`,
  formData,
  {

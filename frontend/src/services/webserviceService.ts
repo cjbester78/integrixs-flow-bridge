@@ -40,7 +40,6 @@ class WebserviceService {
  error: error instanceof Error ? error.message : 'Failed to fetch webservice structure'
 }
  }
-}
  }
 
  async uploadWebservice(file: File, businessComponentId: string): Promise<{ success: boolean; data?: WebserviceFile; error?: string }> {

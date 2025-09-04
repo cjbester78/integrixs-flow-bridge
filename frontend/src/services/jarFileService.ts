@@ -37,7 +37,7 @@ class JarFileService {
  }
 
  // Get JAR file by ID
- async getJarFileById(jarFileId: string): Promise<ApiResponse<JarFile>> {`
+ async getJarFileById(jarFileId: string): Promise<ApiResponse<JarFile>> {
  return api.get<JarFile>(`/jar-files/${jarFileId}`);
  }
 

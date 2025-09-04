@@ -71,7 +71,6 @@ class FlowMonitoringService {
  }
  })
  }
-`
  const endpoint = `/flows/executions/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
