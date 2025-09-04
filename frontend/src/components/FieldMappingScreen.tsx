@@ -524,10 +524,12 @@ const parser = new DOMParser();
  },
  sourceConnections: {},
  position: { x: 0, y: 0 }
+ }
+ })
  });
 
  newMappings.push(newMapping);
- existingTargetPaths.add(targetField.path)
+ existingTargetPaths.add(targetField.path);
  }});
 
  if (newMappings.length > 0) {

@@ -66,7 +66,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  ...currentLengths,
  [newField.fieldName]: newField.length
  },
- fieldOrder: [...currentOrder, newField.fieldName];
+ fieldOrder: [...currentOrder, newField.fieldName]
  });
 
  setNewField({ fieldName: '', length: 0 });

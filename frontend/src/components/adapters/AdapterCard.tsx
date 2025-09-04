@@ -48,11 +48,11 @@ export const AdapterCard = ({ adapter, onUpdate }: AdapterCardProps) => {
  if (isLogsExpanded) {
  refreshLogs();
  }
- }, [isLogsExpanded]);
+ }, [isLogsExpanded, refreshLogs]);
 
  const getStatusColor = (status: AdapterMonitoringStatus) => {
  switch (status) {
- case 'running':;
+ case 'running':
  return 'bg-success';
  case 'idle':
  return 'bg-warning';

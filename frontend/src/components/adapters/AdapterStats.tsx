@@ -94,5 +94,4 @@ export const AdapterStats = ({
  </Card>
  </div>
  );
-};`
-})
+};

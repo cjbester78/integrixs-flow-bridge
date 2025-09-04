@@ -193,7 +193,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  placeholder="Enter passphrase for selected key pair"
  required={false}
  value={config.passphrase}
- onValueChange={(value) => updateConfig({ passphrase: value })
+ onValueChange={(value) => updateConfig({ passphrase: value })}
  />
  </div>
  </>
@@ -267,7 +267,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  placeholder="Enter passphrase for selected key pair"
  required={false}
  value={config.passphrase}
- onValueChange={(value) => updateConfig({ passphrase: value })
+ onValueChange={(value) => updateConfig({ passphrase: value })}
  />
  </div>
  </>

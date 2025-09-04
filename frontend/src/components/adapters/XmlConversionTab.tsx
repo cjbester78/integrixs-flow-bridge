@@ -243,16 +243,16 @@ export const XmlConversionTab: FC<XmlConversionTabProps> = ({ mode, config, onCh
  <pre className="text-xs bg-muted p-2 rounded">
 {`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
 <${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>
- <record>`}
- <orderId>12345</orderId>
- <customer>John Doe</customer>
- <amount>99.99</amount>
+ <record>
+   <orderId>12345</orderId>
+   <customer>John Doe</customer>
+   <amount>99.99</amount>
  </record>
  <record>
- <orderId>12346</orderId>
- <customer>Jane Smith</customer>
- <amount>149.99</amount>
-{` </record>
+   <orderId>12346</orderId>
+   <customer>Jane Smith</customer>
+   <amount>149.99</amount>
+ </record>
 </${config.rootElementName || 'Message'}>`}
  </pre>
  </div>
@@ -275,16 +275,16 @@ orderId | customer | amount
  <pre className="text-xs bg-muted p-2 rounded">
 {`<?xml version="1.0" encoding="${config.encoding || 'UTF-8'}"?>
 <${config.rootElementName || 'Message'}${config.targetNamespace ? ` xmlns${config.namespacePrefix ? `:${config.namespacePrefix}` : ''}="${config.targetNamespace}"` : ''}>
- <row>`}
- <orderId>12345</orderId>
- <customer>John Doe</customer>
- <amount>99.99</amount>
+ <row>
+   <orderId>12345</orderId>
+   <customer>John Doe</customer>
+   <amount>99.99</amount>
  </row>
  <row>
- <orderId>12346</orderId>
- <customer>Jane Smith</customer>
- <amount>149.99</amount>
-{` </row>
+   <orderId>12346</orderId>
+   <customer>Jane Smith</customer>
+   <amount>149.99</amount>
+ </row>
 </${config.rootElementName || 'Message'}>`}
  </pre>
  </div>
