@@ -4,7 +4,6 @@ import { logger, LogCategory } from '@/lib/logger';
 
 // Use the backend IP address
 const API_BASE_URL = 'http://localhost:8080/api';
-;
 export interface ApiResponse<T = any> {
  success: boolean;
  data?: T;
@@ -57,20 +56,20 @@ async function refreshAuthToken(): Promise<boolean> {
  if (response.ok) {
  const data = await response.json();
  localStorage.setItem('integration_platform_token', data.token);
- return true;}
-} catch (error) {
+ return true;
+ }
+ } catch (error) {
  logger.warn(LogCategory.API, 'Token refresh failed', { data: error });
  removeTokens();
  return false;
-}
+ }
 
 // Generic API request function
 export async function apiRequest<T = any>(
  endpoint: string,
  options: RequestInit = {}
-): Promise<ApiResponse<T>> {`
- const url = ${API_BASE_URL}${endpoint}`;
-;
+): Promise<ApiResponse<T>> {
+ const url = `${API_BASE_URL}${endpoint}`;
  // Prepare headers with authorization if token exists
  const token = getToken();
  const defaultHeaders: Record<string, string> = {
@@ -87,11 +86,9 @@ export async function apiRequest<T = any>(
  };
 
  try {
- logger.info(LogCategory. , '$3', {$4});$5: undefined
- })
+ logger.info(LogCategory.API, `API Request: ${options.method || 'GET'} ${endpoint}`);
 
  let response = await fetch(url, requestOptions);
-;
  // Handle token expiration and retry with refreshed token
  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/refresh')) {
  const refreshed = await refreshAuthToken();
@@ -99,8 +96,8 @@ export async function apiRequest<T = any>(
  const newToken = getToken();
  if (newToken) {
  requestOptions.headers = {
- ...requestOptions.headers,`
- 'Authorization': `Bearer ${newToken}`,
+ ...requestOptions.headers,
+ 'Authorization': `Bearer ${newToken}`
  };
  response = await fetch(url, requestOptions);
  }
@@ -126,9 +123,9 @@ export async function apiRequest<T = any>(
  data
  };
 
- logger.info(LogCategory.API, [API] Error response from backend: { data: errorDetails });
+ logger.info(LogCategory.API, '[API] Error response from backend:', { data: errorDetails });
  // Also log to system logs
- systemErrorLogger.logError(`
+ systemErrorLogger.logError(
  `API Error: ${endpoint} - ${response.status}`,
  {
  ...errorDetails,
@@ -138,9 +135,8 @@ export async function apiRequest<T = any>(
  }
  );
 
- // Extract error message from various possible formats`
+ // Extract error message from various possible formats
  let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-;
  if (data) {
  if (typeof data === 'string' && data.trim()) {
  errorMessage = data;
@@ -165,38 +161,35 @@ export async function apiRequest<T = any>(
  throw new ApiError(
  errorMessage,
  response.status,
- data;
+ data
  );
  }
 
  // If we got HTML when expecting JSON, it's likely an error page
  if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
- logger.warn(LogCategory.API, 'API endpoint ${endpoint} returned HTML instead of JSON');
+ logger.warn(LogCategory.API, `API endpoint ${endpoint} returned HTML instead of JSON`);
  return {
  success: false,
  error: 'API endpoint returned HTML instead of JSON',
- data: null;
+ data: null
+ };
  }
-}
 
  return {
  success: true,
  data: data.data || data,
- message: data.message,
- }
-}
-} catch (error) {
+ message: data.message
+ };
+ } catch (error) {
  if (error instanceof ApiError) {
  throw error;
-}
  }
 
  return {
  success: false,
- error: error instanceof Error ? error.message : 'Unknown error occurred',
+ error: error instanceof Error ? error.message : 'Unknown error occurred'
+ };
  }
-}
-}
 
 // HTTP method helpers
 export const api = {
@@ -226,4 +219,4 @@ export const api = {
 
  delete: <T = any>(endpoint: string, options?: RequestInit) =>
  apiRequest<T>(endpoint, { method: 'DELETE', ...options }),
-};`)
+};
