@@ -2,7 +2,6 @@ import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import type { DataStructure } from '@/types/dataStructure';
 
 const API_PREFIX = '/flow-structures';
-;
 interface PaginatedResponse<T> {
  content: T[];
  totalElements: number;
@@ -27,30 +26,22 @@ interface ApiResponse<T> {
 
 export const dataStructureService = {
  getAllStructures: async (): Promise<ApiResponse<PaginatedResponse<DataStructure>>> => {
- try {
-const response = await apiClient.get<PaginatedResponse<DataStructure>>(API_PREFIX);
- return { success: true, data: response 
-} catch (error) {
-  // Handle error
-}
-}
-} catch (error) {
- logger.error(LogCategory.API, 'Error fetching structures', { error: error });
- return { success: false, message: 'Failed to fetch structures' }
-}
+  try {
+   const response = await apiClient.get<PaginatedResponse<DataStructure>>(API_PREFIX);
+   return { success: true, data: response };
+  } catch (error) {
+   logger.error(LogCategory.API, 'Error fetching structures', { error: error });
+   return { success: false, message: 'Failed to fetch structures' };
+  }
  },
 
  createStructure: async (data: CreateStructureRequest): Promise<ApiResponse<DataStructure>> => {
- try {
-const response = await apiClient.post<DataStructure>(API_PREFIX, data);
- return { success: true, data: response 
-} catch (error) {
-  // Handle error
-}
-}
-} catch (error) {
- logger.error(LogCategory.API, 'Error creating structure', { error: error });
- return { success: false, message: 'Failed to create structure' }
-}
- },
+  try {
+   const response = await apiClient.post<DataStructure>(API_PREFIX, data);
+   return { success: true, data: response };
+  } catch (error) {
+   logger.error(LogCategory.API, 'Error creating structure', { error: error });
+   return { success: false, message: 'Failed to create structure' };
+  }
+ }
 };
