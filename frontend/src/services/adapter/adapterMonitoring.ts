@@ -11,7 +11,7 @@ export class AdapterMonitoring {
 
  // Get adapter statistics and health
  async getAdapterStats(id: string, timeRange?: string): Promise<ApiResponse<AdapterStats>> {
- const endpoint = `/adapters/${id}/stats${timeRange ? ?timeRange=${timeRange}` : '}`;
+ const endpoint = `/adapters/${id}/stats${timeRange ? `?timeRange=${timeRange}` : ''}`;
  return api.get(endpoint);
  }
 
@@ -23,9 +23,8 @@ export class AdapterMonitoring {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
-`
  const endpoint = `/adapters/${id}/logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
@@ -35,8 +34,8 @@ export class AdapterMonitoring {
  if (this.websocket?.readyState === WebSocket.OPEN) {
  return;
  }
-`
- const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/adapters${adapterId ? /${adapterId}/logs` : '/logs'}`;
+
+ const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/adapters${adapterId ? `/${adapterId}/logs` : '/logs'}`;
 import { logger, LogCategory } from '@/lib/logger';
 
  try {
@@ -50,13 +49,14 @@ import { logger, LogCategory } from '@/lib/logger';
  this.websocket.onmessage = (event) => {
  try {
  const data = JSON.parse(event.data);
-;
  if (data.type === 'new_log') {
  this.logListeners.forEach(listener => listener(data.log));
  } else if (data.type === 'stats_update') {
- this.statsListeners.forEach(listener => listener(data.stats));}
-} catch (error) {
+ this.statsListeners.forEach(listener => listener(data.stats));
+ }
+ } catch (error) {
  logger.error(LogCategory.API, 'Error parsing WebSocket message', { error: error });
+ }
  };
 
  this.websocket.onclose = () => {
@@ -66,15 +66,16 @@ import { logger, LogCategory } from '@/lib/logger';
 
  this.websocket.onerror = (error) => {
  logger.error(LogCategory.API, 'WebSocket error', { error: error });
- }
-} catch (error) {
+ };
+ } catch (error) {
  logger.error(LogCategory.API, 'Failed to create WebSocket connection', { error: error });
+ }
  }
 
  private attemptReconnect(adapterId?: string): void {
  if (this.reconnectAttempts < this.maxReconnectAttempts) {
  this.reconnectAttempts++;
- logger.info(LogCategory.API, 'Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts});')
+ logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
 
  setTimeout(() => {
  this.connectWebSocket(adapterId);
@@ -98,21 +99,20 @@ import { logger, LogCategory } from '@/lib/logger';
  return () => {
  const index = this.logListeners.indexOf(callback);
  if (index > -1) this.logListeners.splice(index, 1);
+ };
  }
-}
 
  onStatsUpdate(callback: (stats: AdapterStats) => void): () => void {
  this.statsListeners.push(callback);
  return () => {
  const index = this.statsListeners.indexOf(callback);
  if (index > -1) this.statsListeners.splice(index, 1);
+ };
  }
-}
 
  sendCommand(command: string, data?: any): void {
  if (this.websocket?.readyState === WebSocket.OPEN) {
- this.websocket.send(JSON.stringify({ command, data }))
- }}
+ this.websocket.send(JSON.stringify({ command, data }));
  }
-}`
+ }
 }
