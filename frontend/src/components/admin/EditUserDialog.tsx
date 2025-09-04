@@ -321,7 +321,6 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
  {permissionCategories.map((category) => {
  const categoryPermissions = customPermissions[category.key] || [];
  const Icon = category.icon;
-;
  return (
  <div key={category.key} className="space-y-2">
  <div className="flex items-center gap-2">
@@ -372,5 +371,4 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
  </DialogContent>
  </Dialog>
  );
-};`
-}})
+};

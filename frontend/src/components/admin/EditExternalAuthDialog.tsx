@@ -66,11 +66,11 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
 
  const [apiKey, setApiKey] = useState<Partial<ApiKeyRequest>>({
  apiKey: '',
- keyPrefix: config.apiKey?.keyPrefix || ',
+ keyPrefix: config.apiKey?.keyPrefix || '',
  headerName: config.apiKey?.headerName || 'X-API-Key',
- queryParamName: config.apiKey?.queryParamName || ',
+ queryParamName: config.apiKey?.queryParamName || '',
  rateLimitPerHour: config.apiKey?.rateLimitPerHour,
- allowedIps: config.apiKey?.allowedIps || [];
+ allowedIps: config.apiKey?.allowedIps || []
  });
 
 

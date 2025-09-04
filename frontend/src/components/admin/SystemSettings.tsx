@@ -66,8 +66,8 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
     try {
  await apiClient.post('/system-settings/initialize');
  toast({ title: "Success", description: 'Default settings initialized' });
- fetchSettings();}
-} catch (error) {
+ fetchSettings();
+ } catch (error) {
  logger.error(LogCategory.UI, 'Error initializing settings', { error: error });
  toast({ title: "Error", description: 'Error initializing settings', variant: "destructive" });
  }

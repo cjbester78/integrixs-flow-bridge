@@ -95,7 +95,7 @@ export const UserManagement = ({ users, isLoading = false, onRefresh }: UserMana
  description="There are currently no users in the system. Create your first user to get started."
  action={{
  label: "Add User",
- onClick: () => setShowCreateDialog(true);
+ onClick: () => setShowCreateDialog(true)
  }}
  />
  ) : (

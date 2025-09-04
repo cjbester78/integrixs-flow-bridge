@@ -84,7 +84,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  toast({
  title: "Error",
  description: "Passwords do not match",
- variant: "destructive";
+ variant: "destructive"
  });
  setIsLoading(false);
  return;
@@ -137,7 +137,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  toast({
  title: "Error",
  description: error instanceof Error ? error.message : "Failed to create authentication configuration",
- variant: "destructive";
+ variant: "destructive"
  });
  } finally {
  setIsLoading(false);

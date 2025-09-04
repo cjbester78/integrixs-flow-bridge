@@ -93,7 +93,6 @@ export const EnvironmentConfiguration = () => {
  window.location.reload();
  }, 1500);
 
- }
  } catch (error) {
  logger.error(LogCategory.UI, 'Error saving environment configuration', { error: error });
  toast({ title: "Error", description: 'Error saving environment configuration', variant: "destructive" });

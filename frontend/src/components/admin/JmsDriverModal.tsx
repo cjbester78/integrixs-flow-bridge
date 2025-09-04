@@ -42,7 +42,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  toast({
  title: "Invalid File Type",
  description: "Please select a valid JMS driver file (.jar).",
- variant: "destructive";
+ variant: "destructive"
  });
  return;
  }
@@ -63,7 +63,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  toast({
  title: "Missing Information",
  description: "Please select a broker type and driver file.",
- variant: "destructive";
+ variant: "destructive"
  });
  return;
  }
@@ -104,7 +104,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  toast({
  title: "Upload Failed",
  description: "Failed to upload JMS driver. Please try again.",
- variant: "destructive";
+ variant: "destructive"
 }
  });
  } finally {

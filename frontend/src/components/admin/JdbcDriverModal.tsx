@@ -42,7 +42,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  toast({
  title: "Invalid File Type",
  description: "Please select a valid JDBC driver file (.jar).",
- variant: "destructive";
+ variant: "destructive"
  });
  return;
  }
@@ -63,7 +63,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  toast({
  title: "Missing Information",
  description: "Please select a database type and driver file.",
- variant: "destructive";
+ variant: "destructive"
  });
  return;
  }
@@ -104,7 +104,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  toast({
  title: "Upload Failed",
  description: "Failed to upload JDBC driver. Please try again.",
- variant: "destructive";
+ variant: "destructive"
 }
  });
  } finally {

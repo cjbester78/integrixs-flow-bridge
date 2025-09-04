@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
  Dialog,
  DialogContent,
@@ -26,7 +26,7 @@ export function AuthAttemptLogsDialog({ configId, open, onOpenChange }: AuthAtte
  const [attempts, setAttempts] = useState<AuthAttemptLog[]>([]);
  const [isLoading, setIsLoading] = useState(true);
 
- const fetchAttempts = async () => {
+ const fetchAttempts = useCallback(async () => {
  setIsLoading(true);
  try {
 const response = await externalAuthService.getAuthAttempts(configId, 100);
@@ -43,13 +43,13 @@ const response = await externalAuthService.getAuthAttempts(configId, 100);
  } finally {
  setIsLoading(false);
  }
- };
+ }, [configId]);
 
  useEffect(() => {
  if (open) {
  fetchAttempts();
  }
- }, [open, configId]);
+ }, [open, configId, fetchAttempts]);
 
  return (
  <Dialog open={open} onOpenChange={onOpenChange}>

@@ -37,7 +37,7 @@ export const RoleManagement = ({ roles, isLoading = false, onRefresh }: RoleMana
  <div className="flex items-center gap-2">
  {onRefresh && (
  <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
- <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : '}`} />
+ <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
  </Button>
  )}
  <Button className="bg-gradient-primary">
