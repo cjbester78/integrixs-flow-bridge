@@ -32,9 +32,9 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  const [open, setOpen] = useState(false);
 
  const filteredFunctions = Object.entries(functionsByCategory).reduce((acc, [category, functions]) => {
- const filtered = functions.filter(fn =>;
+ const filtered = functions.filter(fn =>
  fn.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
- fn.description.toLowerCase().includes(searchTerm.toLowerCase());
+ fn.description.toLowerCase().includes(searchTerm.toLowerCase())
  );
  if (filtered.length > 0) {
  acc[category] = filtered;
@@ -43,7 +43,7 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  }, {} as Record<string, TransformationFunction[]>);
 
  const handleFunctionClick = (func: TransformationFunction) => {
- logger.info(LogCategory.UI, 🔍 FunctionPicker: (...args: any[]); => any clicked: { data: func.name })
+ logger.info(LogCategory.UI, '🔍 FunctionPicker: Function clicked', { data: func.name });
  // For visual mapper, immediately call onFunctionSelect when function is clicked;
  onFunctionSelect(func.name, '');
  setOpen(false);
@@ -58,26 +58,26 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
 
  const handleApplyFunction = () => {
  logger.info(LogCategory.UI, '🔍 FunctionPicker: handleApplyFunction called');
- logger.info(LogCategory.UI, 🔍 FunctionPicker: selectedFunction: { data: selectedFunction });
+ logger.info(LogCategory.UI, '🔍 FunctionPicker: selectedFunction', { data: selectedFunction });
  if (!selectedFunction) {
  logger.info(LogCategory.UI, '❌ FunctionPicker: No function selected');
  return;
  }
 
- const paramValues = selectedFunction.parameters.map(param =>;
- parameters[param.name] || (param.type === 'number' ? 0 : '');
+ const paramValues = selectedFunction.parameters.map(param =>
+ parameters[param.name] || (param.type === 'number' ? 0 : '')
  );
 
  const javaCode = generateJavaFunctionCall(selectedFunction.name, paramValues);
- logger.info(LogCategory.UI, 🔍 FunctionPicker: Generated Java code: { data: javaCode });
- logger.info(LogCategory.UI, 🔍 FunctionPicker: Calling onFunctionSelect with: { data: selectedFunction.name, javaCode });
+ logger.info(LogCategory.UI, '🔍 FunctionPicker: Generated Java code', { data: javaCode });
+ logger.info(LogCategory.UI, '🔍 FunctionPicker: Calling onFunctionSelect with', { data: selectedFunction.name, javaCode });
  onFunctionSelect(selectedFunction.name, javaCode);
  setOpen(false);
  setSelectedFunction(null);
  setParameters({});
  };
 
- const renderFunctionList = () => (;
+ const renderFunctionList = () => (
  <div className="space-y-4">
  <div className="relative">
  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -137,7 +137,7 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  <div className="flex items-center gap-2">
  <Button
  variant="ghost"
- size="sm";
+ size="sm"
  onClick={() => setSelectedFunction(null)}
  >
  ← Back
@@ -160,7 +160,7 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  {param.required && <span className="text-destructive">*</span>}
  </Label>
  <Input
- type={param.type === 'number' ? 'number' : 'text'}`
+ type={param.type === 'number' ? 'number' : 'text'}
  placeholder={param.description || `Enter ${param.name}`}
  value={parameters[param.name] || ''}
  onChange={(e) => handleParameterChange(param.name, e.target.value)}
@@ -176,8 +176,8 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  <Label className="text-xs font-medium">Java Code Preview:</Label>
  <div className="bg-muted p-2 rounded text-xs font-mono">
  {generateJavaFunctionCall(
- selectedFunction.name,`
- selectedFunction.parameters.map(param => parameters[param.name] || {${param.name}}`);
+ selectedFunction.name,
+ selectedFunction.parameters.map(param => parameters[param.name] || `{${param.name}}`)
  )}
  </div>
  </div>
@@ -209,5 +209,4 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  </PopoverContent>
  </Popover>
  );
-};`
-})))
+};

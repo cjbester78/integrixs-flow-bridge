@@ -48,11 +48,11 @@
 - [ ] toggle.tsx - Line 7: ')' expected
 
 ## Field Mapping Components (13 files)
-- [ ] FieldMappingScreen.tsx - Line 529: ',' expected
-- [ ] FieldSelectorDialog.tsx - Line 58: Expression expected
-- [ ] FieldTree.tsx - Line 131: Unterminated template literal
-- [ ] FunctionMappingModal.tsx - Line 52: ',' expected
-- [ ] FunctionNode.tsx - Line 157: Unterminated template literal
+- [x] FieldMappingScreen.tsx - Line 529: ',' expected - Fixed in previous session
+- [x] FieldSelectorDialog.tsx - Line 58: Expression expected - Fixed in previous session
+- [x] FieldTree.tsx - Line 131: Unterminated template literal - Fixed in previous session
+- [x] FunctionMappingModal.tsx - Line 52: ',' expected - Fixed in previous session
+- [x] FunctionNode.tsx - Line 157: Unterminated template literal - Fixed in previous session
 - [ ] FunctionPicker.tsx - Line 35: Expression expected
 - [ ] FunctionSelectorDialog.tsx - Line 77: Expression expected
 - [ ] MappingArea.tsx - Line 38: Unterminated string literal
@@ -139,10 +139,10 @@
 - [ ] ParameterEditor.tsx - Line 52: ';' expected
 
 ## Adapter Components (4 files)
-- [ ] SftpAdapterConfiguration.tsx - Line 207: Identifier expected
-- [ ] SoapOutboundAdapterConfiguration.tsx - Line 228: 'try' expected
-- [ ] FileFormatTab.tsx - Line 83: ',' expected
-- [ ] PayloadStructureDefinition.tsx - Line 289: '}' expected
+- [x] SftpAdapterConfiguration.tsx - Line 207: Identifier expected - Fixed in previous session
+- [x] SoapOutboundAdapterConfiguration.tsx - Line 228: 'try' expected - Fixed in previous session
+- [x] FileFormatTab.tsx - Line 83: ',' expected - Fixed in previous session
+- [x] PayloadStructureDefinition.tsx - Line 289: '}' expected - Fixed in previous session
 
 ## Message Components (3 files)
 - [ ] MessageCard.tsx - Line 52: ',' expected
@@ -160,8 +160,8 @@
 - [ ] UpdatedArchitectureDiagrams.tsx - Line 444: Unterminated template literal
 
 ## Utils (2 files)
-- [ ] structureParsers.ts - Line 150: Declaration expected
-- [ ] xmlStructureConverter.ts - Line 121: ',' expected
+- [x] structureParsers.ts - Line 150: Declaration expected - Fixed in previous session
+- [x] xmlStructureConverter.ts - Line 121: ',' expected - Fixed in previous session
 
 ## Other Components (4 files)
 - [ ] layout/Sidebar.tsx - Line 188: '}' expected

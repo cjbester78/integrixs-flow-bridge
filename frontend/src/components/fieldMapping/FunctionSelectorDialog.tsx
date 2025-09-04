@@ -74,9 +74,9 @@ const functions = await developmentFunctionsService.getAllFunctions();
  }, [dynamicFunctions]);
 
  const filteredFunctions = Object.entries(allFunctionsByCategory).reduce((acc, [category, functions]) => {
- const filtered = functions.filter(fn =>;
+ const filtered = functions.filter(fn =>
  fn.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
- fn.description.toLowerCase().includes(searchTerm.toLowerCase());
+ fn.description.toLowerCase().includes(searchTerm.toLowerCase())
  );
  if (filtered.length > 0) {
  acc[category] = filtered;
@@ -92,7 +92,6 @@ const functions = await developmentFunctionsService.getAllFunctions();
 
  const totalFunctions = Object.values(allFunctionsByCategory).flat().length;
  const filteredCount = Object.values(filteredFunctions).flat().length;
-;
  return (
  <Dialog open={open} onOpenChange={onClose}>
  <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
@@ -173,7 +172,7 @@ const functions = await developmentFunctionsService.getAllFunctions();
  <CardContent className="pt-0">
  <div className="flex items-center justify-between">
  <span className="text-xs text-muted-foreground">
- {func.parameters.length} parameter{func.parameters.length !== 1 ? 's' : '}
+ {func.parameters.length} parameter{func.parameters.length !== 1 ? 's' : ''}
  </span>
  <span className="text-xs text-primary font-medium">
  Click to add
@@ -198,4 +197,4 @@ const functions = await developmentFunctionsService.getAllFunctions();
  </DialogContent>
  </Dialog>
  );
-};`
+};

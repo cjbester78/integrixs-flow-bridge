@@ -35,7 +35,7 @@ export function MappingArea({
  filteredSourceFields?: FieldNode[];
  }>({
  open: false,
- selectedFunction: ',
+ selectedFunction: '',
  targetField: null,
  filteredSourceFields: []
  });
@@ -43,36 +43,37 @@ export function MappingArea({
 
  const [visualFlowEditor, setVisualFlowEditor] = useState<{
  open: boolean;
- , targetField: FieldNode | null;
+ targetField: FieldNode | null;
  existingMapping?: FieldMapping;
  }>({
  open: false,
- targetField: null;
+ targetField: null
  });
 
  useEffect(() => {
- logger.info(LogCategory.UI, 🔍 Modal state changed: { data: functionMappingModal });, [functionMappingModal]);
+ logger.info(LogCategory.UI, '🔍 Modal state changed', { data: functionMappingModal });
+ }, [functionMappingModal]);
 
  useEffect(() => {
- logger.info(LogCategory.UI, 🔥 Visual flow editor state changed: { data: visualFlowEditor });, [visualFlowEditor]);
+ logger.info(LogCategory.UI, '🔥 Visual flow editor state changed', { data: visualFlowEditor });
+ }, [visualFlowEditor]);
 
 
  const handleOpenVisualFlowEditor = (mappingId: string) => {
- logger.info(LogCategory.UI, 🔥 handleOpenVisualFlowEditor called with mappingId: { data: mappingId });
- logger.info(LogCategory.UI, 🔥 Available mappings: { data: mappings });
- logger.info(LogCategory.UI, 🔥 Available targetFields: { data: targetFields });
- logger.info(LogCategory.UI, 🔥 Target fields names: { data: targetFields.map(f => f?.name))
+ logger.info(LogCategory.UI, '🔥 handleOpenVisualFlowEditor called with mappingId', { data: mappingId });
+ logger.info(LogCategory.UI, '🔥 Available mappings', { data: mappings });
+ logger.info(LogCategory.UI, '🔥 Available targetFields', { data: targetFields });
+ logger.info(LogCategory.UI, '🔥 Target fields names', { data: targetFields.map(f => f?.name) })
  ;
  const existingMapping = mappings.find(m => m.id === mappingId);
- logger.info(LogCategory.UI, 🔥 Found existing mapping: { data: existingMapping });
+ logger.info(LogCategory.UI, '🔥 Found existing mapping', { data: existingMapping });
  if (!existingMapping) {
- logger.info(LogCategory.UI, ❌ No existing mapping found for ID: { data: mappingId });
+ logger.info(LogCategory.UI, '❌ No existing mapping found for ID', { data: mappingId });
  return;
  }
 
  // First try to find by exact name match
  let targetField = targetFields.find(field => field?.name === existingMapping.targetField);
-;
  // If not found, try to find by path match
  if (!targetField && existingMapping.targetPath) {
  targetField = targetFields.find(field => field?.path === existingMapping.targetPath);
@@ -96,15 +97,14 @@ export function MappingArea({
  targetField = findFieldRecursively(targetFields, existingMapping.targetField, existingMapping.targetPath);
  }
 
- logger.info(LogCategory.UI, 🔥 Looking for target field with name: { data: existingMapping.targetField });
- logger.info(LogCategory.UI, 🔥 Looking for target field with path: { data: existingMapping.targetPath });
- logger.info(LogCategory.UI, 🔥 Found target field: { data: targetField });
+ logger.info(LogCategory.UI, '🔥 Looking for target field with name', { data: existingMapping.targetField });
+ logger.info(LogCategory.UI, '🔥 Looking for target field with path', { data: existingMapping.targetPath });
+ logger.info(LogCategory.UI, '🔥 Found target field', { data: targetField });
  if (!targetField) {
  logger.info(LogCategory.UI, '❌ Target field not found, attempting to create a proper target field from mapping data');
  // Extract the actual field name from the path if available
  let fieldName = existingMapping.targetField;
  let fieldPath = existingMapping.targetPath || existingMapping.targetField;
-;
  // If the targetPath contains dots, extract the last part as the field name
  if (existingMapping.targetPath && existingMapping.targetPath.includes('.')) {
  const pathParts = existingMapping.targetPath.split('.');
@@ -118,10 +118,10 @@ export function MappingArea({
  type: 'string', // Default type
  path: fieldPath,
  children: [],
- expanded: false;
+ expanded: false
  };
 
- logger.info(LogCategory.UI, 🔥 Created proper target field: { data: properTargetField });
+ logger.info(LogCategory.UI, '🔥 Created proper target field', { data: properTargetField });
  setVisualFlowEditor({
  open: true,
  targetField: properTargetField,
@@ -130,9 +130,9 @@ export function MappingArea({
  return;
  }
 
- logger.info(LogCategory.UI, 'Debug info', { message: ✅ Opening visual flow editor with:, targetField: targetField.name,
- existingMapping: existingMapping.id);
- })
+ logger.info(LogCategory.UI, 'Debug info', { message: '✅ Opening visual flow editor with', targetField: targetField.name,
+ existingMapping: existingMapping.id
+ });
 
  setVisualFlowEditor({ open: true,
   targetField: targetField,
@@ -141,7 +141,7 @@ export function MappingArea({
  };
 
  const handleApplyVisualFlow = (newMapping: FieldMapping) => {
- logger.info(LogCategory.UI, 🔥 handleApplyVisualFlow called with: { data: newMapping });
+ logger.info(LogCategory.UI, '🔥 handleApplyVisualFlow called with', { data: newMapping });
  if (visualFlowEditor.existingMapping) {
  // Update existing mapping - include ALL fields, especially visualFlowData
  if (onUpdateMapping) {
@@ -151,7 +151,7 @@ export function MappingArea({
  requiresTransformation: true,
  sourceFields: newMapping.sourceFields,
  sourcePaths: newMapping.sourcePaths,
- name: newMapping.name;
+ name: newMapping.name
  });
  }
  } else {
@@ -164,7 +164,7 @@ export function MappingArea({
  // Close the editor
  setVisualFlowEditor({
  open: false,
- targetField: null;
+ targetField: null
  });
  };
 
@@ -176,7 +176,7 @@ export function MappingArea({
  functionNode: newMapping.functionNode,
  requiresTransformation: true,
  sourceFields: newMapping.sourceFields,
- sourcePaths: newMapping.sourcePaths;
+ sourcePaths: newMapping.sourcePaths
  });
  }
  } else {
@@ -189,20 +189,20 @@ export function MappingArea({
  // Close the modal
  setFunctionMappingModal({
  open: false,
- selectedFunction: ',
+ selectedFunction: '',
  targetField: null,
  filteredSourceFields: []
  });
  };
 
  // Debug logging for render
- logger.info(LogCategory.UI, 🔍 MappingArea render - mappings count: { data: mappings.length });
- logger.info(LogCategory.UI, 🔍 MappingArea render - mappings: { data: mappings });
+ logger.info(LogCategory.UI, '🔍 MappingArea render - mappings count', { data: mappings.length });
+ logger.info(LogCategory.UI, '🔍 MappingArea render - mappings', { data: mappings });
  return (
  <div className="w-1/3 relative bg-background animate-fade-in">
  <div className="p-4 border-b">
  <h3 className="font-semibold flex items-center gap-2">
- <ArrowRight className="h-4 w-4" />;
+ <ArrowRight className="h-4 w-4" />
  Field Mappings ({mappings.length})
  </h3>
  </div>
@@ -233,7 +233,7 @@ export function MappingArea({
  variant={mapping.functionNode.functionName === 'nodeMapping' ? "secondary" : "default"}
  className="text-xs"
  >
- {mapping.functionNode.functionName === 'nodeMapping'`
+ {mapping.functionNode.functionName === 'nodeMapping'
  ? `Node: ${mapping.functionNode.parameters?.sourceType || 'object'} → ${mapping.functionNode.parameters?.targetType || 'object'}`
  : `Function: ${mapping.functionNode.functionName}`
  }
@@ -246,7 +246,7 @@ export function MappingArea({
  variant="ghost"
  size="sm"
  onClick={() => {
- logger.info(LogCategory.UI, 🔥 Lightning bolt clicked for mapping: { data: mapping.id });
+ logger.info(LogCategory.UI, '🔥 Lightning bolt clicked for mapping', { data: mapping.id });
  handleOpenVisualFlowEditor(mapping.id);
  }}
  className="h-6 w-6 p-0 hover-scale"
@@ -259,7 +259,7 @@ export function MappingArea({
  <Button
  variant="ghost"
  size="sm"
- onClick={() =>)}
+ onClick={() => onRemoveMapping(mapping.id)}
  className="h-6 w-6 p-0 text-destructive hover:text-destructive hover-scale"
  title="Remove Mapping"
  >
@@ -293,12 +293,12 @@ export function MappingArea({
  </div>
  <div className="text-muted-foreground">
  {mapping.functionNode.functionName === 'visual_flow' ? (
- mapping.visualFlowData ? (`
+ mapping.visualFlowData ? (
  `Visual Flow - ${mapping.sourceFields ? mapping.sourceFields.length : 0} source field(s): ${mapping.sourceFields ? mapping.sourceFields.join(', ') : ''}`
- ) : (`
+ ) : (
  `Visual Flow - ${mapping.sourceFields ? mapping.sourceFields.length : 0} source field(s) connected`
  )
- ) : (`
+ ) : (
  `${mapping.functionNode.functionName} with ${Object.keys(mapping.functionNode.sourceConnections).length} parameter(s) connected`
  )}
  </div>
@@ -329,10 +329,10 @@ export function MappingArea({
  open={functionMappingModal.open}
  onClose={() => setFunctionMappingModal({
  open: false,
- selectedFunction: ',
+ selectedFunction: '',
  targetField: null,
  filteredSourceFields: []
- })
+ })}
  selectedFunction={functionMappingModal.selectedFunction}
  sourceFields={functionMappingModal.filteredSourceFields || sourceFields}
  targetField={functionMappingModal.targetField}
@@ -346,8 +346,8 @@ export function MappingArea({
  open={visualFlowEditor.open}
  onClose={() => setVisualFlowEditor({
  open: false,
- targetField: null;
- })
+ targetField: null
+ })}
  sourceFields={sourceFields}
  targetField={visualFlowEditor.targetField}
  onApplyMapping={handleApplyVisualFlow}
@@ -357,5 +357,3 @@ export function MappingArea({
  </div>
  );
 }
-`
-}}}}

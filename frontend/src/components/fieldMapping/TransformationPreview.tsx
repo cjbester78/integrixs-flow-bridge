@@ -21,10 +21,9 @@ export const TransformationPreview: React.FC<TransformationPreviewProps> = ({
  const [functionName, setFunctionName] = useState(selectedFunctionName);
  const [parameters, setParameters] = useState<any[]>([]);
  const [result, setResult] = useState<any>(null);
- const [error, setError] = useState<$1>('');
+ const [error, setError] = useState<string>('');
 
  const currentFunction = getTransformationFunction(functionName);
-;
  useEffect(() => {
  if (currentFunction) {
  // Set default parameter values
@@ -44,7 +43,6 @@ export const TransformationPreview: React.FC<TransformationPreviewProps> = ({
 
  const handleParameterChange = (index: number, value: any) => {
  const newParams = [...parameters];
-;
  // Convert value based on parameter type
  if (currentFunction?.parameters[index]) {
  const paramType = currentFunction.parameters[index].type;
@@ -58,7 +56,7 @@ export const TransformationPreview: React.FC<TransformationPreviewProps> = ({
  case 'array':
  newParams[index] = value.split(',').map((v: string) => v.trim());
  break;
- 'default':
+ default:
  newParams[index] = value;
  }
  } else {
@@ -72,16 +70,12 @@ export const TransformationPreview: React.FC<TransformationPreviewProps> = ({
  if (!currentFunction) return;
 
  try {
-setError('');
+ setError('');
  const validation = TransformationFunctionService.validateParameters(functionName, parameters);
-;
  if (!validation.valid) {
  setError(validation.errors.join(', '));
  return;
- 
-} catch (error) {
-  // Handle error
-}
+ }
  const output = TransformationFunctionService.executeFunction(functionName, parameters);
  setResult(output);
  } catch (err) {
@@ -95,7 +89,7 @@ setError('');
  <CardContent className="p-4">
  <p className="text-muted-foreground">Function not found</p>
  </CardContent>
- </Card>;
+ </Card>
  );
  }
 
@@ -153,7 +147,7 @@ setError('');
  placeholder={param.description || `Enter ${param.name}`}
  value={param.type === 'array'
  ? (parameters[index] || []).join(', ')
- : parameters[index] || '
+ : parameters[index] || ''
  }
  onChange={(e) => handleParameterChange(index, e.target.value)}
  className="h-8 text-sm"
@@ -203,13 +197,13 @@ setError('');
  <div className="p-2 bg-muted rounded">
  <code className="text-xs font-mono">
  {currentFunction.javaTemplate.replace(/{(\d+)}/g, (match, index) => {
- const param = parameters[parseInt(index)];`;
- return typeof param === 'string' ? "${param}"` : param?.toString() || `{${index}}`;
- })
+ const param = parameters[parseInt(index)];
+ return typeof param === 'string' ? `"${param}"` : param?.toString() || `{${index}}`;
+ })}
  </code>
  </div>
  </div>
  </CardContent>
  </Card>
  );
-};`)
+};

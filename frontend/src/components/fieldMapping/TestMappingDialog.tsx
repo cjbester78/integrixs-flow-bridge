@@ -34,7 +34,7 @@ export function TestMappingDialog({
  const { toast } = useToast();
  const [inputXml, setInputXml] = useState('');
  const [outputXml, setOutputXml] = useState('');
- const [testStatus, setTestStatus] = useState<$1>('idle');
+ const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
  const [errorMessage, setErrorMessage] = useState('');
  const [isLoading, setIsLoading] = useState(false);
 
@@ -91,15 +91,17 @@ export function TestMappingDialog({
  description: "Field mappings were applied successfully",
  });
  } else {
- throw new Error(response.data.error || 'Test failed');} catch (error: any) {
+ throw new Error(response.data.error || 'Test failed');
+ }
+ } catch (error: any) {
  setTestStatus('error');
  const errorMsg = error.response?.data?.message || error.message || 'Failed to test mappings';
  setErrorMessage(errorMsg);
  toast({
  title: "Test Failed",
  description: errorMsg,
- variant: "destructive",
-}
+ variant: "destructive"
+ }
  });
  } finally {
  setIsLoading(false);
@@ -116,7 +118,6 @@ export function TestMappingDialog({
 
  const handleDownloadOutput = () => {
  const blob = new Blob([outputXml], { type: 'text/xml' });
-;
  const url = URL.createObjectURL(blob);
  const a = document.createElement('a');
  a.href = url;
@@ -128,8 +129,8 @@ export function TestMappingDialog({
  };
 
  const loadSampleXml = () => {
- // Load sample XML based on the mapping type`
- const sampleXml = `<?xml version="1.0" encoding="UTF-8"?>;
+ // Load sample XML based on the mapping type
+ const sampleXml = `<?xml version="1.0" encoding="UTF-8"?>
 <${mappingType === 'request' ? 'Request' : mappingType === 'response' ? 'Response' : 'Fault'}>
  <!-- Add your test data here -->
  <Token>sample-token-123</Token>
@@ -141,7 +142,7 @@ export function TestMappingDialog({
  <supplyGroupCode>SG001</supplyGroupCode>
  <keyRevisionNumber>1</keyRevisionNumber>
  <meterSerialNumber>MSN123456</meterSerialNumber>
- <encryptionAlgorithm>AES256</encryptionAlgorithm>`
+ <encryptionAlgorithm>AES256</encryptionAlgorithm>
 </${mappingType === 'request' ? 'Request' : mappingType === 'response' ? 'Response' : 'Fault'}>`;
 
  setInputXml(sampleXml);
@@ -334,5 +335,4 @@ export function TestMappingDialog({
  </DialogContent>
  </Dialog>
  );
-}`
-}}}))))
+}
