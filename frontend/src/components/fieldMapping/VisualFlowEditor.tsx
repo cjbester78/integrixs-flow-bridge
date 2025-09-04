@@ -72,7 +72,6 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  let initialNodes: Node[] = [];
  let initialEdges: Edge[] = [];
  let initialNodeCounter = 1;
-;
  // Check if we have saved visual flow data to restore
  if (initialMapping?.visualFlowData) {
  // Restore the complete flow state
@@ -107,7 +106,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  if (initialMapping && initialMapping.sourcePaths && initialMapping.sourcePaths.length > 0) {
  initialMapping.sourcePaths.forEach((sourceFieldPath, index) => {
  // Find the corresponding FieldNode for this source field path
- let sourceField = sourceFields.find(field =>;
+ let sourceField = sourceFields.find(field =>
  field.path === sourceFieldPath || field.name === sourceFieldPath
  );
 
@@ -124,12 +123,12 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  name: fieldName,
  type: 'string',
  path: sourceFieldPath,
- expanded: false;
+ expanded: false
  }
 }
 
- if (sourceField) {`
- const sourceNodeId = source-${sourceField.id}`;
+ if (sourceField) {
+ const sourceNodeId = `source-${sourceField.id}`;
  initialNodes.push({
  id: sourceNodeId,
  type: 'sourceField',
@@ -138,7 +137,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  });
 
  // Create edge connecting source to target
- initialEdges.push({`
+ initialEdges.push({
  id: `edge-${sourceNodeId}-target`,
  source: sourceNodeId,
  target: 'target',
@@ -146,18 +145,20 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  animated: false,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
  color: 'hsl(var(--primary))'
- })
- })
+ }
+ });
+ }
+ });
  }
  // Fallback: try using sourceFields if sourcePaths is not available
  else if (initialMapping && initialMapping.sourceFields && initialMapping.sourceFields.length > 0) {
  initialMapping.sourceFields.forEach((sourceFieldName, index) => {
- let sourceField = sourceFields.find(field =>;
+ let sourceField = sourceFields.find(field =>
  field.name === sourceFieldName || field.path === sourceFieldName
  );
 
@@ -168,17 +169,17 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
 
  // If still not found, create a field from the name
  if (!sourceField) {
- sourceField = {`
+ sourceField = {
  id: `source_${sourceFieldName}_${Date.now()}_${index}`,
  name: sourceFieldName,
  type: 'string',
  path: sourceFieldName,
- expanded: false;
+ expanded: false
  }
 }
 
- if (sourceField) {`
- const sourceNodeId = source-${sourceField.id}`;
+ if (sourceField) {
+ const sourceNodeId = `source-${sourceField.id}`;
  initialNodes.push({
  id: sourceNodeId,
  type: 'sourceField',
@@ -187,7 +188,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  });
 
  // Create edge connecting source to target
- initialEdges.push({`
+ initialEdges.push({
  id: `edge-${sourceNodeId}-target`,
  source: sourceNodeId,
  target: 'target',
@@ -195,13 +196,16 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  animated: false,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
  color: 'hsl(var(--primary))'
- })
- })
+ }
+ });
+ }
+ });
+ }
  }
 
  // Set node counter based on how many nodes we're starting with
@@ -215,14 +219,13 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  }
  }, [open, targetField, sourceFields, initialMapping, setNodes, setEdges]);
 
- const onConnect = useCallback(;
+ const onConnect = useCallback(
  (params: Connection) => {
  // If connecting to target field, remove any existing connections to target
  if (params.target === 'target') {
  setEdges((eds) => {
- // Remove existing edges to target;
+ // Remove existing edges to target
  const filteredEdges = eds.filter(edge => edge.target !== 'target');
-;
  // Add the new edge
  const edge = {
  ...params,
@@ -230,16 +233,16 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  animated: false,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
  color: 'hsl(var(--primary))'
  }
-};
+ };
 
  return addEdge(edge, filteredEdges);
- })
+ });
  } else {
  // For non-target connections, just add normally
  const edge = {
@@ -248,14 +251,14 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  animated: false,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
  color: 'hsl(var(--primary))'
  }
-};
- setEdges((eds) => addEdge(edge, eds);
+ };
+ setEdges((eds) => addEdge(edge, eds));
  }
  },
  [setEdges]
@@ -267,8 +270,8 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
 
  const handleSelectSourceField = useCallback((field: FieldNode) => {
  const existingSourceNodes = nodes.filter(node => node.type === 'sourceField');
- const newNode: Node = {`
- id: source-${field.id}`,
+ const newNode: Node = {
+ id: `source-${field.id}`,
  type: 'sourceField',
  position: { x: 50, y: 50 + existingSourceNodes.length * 100 }, // Consistent spacing
  data: { field },
@@ -283,7 +286,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
 
  const handleSelectFunction = useCallback((func: TransformationFunction | TransformationFunctionWithParams) => {
  const existingFunctionNodes = nodes.filter(node => node.type === 'function');
- const newNode: Node = {`
+ const newNode: Node = {
  id: `function-${nodeIdCounter}`,
  type: 'function',
  position: {
@@ -293,7 +296,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  data: {
  'function': func,
  parameters: {},
- showSelector: false;
+ showSelector: false
  },
  };
 
@@ -303,8 +306,8 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
 
  const addCustomFunction = useCallback(() => {
  const existingCustomNodes = nodes.filter(node => node.type === 'function' && (node.data as any).function.name === 'custom');
- const newNode: Node = {`
- id: custom-function-${nodeIdCounter}`,
+ const newNode: Node = {
+ id: `custom-function-${nodeIdCounter}`,
  type: 'function',
  position: {
  x: 350,
@@ -316,11 +319,11 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  description: 'Custom Java function',
  category: 'custom',
  parameters: [],
- javaCode: '
+ javaCode: ''
  },
  parameters: {},
  showSelector: false,
- isCustom: true;
+ isCustom: true
  },
  };
 
@@ -331,7 +334,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  const handleSave = useCallback(() => {
  if (!targetField) return;
 
- logger.info(LogCategory.UI, 🔥 VisualFlowEditor handleSave - saving with nodes: { data: nodes.length, edges: edges.length });
+ logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - saving with nodes', { data: nodes.length, edges: edges.length });
  // Find the target node and trace back all connections
  const targetNode = nodes.find(n => n.type === 'targetField');
  if (!targetNode) return;
@@ -349,12 +352,12 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  }
  });
 
- logger.info(LogCategory.UI, 🔥 VisualFlowEditor handleSave - connectedSourcePaths: { data: connectedSourcePaths });
- logger.info(LogCategory.UI, 🔥 VisualFlowEditor handleSave - connectedSourceFields: { data: connectedSourceFields });
+ logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - connectedSourcePaths', { data: connectedSourcePaths });
+ logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - connectedSourceFields', { data: connectedSourceFields });
  // Create mapping object with complete flow state
- const mapping: FieldMapping = {`
- id: initialMapping?.id || `mapping_${Date.now()}`,`
- name: initialMapping?.name || visual_flow_to_${targetField.name}`,
+ const mapping: FieldMapping = {
+ id: initialMapping?.id || `mapping_${Date.now()}`,
+ name: initialMapping?.name || `visual_flow_to_${targetField.name}`,
  sourceFields: connectedSourceFields,
  targetField: targetField.name,
  sourcePaths: connectedSourcePaths,
@@ -364,7 +367,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  visualFlowData: {
  nodes: nodes,
  edges: edges,
- nodeIdCounter: nodeIdCounter;
+ nodeIdCounter: nodeIdCounter
  },
  functionNode: {
  id: 'visual_flow',
@@ -375,7 +378,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  }
  };
 
- logger.info(LogCategory.UI, 🔥 VisualFlowEditor handleSave - final mapping: { data: mapping });
+ logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - final mapping', { data: mapping });
  onApplyMapping(mapping);
  onClose();
  }, [nodes, edges, nodeIdCounter, targetField, initialMapping, onApplyMapping, onClose]);
@@ -431,14 +434,14 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  fitViewOptions={{
  padding: 0.1,
  minZoom: 0.5,
- maxZoom: 2;
+ maxZoom: 2
  }}
  defaultEdgeOptions={{
  type: 'deletable',
  animated: false,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
@@ -490,7 +493,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  </Panel>
 
  <Panel position="bottom-right" className="bg-card border rounded-lg p-3 shadow-lg">
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <div className={`w-2 h-2 rounded-full ${isFlowValid ? 'bg-green-500' : 'bg-red-500'}`} />
  <div className="text-sm font-medium">
  {isFlowValid ? 'Flow is valid - ready to save' : 'Connect nodes to target field'}
@@ -519,5 +522,4 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  </DialogContent>
  </Dialog>
  );
-};`
-}))
+};
