@@ -31,7 +31,7 @@ export function ParameterEditor({ parameters, onChange, readOnly = false }: Para
  const newParam: FunctionParameter = {
  name: `param${parameters.length + 1}`,
  type: 'string',
- required: true;
+ required: true
  };
  onChange([...parameters, newParam]);
  };

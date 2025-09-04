@@ -140,15 +140,6 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 /**
- * Hook to create a reset function for error boundaries
- */
-export const useErrorHandler = () => {
- return (error: Error) => {
- throw error; // This will be caught by the nearest error boundary
- }
-};
-
-/**
  * Async error boundary for handling promise rejections
  */
 export const AsyncErrorBoundary: React.FC<Props> = ({ children, ...props }) => {

@@ -13,9 +13,10 @@ Total: 151 errors, 21 warnings
 - [x] adapters/FileFormatTab.tsx - Line 69: Parsing error: ',' expected - Changed semicolon to comma
 - [x] adapters/PayloadStructureDefinition.tsx - Line 289: Parsing error: '}' expected - Already fixed in previous session
 - [x] adapters/XmlConversionTab.tsx - Line 250: JSX closing tag expected - Fixed split template literals
-- [ ] auth/AuthGuard.tsx - Line 24: Fast refresh warning
-- [ ] auth/SessionTimeoutWarning.tsx - Line 112: Parsing error
-- [ ] error-boundary.tsx - Multiple parsing errors
+- [x] auth/AuthGuard.tsx - Line 24: Fast refresh warning - Moved withAuth to separate file
+- [x] auth/SessionTimeoutWarning.tsx - Line 112: Parsing error - Removed extra backtick
+- [x] error-boundary.tsx - Multiple parsing errors - Moved useErrorHandler to separate file
+- [x] development/ParameterEditor.tsx - Line 34: Fixed semicolon to comma
 - [ ] flow/FlowCanvas.tsx - Multiple parsing errors
 - [ ] flow/FlowDesigner.tsx - Hook dependency warnings
 - [ ] flow/FlowDetailsDialog.tsx - Parsing error
