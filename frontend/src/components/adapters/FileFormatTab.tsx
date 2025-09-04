@@ -76,11 +76,10 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  const handleRemoveField = (fieldName: string) => {
  const { [fieldName]: _, ...remainingLengths } = config.fieldLengths || {};
  const remainingOrder = (config.fieldOrder || []).filter(f => f !== fieldName);
-;
  onChange({
  ...config,
  fieldLengths: remainingLengths,
- fieldOrder: remainingOrder;
+ fieldOrder: remainingOrder
  });
  };
 
