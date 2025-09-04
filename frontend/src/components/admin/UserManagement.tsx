@@ -158,7 +158,7 @@ export const UserManagement = ({ users, isLoading = false, onRefresh }: UserMana
  onOpenChange={setShowCreateDialog}
  onUserCreated={() => {
  setShowCreateDialog(false);
- onRefresh?.(); // Refresh the user list after creating a new user;
+ onRefresh?.(); // Refresh the user list after creating a new user
  }}
  />
 
@@ -169,9 +169,9 @@ export const UserManagement = ({ users, isLoading = false, onRefresh }: UserMana
  onUserUpdated={() => {
  setShowEditDialog(false);
  setSelectedUser(null);
- onRefresh?.(); // Refresh the user list after updating a user;
+ onRefresh?.(); // Refresh the user list after updating a user
  }}
  />
  </Card>
  );
-};`
+};

@@ -75,7 +75,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
 
 
  const [allowedIpsInput, setAllowedIpsInput] = useState(
- config.apiKey?.allowedIps?.join('\n') || '
+ config.apiKey?.allowedIps?.join('\n') || ''
  );
 
  useEffect(() => {

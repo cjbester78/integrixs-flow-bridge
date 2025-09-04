@@ -92,7 +92,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  request.basicAuth = {
  username: formData.basicAuth.username,
  password: formData.basicAuth.password,
- realm: formData.basicAuth.realm;
+ realm: formData.basicAuth.realm
  }
 } else if (authType === AuthType.OAUTH2 && formData.oauth2) {
  request.oauth2 = formData.oauth2;

@@ -32,7 +32,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  const { toast } = useToast();
  const [settings, setSettings] = useState<SystemSetting[]>([]);
  const [categories, setCategories] = useState<string[]>([]);
- const [activeCategory, setActiveCategory] = useState<$1>('all');
+ const [activeCategory, setActiveCategory] = useState<string>('all');
  const [isLoading, setIsLoading] = useState(true);
  const [isSaving, setIsSaving] = useState(false);
  const [editedSettings, setEditedSettings] = useState<Record<string, string>>({});
@@ -58,7 +58,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
 
  // Fetch categories (now done in fetchSettings)
  const fetchCategories = async () => {
- // Categories are now extracted from settings data in fetchSettings;
+ // Categories are now extracted from settings data in fetchSettings
  };
 
  // Initialize default settings
@@ -83,7 +83,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  const updatedSetting = {
  ...setting,
  settingValue,
- updatedBy: 'admin' // In real app, get from auth context;
+ updatedBy: 'admin' // In real app, get from auth context
  };
 
  const savedSetting = await apiClient.put<SystemSetting>(`/system-settings/${settingKey}`, updatedSetting);
@@ -95,8 +95,8 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  const newEdited = { ...prev };
  delete newEdited[settingKey];
  return newEdited;
- });`
- toast({ title: "Success", description: `Setting "${settingKey}" updated successfully` })}
+ });
+ toast({ title: "Success", description: `Setting "${settingKey}" updated successfully` });
 } catch (error) {
  logger.error(LogCategory.UI, 'Error saving setting', { error: error });
  toast({ title: "Error", description: 'Error saving setting', variant: "destructive" });
@@ -109,8 +109,8 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  const handleInputChange = (settingKey: string, value: string) => {
  setEditedSettings(prev => ({
  ...prev,
- [settingKey]: value;
- });
+ [settingKey]: value
+ }));
  };
 
  // Get current value for setting (edited or original)
@@ -120,13 +120,13 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
 
  // Check if setting has been edited
  const isEdited = (setting: SystemSetting) => {
- return editedSettings[setting.settingKey] !== undefined && ;
- editedSettings[setting.settingKey] !== setting.settingValue
+ return editedSettings[setting.settingKey] !== undefined &&
+ editedSettings[setting.settingKey] !== setting.settingValue;
  };
 
  // Filter settings by category
- const filteredSettings = activeCategory === 'all';
- ? settings ;
+ const filteredSettings = activeCategory === 'all'
+ ? settings
  : settings.filter(s => s.category === activeCategory);
 
  useEffect(() => {
@@ -134,7 +134,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  fetchCategories();
  }, []);
 
- const renderSettingCard = (setting: SystemSetting) => (;
+ const renderSettingCard = (setting: SystemSetting) => (
  <Card key={setting.id} className="mb-4">
  <CardHeader className="pb-3">
  <div className="flex justify-between items-start">
@@ -168,12 +168,12 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  </CardHeader>
  <CardContent className="pt-0">
  <div className="space-y-3">
- <div className="space-y-2">`
- <Label htmlFor={setting-${setting.id}`} className="text-xs">
+ <div className="space-y-2">
+ <Label htmlFor={`setting-${setting.id}`} className="text-xs">
  Value ({setting.dataType})
  </Label>
  <div className="flex gap-2">
- <Input`
+ <Input
  id={`setting-${setting.id}`}
  value={getCurrentValue(setting)}
  onChange={(e) => handleInputChange(setting.settingKey, e.target.value)}
@@ -213,7 +213,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  </div>
  </div>
  </CardContent>
- </Card>;
+ </Card>
  );
 
  if (isLoading) {
@@ -237,7 +237,7 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  <div className="flex gap-2">
  <Button
  variant="outline"
- size="sm";
+ size="sm"
  onClick={fetchSettings}
  disabled={isLoading}
  >
@@ -326,5 +326,4 @@ export const SystemSettings = ({}: SystemSettingsProps) => {
  </div>
  </div>
  );
-};`
-}
+};

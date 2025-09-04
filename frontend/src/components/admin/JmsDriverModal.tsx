@@ -53,7 +53,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  setFormData(prev => ({
  ...prev,
  name: fileName,
- version: prev.version || '1.0.0';
+ version: prev.version || '1.0.0'
  }));
  }
  };
@@ -85,7 +85,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  driver_type: 'JMS',
  is_active: true,
  created_at: new Date().toISOString(),
- updated_at: new Date().toISOString();
+ updated_at: new Date().toISOString()
  };
 
  onDriverAdded(newJarFile);
@@ -96,8 +96,8 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  onOpenChange(false);
 
  toast({
- title: "Upload Successful",`
- description: `JMS driver for ${brokerTypes.find(broker => broker.value === formData.brokerType)?.label} has been uploaded.`;
+ title: "Upload Successful",
+ description: `JMS driver for ${brokerTypes.find(broker => broker.value === formData.brokerType)?.label} has been uploaded.`
  })
 
  } catch (error) {
@@ -105,7 +105,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  title: "Upload Failed",
  description: "Failed to upload JMS driver. Please try again.",
  variant: "destructive"
-}
+      }
  });
  } finally {
  setUploading(false);
@@ -162,7 +162,7 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  </div>
  {selectedFile && (
  <p className="text-sm text-muted-foreground">
- Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB);
+ Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB
  </p>
  )}
  </div>
@@ -205,5 +205,4 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  </DialogContent>
  </Dialog>
  );
-};`
-}}})
+};

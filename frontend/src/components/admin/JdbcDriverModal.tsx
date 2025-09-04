@@ -53,7 +53,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  setFormData(prev => ({
  ...prev,
  name: fileName,
- version: prev.version || '1.0.0';
+ version: prev.version || '1.0.0'
  }));
  }
  };
