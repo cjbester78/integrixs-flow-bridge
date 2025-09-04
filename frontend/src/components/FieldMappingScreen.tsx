@@ -320,12 +320,10 @@ const parser = new DOMParser();
  description: "Please select both source and target structures first",
  variant: "destructive"
  });
- return
+ return;
  }
-;
  const newMappings: FieldMapping[] = [];
  const existingTargetPaths = new Set(mappings.map(m => m.targetPath));
-;
  // Check if specific fields are selected
  if (selectedSourceField && selectedTargetField) {
  const isSourceNode = (selectedSourceField.type === 'array' || selectedSourceField.type === 'object') &&
@@ -362,13 +360,12 @@ const parser = new DOMParser();
 
  newMappings.push(nodeMapping);
  existingTargetPaths.add(selectedTargetField.path);
- mappedCount++
+ mappedCount++;
  }
 
  // Now collect children only (not including the parent nodes)
  const sourceChildren = collectFields(selectedSourceField.children || []);
  const targetChildren = collectFields(selectedTargetField.children || []);
-;
  // Create a map of target fields by name for quick lookup
  const targetChildMap = new Map<string, FieldNode[]>();
  targetChildren.forEach(field => {
@@ -420,7 +417,8 @@ const parser = new DOMParser();
  newMappings.push(newMapping);
  existingTargetPaths.add(targetField.path);
  mappedCount++;
- }});
+ }
+ });
 
  if (mappedCount > 0) {
  setMappings(prev => [...prev, ...newMappings]);
@@ -492,7 +490,6 @@ const parser = new DOMParser();
  allSourceFields.forEach(sourceField => {
  const sourceFieldName = getFieldName(sourceField);
  const matchingTargetFields = targetFieldMap.get(sourceFieldName) || [];
-;
  // Find the best matching target field (prefer same type)
  const targetField = matchingTargetFields.find(tf =>
  !existingTargetPaths.has(tf.path) && tf.type === sourceField.type
@@ -526,11 +523,12 @@ const parser = new DOMParser();
  position: { x: 0, y: 0 }
  }
  })
- });
+ };
 
  newMappings.push(newMapping);
  existingTargetPaths.add(targetField.path);
- }});
+ }
+ });
 
  if (newMappings.length > 0) {
  setMappings(prev => [...prev, ...newMappings]);
