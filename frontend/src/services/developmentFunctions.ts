@@ -23,7 +23,7 @@ export interface DevelopmentFunctionsResponse {
  totalElements: number;
  totalPages: number;
  number: number;
- }
+ };
 }
 
 export interface TransformationFunctionWithParams {
@@ -49,7 +49,6 @@ class DevelopmentFunctionsService {
 
  try {
  const response = await apiClient.get<DevelopmentFunctionsResponse>('/development/functions');
-;
  // Convert built-in functions to our format
  const transformedFunctions: TransformationFunctionWithParams[] = response.builtInFunctions.map(func => {
  // Parse parameters from the database or use empty array
@@ -65,9 +64,9 @@ class DevelopmentFunctionsService {
  parameters = paramNames.map(name => ({
  name,
  type: 'any',
- required: true;
- }))
- }}
+ required: true
+ }));
+ }
  }
 
  return {
@@ -79,16 +78,15 @@ class DevelopmentFunctionsService {
  // Map function names to their JavaScript implementations
  execute: this.getExecuteFunction(func.name),
  javaTemplate: this.getJavaTemplate(func.name, parameters)
- }
-});
+ };
+ });
 
  // Cache the results
  this.functionsCache = transformedFunctions;
  this.cacheExpiry = Date.now() + this.cacheDuration;
 
  return transformedFunctions;
- }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.API, 'Failed to fetch functions from API', { error: error });
  // Return empty array on error
  return [];
@@ -98,24 +96,18 @@ class DevelopmentFunctionsService {
  async getBuiltInFunctionByName(name: string): Promise<BuiltInFunction | null> {
  try {
  const response = await apiClient.get<any>(`/development/functions/built-in/${name}`);
-;
  // Parse parameters if they exist
  if (response.parameters && typeof response.parameters === 'string') {
  try {
-response.parameters = JSON.parse(response.parameters);
- 
-} catch (error) {
-  // Handle error
-}
-        } catch (e) {
+    response.parameters = JSON.parse(response.parameters);
+   } catch (e) {
  logger.error(LogCategory.API, 'Failed to parse parameters', { error: e });
  response.parameters = [];
  }
  }
 
  return response;
- }
-} catch (error) {
+ } catch (error) {
  logger.error(LogCategory.API, 'Failed to fetch function by name', { error: error });
  return null;
  }
@@ -160,8 +152,8 @@ response.parameters = JSON.parse(response.parameters);
  index: (position: number) => position,
 
  // Text functions
- concat: (string1: string, string2: string, delimiter?: string) =>`
- delimiter ? ${string1}${delimiter}${string2}` : `${string1}${string2}`,
+ concat: (string1: string, string2: string, delimiter?: string) =>
+  delimiter ? `${string1}${delimiter}${string2}` : `${string1}${string2}`,
  substring: (text: string, start: number, end?: number) => text.substring(start, end),
  indexOf: (text: string, searchValue: string) => text.indexOf(searchValue),
  lastIndexOf: (text: string, searchValue: string) => text.lastIndexOf(searchValue),
@@ -195,10 +187,10 @@ response.parameters = JSON.parse(response.parameters);
  }
 
  private getJavaTemplate(name: string, parameters: FunctionParameter[]): string {
- // Generate Java template based on parameters`
- const paramPlaceholders = parameters.map((_, index) => {${index}}`).join(', ');`;
- return `${name}(${paramPlaceholders})`;
+  // Generate Java template based on parameters
+  const paramPlaceholders = parameters.map((_, index) => `{${index}}`).join(', ');
+  return `${name}(${paramPlaceholders})`;
  }
 }
 
-export const developmentFunctionsService = new DevelopmentFunctionsService();`
+export const developmentFunctionsService = new DevelopmentFunctionsService();
