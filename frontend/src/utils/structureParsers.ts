@@ -101,7 +101,6 @@ export const parseWsdlStructure = (wsdlString: string) => {
  // Helper function to extract elements recursively
  const extractElements = (parent: Element, targetStructure: any, depth: number = 0, schemas: NodeListOf<Element>) => {
  const elements = parent.querySelectorAll(':scope > sequence > element, :scope > sequence > xs\\:element, :scope > sequence > xsd\\:element, :scope > element, :scope > xs\\:element, :scope > xsd\\:element');
-;
  // Collect entries in order to preserve field sequence
  const entries: [string, any][] = [];
 

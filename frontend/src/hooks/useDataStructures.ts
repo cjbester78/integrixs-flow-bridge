@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DataStructure, Field } from '@/types/dataStructures';
 import { parseJsonStructure, parseWsdlStructure, buildNestedStructure } from '@/utils/structureParsers';
@@ -267,12 +267,7 @@ export const useDataStructures = () => {
  const [loading, setLoading] = useState(false);
  const { toast } = useToast();
 
- // Load structures from backend on component mount
- useEffect(() => {
- loadStructures();
- }, []);
-
- const loadStructures = async () => {
+ const loadStructures = useCallback(async () => {
     try {
  setLoading(true);
  logger.info(LogCategory.BUSINESS_LOGIC, 'Loading data structures from backend...');
@@ -304,7 +299,12 @@ export const useDataStructures = () => {
  } finally {
  setLoading(false);
  }
- };
+ }, [toast]);
+
+ // Load structures from backend on component mount
+ useEffect(() => {
+ loadStructures();
+ }, [loadStructures]);
 
  const updateStructure = async (
  id: string,

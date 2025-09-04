@@ -10,12 +10,12 @@ export const createQueryCacheWithLogging = () => {
  logger.error(LogCategory.API, 'Query error', error, {
  queryKey: query.queryKey,
  queryHash: query.queryHash,
- state: query.state.status);
+ state: query.state.status
  })
  },
  onSuccess: (data, query) => {
  logger.debug(LogCategory.API, 'Query success', { data: {
- queryKey: query.queryKey, queryHash: query.queryHash,);
+ queryKey: query.queryKey, queryHash: query.queryHash,
  dataType: Array.isArray(data) ? 'array' : typeof data,
  recordCount: Array.isArray(data) ? data.length : undefined
  })

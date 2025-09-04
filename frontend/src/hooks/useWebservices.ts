@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { webserviceService, WebserviceFile } from '@/services/webserviceService';
 import { FieldNode } from '@/components/fieldMapping/types';
 import { logger, LogCategory } from '@/lib/logger';
@@ -8,11 +8,7 @@ export const useWebservices = (businessComponentId?: string) => {
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
- loadWebservices();
- }, [businessComponentId]);
-
- const loadWebservices = async () => {
+ const loadWebservices = useCallback(async () => {
  setLoading(true);
  setError(null);
 
@@ -30,7 +26,11 @@ export const useWebservices = (businessComponentId?: string) => {
  } finally {
  setLoading(false);
  }
- };
+ }, [businessComponentId]);
+
+ useEffect(() => {
+ loadWebservices();
+ }, [loadWebservices]);
 
  const getWebserviceStructure = async (filename: string): Promise<FieldNode[] | null> => {
  try {

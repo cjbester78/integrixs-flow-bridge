@@ -104,7 +104,7 @@ export function parseXmlToFieldNodes(xmlContent: string): FieldNode[] {
 /**
  * Recursively convert XML nodes to FieldNode structure
  */
-function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = '): FieldNode[] {
+function convertXmlNodeToFieldNodes(xmlNode: Element, parentPath: string = ''): FieldNode[] {
  const fieldNodes: FieldNode[] = [];
 
  // Process attributes

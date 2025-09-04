@@ -104,7 +104,6 @@ export const useSystemMonitoring = () => {
  description: "Failed to acknowledge alert",
  variant: "destructive",
  });
- });
  }
  }, [toast]);
 

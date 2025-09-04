@@ -2,7 +2,7 @@
  * Type guard to check if a response is an API response wrapper
  */
 export function isApiResponse<T>(
- response: any;
+ response: any
 ): response is { success: boolean; data: T; message?: string } {
  return (
  response &&

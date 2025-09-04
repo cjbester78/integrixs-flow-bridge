@@ -72,8 +72,10 @@ import { logger, LogCategory } from '@/lib/logger';
  logger.info(LogCategory.API, 'API Request - Token present', { data: !!token });
  if (token && !(config as ApiRequestConfig).skipAuth) {
  config.headers.Authorization = `Bearer ${token}`;
- logger.info(LogCategory.API, 'API Request - Adding Authorization header'); else {
+ logger.info(LogCategory.API, 'API Request - Adding Authorization header');
+ } else {
  logger.info(LogCategory.API, 'API Request - No token or skipAuth=true');
+ }
  // Add correlation ID for tracking
  const correlationId = this.generateCorrelationId();
  config.headers['X-Correlation-ID'] = correlationId;
