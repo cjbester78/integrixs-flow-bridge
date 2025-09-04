@@ -23,30 +23,30 @@ export class AdapterApi {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
 
- const endpoint = `/adapters${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/adapters${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // Get a specific adapter by ID
- async getAdapter(id: string): Promise<ApiResponse<CommunicationAdapter>> {`
- return api.get<CommunicationAdapter>(/adapters/${id}`);
+ async getAdapter(id: string): Promise<ApiResponse<CommunicationAdapter>> {
+ return api.get<CommunicationAdapter>(`/adapters/${id}`);
  }
 
  // Update an existing adapter
- async updateAdapter(id: string, updates: Partial<CommunicationAdapter>): Promise<ApiResponse<CommunicationAdapter>> {`
+ async updateAdapter(id: string, updates: Partial<CommunicationAdapter>): Promise<ApiResponse<CommunicationAdapter>> {
  return api.put<CommunicationAdapter>(`/adapters/${id}`, updates);
  }
 
  // Delete an adapter
- async deleteAdapter(id: string): Promise<ApiResponse<void>> {`
- return api.delete(/adapters/${id}`);
+ async deleteAdapter(id: string): Promise<ApiResponse<void>> {
+ return api.delete(`/adapters/${id}`);
  }
 
  // Clone an existing adapter
- async cloneAdapter(id: string, newName: string): Promise<ApiResponse<CommunicationAdapter>> {`
- return api.post<CommunicationAdapter>(`/adapters/${id}/clone`, { name: newName })
- }}
-}`
+ async cloneAdapter(id: string, newName: string): Promise<ApiResponse<CommunicationAdapter>> {
+ return api.post<CommunicationAdapter>(`/adapters/${id}/clone`, { name: newName });
+ }
+}
