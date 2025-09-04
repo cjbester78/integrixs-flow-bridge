@@ -55,7 +55,7 @@ export const FieldSelectorDialog: React.FC<FieldSelectorDialogProps> = ({
  field.type.toLowerCase().includes(searchTerm.toLowerCase());
 
  // Check if any children match the search
- const hasMatchingChildren = field.children?.some(child =>;
+ const hasMatchingChildren = field.children?.some(child =>
  child.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  child.path.toLowerCase().includes(searchTerm.toLowerCase()) ||
  child.type.toLowerCase().includes(searchTerm.toLowerCase())
