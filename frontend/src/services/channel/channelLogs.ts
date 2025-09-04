@@ -9,7 +9,7 @@ export class ChannelLogsService {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
 
  const endpoint = `/channels/${channelId}/logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
@@ -24,11 +24,10 @@ export class ChannelLogsService {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
-`
+
  const endpoint = `/channels/${channelId}/logs/export${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
-}`
-}}
+}
