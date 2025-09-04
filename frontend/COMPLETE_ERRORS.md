@@ -100,12 +100,12 @@
 - [x] tabs/WsdlStructureTab.tsx - Line 169: Unterminated template literal - Fixed semicolon and backtick
 - [x] tabs/XsdStructureTab.tsx - Line 115: Unterminated template literal - Fixed extra backtick
 
-## Flow Components (7 files)
-- [ ] DeploymentDetailsDialog.tsx - Line 142: ',' expected
-- [ ] FlowExecutionMonitor.tsx - Line 89: ';' expected
-- [ ] FlowExecutionVisualizer.tsx - Line 77: ')' expected
-- [ ] FlowExportDialog.tsx - Line 73: ',' expected
-- [ ] FlowImportDialog.tsx - Line 103: ',' expected
+## Flow Components (7 files) - 5 FIXED ✓
+- [x] DeploymentDetailsDialog.tsx - Line 142: ',' expected - Fixed missing quote in copyToClipboard
+- [x] FlowExecutionMonitor.tsx - Line 89: ';' expected - Fixed 'default' case syntax
+- [x] FlowExecutionVisualizer.tsx - Line 77: ')' expected - Fixed useCallback semicolon issue
+- [x] FlowExportDialog.tsx - Line 73: ',' expected - Removed extra closing brace in toast call
+- [x] FlowImportDialog.tsx - Line 103: ',' expected - Fixed multiple template literals and syntax issues
 - [ ] FlowScheduler.tsx - Line 88: Property assignment expected
 - [ ] TestFlowDialog.tsx - Line 115: ')' expected
 
