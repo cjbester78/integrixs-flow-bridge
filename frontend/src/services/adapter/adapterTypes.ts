@@ -35,16 +35,16 @@ export class AdapterTypes {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
 
- const endpoint = `/adapters/types${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/adapters/types${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // Get a specific adapter type by ID
- async getAdapterType(id: string): Promise<ApiResponse<AdapterType>> {`
- return api.get<AdapterType>(/adapters/types/${id}`);
+ async getAdapterType(id: string): Promise<ApiResponse<AdapterType>> {
+ return api.get<AdapterType>(`/adapters/types/${id}`);
  }
 
  // Create new adapter type
@@ -53,28 +53,28 @@ export class AdapterTypes {
  }
 
  // Update adapter type
- async updateAdapterType(id: string, updates: Partial<CreateAdapterTypeRequest>): Promise<ApiResponse<AdapterType>> {`
+ async updateAdapterType(id: string, updates: Partial<CreateAdapterTypeRequest>): Promise<ApiResponse<AdapterType>> {
  return api.put<AdapterType>(`/adapters/types/${id}`, updates);
  }
 
  // Delete adapter type
- async deleteAdapterType(id: string): Promise<ApiResponse<void>> {`
- return api.delete(/adapters/types/${id}`);
+ async deleteAdapterType(id: string): Promise<ApiResponse<void>> {
+ return api.delete(`/adapters/types/${id}`);
  }
 
  // Clone an existing adapter type
- async cloneAdapterType(id: string, newName: string): Promise<ApiResponse<AdapterType>> {`
- return api.post<AdapterType>(`/adapters/types/${id}/clone`, { name: newName })
+ async cloneAdapterType(id: string, newName: string): Promise<ApiResponse<AdapterType>> {
+ return api.post<AdapterType>(`/adapters/types/${id}/clone`, { name: newName });
  }
 
  // Get adapter types by category
- async getAdapterTypesByCategory(category: 'inbound' | 'outbound'): Promise<ApiResponse<AdapterType[]>> {`
- return api.get<AdapterType[]>(/adapters/types?category=${category}`);
+ async getAdapterTypesByCategory(category: 'inbound' | 'outbound'): Promise<ApiResponse<AdapterType[]>> {
+ return api.get<AdapterType[]>(`/adapters/types?category=${category}`);
  }
 
  // Update adapter type status
- async updateAdapterTypeStatus(id: string, isActive: boolean): Promise<ApiResponse<AdapterType>> {`
- return api.patch<AdapterType>(`/adapters/types/${id}/status`, { isActive })
+ async updateAdapterTypeStatus(id: string, isActive: boolean): Promise<ApiResponse<AdapterType>> {
+ return api.patch<AdapterType>(`/adapters/types/${id}/status`, { isActive });
  }
 
  // Validate adapter type configuration
@@ -83,7 +83,7 @@ export class AdapterTypes {
  errors: string[];
  warnings: string[];
  }>> {
- return api.post('/adapters/types/validate', { configuration, category })
+ return api.post('/adapters/types/validate', { configuration, category });
  }
 
  // Search adapter types
@@ -100,8 +100,8 @@ export class AdapterTypes {
  page: (filters?.page || 1).toString(),
  limit: (filters?.limit || 50).toString()
  });
-`
- return api.get<AdapterTypeListResponse>(/adapters/types/search?${params}`);
+
+ return api.get<AdapterTypeListResponse>(`/adapters/types/search?${params}`);
  }
 
  // Get adapter type usage statistics
@@ -109,7 +109,7 @@ export class AdapterTypes {
  totalAdapters: number;
  activeAdapters: number;
  adapterIds: string[];
- }>> {`
+ }>> {
  return api.get(`/adapters/types/${id}/usage`);
  }
-}`
+}
