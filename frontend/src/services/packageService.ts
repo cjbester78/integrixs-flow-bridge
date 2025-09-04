@@ -23,8 +23,8 @@ export const packageService = {
  },
 
  // Get a single package by ID
- getPackage: async (packageId: string) => {`
- const response = await apiClient.get<IntegrationPackage>(${API_PREFIX}/${packageId}`);
+ getPackage: async (packageId: string) => {
+ const response = await apiClient.get<IntegrationPackage>(`${API_PREFIX}/${packageId}`);
  return response;
  },
 

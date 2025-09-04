@@ -27,13 +27,12 @@ class WebserviceService {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to fetch webservice files'
-}
+ };
  }
-}
  }
 
  async getWebserviceStructure(filename: string): Promise<{ success: boolean; data?: FieldNode[]; error?: string }> {
- try {`
+ try {
  return await api.get<FieldNode[]>(`/webservices/${encodeURIComponent(filename)}/structure`);
  } catch (error) {
  return {

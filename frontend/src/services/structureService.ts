@@ -60,7 +60,7 @@ class StructureService {
  })
  }
 
- const endpoint = `/structures${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/structures${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
@@ -98,7 +98,7 @@ class StructureService {
 
  // Generate sample data from structure
  async generateSampleData(id: string, format?: 'json' | 'xml'): Promise<ApiResponse<any>> {`
- const endpoint = `/structures/${id}/sample${format ? ?format=${format}` : '}`;
+ const endpoint = `/structures/${id}/sample${format ? `?format=${format}` : ''}`;
  return api.get(endpoint);
  }
 

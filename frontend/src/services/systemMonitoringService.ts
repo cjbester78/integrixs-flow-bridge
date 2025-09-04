@@ -87,7 +87,7 @@ class SystemMonitoringService {
  })
  }
 
- const endpoint = `/system/alerts${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/system/alerts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 

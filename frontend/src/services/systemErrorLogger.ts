@@ -42,7 +42,7 @@ class SystemErrorLogger {
  }
 
  async logInfo(message: string, details?: any, source: SystemLogEntry['source'] = 'system', sourceId?: string, sourceName?: string) {
- const logEntry: SystemLogEntry = {`
+ const logEntry: SystemLogEntry = {
  id: `log-${Date.now()}`,
  timestamp: new Date().toISOString(),
  level: 'info',
@@ -58,7 +58,7 @@ class SystemErrorLogger {
  }
 
  async logWarning(message: string, details?: any, source: SystemLogEntry['source'] = 'system', sourceId?: string, sourceName?: string) {
- const logEntry: SystemLogEntry = {`
+ const logEntry: SystemLogEntry = {
  id: `warn-${Date.now()}`,
  timestamp: new Date().toISOString(),
  level: 'warn',

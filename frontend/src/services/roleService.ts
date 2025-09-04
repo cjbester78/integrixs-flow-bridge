@@ -25,8 +25,8 @@ class RoleService {
  }
 
  // Get role by ID
- async getRoleById(roleId: string): Promise<ApiResponse<Role>> {`
- return api.get<Role>(/roles/${roleId}`);
+ async getRoleById(roleId: string): Promise<ApiResponse<Role>> {
+ return api.get<Role>(`/roles/${roleId}`);
  }
 
  // Create new role

@@ -668,8 +668,8 @@ const nodeFunctions: TransformationFunction[] = [
  description: 'Get property value',
  parameters: [
  { name: 'propertyName', type: 'string', required: true }
- ],`
- execute: (propertyName: string) => property_${propertyName}`, // Simplified for preview
+ ],
+ execute: (propertyName: string) => `property_${propertyName}`, // Simplified for preview
  javaTemplate: 'getProperty({0})'
  },
  {

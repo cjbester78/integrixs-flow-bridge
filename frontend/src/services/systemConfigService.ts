@@ -32,14 +32,14 @@ export const systemConfigService = {
  */
  getEnvironmentConfig: async (): Promise<EnvironmentInfo> => {
  try {
-const response = await api.get<EnvironmentInfo>('/system/config/environment');
+ const response = await api.get<EnvironmentInfo>('/system/config/environment');
  // Validate the response has the expected structure
  if (response.data && typeof response.data === 'object' && 'type' in response.data) {
  return response.data;
- 
-} catch (error) {
-  // Handle error
-}
+ }
+ } catch (error) {
+ logger.error(LogCategory.API, 'Failed to get environment config', { error });
+ }
  // Return default if response is invalid
  logger.warn(LogCategory.API, 'Invalid environment config response, using defaults');
  return {

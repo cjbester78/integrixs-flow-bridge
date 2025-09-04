@@ -35,8 +35,8 @@ class UserService {
  }
 
  // Get user by ID
- async getUserById(userId: string): Promise<ApiResponse<User>> {`
- return api.get<User>(/users/${userId}`);
+ async getUserById(userId: string): Promise<ApiResponse<User>> {
+ return api.get<User>(`/users/${userId}`);
  }
 
  // Create new user
