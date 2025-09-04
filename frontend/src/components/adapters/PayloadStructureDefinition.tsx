@@ -79,6 +79,7 @@ const jsonObj = JSON.parse(payload);
  logger.error(LogCategory.UI, 'Error converting to XML preview', { error: e });
  }
  }
+ }
 
  onChange(newConfig);
  };
@@ -90,7 +91,7 @@ const jsonObj = JSON.parse(payload);
  if (Array.isArray(obj)) {
  obj.forEach(item => {
  xml += `${indent}<item>\n${convert(item, indent + ' ')}${indent}</item>\n`;
- })
+ });
  } else if (typeof obj === 'object' && obj !== null) {
  Object.entries(obj).forEach(([key, value]) => {
  const validKey = key.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -132,6 +133,7 @@ const jsonObj = JSON.parse(payload);
         } catch (e) {
  logger.error(LogCategory.UI, 'Error generating schema', { error: e });
  }
+ };
 
  const generateSchemaFromObject = (obj: any): any => {
  const schema: any = {
@@ -152,7 +154,7 @@ const jsonObj = JSON.parse(payload);
  items: processValue(value[0])
  };
 }
- return { type: "array" }
+ return { type: "array" };
 }
  if (typeof value === "object") {
  const objSchema: any = { type: "object", properties: {} };
