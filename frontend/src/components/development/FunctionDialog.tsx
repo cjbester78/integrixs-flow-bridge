@@ -76,11 +76,11 @@ export function FunctionDialog({
  useEffect(() => {
  if (functionData) {
  setFormData({
- name: functionData.name || ',
+ name: functionData.name || '',
  description: functionData.description || '',
  category: functionData.category || 'general',
  language: functionData.language || 'JAVA',
- functionSignature: functionData.functionSignature || ',
+ functionSignature: functionData.functionSignature || '',
  functionBody: functionData.functionBody || '',
  isSafe: functionData.isSafe ?? true,
  isPublic: functionData.isPublic ?? true,

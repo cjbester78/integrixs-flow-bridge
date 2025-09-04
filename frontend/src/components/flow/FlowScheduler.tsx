@@ -85,7 +85,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  return;
  }
 
- const schedule: FlowSchedule = {`
+ const schedule: FlowSchedule = {
  id: `schedule_${Date.now()}`,
  flowId: flowDefinition.id,
  cronExpression: newSchedule.cronExpression!,

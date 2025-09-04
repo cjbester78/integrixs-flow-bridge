@@ -64,7 +64,7 @@ export function FunctionTestPanel({
  return Array.isArray(parsed) ? parsed : [value];
  } catch {
  // If not valid JSON, split by comma
- return value.split(',').map(v => v.trim();
+ return value.split(',').map(v => v.trim());
  }
  case 'Map':
  case 'Object':

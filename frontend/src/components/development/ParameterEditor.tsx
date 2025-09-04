@@ -48,8 +48,8 @@ export function ParameterEditor({ parameters, onChange, readOnly = false }: Para
  };
 
  const generateSignature = () => {
- if (parameters.length === 0) return 'functionName()';`
- const params = parameters.map(p => `${p.type} ${p.name}`).join(', ');`;
+ if (parameters.length === 0) return 'functionName()';
+ const params = parameters.map(p => `${p.type} ${p.name}`).join(', ');
  return `functionName(${params})`;
  };
 

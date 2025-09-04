@@ -111,9 +111,9 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  'Starting flow test...',
  `Loading source adapter: ${flowConfig.inboundAdapter}`,
  'Parsing input XML...',
- ...(flowConfig.fieldMappings && flowConfig.fieldMappings.length > 0`
+ ...(flowConfig.fieldMappings && flowConfig.fieldMappings.length > 0
  ? ['Applying field mappings...', `${flowConfig.fieldMappings.length} mappings applied`]
- : ['No mappings defined - using passthrough mode']),`
+ : ['No mappings defined - using passthrough mode']),
  `Sending to target adapter: ${flowConfig.outboundAdapter}`,
  'Generating output XML...',
  'Test completed successfully!',
