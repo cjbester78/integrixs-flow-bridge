@@ -204,9 +204,9 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <div className="space-y-2">
  <Label htmlFor="userName">User Name *</Label>
  <Input
- id="userName";
+ id="userName"
  value={config.userName}
- onChange={(e) => updateConfig({ userName: e.target.value })
+ onChange={(e) => updateConfig({ userName: e.target.value })}
  placeholder="Enter username"
  />
  </div>
@@ -228,9 +228,9 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <div className="space-y-2">
  <Label htmlFor="userName">User Name *</Label>
  <Input
- id="userName";
+ id="userName"
  value={config.userName}
- onChange={(e) => updateConfig({ userName: e.target.value })
+ onChange={(e) => updateConfig({ userName: e.target.value })}
  placeholder="Enter username"
  />
  </div>
