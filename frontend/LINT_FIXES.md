@@ -107,7 +107,9 @@ Total: 151 errors, 21 warnings
 - Fixed syntax errors in Services (14 files)
 - Fixed syntax errors in Hooks (3 files) 
 - Fixed syntax errors in Utils/Lib (5 files)
-- Total fixed: 77 files with syntax errors
+- Fixed syntax errors in Field Mapping components (13 files)
+- Fixed syntax errors in Data Structure components (8 files)
+- Total fixed: 98 files with syntax errors
 
 ### Common Issues Fixed
 - Extra backticks in function declarations and template literals
@@ -127,20 +129,20 @@ Note: Many files appear to have multiple errors, and some errors may have been r
 
 ## Remaining Errors to Fix
 
-### Components - Field Mapping
-- [ ] FieldMappingScreen.tsx - Line 529: ',' expected
-- [ ] fieldMapping/FieldSelectorDialog.tsx - Line 58: Expression expected
-- [ ] fieldMapping/FieldTree.tsx - Line 131: Unterminated template literal
-- [ ] fieldMapping/FunctionMappingModal.tsx - Line 52: ',' expected
-- [ ] fieldMapping/FunctionNode.tsx - Line 157: Unterminated template literal
-- [ ] fieldMapping/FunctionPicker.tsx - Line 35: Expression expected
-- [ ] fieldMapping/FunctionSelectorDialog.tsx - Line 77: Expression expected
-- [ ] fieldMapping/MappingArea.tsx - Line 38: Unterminated string literal
-- [ ] fieldMapping/TestMappingDialog.tsx - Line 94: 'try' expected
-- [ ] fieldMapping/TransformationPreview.tsx - Line 61: ';' expected
-- [ ] fieldMapping/VisualFlowEditor.tsx - Line 110: Expression expected
-- [ ] fieldMapping/VisualMappingCanvas.tsx - Line 39: Declaration expected
-- [ ] fieldMapping/nodes/FunctionNode.tsx - Line 96: ',' expected
+### Components - Field Mapping - ALL FIXED ✓
+- [x] FieldMappingScreen.tsx - Line 529: ',' expected - Fixed in previous session
+- [x] fieldMapping/FieldSelectorDialog.tsx - Line 58: Expression expected - Fixed in previous session
+- [x] fieldMapping/FieldTree.tsx - Line 131: Unterminated template literal - Fixed in previous session
+- [x] fieldMapping/FunctionMappingModal.tsx - Line 52: ',' expected - Fixed in previous session
+- [x] fieldMapping/FunctionNode.tsx - Line 157: Unterminated template literal - Fixed in previous session
+- [x] fieldMapping/FunctionPicker.tsx - Line 35: Expression expected - Fixed arrow function syntax
+- [x] fieldMapping/FunctionSelectorDialog.tsx - Line 77: Expression expected - Fixed filter syntax
+- [x] fieldMapping/MappingArea.tsx - Line 38: Unterminated string literal - Fixed template literal issues
+- [x] fieldMapping/TestMappingDialog.tsx - Line 94: 'try' expected - Fixed try-catch blocks
+- [x] fieldMapping/TransformationPreview.tsx - Line 61: ';' expected - Fixed useState types
+- [x] fieldMapping/VisualFlowEditor.tsx - Line 110: Expression expected - Fixed template literals and callbacks
+- [x] fieldMapping/VisualMappingCanvas.tsx - Line 39: Declaration expected - Fixed ternary operators
+- [x] fieldMapping/nodes/FunctionNode.tsx - Line 96: ',' expected - Fixed syntax issues
 
 ### Components - Adapters
 - [ ] adapter/SftpAdapterConfiguration.tsx - Line 207: Identifier expected
@@ -148,15 +150,15 @@ Note: Many files appear to have multiple errors, and some errors may have been r
 - [ ] adapters/FileFormatTab.tsx - Line 83: ',' expected
 - [ ] adapters/PayloadStructureDefinition.tsx - Line 289: '}' expected
 
-### Components - Data Structures
-- [ ] dataStructures/FieldAdvancedOptions.tsx - Line 44: '}' expected
-- [ ] dataStructures/FieldConfiguration.tsx - Line 71: '}' expected
-- [ ] dataStructures/FileUploadZone.tsx - Line 55: Unterminated template literal
-- [ ] dataStructures/NamespaceConfiguration.tsx - Line 55: '}' expected
-- [ ] dataStructures/StructureLibrary.tsx - Line 108: Identifier expected
-- [ ] dataStructures/tabs/JsonStructureTab.tsx - Line 44: ';' expected
-- [ ] dataStructures/tabs/WsdlStructureTab.tsx - Line 169: Unterminated template literal
-- [ ] dataStructures/tabs/XsdStructureTab.tsx - Line 115: Unterminated template literal
+### Components - Data Structures - ALL FIXED ✓
+- [x] dataStructures/FieldAdvancedOptions.tsx - Line 44: '}' expected - Fixed missing closing braces
+- [x] dataStructures/FieldConfiguration.tsx - Line 71: '}' expected - No actual error found
+- [x] dataStructures/FileUploadZone.tsx - Line 55: Unterminated template literal - Fixed template literal
+- [x] dataStructures/NamespaceConfiguration.tsx - Line 55: '}' expected - Fixed onChange handlers
+- [x] dataStructures/StructureLibrary.tsx - Line 108: Identifier expected - Fixed template literals
+- [x] dataStructures/tabs/JsonStructureTab.tsx - Line 44: ';' expected - Fixed duplicate catch closing
+- [x] dataStructures/tabs/WsdlStructureTab.tsx - Line 169: Unterminated template literal - Fixed semicolon and backtick
+- [x] dataStructures/tabs/XsdStructureTab.tsx - Line 115: Unterminated template literal - Fixed extra backtick
 
 ### Components - Flow
 - [ ] flow/DeploymentDetailsDialog.tsx - Line 142: ',' expected
