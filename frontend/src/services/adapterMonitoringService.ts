@@ -56,21 +56,19 @@ class AdapterMonitoringService {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to fetch adapters'
-}
+ };
  }
-}
  }
 
  async getAdapterById(adapterId: string): Promise<{ success: boolean; data?: AdapterMonitoring; error?: string }> {
- try {`
- return await api.get<AdapterMonitoring>(/adapters/${adapterId}`);
+ try {
+ return await api.get<AdapterMonitoring>(`/adapters/${adapterId}`);
  } catch (error) {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to fetch adapter'
-}
+ };
  }
-}
  }
 
  async createAdapter(adapter: Omit<AdapterMonitoring, 'id'>): Promise<{ success: boolean; data?: AdapterMonitoring; error?: string }> {
@@ -80,34 +78,31 @@ class AdapterMonitoringService {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to create adapter'
-}
+ };
  }
-}
  }
 
  async updateAdapter(adapterId: string, updates: Partial<AdapterMonitoring>): Promise<{ success: boolean; data?: AdapterMonitoring; error?: string }> {
- try {`
+ try {
  return await api.put<AdapterMonitoring>(`/adapters/${adapterId}`, updates);
  } catch (error) {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to update adapter'
-}
+ };
  }
-}
  }
 
  async deleteAdapter(adapterId: string): Promise<{ success: boolean; error?: string }> {
- try {`
- await api.delete(/adapters/${adapterId}`);
- return { success: true }
-} catch (error) {
+ try {
+ await api.delete(`/adapters/${adapterId}`);
+ return { success: true };
+ } catch (error) {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to delete adapter'
-}
+ };
  }
-}
  }
 
  async getAdapterLogs(adapterId: string, filters?: AdapterLogsFilters): Promise<{ success: boolean; data?: AdapterLog[]; error?: string }> {
@@ -121,15 +116,13 @@ class AdapterMonitoringService {
  if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
  if (filters?.dateTo) params.append('dateTo', filters.dateTo);
  if (filters?.search) params.append('search', filters.search);
-`
- const queryString = params.toString() ? `?${params.toString()}` : ';`;
- const response = await api.get<any>(/adapters/${adapterId}/logs${queryString}`);
-;
+
+ const queryString = params.toString() ? `?${params.toString()}` : '';
+ const response = await api.get<any>(`/adapters/${adapterId}/logs${queryString}`);
  // Handle paginated response format
  if (response.success && response.data) {
  // Extract content array from paginated response
  const rawLogs = response.data.content || [];
-;
  // Map backend log format to frontend AdapterLog interface
  const logs: AdapterLog[] = rawLogs.map((log: any) => ({
  id: log.id,
@@ -145,18 +138,17 @@ class AdapterMonitoringService {
 
  return {
  success: true,
- data: logs;
+ data: logs
+ };
  }
-}
 
  return response;
  } catch (error) {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to fetch adapter logs'
-}
+ };
  }
-}
  }
 
  async getAvailableAdapterTypes(): Promise<{ success: boolean; data?: string[]; error?: string }> {
@@ -166,23 +158,21 @@ class AdapterMonitoringService {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to fetch available adapter types'
-}
+ };
  }
-}
  }
 
  async testAdapterConnection(adapterId: string): Promise<{ success: boolean; error?: string }> {
- try {`
+ try {
  await api.post(`/adapters/${adapterId}/test`);
- return { success: true }
-} catch (error) {
+ return { success: true };
+ } catch (error) {
  return {
  success: false,
  error: error instanceof Error ? error.message : 'Failed to test adapter connection'
-}
+ };
  }
-}
  }
 }
 
-export const adapterMonitoringService = new AdapterMonitoringService();`
+export const adapterMonitoringService = new AdapterMonitoringService();
