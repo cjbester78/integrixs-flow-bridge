@@ -15,7 +15,7 @@ export class ChannelWebSocket {
  return;
  }
 
- const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/channels${businessComponentId ? `?businessComponentId=${businessComponentId} : ''};
+ const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/channels${businessComponentId ? `?businessComponentId=${businessComponentId}` : ''}`;
 
  try {
  this.websocket = new WebSocket(wsUrl);
@@ -120,5 +120,4 @@ export class ChannelWebSocket {
  this.sendCommand('unsubscribe_channel_logs', { channelId });
  }
  }
-}
 }
