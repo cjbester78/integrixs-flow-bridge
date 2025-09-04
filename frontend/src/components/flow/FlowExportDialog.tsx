@@ -69,7 +69,6 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  title: 'Validation Failed',
  description: error.message || 'Failed to validate export',
  variant: 'destructive'
-}
  });
  } finally {
  setValidating(false);

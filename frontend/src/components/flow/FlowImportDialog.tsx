@@ -49,13 +49,13 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
 }) => {
  const { toast } = useToast();
  const navigate = useNavigate();
-;
+
  const [file, setFile] = useState<File | null>(null);
  const [exportData, setExportData] = useState<FlowExportDTO | null>(null);
  const [validation, setValidation] = useState<FlowImportValidationDTO | null>(null);
  const [importResult, setImportResult] = useState<FlowImportResultDTO | null>(null);
  const [loading, setLoading] = useState(false);
- const [step, setStep] = useState<$1>('upload');
+ const [step, setStep] = useState<string>('upload');
 
  const [options, setOptions] = useState<ImportOptions>({
  conflictStrategy: 'FAIL',
@@ -99,7 +99,6 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  title: 'Invalid File',
  description: 'Failed to parse the export file. Please ensure it is a valid flow export.',
  variant: 'destructive'
-}
  });
  setFile(null);
  setExportData(null);
@@ -121,7 +120,6 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  title: 'Validation Failed',
  description: error.message || 'Failed to validate import file',
  variant: 'destructive'
-}
  });
  setStep('upload');
  } finally {
@@ -161,13 +159,13 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  description: result.errors[0]?.message || 'Failed to import flow',
  variant: 'destructive'
  });
-} catch (error: any) {
+      }
+     } catch (error: any) {
  toast({
  title: 'Import Failed',
  description: error.message || 'Failed to import flow',
  variant: 'destructive'
-}
- });
+      });
  setStep('validate');
  } finally {
  setLoading(false);
@@ -188,7 +186,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  return <XCircle className="h-4 w-4 text-destructive" />;
  case 'WARNING':
  return <AlertTriangle className="h-4 w-4 text-warning" />;
- 'default':
+ default:
  return <Info className="h-4 w-4 text-info" />;
  }
  };
@@ -240,7 +238,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  <Select
  value={options.conflictStrategy}
  onValueChange={(value) =>
- setOptions({ ...options, conflictStrategy: value as ConflictStrategy });
+ setOptions({ ...options, conflictStrategy: value as ConflictStrategy })
  }
  >
  <SelectTrigger id="conflict-strategy">
@@ -262,7 +260,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  id="name-prefix"
  placeholder="e.g., DEV_"
  value={options.namePrefix || ''}
- onChange={(e) => setOptions({ ...options, namePrefix: e.target.value })
+ onChange={(e) => setOptions({ ...options, namePrefix: e.target.value })}
  />
  </div>
  <div>
@@ -271,7 +269,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  id="name-suffix"
  placeholder="e.g., _COPY"
  value={options.nameSuffix || ''}
- onChange={(e) => setOptions({ ...options, nameSuffix: e.target.value })
+ onChange={(e) => setOptions({ ...options, nameSuffix: e.target.value })}
  />
  </div>
  </div>
@@ -282,7 +280,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  id="activate-after-import"
  checked={options.activateAfterImport}
  onCheckedChange={(checked) =>
- setOptions({ ...options, activateAfterImport: checked });
+ setOptions({ ...options, activateAfterImport: checked })
  }
  />
  </div>
@@ -302,11 +300,11 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  <Tabs defaultValue="preview" className="w-full">
  <TabsList className="grid w-full grid-cols-3">
  <TabsTrigger value="preview">Preview</TabsTrigger>
- <TabsTrigger value="conflicts">`
+ <TabsTrigger value="conflicts">
  Conflicts {validation.conflicts.length > 0 && `(${validation.conflicts.length})`}
  </TabsTrigger>
  <TabsTrigger value="issues">
- Issues {(validation.errors.length + validation.warnings.length) > 0 &&`
+ Issues {(validation.errors.length + validation.warnings.length) > 0 &&
  `(${validation.errors.length + validation.warnings.length})`}
  </TabsTrigger>
  </TabsList>
@@ -376,9 +374,9 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  <AlertCircle className="h-4 w-4" />
  <AlertTitle>{conflict.objectType} Conflict</AlertTitle>
  <AlertDescription>
- {conflict.type === 'NAME_EXISTS' &&`
+ {conflict.type === 'NAME_EXISTS' &&
  `An object named "${conflict.importName}" already exists.`}
- {conflict.type === 'REFERENCE_MISSING' &&`
+ {conflict.type === 'REFERENCE_MISSING' &&
  `Referenced ${conflict.objectType} "${conflict.importName}" not found.`}
  </AlertDescription>
  </Alert>
@@ -394,8 +392,8 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  </Alert>
  ) : (
  <>
- {validation.errors.map((error, index) => (`
- <Alert key={error-${index}`} variant="destructive">
+ {validation.errors.map((error, index) => (
+ <Alert key={`error-${index}`} variant="destructive">
  <div className="flex items-start gap-2">
  {getSeverityIcon(error.severity)}
  <div>
@@ -405,7 +403,7 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  </div>
  </Alert>
  ))}
- {validation.warnings.map((warning, index) => (`
+ {validation.warnings.map((warning, index) => (
  <Alert key={`warning-${index}`}>
  <div className="flex items-start gap-2">
  {getSeverityIcon(warning.severity)}
@@ -519,8 +517,8 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  </Button>
  <Button
  onClick={() => {
- if (importResult.importedFlowId) {`
- navigate(/flows/${importResult.importedFlowId}`);
+ if (importResult.importedFlowId) {
+ navigate(`/flows/${importResult.importedFlowId}`);
  onOpenChange(false);
  }
  }}
@@ -544,5 +542,4 @@ export const FlowImportDialog: React.FC<FlowImportDialogProps> = ({
  </DialogContent>
  </Dialog>
  );
-};`
-}}})))))))
+};

@@ -86,7 +86,7 @@ export const FlowExecutionMonitor: React.FC<FlowExecutionMonitorProps> = ({
  return <Pause className={`h-4 w-4 ${colorClass}`} />;
  case 'cancelled':
  return <Square className={`h-4 w-4 ${colorClass}`} />;
- 'default':`
+ default:
  return <Clock className={`h-4 w-4 ${colorClass}`} />;
  }
  };
