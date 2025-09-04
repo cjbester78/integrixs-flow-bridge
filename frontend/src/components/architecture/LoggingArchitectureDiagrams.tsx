@@ -79,7 +79,7 @@ export const LoggingArchitectureDiagrams: React.FC = () => {
  </div>
  );
 
- const ComponentArchitectureDiagram = () => (;
+ const ComponentArchitectureDiagram = () => (
  <div className="space-y-4">
  <div className="flex items-center justify-between">
  <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -90,7 +90,7 @@ export const LoggingArchitectureDiagrams: React.FC = () => {
  </div>
 
  <div className="bg-muted p-4 rounded-lg">
- <pre className="text-sm overflow-auto">`
+ <pre className="text-sm overflow-auto">
 {`
 ┌─────────────────────────────────────────────────────────────┐
 │ Admin Dashboard │
@@ -138,14 +138,13 @@ export const LoggingArchitectureDiagrams: React.FC = () => {
 │ │ • Domain APIs │ │ • Sample logs │ │
 │ │ • Error handling│ │ • Local storage │ │
 │ └─────────────────┘ └─────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘`
-`}
+└─────────────────────────────────────────────────────────────┘`};
  </pre>
  </div>
  </div>
  );
 
- const DataFlowDiagram = () => (;
+ const DataFlowDiagram = () => (
  <div className="space-y-4">
  <div className="flex items-center justify-between">
  <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -156,7 +155,7 @@ export const LoggingArchitectureDiagrams: React.FC = () => {
  </div>
 
  <div className="bg-muted p-4 rounded-lg">
- <pre className="text-sm overflow-auto">`
+ <pre className="text-sm overflow-auto">
 {`
 Backend API Frontend React App
 ┌──────────────┐ ┌─────────────────────┐
@@ -204,14 +203,13 @@ Error Flow:
 2. API logs to system_logs + domain_error table
 3. Frontend polls/fetches logs
 4. Display in appropriate component
-5. User sees both technical + friendly error`
-`}
+5. User sees both technical + friendly error`};
  </pre>
  </div>
  </div>
  );
 
- const LoggingMindMap = () => (;
+ const LoggingMindMap = () => (
  <div className="space-y-4">
  <div className="flex items-center justify-between">
  <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -222,7 +220,7 @@ Error Flow:
  </div>
 
  <div className="bg-muted p-4 rounded-lg">
- <pre className="text-sm overflow-auto">`
+ <pre className="text-sm overflow-auto">
 {`
  LOGGING ARCHITECTURE
  │
@@ -296,14 +294,13 @@ Benefits:
 • Technical debugging capability
 • Contextual log viewing
 • Scalable architecture
-• Real-time monitoring`
-`}
+• Real-time monitoring`};
  </pre>
  </div>
  </div>
  );
 
- const MermaidDiagrams = () => (;
+ const MermaidDiagrams = () => (
  <div className="space-y-6">
  <div className="flex items-center justify-between">
  <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -369,8 +366,8 @@ Benefits:
  }
 
  SYSTEM_LOGS ||--o{ USER_MANAGEMENT_ERRORS : "has"
- SYSTEM_LOGS ||--o{ FLOW_MANAGEMENT_ERRORS : "has"`
- SYSTEM_LOGS ||--o{ ADAPTER_MANAGEMENT_ERRORS : "has"`}
+ SYSTEM_LOGS ||--o{ FLOW_MANAGEMENT_ERRORS : "has"
+ SYSTEM_LOGS ||--o{ ADAPTER_MANAGEMENT_ERRORS : "has"`};
  </code>
  </div>
  </div>
@@ -398,8 +395,8 @@ Benefits:
  H --> J[DomainLogViewer]
  I --> K[Technical Details]
  J --> L[User-Friendly Error]
- K --> M[Admin Debug View]`
- L --> N[User Context View]`}
+ K --> M[Admin Debug View]
+ L --> N[User Context View]`};
  </code>
  </div>
  </div>
@@ -447,8 +444,8 @@ Benefits:
  Domain Context
  User-Friendly Errors
  Technical Debugging
- Real-time Monitoring`
- Scalable Design`}
+ Real-time Monitoring
+ Scalable Design`};
  </code>
  </div>
  </div>
@@ -521,5 +518,4 @@ Benefits:
  </Tabs>
  </div>
  );
-};`
-}}}}}}}}})
+};

@@ -59,5 +59,4 @@ export const ServicesLayerGraph: React.FC = () => {
  </CardContent>
  </Card>
  );
-};`
-}
+};

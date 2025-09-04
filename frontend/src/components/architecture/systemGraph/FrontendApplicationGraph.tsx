@@ -46,5 +46,4 @@ export const FrontendApplicationGraph: React.FC = () => {
  </CardContent>
  </Card>
  );
-};`
-}
+};

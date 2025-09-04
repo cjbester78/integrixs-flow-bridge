@@ -274,7 +274,7 @@ export const UpdatedArchitectureDiagrams: React.FC = () => {
  Backend Logging
  Frontend Polling
  Component Updates
- User Display`
+ User Display
  Admin Monitoring`;
 
  return (

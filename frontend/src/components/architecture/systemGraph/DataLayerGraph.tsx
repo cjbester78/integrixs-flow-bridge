@@ -71,5 +71,4 @@ export const DataLayerGraph: React.FC = () => {
  </CardContent>
  </Card>
  );
-};`
-}
+};

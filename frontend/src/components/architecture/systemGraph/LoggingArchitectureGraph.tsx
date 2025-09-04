@@ -65,5 +65,4 @@ export const LoggingArchitectureGraph: React.FC = () => {
  </CardContent>
  </Card>
  );
-};`
-}
+};

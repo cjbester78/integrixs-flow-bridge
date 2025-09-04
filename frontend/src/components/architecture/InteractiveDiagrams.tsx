@@ -124,10 +124,10 @@ export const InteractiveDiagrams: React.FC = () => {
  style C fill:#ffdddd
  style E fill:#ddffdd
  style F fill:#ddffdd
- style J fill:#ddddff`
+ style J fill:#ddddff
  style K fill:#ddddff`;
-`
- const sequenceCode = `sequenceDiagram;
+
+ const sequenceCode = `sequenceDiagram
  participant U as User
  participant F as Frontend
  participant A as API Backend
@@ -160,10 +160,10 @@ export const InteractiveDiagrams: React.FC = () => {
 
  Note over H,C: Real-time log updates
  H->>A: Periodic polling (if enabled)
- A->>H: Latest logs`
+ A->>H: Latest logs
  H->>C: Update displays`;
-`
- const mindmapCode = `mindmap;
+
+ const mindmapCode = `mindmap
  root((Logging Architecture))
  Database Design
  Central Logging
@@ -251,7 +251,7 @@ export const InteractiveDiagrams: React.FC = () => {
  System Management
  Centralized monitoring
  Domain organization
- Scalable architecture`
+ Scalable architecture
  Real-time visibility`;
 
  const DiagramCodeBlock = ({ title, code, description }: { title: string; code: string; description: string }) => (
@@ -301,7 +301,7 @@ export const InteractiveDiagrams: React.FC = () => {
 
  <TabsContent value="er-diagram">
  <DiagramCodeBlock
- title="Database Entity Relationship Diagram";
+ title="Database Entity Relationship Diagram"
  code={erDiagramCode}
  description="Shows the relationship between the central system_logs table and domain-specific error tables."
  />
@@ -361,5 +361,4 @@ export const InteractiveDiagrams: React.FC = () => {
  </Card>
  </div>
  );
-};`
-}}
+};

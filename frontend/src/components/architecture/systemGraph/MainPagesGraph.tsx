@@ -52,5 +52,4 @@ export const MainPagesGraph: React.FC = () => {
  </CardContent>
  </Card>
  );
-};`
-}
+};
