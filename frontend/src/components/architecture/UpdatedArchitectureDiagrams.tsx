@@ -440,5 +440,4 @@ export const UpdatedArchitectureDiagrams: React.FC = () => {
  </Card>
  </div>
  );
-};`
-}
+};

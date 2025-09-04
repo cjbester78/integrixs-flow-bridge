@@ -72,8 +72,7 @@ export const LoggingArchitectureDiagrams: React.FC = () => {
  │ │ • system_log_id (FK) │
  │ └──────────────────────────┘
  │
- └─── (Additional Domain Tables) ───┘`
-`}
+ └─── (Additional Domain Tables) ───┘`}
  </pre>
  </div>
  </div>
@@ -138,7 +137,7 @@ export const LoggingArchitectureDiagrams: React.FC = () => {
 │ │ • Domain APIs │ │ • Sample logs │ │
 │ │ • Error handling│ │ • Local storage │ │
 │ └─────────────────┘ └─────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘`};
+└─────────────────────────────────────────────────────────────┘`}
  </pre>
  </div>
  </div>
@@ -203,7 +202,7 @@ Error Flow:
 2. API logs to system_logs + domain_error table
 3. Frontend polls/fetches logs
 4. Display in appropriate component
-5. User sees both technical + friendly error`};
+5. User sees both technical + friendly error`}
  </pre>
  </div>
  </div>
@@ -294,7 +293,7 @@ Benefits:
 • Technical debugging capability
 • Contextual log viewing
 • Scalable architecture
-• Real-time monitoring`};
+• Real-time monitoring`}
  </pre>
  </div>
  </div>
@@ -367,7 +366,7 @@ Benefits:
 
  SYSTEM_LOGS ||--o{ USER_MANAGEMENT_ERRORS : "has"
  SYSTEM_LOGS ||--o{ FLOW_MANAGEMENT_ERRORS : "has"
- SYSTEM_LOGS ||--o{ ADAPTER_MANAGEMENT_ERRORS : "has"`};
+ SYSTEM_LOGS ||--o{ ADAPTER_MANAGEMENT_ERRORS : "has"`}
  </code>
  </div>
  </div>
@@ -396,7 +395,7 @@ Benefits:
  I --> K[Technical Details]
  J --> L[User-Friendly Error]
  K --> M[Admin Debug View]
- L --> N[User Context View]`};
+ L --> N[User Context View]`}
  </code>
  </div>
  </div>
@@ -445,7 +444,7 @@ Benefits:
  User-Friendly Errors
  Technical Debugging
  Real-time Monitoring
- Scalable Design`};
+ Scalable Design`}
  </code>
  </div>
  </div>
