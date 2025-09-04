@@ -63,7 +63,7 @@ class MessageService {
  })
  }
 
- const endpoint = `/messages${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/messages${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
@@ -87,7 +87,7 @@ class MessageService {
  })
  }
 `
- const endpoint = `/messages/stats${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/messages/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 

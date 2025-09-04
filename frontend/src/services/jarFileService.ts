@@ -33,12 +33,12 @@ class JarFileService {
  if (filters?.isActive !== undefined) params.append('isActive', filters.isActive.toString());
 
  const queryString = params.toString();
- return api.get<JarFile[]>(`/jar-files${queryString ? ?${queryString}` : '}`);
+ return api.get<JarFile[]>(`/jar-files${queryString ? `?${queryString}` : ''}`);
  }
 
  // Get JAR file by ID
  async getJarFileById(jarFileId: string): Promise<ApiResponse<JarFile>> {`
- return api.get<JarFile>(/jar-files/${jarFileId}`);
+ return api.get<JarFile>(`/jar-files/${jarFileId}`);
  }
 
  // Create new JAR file
@@ -114,7 +114,7 @@ class JarFileService {
  requiredDependencies?: string[];
  }
 }>> {`
- return api.get(/jar-files/${jarFileId}/validate`);
+ return api.get(`/jar-files/${jarFileId}/validate`);
  }
 
  // Get driver types

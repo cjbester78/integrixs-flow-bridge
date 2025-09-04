@@ -33,16 +33,12 @@ interface ApiResponse<T> {
 export const integrationFlowService = {
  getAllFlows: async (): Promise<ApiResponse<PaginatedResponse<IntegrationFlow>>> => {
  try {
-const response = await apiClient.get<PaginatedResponse<IntegrationFlow>>(API_PREFIX);
- return { success: true, data: response 
-} catch (error) {
-  // Handle error
-}
-}
-} catch (error) {
+ const response = await apiClient.get<PaginatedResponse<IntegrationFlow>>(API_PREFIX);
+ return { success: true, data: response.data };
+ } catch (error) {
  logger.error(LogCategory.API, 'Error fetching flows', { error: error });
- return { success: false, message: 'Failed to fetch flows' }
-}
+ return { success: false, message: 'Failed to fetch flows' };
+ }
  },
 
  createFlow: async (data: CreateFlowRequest): Promise<ApiResponse<IntegrationFlow>> => {

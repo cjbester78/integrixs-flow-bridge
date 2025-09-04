@@ -29,8 +29,8 @@ export const flowExportImportService = {
  /**
  * Validate if a flow can be exported
  */
- validateExport: async (flowId: string): Promise<Record<string, any>> => {`
- const response = await api.get<Record<string, any>>(/flows/export-import/export/${flowId}/validate`);
+ validateExport: async (flowId: string): Promise<Record<string, any>> => {
+ const response = await api.get<Record<string, any>>(`/flows/export-import/export/${flowId}/validate`);
  return response.data;
  },
 

@@ -79,8 +79,7 @@ class FlowExecutionEngine {
  message: error instanceof Error ? error.message : 'Unknown error',
  timestamp: new Date().toISOString()
  };
- }
-
+ 
  toast({
  title: "Flow Execution Failed",
  description: `Flow "${flowDefinition.name}" failed: ${execution.error.message}`,

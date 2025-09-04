@@ -57,7 +57,7 @@ class FlowMonitoringService {
  })
  }
 
- const endpoint = `/flows/executions${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/flows/executions${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
@@ -72,7 +72,7 @@ class FlowMonitoringService {
  })
  }
 `
- const endpoint = `/flows/executions/stats${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+ const endpoint = `/flows/executions/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
