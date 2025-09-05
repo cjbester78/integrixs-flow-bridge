@@ -93,8 +93,8 @@ export function FunctionDialog({
  // Parse parameters from database if available
  if (functionData.parameters) {
  try {
-const params = typeof functionData.parameters === 'string';
- ? JSON.parse(functionData.parameters) ;
+const params = typeof functionData.parameters === 'string'
+ ? JSON.parse(functionData.parameters)
  : functionData.parameters;
  setFunctionParameters(params);
  setParsedParameters(params);

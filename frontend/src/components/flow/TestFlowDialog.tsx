@@ -125,14 +125,15 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  description: "Flow executed successfully. Check the output tab for results.",
  });
  } else {
- throw new Error(response.data?.error || 'Test failed');} catch (error: any) {
+ throw new Error(response.data?.error || 'Test failed');
+ }
+ } catch (error: any) {
  setTestStatus('error');
  const errorMsg = error.response?.data?.message || error.message || 'Failed to test the flow';
  setErrorMessage(errorMsg);
 
  setExecutionLogs([
  'Starting flow test...',
-}`
  `Loading source adapter: ${flowConfig.inboundAdapter}`,
  'ERROR: ' + errorMsg
  ]);

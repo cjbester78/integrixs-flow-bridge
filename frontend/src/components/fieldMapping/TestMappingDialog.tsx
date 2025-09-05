@@ -101,7 +101,6 @@ export function TestMappingDialog({
  title: "Test Failed",
  description: errorMsg,
  variant: "destructive"
- }
  });
  } finally {
  setIsLoading(false);

@@ -611,7 +611,7 @@ const parser = new DOMParser();
  const updateMapping = (mappingId: string, updates: Partial<FieldMapping>) => {
  setMappings(prev => prev.map(m =>
  m.id === mappingId ? { ...m, ...updates } : m
- );
+ ));
  };
 
  const createMapping = (mapping: FieldMapping) => {

@@ -52,8 +52,8 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  const handleParameterChange = (paramName: string, value: any) => {
  setParameters(prev => ({
  ...prev,
- [paramName]: value;
- });
+ [paramName]: value
+ }));
  };
 
  const handleApplyFunction = () => {

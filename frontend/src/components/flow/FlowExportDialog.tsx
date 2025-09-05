@@ -100,7 +100,6 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  title: 'Export Failed',
  description: error.message || 'Failed to export flow',
  variant: 'destructive'
-}
  });
  } finally {
  setLoading(false);

@@ -346,7 +346,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Checkbox
  id="advancedSelection"
  checked={config.advancedSelection}
- onCheckedChange={(checked) => updateConfig({ advancedSelection: checked === true })
+ onCheckedChange={(checked) => updateConfig({ advancedSelection: checked === true })}
  />
  <Label htmlFor="advancedSelection">Advanced selection for Source files</Label>
  </div>

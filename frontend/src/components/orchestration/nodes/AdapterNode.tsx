@@ -97,7 +97,7 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  variant="outline"
  className="w-full bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
  onClick={(e) => {
- logger.info(LogCategory.UI, '[AdapterNode] Configure button clicked:' , { id, adapterType: data.adapterType });
+ logger.info(LogCategory.UI, '[AdapterNode] Configure button clicked:', { id, adapterType: data.adapterType });
  e.stopPropagation();
  e.preventDefault();
  try {

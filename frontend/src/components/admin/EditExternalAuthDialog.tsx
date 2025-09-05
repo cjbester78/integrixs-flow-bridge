@@ -271,7 +271,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  name="password"
  label="New Password (leave empty to keep current)"
  value={basicAuth.password || ''}
- onValueChange={(value) => setBasicAuth({ ...basicAuth, password: value })
+ onValueChange={(value) => setBasicAuth({ ...basicAuth, password: value })}
  showConfirmation={false}
  />
  <div className="space-y-2">
@@ -279,7 +279,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="realm"
  value={basicAuth.realm || ''}
- onChange={(e) => setBasicAuth({ ...basicAuth, realm: e.target.value })
+ onChange={(e) => setBasicAuth({ ...basicAuth, realm: e.target.value })}
  />
  </div>
  </div>

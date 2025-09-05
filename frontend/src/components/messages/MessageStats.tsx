@@ -39,7 +39,7 @@ export const MessageStats = ({
  : 0;
  })();
 
- const getSubtext = () =>;
+ const getSubtext = () =>
  isBusinessComponentSelected
  ? `of ${totalMessages} business component messages`
  : 'across all messages';

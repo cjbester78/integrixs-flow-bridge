@@ -78,7 +78,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  const newAvailableAdapters = await getAdaptersForBusinessComponent(value);
  const validAdapter = newAvailableAdapters.includes(inboundAdapter) ? inboundAdapter : '';
  if (!newAvailableAdapters.includes(inboundAdapter)) {
- setInboundAdapter(''));
+ setInboundAdapter('');
  }
 
  data.onConfigChange({

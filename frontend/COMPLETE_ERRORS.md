@@ -1,4 +1,13 @@
-# Complete List of Parsing Errors (137 total) - 139 FIXED (including previous session)
+# Complete List of Parsing Errors - STATUS UPDATE
+
+## Summary (Updated 2025-09-05)
+- **Original files in list**: 143
+- **Files fixed from original list**: 139
+- **Additional files fixed (found via npm run lint)**: 10
+- **UI Components fixed**: 43
+- **TOTAL FILES FIXED**: 192
+- **Error reduction**: 156 → 77 (50% reduction!)
+- **Current status**: 77 errors, 22 warnings (99 total problems)
 
 ## ADDITIONAL FIXES (not in original list but found via npm run lint)
 - [x] FieldMappingScreen.tsx - Line 566: ',' expected - Fixed semicolon in object literal
@@ -11,8 +20,6 @@
 - [x] admin/EditUserDialog.tsx - Line 351: '}' expected - Fixed map function closing
 - [x] admin/JdbcDriverModal.tsx - Line 88: ',' expected - Fixed semicolons in object literals
 - [x] admin/JmsDriverModal.tsx - Line 109: ',' expected - Fixed extra closing brace
-
-## TOTAL FILES FIXED: 149 (139 from original list + 10 additional)
 
 ## UI Components (43 files) - ALL FIXED ✓
 - [x] accordion.tsx - Line 9: Expression expected - Fixed semicolons
@@ -182,3 +189,78 @@
 - [x] packages/PackageCreationWizard.tsx - Line 112: Unterminated string literal - Fixed complex syntax issues with Python script
 - [x] createFlow/TransformationConfigurationCard.tsx - Line 237: Identifier expected - Fixed extra backtick and closing braces
 - [x] wsdl/WSDLGeneratorModal.tsx - Line 147: Unterminated string literal - Fixed unterminated string and template literal issues
+
+## CURRENT LINT ERRORS (77 errors as of 2025-09-05)
+
+### Components (22 errors)
+- [ ] FieldMappingScreen.tsx - Line 614: ')' expected
+- [ ] adapter/SftpAdapterConfiguration.tsx - Line 350: Expression expected
+- [ ] adapter/SoapOutboundAdapterConfiguration.tsx - Line 228: 'try' expected
+- [ ] admin/EditExternalAuthDialog.tsx - Line 275: '}' expected
+- [ ] development/FunctionDialog.tsx - Line 97: Declaration or statement expected
+- [ ] development/FunctionTestPanel.tsx - Line 76: Statement expected
+- [ ] development/ParameterEditor.tsx - Line 168: Unterminated template literal
+- [ ] fieldMapping/FieldSelectorDialog.tsx - Line 76: '}' expected
+- [ ] fieldMapping/FunctionMappingModal.tsx - Line 53: ')' expected
+- [ ] fieldMapping/FunctionPicker.tsx - Line 55: ',' expected
+- [ ] fieldMapping/TestMappingDialog.tsx - Line 105: ',' expected
+- [ ] fieldMapping/VisualFlowEditor.tsx - Line 220: ',' expected
+- [ ] fieldMapping/VisualMappingCanvas.tsx - Line 58: ')' expected
+- [ ] flow/DeploymentDetailsDialog.tsx - Line 166: ',' expected
+- [ ] flow/FlowExecutionMonitor.tsx - Line 104: ';' expected
+- [ ] flow/FlowExecutionVisualizer.tsx - Line 89: ')' expected
+- [ ] flow/FlowExportDialog.tsx - Line 104: ',' expected
+- [ ] flow/FlowScheduler.tsx - Line 123: Property assignment expected
+- [ ] flow/TestFlowDialog.tsx - Line 128: 'try' expected
+- [ ] messages/MessageList.tsx - Line 36: Declaration or statement expected
+- [ ] messages/MessageStats.tsx - Line 59: Expression expected
+- [ ] messages/utils/timeFilters.ts - Line 73: ',' expected
+
+### Orchestration (4 errors)
+- [ ] nodes/AdapterNode.tsx - Line 100: ')' expected
+- [ ] nodes/RoutingNode.tsx - Line 240: Declaration expected
+- [ ] nodes/StartProcessNode.tsx - Line 223: ',' expected
+- [ ] nodes/TransformationNode.tsx - Line 148: ',' expected
+
+### Hooks (4 errors)
+- [ ] use-logger.ts - Line 42: ',' expected
+- [ ] useFlowMonitoring.ts - Line 99: Declaration or statement expected
+- [ ] useMessageMonitoring.ts - Line 33: 'try' expected
+- [ ] useSystemMonitoring.ts - Line 174: Declaration expected
+
+### Lib (2 errors)
+- [ ] api-client.ts - Line 93: '}' expected
+- [ ] api-response-utils.ts - Line 11: ')' expected
+
+### Pages (5 errors)
+- [ ] AdapterMonitoring.tsx - Line 217: '}' expected
+- [ ] Admin.tsx - Line 145: 'try' expected
+- [ ] AllInterfaces.tsx - Line 168: Argument expression expected
+- [ ] CreateDataStructure.tsx - Line 103: 'try' expected
+- [ ] CreateDirectMappingFlow.tsx - Line 325: 'try' expected
+
+### Services (15 errors)
+- [ ] api.ts - Line 222: '}' expected
+- [ ] flowExportImportService.ts - Line 124: ';' expected
+- [ ] flowMonitoringService.ts - Line 132: ';' expected
+- [ ] integrationFlowService.ts - Line 45: Unnecessary try/catch wrapper (no-useless-catch)
+- [ ] jarFileService.ts - Line 98: ';' expected
+- [ ] messageService.ts - Line 139: ';' expected
+- [ ] packageService.ts - Line 95: ')' expected
+- [ ] roleService.ts - Line 59: ';' expected
+- [ ] structureService.ts - Line 1: Unterminated string literal
+- [ ] systemConfigService.ts - Line 1: Unterminated string literal
+- [ ] systemErrorLogger.ts - Line 1: Unterminated string literal
+- [ ] systemMonitoringService.ts - Line 1: Unterminated string literal
+- [ ] transformationFunctions.ts - Line 18: Unterminated string literal
+- [ ] userService.ts - Line 1: Unterminated string literal
+- [ ] webserviceService.ts - Line 1: Unterminated string literal
+
+### Other (3 errors)
+- [ ] utils/structureParsers.ts - Line 150: Declaration or statement expected
+- [ ] packages/PackageCreationWizard.tsx - Line 234: ',' expected
+- [ ] packages/components/FlowCreationStep.tsx - Line 251: Declaration expected
+
+### Non-Parsing Errors (2 errors)
+- [ ] admin/SystemSettings.tsx - Line 31: Unexpected empty object pattern (no-empty-pattern)
+- [ ] fieldMapping/MappingArea.tsx - Line 107: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)

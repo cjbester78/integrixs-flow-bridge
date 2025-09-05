@@ -163,7 +163,7 @@ export function DeploymentDetailsDialog({
  <Button
  size="sm"
  variant="outline"
- onClick={() => copyToClipboard(deploymentInfo.metadata?.apiDocsUrl || ', 'API Docs URL')}
+ onClick={() => copyToClipboard(deploymentInfo.metadata?.apiDocsUrl || '', 'API Docs URL')}
  disabled={!deploymentInfo.metadata?.apiDocsUrl}
  >
  <Copy className="h-4 w-4" />
@@ -171,7 +171,7 @@ export function DeploymentDetailsDialog({
  <Button
  size="sm"
  variant="outline"
- onClick={() => window.open(deploymentInfo.metadata?.apiDocsUrl || ', '_blank')}
+ onClick={() => window.open(deploymentInfo.metadata?.apiDocsUrl || '', '_blank')}
  disabled={!deploymentInfo.metadata?.apiDocsUrl}
  >
  <ExternalLink className="h-4 w-4" />

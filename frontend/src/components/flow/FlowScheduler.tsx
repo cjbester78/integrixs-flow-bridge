@@ -120,7 +120,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  return;
  }
 
- const webhook: FlowWebhook = {`
+ const webhook: FlowWebhook = {
  id: `webhook_${Date.now()}`,
  flowId: flowDefinition.id,
  url: newWebhook.url!,

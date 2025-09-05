@@ -86,7 +86,7 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  setExecutionProgress(0);
 
  try {
- const execution = await flowExecutionEngine.executeFlow(;
+ const execution = await flowExecutionEngine.executeFlow(
  flowDefinition,
  'manual',
  {},

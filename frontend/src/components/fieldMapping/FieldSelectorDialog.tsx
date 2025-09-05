@@ -71,8 +71,8 @@ export const FieldSelectorDialog: React.FC<FieldSelectorDialogProps> = ({
  className={`flex items-center p-2 border rounded-md transition-colors ${
  isExcluded ? 'bg-muted/50 opacity-50' :
  isLeaf ? 'hover:bg-primary/10 cursor-pointer border-dashed' :
- 'hover:bg-muted/50'`
- }`}`
+ 'hover:bg-muted/50'
+ }`}
  style={{ marginLeft: `${level * 16}px` }}
  onClick={() => {
  if (isLeaf && !isExcluded) {

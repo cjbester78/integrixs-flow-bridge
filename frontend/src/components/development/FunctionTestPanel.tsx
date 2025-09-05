@@ -73,12 +73,12 @@ export function FunctionTestPanel({
  return JSON.parse(value);
  } catch {
  return value;
- },
-  'default':
- return value;} catch (error) {
- logger.error(LogCategory.UI, 'Error occurred', { error: {
-},
-  data: Error parsing ${type} , value: extra: error }); })
+ }
+ default:
+ return value;
+ }
+ } catch (error) {
+ logger.error(LogCategory.UI, `Error parsing ${type}`, { value, error });
  return value;
  }
  };

@@ -165,4 +165,4 @@ export function ParameterEditor({ parameters, onChange, readOnly = false }: Para
  </div>
  </div>
  );
-}`
+}

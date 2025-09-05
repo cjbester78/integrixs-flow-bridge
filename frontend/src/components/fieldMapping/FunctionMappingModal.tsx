@@ -43,14 +43,13 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
 }) => {
  const canvasRef = useRef<HTMLDivElement>(null);
  const svgRef = useRef<SVGSVGElement>(null);
-;
  const [functionNode, setFunctionNode] = useState<FunctionNodeData>({
  id: 'function_modal',
  functionName: selectedFunction,
  parameters: {},
  sourceConnections: {},
  position: { x: 0, y: 0 }
- };
+ });
 
 
  const [connections, setConnections] = useState<Connection[]>([]);
@@ -58,14 +57,14 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  isDragging: false,
  draggedItem: null,
  startPosition: { x: 0, y: 0 },
- currentPosition: { x: 0, y: 0 });
+ currentPosition: { x: 0, y: 0 }
+ });
 
- const [dropTargets, setDropTargets] = useState<Set<string>>(new Set();
+ const [dropTargets, setDropTargets] = useState<Set<string>>(new Set());
  const [outputConnected, setOutputConnected] = useState(false);
 
  const getAllFunctions = () => Object.values(functionsByCategory).flat();
  const func = getAllFunctions().find(f => f.name === selectedFunction);
-;
  // Mouse-based drag implementation
  const handleMouseDown = useCallback((field: FieldNode, event: React.MouseEvent) => {
  event.preventDefault();

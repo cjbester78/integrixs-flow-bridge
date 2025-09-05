@@ -55,7 +55,7 @@ export const VisualMappingCanvas: React.FC<VisualMappingCanvasProps> = ({
  setVisualFlowEditor({
  open: false,
  targetField: null
- })};
+ });
  }, [mappings, onCreateMapping, onRemoveMapping]);
 
  return (
