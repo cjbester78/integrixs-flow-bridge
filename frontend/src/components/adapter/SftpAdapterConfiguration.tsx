@@ -217,7 +217,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  placeholder="Enter password"
  required={true}
  value={config.password}
- onValueChange={(value) => updateConfig({ password: value })
+ onValueChange={(value) => updateConfig({ password: value })}
  />
  </div>
  </>
@@ -241,7 +241,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  placeholder="Enter password"
  required={true}
  value={config.password}
- onValueChange={(value) => updateConfig({ password: value })
+ onValueChange={(value) => updateConfig({ password: value })}
  />
  </div>
  <div className="space-y-2">
@@ -280,14 +280,14 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  </p>
  </div>
  );
- 'default':
+ default:
  return null;
  }
  };
 
  return (
  <Card className="w-full">
- <CardHeader>;
+ <CardHeader>
  <CardTitle>SFTP {mode === 'sender' ? 'Inbound' : 'Outbound'} Adapter Configuration</CardTitle>
  <CardDescription>Configure your SFTP {mode} adapter settings</CardDescription>
  </CardHeader>
@@ -325,7 +325,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="sourceDirectory"
  value={config.sourceDirectory}
- onChange={(e) => updateConfig({ sourceDirectory: e.target.value })
+ onChange={(e) => updateConfig({ sourceDirectory: e.target.value })}
  placeholder="Enter source directory path"
  />
  </div>
@@ -335,7 +335,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="fileName"
  value={config.fileName}
- onChange={(e) => updateConfig({ fileName: e.target.value })
+ onChange={(e) => updateConfig({ fileName: e.target.value })}
  placeholder="Enter file name pattern"
  />
  </div>
@@ -358,7 +358,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="exclusionMask"
  value={config.exclusionMask}
- onChange={(e) => updateConfig({ exclusionMask: e.target.value })
+ onChange={(e) => updateConfig({ exclusionMask: e.target.value })}
  placeholder="Enter exclusion pattern (e.g., *.tmp, backup_*)"
  />
  </div>
@@ -432,7 +432,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="serverAddress"
  value={config.serverAddress}
- onChange={(e) => updateConfig({ serverAddress: e.target.value })
+ onChange={(e) => updateConfig({ serverAddress: e.target.value })}
  placeholder="Enter server address"
  />
  </div>
@@ -442,8 +442,8 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="port"
  value={config.port}
- onChange={(e) => updateConfig({ port: e.target.value })
- placeholder="Enter port number ('default': 22)"
+ onChange={(e) => updateConfig({ port: e.target.value })}
+ placeholder="Enter port number (default: 22)"
  type="number"
  />
  </div>
@@ -453,7 +453,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="timeout"
  value={config.timeout}
- onChange={(e) => updateConfig({ timeout: e.target.value })
+ onChange={(e) => updateConfig({ timeout: e.target.value })}
  placeholder="Timeout in seconds"
  type="number"
  />
@@ -481,7 +481,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="maxConcurrentConnections"
  value={config.maxConcurrentConnections}
- onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })
+ onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })}
  placeholder="Enter max concurrent connections"
  type="number"
  />
@@ -492,7 +492,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="retryConnection"
  value={config.retryConnection}
- onChange={(e) => updateConfig({ retryConnection: e.target.value })
+ onChange={(e) => updateConfig({ retryConnection: e.target.value })}
  placeholder="Number of retry attempts"
  type="number"
  />
@@ -503,7 +503,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="retryConnectionDelay"
  value={config.retryConnectionDelay}
- onChange={(e) => updateConfig({ retryConnectionDelay: e.target.value })
+ onChange={(e) => updateConfig({ retryConnectionDelay: e.target.value })}
  placeholder="Delay between retries in seconds"
  type="number"
  />
@@ -542,7 +542,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="targetDirectory"
  value={config.targetDirectory}
- onChange={(e) => updateConfig({ targetDirectory: e.target.value })
+ onChange={(e) => updateConfig({ targetDirectory: e.target.value })}
  placeholder="Enter target directory path"
  />
  </div>
@@ -552,7 +552,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="targetFileName"
  value={config.targetFileName}
- onChange={(e) => updateConfig({ targetFileName: e.target.value })
+ onChange={(e) => updateConfig({ targetFileName: e.target.value })}
  placeholder="Enter file name"
  />
  </div>
@@ -572,7 +572,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="serverAddress"
  value={config.serverAddress}
- onChange={(e) => updateConfig({ serverAddress: e.target.value })
+ onChange={(e) => updateConfig({ serverAddress: e.target.value })}
  placeholder="Enter server address"
  />
  </div>
@@ -582,8 +582,8 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="port"
  value={config.port}
- onChange={(e) => updateConfig({ port: e.target.value })
- placeholder="Enter port number ('default': 22)"
+ onChange={(e) => updateConfig({ port: e.target.value })}
+ placeholder="Enter port number (default: 22)"
  type="number"
  />
  </div>
@@ -593,7 +593,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="timeout"
  value={config.timeout}
- onChange={(e) => updateConfig({ timeout: e.target.value })
+ onChange={(e) => updateConfig({ timeout: e.target.value })}
  placeholder="Timeout in seconds"
  type="number"
  />
@@ -649,7 +649,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="pollingInterval"
  value={config.pollingInterval}
- onChange={(e) => updateConfig({ pollingInterval: e.target.value })
+ onChange={(e) => updateConfig({ pollingInterval: e.target.value })}
  placeholder="Enter polling interval in seconds"
  type="number"
  />
@@ -708,7 +708,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="duplicateMessageAlertThreshold"
  value={config.duplicateMessageAlertThreshold}
- onChange={(e) => updateConfig({ duplicateMessageAlertThreshold: e.target.value })
+ onChange={(e) => updateConfig({ duplicateMessageAlertThreshold: e.target.value })}
  placeholder="Enter threshold value"
  type="number"
  />
@@ -795,7 +795,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Input
  id="maxConcurrentConnections"
  value={config.maxConcurrentConnections}
- onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })
+ onChange={(e) => updateConfig({ maxConcurrentConnections: e.target.value })}
  placeholder="Enter max concurrent connections"
  type="number"
  />
@@ -812,7 +812,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <TabsContent value="transformation" className="mt-6">
  <TransformationToggle
  config={config.transformationConfig || { mode: 'passthrough' }}
- onChange={(transformationConfig) => updateConfig({ transformationConfig })
+ onChange={(transformationConfig) => updateConfig({ transformationConfig })}
  adapterType="SFTP"
  disabled={false}
  />
@@ -824,7 +824,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <TabsContent value="fileFormat" className="mt-6">
  <FileFormatTab
  config={config.fileFormatConfig || {}}
- onChange={(fileFormatConfig) => updateConfig({ fileFormatConfig })
+ onChange={(fileFormatConfig) => updateConfig({ fileFormatConfig })}
  />
  </TabsContent>
  )}
@@ -835,7 +835,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <XmlConversionTab
  mode={mode === 'sender' ? 'INBOUND' : 'OUTBOUND'}
  config={config.xmlConversion || {}}
- onChange={(xmlConversion) => updateConfig({ xmlConversion })
+ onChange={(xmlConversion) => updateConfig({ xmlConversion })}
  />
  </TabsContent>
  )}
@@ -843,5 +843,4 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  </CardContent>
  </Card>
  );
-};`
-}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}})
+};

@@ -18,14 +18,14 @@ Total: 151 errors, 21 warnings
 - [x] auth/SessionTimeoutWarning.tsx - Line 112: Parsing error - Removed extra backtick
 - [x] error-boundary.tsx - Multiple parsing errors - Moved useErrorHandler to separate file
 - [x] development/ParameterEditor.tsx - Line 34: Fixed semicolon to comma
-- [ ] flow/FlowCanvas.tsx - Multiple parsing errors
-- [ ] flow/FlowDesigner.tsx - Hook dependency warnings
-- [ ] flow/FlowDetailsDialog.tsx - Parsing error
-- [ ] flow/FlowEdge.tsx - Parsing error
-- [ ] flow/FlowNode.tsx - Parsing error
-- [ ] flow/OrchestrationFlowCanvas.tsx - Parsing error
-- [ ] flow/orchestration/* - Multiple parsing errors
-- [ ] ui/data-grid.tsx - Hook dependency warnings
+- [x] flow/FlowCanvas.tsx - Multiple parsing errors - FILE NOT FOUND (likely removed)
+- [x] flow/FlowDesigner.tsx - Hook dependency warnings - FILE NOT FOUND (likely removed)
+- [x] flow/FlowDetailsDialog.tsx - Parsing error - FILE NOT FOUND (likely removed)
+- [x] flow/FlowEdge.tsx - Parsing error - FILE NOT FOUND (likely removed)
+- [x] flow/FlowNode.tsx - Parsing error - FILE NOT FOUND (likely removed)
+- [x] flow/OrchestrationFlowCanvas.tsx - Parsing error - FILE NOT FOUND (likely removed)
+- [x] flow/orchestration/* - Multiple parsing errors - DIRECTORY NOT FOUND (likely removed)
+- [x] ui/data-grid.tsx - Hook dependency warnings - FILE NOT FOUND (likely removed)
 
 ## Admin Components (12 files)
 

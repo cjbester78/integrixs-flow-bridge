@@ -563,7 +563,7 @@ const parser = new DOMParser();
  includeXmlDeclaration: true,
  prettyPrint: true,
  convertPropertyNames: true,
- preserveNullValues: false;
+ preserveNullValues: false
  });
 
  const xmlContent = xmlResult.xmlContent;
