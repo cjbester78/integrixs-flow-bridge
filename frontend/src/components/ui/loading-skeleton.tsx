@@ -78,7 +78,7 @@ export function LoadingSkeleton({
  case 'button':
  return <Skeleton className={cn("h-10 w-24", className)} />;
 
- 'default':
+ default:
  return null;
  }
  };

@@ -113,9 +113,9 @@ export const PasswordConfirmation = React.forwardRef<
  {required && <span className="text-destructive">*</span>}
  </Label>
  <div className="relative">
- <Input`
- id={${name}_confirm`}
- type={showConfirmPassword ? "text" : "password"}`
+ <Input
+ id={`${name}_confirm`}
+ type={showConfirmPassword ? "text" : "password"}
  placeholder={`Confirm ${placeholder || label.toLowerCase()}`}
  value={confirmPassword}
  onChange={(e) => handleConfirmPasswordChange(e.target.value)}

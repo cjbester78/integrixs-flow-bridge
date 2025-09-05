@@ -73,7 +73,7 @@ export function DataTable<T extends Record<string, any>>({
  const [searchQuery, setSearchQuery] = useState('');
 
  // Filter data based on search query
- const filteredData = searchQuery;
+ const filteredData = searchQuery
  ? data.filter(item =>
  columns.some(column => {
  const value = column.cell ? column.cell(item) : item[column.key];

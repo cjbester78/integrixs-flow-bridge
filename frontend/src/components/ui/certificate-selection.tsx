@@ -71,7 +71,7 @@ export const CertificateSelection: React.FC<CertificateSelectionProps> = ({
  <SelectContent>
  {activeCertificates.length === 0 ? (
  <SelectItem value="" disabled>
- No certificates available {businessComponentId ? 'for this business component' : '}
+ No certificates available {businessComponentId ? 'for this business component' : ''}
  </SelectItem>
  ) : (
  activeCertificates.map((cert) => (
