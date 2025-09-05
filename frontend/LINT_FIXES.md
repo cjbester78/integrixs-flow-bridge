@@ -278,6 +278,18 @@ Note: Many files appear to have multiple errors, and some errors may have been r
 - [x] userService.ts - Line 60: ';' expected - Fixed with Python script
 - [x] webserviceService.ts - Line 51: ';' expected - Fixed with Python script
 
+## New Files Fixed (from npm run lint discovery)
+- [x] FieldMappingScreen.tsx - Line 566: ',' expected - Fixed semicolon in object literal
+- [x] adapter/SftpAdapterConfiguration.tsx - Line 221: Expression expected - Fixed missing closing braces
+- [x] adapter/SoapOutboundAdapterConfiguration.tsx - Line 229: 'try' expected - Fixed extra closing brace
+- [x] adapters/FileFormatTab.tsx - Line 100: Identifier expected - Fixed template literals and semicolons
+- [x] admin/AdapterTypesManagement.tsx - Line 468: '}' expected - Added missing closing brace for component
+- [x] admin/CreateExternalAuthDialog.tsx - Line 102: Declaration or statement expected - Fixed semicolons and multiline handlers
+- [x] admin/EditExternalAuthDialog.tsx - Line 92: Unterminated string literal - Fixed empty strings and semicolons
+- [x] admin/EditUserDialog.tsx - Line 351: '}' expected - Fixed map function closing
+- [x] admin/JdbcDriverModal.tsx - Line 88: ',' expected - Fixed semicolons in object literals
+- [x] admin/JmsDriverModal.tsx - Line 109: ',' expected - Fixed extra closing brace
+
 ## Summary of Progress
-- Total files fixed: 57 (previous) + 13 (field mapping) + 8 (data structures) + 7 (flow) + 4 (development) + 9 (admin) + 2 (architecture) + 6 (orchestration) + 6 (pages) + 15 (services) = 127 files
-- Remaining: 5 (hooks) + 4 (message) + 3 (lib) + 4 (other) = 16 files
+- Total files fixed: 139 files (from COMPLETE_ERRORS.md) + 10 additional files = 149 files
+- Reduced errors from 156 to 124 (32 errors fixed)

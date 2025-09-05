@@ -98,24 +98,23 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  request.oauth2 = formData.oauth2;
  } else if (authType === AuthType.API_KEY && formData.apiKey) {
  // Convert allowed IPs from string to array
- const allowedIps = allowedIpsInput;
+ const allowedIps = allowedIpsInput
  .split('\n')
  .map(ip => ip.trim())
  .filter(ip => ip.length > 0);
 
  request.apiKey = {
  ...formData.apiKey,
- allowedIps: allowedIps.length > 0 ? allowedIps : undefined;
+ allowedIps: allowedIps.length > 0 ? allowedIps : undefined
  }
 }
 
  const response = await externalAuthService.createAuthConfig(request);
-;
  if (isApiResponse(response)) {
  if (response.success) {
  toast({
  title: "Success",
- description: "Authentication configuration created successfully";
+ description: "Authentication configuration created successfully"
  });
  onCreated();
  onOpenChange(false);
@@ -127,7 +126,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  // Handle direct response
  toast({
  title: "Success",
- description: "Authentication configuration created successfully";
+ description: "Authentication configuration created successfully"
  });
  onCreated();
  onOpenChange(false);
@@ -170,7 +169,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  allowedIps: []
  }
  });
- setAllowedIpsInput(');
+ setAllowedIpsInput('');
  };
 
 
@@ -193,7 +192,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  id="name"
  placeholder="e.g., Production API Key"
  value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })
+ onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  required
  />
  </div>
@@ -204,7 +203,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  id="description"
  placeholder="Optional description of this authentication configuration"
  value={formData.description}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })
+ onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  rows={2}
  />
  </div>
@@ -254,7 +253,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  basicAuth: { ...formData.basicAuth!, username: e.target.value }
- })
+ })}
  required
  />
  </div>
@@ -265,7 +264,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onValueChange={(value) => setFormData({
  ...formData,
  basicAuth: { ...formData.basicAuth!, password: value }
- })
+ })}
  required
  />
  <div className="space-y-2">
@@ -277,7 +276,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  basicAuth: { ...formData.basicAuth!, realm: e.target.value }
- })
+ })}
  />
  </div>
  </div>
@@ -294,7 +293,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, clientId: e.target.value }
- })
+ })}
  required
  />
  </div>
@@ -305,7 +304,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onValueChange={(value) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, clientSecret: value }
- })
+ })}
  showConfirmation={false}
  required
  />
@@ -316,7 +315,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onValueChange={(value: OAuth2GrantType) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, grantType: value }
- })
+ })}
  >
  <SelectTrigger>
  <SelectValue />
@@ -341,7 +340,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, authorizationUrl: e.target.value }
- })
+ })}
  />
  </div>
  <div className="space-y-2">
@@ -354,7 +353,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, redirectUri: e.target.value }
- })
+ })}
  />
  </div>
  </>
@@ -369,7 +368,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, tokenUrl: e.target.value }
- })
+ })}
  required
  />
  </div>
@@ -382,7 +381,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, scope: e.target.value }
- })
+ })}
  />
  </div>
  <div className="flex items-center space-x-2">
@@ -392,7 +391,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onCheckedChange={(checked) => setFormData({
  ...formData,
  oauth2: { ...formData.oauth2!, usePkce: checked }
- })
+ })}
  />
  <Label htmlFor="usePkce">Use PKCE (Proof Key for Code Exchange)</Label>
  </div>
@@ -409,7 +408,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onValueChange={(value) => setFormData({
  ...formData,
  apiKey: { ...formData.apiKey!, apiKey: value }
- })
+ })}
  showConfirmation={false}
  required
  />
@@ -422,7 +421,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  apiKey: { ...formData.apiKey!, headerName: e.target.value }
- })
+ })}
  required
  />
  </div>
@@ -435,7 +434,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  apiKey: { ...formData.apiKey!, keyPrefix: e.target.value }
- })
+ })}
  />
  </div>
  <div className="space-y-2">
@@ -447,7 +446,7 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  onChange={(e) => setFormData({
  ...formData,
  apiKey: { ...formData.apiKey!, queryParamName: e.target.value }
- })
+ })}
  />
  </div>
  <div className="space-y-2">
@@ -459,11 +458,11 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  value={formData.apiKey.rateLimitPerHour || ''}
  onChange={(e) => setFormData({
  ...formData,
- apiKey: { ;
+ apiKey: {
  ...formData.apiKey!,
- rateLimitPerHour: e.target.value ? parseInt(e.target.value) : undefined ;
+ rateLimitPerHour: e.target.value ? parseInt(e.target.value) : undefined
  }
- })
+ })}
  />
  </div>
  <div className="space-y-2">
@@ -502,4 +501,3 @@ export function CreateExternalAuthDialog({ open, onOpenChange, onCreated }: Crea
  </Dialog>
  );
 }
-}}}}}}}}}}}}}}}}}

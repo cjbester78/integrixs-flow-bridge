@@ -105,7 +105,6 @@ export const JmsDriverModal = ({ open, onOpenChange, onDriverAdded }: JmsDriverM
  title: "Upload Failed",
  description: "Failed to upload JMS driver. Please try again.",
  variant: "destructive"
-      }
  });
  } finally {
  setUploading(false);

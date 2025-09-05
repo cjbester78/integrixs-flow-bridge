@@ -85,7 +85,7 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  driver_type: 'JDBC',
  is_active: true,
  created_at: new Date().toISOString(),
- updated_at: new Date().toISOString();
+ updated_at: new Date().toISOString()
  };
 
  onDriverAdded(newJarFile);
@@ -96,8 +96,8 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  onOpenChange(false);
 
  toast({
- title: "Upload Successful",`
- description: `JDBC driver for ${databaseTypes.find(db => db.value === formData.databaseType)?.label} has been uploaded.`;
+ title: "Upload Successful",
+ description: `JDBC driver for ${databaseTypes.find(db => db.value === formData.databaseType)?.label} has been uploaded.`
  })
 
  } catch (error) {
@@ -105,7 +105,6 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  title: "Upload Failed",
  description: "Failed to upload JDBC driver. Please try again.",
  variant: "destructive"
-}
  });
  } finally {
  setUploading(false);
@@ -205,5 +204,4 @@ export const JdbcDriverModal = ({ open, onOpenChange, onDriverAdded }: JdbcDrive
  </DialogContent>
  </Dialog>
  );
-};`
-}}})
+};

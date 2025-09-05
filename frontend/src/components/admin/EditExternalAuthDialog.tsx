@@ -89,34 +89,34 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  if (config.authType === AuthType.BASIC && config.basicAuth) {
  setBasicAuth({
  username: config.basicAuth.username,
- password: ',
- realm: config.basicAuth.realm || '';
+ password: '',
+ realm: config.basicAuth.realm || ''
  });
  }
 
  if (config.authType === AuthType.OAUTH2 && config.oauth2) {
  setOauth2({
  clientId: config.oauth2.clientId,
- clientSecret: ',
+ clientSecret: '',
  authorizationUrl: config.oauth2.authorizationUrl || '',
- tokenUrl: config.oauth2.tokenUrl || ',
+ tokenUrl: config.oauth2.tokenUrl || '',
  redirectUri: config.oauth2.redirectUri || '',
- scope: config.oauth2.scope || ',
+ scope: config.oauth2.scope || '',
  grantType: config.oauth2.grantType,
- usePkce: config.oauth2.usePkce;
+ usePkce: config.oauth2.usePkce
  });
  }
 
  if (config.authType === AuthType.API_KEY && config.apiKey) {
  setApiKey({
  apiKey: '',
- keyPrefix: config.apiKey.keyPrefix || ',
+ keyPrefix: config.apiKey.keyPrefix || '',
  headerName: config.apiKey.headerName,
  queryParamName: config.apiKey.queryParamName || '',
  rateLimitPerHour: config.apiKey.rateLimitPerHour,
- allowedIps: config.apiKey.allowedIps || [];
+ allowedIps: config.apiKey.allowedIps || []
  });
- setAllowedIpsInput(config.apiKey.allowedIps?.join('\n') || ');
+ setAllowedIpsInput(config.apiKey.allowedIps?.join('\n') || '');
  }
  }, [config]);
 
@@ -162,7 +162,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  if (apiKey.rateLimitPerHour !== undefined) apiKeyUpdate.rateLimitPerHour = apiKey.rateLimitPerHour;
 
  // Convert allowed IPs from string to array
- const allowedIps = allowedIpsInput;
+ const allowedIps = allowedIpsInput
  .split('\n')
  .map(ip => ip.trim())
  .filter(ip => ip.length > 0);
@@ -182,7 +182,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  if (response.success) {
  toast({
  title: "Success",
- description: "Authentication configuration updated successfully";
+ description: "Authentication configuration updated successfully"
  });
  onUpdated();
  onOpenChange(false);
@@ -193,7 +193,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  // Handle direct response
  toast({
  title: "Success",
- description: "Authentication configuration updated successfully";
+ description: "Authentication configuration updated successfully"
  });
  onUpdated();
  onOpenChange(false);}
@@ -202,7 +202,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  toast({
  title: "Error",
  description: error instanceof Error ? error.message : "Failed to update authentication configuration",
- variant: "destructive";
+ variant: "destructive"
  });
  } finally {
  setIsLoading(false);
@@ -227,7 +227,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="name"
  value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })
+ onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  required
  />
  </div>
@@ -237,7 +237,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Textarea
  id="description"
  value={formData.description || ''}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })
+ onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  rows={2}
  />
  </div>
@@ -246,7 +246,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Switch
  id="isActive"
  checked={formData.isActive}
- onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })
+ onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
  />
  <Label htmlFor="isActive">Active</Label>
  </div>
@@ -264,7 +264,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="username"
  value={basicAuth.username}
- onChange={(e) => setBasicAuth({ ...basicAuth, username: e.target.value })
+ onChange={(e) => setBasicAuth({ ...basicAuth, username: e.target.value })}
  />
  </div>
  <PasswordConfirmation

@@ -465,4 +465,5 @@ export const AdapterTypesManagement = () => {
  </CardContent>
  </Card>
  );
-};
+}
+}

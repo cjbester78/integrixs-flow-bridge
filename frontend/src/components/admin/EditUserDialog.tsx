@@ -347,7 +347,7 @@ export const EditUserDialog = ({ open, onOpenChange, user, onUserUpdated }: Edit
  </div>
  </div>
  );
- })
+ })}
  </div>
  </CardContent>
  </Card>

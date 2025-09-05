@@ -1,5 +1,19 @@
 # Complete List of Parsing Errors (137 total) - 139 FIXED (including previous session)
 
+## ADDITIONAL FIXES (not in original list but found via npm run lint)
+- [x] FieldMappingScreen.tsx - Line 566: ',' expected - Fixed semicolon in object literal
+- [x] adapter/SftpAdapterConfiguration.tsx - Line 221: Expression expected - Fixed missing closing braces
+- [x] adapter/SoapOutboundAdapterConfiguration.tsx - Line 229: 'try' expected - Fixed extra closing brace  
+- [x] adapters/FileFormatTab.tsx - Line 100: Identifier expected - Fixed template literals and semicolons
+- [x] admin/AdapterTypesManagement.tsx - Line 468: '}' expected - Added missing closing brace for component
+- [x] admin/CreateExternalAuthDialog.tsx - Line 102: Declaration or statement expected - Fixed semicolons and multiline handlers
+- [x] admin/EditExternalAuthDialog.tsx - Line 92: Unterminated string literal - Fixed empty strings and semicolons
+- [x] admin/EditUserDialog.tsx - Line 351: '}' expected - Fixed map function closing
+- [x] admin/JdbcDriverModal.tsx - Line 88: ',' expected - Fixed semicolons in object literals
+- [x] admin/JmsDriverModal.tsx - Line 109: ',' expected - Fixed extra closing brace
+
+## TOTAL FILES FIXED: 149 (139 from original list + 10 additional)
+
 ## UI Components (43 files)
 - [ ] accordion.tsx - Line 9: Expression expected
 - [ ] alert-dialog.tsx - Line 13: Expression expected

@@ -59,7 +59,6 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  if (newField.fieldName && newField.length > 0) {
  const currentLengths = config.fieldLengths || {};
  const currentOrder = config.fieldOrder || [];
-;
  onChange({
  ...config,
  fieldLengths: {
@@ -97,7 +96,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  <div className="grid gap-2">
  <Label htmlFor="delimiter">Delimiter</Label>
  <Input
- id="delimiter";
+ id="delimiter"
  value={config.delimiter || ','}
  onChange={(e) => handleChange('delimiter', e.target.value)}
  placeholder=","
@@ -190,7 +189,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  <div className="grid gap-2">
  <Label htmlFor="padCharacter">Pad Character</Label>
  <Input
- id="padCharacter";
+ id="padCharacter"
  value={config.padCharacter || ' '}
  onChange={(e) => handleChange('padCharacter', e.target.value)}
  placeholder=" "
@@ -249,13 +248,13 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  <Input
  placeholder="Field Name"
  value={newField.fieldName}
- onChange={(e) => setNewField({ ...newField, fieldName: e.target.value })
+ onChange={(e) => setNewField({ ...newField, fieldName: e.target.value })}
  />
  <Input
  type="number"
  placeholder="Length"
  value={newField.length || ''}
- onChange={(e) => setNewField({ ...newField, length: parseInt(e.target.value) || 0 })
+ onChange={(e) => setNewField({ ...newField, length: parseInt(e.target.value) || 0 })}
  className="w-32"
  />
  <Button onClick={handleAddField} size="sm">
@@ -275,7 +274,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  </TableHeader>
  <TableBody>
  {config.fieldOrder.map((fieldName, index) => {
- const startPos = config.fieldOrder!.slice(0, index).reduce(;
+ const startPos = config.fieldOrder!.slice(0, index).reduce(
  (sum, fname) => sum + (config.fieldLengths?.[fname] || 0),
  1
  );
@@ -295,7 +294,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  </TableCell>
  </TableRow>
  );
- })
+ })}
  </TableBody>
  </Table>
  )}
@@ -318,7 +317,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  <div className="grid gap-2">
  <Label htmlFor="dateFormat">Date Format</Label>
  <Input
- id="dateFormat";
+ id="dateFormat"
  value={config.dateFormat || 'yyyy-MM-dd\'T\'HH:mm:ss.SSSZ'}
  onChange={(e) => handleChange('dateFormat', e.target.value)}
  placeholder="yyyy-MM-dd'T'HH:mm:ss.SSSZ"
@@ -376,10 +375,10 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  Please configure XML-specific settings in the XML Conversion tab.
  </p>
  </CardContent>
- </Card>;
+ </Card>
  );
 
- 'default':
+ default:
  return (
  <Card>
  <CardHeader>
@@ -414,7 +413,7 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  <CardTitle>File Format Type</CardTitle>
  <CardDescription>Select the format of files this adapter will process</CardDescription>
  </CardHeader>
- <CardContent>;
+ <CardContent>
  <Select value={config.fileFormat || 'TEXT'} onValueChange={(value) => handleChange('fileFormat', value)}>
  <SelectTrigger>
  <SelectValue />
@@ -442,28 +441,27 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  {config.fileFormat === 'CSV' && (
  config.includeHeaders !== false ?
 `orderId${config.delimiter || ','}customer${config.delimiter || ','}amount
-12345${config.delimiter || ','}John Doe${config.delimiter || ','}99.99`
-12346${config.delimiter || ','}Jane Smith${config.delimiter || ','}149.99` :`
-`12345${config.delimiter || ','}John Doe${config.delimiter || ','}99.99`
+12345${config.delimiter || ','}John Doe${config.delimiter || ','}99.99
+12346${config.delimiter || ','}Jane Smith${config.delimiter || ','}149.99` :
+`12345${config.delimiter || ','}John Doe${config.delimiter || ','}99.99
 12346${config.delimiter || ','}Jane Smith${config.delimiter || ','}149.99`
- )}
-
+)}
  {config.fileFormat === 'FIXED' && config.fieldOrder && (
  config.fieldOrder.map(field =>
- field.padEnd(config.fieldLengths?.[field] || 0, config.padCharacter || ' ');
+ field.padEnd(config.fieldLengths?.[field] || 0, config.padCharacter || ' ')
  ).join('') || 'Define fields above to see preview'
  )}
 
- {config.fileFormat === 'JSON' && (
- config.prettyPrint !== false ?`
-`{
- "orderId": "12345",
- "customer": "John Doe",
- "amount": 99.99${config.includeNullValues ? ',\n "discount": null' : '}`
-}` :`
-`{"orderId":"12345","customer":"John Doe","amount":99.99${config.includeNullValues ? '',"discount":null' : '}}`
- )}
 
+              {config.fileFormat === 'JSON' && (
+                config.prettyPrint !== false ?
+`{
+  "orderId": "12345",
+  "customer": "John Doe",
+  "amount": 99.99${config.includeNullValues ? ',\n  "discount": null' : ''}
+}` :
+`{"orderId":"12345","customer":"John Doe","amount":99.99${config.includeNullValues ? ',"discount":null' : ''}}`
+)}
  {(config.fileFormat === 'XML' || config.fileFormat === 'TEXT' || !config.fileFormat) &&
  'Sample data based on selected format will appear here'
  }
@@ -472,5 +470,4 @@ export const FileFormatTab: FC<FileFormatTabProps> = ({ config, onChange }) => {
  </Card>
  </div>
  );
-};`
-}}
+};
