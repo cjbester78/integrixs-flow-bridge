@@ -62,7 +62,7 @@ export const packageService = {
  }
  queryParams.append('page', (params.page || 0).toString());
  queryParams.append('size', (params.size || 20).toString());
-`
+
  const response = await apiClient.get(`${API_PREFIX}/search?${queryParams.toString()}`);
  return response;
  },
@@ -75,7 +75,7 @@ export const packageService = {
  });
 
 
- const response = await apiClient.post(;`;
+ const response = await apiClient.post(
  `${API_PREFIX}/${packageId}/components?${params.toString()}`,
  data.configuration || {}
  );
@@ -84,8 +84,8 @@ export const packageService = {
 
  // Remove a component from a package
  removeComponent: async (packageId: string, componentId: string) => {
- const response = await apiClient.delete(;`;
- ${API_PREFIX}/${packageId}/components/${componentId}`
+ const response = await apiClient.delete(
+ `${API_PREFIX}/${packageId}/components/${componentId}`
  );
  return response;
  },

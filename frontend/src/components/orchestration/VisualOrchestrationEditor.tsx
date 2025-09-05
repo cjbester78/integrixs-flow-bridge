@@ -120,7 +120,7 @@ const createInitialNodes = (): Node[] => [
  type: 'start-process',
  position: { x: 100, y: 200 },
  data: {
- senderComponent: ',
+ senderComponent: '',
  inboundAdapter: '',
  isAsync: true,
  configured: false,

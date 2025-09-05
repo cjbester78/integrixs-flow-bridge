@@ -90,7 +90,7 @@ export const flowExportImportService = {
  const formData = new FormData();
  formData.append('file', file);
 
- const response = await api.post<FlowImportValidationDTO>(;
+ const response = await api.post<FlowImportValidationDTO>(
  '/flows/export-import/import/validate/file',
  formData,
  {

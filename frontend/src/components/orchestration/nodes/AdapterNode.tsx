@@ -40,12 +40,12 @@ const getAdapterIcon = (type: string) => {
 const getAdapterName = (type: string) => {
  if (type === 'start-process') return 'Start Process';
  return type.split('-').map(word =>
- word.charAt(0).toUpperCase() + word.slice(1);
+ word.charAt(0).toUpperCase() + word.slice(1)
  ).join(' ');
 };
 
 export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) => {
- logger.info(LogCategory.UI, [AdapterNode] Rendering node: { id, data });
+ logger.info(LogCategory.UI, '[AdapterNode] Rendering node:' , { id, data });
  const [configOpen, setConfigOpen] = useState(false);
  const { setNodes, setEdges } = useReactFlow();
  const [sourceBusinessComponent, setSourceBusinessComponent] = useState(data.adapterConfig?.sourceBusinessComponent || '');
@@ -58,13 +58,6 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  const Icon = getAdapterIcon(data.adapterType);
  const adapterName = getAdapterName(data.adapterType);
  const isConfigured = data.adapterConfig && Object.keys(data.adapterConfig).length > 0;
-;
- logger.info(LogCategory.UI, 'Debug info', { message: 'AdapterNode', data: Node state: id,
- adapterType: data.adapterType,
- adapterName,
- isConfigured,
- configOpen );
- })
 
  const handleDelete = () => {
  setNodes((nodes) => nodes.filter((node) => node.id !== id));
@@ -73,7 +66,7 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
 
  return (
  <>
- <Card className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group">;
+ <Card className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group">
  {/* Delete button - only visible on click */}
  {data.showDeleteButton && (
  <Button
@@ -104,13 +97,16 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  variant="outline"
  className="w-full bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
  onClick={(e) => {
- logger.info(LogCategory.UI, [AdapterNode] Configure button clicked: { id, adapterType: data.adapterType });
+ logger.info(LogCategory.UI, '[AdapterNode] Configure button clicked:' , { id, adapterType: data.adapterType });
  e.stopPropagation();
  e.preventDefault();
  try {
  setConfigOpen(true);
- logger.info(LogCategory.UI, '[AdapterNode] Dialog opened successfully'); } catch (error) {
-)}}
+                logger.info(LogCategory.UI, '[AdapterNode] Dialog opened successfully'); 
+              } catch (error) {
+                logger.error(LogCategory.UI, '[AdapterNode] Error opening dialog:', error);
+              }
+            }}
  onMouseDown={(e) => {
  logger.info(LogCategory.UI, '[AdapterNode] Configure button mousedown');
  e.stopPropagation();
@@ -148,14 +144,6 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  </DialogHeader>
  <div className="mt-4">
  {(() => {
- logger.info(LogCategory.UI, 'Debug info', { data: [AdapterNode] Rendering AdapterConfigurationCard with props: {
- adapters: [{
- id: data.adapterType,
- name: adapterName,);
- category: data.adapterType.split('-')[0].toUpperCase( })
- }],
- inboundAdapter: data.adapterType
- });
  return (
  <AdapterConfigurationCard
  adapters={[{
@@ -171,27 +159,27 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  inboundAdapterActive={inboundAdapterActive}
  outboundAdapterActive={outboundAdapterActive}
  onSourceBusinessComponentChange={(value) => {
- logger.info(LogCategory.UI, [AdapterNode] Source business component changed: { data: value });
+ logger.info(LogCategory.UI, '[AdapterNode] Source business component changed:' , { data: value });
  setSourceBusinessComponent(value);
  }}
  onTargetBusinessComponentChange={(value) => {
- logger.info(LogCategory.UI, [AdapterNode] Target business component changed: { data: value });
+ logger.info(LogCategory.UI, '[AdapterNode] Target business component changed:' , { data: value });
  setTargetBusinessComponent(value);
  }}
  onInboundAdapterChange={(value) => {
- logger.info(LogCategory.UI, [AdapterNode] Source adapter changed: { data: value });
+ logger.info(LogCategory.UI, '[AdapterNode] Source adapter changed:' , { data: value });
  setInboundAdapter(value);
  }}
  onOutboundAdapterChange={(value) => {
- logger.info(LogCategory.UI, [AdapterNode] Target adapter changed: { data: value });
+ logger.info(LogCategory.UI, '[AdapterNode] Target adapter changed:' , { data: value });
  setOutboundAdapter(value);
  }}
  onInboundAdapterActiveChange={(active) => {
- logger.info(LogCategory.UI, [AdapterNode] Source adapter active changed: { data: active });
+ logger.info(LogCategory.UI, '[AdapterNode] Source adapter active changed:' , { data: active });
  setInboundAdapterActive(active);
  }}
  onOutboundAdapterActiveChange={(active) => {
- logger.info(LogCategory.UI, [AdapterNode] Target adapter active changed: { data: active });
+ logger.info(LogCategory.UI, '[AdapterNode] Target adapter active changed:' , { data: active });
  setOutboundAdapterActive(active);
  }}
  />
@@ -203,4 +191,3 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  </>
  );
 };
-})

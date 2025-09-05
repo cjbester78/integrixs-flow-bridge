@@ -1,10 +1,10 @@
-import { api } from './api';
+import { api } from './api';'
 import { FieldNode } from '@/components/fieldMapping/types';
 
 export interface WebserviceStructure {
  id: string;
  name: string;
- type: string;
+ type: string,
  path: string;
  expanded?: boolean;
  children?: WebserviceStructure[];
@@ -14,18 +14,18 @@ export interface WebserviceFile {
  id: string;
  name: string;
  uploadDate: string;
- size: string;
+ size: string,
  businessComponentId: string;
 }
 
 class WebserviceService {
  async getWebserviceFiles(businessComponentId?: string): Promise<{ success: boolean; data?: WebserviceFile[]; error?: string }> {
- try {
+ try {'
  const endpoint = businessComponentId ? `/webservices?businessComponentId=${businessComponentId}` : '/webservices';
  return await api.get<WebserviceFile[]>(endpoint);
  } catch (error) {
  return {
- success: false,
+ success: false,'
  error: error instanceof Error ? error.message : 'Failed to fetch webservice files'
  };
  }
@@ -36,7 +36,7 @@ class WebserviceService {
  return await api.get<FieldNode[]>(`/webservices/${encodeURIComponent(filename)}/structure`);
  } catch (error) {
  return {
- success: false,
+ success: false,'
  error: error instanceof Error ? error.message : 'Failed to fetch webservice structure'
 }
  }
@@ -44,11 +44,11 @@ class WebserviceService {
 
  async uploadWebservice(file: File, businessComponentId: string): Promise<{ success: boolean; data?: WebserviceFile; error?: string }> {
  try {
- const formData = new FormData();
- formData.append('file', file);
+ const formData = new FormData();'
+ formData.append('file', file);'
  formData.append('businessComponentId', businessComponentId);
-`
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/webservices/upload`, {
+`'
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/webservices/upload`, {'
  method: 'POST',
  body: formData,
  });
@@ -66,7 +66,7 @@ class WebserviceService {
  }
 } catch (error) {
  return {
- success: false,
+ success: false,'
  error: error instanceof Error ? error.message : 'Failed to upload webservice'
 }
  }
@@ -79,12 +79,12 @@ class WebserviceService {
  return { success: true }
 } catch (error) {
  return {
- success: false,
+ success: false,'
  error: error instanceof Error ? error.message : 'Failed to delete webservice'
 }
  }
 }
  }
 }
-
+'
 export const webserviceService = new WebserviceService();`

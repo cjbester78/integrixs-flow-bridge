@@ -115,7 +115,7 @@ export const TransformationConfigurationCard = ({
  };
 
  return (
- <>;
+ <>
  <Card className="animate-scale-in" style={{ animationDelay: '0.2s' }}>
  <CardHeader>
  <CardTitle>Data Transformations</CardTitle>
@@ -234,11 +234,11 @@ export const TransformationConfigurationCard = ({
  <div>
  <Label htmlFor="javaFunction">Java Function Code</Label>
  <Textarea
- id="javaFunction"`
+ id="javaFunction"
  placeholder={`// Example: Transform source data to target field
 public Object transform(Object sourceValue) {
  // Your custom transformation logic here
- return sourceValue.toString().toUpperCase();`
+ return sourceValue.toString().toUpperCase();
 }`}
  value={javaFunction}
  onChange={(e) => onJavaFunctionChange(e.target.value)}
@@ -265,5 +265,4 @@ public Object transform(Object sourceValue) {
  )}
  </>
  );
-};`
-})
+};

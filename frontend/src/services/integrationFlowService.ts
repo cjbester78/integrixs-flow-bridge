@@ -49,4 +49,5 @@ const response = await apiClient.post<IntegrationFlow>(API_PREFIX, data);
   // Handle error
   throw error;
  }
+}
 };

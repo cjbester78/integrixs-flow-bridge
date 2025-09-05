@@ -47,13 +47,13 @@ class JarFileService {
  }
 
  // Update JAR file
- async updateJarFile(jarFileId: string, updates: Partial<UpdateJarFileRequest>): Promise<ApiResponse<JarFile>> {`
+ async updateJarFile(jarFileId: string, updates: Partial<UpdateJarFileRequest>): Promise<ApiResponse<JarFile>> {
  return api.put<JarFile>(`/jar-files/${jarFileId}`, updates);
  }
 
  // Delete JAR file
- async deleteJarFile(jarFileId: string): Promise<ApiResponse<void>> {`
- return api.delete(/jar-files/${jarFileId}`);
+ async deleteJarFile(jarFileId: string): Promise<ApiResponse<void>> {
+ return api.delete(`/jar-files/${jarFileId}`);
  }
 
  // Upload JAR file
@@ -76,11 +76,11 @@ class JarFileService {
  headers: {
  'Content-Type': 'multipart/form-data'
  }
- })
+ });
  }
 
  // Download JAR file
- async downloadJarFile(jarFileId: string): Promise<Blob> {`
+ async downloadJarFile(jarFileId: string): Promise<Blob> {
  const response = await fetch(`${api.baseURL}/jar-files/${jarFileId}/download`, {
  method: 'GET',
  headers: api.getAuthHeaders()

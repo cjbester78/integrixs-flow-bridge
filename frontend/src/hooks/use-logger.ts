@@ -14,8 +14,7 @@ export const useComponentLogger = (componentName: string, props?: Record<string,
  renderCount.current++;
 
  // Log component mount
- logger.debug(LogCategory.UI, `Component mounted: ${componentName}`, { props: props, renderCount: renderCount.current);
- });
+ logger.debug(LogCategory.UI, `Component mounted: ${componentName}`, { props: props, renderCount: renderCount.current });
 
  return () => {
  // Log component unmount with lifetime

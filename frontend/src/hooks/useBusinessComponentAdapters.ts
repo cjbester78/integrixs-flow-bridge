@@ -52,8 +52,9 @@ const response = await adapterMonitoringService.getAdapters(businessComponentId)
  }
  } catch (error) {
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error getting adapters for business component', { error: error });
- return [];
  }
+ return [];
+ };
 
  const getStructuresForBusinessComponent = async (businessComponentId: string) => {
  try {
@@ -84,6 +85,7 @@ const response = await adapterMonitoringService.getAdapters(businessComponentId)
  logger.error(LogCategory.BUSINESS_LOGIC, 'Error getting structures for business component', { error: error });
  return [];
  }
+ };
 
  return {
  businessComponents,

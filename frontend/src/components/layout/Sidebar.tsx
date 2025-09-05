@@ -185,7 +185,7 @@ return navigation.filter(item => {
  isActive
  ? "bg-primary text-primary-foreground shadow-elegant"
  : "text-muted-foreground hover:text-foreground"
- );
+ )
  }
  >
  <item.icon className={cn(

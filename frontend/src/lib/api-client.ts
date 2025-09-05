@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
-// Removed logger import to avoid circular dependency
+import { logger, LogCategory } from '@/lib/logger';
 
 /**
  * API error type with consistent structure
@@ -68,7 +68,7 @@ import { logger, LogCategory } from '@/lib/logger';
  (config) => {
  // Get token from localStorage (where authService stores it)
  const token = localStorage.getItem('integration_platform_token');
-;
+
  logger.info(LogCategory.API, 'API Request - Token present', { data: !!token });
  if (token && !(config as ApiRequestConfig).skipAuth) {
  config.headers.Authorization = `Bearer ${token}`;
@@ -103,16 +103,16 @@ import { logger, LogCategory } from '@/lib/logger';
  this.client.interceptors.response.use(
  (response) => {
  // Logger removed to avoid circular dependency
- logger.info(LogCategory.API, 'API Response: ${response.config.method?.toUpperCase(); ${response.config.url} - ${response.status}')
+ logger.info(LogCategory.API, `API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`)
  return response;
  },
  async (error: AxiosError<ApiError>) => {
  const originalRequest = error.config as ApiRequestConfig;
-;
+
  // Handle 401 Unauthorized
  if (error.response?.status === 401 && !originalRequest.skipAuth) {
  const refreshToken = localStorage.getItem('integration_platform_refresh_token');
-;
+
  // Try to refresh token
  if (refreshToken && !originalRequest.url?.includes('/refresh')) {
  try {
@@ -274,4 +274,4 @@ import { logger, LogCategory } from '@/lib/logger';
 export const apiClient = new ApiClient();
 
 // Export types
-export type { AxiosError as ApiClientError };`
+export type { AxiosError as ApiClientError };

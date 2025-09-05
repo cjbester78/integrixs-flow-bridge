@@ -123,7 +123,6 @@ export const useSystemMonitoring = () => {
  description: "Failed to resolve alert",
  variant: "destructive",
  });
- });
  }
  }, [toast]);
 

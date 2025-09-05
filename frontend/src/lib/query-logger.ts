@@ -11,22 +11,22 @@ export const createQueryCacheWithLogging = () => {
  queryKey: query.queryKey,
  queryHash: query.queryHash,
  state: query.state.status
- })
+ });
  },
  onSuccess: (data, query) => {
- logger.debug(LogCategory.API, 'Query success', { data: {
+ logger.debug(LogCategory.API, 'Query success', {
  queryKey: query.queryKey, queryHash: query.queryHash,
  dataType: Array.isArray(data) ? 'array' : typeof data,
  recordCount: Array.isArray(data) ? data.length : undefined
- })
+ });
  },
  onSettled: (data, error, query) => {
  const duration = Date.now() - (query.state.dataUpdatedAt || 0);
-;
+
  logger.debug(LogCategory.PERFORMANCE, 'Query completed', { queryKey: query.queryKey, duration,
  success: !error,
- fromCache: query.state.dataUpdateCount === 0);
- })
+ fromCache: query.state.dataUpdateCount === 0
+ });
  }
  })
 };
@@ -39,22 +39,22 @@ export const createMutationCacheWithLogging = () => {
  onError: (error, variables, context, mutation) => {
  logger.error(LogCategory.API, 'Mutation error', error, { mutationKey: mutation.options.mutationKey,
   variables: variables,
- mutationId: mutation.mutationId);
- })
+ mutationId: mutation.mutationId
+ });
  },
  onSuccess: (data, variables, context, mutation) => {
  logger.info(LogCategory.API, 'Mutation success', { mutationKey: mutation.options.mutationKey, variables,
  mutationId: mutation.mutationId,
- dataType: typeof data);
- })
+ dataType: typeof data
+ });
  },
  onSettled: (data, error, variables, context, mutation) => {
  const duration = Date.now() - mutation.state.submittedAt;
-;
+
  logger.debug(LogCategory.PERFORMANCE, 'Mutation completed', { mutationKey: mutation.options.mutationKey, duration,
  success: !error,
- mutationId: mutation.mutationId);
- })
+ mutationId: mutation.mutationId
+ });
  }
  })
 };
@@ -67,7 +67,7 @@ export const setupQueryClientLogging = (queryClient: any) => {
  const originalInvalidateQueries = queryClient.invalidateQueries.bind(queryClient);
  queryClient.invalidateQueries = (filters?: any) => {
  logger.debug(LogCategory.API, 'Invalidating queries', { queryKey: filters?.queryKey, exact: filters?.exact,
- refetchType: filters?.refetchType);
+ refetchType: filters?.refetchType
  });
  return originalInvalidateQueries(filters);
  };
@@ -75,7 +75,7 @@ export const setupQueryClientLogging = (queryClient: any) => {
  // Log when queries are removed
  const originalRemoveQueries = queryClient.removeQueries.bind(queryClient);
  queryClient.removeQueries = (filters?: any) => {
- logger.debug(LogCategory.API, 'Removing queries', { queryKey: filters?.queryKey, exact: filters?.exact);
+ logger.debug(LogCategory.API, 'Removing queries', { queryKey: filters?.queryKey, exact: filters?.exact
  });
  return originalRemoveQueries(filters);
  };
@@ -83,11 +83,10 @@ export const setupQueryClientLogging = (queryClient: any) => {
  // Log when data is set in cache
  const originalSetQueryData = queryClient.setQueryData.bind(queryClient);
  queryClient.setQueryData = (queryKey: any, updater: any) => {
- logger.debug(LogCategory.API, 'Setting query data', { queryKey, updaterType: typeof updater);
+ logger.debug(LogCategory.API, 'Setting query data', { queryKey, updaterType: typeof updater
  });
  return originalSetQueryData(queryKey, updater);
  };
 
  return queryClient;
 };
-}

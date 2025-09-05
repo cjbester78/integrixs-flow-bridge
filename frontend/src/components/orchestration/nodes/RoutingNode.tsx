@@ -51,10 +51,9 @@ export const RoutingNode: React.FC<RoutingNodeProps> = ({ id, data, selected }) 
  };
 
  const isConfigured = data.conditions && data.conditions.length > 0;
-;
  return (
  <>
- <Card className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group">;
+ <Card className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group">
  {/* Delete button - only visible on click */}
  {data.showDeleteButton && (
  <Button
@@ -237,4 +236,3 @@ export const RoutingNode: React.FC<RoutingNodeProps> = ({ id, data, selected }) 
  </>
  );
 };
-}}})

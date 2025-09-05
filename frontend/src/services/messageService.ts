@@ -86,14 +86,14 @@ class MessageService {
  }
  })
  }
-`
+
  const endpoint = `/messages/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // Reprocess a failed message
- async reprocessMessage(id: string): Promise<ApiResponse<Message>> {`
- return api.post<Message>(/messages/${id}/reprocess`);
+ async reprocessMessage(id: string): Promise<ApiResponse<Message>> {
+ return api.post<Message>(`/messages/${id}/reprocess`);
  }
 
  // Get messages for a specific businessComponent
@@ -108,10 +108,10 @@ class MessageService {
  queryParams.append(key, value.toString());
  }
  }
- })
+ });
  }
-`
- const endpoint = `/business-components/${businessComponentId}/messages${queryParams.toString() ? `?${queryParams.toString()}` : '}`;
+
+ const endpoint = `/business-components/${businessComponentId}/messages${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 

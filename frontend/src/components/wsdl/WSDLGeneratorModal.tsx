@@ -60,8 +60,8 @@ interface WsdlGenerationResponse {
 }
 
 export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps) {
- const [mode, setMode] = useState<$1>('SOURCE');
- const [type, setType] = useState<$1>('SYNCHRONOUS');
+ const [mode, setMode] = useState<'SOURCE' | 'TARGET'>('SOURCE');
+ const [type, setType] = useState<'SYNCHRONOUS' | 'ASYNCHRONOUS'>('SYNCHRONOUS');
  const [requestStructureId, setRequestStructureId] = useState('');
  const [responseStructureId, setResponseStructureId] = useState('');
  const [faultStructureId, setFaultStructureId] = useState('');
@@ -144,7 +144,7 @@ export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps)
  const response = await apiClient.get(`/wsdl/preview/${generatedWsdl.wsdlId}`, {
  responseType: 'text',
  });
- setPreviewContent((response as any).data || ');
+ setPreviewContent((response as any).data || '');
  setShowPreview(true);
  } catch (error) {
  toast({ title: "Error", description: 'Failed to preview WSDL', variant: "destructive" });
@@ -155,8 +155,8 @@ export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps)
  if (!generatedWsdl) return;
 
  // Create a download link
- const link = document.createElement('a');`;
- link.href = /api${generatedWsdl.downloadUrl}`;`
+ const link = document.createElement('a');
+ link.href = `/api${generatedWsdl.downloadUrl}`;
  link.download = `${serviceName}.wsdl`;
  document.body.appendChild(link);
  link.click();
@@ -230,7 +230,7 @@ export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps)
  </SelectTrigger>
  <SelectContent>
  {structures.map((structure: any) => (
- <SelectItem key={structure.id} value={structure.id}>`
+ <SelectItem key={structure.id} value={structure.id}>
  {structure.name} {structure.description && `- ${structure.description}`}
  </SelectItem>
  ))}
@@ -247,7 +247,7 @@ export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps)
  </SelectTrigger>
  <SelectContent>
  {structures.map((structure: any) => (
- <SelectItem key={structure.id} value={structure.id}>`
+ <SelectItem key={structure.id} value={structure.id}>
  {structure.name} {structure.description && `- ${structure.description}`}
  </SelectItem>
  ))}
@@ -265,7 +265,7 @@ export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps)
  <SelectContent>
  <SelectItem value="">None</SelectItem>
  {structures.map((structure: any) => (
- <SelectItem key={structure.id} value={structure.id}>`
+ <SelectItem key={structure.id} value={structure.id}>
  {structure.name} {structure.description && `- ${structure.description}`}
  </SelectItem>
  ))}
@@ -368,4 +368,4 @@ export function WSDLGeneratorModal({ isOpen, onClose }: WSDLGeneratorModalProps)
  </Dialog>
  </>
  );
-}`))
+}

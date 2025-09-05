@@ -138,7 +138,6 @@ export const Settings = () => {
  description: "Failed to change password",
  variant: "destructive",
  });
- });
  } finally {
  setIsSaving(false);
  }
@@ -203,7 +202,7 @@ export const Settings = () => {
  <Input
  id="lastName"
  value={profile.lastName}
- onChange={(e) => setProfile({...profile, lastName: e.target.value})
+ onChange={(e) => setProfile({...profile, lastName: e.target.value})}
  placeholder="Enter last name"
  />
  </div>
@@ -213,7 +212,7 @@ export const Settings = () => {
  id="email"
  type="email"
  value={profile.email}
- onChange={(e) => setProfile({...profile, email: e.target.value})
+ onChange={(e) => setProfile({...profile, email: e.target.value})}
  placeholder="Enter email"
  />
  </div>
@@ -222,7 +221,7 @@ export const Settings = () => {
  <Input
  id="phone"
  value={profile.phone}
- onChange={(e) => setProfile({...profile, phone: e.target.value})
+ onChange={(e) => setProfile({...profile, phone: e.target.value})}
  placeholder="Enter phone number"
  />
  </div>
@@ -231,7 +230,7 @@ export const Settings = () => {
  <Input
  id="department"
  value={profile.department}
- onChange={(e) => setProfile({...profile, department: e.target.value})
+ onChange={(e) => setProfile({...profile, department: e.target.value})}
  placeholder="Enter department"
  />
  </div>
@@ -240,7 +239,7 @@ export const Settings = () => {
  <Input
  id="title"
  value={profile.title}
- onChange={(e) => setProfile({...profile, title: e.target.value})
+ onChange={(e) => setProfile({...profile, title: e.target.value})}
  placeholder="Enter job title"
  />
  </div>
@@ -311,7 +310,7 @@ export const Settings = () => {
  <Label htmlFor="timezone">Timezone</Label>
  <Select
  value={preferences.timezone}
- onValueChange={(value) => setPreferences({...preferences, timezone: value})
+ onValueChange={(value) => setPreferences({...preferences, timezone: value})}
  >
  <SelectTrigger>
  <SelectValue />
@@ -332,7 +331,7 @@ export const Settings = () => {
  <Label htmlFor="dateFormat">Date Format</Label>
  <Select
  value={preferences.dateFormat}
- onValueChange={(value) => setPreferences({...preferences, dateFormat: value})
+ onValueChange={(value) => setPreferences({...preferences, dateFormat: value})}
  >
  <SelectTrigger>
  <SelectValue />
@@ -348,7 +347,7 @@ export const Settings = () => {
  <Label htmlFor="timeFormat">Time Format</Label>
  <Select
  value={preferences.timeFormat}
- onValueChange={(value) => setPreferences({...preferences, timeFormat: value})
+ onValueChange={(value) => setPreferences({...preferences, timeFormat: value})}
  >
  <SelectTrigger>
  <SelectValue />
@@ -440,7 +439,7 @@ export const Settings = () => {
  <Switch
  id="emailNotifications"
  checked={preferences.emailNotifications}
- onCheckedChange={(checked) => setPreferences({...preferences, emailNotifications: checked})
+ onCheckedChange={(checked) => setPreferences({...preferences, emailNotifications: checked})}
  />
  </div>
  <div className="flex items-center justify-between">
@@ -453,7 +452,7 @@ export const Settings = () => {
  <Switch
  id="browserNotifications"
  checked={preferences.browserNotifications}
- onCheckedChange={(checked) => setPreferences({...preferences, browserNotifications: checked})
+ onCheckedChange={(checked) => setPreferences({...preferences, browserNotifications: checked})}
  />
  </div>
  <div className="flex items-center justify-between">
@@ -466,7 +465,7 @@ export const Settings = () => {
  <Switch
  id="soundAlerts"
  checked={preferences.soundAlerts}
- onCheckedChange={(checked) => setPreferences({...preferences, soundAlerts: checked})
+ onCheckedChange={(checked) => setPreferences({...preferences, soundAlerts: checked})}
  />
  </div>
  </div>
@@ -515,7 +514,7 @@ export const Settings = () => {
  id="newPassword"
  type="password"
  value={passwordForm.newPassword}
- onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})
+ onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
  placeholder="Enter new password"
  />
  </div>
@@ -525,7 +524,7 @@ export const Settings = () => {
  id="confirmPassword"
  type="password"
  value={passwordForm.confirmPassword}
- onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})
+ onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
  placeholder="Confirm new password"
  />
  </div>

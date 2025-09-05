@@ -48,8 +48,8 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  setAdapters(mockAdapters);
  } catch (error) {
  logger.error(LogCategory.UI, 'Error loading adapters', { error: error });
- };
-
+ }
+    };
  loadAllAdapters();
  }, [availableAdapters]);
 
@@ -76,10 +76,9 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  setInboundComponent(value);
  // Reset adapter if it's not compatible with new component
  const newAvailableAdapters = await getAdaptersForBusinessComponent(value);
- const validAdapter = newAvailableAdapters.includes(inboundAdapter) ? inboundAdapter : ';
-;
+ const validAdapter = newAvailableAdapters.includes(inboundAdapter) ? inboundAdapter : '';
  if (!newAvailableAdapters.includes(inboundAdapter)) {
- setInboundAdapter(');
+ setInboundAdapter(''));
  }
 
  data.onConfigChange({
@@ -112,7 +111,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
 
  return (
  <>
- <Card className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group">;
+ <Card className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group">
  {/* Delete button - only visible on click */}
  {data.showDeleteButton && (
  <Button
@@ -204,7 +203,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  <SelectContent>
  {availableAdapters.map((adapterId) => {
  const adapter = adapters.find((a) => a.id === adapterId);
- return adapter ? (;
+ return adapter ? (
  <SelectItem key={adapter.id} value={adapter.id}>
  {adapter.name}
  </SelectItem>
@@ -213,7 +212,7 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  {adapterId}
  </SelectItem>
  );
- })
+ })}
  </SelectContent>
  </Select>
  </div>

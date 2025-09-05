@@ -40,18 +40,18 @@ class RoleService {
  }
 
  // Delete role
- async deleteRole(roleId: string): Promise<ApiResponse<void>> {`
- return api.delete(/roles/${roleId}`);
+ async deleteRole(roleId: string): Promise<ApiResponse<void>> {
+ return api.delete(`/roles/${roleId}`);
  }
 
  // Add permission to role
- async addPermission(roleId: string, permission: string): Promise<ApiResponse<Role>> {`
- return api.post<Role>(`/roles/${roleId}/permissions`, { permission })
+ async addPermission(roleId: string, permission: string): Promise<ApiResponse<Role>> {
+ return api.post<Role>(`/roles/${roleId}/permissions`, { permission });
  }
 
  // Remove permission from role
- async removePermission(roleId: string, permission: string): Promise<ApiResponse<Role>> {`
- return api.delete(/roles/${roleId}/permissions/${permission}`);
+ async removePermission(roleId: string, permission: string): Promise<ApiResponse<Role>> {
+ return api.delete(`/roles/${roleId}/permissions/${permission}`);
  }
 
  // Update role permissions

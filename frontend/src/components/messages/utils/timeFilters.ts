@@ -42,7 +42,7 @@ export const filterMessagesByTime = (messages: Message[], filter: TimeFilter): M
  }
 
  case 'all':
- 'default':
+ default:
  return messages;
  }
 };
@@ -50,13 +50,13 @@ export const filterMessagesByTime = (messages: Message[], filter: TimeFilter): M
 export const getFilterDescription = (timeFilter: TimeFilter, messageCount: number): string => {
  if (timeFilter === 'today') {
  return `${messageCount} messages today`;
- } else if (timeFilter === 'yesterday') {`
+ } else if (timeFilter === 'yesterday') {
  return `${messageCount} messages yesterday`;
- } else if (timeFilter === 'last-7-days') {`
+ } else if (timeFilter === 'last-7-days') {
  return `${messageCount} messages in last 7 days`;
- } else if (timeFilter === 'last-30-days') {`
+ } else if (timeFilter === 'last-30-days') {
  return `${messageCount} messages in last 30 days`;
- } else {`
+ } else {
  return `${messageCount} messages total`;
  }
-};`
+};

@@ -109,7 +109,7 @@ interface WizardData {
  // Orchestration specific
  orchestrationTargets?: Array<{
  adapterName: string;
- adapterType: AdapterType | ';
+ adapterType: AdapterType | '';
  adapterConfig: any;
  structure?: any;
  mapping?: any[];
@@ -138,7 +138,7 @@ export default function PackageCreationWizard({
  existingPackage
 }: PackageCreationWizardProps) {
  const { toast } = useToast();
- const [currentStep, setCurrentStep] = useState<$1>('package-info');
+ const [currentStep, setCurrentStep] = useState<WizardStep>('package-info');
  const [isLoading, setIsLoading] = useState(false);
  const [isSaving, setIsSaving] = useState(false);
  const [convertingStructures, setConvertingStructures] = useState(false);
@@ -146,21 +146,21 @@ export default function PackageCreationWizard({
  const [selectedTargetIndex, setSelectedTargetIndex] = useState<number | null>(null);
 
  const [wizardData, setWizardData] = useState<WizardData>({
- packageName: ',
+ packageName: '',
  packageDescription: '',
  transformationRequired: true,
  syncType: 'ASYNCHRONOUS',
- sourceNamespace: ',
+ sourceNamespace: '',
  targetNamespace: '',
- flowType: ',
+ flowType: '',
  inboundAdapterName: '',
- inboundAdapterType: ',
+ inboundAdapterType: '',
  inboundAdapterConfig: {},
  outboundAdapterName: '',
- outboundAdapterType: ',
+ outboundAdapterType: '',
  outboundAdapterConfig: {},
  flowName: '',
- flowDescription: ',
+ flowDescription: '',
  orchestrationTargets: []
  });
 
@@ -207,7 +207,7 @@ export default function PackageCreationWizard({
  } else if (wizardData.flowType === 'ORCHESTRATION') {
  // Orchestration flow steps
  // Source adapter (single)
- steps.push('source-adapter');
+ steps.push('source-adapter')
  if (wizardData.inboundAdapterType === 'SOAP') {
  steps.push('source-flow-structure');
  } else if (wizardData.transformationRequired) {
@@ -234,7 +234,6 @@ export default function PackageCreationWizard({
  const handleNext = () => {
  const steps = getStepSequence();
  const currentIndex = steps.indexOf(currentStep);
-;
  if (currentIndex < steps.length - 1) {
  setCurrentStep(steps[currentIndex + 1]);
  }
@@ -243,7 +242,6 @@ export default function PackageCreationWizard({
  const handleBack = () => {
  const steps = getStepSequence();
  const currentIndex = steps.indexOf(currentStep);
-;
  if (currentIndex > 0) {
  setCurrentStep(steps[currentIndex - 1]);
  }
@@ -254,7 +252,7 @@ export default function PackageCreationWizard({
  return {
  current: steps.indexOf(currentStep) + 1,
  total: steps.length
- }
+ };
 };
 
  const handleCreatePackage = async () => {
@@ -272,7 +270,7 @@ export default function PackageCreationWizard({
  };
 
  const packageResponse = await packageService.createPackage(packageData);
-;
+
  let packageId: string;
  if (isApiResponse<IntegrationPackage>(packageResponse)) {
  if (!packageResponse.success || !packageResponse.data) {
@@ -347,8 +345,8 @@ export default function PackageCreationWizard({
 
  if (wizardData.inboundAdapterType === 'SOAP' && wizardData.sourceFlowStructure) {
  // Create source flow structure
- const structureResponse = await dataStructureService.createStructure({`;
- name: ${wizardData.packageName}_Source_Flow`,
+ const structureResponse = await dataStructureService.createStructure({
+ name: `${wizardData.packageName}_Source_Flow`,
  type: 'wsdl',
  content: wizardData.sourceFlowStructure,
  packageId
@@ -358,7 +356,7 @@ export default function PackageCreationWizard({
  }
  } else if (wizardData.transformationRequired && wizardData.sourceMessageStructure) {
  // Create source message structure
- const structureResponse = await dataStructureService.createStructure({`;
+ const structureResponse = await dataStructureService.createStructure({
  name: `${wizardData.packageName}_Source_Message`,
  type: 'json',
  content: wizardData.sourceMessageStructure,
@@ -377,11 +375,11 @@ export default function PackageCreationWizard({
  for (let i = 0; i < (wizardData.orchestrationTargets?.length || 0); i++) {
  const target = wizardData.orchestrationTargets![i];
  const adapterId = outboundAdapterIds[i];
-;
+
  if (target.structure) {
  const structureType = target.adapterType === 'SOAP' ? 'wsdl' : 'json';
- const structureResponse = await dataStructureService.createStructure({`;
- name: ${wizardData.packageName}_${target.adapterName}_Structure`,
+ const structureResponse = await dataStructureService.createStructure({
+ name: `${wizardData.packageName}_${target.adapterName}_Structure`,
  type: structureType,
  content: target.structure,
  packageId
@@ -399,7 +397,7 @@ export default function PackageCreationWizard({
  // Direct integration flow - single target
  if (wizardData.outboundAdapterType === 'SOAP' && wizardData.targetFlowStructure) {
  // Create target flow structure
- const structureResponse = await dataStructureService.createStructure({`;
+ const structureResponse = await dataStructureService.createStructure({
  name: `${wizardData.packageName}_Target_Flow`,
  type: 'wsdl',
  content: wizardData.targetFlowStructure,
@@ -410,8 +408,8 @@ export default function PackageCreationWizard({
  }
  } else if (wizardData.transformationRequired && wizardData.targetMessageStructure) {
  // Create target message structure
- const structureResponse = await dataStructureService.createStructure({`;
- name: ${wizardData.packageName}_Target_Message`,
+ const structureResponse = await dataStructureService.createStructure({
+ name: `${wizardData.packageName}_Target_Message`,
  type: 'json',
  content: wizardData.targetMessageStructure,
  packageId
@@ -424,7 +422,7 @@ export default function PackageCreationWizard({
 
  if (wizardData.syncType === 'SYNCHRONOUS' && wizardData.transformationRequired && wizardData.responseStructure) {
  // Create response structure
- const structureResponse = await dataStructureService.createStructure({`;
+ const structureResponse = await dataStructureService.createStructure({
  name: `${wizardData.packageName}_Response`,
  type: 'json',
  content: wizardData.responseStructure,
@@ -443,7 +441,7 @@ export default function PackageCreationWizard({
  type: flowType,
  isActive: true,
  inboundAdapterId: inboundAdapterResponse.data.id,
- outboundAdapterId: outboundAdapterResponse?.data?.id || ',
+ outboundAdapterId: outboundAdapterResponse?.data?.id || '',
  sourceStructureId,
  targetStructureId,
  responseStructureId,
@@ -455,7 +453,6 @@ export default function PackageCreationWizard({
  }
 
  const flowId = flowResponse.data.id;
-;
  // Create field mappings
  if (wizardData.transformationRequired) {
  if (wizardData.flowType === 'ORCHESTRATION') {
@@ -497,7 +494,7 @@ export default function PackageCreationWizard({
  });
 
  onSuccess();
- }
+ 
 } catch (error) {
  logger.error(LogCategory.UI, 'Error creating package', { error: error });
  toast({
@@ -519,9 +516,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="packageName">Package Name *</Label>
  <Input
- id="packageName";
+ id="packageName"
  value={wizardData.packageName}
- onChange={(e) => setWizardData({ ...wizardData, packageName: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, packageName: e.target.value })}
  placeholder="Enter package name"
  className="mt-1"
  />
@@ -532,7 +529,7 @@ export default function PackageCreationWizard({
  <Textarea
  id="packageDescription"
  value={wizardData.packageDescription}
- onChange={(e) => setWizardData({ ...wizardData, packageDescription: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, packageDescription: e.target.value })}
  placeholder="Enter package description"
  className="mt-1"
  rows={3}
@@ -544,7 +541,7 @@ export default function PackageCreationWizard({
  <RadioGroup
  value={wizardData.transformationRequired.toString()}
  onValueChange={(value) =>
- setWizardData({ ...wizardData, transformationRequired: value === 'true' });
+ setWizardData({ ...wizardData, transformationRequired: value === 'true' })
  }
  >
  <div className="flex items-center space-x-2">
@@ -563,7 +560,7 @@ export default function PackageCreationWizard({
  <RadioGroup
  value={wizardData.syncType}
  onValueChange={(value: 'SYNCHRONOUS' | 'ASYNCHRONOUS') =>
- setWizardData({ ...wizardData, syncType: value });
+ setWizardData({ ...wizardData, syncType: value })
  }
  >
  <div className="flex items-center space-x-2">
@@ -585,7 +582,7 @@ export default function PackageCreationWizard({
  <Input
  id="sourceNamespace"
  value={wizardData.sourceNamespace}
- onChange={(e) => setWizardData({ ...wizardData, sourceNamespace: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, sourceNamespace: e.target.value })}
  placeholder="http://example.com/source"
  className="mt-1"
  />
@@ -595,7 +592,7 @@ export default function PackageCreationWizard({
  <Input
  id="targetNamespace"
  value={wizardData.targetNamespace}
- onChange={(e) => setWizardData({ ...wizardData, targetNamespace: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, targetNamespace: e.target.value })}
  placeholder="http://example.com/target"
  className="mt-1"
  />
@@ -621,10 +618,10 @@ export default function PackageCreationWizard({
  <RadioGroup
  value={wizardData.flowType}
  onValueChange={(value: 'DIRECT_INTEGRATION' | 'ORCHESTRATION') =>
- setWizardData({ ...wizardData, flowType: value });
+ setWizardData({ ...wizardData, flowType: value })
  }
- >`
- <Card className={`cursor-pointer transition-all hover:shadow-md ${wizardData.flowType === 'DIRECT_INTEGRATION' ? 'ring-2 ring-primary shadow-md' : '}`}>
+                >
+                <Card className={`cursor-pointer transition-all hover:shadow-md ${wizardData.flowType === 'DIRECT_INTEGRATION' ? 'ring-2 ring-primary shadow-md' : ''}`}>
  <CardContent className="p-6">
  <div className="flex items-start space-x-4">
  <RadioGroupItem value="DIRECT_INTEGRATION" id="direct-integration" className="mt-1" />
@@ -656,9 +653,7 @@ export default function PackageCreationWizard({
  </div>
  </CardContent>
  </Card>
-`
- <Card className={`cursor-pointer transition-all hover:shadow-md ${wizardData.flowType === 'ORCHESTRATION' ? 'ring-2 ring-primary shadow-md' : '}`}>
- <CardContent className="p-6">
+                <Card className={`cursor-pointer transition-all hover:shadow-md ${wizardData.flowType === 'ORCHESTRATION' ? 'ring-2 ring-primary shadow-md' : ''}`}>
  <div className="flex items-start space-x-4">
  <RadioGroupItem value="ORCHESTRATION" id="orchestration" className="mt-1" />
  <div className="flex-1">
@@ -708,9 +703,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="inboundAdapterName">Adapter Name *</Label>
  <Input
- id="inboundAdapterName";
+ id="inboundAdapterName"
  value={wizardData.inboundAdapterName}
- onChange={(e) => setWizardData({ ...wizardData, inboundAdapterName: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, inboundAdapterName: e.target.value })}
  placeholder="Enter source adapter name"
  className="mt-1"
  />
@@ -748,8 +743,7 @@ export default function PackageCreationWizard({
  try {
  const config = JSON.parse(e.target.value);
  setWizardData({ ...wizardData, inboundAdapterConfig: config });
- }
-} catch (error) {
+  } catch (error) {
  // Invalid JSON, don't update
 }
  }
@@ -777,9 +771,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="sourceFlowWsdl">WSDL Content *</Label>
  <Textarea
- id="sourceFlowWsdl";
+ id="sourceFlowWsdl"
  value={wizardData.sourceFlowStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, sourceFlowStructure: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, sourceFlowStructure: e.target.value })}
  placeholder="Paste your WSDL content here..."
  className="mt-1 font-mono text-sm"
  rows={12}
@@ -803,9 +797,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="sourceMessageJson">JSON Schema *</Label>
  <Textarea
- id="sourceMessageJson";
+ id="sourceMessageJson"
  value={wizardData.sourceMessageStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, sourceMessageStructure: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, sourceMessageStructure: e.target.value })}
  placeholder= '{\n "type": "object",\n "properties": {\n "id": { "type": "string" }\n }\n}'
  className="mt-1 font-mono text-sm"
  rows={12}
@@ -829,9 +823,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="outboundAdapterName">Adapter Name *</Label>
  <Input
- id="outboundAdapterName";
+ id="outboundAdapterName"
  value={wizardData.outboundAdapterName}
- onChange={(e) => setWizardData({ ...wizardData, outboundAdapterName: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, outboundAdapterName: e.target.value })}
  placeholder="Enter target adapter name"
  className="mt-1"
  />
@@ -869,8 +863,7 @@ export default function PackageCreationWizard({
  try {
  const config = JSON.parse(e.target.value);
  setWizardData({ ...wizardData, outboundAdapterConfig: config });
- }
-} catch (error) {
+  } catch (error) {
  // Invalid JSON, don't update
 }
  }
@@ -898,9 +891,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="targetFlowWsdl">WSDL Content *</Label>
  <Textarea
- id="targetFlowWsdl";
+ id="targetFlowWsdl"
  value={wizardData.targetFlowStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, targetFlowStructure: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, targetFlowStructure: e.target.value })}
  placeholder="Paste your WSDL content here..."
  className="mt-1 font-mono text-sm"
  rows={12}
@@ -924,9 +917,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="targetMessageJson">JSON Schema *</Label>
  <Textarea
- id="targetMessageJson";
+ id="targetMessageJson"
  value={wizardData.targetMessageStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, targetMessageStructure: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, targetMessageStructure: e.target.value })}
  placeholder= '{\n "type": "object",\n "properties": {\n "id": { "type": "string" }\n }\n}'
  className="mt-1 font-mono text-sm"
  rows={12}
@@ -950,9 +943,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="responseJson">Response JSON Schema *</Label>
  <Textarea
- id="responseJson";
+ id="responseJson"
  value={wizardData.responseStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, responseStructure: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, responseStructure: e.target.value })}
  placeholder= '{\n "type": "object",\n "properties": {\n "status": { "type": "string" },\n "message": { "type": "string" }\n }\n}'
  className="mt-1 font-mono text-sm"
  rows={12}
@@ -968,9 +961,9 @@ export default function PackageCreationWizard({
  setConvertingStructures(true);
 
  // Get the source and target structures
- let sourceContent = ';
- let targetContent = ';
-;
+ let sourceContent = '';
+ let targetContent = '';
+
  if (wizardData.inboundAdapterType === 'SOAP' && wizardData.sourceFlowStructure) {
  sourceContent = wizardData.sourceFlowStructure;
  } else if (wizardData.sourceMessageStructure) {
@@ -989,13 +982,13 @@ export default function PackageCreationWizard({
  rootElementName: 'SourceMessage',
  includeXmlDeclaration: true,
  prettyPrint: true,
- convertPropertyNames: true;
+ convertPropertyNames: true
  }),
  convertStructureToXml(targetContent, {
  rootElementName: 'TargetMessage',
  includeXmlDeclaration: true,
  prettyPrint: true,
- convertPropertyNames: true;
+ convertPropertyNames: true
  });
  ]);
 
@@ -1006,8 +999,7 @@ export default function PackageCreationWizard({
  });
 
  setShowFullScreenMapping(true);
- }
-} catch (error) {
+  } catch (error) {
  logger.error(LogCategory.UI, 'Error converting structures', { error: error });
  toast({
  title: 'Conversion Failed',
@@ -1027,7 +1019,7 @@ export default function PackageCreationWizard({
  Map fields between source and target structures for data transformation
  </p>
  </div>
-;
+
  {wizardData.fieldMappings && wizardData.fieldMappings.length > 0 ? (
  <Card>
  <CardHeader>
@@ -1099,8 +1091,8 @@ export default function PackageCreationWizard({
  case 'orchestration-targets': {
  const addOrchestrationTarget = () => {
  const newTarget = {
- adapterName: ',
- adapterType: ' as AdapterType | ',
+ adapterName: '',
+ adapterType: '' as AdapterType | '',
  adapterConfig: {},
  structure: null,
  mapping: []
@@ -1157,10 +1149,10 @@ export default function PackageCreationWizard({
  </div>
  </CardHeader>
  <CardContent className="space-y-4">
- <div>`
- <Label htmlFor={target-name-${index}`}>Adapter Name *</Label>
- <Input`
- id={`target-name-${index}`}
+ <div>
+ <Label htmlFor={`target-name-${index}}>Adapter Name *</Label>
+ <Input
+ id={`target-name-${index}}
  value={target.adapterName}
  onChange={(e) => updateOrchestrationTarget(index, 'adapterName', e.target.value)}
  placeholder="Enter adapter name"
@@ -1168,8 +1160,8 @@ export default function PackageCreationWizard({
  />
  </div>
 
- <div>`
- <Label htmlFor={target-type-${index}`}>Adapter Type *</Label>
+ <div>
+ <Label htmlFor={`target-type-${index}}>Adapter Type *</Label>
  <Select
  value={target.adapterType}
  onValueChange={(value) => updateOrchestrationTarget(index, 'adapterType', value)}
@@ -1261,10 +1253,10 @@ export default function PackageCreationWizard({
  </CardHeader>
  <CardContent>
  {target.adapterType === 'SOAP' ? (
- <div>`
- <Label htmlFor={`wsdl-${index}`}>WSDL Content</Label>
- <Textarea`
- id={wsdl-${index}`}
+ <div>
+ <Label htmlFor={`wsdl-${index}}>WSDL Content</Label>
+ <Textarea
+ id={`wsdl-${index}}
  value={target.structure || ''}
  onChange={(e) => {
  const targets = [...(wizardData.orchestrationTargets || [])];
@@ -1277,10 +1269,10 @@ export default function PackageCreationWizard({
  />
  </div>
  ) : wizardData.transformationRequired ? (
- <div>`
- <Label htmlFor={`json-${index}`}>JSON Schema</Label>
- <Textarea`
- id={json-${index}`}
+ <div>
+ <Label htmlFor={`json-${index}}>JSON Schema</Label>
+ <Textarea
+ id={`json-${index}}
  value={target.structure || ''}
  onChange={(e) => {
  const targets = [...(wizardData.orchestrationTargets || [])];
@@ -1314,7 +1306,7 @@ export default function PackageCreationWizard({
  if (!target) return;
 
  // Get source structure
- let sourceContent = ';
+ let sourceContent = ''
  if (wizardData.inboundAdapterType === 'SOAP' && wizardData.sourceFlowStructure) {
  sourceContent = wizardData.sourceFlowStructure;
  } else if (wizardData.sourceMessageStructure) {
@@ -1327,13 +1319,13 @@ export default function PackageCreationWizard({
  rootElementName: 'SourceMessage',
  includeXmlDeclaration: true,
  prettyPrint: true,
- convertPropertyNames: true;
+ convertPropertyNames: true
  }),
- convertStructureToXml(target.structure || ', {
+ convertStructureToXml(target.structure || '', {
  rootElementName: 'TargetMessage',
  includeXmlDeclaration: true,
  prettyPrint: true,
- convertPropertyNames: true;
+ convertPropertyNames: true
  });
  ]);
 
@@ -1344,8 +1336,7 @@ export default function PackageCreationWizard({
  });
 
  setShowFullScreenMapping(true);
- }
-} catch (error) {
+  } catch (error) {
  logger.error(LogCategory.UI, 'Error converting structures', { error: error });
  toast({
  title: 'Conversion Failed',
@@ -1381,10 +1372,10 @@ export default function PackageCreationWizard({
  <Card key={index}>
  <CardHeader>
  <CardTitle className="text-base flex items-center justify-between">
- <span>{target.adapterName}</span>`
+ <span>{target.adapterName}</span>
  <div className={`w-2 h-2 rounded-full ${
- target.mapping && target.mapping.length > 0 ? 'bg-green-500' : 'bg-yellow-500'`
- }`} />
+ target.mapping && target.mapping.length > 0 ? 'bg-green-500' : 'bg-yellow-500'
+ }} />
  </CardTitle>
  <CardDescription>
  Field mapping from source to {target.adapterType}
@@ -1447,9 +1438,9 @@ export default function PackageCreationWizard({
  <div>
  <Label htmlFor="flowName">Flow Name *</Label>
  <Input
- id="flowName";
+ id="flowName"
  value={wizardData.flowName}
- onChange={(e) => setWizardData({ ...wizardData, flowName: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, flowName: e.target.value })}
  placeholder="Enter flow name"
  className="mt-1"
  />
@@ -1460,7 +1451,7 @@ export default function PackageCreationWizard({
  <Textarea
  id="flowDescription"
  value={wizardData.flowDescription}
- onChange={(e) => setWizardData({ ...wizardData, flowDescription: e.target.value })
+ onChange={(e) => setWizardData({ ...wizardData, flowDescription: e.target.value })}
  placeholder="Describe what this flow does..."
  className="mt-1"
  rows={4}
@@ -1652,7 +1643,7 @@ export default function PackageCreationWizard({
  </div>
  );
 
- 'default':
+ default:
  return null;
  }
  };
@@ -1700,7 +1691,6 @@ export default function PackageCreationWizard({
  if (!isOpen) return null;
 
  const stepNumber = getStepNumber();
-;
  // Show full-screen field mapping when needed
  if (showFullScreenMapping && wizardData.sourceXml && wizardData.targetXml) {
  return (
@@ -1710,7 +1700,7 @@ export default function PackageCreationWizard({
  <div className="flex items-center gap-4">
  <Button
  variant="ghost"
- size="sm";
+ size="sm"
  onClick={() => setShowFullScreenMapping(false)}
  className="gap-2"
  >
@@ -1736,14 +1726,14 @@ export default function PackageCreationWizard({
  targets[selectedTargetIndex] = { ...targets[selectedTargetIndex], mapping: mappings };
  setWizardData({ ...wizardData, orchestrationTargets: targets });
  toast({
- title: "Mappings Saved",`
+ title: "Mappings Saved",
  description: `${mappings.length} mappings configured for ${targets[selectedTargetIndex].adapterName}.`,
  });
  } else {
  // Save mappings for direct integration
  setWizardData({ ...wizardData, fieldMappings: mappings });
  toast({
- title: "Mappings Saved",`
+ title: "Mappings Saved",
  description: `${mappings.length} field mappings have been configured.`,
  });
  }
@@ -1754,7 +1744,7 @@ export default function PackageCreationWizard({
  if (wizardData.flowType === 'ORCHESTRATION' && selectedTargetIndex !== null) {
  const target = wizardData.orchestrationTargets?.[selectedTargetIndex];`;
  return `${wizardData.packageName} - ${target?.adapterName || 'Target'} Mapping`;
- }`
+ }
  return `${wizardData.packageName} Mapping`;
  })()}
  initialMappings={(() => {
@@ -1766,7 +1756,7 @@ export default function PackageCreationWizard({
  inboundAdapterType={wizardData.inboundAdapterType}
  outboundAdapterType={(() => {
  if (wizardData.flowType === 'ORCHESTRATION' && selectedTargetIndex !== null) {
- return wizardData.orchestrationTargets?.[selectedTargetIndex]?.adapterType || ';
+ return wizardData.orchestrationTargets?.[selectedTargetIndex]?.adapterType || '';
  }
  return wizardData.outboundAdapterType;
  })()}
@@ -1806,7 +1796,6 @@ export default function PackageCreationWizard({
  {getStepSequence().map((step, index) => {
  const isActive = currentStep === step;
  const isCompleted = getStepSequence().indexOf(currentStep) > index;
-;
  return (
  <div key={step} className="flex items-center flex-1">
  <div className="flex items-center">
@@ -1815,19 +1804,19 @@ export default function PackageCreationWizard({
  flex items-center justify-center w-10 h-10 rounded-full
  ${isActive ? 'bg-primary text-primary-foreground' :
  isCompleted ? 'bg-primary/20 text-primary' :
- 'bg-muted text-muted-foreground'}`
+ 'bg-muted text-muted-foreground'}
  `}
  >
  {getStepIcon(step)}
  </div>
  <div className="ml-2">`
- <p className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+ <p className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}}>
  {getStepTitle(step)}
  </p>
  </div>
  </div>
  {index < getStepSequence().length - 1 && (`
- <div className={`flex-1 h-0.5 mx-4 ${isCompleted ? 'bg-primary/20' : 'bg-muted'}`} />
+ <div className={`flex-1 h-0.5 mx-4 ${isCompleted ? 'bg-primary/20' : 'bg-muted'}} />
  )}
  </div>
  );
@@ -1893,5 +1882,5 @@ export default function PackageCreationWizard({
  </div>
  </div>
  );
-}`
-}}}
+}
+}

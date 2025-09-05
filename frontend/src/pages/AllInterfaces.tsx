@@ -121,8 +121,7 @@ export default function AllInterfaces() {
  variant: 'destructive',
  title: 'Error',
  description: error instanceof Error ? error.message : 'Failed to delete interface',
-}
- });
+                });
  } finally {
  setDeleteDialogOpen(false);
  setFlowToDelete(null);
@@ -134,8 +133,7 @@ export default function AllInterfaces() {
  setDeployingFlowId(flow.id);
 
  const response = await deploymentService.deployFlow(flow.id);
-;
- if (response.success) {
+        if (response.success) {
  toast({
  title: 'Success',
  description: `Interface "${flow.name}" has been deployed successfully`,
@@ -145,8 +143,6 @@ export default function AllInterfaces() {
  } else {
  // Provide more specific error messages
  let errorMessage = response.error || 'Failed to deploy interface';
-;
- // Check if this is a common deployment issue
  if (errorMessage.includes('Bad Request') || errorMessage.includes('HTTP 400')) {
  errorMessage = 'Deployment failed. Please ensure all required components (adapters, data structures) are properly configured.';
  } else if (errorMessage.includes('not found') || errorMessage.includes('HTTP 404')) {
@@ -162,12 +158,13 @@ export default function AllInterfaces() {
  title: 'Deployment Failed',
  description: errorMessage,
  });
+        }
 } catch (error) {
  toast({
  variant: 'destructive',
  title: 'Error',
  description: 'An error occurred during deployment',
-}
+},
  });
  } finally {
  setDeployingFlowId(null);
@@ -184,112 +181,102 @@ export default function AllInterfaces() {
  setDeployingFlowId(flow.id);
 
  const response = await deploymentService.undeployFlow(flow.id);
-;
- if (response.success) {
- toast({
- title: 'Success',`
- description: `Interface "${flow.name}" has been undeployed successfully`,
- });
- // Refresh the list
- fetchFlows();
+        if (response.success) {
+            toast({
+                title: "Success",
+                description: `Interface "${flow.name}" has been undeployed successfully`,
+            });
+            // Refresh the list
+            fetchFlows();
  } else {
  toast({
  variant: 'destructive',
  title: 'Undeploy Failed',
- description: response.error || 'Failed to undeploy interface',
- });
-} catch (error) {
- toast({
- variant: 'destructive',
- title: 'Error',
- description: 'An error occurred during undeployment',
-}
- });
- } finally {
+                    description: response.error || 'Failed to undeploy interface'
+                });
+            }
+        } catch (error) {
+            // Handle error
+        } finally {
  setDeployingFlowId(null);
  }
  };
-
  const getFilteredFlows = () => {
- const filtered = flows.filter(flow =>;
+ const filtered = flows.filter(flow =>
  flow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  flow.description?.toLowerCase().includes(searchTerm.toLowerCase())
  );
 
  switch (activeTab) {
- case 'undeployed':
- return filtered.filter(flow =>
- flow.status === 'DEVELOPED_INACTIVE' ||
- flow.status === 'DRAFT' ||
- flow.status === 'INACTIVE';
- );
- case 'deployed':
- return filtered.filter(flow =>
- flow.status === 'DEPLOYED_ACTIVE' ||
- flow.status === 'ACTIVE';
- );
- 'default':
- return filtered;
- }
- };
+        case 'undeployed':
+            return filtered.filter(flow =>
+                flow.status === 'DEVELOPED_INACTIVE' ||
+                flow.status === 'DRAFT' ||
+                flow.status === 'INACTIVE'
+            );
+        case 'deployed':
+            return filtered.filter(flow =>
+                flow.status === 'DEPLOYED_ACTIVE' ||
+                flow.status === 'ACTIVE'
+            );
+        default:
+            return filtered;
+    }
+};
 
- const filteredFlows = getFilteredFlows();
-;
- const getStatusBadge = (status: string) => {
- const statusColors = {
- 'DEPLOYED_ACTIVE': 'bg-green-500',
- 'DRAFT': 'bg-blue-500',
- 'INACTIVE': 'bg-gray-500',
- 'ERROR': 'bg-red-500',
- 'DEVELOPED_INACTIVE': 'bg-yellow-500'
- };
+  const filteredFlows = getFilteredFlows();
 
- return (`
- <Badge className={`${statusColors[status as keyof typeof statusColors] || 'bg-gray-500'} text-white`}>
- {status.replace('_', ' ')}
- </Badge>
- );
- };
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      'DEPLOYED_ACTIVE': 'bg-green-500',
+      'DRAFT': 'bg-blue-500',
+      'INACTIVE': 'bg-gray-500',
+      'ERROR': 'bg-red-500',
+      'DEVELOPED_INACTIVE': 'bg-yellow-500'
+    };
 
- const getFlowTypeBadge = (mappingMode: string) => {
- return (
- <Badge variant="outline">;
- {mappingMode === 'PASS_THROUGH' ? 'Direct Passthrough' :
- mappingMode === 'WITH_MAPPING' ? 'Mapping Required' :
- 'Orchestration'}
- </Badge>
- );
- };
+    return (
+      <Badge className={`${statusColors[status as keyof typeof statusColors] || 'bg-gray-500'} text-white`}>
+        {status.replace('_', ' ')}
+      </Badge>
+    );
+  };
 
- if (loading) {
- return (
- <div className="w-full p-6">
- <div className="flex justify-center items-center p-12">
- <Loader2 className="h-8 w-8 animate-spin" />
- </div>
- </div>
- );
- }
+  const getFlowTypeBadge = (mappingMode: string) => {
+    return (
+        <Badge variant="outline">
+            {mappingMode === 'WITH_MAPPING' ? 'With Mapping' : 'Pass Through'}
+        </Badge>
+    );
+};
 
- return (
- <div className="w-full max-w-none p-8 space-y-6">
- <div className="flex justify-between items-center">
- <div>
- <h1 className="text-3xl font-bold">Interface Management</h1>
- <p className="text-muted-foreground mt-2">
- Manage all your integration flows in one place
- </p>
- </div>
- <div className="flex gap-2">
- <Button
- onClick={() => navigate('/packages')}
- variant="default"
- >
- <Package className="h-4 w-4 mr-2" />
- Create Package
- </Button>
- </div>
- </div>
+    if (loading) {
+        return (
+            <div className="w-full p-6">
+                <div className="flex justify-center items-center p-12">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-full max-w-none p-8 space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold">Interface Management</h1>
+                <p className="text-muted-foreground mt-2">
+                    Manage all your integration flows in one place
+                </p>
+                <div className="flex gap-2 mt-4">
+                    <Button
+                        onClick={() => navigate('/packages')}
+                        variant="default"
+                    >
+                        <Package className="h-4 w-4 mr-2" />
+                        Create Package
+                    </Button>
+                </div>
+            </div>
 
  <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
  <TabsList className="grid w-full grid-cols-3">
@@ -323,10 +310,10 @@ export default function AllInterfaces() {
  <CardHeader>
  <div className="flex justify-between items-center">
  <CardTitle className="flex items-center gap-2">
- <ScrollText className="h-5 w-5" />`
- {activeTab === 'all' && `All Interfaces (${filteredFlows.length})`}`
- {activeTab === 'undeployed' && `Undeployed Interfaces (${filteredFlows.length})`}`
- {activeTab === 'deployed' && `Deployed Interfaces (${filteredFlows.length})`}
+                        <ScrollText className="h-5 w-5" />
+                        {activeTab === 'all' && `All Interfaces (${filteredFlows.length})`}
+                        {activeTab === 'undeployed' && `Undeployed Interfaces (${filteredFlows.length})`}
+                        {activeTab === 'deployed' && `Deployed Interfaces (${filteredFlows.length})`}
  </CardTitle>
  <Button variant="outline" size="sm" onClick={handleRefresh}>
  <RefreshCw className="h-4 w-4 mr-2" />
@@ -407,11 +394,11 @@ export default function AllInterfaces() {
  </DropdownMenuItem>
  ) : (
  // Show all actions on other tabs
- <>`
- <DropdownMenuItem onClick={() => navigate(/interfaces/${flow.id}/details`)}>
+ <>
+ <DropdownMenuItem onClick={() => navigate(`/interfaces/${flow.id}/details`)}>
  <Eye className="h-4 w-4 mr-2" />
  View Details
- </DropdownMenuItem>`
+ </DropdownMenuItem>
  <DropdownMenuItem onClick={() => navigate(`/flows/${flow.id}/edit`)}>
  <Edit className="h-4 w-4 mr-2" />
  Edit
@@ -519,4 +506,3 @@ export default function AllInterfaces() {
  );
 }
 `
-})

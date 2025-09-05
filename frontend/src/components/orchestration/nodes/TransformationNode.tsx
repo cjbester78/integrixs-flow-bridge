@@ -125,7 +125,6 @@ export const TransformationNode: React.FC<TransformationNodeProps> = ({ id, data
  const Icon = getTransformationIcon(data.transformationType);
  const transformationName = getTransformationName(data.transformationType);
  const isConfigured = data.transformationConfig && Object.keys(data.transformationConfig).length > 0;
-;
  const handleDelete = () => {
  setNodes((nodes) => nodes.filter((node) => node.id !== id));
  setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
@@ -135,7 +134,7 @@ export const TransformationNode: React.FC<TransformationNodeProps> = ({ id, data
  <>
  <Card
  className="min-w-[200px] shadow-lg border-2 hover:border-primary/20 transition-colors bg-black text-white relative group"
- >;
+ >
  {/* Delete button - only visible on double-click */}
  {data.showDeleteButton && (
  <Button
@@ -168,11 +167,12 @@ export const TransformationNode: React.FC<TransformationNodeProps> = ({ id, data
  onClick={(e) => {
  e.stopPropagation();
  e.preventDefault();
- logger.info(LogCategory.UI, 'Debug info', { message: 'TransformationNode', data: Configure clicked: id,
+ logger.info(LogCategory.UI, 'TransformationNode Configure clicked:', {
+ id,
  transformationType: data.transformationType,
  config: data.transformationConfig,
- isFieldMapping: data.transformationType === 'field-mapping');
- })
+ isFieldMapping: data.transformationType === 'field-mapping'
+ });
  setConfigOpen(true);
  }}
  onMouseDown={(e) => e.stopPropagation()}

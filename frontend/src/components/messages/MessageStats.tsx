@@ -70,9 +70,9 @@ export const MessageStats = ({
 
  return (
  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
- <Card`
+ <Card
  className={`bg-gradient-secondary border-border/50 cursor-pointer transition-all hover-scale animate-scale-in ${
- statusFilter === 'success' ? 'ring-2 ring-success' : '`
+ statusFilter === 'success' ? 'ring-2 ring-success' : ''
  }`}
  onClick={() => handleCardClick('success')}
  >
@@ -85,9 +85,9 @@ export const MessageStats = ({
  </CardContent>
  </Card>
 
- <Card`
+ <Card
  className={`bg-gradient-secondary border-border/50 cursor-pointer transition-all hover-scale animate-scale-in ${
- statusFilter === 'processing' ? 'ring-2 ring-warning' : '`
+ statusFilter === 'processing' ? 'ring-2 ring-warning' : ''
  }`}
  onClick={() => handleCardClick('processing')}
  >
@@ -100,9 +100,9 @@ export const MessageStats = ({
  </CardContent>
  </Card>
 
- <Card`
+ <Card
  className={`bg-gradient-secondary border-border/50 cursor-pointer transition-all hover-scale animate-scale-in ${
- statusFilter === 'failed' ? 'ring-2 ring-destructive' : '`
+ statusFilter === 'failed' ? 'ring-2 ring-destructive' : ''
  }`}
  onClick={() => handleCardClick('failed')}
  >
@@ -136,5 +136,4 @@ export const MessageStats = ({
  </Card>
  </div>
  );
-};`
-}}})))))
+};

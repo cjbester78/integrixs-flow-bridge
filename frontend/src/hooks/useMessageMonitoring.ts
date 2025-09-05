@@ -36,7 +36,6 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  description: "Failed to load messages",
  variant: "destructive",
  });
- });
  } finally {
  setLoading(false);
  }
@@ -127,7 +126,6 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  title: "Error",
  description: "Failed to reprocess message",
  variant: "destructive",
- });
  });
  }
  }, [toast]);

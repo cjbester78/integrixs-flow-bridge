@@ -28,7 +28,7 @@ export function extractApiData<T>(
  * Get error message from API response
  */
 export function getApiError(
- response: any;
+ response: any
 ): string {
  if (isApiResponse(response) && response.message) {
  return response.message;

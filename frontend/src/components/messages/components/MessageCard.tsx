@@ -144,13 +144,9 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  {getLogLevelIcon(log.level)}
  <span className="text-muted-foreground min-w-[120px] font-mono">
  {(() => {
- try {
-if (!log.timestamp) {
- return 'No timestamp';
- 
-} catch (error) {
-  // Handle error
-}
+ if (!log.timestamp) {
+                              return 'No timestamp';
+                            }
  if (typeof log.timestamp === 'string') {
  if (log.timestamp.includes(' ')) {
  return log.timestamp.split(' ')[1];
@@ -186,5 +182,4 @@ if (!log.timestamp) {
  </Collapsible>
  </Card>
  );
-};`
-}}}}}}))))
+};

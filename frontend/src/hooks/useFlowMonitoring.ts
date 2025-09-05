@@ -23,7 +23,6 @@ const response = await flowMonitoringService.getFlowExecutions(filters);
  description: "Failed to load flow executions",
  variant: "destructive",
  });
- });
  } finally {
  setLoading(false);
  }

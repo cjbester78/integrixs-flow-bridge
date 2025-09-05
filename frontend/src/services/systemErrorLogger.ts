@@ -1,12 +1,12 @@
-import { SystemLogEntry } from '@/hooks/useSystemLogs';
+import { SystemLogEntry } from '@/hooks/useSystemLogs';'
 import { apiClient, logger, LogCategory } from '@/lib/api-client';
 
 class SystemErrorLogger {
  private listeners: ((log: SystemLogEntry) => void)[] = [];
 
  constructor() {
- // Listen for unhandled errors
- window.addEventListener('error', (event) => {
+ // Listen for unhandled errors'
+ window.addEventListener('error', (event) => {'
  this.logError('System Error', {
  message: event.message,
  filename: event.filename,
@@ -16,56 +16,56 @@ class SystemErrorLogger {
  });
  });
 
- // Listen for unhandled promise rejections
- window.addEventListener('unhandledrejection', (event) => {
+ // Listen for unhandled promise rejections'
+ window.addEventListener('unhandledrejection', (event) => {'
  this.logError('Unhandled Promise Rejection', {
  reason: event.reason,
  stack: event.reason?.stack,
  });
- })
+ });
  }
 
  async logError(message: string, details?: any) {
  const logEntry: SystemLogEntry = {
  id: `sys-${Date.now()}`,
- timestamp: new Date().toISOString(),
+ timestamp: new Date().toISOString(),'
  level: 'error',
  message,
- details,
- source: 'system',
- sourceId: 'error-logger',
+ details,'
+ source: 'system','
+ sourceId: 'error-logger','
  sourceName: 'System Error Logger',
  };
 
  await this.sendLogToBackend(logEntry);
  this.notifyListeners(logEntry);
  }
-
+'
  async logInfo(message: string, details?: any, source: SystemLogEntry['source'] = 'system', sourceId?: string, sourceName?: string) {
  const logEntry: SystemLogEntry = {
  id: `log-${Date.now()}`,
- timestamp: new Date().toISOString(),
+ timestamp: new Date().toISOString(),'
  level: 'info',
  message,
  details,
- source,
- sourceId: sourceId || 'general',
+ source,'
+ sourceId: sourceId || 'general','
  sourceName: sourceName || 'System',
  };
 
  await this.sendLogToBackend(logEntry);
  this.notifyListeners(logEntry);
  }
-
+'
  async logWarning(message: string, details?: any, source: SystemLogEntry['source'] = 'system', sourceId?: string, sourceName?: string) {
  const logEntry: SystemLogEntry = {
  id: `warn-${Date.now()}`,
- timestamp: new Date().toISOString(),
+ timestamp: new Date().toISOString(),'
  level: 'warn',
  message,
  details,
- source,
- sourceId: sourceId || 'general',
+ source,'
+ sourceId: sourceId || 'general','
  sourceName: sourceName || 'System',
  };
 
@@ -77,7 +77,7 @@ class SystemErrorLogger {
  try {
  // Convert to frontend log entry format
  const frontendLogEntry = {
- level: logEntry.level.toUpperCase(),
+ level: logEntry.level.toUpperCase(),'
  category: logEntry.source === 'system' ? 'SYSTEM' : 'APPLICATION',
  message: logEntry.message,
  details: logEntry.details || {},
@@ -85,8 +85,8 @@ class SystemErrorLogger {
  stackTrace: logEntry.details?.stack || null,
  userAgent: navigator.userAgent,
  url: window.location.href,
- timestamp: logEntry.timestamp,
- userId: localStorage.getItem('userId') || null,
+ timestamp: logEntry.timestamp,'
+ userId: localStorage.getItem('userId') || null,'
  sessionId: localStorage.getItem('sessionId') || null,
  correlationId: logEntry.id
  };
@@ -95,31 +95,31 @@ class SystemErrorLogger {
  const batchRequest = {
  logs: [frontendLogEntry]
  };
-
+'
  await apiClient.post('/system/logs/batch', batchRequest);
  }
-} catch (error) {
+} catch (error) {'
  logger.error(LogCategory.API, 'Failed to send log to backend', { error: error });
  }
  }
 
  async getAllLogs(): Promise<SystemLogEntry[]> {
- try {
+ try {'
 const response = await apiClient.get<SystemLogEntry[]>('/system-logs');
  return response.data || [];
  
 } catch (error) {
   // Handle error
 }
-} catch (error) {
+} catch (error) {'
  logger.error(LogCategory.API, 'Failed to fetch logs from backend', { error: error });
  return [];
  }
  }
 
- async getFilteredLogs(filters: {
+ async getFilteredLogs(filters: {'
  source?: SystemLogEntry['source'];
- sourceId?: string;
+ sourceId?: string;'
  level?: SystemLogEntry['level'];
  search?: string;
  }): Promise<SystemLogEntry[]> {
@@ -134,11 +134,11 @@ const queryParams = new URLSearchParams();
 }
  });
 
-`
+`'
  const response = await apiClient.get<SystemLogEntry[]>(`/system-logs${queryParams.toString() ? `?${queryParams.toString()}` : '}`);
  return response.data || [];
  }
-} catch (error) {
+} catch (error) {'
  logger.error(LogCategory.API, 'Failed to fetch filtered logs from backend', { error: error });
  return [];
  }
@@ -157,5 +157,5 @@ const queryParams = new URLSearchParams();
  }
 }
 
-export const systemErrorLogger = new SystemErrorLogger();`
+export const systemErrorLogger = new SystemErrorLogger();`'
 }}

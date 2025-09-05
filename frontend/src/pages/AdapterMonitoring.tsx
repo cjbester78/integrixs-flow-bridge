@@ -30,7 +30,6 @@ export default function AdapterMonitoring() {
  setLoadingAdapters(true);
 
  const response = await adapterMonitoringService.getAdapters(selectedBusinessComponent?.id);
-;
  if (response.success && response.data) {
  setAdapters(response.data);
  } else {
@@ -128,7 +127,7 @@ export default function AdapterMonitoring() {
  const totalAdapters = adapters.length;
  const activeAdapters = adapters.filter(a => a.status === 'running' || a.status === 'active').length;
  const adaptersWithErrors = adapters.filter(a => a.status === 'error').length;
- const averageLoad = adapters.length > 0;
+ const averageLoad = adapters.length > 0
  ? Math.round(adapters.reduce((sum, a) => sum + (a.load || 0), 0) / adapters.length)
  : 0;
 
@@ -138,8 +137,6 @@ export default function AdapterMonitoring() {
  <h1 className="text-3xl font-bold mb-2">Adapter Monitoring</h1>
  <p className="text-gray-600">Monitor and manage your communication adapters</p>
  </div>
-;
- {/* Business Component Filter */}
  <div className="mb-6 flex items-center gap-4">
  <Label htmlFor="business-component">Business Component:</Label>
  <Select
@@ -237,4 +234,3 @@ export default function AdapterMonitoring() {
  </div>
  );
 }`
-}}}))

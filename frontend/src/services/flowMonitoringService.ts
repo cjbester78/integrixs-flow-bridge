@@ -76,18 +76,18 @@ class FlowMonitoringService {
  }
 
  // Stop/cancel execution
- async stopExecution(executionId: string): Promise<ApiResponse<FlowExecution>> {`
- return api.post<FlowExecution>(/flows/executions/${executionId}/stop`);
+ async stopExecution(executionId: string): Promise<ApiResponse<FlowExecution>> {
+ return api.post<FlowExecution>(`/flows/executions/${executionId}/stop`);
  }
 
  // Retry failed execution
- async retryExecution(executionId: string): Promise<ApiResponse<FlowExecution>> {`
+ async retryExecution(executionId: string): Promise<ApiResponse<FlowExecution>> {
  return api.post<FlowExecution>(`/flows/executions/${executionId}/retry`);
  }
 
  // Get real-time flow performance
- async getFlowPerformance(flowId: string, timeRange?: string): Promise<ApiResponse<any>> {`
- const endpoint = `/flows/${flowId}/performance${timeRange ? ?timeRange=${timeRange}` : ''}`;
+ async getFlowPerformance(flowId: string, timeRange?: string): Promise<ApiResponse<any>> {
+ const endpoint = `/flows/${flowId}/performance${timeRange ? `?timeRange=${timeRange}` : ''}`;
  return api.get(endpoint);
  }
 
@@ -96,9 +96,8 @@ class FlowMonitoringService {
  if (this.websocket?.readyState === WebSocket.OPEN) {
  return;
  }
-`
- const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/flows${businessComponentId ? ?businessComponentId=${businessComponentId}` : '}`;
-import { logger, LogCategory } from '@/lib/logger';
+
+ const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/flows${businessComponentId ? `?businessComponentId=${businessComponentId}` : ''}`;
 
  try {
  this.websocket = new WebSocket(wsUrl);

@@ -19,7 +19,7 @@ interface MessageListProps {
 }
 
 export const MessageList = ({ messages, isBusinessComponentSelected, statusFilter, loading = false, onTimeFilterChange }: MessageListProps) => {
- const [timeFilter, setTimeFilter] = useState<$1>('today');
+ const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
 
  // Handle time filter change
  const handleTimeFilterChange = (newFilter: TimeFilter) => {
@@ -109,12 +109,11 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
  />
  ) : (
  filteredMessages.map((message) => {
- logger.info(LogCategory.UI, [MessageList] Rendering message: { messageId: message.id, messageType: typeof message });
+ logger.info(LogCategory.UI, '[MessageList] Rendering message:', { messageId: message.id, messageType: typeof message });
  return <MessageCard key={message.id} message={message} />;
  })
  )}
  </div>
  </div>
  );
-};`
-}}}}
+};
