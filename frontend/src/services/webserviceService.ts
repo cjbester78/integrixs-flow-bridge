@@ -1,4 +1,4 @@
-import { api } from './api';'
+import { api } from './api';
 import { FieldNode } from '@/components/fieldMapping/types';
 
 export interface WebserviceStructure {

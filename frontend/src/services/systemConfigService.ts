@@ -1,7 +1,7 @@
-import { api } from './api';'
+import { api } from './api';
 import { logger, LogCategory } from '@/lib/logger';
 
-export interface EnvironmentInfo {'
+export interface EnvironmentInfo {
  type: 'DEVELOPMENT' | 'QUALITY_ASSURANCE' | 'PRODUCTION';
  displayName: string;
  description: string;

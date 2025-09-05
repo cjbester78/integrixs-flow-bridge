@@ -113,7 +113,6 @@ export const downloadFlowExport = async (flowId: string, flowName: string, optio
  };
 
  const blob = await flowExportImportService.exportFlowFile(request);
-;
  // Create download link
  const url = window.URL.createObjectURL(blob);
  const link = document.createElement('a');

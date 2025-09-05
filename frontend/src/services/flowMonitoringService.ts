@@ -1,4 +1,5 @@
 import { api, ApiResponse } from './api';
+import { logger, LogCategory } from '@/lib/logger';
 import { IntegrationFlow } from '@/types/flow';
 
 export interface FlowExecution {
@@ -105,26 +106,27 @@ class FlowMonitoringService {
  this.websocket.onopen = () => {
  logger.info(LogCategory.API, 'WebSocket connected for flow monitoring');
  this.reconnectAttempts = 0;
- };
+      };
 
  this.websocket.onmessage = (event) => {
  try {
  const data = JSON.parse(event.data);
-;
  if (data.type === 'execution_update') {
  this.executionListeners.forEach(listener => listener(data.execution));
  } else if (data.type === 'stats_update') {
  this.statsListeners.forEach(listener => listener(data.stats));
  } else if (data.type === 'flow_update') {
- this.flowListeners.forEach(listener => listener(data.flow));}
+ this.flowListeners.forEach(listener => listener(data.flow));
+        }
 } catch (error) {
  logger.error(LogCategory.API, 'Error parsing WebSocket message', { error: error });
- };
+      }
+    };
 
  this.websocket.onclose = () => {
  logger.info(LogCategory.API, 'WebSocket connection closed');
  this.attemptReconnect(businessComponentId);
- };
+ }
 
  this.websocket.onerror = (error) => {
  logger.error(LogCategory.API, 'WebSocket error', { error: error });
@@ -132,11 +134,11 @@ class FlowMonitoringService {
 } catch (error) {
  logger.error(LogCategory.API, 'Failed to create WebSocket connection', { error: error });
  }
-
+  }
  private attemptReconnect(businessComponentId?: string): void {
  if (this.reconnectAttempts < this.maxReconnectAttempts) {
  this.reconnectAttempts++;
- logger.info(LogCategory.API, 'Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts});')
+ logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
 
  setTimeout(() => {
  this.connectWebSocket(businessComponentId);
@@ -162,7 +164,7 @@ class FlowMonitoringService {
  const index = this.executionListeners.indexOf(callback);
  if (index > -1) this.executionListeners.splice(index, 1);
  }
-}
+  }
 
  onStatsUpdate(callback: (stats: FlowMonitoringStats) => void): () => void {
  this.statsListeners.push(callback);
@@ -170,7 +172,7 @@ class FlowMonitoringService {
  const index = this.statsListeners.indexOf(callback);
  if (index > -1) this.statsListeners.splice(index, 1);
  }
-}
+  }
 
  onFlowUpdate(callback: (flow: IntegrationFlow) => void): () => void {
  this.flowListeners.push(callback);
@@ -178,7 +180,7 @@ class FlowMonitoringService {
  const index = this.flowListeners.indexOf(callback);
  if (index > -1) this.flowListeners.splice(index, 1);
  }
-}
+  }
 
  sendCommand(command: string, data?: any): void {
  if (this.websocket?.readyState === WebSocket.OPEN) {

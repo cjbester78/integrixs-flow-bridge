@@ -89,8 +89,8 @@ import { logger, LogCategory } from '@/lib/logger';
  // Store correlation ID globally for logger
  (window as any).__currentCorrelationId = correlationId;
 
- // Logger removed to avoid circular dependency`
- logger.info(LogCategory.API, `API Call: ${config.method?.toUpperCase(); || 'GET'} ${config.url || `'}')
+ // Logger removed to avoid circular dependency
+ logger.info(LogCategory.API, `API Call: ${config.method?.toUpperCase() || 'GET'} ${config.url || ''}`)
  logger.info(LogCategory.API, 'Request headers', { data: config.headers });
  return config;
  },

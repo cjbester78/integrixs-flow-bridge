@@ -1,7 +1,7 @@
-import { api, ApiResponse } from './api';'
+import { api, ApiResponse } from './api';
 import { getWebSocketUrl, logger, LogCategory } from '@/lib/api-utils';
 
-export interface SystemHealth {'
+export interface SystemHealth {
  status: 'healthy' | 'warning' | 'critical';
  uptime: string;
  version: string;

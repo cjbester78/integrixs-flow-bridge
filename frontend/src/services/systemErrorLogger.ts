@@ -1,4 +1,4 @@
-import { SystemLogEntry } from '@/hooks/useSystemLogs';'
+import { SystemLogEntry } from '@/hooks/useSystemLogs';
 import { apiClient, logger, LogCategory } from '@/lib/api-client';
 
 class SystemErrorLogger {

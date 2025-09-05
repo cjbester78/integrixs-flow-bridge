@@ -213,7 +213,7 @@ export default function AdapterMonitoring() {
  <p className="text-gray-500">
  {statusFilter
  ? `No adapters found with status: ${statusFilter}`
- : selectedBusinessComponent`
+ : selectedBusinessComponent
  ? `No adapters found for ${selectedBusinessComponent.name}`
  : 'No adapters found'
  }

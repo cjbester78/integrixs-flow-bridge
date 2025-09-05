@@ -81,9 +81,11 @@ class JarFileService {
 
  // Download JAR file
  async downloadJarFile(jarFileId: string): Promise<Blob> {
- const response = await fetch(`${api.baseURL}/jar-files/${jarFileId}/download`, {
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/jar-files/${jarFileId}/download`, {
  method: 'GET',
- headers: api.getAuthHeaders()
+ headers: {
+        'Authorization': `Bearer ${localStorage.getItem('integration_platform_token')}`
+      }
  });
 
  if (!response.ok) {
@@ -94,12 +96,12 @@ class JarFileService {
  }
 
  // Activate/Deactivate JAR file
- async toggleJarFileStatus(jarFileId: string, isActive: boolean): Promise<ApiResponse<JarFile>> {`
- return api.put<JarFile>(/jar-files/${jarFileId}/status`, { isActive })
+ async toggleJarFileStatus(jarFileId: string, isActive: boolean): Promise<ApiResponse<JarFile>> {
+ return api.put<JarFile>(`/jar-files/${jarFileId}/status`, { isActive });
  }
 
  // Get JAR files by driver type
- async getJarFilesByDriverType(driverType: string): Promise<ApiResponse<JarFile[]>> {`
+ async getJarFilesByDriverType(driverType: string): Promise<ApiResponse<JarFile[]>> {
  return api.get<JarFile[]>(`/jar-files/driver-type/${driverType}`);
  }
 
@@ -113,7 +115,7 @@ class JarFileService {
  packages?: string[];
  requiredDependencies?: string[];
  }
-}>> {`
+}>> {
  return api.get(`/jar-files/${jarFileId}/validate`);
  }
 
@@ -123,4 +125,4 @@ class JarFileService {
  }
 }
 
-export const jarFileService = new JarFileService();`)
+export const jarFileService = new JarFileService();

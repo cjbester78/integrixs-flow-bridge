@@ -100,6 +100,7 @@ export const CreateDataStructure = () => {
  description: structure.businessComponent.description || ''
  });
  }
+ }
  } catch (error) {
  logger.error(LogCategory.ERROR, 'Error loading structure', { error: error });
  toast({

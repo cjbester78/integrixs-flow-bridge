@@ -96,7 +96,6 @@ const response = await flowMonitoringService.getExecutionStats(filters);
  description: "Failed to stop execution",
  variant: "destructive",
  });
- });
  }
  }, [toast]);
 

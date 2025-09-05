@@ -1,4 +1,4 @@
-import { api, ApiResponse } from './api';'
+import { api, ApiResponse } from './api';
 import { User } from '@/types/admin';
 
 export interface CreateUserRequest {

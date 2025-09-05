@@ -25,6 +25,7 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] First message:`, { data: response.data.messages[0] });
  logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] First message timestamp:`, { data: response.data.messages[0].timestamp });
  logger.info(LogCategory.BUSINESS_LOGIC, `[useMessageMonitoring] Timestamp type:`, { data: typeof response.data.messages[0].timestamp });
+ }
  setMessages(response.data.messages || []);
  } else {
  // Ensure messages is always an array even on error

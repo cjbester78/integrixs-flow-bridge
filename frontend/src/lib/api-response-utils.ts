@@ -8,7 +8,7 @@ export function isApiResponse<T>(
  response &&
  typeof response === 'object' &&
  'success' in response &&
- typeof response.success === 'boolean';
+ typeof response.success === 'boolean'
  );
 }
 

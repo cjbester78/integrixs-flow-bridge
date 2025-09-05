@@ -64,6 +64,8 @@ async function refreshAuthToken(): Promise<boolean> {
  return false;
  }
 
+}
+
 // Generic API request function
 export async function apiRequest<T = any>(
  endpoint: string,
@@ -190,6 +192,8 @@ export async function apiRequest<T = any>(
  error: error instanceof Error ? error.message : 'Unknown error occurred'
  };
  }
+
+}
 
 // HTTP method helpers
 export const api = {

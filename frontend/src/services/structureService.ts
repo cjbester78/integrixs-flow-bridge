@@ -1,10 +1,10 @@
-import { api, ApiResponse } from './api';'
+import { api, ApiResponse } from './api';
 import { DataStructure } from '@/types/dataStructures';
 
 export interface DataStructureCreate {
- name: string;'
+ name: string;
  type: 'json' | 'xsd' | 'wsdl' | 'custom';
- description?: string;'
+ description?: string;
  usage: 'source' | 'target' | 'both';
  structure: any;
  originalContent?: string;

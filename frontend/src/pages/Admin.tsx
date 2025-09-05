@@ -142,7 +142,8 @@ export const Admin = () => {
  logger.error(LogCategory.AUTH, 'Failed to fetch auth configs:', 'message' in response ? response.message : 'Unknown error');
  setAuthConfigs([]);
  toast({ title: "Error", description: 'Failed to load authentication configurations', variant: "destructive" });
-} catch (error) {
+ }
+ } catch (error) {
  logger.error(LogCategory.AUTH, 'Error fetching auth configs', { error: error });
  setAuthConfigs([]);
  toast({ title: "Error", description: 'Failed to load authentication configurations', variant: "destructive" });

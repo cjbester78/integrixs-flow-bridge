@@ -164,7 +164,6 @@ export default function AllInterfaces() {
  variant: 'destructive',
  title: 'Error',
  description: 'An error occurred during deployment',
-},
  });
  } finally {
  setDeployingFlowId(null);
