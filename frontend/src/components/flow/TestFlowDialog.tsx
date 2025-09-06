@@ -36,7 +36,7 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  const [testData, setTestData] = useState('');
  const [outputData, setOutputData] = useState('');
  const [isRunning, setIsRunning] = useState(false);
- const [testStatus, setTestStatus] = useState<$1>('idle');
+ const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
  const [errorMessage, setErrorMessage] = useState('');
  const [executionLogs, setExecutionLogs] = useState<string[]>([]);
 
@@ -100,7 +100,6 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
 
  // Call test endpoint
  const response = await api.post('/flow-composition/test/direct-mapping', testRequest);
-;
  if (response.data?.success) {
  setTestStatus('success');
  setOutputData(response.data.outputData || '');
@@ -154,11 +153,10 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  const xmlDoc = parser.parseFromString(xml, 'text/xml');
  const serializer = new XMLSerializer();
  const formatted = serializer.serializeToString(xmlDoc);
-;
  // Simple formatting - add newlines and indentation
- return formatted;
+ return formatted
  .replace(/></g, '>\n<')
- .split('\n');
+         .split('\n')
  .map((line, index) => {
  const indent = line.split('<').length - 2;
  return ' '.repeat(Math.max(0, indent)) + line.trim();
@@ -258,9 +256,9 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  <div className="bg-muted rounded-md p-4 h-64 overflow-y-auto">
  {executionLogs.map((log, index) => (
  <div
- key={index}`
+ key={index}
  className={`font-mono text-sm ${
- log.startsWith('ERROR') ? 'text-destructive' : '`
+ log.startsWith('ERROR') ? 'text-destructive' :''
  }`}
  >
  {log}
@@ -312,5 +310,4 @@ export function TestFlowDialog({ open, onOpenChange, flowConfig }: TestFlowDialo
  </DialogContent>
  </Dialog>
  );
-}`
-})
+}
