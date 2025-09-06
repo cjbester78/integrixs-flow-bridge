@@ -108,13 +108,12 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  setIsExecuting(false);
  onExecutionComplete?.(updatedExecution);
  }
- })
+ });
 
- }
-} catch (error) {
- setIsExecuting(false);
-}
- logger.error(LogCategory.UI, 'Failed to execute flow', { error: error });
+  } catch (error) {
+     setIsExecuting(false);
+     logger.error(LogCategory.UI, 'Failed to execute flow', { error: error });
+  }
  };
 
  // Update nodes with execution status
@@ -127,7 +126,7 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  data: {
  ...node.data,
  status: stepExecution?.status || 'pending',
- execution: stepExecution;
+ execution: stepExecution
  }
  }
 })
@@ -167,7 +166,7 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  return <Pause className="h-4 w-4 text-warning" />;
  case 'cancelled':
  return <Square className="h-4 w-4 text-muted-foreground" />;
- 'default':
+ default:
  return <Clock className="h-4 w-4 text-muted-foreground" />;
  }
  };
@@ -182,7 +181,7 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  return 'default';
  case 'paused':
  return 'secondary';
- 'default':
+ default:
  return 'outline';
  }
  };
@@ -271,8 +270,8 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
  </div>
  <div>
  <span className="text-muted-foreground">Duration:</span>
- <div className="font-medium">`
- {currentExecution.duration ? ${currentExecution.duration}ms` : 'Running...'}
+ <div className="font-medium">
+ {currentExecution.duration ? `${currentExecution.duration}ms` : 'Running...'}
  </div>
  </div>
  </div>
@@ -319,14 +318,14 @@ export const FlowExecutionVisualizer: React.FC<FlowExecutionVisualizerProps> = (
 function AdapterNode({ data }: { data: any }) {
  return (
  <div className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-stone-400 min-w-[150px]">
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <div className={`w-3 h-3 rounded-full ${getNodeStatusColor(data.status)}`} />
  <div className="font-bold">{data.name}</div>
  </div>
  <div className="text-xs text-muted-foreground">{data.type}</div>
  {data.execution && (
- <div className="text-xs mt-1">`
- {data.execution.duration && ${data.execution.duration}ms`}
+ <div className="text-xs mt-1">
+ {data.execution.duration && `${data.execution.duration}ms`}
  </div>
  )}
  </div>
@@ -336,14 +335,14 @@ function AdapterNode({ data }: { data: any }) {
 function TransformationNode({ data }: { data: any }) {
  return (
  <div className="px-4 py-2 shadow-md rounded-md bg-blue-50 border-2 border-blue-400 min-w-[150px]">
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <div className={`w-3 h-3 rounded-full ${getNodeStatusColor(data.status)}`} />
  <div className="font-bold">{data.name}</div>
  </div>
  <div className="text-xs text-info">{data.type}</div>
  {data.execution && (
- <div className="text-xs mt-1">`
- {data.execution.duration && ${data.execution.duration}ms`}
+ <div className="text-xs mt-1">
+ {data.execution.duration && `${data.execution.duration}ms`}
  </div>
  )}
  </div>
@@ -353,14 +352,14 @@ function TransformationNode({ data }: { data: any }) {
 function ConditionNode({ data }: { data: any }) {
  return (
  <div className="px-4 py-2 shadow-md rounded-md bg-yellow-50 border-2 border-yellow-400 min-w-[150px]">
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <div className={`w-3 h-3 rounded-full ${getNodeStatusColor(data.status)}`} />
  <div className="font-bold">{data.name}</div>
  </div>
  <div className="text-xs text-warning">{data.type}</div>
  {data.execution && (
- <div className="text-xs mt-1">`
- {data.execution.duration && ${data.execution.duration}ms`}
+ <div className="text-xs mt-1">
+ {data.execution.duration && `${data.execution.duration}ms`}
  </div>
  )}
  </div>
@@ -370,14 +369,14 @@ function ConditionNode({ data }: { data: any }) {
 function LoopNode({ data }: { data: any }) {
  return (
  <div className="px-4 py-2 shadow-md rounded-md bg-purple-50 border-2 border-purple-400 min-w-[150px]">
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <div className={`w-3 h-3 rounded-full ${getNodeStatusColor(data.status)}`} />
  <div className="font-bold">{data.name}</div>
  </div>
  <div className="text-xs text-primary">{data.type}</div>
  {data.execution && (
- <div className="text-xs mt-1">`
- {data.execution.duration && ${data.execution.duration}ms`}
+ <div className="text-xs mt-1">
+ {data.execution.duration && `${data.execution.duration}ms`}
  </div>
  )}
  </div>
@@ -387,14 +386,14 @@ function LoopNode({ data }: { data: any }) {
 function DelayNode({ data }: { data: any }) {
  return (
  <div className="px-4 py-2 shadow-md rounded-md bg-gray-50 border-2 border-gray-400 min-w-[150px]">
- <div className="flex items-center gap-2">`
+ <div className="flex items-center gap-2">
  <div className={`w-3 h-3 rounded-full ${getNodeStatusColor(data.status)}`} />
  <div className="font-bold">{data.name}</div>
  </div>
  <div className="text-xs text-muted-foreground">{data.type}</div>
  {data.execution && (
- <div className="text-xs mt-1">`
- {data.execution.duration && ${data.execution.duration}ms`}
+ <div className="text-xs mt-1">
+ {data.execution.duration && `${data.execution.duration}ms`}
  </div>
  )}
  </div>
@@ -413,8 +412,7 @@ function getNodeStatusColor(status: string): string {
  return 'bg-yellow-500';
  case 'cancelled':
  return 'bg-gray-500';
- 'default':
+ default:
  return 'bg-gray-300';
  }
-}`
-}))
+}
