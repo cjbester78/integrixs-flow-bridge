@@ -1,16 +1,16 @@
 # Complete List of Current Parsing Errors
 
 ## Summary (Updated 2025-09-06)
-- **Current status**: 48 errors, 26 warnings (74 total problems)
-- **Files with errors**: 43 files (7 service files fixed)
-- **Error reduction achieved**: 69% (from 156 to 48)
+- **Current status**: 47 errors, 26 warnings (73 total problems)
+- **Files with errors**: 42 files (7 service files fixed, 3 field mapping components fixed)
+- **Error reduction achieved**: 70% (from 156 to 47)
 
 ## Parsing Errors by Category
 
 ### Field Mapping Components (3 files)
 - [x] fieldMapping/FieldSelectorDialog.tsx - Fixed parsing errors (semicolons and backtick)
-- [ ] fieldMapping/FunctionMappingModal.tsx - Line 77:29: Invalid character
-- [ ] fieldMapping/VisualFlowEditor.tsx - Line 220:1: ',' expected
+- [x] fieldMapping/FunctionMappingModal.tsx - Fixed all parsing errors (77+ errors resolved)
+- [x] fieldMapping/VisualFlowEditor.tsx - Fixed all parsing errors (missing semicolons and braces)
 
 ### Flow Components (7 files)
 - [ ] flow/DeploymentDetailsDialog.tsx - Line 194:75: ',' expected

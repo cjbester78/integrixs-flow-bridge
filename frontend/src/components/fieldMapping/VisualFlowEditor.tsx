@@ -124,7 +124,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  type: 'string',
  path: sourceFieldPath,
  expanded: false
- }
+ };
 }
 
  if (sourceField) {
@@ -175,7 +175,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  type: 'string',
  path: sourceFieldName,
  expanded: false
- }
+ };
 }
 
  if (sourceField) {
@@ -211,7 +211,6 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  // Set node counter based on how many nodes we're starting with
  const sourceNodeCount = (initialMapping?.sourcePaths?.length || initialMapping?.sourceFields?.length || 0);
  initialNodeCounter = 2 + sourceNodeCount;
- }
 
  setNodes(initialNodes);
  setEdges(initialEdges);
@@ -350,7 +349,8 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  connectedSourcePaths.push((node.data as any).field.path);
  connectedSourceFields.push((node.data as any).field.name);
  }
- });
+    }
+    });
 
  logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - connectedSourcePaths', { data: connectedSourcePaths });
  logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - connectedSourceFields', { data: connectedSourceFields });
@@ -375,8 +375,7 @@ export const VisualFlowEditor: React.FC<VisualFlowEditorProps> = ({
  parameters: {},
  sourceConnections: {},
  position: { x: 0, y: 0 }
- }
- };
+ }};
 
  logger.info(LogCategory.UI, '🔥 VisualFlowEditor handleSave - final mapping', { data: mapping });
  onApplyMapping(mapping);
