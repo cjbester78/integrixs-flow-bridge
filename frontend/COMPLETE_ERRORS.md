@@ -61,7 +61,7 @@
 - [ ] CreateDirectMappingFlow.tsx - Line 337:2: 'catch' or 'finally' expected
 
 ### Services (9 files)
-- [ ] flowExportImportService.ts - Line 123:18: ';' expected
+- [x] flowExportImportService.ts - Fixed parsing errors (extra backticks)
 - [ ] flowMonitoringService.ts - Line 190:0: Declaration or statement expected
 - [ ] messageService.ts - Line 62:2: Declaration or statement expected
 - [x] structureService.ts - Fixed all parsing errors (commas to semicolons, etc.)

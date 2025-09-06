@@ -55,7 +55,7 @@ class FlowMonitoringService {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
 
  const endpoint = `/flows/executions${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
@@ -70,7 +70,7 @@ class FlowMonitoringService {
  if (value !== undefined) {
  queryParams.append(key, value.toString());
  }
- })
+ });
  }
  const endpoint = `/flows/executions/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
@@ -126,11 +126,11 @@ class FlowMonitoringService {
  this.websocket.onclose = () => {
  logger.info(LogCategory.API, 'WebSocket connection closed');
  this.attemptReconnect(businessComponentId);
- }
+ };
 
  this.websocket.onerror = (error) => {
  logger.error(LogCategory.API, 'WebSocket error', { error: error });
- }
+ };
 } catch (error) {
  logger.error(LogCategory.API, 'Failed to create WebSocket connection', { error: error });
  }
@@ -138,7 +138,7 @@ class FlowMonitoringService {
  private attemptReconnect(businessComponentId?: string): void {
  if (this.reconnectAttempts < this.maxReconnectAttempts) {
  this.reconnectAttempts++;
- logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
+ logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
  setTimeout(() => {
  this.connectWebSocket(businessComponentId);
@@ -163,31 +163,30 @@ class FlowMonitoringService {
  return () => {
  const index = this.executionListeners.indexOf(callback);
  if (index > -1) this.executionListeners.splice(index, 1);
+ };
  }
-  }
 
  onStatsUpdate(callback: (stats: FlowMonitoringStats) => void): () => void {
  this.statsListeners.push(callback);
  return () => {
  const index = this.statsListeners.indexOf(callback);
  if (index > -1) this.statsListeners.splice(index, 1);
+ };
  }
-  }
 
  onFlowUpdate(callback: (flow: IntegrationFlow) => void): () => void {
  this.flowListeners.push(callback);
  return () => {
  const index = this.flowListeners.indexOf(callback);
  if (index > -1) this.flowListeners.splice(index, 1);
+ };
  }
-  }
 
  sendCommand(command: string, data?: any): void {
  if (this.websocket?.readyState === WebSocket.OPEN) {
- this.websocket.send(JSON.stringify({ command, data }))
- }}
+ this.websocket.send(JSON.stringify({ command, data }));
+ }
  }
 }
 
-export const flowMonitoringService = new FlowMonitoringService();`
-}}})
+export const flowMonitoringService = new FlowMonitoringService();
