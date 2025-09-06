@@ -256,4 +256,3 @@ export const StartProcessNode: React.FC<StartProcessNodeProps> = ({ id, data }) 
  </>
  );
 };
-}
