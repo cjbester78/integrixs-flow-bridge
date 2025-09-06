@@ -114,7 +114,7 @@ export const FlowExecutionMonitor: React.FC<FlowExecutionMonitorProps> = ({
 
  const getProgressPercentage = (execution: FlowExecution) => {
  return execution.metrics.totalSteps > 0
- ? (execution.metrics.completedSteps / execution.metrics.totalSteps) * 100;
+ ? (execution.metrics.completedSteps / execution.metrics.totalSteps) * 100
  : 0;
  };
 
@@ -138,9 +138,9 @@ export const FlowExecutionMonitor: React.FC<FlowExecutionMonitorProps> = ({
  <div className="space-y-4">
  {activeExecutions.map(execution => (
  <Card
- key={execution.id}`
+ key={execution.id}
  className={`cursor-pointer transition-colors ${
- selectedExecution?.id === execution.id ? 'border-primary' : '`
+ selectedExecution?.id === execution.id ? 'border-primary' : ''
  }`}
  onClick={() => setSelectedExecution(execution)}
  >
@@ -355,15 +355,15 @@ export const FlowExecutionMonitor: React.FC<FlowExecutionMonitorProps> = ({
  <ScrollArea className="h-96">
  <div className="space-y-2">
  {selectedExecution.steps.flatMap(step =>
- step.logs.map((log, logIndex) => (`
- <div key={${step.stepId}-${logIndex}`} className="text-sm font-mono bg-muted p-2 rounded">
+ step.logs.map((log, logIndex) => (
+ <div key={`${step.stepId}-${logIndex}`} className="text-sm font-mono bg-muted p-2 rounded">
  <span className="text-muted-foreground">
  [{new Date(log.timestamp).toLocaleTimeString()}]
- </span>`
+ </span>
  <span className={`ml-2 font-medium ${
  log.level === 'error' ? 'text-destructive' :
  log.level === 'warn' ? 'text-warning' :
- log.level === 'info' ? 'text-info' : 'text-muted-foreground'`
+ log.level === 'info' ? 'text-info' : 'text-muted-foreground'
  }`}>
  [{(log.level || 'info').toUpperCase()}]
  </span>
@@ -433,5 +433,4 @@ export const FlowExecutionMonitor: React.FC<FlowExecutionMonitorProps> = ({
  )}
  </div>
  );
-};`
-}}}}
+};
