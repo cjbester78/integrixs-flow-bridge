@@ -156,7 +156,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="include-business-component"
  checked={options.includeBusinessComponent}
  onCheckedChange={(checked) =>
- setOptions({ ...options, includeBusinessComponent: checked });
+ setOptions({ ...options, includeBusinessComponent: checked })
  }
  />
  </div>
@@ -167,7 +167,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="include-adapter-configs"
  checked={options.includeAdapterConfigs}
  onCheckedChange={(checked) =>
- setOptions({ ...options, includeAdapterConfigs: checked });
+ setOptions({ ...options, includeAdapterConfigs: checked })
  }
  />
  </div>
@@ -178,7 +178,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="include-certificate-refs"
  checked={options.includeCertificateReferences}
  onCheckedChange={(checked) =>
- setOptions({ ...options, includeCertificateReferences: checked });
+ setOptions({ ...options, includeCertificateReferences: checked })
  }
  />
  </div>
@@ -189,7 +189,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="include-sensitive"
  checked={options.includeSensitiveData}
  onCheckedChange={(checked) =>
- setOptions({ ...options, includeSensitiveData: checked });
+ setOptions({ ...options, includeSensitiveData: checked })
  }
  />
  </div>
@@ -200,7 +200,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="include-statistics"
  checked={options.includeStatistics}
  onCheckedChange={(checked) =>
- setOptions({ ...options, includeStatistics: checked });
+ setOptions({ ...options, includeStatistics: checked })
  }
  />
  </div>
@@ -211,7 +211,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="include-audit"
  checked={options.includeAuditInfo}
  onCheckedChange={(checked) =>
- setOptions({ ...options, includeAuditInfo: checked });
+ setOptions({ ...options, includeAuditInfo: checked })
  }
  />
  </div>
@@ -229,7 +229,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="environment"
  placeholder="e.g., development, staging, production"
  value={options.environment || ''}
- onChange={(e) => setOptions({ ...options, environment: e.target.value })
+ onChange={(e) => setOptions({ ...options, environment: e.target.value })}
  />
  </div>
 
@@ -239,7 +239,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  id="description"
  placeholder="Add a description for this export..."
  value={options.description || ''}
- onChange={(e) => setOptions({ ...options, description: e.target.value })
+ onChange={(e) => setOptions({ ...options, description: e.target.value })}
  rows={3}
  />
  </div>
@@ -316,5 +316,4 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  </DialogContent>
  </Dialog>
  );
-};`
-})
+};
