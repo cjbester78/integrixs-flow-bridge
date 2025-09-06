@@ -1795,30 +1795,37 @@ export default function PackageCreationWizard({
  {/* Step indicator */}
  <div className="mb-8">
  <div className="flex items-center justify-between">
- {getStepSequence().map((step, index) => {
- const isActive = currentStep === step;
- const isCompleted = getStepSequence().indexOf(currentStep) > index;
- return (
- <div key={step} className="flex items-center flex-1">
- <div className="flex items-center">
- <div
- className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground"
- >
- {getStepIcon(step)}
- </div>
- <div className="ml-2">
- <p className="text-sm font-medium text-primary">
-  {getStepTitle(step)}</p>
- </div>
- </div>
- {index < getStepSequence().length - 1 && (
- <div className="flex-1 h-0.5 mx-4 bg-primary/20" />
- )}
- </div>
- );
- })}
- </div>
- </div>
+              {getStepSequence().map((step, index) => {
+                const isActive = currentStep === step;
+                const isCompleted = getStepSequence().indexOf(currentStep) > index;
+                const stepClasses = isActive 
+                  ? 'bg-primary text-primary-foreground' 
+                  : isCompleted 
+                  ? 'bg-primary/20 text-primary' 
+                  : 'bg-muted text-muted-foreground';
+                const textClasses = isActive ? 'text-primary' : 'text-muted-foreground';
+                const lineClasses = isCompleted ? 'bg-primary/20' : 'bg-muted';
+                
+                return (
+                  <div key={step} className="flex items-center flex-1">
+                    <div className="flex items-center">
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-full ${stepClasses}`}>
+                        {getStepIcon(step)}
+                      </div>
+                      <div className="ml-2">
+                        <p className={`text-sm font-medium ${textClasses}`}>
+                          {getStepTitle(step)}
+                        </p>
+                      </div>
+                    </div>
+                    {index < getStepSequence().length - 1 && (
+                      <div className={`flex-1 h-0.5 mx-4 ${lineClasses}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
  {/* Step content */}
  <div key={currentStep} className="animate-in fade-in-0 slide-in-from-right-4 duration-300">
