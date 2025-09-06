@@ -170,7 +170,6 @@ export function DataTable<T extends Record<string, any>>({
 
  const isLast = index === actions.length - 1;
  const isDestructive = action.variant === 'destructive';
-;
  return (
  <div key={action.label}>
  {isDestructive && index > 0 && (
@@ -192,7 +191,7 @@ export function DataTable<T extends Record<string, any>>({
  )}
  </div>
  );
- })
+ })}
  </DropdownMenuContent>
  </DropdownMenu>
  </TableCell>
@@ -206,4 +205,3 @@ export function DataTable<T extends Record<string, any>>({
  </div>
  );
 }
-})
