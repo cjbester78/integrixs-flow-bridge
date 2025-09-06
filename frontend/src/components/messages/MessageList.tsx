@@ -55,8 +55,8 @@ export const MessageList = ({ messages, isBusinessComponentSelected, statusFilte
  // Sort by timestamp (newest first)
  filteredMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
- logger.info(LogCategory.UI, [MessageList] Filtered messages: { data: filteredMessages });
- logger.info(LogCategory.UI, [MessageList] Filtered messages length: { data: filteredMessages.length });
+ logger.info(LogCategory.UI, '[MessageList] Filtered messages:', { data: filteredMessages });
+ logger.info(LogCategory.UI, '[MessageList] Filtered messages length:', { data: filteredMessages.length });
  return (
  <div className="space-y-4">
  {/* Filter Controls */}
