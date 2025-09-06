@@ -69,14 +69,11 @@ export function FieldMappingScreen({
  try {
 const parser = new DOMParser();
  const doc = parser.parseFromString(xml, 'text/xml');
-;
  // Find the root element
  const root = doc.documentElement;
-;
  // Create a new document with the same root
  const newDoc = document.implementation.createDocument(null, root.tagName, null);
  const newRoot = newDoc.documentElement;
-;
  // Copy attributes from original root
  for (let i = 0; i < root.attributes.length; i++) {
  const attr = root.attributes[i];
@@ -91,12 +88,10 @@ const parser = new DOMParser();
  };
 
  const patterns = messagePatterns[messageType];
-;
  // Filter child elements based on patterns
  for (let i = 0; i < root.children.length; i++) {
  const child = root.children[i];
  const tagName = child.tagName;
-;
  // Check if the tag name matches any of the patterns for the message type
  const shouldInclude = patterns.some(pattern =>
  tagName.includes(pattern) ||
@@ -148,11 +143,9 @@ const parser = new DOMParser();
  // Filter XML based on mapping type
  const filteredSourceXml = filterXmlByMessageType(sourceXml, mappingType);
  const filteredTargetXml = filterXmlByMessageType(targetXml, mappingType);
-;
  // Parse XML directly
  const sourceFieldNodes = parseXmlToFieldNodes(filteredSourceXml);
  const targetFieldNodes = parseXmlToFieldNodes(filteredTargetXml);
-;
  setSourceFields(sourceFieldNodes);
  setTargetFields(targetFieldNodes);
       setSelectedSource(`Pre-converted XML (${mappingType})`);
@@ -179,7 +172,6 @@ const parser = new DOMParser();
         // Find compatible data structures for the selected adapters
  const sourceStructures = structures.filter(s => s.usage === 'source' || !s.usage);
  const targetStructures = structures.filter(s => s.usage === 'target' || !s.usage);
-;
  // Auto-select the first available structures
  if (sourceStructures.length > 0) {
           await selectDataStructure(sourceStructures[0].name, true);
@@ -192,6 +184,7 @@ const parser = new DOMParser();
 
       autoSelectStructures();
  }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [preConverted, sourceXml, targetXml, inboundAdapterType, outboundAdapterType, structures, mappingType]);
 
   const toggleExpanded = useCallback((nodeId: string, isSource: boolean) => {
@@ -216,6 +209,7 @@ const parser = new DOMParser();
 
  const handleDragStart = (field: FieldNode) => {
  setDraggedField(field);
+ };
 
  const handleDragEnd = () => {
  setDraggedField(null);
@@ -223,6 +217,7 @@ const parser = new DOMParser();
 
  const handleDragOver = (e: React.DragEvent) => {
  e.preventDefault();
+ };
 
  const handleDrop = (targetField: FieldNode) => {
  if (!draggedField) return;
@@ -231,10 +226,8 @@ const parser = new DOMParser();
  const isSourceNode = draggedField.type === 'array' || draggedField.type === 'object';
  const isTargetNode = targetField.type === 'array' || targetField.type === 'object';
  const isNodeMapping = isSourceNode && isTargetNode;
-;
  // Find existing mapping for target field
  const existingMappingIndex = mappings.findIndex(m => m.targetPath === targetField.path);
-;
  if (existingMappingIndex >= 0) {
  // Add to existing mapping (multi-source)
  const existingMapping = mappings[existingMappingIndex];
@@ -334,7 +327,6 @@ const parser = new DOMParser();
  // If both are nodes, map all matching fields within them
  if (isSourceNode && isTargetNode) {
  let mappedCount = 0;
-;
  // ALWAYS map the selected nodes themselves, regardless of name matching
  if (!existingTargetPaths.has(selectedTargetField.path)) {
  const nodeMapping: FieldMapping = {
@@ -475,7 +467,6 @@ const parser = new DOMParser();
  // Collect all source and target fields;
  const allSourceFields = collectFields(sourceFields);
  const allTargetFields = collectFields(targetFields);
-;
  // Create a map of target fields by name for quick lookup
  const targetFieldMap = new Map<string, FieldNode[]>();
  allTargetFields.forEach(field => {
@@ -567,7 +558,6 @@ const parser = new DOMParser();
  });
 
  const xmlContent = xmlResult.xmlContent;
-;
  // Parse XML to field nodes
  let fieldNodes;
  try {
@@ -747,4 +737,3 @@ const parser = new DOMParser();
  </div>
  )
 }
-}))
