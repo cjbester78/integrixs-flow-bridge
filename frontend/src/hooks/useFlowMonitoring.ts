@@ -116,7 +116,6 @@ const response = await flowMonitoringService.getExecutionStats(filters);
  description: "Failed to retry execution",
  variant: "destructive",
  });
- });
  }
  }, [toast]);
 
