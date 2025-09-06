@@ -58,7 +58,9 @@ class MessageService {
  if (Array.isArray(value)) {
  queryParams.append(key, value.join(','));
  } else {
-  }
+ queryParams.append(key, value.toString());
+ }
+ }
  });
  }
 
@@ -83,6 +85,7 @@ class MessageService {
           queryParams.append(key, value.toString());
         }
   }
+ });
  }
 
  const endpoint = `/messages/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
@@ -123,9 +126,7 @@ class MessageService {
  // Use dynamic host detection for WebSocket
  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
  const host = window.location.hostname;
- const port = window.location.port || '8080';`;
-    const port = window.location.port || '8080';
-import { logger, LogCategory } from '@/lib/logger';
+ const port = window.location.port || '8080';
 
  // Build query parameters
  const params = new URLSearchParams();
@@ -134,6 +135,7 @@ import { logger, LogCategory } from '@/lib/logger';
  }
 
  const queryString = params.toString();
+ const baseUrl = `${protocol}//${host}:${port}`;
  const wsUrl = `${baseUrl}/ws/messages${queryString ? `?${queryString}` : ''}`;
 
  try {
@@ -152,11 +154,11 @@ import { logger, LogCategory } from '@/lib/logger';
  this.messageListeners.forEach(listener => listener(data.message));
  } else if (data.type === 'stats_update') {
  this.statsListeners.forEach(listener => listener(data.stats));
-          }
+          };
 } catch (error) {
  logger.error(LogCategory.API, 'Error parsing WebSocket message', { error: error });
  }
-      };;
+      };
 
  this.websocket.onclose = () => {
  logger.info(LogCategory.API, 'WebSocket connection closed');
@@ -165,7 +167,7 @@ import { logger, LogCategory } from '@/lib/logger';
 
  this.websocket.onerror = (error) => {
  logger.error(LogCategory.API, 'WebSocket error', { error: error });
- }
+ };
 } catch (error) {
  logger.error(LogCategory.API, 'Failed to create WebSocket connection', { error: error });
  }
@@ -174,7 +176,7 @@ import { logger, LogCategory } from '@/lib/logger';
  private attemptReconnect(businessComponentId?: string): void {
  if (this.reconnectAttempts < this.maxReconnectAttempts) {
  this.reconnectAttempts++;
- logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
+ logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
  setTimeout(() => {
  this.connectWebSocket(businessComponentId);
@@ -203,7 +205,7 @@ import { logger, LogCategory } from '@/lib/logger';
  if (index > -1) {
  this.messageListeners.splice(index, 1);
  }
- }
+ };
 }
 
  onStatsUpdate(callback: (stats: MessageStats) => void): () => void {
@@ -215,12 +217,15 @@ import { logger, LogCategory } from '@/lib/logger';
  if (index > -1) {
  this.statsListeners.splice(index, 1);
  }
+ };
  }
-}
 
  // Send WebSocket command (e.g., subscribe to specific message types)
  sendCommand(command: string, data?: any): void {
  if (this.websocket?.readyState === WebSocket.OPEN) {
+ this.websocket.send(JSON.stringify({ command, data }));
+ }
+ }
 }
 
 export const messageService = new MessageService();
