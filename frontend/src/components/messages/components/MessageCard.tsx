@@ -42,21 +42,21 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  title: "Error",
  description: (response && typeof response === 'object' && 'error' in response ? (response as any).error : undefined) || "Failed to reprocess message",
  variant: "destructive",
- })}
-} catch (error) {
+ });
+    }
+  } catch (error) {
  toast({
  title: "Error",
  description: "Failed to reprocess message",
  variant: "destructive",
-}
- });
+    });
  } finally {
  setIsReprocessing(false);
  }
  };
 
  return (
- <Card className="bg-gradient-secondary border-border/50 hover-scale">;
+ <Card className="bg-gradient-secondary border-border/50 hover-scale">
  <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
  <CollapsibleTrigger asChild>
  <Button variant="ghost" className="w-full p-0 h-auto hover:bg-transparent">
@@ -87,13 +87,12 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  try {
  if (Array.isArray(message.timestamp)) {
  // [year, month, day, hour, minute, second, nano]
- const [year, month, day, hour, minute, second] = message.timestamp as number[];`
+ const [year, month, day, hour, minute, second] = message.timestamp as number[];
  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
  }
  return JSON.stringify(message.timestamp);
- }
         } catch (e) {
- logger.error(LogCategory.UI, Error formatting timestamp: { data: message.timestamp, extra: e });
+ logger.error(LogCategory.UI, 'Error formatting timestamp:', { data: message.timestamp, extra: e });
  return 'Invalid timestamp';
  }
  }
@@ -129,8 +128,8 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  variant="outline"
  onClick={handleReprocess}
  disabled={isReprocessing}
- >`
- <RefreshCw className={`h-4 w-4 mr-2 ${isReprocessing ? 'animate-spin' : '}`} />
+ >
+ <RefreshCw className={`h-4 w-4 mr-2 ${isReprocessing ? 'animate-spin' : ''}`} />
  {isReprocessing ? 'Reprocessing...' : 'Retry Message'}
  </Button>
  )}
@@ -144,6 +143,7 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  {getLogLevelIcon(log.level)}
  <span className="text-muted-foreground min-w-[120px] font-mono">
  {(() => {
+ try {
  if (!log.timestamp) {
                               return 'No timestamp';
                             }
@@ -161,9 +161,8 @@ export const MessageCard = ({ message }: MessageCardProps) => {
  return JSON.stringify(log.timestamp);
  }
  return 'Invalid timestamp';
- }
         } catch (e) {
- logger.error(LogCategory.UI, Error formatting log timestamp: { data: log.timestamp, extra: e });
+ logger.error(LogCategory.UI, 'Error formatting log timestamp:', { data: log.timestamp, extra: e });
  return 'Invalid timestamp';
  }
  })()}
