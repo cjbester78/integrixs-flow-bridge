@@ -72,7 +72,7 @@
 - [x] webserviceService.ts - Fixed all parsing errors (trailing quotes and extra braces)
 
 ### Utils (1 file)
-- [ ] utils/structureParsers.ts - Line 150:2: Declaration or statement expected
+- [x] utils/structureParsers.ts - Fixed parsing errors (missing/extra braces)
 
 ## Non-Parsing Errors (2 files)
 - [ ] admin/SystemSettings.tsx - Line 31:32: Unexpected empty object pattern (no-empty-pattern)

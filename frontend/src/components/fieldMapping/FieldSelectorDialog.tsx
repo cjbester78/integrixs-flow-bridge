@@ -133,13 +133,12 @@ export const FieldSelectorDialog: React.FC<FieldSelectorDialogProps> = ({
  return leafFields;
  };
 
- const availableFields = sourceFields.filter(field =>;
+ const availableFields = sourceFields.filter(field =>
  !excludeFields.includes(field.id)
  );
 
  const totalLeafFields = getAllLeafFields(sourceFields).length;
  const availableLeafFields = getAllLeafFields(availableFields).length;
-;
  return (
  <Dialog open={open} onOpenChange={onClose}>
  <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
@@ -190,4 +189,4 @@ export const FieldSelectorDialog: React.FC<FieldSelectorDialogProps> = ({
  </DialogContent>
  </Dialog>
  );
-};`
+};
