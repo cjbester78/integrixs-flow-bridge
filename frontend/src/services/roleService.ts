@@ -55,13 +55,13 @@ class RoleService {
  }
 
  // Update role permissions
- async updatePermissions(roleId: string, permissions: string[]): Promise<ApiResponse<Role>> {`
- return api.put<Role>(`/roles/${roleId}/permissions`, { permissions })
+ async updatePermissions(roleId: string, permissions: string[]): Promise<ApiResponse<Role>> {
+ return api.put<Role>(`/roles/${roleId}/permissions`, { permissions });;
  }
 
  // Get role permissions
- async getRolePermissions(roleId: string): Promise<ApiResponse<{ permissions: string[] }>> {`
- return api.get<{ permissions: string[] }>(/roles/${roleId}/permissions`);
+ async getRolePermissions(roleId: string): Promise<ApiResponse<{ permissions: string[] }>> {
+ return api.get<{ permissions: string[] }>(`/roles/${roleId}/permissions`);
  }
 
  // Search roles
@@ -76,18 +76,18 @@ class RoleService {
  page: (filters?.page || 1).toString(),
  limit: (filters?.limit || 50).toString()
  });
-`
+
  return api.get<RoleListResponse>(`/roles/search?${params}`);
  }
 
  // Get users assigned to role
- async getRoleUsers(roleId: string): Promise<ApiResponse<{ users: any[]; total: number }>> {`
- return api.get(/roles/${roleId}/users`);
+ async getRoleUsers(roleId: string): Promise<ApiResponse<{ users: any[]; total: number }>> {
+ return api.get(`/roles/${roleId}/users`);
  }
 
  // Clone an existing role
- async cloneRole(roleId: string, newName: string): Promise<ApiResponse<Role>> {`
- return api.post<Role>(`/roles/${roleId}/clone`, { name: newName })
+ async cloneRole(roleId: string, newName: string): Promise<ApiResponse<Role>> {
+ return api.post<Role>(`/roles/${roleId}/clone`, { name: newName });
  }
 
  // Get available permissions
@@ -107,9 +107,8 @@ class RoleService {
  invalidPermissions: string[];
  suggestions: string[];
  }>> {
- return api.post('/roles/validate-permissions', { permissions })
- }}
+ return api.post('/roles/validate-permissions', { permissions });
+ }
 }
 
-export const roleService = new RoleService();`
-}}
+export const roleService = new RoleService();

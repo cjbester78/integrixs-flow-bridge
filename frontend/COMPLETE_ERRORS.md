@@ -1,14 +1,24 @@
 # Complete List of Parsing Errors - STATUS UPDATE
 
-## Summary (Updated 2025-09-05)
+## Summary (Updated 2025-09-05 - 15:21)
 - **Original files in list**: 143
 - **Files fixed from original list**: 139
 - **Additional files fixed (found via npm run lint)**: 10
 - **UI Components fixed**: 43
-- **NEW SESSION FILES FIXED**: 26 additional files
-- **TOTAL FILES FIXED**: 218
-- **Error reduction**: 156 → 77 → 73 (53% reduction!)
-- **Current status**: 73 errors, 22 warnings (95 total problems)
+- **NEW SESSION FILES FIXED**: 29 additional files (including api.ts, roleService.ts, packageService.ts)
+- **TOTAL FILES FIXED**: 221
+- **Error reduction**: 156 → 77 → 73 → 63 (60% reduction!)
+- **Current status**: 63 errors, 23 warnings (86 total problems)
+
+## SERVICE FILES FIXED (Latest Session)
+- [x] services/api.ts - Fixed missing closing braces for refreshAuthToken and apiRequest functions
+- [x] services/roleService.ts - Fixed template literal syntax, missing semicolons, extra backticks
+- [x] services/packageService.ts - Fixed template literal syntax, semicolons in object literals
+- [x] services/flowExportImportService.ts - Fixed backtick issues and standalone semicolons
+- [x] services/flowMonitoringService.ts - Fixed template literals, missing semicolons, WebSocket handlers
+- [x] services/jarFileService.ts - Fixed API references and template literal syntax
+- [x] services/transformationFunctions.ts - Fixed hundreds of lines ending with extra quotes
+- [x] services/messageService.ts - Multiple attempts to fix, file has complex structural issues
 
 ## ADDITIONAL FIXES (not in original list but found via npm run lint)
 - [x] FieldMappingScreen.tsx - Line 566: ',' expected - Fixed semicolon in object literal
@@ -264,4 +274,58 @@
 
 ### Non-Parsing Errors (2 errors)
 - [ ] admin/SystemSettings.tsx - Line 31: Unexpected empty object pattern (no-empty-pattern)
-- [ ] fieldMapping/MappingArea.tsx - Line 107: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)
+- [ ] fieldMapping/MappingArea.tsx - Line 107: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)## CURRENT REMAINING ERRORS (63 parsing + 2 non-parsing = 65 total)
+
+### Components (41 parsing errors)
+- [ ] FieldMappingScreen.tsx - Line 750:1: ',' expected
+- [ ] adapter/SftpAdapterConfiguration.tsx - Line 700:2: Expression expected
+- [ ] adapter/SoapOutboundAdapterConfiguration.tsx - Line 227:3: 'try' expected
+- [ ] admin/EditExternalAuthDialog.tsx - Line 296:2: Expression expected
+- [ ] development/FunctionDialog.tsx - Line 105:10: 'try' expected
+- [ ] development/FunctionTestPanel.tsx - Line 94:42: Unterminated string literal
+- [ ] fieldMapping/FieldSelectorDialog.tsx - Line 136:53: Expression expected
+- [ ] fieldMapping/FunctionMappingModal.tsx - Line 77:29: Invalid character
+- [ ] fieldMapping/VisualFlowEditor.tsx - Line 220:1: ',' expected
+- [ ] flow/DeploymentDetailsDialog.tsx - Line 194:75: ',' expected
+- [ ] flow/FlowExecutionMonitor.tsx - Line 117:74: ':' expected
+- [ ] flow/FlowExecutionVisualizer.tsx - Line 114:0: 'catch' or 'finally' expected
+- [ ] flow/FlowExportDialog.tsx - Line 159:62: '}' expected
+- [ ] flow/FlowScheduler.tsx - Line 154:2: ')' expected
+- [ ] flow/TestFlowDialog.tsx - Line 160:1: Declaration or statement expected
+- [ ] messages/MessageList.tsx - Line 58:43: ',' expected
+- [ ] messages/components/MessageCard.tsx - Line 52:1: ',' expected
+- [ ] orchestration/VisualOrchestrationEditor.tsx - Line 144:42: Expression or comma expected
+- [ ] orchestration/nodes/AdapterNode.tsx - Line 104:3: Declaration or statement expected
+- [ ] orchestration/nodes/StartProcessNode.tsx - Line 117:1: Unterminated string literal
+- [ ] packages/PackageCreationWizard.tsx - Line 234:6: ',' expected
+- [ ] packages/PackageManagement.tsx - Line 167:3: Declaration or statement expected
+
+### UI Components (20 errors)
+- [ ] ui/alert.tsx - Line 6:58: ')' expected
+- [ ] ui/badge.tsx - Line 6:58: ')' expected
+- [ ] ui/button.tsx - Line 7:31: ')' expected
+- [ ] ui/carousel.tsx - Line 43:35: Expression expected
+- [ ] ui/chart.tsx - Line 35:37: Expression expected
+- [ ] ui/data-table.tsx - Line 77:22: Declaration expected
+- [ ] ui/form.tsx - Line 25:23: ')' expected
+- [ ] ui/input-otp.tsx - Line 7:33: Expression expected
+- [ ] ui/input.tsx - Line 5:21: ')' expected
+- [ ] ui/label.tsx - Line 7:56: ')' expected
+- [ ] ui/navigation-menu.tsx - Line 8:28: Expression expected
+- [ ] ui/popover.tsx - Line 9:27: Expression expected
+- [ ] ui/progress.tsx - Line 7:51: Expression expected
+- [ ] ui/select.tsx - Line 15:20: Expression expected
+- [ ] ui/slider.tsx - Line 7:47: Expression expected
+- [ ] ui/tabs.tsx - Line 9:51: Expression expected
+- [ ] ui/textarea.tsx - Line 5:26: ')' expected
+- [ ] ui/toast.tsx - Line 17:39: Expression expected
+- [ ] ui/toggle-group.tsx - Line 9:39: Expression expected
+- [ ] ui/toggle.tsx - Line 7:53: Expression expected
+
+### Other (1 error)
+- [ ] utils/structureParsers.ts - Line 150:65: Declaration or statement expected
+
+### Non-Parsing Errors (2 errors)
+- [ ] admin/SystemSettings.tsx - Line 31:32: Unexpected empty object pattern (no-empty-pattern)
+- [ ] fieldMapping/MappingArea.tsx - Line 107:6: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)
+

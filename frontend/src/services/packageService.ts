@@ -8,7 +8,7 @@ import type {
 } from '@/types/package';
 
 const API_PREFIX = '/integration-packages';
-;
+
 export const packageService = {
  // Create a new package
  createPackage: async (data: CreatePackageRequest) => {
@@ -50,7 +50,7 @@ export const packageService = {
  size?: number;
  }) => {
  const queryParams = new URLSearchParams();
-;
+
  if (params.searchTerm) queryParams.append('searchTerm', params.searchTerm);
  if (params.status) queryParams.append('status', params.status);
  if (params.syncType) queryParams.append('syncType', params.syncType);
@@ -92,7 +92,7 @@ export const packageService = {
 
  // Validate a package
  validatePackage: async (packageId: string) => {
- const response = await apiClient.post<PackageValidationResult>(;`;
+ const response = await apiClient.post<PackageValidationResult>(
  `${API_PREFIX}/${packageId}/validate`
  );
  return response;
@@ -103,23 +103,23 @@ export const packageService = {
  const params = new URLSearchParams({ environment });
  if (notes) params.append('notes', notes);
 
- const response = await apiClient.post(;`;
+ const response = await apiClient.post(
  `${API_PREFIX}/${packageId}/deploy?${params.toString()}`
  );
  return response;
  },
 
  // Delete a package
- deletePackage: async (packageId: string) => {`
- const response = await apiClient.delete(${API_PREFIX}/${packageId}`);
+ deletePackage: async (packageId: string) => {
+ const response = await apiClient.delete(`${API_PREFIX}/${packageId}`);
  return response;
  },
 
  // Export a package
- exportPackage: async (packageId: string) => {`
+ exportPackage: async (packageId: string) => {
  const response = await fetch(`/api${API_PREFIX}/${packageId}/export`, {
  method: 'GET',
- headers: {`
+ headers: {
  'Authorization': `Bearer ${localStorage.getItem('token')}`
  }
  });
@@ -131,27 +131,26 @@ export const packageService = {
  const blob = await response.blob();
  const url = window.URL.createObjectURL(blob);
  const link = document.createElement('a');
- link.href = url;`
- link.download = package_${packageId}_export.json`;
+ link.href = url;
+ link.download = `package_${packageId}_export.json`;
  document.body.appendChild(link);
  link.click();
  document.body.removeChild(link);
  window.URL.revokeObjectURL(url);
 
- return { success: true }
-},
+ return { success: true };
+  },
 
  // Import a package
  importPackage: async (file: File) => {
  const formData = new FormData();
  formData.append('file', file);
-`
  const response = await fetch(`/api${API_PREFIX}/import`, {
  method: 'POST',
- headers: {`
+ headers: {
  'Authorization': `Bearer ${localStorage.getItem('token')}`
  },
- body: formData;
+ body: formData
  });
 
  if (!response.ok) {
@@ -161,6 +160,5 @@ export const packageService = {
 
  const result = await response.json();
  return result;
- }
-};`
-}}}}}})))
+   }
+};
