@@ -696,7 +696,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Checkbox
  id="enableDuplicateHandling"
  checked={config.enableDuplicateHandling}
- onCheckedChange={(checked) => updateConfig({ enableDuplicateHandling: checked === true })
+ onCheckedChange={(checked) => updateConfig({ enableDuplicateHandling: checked === true })}
  />
  <Label htmlFor="enableDuplicateHandling">Enable Duplicate Handling</Label>
  </div>
@@ -718,7 +718,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Checkbox
  id="disableChannelOnExceed"
  checked={config.disableChannelOnExceed}
- onCheckedChange={(checked) => updateConfig({ disableChannelOnExceed: checked === true })
+ onCheckedChange={(checked) => updateConfig({ disableChannelOnExceed: checked === true })}
  />
  <Label htmlFor="disableChannelOnExceed">Disable Channel if Duplicate threshold has been exceeded</Label>
  </div>
@@ -734,7 +734,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Checkbox
  id="createFileDirectory"
  checked={config.createFileDirectory}
- onCheckedChange={(checked) => updateConfig({ createFileDirectory: checked === true })
+ onCheckedChange={(checked) => updateConfig({ createFileDirectory: checked === true })}
  />
  <Label htmlFor="createFileDirectory">Create File Directory</Label>
  </div>
@@ -743,7 +743,7 @@ export const SftpAdapterConfiguration = ({ mode, onConfigChange }: SftpAdapterCo
  <Checkbox
  id="overwriteExistingFile"
  checked={config.overwriteExistingFile}
- onCheckedChange={(checked) => updateConfig({ overwriteExistingFile: checked === true })
+ onCheckedChange={(checked) => updateConfig({ overwriteExistingFile: checked === true })}
  />
  <Label htmlFor="overwriteExistingFile">Overwrite Existing File</Label>
  </div>
