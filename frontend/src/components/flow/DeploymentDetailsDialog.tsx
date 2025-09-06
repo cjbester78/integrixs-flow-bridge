@@ -84,7 +84,7 @@ export function DeploymentDetailsDialog({
  <Server className="h-5 w-5" />
  Deployment Details
  </DialogTitle>
- <DialogDescription>`
+ <DialogDescription>
  {flowName ? `Deployment information for ${flowName}` : 'Flow deployment information'}
  </DialogDescription>
  </DialogHeader>
@@ -191,7 +191,7 @@ export function DeploymentDetailsDialog({
  <Button
  size="sm"
  variant="outline"
- onClick={() => copyToClipboard(deploymentInfo.metadata?.openApiUrl || ', 'OpenAPI URL')}
+ onClick={() => copyToClipboard(deploymentInfo.metadata?.openApiUrl || '', 'OpenAPI URL')}
  disabled={!deploymentInfo.metadata?.openApiUrl}
  >
  <Copy className="h-4 w-4" />
@@ -278,5 +278,4 @@ export function DeploymentDetailsDialog({
  </DialogContent>
  </Dialog>
  );
-}`
-})
+}
