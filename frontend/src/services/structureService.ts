@@ -34,7 +34,7 @@ export interface StructureUsageInfo {
 
 class StructureService {
  // Create a new data structure
- async createStructure(structure: DataStructureCreate): Promise<ApiResponse<DataStructure>> {'
+ async createStructure(structure: DataStructureCreate): Promise<ApiResponse<DataStructure>> {
  return api.post<DataStructure>('/structures', structure);
  }
 
@@ -59,7 +59,7 @@ class StructureService {
  }
  });
  }
-'
+
  const endpoint = `/structures${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
@@ -84,36 +84,36 @@ class StructureService {
  return api.post<StructureValidationResult>('/structures/validate', { structure, type });
  }
 
- // Parse and import structure from various formats'
+ // Parse and import structure from various formats
  async parseStructure(content: string, type: 'json' | 'xsd' | 'wsdl'): Promise<ApiResponse<{
  structure: any;
  metadata: {
- fields: number,'
+ fields: number;
  complexity: 'simple' | 'medium' | 'complex';
  namespace?: string;
  }
-}>> {'
+}>> {
  return api.post('/structures/parse', { content, type });
  }
 
- // Generate sample data from structure'
- async generateSampleData(id: string, format?: 'json' | 'xml'): Promise<ApiResponse<any>> {`'
+ // Generate sample data from structure
+ async generateSampleData(id: string, format?: 'json' | 'xml'): Promise<ApiResponse<any>> {
  const endpoint = `/structures/${id}/sample${format ? `?format=${format}` : ''}`;
  return api.get(endpoint);
  }
 
  // Get structure usage information
- async getStructureUsage(id: string): Promise<ApiResponse<StructureUsageInfo>> {`
+ async getStructureUsage(id: string): Promise<ApiResponse<StructureUsageInfo>> {
  return api.get<StructureUsageInfo>(`/structures/${id}/usage`);
  }
 
  // Clone an existing structure
- async cloneStructure(id: string, newName: string): Promise<ApiResponse<DataStructure>> {`
+ async cloneStructure(id: string, newName: string): Promise<ApiResponse<DataStructure>> {
  return api.post<DataStructure>(`/structures/${id}/clone`, { name: newName });
  }
 
  // Compare two structures
- async compareStructures(sourceId: string, targetId: string): Promise<ApiResponse<{'
+ async compareStructures(sourceId: string, targetId: string): Promise<ApiResponse<{
  compatibility: 'compatible' | 'partially_compatible' | 'incompatible';
  score: number;
  differences: Array<{
@@ -124,10 +124,10 @@ class StructureService {
  }>;
  suggestions: Array<{
  field: string;
- suggestion: string,'
+ suggestion: string;
  action: 'map' | 'transform' | 'ignore';
  }>;
- }>> {'
+ }>> {
  return api.post('/structures/compare', { sourceId, targetId });
  }
 
@@ -137,16 +137,16 @@ class StructureService {
  targetField: string,
  confidence: number;
  transformationSuggestion?: string;
- }>>> {`
+ }>>> {
  return api.get(`/structures/mappings?source=${sourceId}&target=${targetId}`);
  }
 
- // Export structure in different formats'
+ // Export structure in different formats
  async exportStructure(id: string, format: 'json' | 'xsd' | 'yaml' | 'typescript'): Promise<ApiResponse<{
  content: string;
  filename: string,
  mimeType: string;
- }>> {`
+ }>> {
  return api.get(`/structures/${id}/export?format=${format}`);
  }
 
@@ -164,7 +164,7 @@ class StructureService {
  }
  });
  }
-`
+
  return api.get(`/structures/search?${queryParams.toString()}`);
  }
 
@@ -175,9 +175,9 @@ class StructureService {
  createdBy: string;
  changes: string,
  structure: any;
- }>>> {`
+ }>>> {
  return api.get(`/structures/${id}/versions`);
  }
 }
-'
-export const structureService = new StructureService();`
+
+export const structureService = new StructureService();
