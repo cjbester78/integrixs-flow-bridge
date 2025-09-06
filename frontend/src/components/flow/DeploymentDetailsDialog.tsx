@@ -34,7 +34,8 @@ export function DeploymentDetailsDialog({
  if (open && flowId) {
  fetchDeploymentInfo();
  }
- }, [open, flowId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, flowId]);
 
  const fetchDeploymentInfo = async () => {
  if (!flowId) return;
