@@ -1,342 +1,79 @@
-# Complete List of Parsing Errors - STATUS UPDATE
+# Complete List of Current Parsing Errors
 
 ## Summary (Updated 2025-09-06)
-- **Original files in list**: 143
-- **Files fixed from original list**: 139
-- **Additional files fixed (found via npm run lint)**: 10
-- **UI Components fixed**: 43
-- **NEW SESSION FILES FIXED**: 33 additional files (including hooks and lib files)
-- **TODAY'S FIXES**: 3 additional files
-- **TOTAL FILES FIXED**: 228
-- **Error reduction**: 156 → 77 → 73 → 63 → 61 → 58 (63% reduction!)
-- **Current status**: 58 errors, 26 warnings (84 total problems)
+- **Current status**: 55 parsing errors, 26 warnings (81 total problems)
+- **Files with errors**: 49 files
+- **Error reduction achieved**: 65% (from 156 to 55)
 
-## HOOK AND LIB FILES FIXED (Latest - 15:35)
-- [x] hooks/useFlowMonitoring.ts - Fixed extra closing braces on lines 118-119, moved }); to proper location
-- [x] hooks/use-logger.ts - No parsing error found (only warning)
-- [x] hooks/useMessageMonitoring.ts - No parsing error found
-- [x] hooks/useSystemMonitoring.ts - No parsing error found
-- [x] lib/api-client.ts - Fixed semicolon to comma (line 121), fixed catch block structure, removed duplicate import
-- [x] lib/api-response-utils.ts - No parsing error found
+## Parsing Errors by Category
 
-## SERVICE FILES FIXED (Latest Session)
-- [x] services/api.ts - Fixed missing closing braces for refreshAuthToken and apiRequest functions
-- [x] services/roleService.ts - Fixed template literal syntax, missing semicolons, extra backticks
-- [x] services/packageService.ts - Fixed template literal syntax, semicolons in object literals
-- [x] services/flowExportImportService.ts - Fixed backtick issues and standalone semicolons
-- [x] services/flowMonitoringService.ts - Fixed template literals, missing semicolons, WebSocket handlers
-- [x] services/jarFileService.ts - Fixed API references and template literal syntax
-- [x] services/transformationFunctions.ts - Fixed hundreds of lines ending with extra quotes
-- [x] services/messageService.ts - Multiple attempts to fix, file has complex structural issues
-
-## ADDITIONAL FIXES (not in original list but found via npm run lint)
-- [x] FieldMappingScreen.tsx - Line 566: ',' expected - Fixed semicolon in object literal
-- [x] adapter/SftpAdapterConfiguration.tsx - Line 221: Expression expected - Fixed missing closing braces
-- [x] adapter/SoapOutboundAdapterConfiguration.tsx - Line 229: 'try' expected - Fixed extra closing brace  
-- [x] adapters/FileFormatTab.tsx - Line 100: Identifier expected - Fixed template literals and semicolons
-- [x] admin/AdapterTypesManagement.tsx - Line 468: '}' expected - Added missing closing brace for component
-- [x] admin/CreateExternalAuthDialog.tsx - Line 102: Declaration or statement expected - Fixed semicolons and multiline handlers
-- [x] admin/EditExternalAuthDialog.tsx - Line 92: Unterminated string literal - Fixed empty strings and semicolons
-- [x] admin/EditUserDialog.tsx - Line 351: '}' expected - Fixed map function closing
-- [x] admin/JdbcDriverModal.tsx - Line 88: ',' expected - Fixed semicolons in object literals
-- [x] admin/JmsDriverModal.tsx - Line 109: ',' expected - Fixed extra closing brace
-
-## UI Components (43 files) - ALL FIXED ✓
-- [x] accordion.tsx - Line 9: Expression expected - Fixed semicolons
-- [x] alert-dialog.tsx - Line 13: Expression expected - Fixed semicolons
-- [x] alert.tsx - Line 6: ')' expected - Fixed semicolons
-- [x] avatar.tsx - Line 6: Expression expected - Fixed semicolons
-- [x] badge.tsx - Line 6: ')' expected - Fixed semicolons
-- [x] breadcrumb.tsx - Line 7: Expression expected - Fixed semicolons
-- [x] button.tsx - Line 7: ')' expected - Fixed semicolons
-- [x] card.tsx - Line 5: Expression expected - Fixed semicolons
-- [x] carousel.tsx - Line 43: Expression expected - Fixed semicolons
-- [x] certificate-selection.tsx - Line 74: Unterminated string literal - Fixed unterminated string
-- [x] chart.tsx - Line 35: Expression expected - Fixed semicolons
-- [x] checkbox.tsx - Line 7: Expression expected - Fixed semicolons
-- [x] combobox.tsx - Line 127: Unterminated template literal - Fixed ending backtick
-- [x] command.tsx - Line 9: Expression expected - Fixed semicolons
-- [x] context-menu.tsx - Line 19: Expression expected - Fixed semicolons
-- [x] data-table.tsx - Line 77: Declaration expected - Fixed ternary operator
-- [x] dialog.tsx - Line 15: Expression expected - Fixed semicolons
-- [x] drawer.tsx - Line 23: Expression expected - Fixed semicolons
-- [x] dropdown-menu.tsx - Line 19: Expression expected - Fixed semicolons
-- [x] form.tsx - Line 25: ')' expected - Fixed parenthesis placement
-- [x] hover-card.tsx - Line 10: Expression expected - Fixed semicolons
-- [x] input-otp.tsx - Line 7: Expression expected - Fixed semicolons
-- [x] input.tsx - Line 5: ')' expected - Fixed semicolons
-- [x] label.tsx - Line 7: ')' expected - Fixed semicolons
-- [x] loading-skeleton.tsx - Line 81: ';' expected - Fixed default case
-- [x] menubar.tsx - Line 17: Expression expected - Fixed semicolons
-- [x] navigation-menu.tsx - Line 8: Expression expected - Fixed semicolons
-- [x] pagination.tsx - Line 17: Expression expected - Fixed semicolons
-- [x] password-confirmation.tsx - Line 116: Identifier expected - Fixed template literals
-- [x] popover.tsx - Line 10: Expression expected - Fixed semicolons
-- [x] progress.tsx - Line 6: Expression expected - Fixed semicolons
-- [x] radio-group.tsx - Line 7: Expression expected - Fixed semicolons
-- [x] scroll-area.tsx - Line 6: Expression expected - Fixed semicolons
-- [x] select.tsx - Line 13: Expression expected - Fixed semicolons
-- [x] separator.tsx - Line 6: Expression expected - Fixed semicolons
-- [x] sheet.tsx - Line 16: Expression expected - Fixed semicolons
-- [x] sidebar.tsx - Line 48: Expression expected - Fixed semicolons
-- [x] slider.tsx - Line 6: Expression expected - Fixed semicolons
-- [x] switch.tsx - Line 6: Expression expected - Fixed semicolons
-- [x] table.tsx - Line 5: Expression expected - Fixed semicolons
-- [x] tabs.tsx - Line 8: Expression expected - Fixed semicolons
-- [x] textarea.tsx - Line 7: ')' expected - Fixed semicolons
-- [x] toast.tsx - Line 10: Expression expected - Fixed semicolons
-- [x] toggle-group.tsx - Line 8: Expression expected - Fixed semicolons
-- [x] toggle.tsx - Line 7: ')' expected - Fixed semicolons
-
-## Field Mapping Components (13 files) - ALL FIXED ✓
-- [x] FieldMappingScreen.tsx - Line 529: ',' expected - Fixed in previous session
-- [x] FieldSelectorDialog.tsx - Line 58: Expression expected - Fixed in previous session
-- [x] FieldTree.tsx - Line 131: Unterminated template literal - Fixed in previous session
-- [x] FunctionMappingModal.tsx - Line 52: ',' expected - Fixed in previous session
-- [x] FunctionNode.tsx - Line 157: Unterminated template literal - Fixed in previous session
-- [x] FunctionPicker.tsx - Line 35: Expression expected - Fixed syntax errors
-- [x] FunctionSelectorDialog.tsx - Line 77: Expression expected - Fixed filter syntax
-- [x] MappingArea.tsx - Line 38: Unterminated string literal - Fixed multiple template literals
-- [x] nodes/FunctionNode.tsx - Line 96: ',' expected - Fixed syntax errors and template literals
-- [x] TestMappingDialog.tsx - Line 94: 'try' expected - Fixed try-catch syntax
-- [x] TransformationPreview.tsx - Line 61: ';' expected - Fixed multiple syntax issues
-- [x] VisualFlowEditor.tsx - Line 110: Expression expected - Fixed multiple template literal errors
-- [x] VisualMappingCanvas.tsx - Line 39: Declaration expected - Fixed syntax errors
-
-## Services (15 files) - ALL FIXED ✓
-- [x] api.ts - Line 222: '}' expected - No actual error found, skipped
-- [x] flowExportImportService.ts - Line 93: ')' expected - Fixed semicolon after api.post
-- [x] flowMonitoringService.ts - Line 80: ';' expected - Fixed multiple backtick issues
-- [x] integrationFlowService.ts - Line 52: ',' expected - Fixed missing closing brace and semicolon
-- [x] jarFileService.ts - Line 51: ';' expected - Fixed misplaced backticks
-- [x] messageService.ts - Line 90: ';' expected - Fixed backtick issues
-- [x] packageService.ts - Line 66: ';' expected - Fixed misplaced semicolons and backticks
-- [x] roleService.ts - Line 44: ';' expected - Fixed multiple backtick issues
-- [x] structureService.ts - Line 79: ';' expected - Fixed backtick issues (Python script + manual)
-- [x] systemConfigService.ts - Line 63: ',' expected - Fixed with Python script
-- [x] systemErrorLogger.ts - Line 101: 'catch' or 'finally' expected - Fixed with Python script
-- [x] systemMonitoringService.ts - Line 122: ';' expected - Fixed with Python script
-- [x] transformationFunctions.ts - Line 802: Unterminated string literal - Fixed quote issues
-- [x] userService.ts - Line 60: ';' expected - Fixed with Python script
-- [x] webserviceService.ts - Line 51: ';' expected - Fixed with Python script
-
-## Admin Components (9 files) - ALL FIXED ✓
-- [x] AdapterTypesManagement.tsx - Line 468: '}' expected - No actual error found
-- [x] CreateExternalAuthDialog.tsx - Line 95: ',' expected - Fixed semicolon to comma
-- [x] EditExternalAuthDialog.tsx - Line 78: Unterminated string literal - Fixed missing quotes
-- [x] EditUserDialog.tsx - Line 351: '}' expected - No actual error found
-- [x] JdbcDriverModal.tsx - Line 56: ',' expected - Fixed semicolon in object literal
-- [x] JmsDriverModal.tsx - Line 56: ',' expected - Fixed multiple syntax issues
-- [x] RoleManagement.tsx - Line 129: Unterminated template literal - Fixed extra backtick
-- [x] SystemSettings.tsx - Line 99: ';' expected - Fixed multiple syntax issues
-- [x] UserManagement.tsx - Line 177: Unterminated template literal - Fixed comments and backtick
-
-## Data Structure Components (8 files) - ALL FIXED ✓
-- [x] FieldAdvancedOptions.tsx - Line 44: '}' expected - Fixed missing closing braces
-- [x] FieldConfiguration.tsx - Line 71: '}' expected - No actual error found
-- [x] FileUploadZone.tsx - Line 55: Unterminated template literal - Fixed template literal
-- [x] NamespaceConfiguration.tsx - Line 55: '}' expected - Fixed onChange handlers
-- [x] StructureLibrary.tsx - Line 108: Identifier expected - Fixed template literals
-- [x] tabs/JsonStructureTab.tsx - Line 44: ';' expected - Fixed duplicate catch closing
-- [x] tabs/WsdlStructureTab.tsx - Line 169: Unterminated template literal - Fixed semicolon and backtick
-- [x] tabs/XsdStructureTab.tsx - Line 115: Unterminated template literal - Fixed extra backtick
-
-## Flow Components (7 files) - ALL FIXED ✓
-- [x] DeploymentDetailsDialog.tsx - Line 142: ',' expected - Fixed missing quote in copyToClipboard
-- [x] FlowExecutionMonitor.tsx - Line 89: ';' expected - Fixed 'default' case syntax
-- [x] FlowExecutionVisualizer.tsx - Line 77: ')' expected - Fixed useCallback semicolon issue
-- [x] FlowExportDialog.tsx - Line 73: ',' expected - Removed extra closing brace in toast call
-- [x] FlowImportDialog.tsx - Line 103: ',' expected - Fixed multiple template literals and syntax issues
-- [x] FlowScheduler.tsx - Line 88: Property assignment expected - Removed extra backtick
-- [x] TestFlowDialog.tsx - Line 115: ')' expected - Removed extra backticks in ternary
-
-## Orchestration Components (6 files) - ALL FIXED ✓
-- [x] nodes/AdapterNode.tsx - Line 43: ')' expected - Fixed logger syntax errors
-- [x] nodes/RoutingNode.tsx - Line 240: Declaration expected - No error found, already correct
-- [x] nodes/StartProcessNode.tsx - Line 54: ',' expected - Fixed multiple syntax issues including semicolon after parenthesis
-- [x] nodes/TransformationNode.tsx - Line 171: ',' expected - Fixed logger call syntax and extra semicolons
-- [x] OrchestrationPropertiesPanel.tsx - Line 158: Unterminated template literal - Fixed extra backtick at end
-- [x] VisualOrchestrationEditor.tsx - Line 123: Unterminated string literal - Fixed missing closing quote
-
-## Pages (6 files) - ALL FIXED ✓
-- [x] AdapterMonitoring.tsx - Line 132: Declaration expected - Fixed ternary operator and missing semicolons
-- [x] Admin.tsx - Line 142: ',' expected - Fixed unquoted logger message and missing semicolon
-- [x] AllInterfaces.tsx - Line 125: ',' expected - Fixed multiple issues: extra });, switch statement, loading check
-- [x] CreateDataStructure.tsx - Line 103: 'try' expected - No actual error found, skipped
-- [x] CreateDirectMappingFlow.tsx - Line 323: 'try' expected - Fixed try/catch block structure (Python script)
-- [x] Settings.tsx - Line 141: Declaration expected - Fixed extra }); and missing } in onChange/onValueChange
-
-## Hooks (5 files) - ALL FIXED ✓
-- [x] use-logger.ts - Line 17: ',' expected - Fixed semicolon to comma in object literal
-- [x] useBusinessComponentAdapters.ts - Line 95: '}' expected - Fixed missing closing braces
-- [x] useFlowMonitoring.ts - Line 26: Declaration expected - Fixed extra semicolons and syntax issues
-- [x] useMessageMonitoring.ts - Line 33: 'try' expected - Fixed try-catch block structure
-- [x] useSystemMonitoring.ts - Line 126: Declaration expected - Fixed template literal and missing semicolons
-
-## Development Components (4 files) - ALL FIXED ✓
-- [x] FunctionDialog.tsx - Line 79: Unterminated string literal - Fixed missing quotes
-- [x] FunctionEditor.tsx - Line 175: Declaration expected - Removed extra closing braces
-- [x] FunctionTestPanel.tsx - Line 67: ')' expected - Fixed missing parenthesis in map
-- [x] ParameterEditor.tsx - Line 52: ';' expected - Removed extra backticks
-
-## Adapter Components (4 files)
-- [x] SftpAdapterConfiguration.tsx - Line 207: Identifier expected - Fixed in previous session
-- [x] SoapOutboundAdapterConfiguration.tsx - Line 228: 'try' expected - Fixed in previous session
-- [x] FileFormatTab.tsx - Line 83: ',' expected - Fixed in previous session
-- [x] PayloadStructureDefinition.tsx - Line 289: '}' expected - Fixed in previous session
-
-## Message Components (4 files) - ALL FIXED ✓
-- [x] MessageCard.tsx - Line 52: ',' expected - Fixed semicolon to comma in object literal
-- [x] MessageList.tsx - Line 36: Declaration expected - Fixed extra closing braces
-- [x] MessageStats.tsx - Line 42: Expression expected - Fixed template literal issues
-- [x] utils/timeFilters.ts - Line 45: ';' expected - Fixed semicolon after return statement
-
-## Lib Files (3 files) - ALL FIXED ✓
-- [x] api-client.ts - Line 93: '}' expected - Fixed missing closing braces
-- [x] api-response-utils.ts - Line 11: ')' expected - Fixed parenthesis mismatch
-- [x] query-logger.ts - Line 21: ',' expected - Fixed semicolon to comma
-
-## Architecture Components (2 files) - ALL FIXED ✓
-- [x] LoggingArchitectureDiagrams.tsx - Line 95: Invalid character - Fixed backtick at end of line 320
-- [x] UpdatedArchitectureDiagrams.tsx - Line 444: Unterminated template literal - Fixed extra backtick at end of file
-
-## Utils (2 files)
-- [x] structureParsers.ts - Line 150: Declaration expected - Fixed in previous session
-- [x] xmlStructureConverter.ts - Line 121: ',' expected - Fixed in previous session
-
-## Other Components (4 files) - ALL FIXED ✓
-- [x] layout/Sidebar.tsx - Line 188: '}' expected - Fixed multiple issues: comments, missing closing braces
-- [x] packages/PackageCreationWizard.tsx - Line 112: Unterminated string literal - Fixed complex syntax issues with Python script
-- [x] createFlow/TransformationConfigurationCard.tsx - Line 237: Identifier expected - Fixed extra backtick and closing braces
-- [x] wsdl/WSDLGeneratorModal.tsx - Line 147: Unterminated string literal - Fixed unterminated string and template literal issues
-
-## CURRENT LINT ERRORS (73 errors as of 2025-09-05 - After fixing 26 files)
-
-### Components (22 errors)
-- [ ] FieldMappingScreen.tsx - Line 614: ')' expected
-- [ ] adapter/SftpAdapterConfiguration.tsx - Line 350: Expression expected
-- [ ] adapter/SoapOutboundAdapterConfiguration.tsx - Line 228: 'try' expected
-- [ ] admin/EditExternalAuthDialog.tsx - Line 275: '}' expected
-- [ ] development/FunctionDialog.tsx - Line 97: Declaration or statement expected
-- [ ] development/FunctionTestPanel.tsx - Line 76: Statement expected
-- [ ] development/ParameterEditor.tsx - Line 168: Unterminated template literal
-- [ ] fieldMapping/FieldSelectorDialog.tsx - Line 76: '}' expected
-- [ ] fieldMapping/FunctionMappingModal.tsx - Line 53: ')' expected
-- [ ] fieldMapping/FunctionPicker.tsx - Line 55: ',' expected
-- [ ] fieldMapping/TestMappingDialog.tsx - Line 105: ',' expected
-- [ ] fieldMapping/VisualFlowEditor.tsx - Line 220: ',' expected
-- [ ] fieldMapping/VisualMappingCanvas.tsx - Line 58: ')' expected
-- [ ] flow/DeploymentDetailsDialog.tsx - Line 166: ',' expected
-- [ ] flow/FlowExecutionMonitor.tsx - Line 104: ';' expected
-- [ ] flow/FlowExecutionVisualizer.tsx - Line 89: ')' expected
-- [ ] flow/FlowExportDialog.tsx - Line 104: ',' expected
-- [ ] flow/FlowScheduler.tsx - Line 123: Property assignment expected
-- [ ] flow/TestFlowDialog.tsx - Line 128: 'try' expected
-- [ ] messages/MessageList.tsx - Line 36: Declaration or statement expected
-- [ ] messages/MessageStats.tsx - Line 59: Expression expected
-- [ ] messages/utils/timeFilters.ts - Line 73: ',' expected
-
-### Orchestration (4 errors)
-- [ ] nodes/AdapterNode.tsx - Line 100: ')' expected
-- [ ] nodes/RoutingNode.tsx - Line 240: Declaration expected
-- [ ] nodes/StartProcessNode.tsx - Line 223: ',' expected
-- [ ] nodes/TransformationNode.tsx - Line 148: ',' expected
-
-### Hooks (4 errors)
-- [ ] use-logger.ts - Line 42: ',' expected
-- [ ] useFlowMonitoring.ts - Line 99: Declaration or statement expected
-- [ ] useMessageMonitoring.ts - Line 33: 'try' expected
-- [ ] useSystemMonitoring.ts - Line 174: Declaration expected
-
-### Lib (2 errors)
-- [ ] api-client.ts - Line 93: '}' expected
-- [ ] api-response-utils.ts - Line 11: ')' expected
-
-### Pages (5 errors)
-- [ ] AdapterMonitoring.tsx - Line 217: '}' expected
-- [ ] Admin.tsx - Line 145: 'try' expected
-- [ ] AllInterfaces.tsx - Line 168: Argument expression expected
-- [ ] CreateDataStructure.tsx - Line 103: 'try' expected
-- [ ] CreateDirectMappingFlow.tsx - Line 325: 'try' expected
-
-### Services (15 errors)
-- [ ] api.ts - Line 222: '}' expected
-- [ ] flowExportImportService.ts - Line 124: ';' expected
-- [ ] flowMonitoringService.ts - Line 132: ';' expected
-- [ ] integrationFlowService.ts - Line 45: Unnecessary try/catch wrapper (no-useless-catch)
-- [ ] jarFileService.ts - Line 98: ';' expected
-- [ ] messageService.ts - Line 139: ';' expected
-- [ ] packageService.ts - Line 95: ')' expected
-- [ ] roleService.ts - Line 59: ';' expected
-- [ ] structureService.ts - Line 1: Unterminated string literal
-- [ ] systemConfigService.ts - Line 1: Unterminated string literal
-- [ ] systemErrorLogger.ts - Line 1: Unterminated string literal
-- [ ] systemMonitoringService.ts - Line 1: Unterminated string literal
-- [ ] transformationFunctions.ts - Line 18: Unterminated string literal
-- [ ] userService.ts - Line 1: Unterminated string literal
-- [ ] webserviceService.ts - Line 1: Unterminated string literal
-
-### Other (3 errors)
-- [ ] utils/structureParsers.ts - Line 150: Declaration or statement expected
-- [ ] packages/PackageCreationWizard.tsx - Line 234: ',' expected
-- [ ] packages/components/FlowCreationStep.tsx - Line 251: Declaration expected
-
-### Non-Parsing Errors (6 errors)
-- [ ] admin/SystemSettings.tsx - Line 31: Unexpected empty object pattern (no-empty-pattern)
-- [ ] fieldMapping/MappingArea.tsx - Line 107: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)
-
-## CURRENT REMAINING ERRORS (52 parsing + 6 non-parsing = 58 total)
-
-### Components (38 parsing errors) - 3 FIXED TODAY
-- [x] FieldMappingScreen.tsx - Line 750:1: ',' expected - **FIXED 2025-09-06**
-- [x] adapter/SftpAdapterConfiguration.tsx - Line 700:2: Expression expected - **FIXED 2025-09-06**
-- [x] adapter/SoapOutboundAdapterConfiguration.tsx - Line 227:3: 'try' expected - **FIXED 2025-09-06**
-- [ ] admin/EditExternalAuthDialog.tsx - Line 296:2: Expression expected
-- [ ] development/FunctionDialog.tsx - Line 105:10: 'try' expected
-- [ ] development/FunctionTestPanel.tsx - Line 94:42: Unterminated string literal
+### Field Mapping Components (3 files)
 - [ ] fieldMapping/FieldSelectorDialog.tsx - Line 136:53: Expression expected
 - [ ] fieldMapping/FunctionMappingModal.tsx - Line 77:29: Invalid character
 - [ ] fieldMapping/VisualFlowEditor.tsx - Line 220:1: ',' expected
+
+### Flow Components (7 files)
 - [ ] flow/DeploymentDetailsDialog.tsx - Line 194:75: ',' expected
 - [ ] flow/FlowExecutionMonitor.tsx - Line 117:74: ':' expected
 - [ ] flow/FlowExecutionVisualizer.tsx - Line 114:0: 'catch' or 'finally' expected
 - [ ] flow/FlowExportDialog.tsx - Line 159:62: '}' expected
 - [ ] flow/FlowScheduler.tsx - Line 154:2: ')' expected
 - [ ] flow/TestFlowDialog.tsx - Line 160:1: Declaration or statement expected
+
+### Messages Components (2 files)
 - [ ] messages/MessageList.tsx - Line 58:43: ',' expected
 - [ ] messages/components/MessageCard.tsx - Line 52:1: ',' expected
+
+### Orchestration Components (3 files)
 - [ ] orchestration/VisualOrchestrationEditor.tsx - Line 144:42: Expression or comma expected
-- [ ] orchestration/nodes/AdapterNode.tsx - Line 104:3: Declaration or statement expected
-- [ ] orchestration/nodes/StartProcessNode.tsx - Line 117:1: Unterminated string literal
-- [ ] packages/PackageCreationWizard.tsx - Line 234:6: ',' expected
-- [ ] packages/PackageManagement.tsx - Line 167:3: Declaration or statement expected
+- [ ] orchestration/nodes/StartProcessNode.tsx - Line 137:43: ',' expected  
+- [ ] orchestration/nodes/AdapterNode.tsx - Line 259:0: Declaration or statement expected
 
-### UI Components (20 errors)
-- [ ] ui/alert.tsx - Line 6:58: ')' expected
-- [ ] ui/badge.tsx - Line 6:58: ')' expected
-- [ ] ui/button.tsx - Line 7:31: ')' expected
-- [ ] ui/carousel.tsx - Line 43:35: Expression expected
-- [ ] ui/chart.tsx - Line 35:37: Expression expected
-- [ ] ui/data-table.tsx - Line 77:22: Declaration expected
-- [ ] ui/form.tsx - Line 25:23: ')' expected
-- [ ] ui/input-otp.tsx - Line 7:33: Expression expected
-- [ ] ui/input.tsx - Line 5:21: ')' expected
-- [ ] ui/label.tsx - Line 7:56: ')' expected
-- [ ] ui/navigation-menu.tsx - Line 8:28: Expression expected
-- [ ] ui/popover.tsx - Line 9:27: Expression expected
-- [ ] ui/progress.tsx - Line 7:51: Expression expected
-- [ ] ui/select.tsx - Line 15:20: Expression expected
-- [ ] ui/slider.tsx - Line 7:47: Expression expected
-- [ ] ui/tabs.tsx - Line 9:51: Expression expected
-- [ ] ui/textarea.tsx - Line 5:26: ')' expected
-- [ ] ui/toast.tsx - Line 17:39: Expression expected
-- [ ] ui/toggle-group.tsx - Line 9:39: Expression expected
-- [ ] ui/toggle.tsx - Line 7:53: Expression expected
+### Package Components (1 file)
+- [ ] packages/PackageCreationWizard.tsx - Line 685:3: Expected corresponding JSX closing tag for 'Card'
 
-### Other (1 error)
-- [ ] utils/structureParsers.ts - Line 150:65: Declaration or statement expected
+### UI Components (20 files)
+- [ ] ui/alert.tsx - Line 6:26: ')' expected
+- [ ] ui/badge.tsx - Line 6:26: ')' expected
+- [ ] ui/button.tsx - Line 7:27: ')' expected
+- [ ] ui/carousel.tsx - Line 82:41: ')' expected
+- [ ] ui/chart.tsx - Line 35:40: Expression expected
+- [ ] ui/data-table.tsx - Line 196:1: '}' expected
+- [ ] ui/form.tsx - Line 58:31: Property assignment expected
+- [ ] ui/input-otp.tsx - Line 7:34: Expression expected
+- [ ] ui/input.tsx - Line 5:80: ')' expected
+- [ ] ui/label.tsx - Line 7:26: ')' expected
+- [ ] ui/navigation-menu.tsx - Line 42:39: ')' expected
+- [ ] ui/password-confirmation.tsx - Line 154:4: Unterminated template literal
+- [ ] ui/progress.tsx - Line 27:1: Unterminated template literal
+- [ ] ui/radio-group.tsx - Line 12:26: Identifier expected
+- [ ] ui/sheet.tsx - Line 27:26: ')' expected
+- [ ] ui/sidebar.tsx - Line 48:41: Expression expected
+- [ ] ui/textarea.tsx - Line 7:70: ')' expected
+- [ ] ui/toast.tsx - Line 10:39: Expression expected
+- [ ] ui/toggle-group.tsx - Line 8:47: Expression expected
+- [ ] ui/toggle.tsx - Line 7:27: ')' expected
 
-### Non-Parsing Errors (2 errors)
+### Pages (5 files)
+- [ ] AdapterMonitoring.tsx - Line 237:0: Unterminated template literal
+- [ ] AllInterfaces.tsx - Line 459:1: '}' expected
+- [ ] CreateDataStructure.tsx - Line 148:2: ')' expected
+- [ ] CreateDirectMappingFlow.tsx - Line 337:2: 'catch' or 'finally' expected
+
+### Services (9 files)
+- [ ] flowExportImportService.ts - Line 123:18: ';' expected
+- [ ] flowMonitoringService.ts - Line 190:0: Declaration or statement expected
+- [ ] messageService.ts - Line 62:2: Declaration or statement expected
+- [ ] structureService.ts - Line 37:94: Unterminated string literal
+- [ ] systemConfigService.ts - Line 34:7: Unterminated string literal
+- [ ] systemErrorLogger.ts - Line 9:47: Unterminated string literal
+- [ ] systemMonitoringService.ts - Line 14:15: Unterminated string literal
+- [ ] userService.ts - Line 8:19: Unterminated string literal
+- [ ] webserviceService.ts - Line 23:7: Unterminated string literal
+
+### Utils (1 file)
+- [ ] utils/structureParsers.ts - Line 150:2: Declaration or statement expected
+
+## Non-Parsing Errors (2 files)
 - [ ] admin/SystemSettings.tsx - Line 31:32: Unexpected empty object pattern (no-empty-pattern)
-- [ ] fieldMapping/MappingArea.tsx - Line 107:6: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)
-
+- [ ] fieldMapping/MappingArea.tsx - Line 107:7: 'fieldPath' is never reassigned. Use 'const' instead (prefer-const)
