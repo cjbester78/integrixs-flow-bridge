@@ -98,17 +98,13 @@ const params = typeof functionData.parameters === 'string'
  : functionData.parameters;
  setFunctionParameters(params);
  setParsedParameters(params);
- 
-} catch (error) {
-  // Handle error
-}
         } catch (e) {
  logger.error(LogCategory.UI, 'Failed to parse parameters', { error: e });
  // Fallback to parsing from signature
  if (functionData.functionSignature) {
  const parsed = parseFunctionSignature(functionData.functionSignature);
  if (parsed) {
- const parametersWithTypes = inferParameterTypes(functionData.functionBody || ', parsed.parameters);
+ const parametersWithTypes = inferParameterTypes(functionData.functionBody || '', parsed.parameters);
  setFunctionParameters(parametersWithTypes);
  setParsedParameters(parametersWithTypes);
  }
@@ -118,7 +114,7 @@ const params = typeof functionData.parameters === 'string'
  // Parse from signature if no parameters in DB
  const parsed = parseFunctionSignature(functionData.functionSignature);
  if (parsed) {
- const parametersWithTypes = inferParameterTypes(functionData.functionBody || ', parsed.parameters);
+ const parametersWithTypes = inferParameterTypes(functionData.functionBody || '', parsed.parameters);
  setFunctionParameters(parametersWithTypes);
  setParsedParameters(parametersWithTypes);
  }
@@ -139,10 +135,10 @@ const params = typeof functionData.parameters === 'string'
  setHasCompiled(true);
  setWarnings(result.warnings || []);
  } else {
- setErrors(result.errors || ['Compilation failed']);}
-} catch (error) {
+ setErrors(result.errors || ['Compilation failed']);
+ }
+ } catch (error) {
  setErrors(['Failed to compile: ' + error]);
-}
  } finally {
  setIsCompiling(false);
  }
@@ -161,18 +157,17 @@ const params = typeof functionData.parameters === 'string'
  try {
  // Update signature based on parameters
  const updatedSignature = generateFunctionSignature(formData.name, functionParameters);
-;
  // Include parsed parameters in the save data
  const dataToSave = {
  ...formData,
  functionSignature: updatedSignature,
- parameters: functionParameters // This will be stored in a new column;
+ parameters: functionParameters // This will be stored in a new column
  };
  await onSave(dataToSave);
  onOpenChange(false);
- }
-} catch (error) {
- logger.error(LogCategory.UI, 'Failed to save', { error: error }); finally {
+ } catch (error) {
+ logger.error(LogCategory.UI, 'Failed to save', { error: error });
+ } finally {
  setIsSaving(false);
  }
  };
@@ -189,8 +184,8 @@ const params = typeof functionData.parameters === 'string'
  const generateFunctionSignature = (functionName: string, params: FunctionParameter[]): string => {
  if (params.length === 0) {
  return `${functionName}()`;
- }`
- const paramStr = params.map(p => `${p.type} ${p.name}`).join(', ');`;
+ }
+ const paramStr = params.map(p => `${p.type} ${p.name}`).join(', ');
  return `${functionName}(${paramStr})`;
  };
 
@@ -225,7 +220,7 @@ const params = typeof functionData.parameters === 'string'
  <Input
  id="name"
  value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })
+ onChange={(e) => setFormData({ ...formData, name: e.target.value })}
  readOnly={!canEdit || (isBuiltIn && mode === 'edit')}
  placeholder="e.g., calculateTax"
  />
@@ -234,7 +229,7 @@ const params = typeof functionData.parameters === 'string'
  <Label htmlFor="category">Category</Label>
  <Select
  value={formData.category}
- onValueChange={(value) => setFormData({ ...formData, category: value })
+ onValueChange={(value) => setFormData({ ...formData, category: value })}
  disabled={!canEdit}
  >
  <SelectTrigger id="category">
@@ -259,7 +254,7 @@ const params = typeof functionData.parameters === 'string'
  <Textarea
  id="description"
  value={formData.description}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })
+ onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  readOnly={!canEdit}
  placeholder="Describe what this function does..."
  rows={3}
@@ -316,7 +311,7 @@ const params = typeof functionData.parameters === 'string'
  <Label htmlFor="performance">Performance Class</Label>
  <Select
  value={formData.performanceClass}
- onValueChange={(value: any) => setFormData({ ...formData, performanceClass: value })
+ onValueChange={(value: any) => setFormData({ ...formData, performanceClass: value })}
  disabled={!canEdit}
  >
  <SelectTrigger id="performance">
@@ -392,5 +387,4 @@ const params = typeof functionData.parameters === 'string'
  </DialogContent>
  </Dialog>
  );
-}`
-}}}}}})
+}
