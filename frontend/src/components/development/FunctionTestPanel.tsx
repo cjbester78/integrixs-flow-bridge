@@ -91,7 +91,7 @@ export function FunctionTestPanel({
  // Parse inputs based on parameter types
  const parsedInputs: Record<string, any> = {};
  for (const param of parameters) {
- const rawValue = inputs[param.name] || ';
+ const rawValue = inputs[param.name] || '';
  parsedInputs[param.name] = parseInputValue(rawValue, param.type);
  }
 
@@ -107,7 +107,6 @@ export function FunctionTestPanel({
  setResult({
  success: false,
  error: error instanceof Error ? error.message : 'Test execution failed'
-}
  });
  } finally {
  setIsLoading(false);
@@ -125,7 +124,7 @@ export function FunctionTestPanel({
  case 'any':
  return 'e.g., {"key": "value"} or any value';
  case 'string':
- 'default':
+ default:
  return 'Enter value...';
  }
  };
@@ -253,4 +252,4 @@ export function FunctionTestPanel({
  )}
  </div>
  );
-})
+}
