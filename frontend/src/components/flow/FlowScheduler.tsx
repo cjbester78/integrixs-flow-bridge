@@ -151,7 +151,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  schedule.id === scheduleId
  ? { ...schedule, enabled: !schedule.enabled }
  : schedule
- );
+ )
  );
  };
 
@@ -161,7 +161,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  webhook.id === webhookId
  ? { ...webhook, enabled: !webhook.enabled }
  : webhook
- );
+ )
  );
  };
 
@@ -203,7 +203,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
- <Settings className="h-5 w-5" />;
+ <Settings className="h-5 w-5" />
  Flow Automation: {flowDefinition.name}
  </CardTitle>
  </CardHeader>
@@ -253,7 +253,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  value={newSchedule.timezone}
  onValueChange={(value) => setNewSchedule(prev => ({
  ...prev,
- timezone: value;
+ timezone: value
  }))}
  >
  <SelectTrigger>
@@ -276,7 +276,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  checked={newSchedule.enabled}
  onCheckedChange={(checked) => setNewSchedule(prev => ({
  ...prev,
- enabled: checked;
+ enabled: checked
  }))}
  />
  <Label htmlFor="schedule-enabled">Enable immediately</Label>
@@ -436,7 +436,7 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  checked={newWebhook.enabled}
  onCheckedChange={(checked) => setNewWebhook(prev => ({
  ...prev,
- enabled: checked;
+ enabled: checked
  }))}
  />
  <Label htmlFor="webhook-enabled">Enable immediately</Label>
@@ -524,4 +524,3 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  </div>
  );
 };
-`

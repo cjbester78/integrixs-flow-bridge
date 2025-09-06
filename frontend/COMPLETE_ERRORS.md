@@ -17,7 +17,7 @@
 - [x] flow/FlowExecutionMonitor.tsx - Fixed parsing errors (ternary operator and multiple backticks)
 - [x] flow/FlowExecutionVisualizer.tsx - Fixed all parsing errors (try-catch structure and template literals)
 - [x] flow/FlowExportDialog.tsx - Fixed all parsing errors (semicolons in arrow functions and missing closing braces)
-- [ ] flow/FlowScheduler.tsx - Line 154:2: ')' expected
+- [x] flow/FlowScheduler.tsx - Fixed all parsing errors (extra parentheses on lines 154, 164 and semicolons)
 - [ ] flow/TestFlowDialog.tsx - Line 160:1: Declaration or statement expected
 
 ### Messages Components (2 files)
