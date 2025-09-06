@@ -6,14 +6,14 @@ export interface SystemHealth {
  uptime: string;
  version: string;
  timestamp: string;
- components: ComponentHealth[],
+ components: ComponentHealth[];
  metrics: SystemMetrics;
 }
 
 export interface ComponentHealth {
- name: string;'
+ name: string;
  status: 'healthy' | 'warning' | 'error';
- message?: string,
+ message?: string;
  lastCheck: string;
  responseTime?: number;
 }
@@ -24,17 +24,17 @@ export interface SystemMetrics {
  disk: number;
  activeConnections: number;
  requestsPerMinute: number;
- errorRate: number,
+ errorRate: number;
  avgResponseTime: number;
 }
 
 export interface SystemAlert {
- id: string;'
+ id: string;
  type: 'info' | 'warning' | 'error' | 'critical';
  title: string;
  message: string;
  timestamp: string;
- source: string,
+ source: string;
  acknowledged: boolean;
  resolvedAt?: string;
 }
@@ -48,7 +48,7 @@ export interface SystemStats {
  messagesPerHour: number;
  totalChannels: number;
  activeChannels: number;
- storageUsed: string,
+ storageUsed: string;
  storageLimit: string;
 }
 
@@ -62,12 +62,12 @@ class SystemMonitoringService {
  private statsListeners: ((stats: SystemStats) => void)[] = [];
 
  // Get system health status
- async getSystemHealth(): Promise<ApiResponse<SystemHealth>> {'
+ async getSystemHealth(): Promise<ApiResponse<SystemHealth>> {
  return api.get<SystemHealth>('/system/health');
  }
 
  // Get system statistics
- async getSystemStats(): Promise<ApiResponse<SystemStats>> {'
+ async getSystemStats(): Promise<ApiResponse<SystemStats>> {
  return api.get<SystemStats>('/system/stats');
  }
 
@@ -86,7 +86,7 @@ class SystemMonitoringService {
  }
  });
  }
-'
+
  const endpoint = `/system/alerts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
@@ -118,13 +118,13 @@ class SystemMonitoringService {
  }
  });
  }
-`'
+
  const endpoint = `/system/audit${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
  return api.get(endpoint);
  }
 
  // System maintenance operations
- async performMaintenance(operation: string, parameters?: any): Promise<ApiResponse<any>> {'
+ async performMaintenance(operation: string, parameters?: any): Promise<ApiResponse<any>> {
  return api.post('/system/maintenance', { operation, parameters });
  }
 
@@ -133,13 +133,13 @@ class SystemMonitoringService {
  if (this.websocket?.readyState === WebSocket.OPEN) {
  return;
  }
-`
+
  const wsUrl = `${getWebSocketUrl()}/ws/system`;
-;
+
  try {
  this.websocket = new WebSocket(wsUrl);
 
- this.websocket.onopen = () => {'
+ this.websocket.onopen = () => {
  logger.info(LogCategory.API, 'WebSocket connected for system monitoring');
  this.reconnectAttempts = 0;
  };
@@ -147,33 +147,35 @@ class SystemMonitoringService {
  this.websocket.onmessage = (event) => {
  try {
  const data = JSON.parse(event.data);
-;'
  if (data.type === 'health_update') {
- this.healthListeners.forEach(listener => listener(data.health));'
+ this.healthListeners.forEach(listener => listener(data.health));
  } else if (data.type === 'new_alert') {
- this.alertListeners.forEach(listener => listener(data.alert));'
+ this.alertListeners.forEach(listener => listener(data.alert));
  } else if (data.type === 'stats_update') {
- this.statsListeners.forEach(listener => listener(data.stats));}
-} catch (error) {'
+ this.statsListeners.forEach(listener => listener(data.stats));
+ }
+ } catch (error) {
  logger.error(LogCategory.API, 'Error parsing WebSocket message', { error: error });
+ }
  };
 
- this.websocket.onclose = () => {'
+ this.websocket.onclose = () => {
  logger.info(LogCategory.API, 'WebSocket connection closed');
  this.attemptReconnect();
  };
 
- this.websocket.onerror = (error) => {'
+ this.websocket.onerror = (error) => {
  logger.error(LogCategory.API, 'WebSocket error', { error: error });
- }
-} catch (error) {'
+ };
+ } catch (error) {
  logger.error(LogCategory.API, 'Failed to create WebSocket connection', { error: error });
+ }
  }
 
  private attemptReconnect(): void {
  if (this.reconnectAttempts < this.maxReconnectAttempts) {
- this.reconnectAttempts++;'
- logger.info(LogCategory.API, 'Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts});')
+ this.reconnectAttempts++;
+ logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
  setTimeout(() => {
  this.connectWebSocket();
@@ -198,31 +200,30 @@ class SystemMonitoringService {
  return () => {
  const index = this.healthListeners.indexOf(callback);
  if (index > -1) this.healthListeners.splice(index, 1);
+ };
  }
-}
 
  onAlert(callback: (alert: SystemAlert) => void): () => void {
  this.alertListeners.push(callback);
  return () => {
  const index = this.alertListeners.indexOf(callback);
  if (index > -1) this.alertListeners.splice(index, 1);
+ };
  }
-}
 
  onStatsUpdate(callback: (stats: SystemStats) => void): () => void {
  this.statsListeners.push(callback);
  return () => {
  const index = this.statsListeners.indexOf(callback);
  if (index > -1) this.statsListeners.splice(index, 1);
+ };
  }
-}
 
  sendCommand(command: string, data?: any): void {
  if (this.websocket?.readyState === WebSocket.OPEN) {
  this.websocket.send(JSON.stringify({ command, data }));
- }}
+ }
  }
 }
 
-export const systemMonitoringService = new SystemMonitoringService();`'
-}}
+export const systemMonitoringService = new SystemMonitoringService();

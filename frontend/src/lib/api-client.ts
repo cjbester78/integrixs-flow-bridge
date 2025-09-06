@@ -48,7 +48,6 @@ class ApiClient {
  constructor() {
  // Use localhost for development
  this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-import { logger, LogCategory } from '@/lib/logger';
 
  this.client = axios.create({
  baseURL: this.baseURL,
@@ -90,7 +89,7 @@ import { logger, LogCategory } from '@/lib/logger';
  (window as any).__currentCorrelationId = correlationId;
 
  // Logger removed to avoid circular dependency
- logger.info(LogCategory.API, `API Call: ${config.method?.toUpperCase() || 'GET'} ${config.url || ''}`)
+ logger.info(LogCategory.API, `API Call: ${config.method?.toUpperCase() || 'GET'} ${config.url || ''}`);
  logger.info(LogCategory.API, 'Request headers', { data: config.headers });
  return config;
  },
@@ -103,7 +102,7 @@ import { logger, LogCategory } from '@/lib/logger';
  this.client.interceptors.response.use(
  (response) => {
  // Logger removed to avoid circular dependency
- logger.info(LogCategory.API, `API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`)
+ logger.info(LogCategory.API, `API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
  return response;
  },
  async (error: AxiosError<ApiError>) => {
@@ -118,7 +117,7 @@ import { logger, LogCategory } from '@/lib/logger';
  try {
  // Call refresh endpoint
  const refreshResponse = await this.client.post('/auth/refresh', { refreshToken }, {
- skipAuth: true;
+ skipAuth: true,
  } as ApiRequestConfig);
 
  // Store new token
@@ -126,15 +125,14 @@ import { logger, LogCategory } from '@/lib/logger';
  localStorage.setItem('integration_platform_token', newToken);
 
  // Retry original request with new token
- if (originalRequest.headers) {`
+ if (originalRequest.headers) {
  originalRequest.headers.Authorization = `Bearer ${newToken}`;
  }
 
  return this.client(originalRequest);
- }
-} catch (refreshError) {
- // Refresh failed, logout user
- logger.error(LogCategory.API, 'Token refresh failed', { error: refreshError });
+                     } catch (refreshError) {
+                        // Refresh failed, logout user
+                        logger.error(LogCategory.API, 'Token refresh failed', { error: refreshError });
  localStorage.removeItem('integration_platform_token');
  localStorage.removeItem('integration_platform_refresh_token');
  localStorage.removeItem('integration_platform_user');
@@ -154,13 +152,13 @@ import { logger, LogCategory } from '@/lib/logger';
  );
  }
 
- private generateCorrelationId(): string {`
+ private generateCorrelationId(): string {
  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
  }
 
  private handleError(error: AxiosError<ApiError>): ApiError {
- // Logger removed to avoid circular dependency`
- logger.error(LogCategory.API, 'Error occurred', { error: `API, Error: ${error.config?.method?.toUpperCase( }); || 'UNKNOWN'} ${error.config?.url || 'unknown'}`, error)
+ // Logger removed to avoid circular dependency
+     logger.error(LogCategory.API, `API Error: ${error.config?.method?.toUpperCase() || 'UNKNOWN'} ${error.config?.url || 'unknown'}`, { error });
 
  if (error.response?.data) {
  // Special handling for 503 Service Unavailable
