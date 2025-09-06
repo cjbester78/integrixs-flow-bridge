@@ -1,9 +1,9 @@
 # Complete List of Current Parsing Errors
 
 ## Summary (Updated 2025-09-06)
-- **Current status**: 42 errors, 26 warnings (68 total problems)
-- **Files with errors**: 37 files (7 service files fixed, 3 field mapping components fixed, 10 flow/message/orchestration components fixed)
-- **Error reduction achieved**: 73% (from 156 to 42)
+- **Current status**: 41 errors, 26 warnings (67 total problems)
+- **Files with errors**: 36 files (7 service files fixed, 3 field mapping components fixed, 11 flow/message/orchestration components fixed)
+- **Error reduction achieved**: 74% (from 156 to 41)
 
 ## Parsing Errors by Category
 
@@ -27,7 +27,7 @@
 ### Orchestration Components (3 files)
 - [x] orchestration/VisualOrchestrationEditor.tsx - Fixed parsing errors (semicolons, missing quotes, template literals)
 - [x] orchestration/nodes/StartProcessNode.tsx - Fixed parsing errors (extra closing brace)
-- [ ] orchestration/nodes/AdapterNode.tsx - Line 137:43: ',' expected
+- [x] orchestration/nodes/AdapterNode.tsx - Fixed parsing errors (missing quotes in logger.info)
 
 ### Package Components (1 file)
 - [ ] packages/PackageCreationWizard.tsx - Line 685:3: Expected corresponding JSX closing tag for 'Card'

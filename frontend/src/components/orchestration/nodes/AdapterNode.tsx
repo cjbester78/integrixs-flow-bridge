@@ -134,7 +134,7 @@ export const AdapterNode: React.FC<AdapterNodeProps> = ({ id, data, selected }) 
  <Dialog
  open={configOpen}
  onOpenChange={(open) => {
- logger.info(LogCategory.UI, [AdapterNode] Dialog state changing: { open, id });
+ logger.info(LogCategory.UI, '[AdapterNode] Dialog state changing:', { open, id });
  setConfigOpen(open);
  }}
  >
