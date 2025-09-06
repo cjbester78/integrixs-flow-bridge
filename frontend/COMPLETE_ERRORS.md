@@ -1,9 +1,9 @@
 # Complete List of Current Parsing Errors
 
 ## Summary (Updated 2025-09-06)
-- **Current status**: 36 errors, 26 warnings (62 total problems)
-- **Files with errors**: 31 files (7 service files fixed, 3 field mapping components fixed, 11 flow/message/orchestration components fixed, 1 package component fixed, 4 UI components fixed)
-- **Error reduction achieved**: 76.9% (from 156 to 36)
+- **Current status**: 35 errors, 26 warnings (61 total problems)
+- **Files with errors**: 30 files (7 service files fixed, 3 field mapping components fixed, 11 flow/message/orchestration components fixed, 1 package component fixed, 5 UI components fixed)
+- **Error reduction achieved**: 77.6% (from 156 to 35)
 - **Note**: All complex components have been successfully fixed. Remaining errors are in simple UI components.
 
 ## Parsing Errors by Category
@@ -38,7 +38,7 @@
 - [x] ui/badge.tsx - Fixed parsing errors (removed semicolon after cva( and quotes from 'default')
 - [x] ui/button.tsx - Fixed parsing errors (removed semicolons after cva( and React.forwardRef)
 - [x] ui/carousel.tsx - Fixed parsing errors (removed semicolons after React.useCallback and JSX component)
-- [ ] ui/chart.tsx - Line 35:40: Expression expected
+- [x] ui/chart.tsx - Fixed parsing errors (removed multiple semicolons, fixed backticks in map functions, corrected function parameters)
 - [ ] ui/data-table.tsx - Line 196:1: '}' expected
 - [ ] ui/form.tsx - Line 58:31: Property assignment expected
 - [ ] ui/input-otp.tsx - Line 7:34: Expression expected
