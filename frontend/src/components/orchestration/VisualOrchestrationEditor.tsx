@@ -141,7 +141,7 @@ const createInitialNodes = (): Node[] => [
  }
 ];
 
-const createInitialEdges = (): Edge[] => [;
+const createInitialEdges = (): Edge[] => [
  {
  id: 'start-to-end',
  source: 'start-process-1',
@@ -150,7 +150,7 @@ const createInitialEdges = (): Edge[] => [;
  animated: true,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2,
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
@@ -188,7 +188,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  }
  }, [nodes, edges, onFlowChange]);
 
- const onConnect = useCallback(;
+ const onConnect = useCallback(
  (params: Connection) => {
  const edge = {
  ...params,
@@ -196,7 +196,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  animated: true,
  style: {
  stroke: 'hsl(var(--primary))',
- strokeWidth: 2;
+ strokeWidth: 2,
  },
  markerEnd: {
  type: MarkerType.ArrowClosed,
@@ -209,7 +209,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  );
 
  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
- logger.info(LogCategory.UI, [VisualOrchestrationEditor] Node clicked: { nodeId: node.id, nodeType: node.type });
+ logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node clicked:', { nodeId: node.id, nodeType: node.type });
  setSelectedNode(node);
  setNodeWithDeleteButton(node.id);
  // Hide delete button after 3 seconds
@@ -218,7 +218,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
 
  // Function to add a new node based on type and category
  const addNode = useCallback((type: string, category: string) => {
- logger.info(LogCategory.UI, [VisualOrchestrationEditor] Adding new node: { type, category });
+ logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Adding new node:', { type, category });
  const nodeId = `${type}-${Date.now()}`;
  const newNode: Node = {
  id: nodeId,
@@ -234,7 +234,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  configured: false,
  showDeleteButton: false,
  onConfigChange: (config: any) => {
- logger.info(LogCategory.UI, [VisualOrchestrationEditor] Node config changed: { nodeId, config });
+ logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Node config changed:', { nodeId, config });
  setNodes((nds) =>
  nds.map((node) => (node.id === nodeId ? { ...node, data: { ...node.data, ...config, configured: true } } : node))
  );
@@ -242,10 +242,10 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  },
  };
 
- logger.info(LogCategory.UI, [VisualOrchestrationEditor] Created new node: { data: newNode });
+ logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Created new node:', { data: newNode });
  setNodes((nds) => {
  const updatedNodes = nds.concat(newNode);
- logger.info(LogCategory.UI, [VisualOrchestrationEditor] Updated nodes list: { data: updatedNodes });
+ logger.info(LogCategory.UI, '[VisualOrchestrationEditor] Updated nodes list:', { data: updatedNodes });
  return updatedNodes;
  })
  }, [setNodes]);
@@ -256,7 +256,6 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  const flowStats = useMemo(() => {
  const totalNodes = nodes.length;
  const totalConnections = edges.length;
-;
  // Simple complexity calculation based on node count and connections
  let complexity: 'Low' | 'Medium' | 'High' = 'Low';
  if (totalNodes > 10 || totalConnections > 15) {
@@ -266,9 +265,8 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  }
 
  // Estimate execution time based on node types and connections
- const estimatedMs = totalNodes * 100 + totalConnections * 50; // rough estimate;`;
- const estimatedExecutionTime = estimatedMs < 1000 ? ${estimatedMs}ms` : `${(estimatedMs / 1000).toFixed(1)}s`;
-;
+    const estimatedMs = totalNodes * 100 + totalConnections * 50; // rough estimate
+ const estimatedExecutionTime = estimatedMs < 1000 ? `${estimatedMs}ms` : `${(estimatedMs / 1000).toFixed(1)}s`;
  return {
  totalNodes,
  totalConnections,
@@ -292,6 +290,7 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  data: {
  ...node.data,
  showDeleteButton: nodeWithDeleteButton === node.id
+ }
  }))}
  edges={edges}
  onNodesChange={onNodesChange}
@@ -319,5 +318,4 @@ export function VisualOrchestrationEditor({ flowId, onFlowChange }: VisualOrches
  </div>
  </div>
  );
-}`
 }
