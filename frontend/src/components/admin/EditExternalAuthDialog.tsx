@@ -292,21 +292,21 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="clientId"
  value={oauth2.clientId}
- onChange={(e) => setOauth2({ ...oauth2, clientId: e.target.value })
+ onChange={(e) => setOauth2({ ...oauth2, clientId: e.target.value })}
  />
  </div>
  <PasswordConfirmation
  name="clientSecret"
  label="Client Secret (leave empty to keep current)"
  value={oauth2.clientSecret || ''}
- onValueChange={(value) => setOauth2({ ...oauth2, clientSecret: value })
+ onValueChange={(value) => setOauth2({ ...oauth2, clientSecret: value })}
  showConfirmation={false}
  />
  <div className="space-y-2">
  <Label htmlFor="grantType">Grant Type</Label>
  <Select
  value={oauth2.grantType}
- onValueChange={(value: OAuth2GrantType) => setOauth2({ ...oauth2, grantType: value })
+ onValueChange={(value: OAuth2GrantType) => setOauth2({ ...oauth2, grantType: value })}
  >
  <SelectTrigger>
  <SelectValue />
@@ -327,7 +327,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  id="authorizationUrl"
  type="url"
  value={oauth2.authorizationUrl || ''}
- onChange={(e) => setOauth2({ ...oauth2, authorizationUrl: e.target.value })
+ onChange={(e) => setOauth2({ ...oauth2, authorizationUrl: e.target.value })}
  />
  </div>
  <div className="space-y-2">
@@ -336,7 +336,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  id="redirectUri"
  type="url"
  value={oauth2.redirectUri || ''}
- onChange={(e) => setOauth2({ ...oauth2, redirectUri: e.target.value })
+ onChange={(e) => setOauth2({ ...oauth2, redirectUri: e.target.value })}
  />
  </div>
  </>
@@ -347,7 +347,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  id="tokenUrl"
  type="url"
  value={oauth2.tokenUrl || ''}
- onChange={(e) => setOauth2({ ...oauth2, tokenUrl: e.target.value })
+ onChange={(e) => setOauth2({ ...oauth2, tokenUrl: e.target.value })}
  />
  </div>
  <div className="space-y-2">
@@ -355,14 +355,14 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="scope"
  value={oauth2.scope || ''}
- onChange={(e) => setOauth2({ ...oauth2, scope: e.target.value })
+ onChange={(e) => setOauth2({ ...oauth2, scope: e.target.value })}
  />
  </div>
  <div className="flex items-center space-x-2">
  <Switch
  id="usePkce"
  checked={oauth2.usePkce || false}
- onCheckedChange={(checked) => setOauth2({ ...oauth2, usePkce: checked })
+ onCheckedChange={(checked) => setOauth2({ ...oauth2, usePkce: checked })}
  />
  <Label htmlFor="usePkce">Use PKCE</Label>
  </div>
@@ -375,7 +375,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  name="apiKey"
  label="API Key (leave empty to keep current)"
  value={apiKey.apiKey || ''}
- onValueChange={(value) => setApiKey({ ...apiKey, apiKey: value })
+ onValueChange={(value) => setApiKey({ ...apiKey, apiKey: value })}
  showConfirmation={false}
  />
  <div className="space-y-2">
@@ -383,7 +383,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="headerName"
  value={apiKey.headerName}
- onChange={(e) => setApiKey({ ...apiKey, headerName: e.target.value })
+ onChange={(e) => setApiKey({ ...apiKey, headerName: e.target.value })}
  />
  </div>
  <div className="space-y-2">
@@ -391,7 +391,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="keyPrefix"
  value={apiKey.keyPrefix || ''}
- onChange={(e) => setApiKey({ ...apiKey, keyPrefix: e.target.value })
+ onChange={(e) => setApiKey({ ...apiKey, keyPrefix: e.target.value })}
  />
  </div>
  <div className="space-y-2">
@@ -399,7 +399,7 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  <Input
  id="queryParamName"
  value={apiKey.queryParamName || ''}
- onChange={(e) => setApiKey({ ...apiKey, queryParamName: e.target.value })
+ onChange={(e) => setApiKey({ ...apiKey, queryParamName: e.target.value })}
  />
  </div>
  <div className="space-y-2">
@@ -410,8 +410,8 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  value={apiKey.rateLimitPerHour || ''}
  onChange={(e) => setApiKey({
  ...apiKey,
- rateLimitPerHour: e.target.value ? parseInt(e.target.value) : undefined ;
- })
+ rateLimitPerHour: e.target.value ? parseInt(e.target.value) : undefined
+ })}
  />
  </div>
  <div className="space-y-2">
@@ -461,5 +461,4 @@ export function EditExternalAuthDialog({ config, open, onOpenChange, onUpdated }
  </DialogContent>
  </Dialog>
  );
-}`
-}}
+}
