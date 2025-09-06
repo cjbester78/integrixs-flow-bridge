@@ -38,7 +38,6 @@ export const PasswordConfirmation = React.forwardRef<
  const isPasswordMatch = password === confirmPassword;
  const showError = hasTypedConfirm && confirmPassword.length > 0 && !isPasswordMatch;
  const showValidationError = !validation.isValid && password.length > 0;
-;
  const handlePasswordChange = (newPassword: string) => {
  setPassword(newPassword);
  setValidation(validator(newPassword))
@@ -150,5 +149,4 @@ export const PasswordConfirmation = React.forwardRef<
  )
 })
 
-PasswordConfirmation.displayName = "PasswordConfirmation"`
-})))
+PasswordConfirmation.displayName = "PasswordConfirmation"
