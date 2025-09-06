@@ -8,7 +8,7 @@
 ## Parsing Errors by Category
 
 ### Field Mapping Components (3 files)
-- [ ] fieldMapping/FieldSelectorDialog.tsx - Line 136:53: Expression expected
+- [x] fieldMapping/FieldSelectorDialog.tsx - Fixed parsing errors (semicolons and backtick)
 - [ ] fieldMapping/FunctionMappingModal.tsx - Line 77:29: Invalid character
 - [ ] fieldMapping/VisualFlowEditor.tsx - Line 220:1: ',' expected
 

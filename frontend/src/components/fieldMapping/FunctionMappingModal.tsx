@@ -51,7 +51,6 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  position: { x: 0, y: 0 }
  });
 
-
  const [connections, setConnections] = useState<Connection[]>([]);
  const [dragState, setDragState] = useState<DragState>({
  isDragging: false,
@@ -65,6 +64,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
 
  const getAllFunctions = () => Object.values(functionsByCategory).flat();
  const func = getAllFunctions().find(f => f.name === selectedFunction);
+ 
  // Mouse-based drag implementation
  const handleMouseDown = useCallback((field: FieldNode, event: React.MouseEvent) => {
  event.preventDefault();
@@ -74,61 +74,65 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  document.body.style.userSelect = 'none';
  document.body.style.webkitUserSelect = 'none';
 
- logger.info(LogCategory.UI, 🎯 DRAG START - Field: { data: field.name, Position: { x: event.clientX, y: event.clientY });
- logger.info(LogCategory.UI, 🎯 DRAG START - Event target: { data: event.target });
- logger.info(LogCategory.UI, 🎯 DRAG START - Event currentTarget: { data: event.currentTarget });
+ logger.info(LogCategory.UI, '🎯 DRAG START - Field:', { data: field.name, Position: { x: event.clientX, y: event.clientY } });
+ logger.info(LogCategory.UI, '🎯 DRAG START - Event target:', { data: event.target });
+ logger.info(LogCategory.UI, '🎯 DRAG START - Event currentTarget:', { data: event.currentTarget });
  setDragState({
  isDragging: true,
  draggedItem: field,
  startPosition: { x: event.clientX, y: event.clientY },
- currentPosition: { x: event.clientX, y: event.clientY });
-
+ currentPosition: { x: event.clientX, y: event.clientY }
+ });
 
  const targets = new Set<string>();
  func?.parameters.forEach(param => {
  if (!param.name.toLowerCase().includes('delimiter') && !param.name.toLowerCase().includes('separator')) {
- targets.add(`param-${functionNode.id}-${param.name}`);`
- logger.info(LogCategory.UI, 🎯 DRAG START - Added drop target: { data: `param-${functionNode.id}-${param.name});` });
+ targets.add(`param-${functionNode.id}-${param.name}`);
+ logger.info(LogCategory.UI, '🎯 DRAG START - Added drop target:', { data: `param-${functionNode.id}-${param.name}` });
+ }
+ });
  setDropTargets(targets);
- logger.info(LogCategory.UI, 🎯 DRAG START - Total drop targets: { data: targets.size });, [func, functionNode.id]);
+ logger.info(LogCategory.UI, '🎯 DRAG START - Total drop targets:', { data: targets.size });
+ }, [func, functionNode.id]);
 
  const handleMouseMove = useCallback((event: MouseEvent) => {
  if (dragState.isDragging) {
- logger.info(LogCategory.UI, 🎯 DRAG MOVE - Position: { x: event.clientX, y: event.clientY });
- logger.info(LogCategory.UI, '🎯 DRAG MOVE - Element under mouse', { data: document.elementFromPoint(event.clientX, extra: event.clientY }))
+ logger.info(LogCategory.UI, '🎯 DRAG MOVE - Position:', { x: event.clientX, y: event.clientY });
+ logger.info(LogCategory.UI, '🎯 DRAG MOVE - Element under mouse', { data: document.elementFromPoint(event.clientX, event.clientY) });
  setDragState(prev => ({
- ...prev,;
- currentPosition: { x: event.clientX, y: event.clientY });
+ ...prev,
+ currentPosition: { x: event.clientX, y: event.clientY }
+ }));
  }
  }, [dragState.isDragging]);
 
  const handleMouseUp = useCallback((event: MouseEvent) => {
  logger.info(LogCategory.UI, '🎯 DRAG END - Starting mouse up handler');
- logger.info(LogCategory.UI, 🎯 DRAG END - isDragging: { data: dragState.isDragging });
- logger.info(LogCategory.UI, 🎯 DRAG END - draggedItem: { data: dragState.draggedItem });
+ logger.info(LogCategory.UI, '🎯 DRAG END - isDragging:', { data: dragState.isDragging });
+ logger.info(LogCategory.UI, '🎯 DRAG END - draggedItem:', { data: dragState.draggedItem });
  if (!dragState.isDragging || !dragState.draggedItem) {
  logger.info(LogCategory.UI, '🎯 DRAG END - Early return - no drag in progress');
  return;
  }
 
- logger.info(LogCategory.UI, 🎯 DRAG END - Position: { x: event.clientX, y: event.clientY });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Position:', { x: event.clientX, y: event.clientY });
  // Check if we're over a drop zone
  const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
- logger.info(LogCategory.UI, 🎯 DRAG END - Element under mouse: { data: elementUnderMouse });
- logger.info(LogCategory.UI, 🎯 DRAG END - Element tag: { data: elementUnderMouse?.tagName });
- logger.info(LogCategory.UI, 🎯 DRAG END - Element classes: { data: elementUnderMouse?.className });
- logger.info(LogCategory.UI, 🎯 DRAG END - Element data-param: { data: elementUnderMouse?.getAttribute('data-param'))
+ logger.info(LogCategory.UI, '🎯 DRAG END - Element under mouse:', { data: elementUnderMouse });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Element tag:', { data: elementUnderMouse?.tagName });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Element classes:', { data: elementUnderMouse?.className });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Element data-param:', { data: elementUnderMouse?.getAttribute('data-param') });
 
  const dropZone = elementUnderMouse?.closest('[data-param]');
- logger.info(LogCategory.UI, 🎯 DRAG END - Drop zone found: { data: dropZone });
- logger.info(LogCategory.UI, 🎯 DRAG END - Drop zone data-param: { data: dropZone?.getAttribute('data-param'))
+ logger.info(LogCategory.UI, '🎯 DRAG END - Drop zone found:', { data: dropZone });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Drop zone data-param:', { data: dropZone?.getAttribute('data-param') });
 
  if (dropZone) {
  const paramName = dropZone.getAttribute('data-param');
  if (paramName) {
- logger.info(LogCategory.UI, 🎯 DRAG END - ✅ SUCCESS! Dropped on parameter: { data: paramName });
+ logger.info(LogCategory.UI, '🎯 DRAG END - ✅ SUCCESS! Dropped on parameter:', { data: paramName });
  const sourceField = dragState.draggedItem;
- logger.info(LogCategory.UI, 🎯 DRAG END - Source field: { data: sourceField });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Source field:', { data: sourceField });
  setFunctionNode(prev => {
  const newNode = {
  ...prev,
@@ -136,65 +140,71 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  ...prev.sourceConnections,
  [paramName]: [sourceField.path]
  }
-};
- logger.info(LogCategory.UI, 🎯 DRAG END - Updated function node: { data: newNode });
+ };
+ logger.info(LogCategory.UI, '🎯 DRAG END - Updated function node:', { data: newNode });
  return newNode;
  });
 
  // Create visual connection
  setTimeout(() => {
- logger.info(LogCategory.UI, '🎯 DRAG END - Creating visual connection')`
- const sourceElement = document.querySelector([data-field-id="${sourceField.id}"]`);
+ logger.info(LogCategory.UI, '🎯 DRAG END - Creating visual connection');
+ const sourceElement = document.querySelector(`[data-field-id="${sourceField.id}"]`);
  const targetElement = dropZone;
-;
- logger.info(LogCategory.UI, 🎯 DRAG END - Source element found: { data: sourceElement });
- logger.info(LogCategory.UI, 🎯 DRAG END - Target element found: { data: targetElement });
- logger.info(LogCategory.UI, 🎯 DRAG END - Canvas ref: { data: canvasRef.current });
+ 
+ logger.info(LogCategory.UI, '🎯 DRAG END - Source element found:', { data: sourceElement });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Target element found:', { data: targetElement });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Canvas ref:', { data: canvasRef.current });
  if (sourceElement && targetElement && canvasRef.current) {
  const canvasRect = canvasRef.current.getBoundingClientRect();
  const sourceRect = sourceElement.getBoundingClientRect();
  const targetRect = targetElement.getBoundingClientRect();
-;
- logger.info(LogCategory.UI, 🎯 DRAG END - Canvas rect: { data: canvasRect });
- logger.info(LogCategory.UI, 🎯 DRAG END - Source rect: { data: sourceRect });
- logger.info(LogCategory.UI, 🎯 DRAG END - Target rect: { data: targetRect });
- const connection: Connection = {`
+ 
+ logger.info(LogCategory.UI, '🎯 DRAG END - Canvas rect:', { data: canvasRect });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Source rect:', { data: sourceRect });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Target rect:', { data: targetRect });
+ const connection: Connection = {
  id: `connection_${Date.now()}`,
- sourceId: sourceField.id,`
- targetId: ${functionNode.id}-${paramName}`,
+ sourceId: sourceField.id,
+ targetId: `${functionNode.id}-${paramName}`,
  sourceX: sourceRect.right - canvasRect.left,
  sourceY: sourceRect.top + sourceRect.height / 2 - canvasRect.top,
  targetX: targetRect.left - canvasRect.left,
  targetY: targetRect.top + targetRect.height / 2 - canvasRect.top
  };
- logger.info(LogCategory.UI, 🎯 DRAG END - Connection created: { data: connection });
+ logger.info(LogCategory.UI, '🎯 DRAG END - Connection created:', { data: connection });
  setConnections(prev => {
  const newConnections = [...prev, connection];
- logger.info(LogCategory.UI, 🎯 DRAG END - All connections: { data: newConnections });
+ logger.info(LogCategory.UI, '🎯 DRAG END - All connections:', { data: newConnections });
  return newConnections;
- })
+ });
+ }
+ }, 100);
  } else {
-)}, 100);
+ logger.info(LogCategory.UI, '🎯 DRAG END - ❌ No param name found on drop');
+ }
  } else {
- logger.info(LogCategory.UI, '🎯 DRAG END - ❌ No param name found on drop);} else {
  logger.info(LogCategory.UI, '🎯 DRAG END - ❌ No drop zone found');
+ }
+
  // Reset user selection styles
- document.body.style.userSelect = ';
- document.body.style.webkitUserSelect = ';
+ document.body.style.userSelect = '';
+ document.body.style.webkitUserSelect = '';
 
  logger.info(LogCategory.UI, '🎯 DRAG END - Resetting drag state');
  setDragState({
  isDragging: false,
  draggedItem: null,
  startPosition: { x: 0, y: 0 },
- currentPosition: { x: 0, y: 0 });
- setDropTargets(new Set();
- logger.info(LogCategory.UI, '🎯 DRAG END - Complete!');, [dragState, functionNode.id]);
+ currentPosition: { x: 0, y: 0 }
+ });
+ setDropTargets(new Set());
+ logger.info(LogCategory.UI, '🎯 DRAG END - Complete!');
+ }, [dragState, functionNode.id]);
 
  // Add global mouse event listeners
  React.useEffect(() => {
- logger.info(LogCategory.UI, 🎯 DRAG STATE CHANGE - isDragging: { data: dragState.isDragging });
- logger.info(LogCategory.UI, 🎯 DRAG STATE CHANGE - draggedItem: { data: dragState.draggedItem?.name });
+ logger.info(LogCategory.UI, '🎯 DRAG STATE CHANGE - isDragging:', { data: dragState.isDragging });
+ logger.info(LogCategory.UI, '🎯 DRAG STATE CHANGE - draggedItem:', { data: dragState.draggedItem?.name });
  if (dragState.isDragging) {
  logger.info(LogCategory.UI, '🎯 DRAG STATE CHANGE - Adding global mouse listeners');
  document.addEventListener('mousemove', handleMouseMove);
@@ -203,9 +213,8 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  logger.info(LogCategory.UI, '🎯 DRAG STATE CHANGE - Removing global mouse listeners');
  document.removeEventListener('mousemove', handleMouseMove);
  document.removeEventListener('mouseup', handleMouseUp);
+ };
  }
-}
- return () => {}; // Ensure all code paths return a value
  }, [dragState.isDragging, handleMouseMove, handleMouseUp]);
 
  const handleFunctionOutputDragStart = useCallback((event: React.DragEvent) => {
@@ -213,7 +222,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  event.dataTransfer.setData('text/plain', 'function-output');
  event.dataTransfer.effectAllowed = 'move';
 
- const targets = new Set<string>();`;
+ const targets = new Set<string>();
  targets.add(`target-${targetField.id}`);
  setDropTargets(targets);
  }, [targetField]);
@@ -222,11 +231,11 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  setDragState({
  isDragging: false,
  draggedItem: null,
- startPosition: { x: 0, y: 0 },;
- currentPosition: { x: 0, y: 0 });
- setDropTargets(new Set();
+ startPosition: { x: 0, y: 0 },
+ currentPosition: { x: 0, y: 0 }
+ });
+ setDropTargets(new Set());
  }, []);
-
 
  const handleDropOnTarget = useCallback((event: React.DragEvent) => {
  event.preventDefault();
@@ -236,17 +245,17 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  setOutputConnected(true);
 
  // Create visual connection with better positioning
- const outputElement = document.querySelector('[data-function-output="true"]');`;
- const targetElement = document.querySelector([data-target-field="${targetField.id}"]`);
-;
+ const outputElement = document.querySelector('[data-function-output="true"]');
+ const targetElement = document.querySelector(`[data-target-field="${targetField.id}"]`);
+ 
  if (outputElement && targetElement && canvasRef.current) {
  const canvasRect = canvasRef.current.getBoundingClientRect();
  const outputRect = outputElement.getBoundingClientRect();
  const targetRect = targetElement.getBoundingClientRect();
-;
- const connection: Connection = {`
- id: `connection_output_${Date.now()}`,`
- sourceId: ${functionNode.id}-output`,
+ 
+ const connection: Connection = {
+ id: `connection_output_${Date.now()}`,
+ sourceId: `${functionNode.id}-output`,
  targetId: targetField.id,
  sourceX: outputRect.right - canvasRect.left,
  sourceY: outputRect.top + outputRect.height / 2 - canvasRect.top,
@@ -265,24 +274,23 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
 
  Object.values(functionNode.sourceConnections).forEach(paths => {
  paths.forEach(path => {
- connectedSourcePaths.push(path)}});
+ connectedSourcePaths.push(path);
  connectedSourceFields.push(path.split('.').pop() || path);
- })
+ });
  });
 
-
- const newMapping: FieldMapping = {`
- id: `mapping_${Date.now()}`,`
- name: ${selectedFunction}_to_${targetField.name}`,
+ const newMapping: FieldMapping = {
+ id: `mapping_${Date.now()}`,
+ name: `${selectedFunction}_to_${targetField.name}`,
  sourceFields: connectedSourceFields,
  targetField: targetField.name,
  sourcePaths: connectedSourcePaths,
  targetPath: targetField.path,
  functionNode: {
- ...functionNode,`
+ ...functionNode,
  id: `function_${Date.now()}`
  },
- requiresTransformation: true;
+ requiresTransformation: true
  };
 
  onApplyMapping(newMapping);
@@ -323,7 +331,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  </defs>
  {connections.map(connection => (
  <path
- key={connection.id}`
+ key={connection.id}
  d={`M ${connection.sourceX} ${connection.sourceY} C ${connection.sourceX + 100} ${connection.sourceY}, ${connection.targetX - 100} ${connection.targetY}, ${connection.targetX} ${connection.targetY}`}
  stroke="hsl(var(--primary))"
  strokeWidth="2"
@@ -377,20 +385,21 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
 
  {/* For delimiter or similar text parameters, show input field */}
  {(param.name.toLowerCase().includes('delimiter') || param.name.toLowerCase().includes('separator')) ? (
- <Input`
+ <Input
  placeholder={`Enter ${param.name}`}
  value={functionNode.parameters[param.name] || ''}
  onChange={(e) => setFunctionNode(prev => ({
  ...prev,
- parameters: { ...prev.parameters, [param.name]: e.target.value }))}
+ parameters: { ...prev.parameters, [param.name]: e.target.value }
+ }))}
  className="h-8 text-xs"
  />
  ) : (
  <div
  data-param={param.name}
  className={cn(
- "border-2 border-dashed border-muted-foreground/30 rounded p-2 text-sm transition-colors min-h-10",`
- dropTargets.has(param-${functionNode.id}-${param.name}`) && "border-primary bg-primary/10",
+ "border-2 border-dashed border-muted-foreground/30 rounded p-2 text-sm transition-colors min-h-10",
+ dropTargets.has(`param-${functionNode.id}-${param.name}`) && "border-primary bg-primary/10",
  "hover:border-primary/50"
  )}
  >
@@ -425,7 +434,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  <div className="bg-card border rounded-lg p-2 shadow-sm">
  <h3 className="font-semibold text-sm mb-2 text-primary">Target Field</h3>
  <div
- data-target-field={targetField.id}`
+ data-target-field={targetField.id}
  className={cn("bg-background border rounded p-3 transition-all", dropTargets.has(`target-${targetField.id}`) && "border-primary bg-primary/10", outputConnected && "border-success bg-success/10")}
  onDragOver={(e) => e.preventDefault()}
  onDrop={handleDropOnTarget}
@@ -438,7 +447,6 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  </div>
  )}
  </div>
-
 
  </div>
 
@@ -455,5 +463,3 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  </Dialog>
  );
 };
-`
-}}}}}}))
