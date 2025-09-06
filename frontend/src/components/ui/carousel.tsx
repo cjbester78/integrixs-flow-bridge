@@ -79,7 +79,7 @@ const Carousel = React.forwardRef<
  api?.scrollNext()
  }, [api])
 
- const handleKeyDown = React.useCallback(;
+ const handleKeyDown = React.useCallback(
  (event: React.KeyboardEvent<HTMLDivElement>) => {
  if (event.key === "ArrowLeft") {
  event.preventDefault();
@@ -113,7 +113,7 @@ const Carousel = React.forwardRef<
  }, [api, onSelect])
 
  return (
- <CarouselContext.Provider;
+ <CarouselContext.Provider
  value={{
  carouselRef,
  api: api,
