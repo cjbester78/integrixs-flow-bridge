@@ -147,6 +147,7 @@ export const parseWsdlStructure = (wsdlString: string) => {
  }
 
  entries.push([fieldName, fieldValue]);
+ }
  });
 
  // Apply entries to target structure in order
@@ -193,7 +194,6 @@ export const parseWsdlStructure = (wsdlString: string) => {
  }
  });
  });
- });
 
  // If no message elements found, try root elements in schemas
  if (structureEntries.length === 0) {
@@ -216,6 +216,7 @@ export const parseWsdlStructure = (wsdlString: string) => {
  const nestedStructure = {};
  extractElements(complexType, nestedStructure, 0, schemas);
  structureEntries.push([rootName, nestedStructure]);
+ }
  }
  }
  });  
