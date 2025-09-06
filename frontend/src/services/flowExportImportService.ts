@@ -119,7 +119,7 @@ export const downloadFlowExport = async (flowId: string, flowName: string, optio
  link.href = url;
 
  // Generate filename
- const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);`;
+ const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
  link.download = `flow_${flowName.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.json`;
 
  document.body.appendChild(link);
@@ -128,5 +128,4 @@ export const downloadFlowExport = async (flowId: string, flowName: string, optio
 
  // Cleanup
  window.URL.revokeObjectURL(url);
-};`
-}
+};
