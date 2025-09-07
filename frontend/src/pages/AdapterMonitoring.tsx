@@ -38,8 +38,9 @@ export default function AdapterMonitoring() {
  variant: "destructive",
  title: "Error",
  description: response.error || 'Failed to fetch adapters',
- })}
-} catch (err) {
+ });
+        }
+        } catch (err) {
  logger.error(LogCategory.ERROR, 'Error fetching adapters', { error: err });
  setError('Failed to load adapters');
  toast({
@@ -78,8 +79,9 @@ export default function AdapterMonitoring() {
  variant: "destructive",
  title: "Error",
  description: response.error || 'Failed to update adapter',
- })}
-} catch (err) {
+ });
+        }
+        } catch (err) {
  logger.error(LogCategory.ERROR, 'Error updating adapter', { error: err });
  toast({
  variant: "destructive",
@@ -106,8 +108,9 @@ export default function AdapterMonitoring() {
  variant: "destructive",
  title: "Error",
  description: response.error || 'Failed to delete adapter',
- })}
-} catch (err) {
+ });
+        }
+        } catch (err) {
  logger.error(LogCategory.ERROR, 'Error deleting adapter', { error: err });
  toast({
  variant: "destructive",
