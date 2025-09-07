@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,7 +28,7 @@ export const EnvironmentConfiguration = () => {
  const [hasChanges, setHasChanges] = useState(false);
 
  // Fetch current configuration
- const fetchConfiguration = async () => {
+ const fetchConfiguration = useCallback(async () => {
     try {
  setIsLoading(true);
  const response = await api.get<EnvironmentConfig>('/admin/system-configuration/environment');
@@ -45,7 +45,7 @@ export const EnvironmentConfiguration = () => {
  } finally {
  setIsLoading(false);
  }
- };
+ }, []);
 
  // Save configuration changes
  const saveConfiguration = async () => {
@@ -129,7 +129,7 @@ export const EnvironmentConfiguration = () => {
 
  useEffect(() => {
  fetchConfiguration();
- }, []);
+ }, [fetchConfiguration]);
 
  if (isLoading) {
  return (

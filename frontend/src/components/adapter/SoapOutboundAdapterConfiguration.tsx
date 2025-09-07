@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -38,14 +38,14 @@ export function SoapOutboundAdapterConfiguration({
     if (!configuration.processingMode) {
       onConfigurationChange('processingMode', 'ASYNCHRONOUS');
     }
- }, []);
+ }, [configuration.processingMode, onConfigurationChange]);
 
  // Fetch WSDLs when business component changes
  useEffect(() => {
  if (businessComponentId) {
       fetchWsdls();
     }
- }, [businessComponentId]);
+ }, [businessComponentId, fetchWsdls]);
 
  // Fetch WSDL details and check structure when WSDL is selected
  useEffect(() => {
@@ -56,9 +56,9 @@ export function SoapOutboundAdapterConfiguration({
       setSoapActions([]);
       setWsdlStructureDetails({});
     }
- }, [configuration.selectedWsdl]);
+ }, [configuration.selectedWsdl, fetchWsdlDetails]);
 
- const fetchWsdls = async () => {
+ const fetchWsdls = useCallback(async () => {
     try {
       setLoadingWsdls(true);
       // Fetch WSDLs as DataStructures filtered by type, usage and business component
@@ -102,9 +102,9 @@ export function SoapOutboundAdapterConfiguration({
     } finally {
       setLoadingWsdls(false);
     }
-  };
+  }, [businessComponentId]);
 
- const fetchWsdlDetails = async (wsdlId: string) => {
+ const fetchWsdlDetails = useCallback(async (wsdlId: string) => {
  try {
  setLoadingSoapActions(true);
  // Get the WSDL structure details
@@ -236,7 +236,7 @@ export function SoapOutboundAdapterConfiguration({
  } finally {
  setLoadingSoapActions(false);
         }
- };
+ }, [onConfigurationChange]);
 
  const handleAuthTypeChange = (authType: string) => {
  onConfigurationChange('authentication.type', authType);

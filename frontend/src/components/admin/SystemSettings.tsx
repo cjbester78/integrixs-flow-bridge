@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,7 +36,7 @@ export const SystemSettings = () => {
  const [editedSettings, setEditedSettings] = useState<Record<string, string>>({});
 
  // Fetch all system settings
- const fetchSettings = async () => {
+ const fetchSettings = useCallback(async () => {
     try {
  setIsLoading(true);
  const data = await apiClient.get<SystemSetting[]>('/system-settings');
@@ -52,12 +52,12 @@ export const SystemSettings = () => {
  } finally {
  setIsLoading(false);
  }
- };
+ }, []);
 
  // Fetch categories (now done in fetchSettings)
- const fetchCategories = async () => {
+ const fetchCategories = useCallback(async () => {
  // Categories are now extracted from settings data in fetchSettings
- };
+ }, []);
 
  // Initialize default settings
  const initializeSettings = async () => {
@@ -130,7 +130,7 @@ export const SystemSettings = () => {
  useEffect(() => {
  fetchSettings();
  fetchCategories();
- }, []);
+ }, [fetchSettings, fetchCategories]);
 
  const renderSettingCard = (setting: SystemSetting) => (
  <Card key={setting.id} className="mb-4">
