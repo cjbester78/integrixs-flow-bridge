@@ -1,33 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, type User } from '../services/authService';
 import { useToast } from '@/hooks/use-toast';
 import { logger, LogCategory } from '@/lib/logger';
+import { AuthContext } from './auth-context-types';
 
-interface AuthContextType {
- user: User | null;
- login: (username: string, password: string, redirectTo?: string) => Promise<boolean>;
- logout: () => void;
- isAuthenticated: boolean;
- isLoading: boolean;
- tokenExpiry: number | null;
- checkSession: () => Promise<boolean>;
- isSessionValid: () => boolean;
- getAllUsers: () => User[];
- createUser: (userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
- updateUser: (id: string, userData: Partial<User>) => Promise<void>;
- deleteUser: (id: string) => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-;
-export const useAuth = () => {
- const context = useContext(AuthContext);
- if (context === undefined) {
- throw new Error('useAuth must be used within an AuthProvider');
- }
- return context;
-};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
  const [user, setUser] = useState<User | null>(null);

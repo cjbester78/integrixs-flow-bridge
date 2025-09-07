@@ -1,55 +1,9 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { apiClient, logger, LogCategory } from '@/lib/api-client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { TenantContext, type Tenant, type TenantSubscription, type TenantUsage } from './tenant-context-types';
 
-interface Tenant {
- id: string;
- name: string;
- displayName: string;
- subdomain?: string;
- status: string;
- planId: string;
- userRole?: string;
- primary?: boolean;
-}
-
-interface TenantSubscription {
- id: number;
- planId: string;
- planName: string;
- status: string;
- features: string[];
- quotas: Record<string, number>;
- daysRemaining: number;
-}
-
-interface TenantUsage {
- executions: number;
- messages: number;
- apiCalls: number;
- storageGb: number;
- users: number;
- flows: number;
- quotas: Record<string, number>;
-}
-
-interface TenantContextType {
- currentTenant: Tenant | null;
- userTenants: Tenant[];
- subscription: TenantSubscription | null;
- usage: TenantUsage | null;
- loading: boolean;
- switchTenant: (tenantId: string) => Promise<void>;
- refreshTenants: () => Promise<void>;
- refreshSubscription: () => Promise<void>;
- refreshUsage: () => Promise<void>;
- hasFeature: (feature: string) => boolean;
- isOverQuota: (metric: string) => boolean;
- getQuotaPercentage: (metric: string) => number;
-}
-
-const TenantContext = createContext<TenantContextType | undefined>(undefined);
 export function TenantProvider({ children }: { children: ReactNode }) {
  const { toast } = useToast();
  const { isAuthenticated } = useAuth();
@@ -242,12 +196,4 @@ export function TenantProvider({ children }: { children: ReactNode }) {
  {children}
  </TenantContext.Provider>
  );
-}
-
-export function useTenant() {
- const context = useContext(TenantContext);
- if (context === undefined) {
- throw new Error('useTenant must be used within a TenantProvider');
- }
- return context;
 }
