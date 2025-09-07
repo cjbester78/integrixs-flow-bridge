@@ -4,6 +4,7 @@ import com.integrixs.backend.api.dto.auth.LoginRequest;
 import com.integrixs.backend.api.dto.auth.LoginResponse;
 import com.integrixs.backend.application.service.AuthenticationService;
 import com.integrixs.backend.shared.exception.AuthenticationException;
+import com.integrixs.backend.logging.BusinessOperation;
 import com.integrixs.shared.dto.user.RegisterResponseDTO;
 import com.integrixs.shared.dto.user.UserRegisterResponseDTO;
 import com.integrixs.backend.api.dto.user.UserProfileResponse;
@@ -36,6 +37,7 @@ public class AuthController {
      * User login endpoint
      */
     @PostMapping("/login")
+    @BusinessOperation(value = "AUTH.LOGIN", module = "Authentication", logInput = false, logOutput = false)
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
@@ -58,6 +60,7 @@ public class AuthController {
      * User logout endpoint
      */
     @PostMapping("/logout")
+    @BusinessOperation(value = "AUTH.LOGOUT", module = "Authentication")
     public ResponseEntity<Map<String, String>> logout(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody(required = false) Map<String, String> request,
@@ -77,6 +80,7 @@ public class AuthController {
      * Refresh token endpoint
      */
     @PostMapping("/refresh")
+    @BusinessOperation(value = "AUTH.REFRESH_TOKEN", module = "Authentication", logInput = false, logOutput = false)
     public ResponseEntity<LoginResponse> refresh(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
         

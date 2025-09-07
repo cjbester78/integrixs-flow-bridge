@@ -34,6 +34,8 @@ const RetryManagement = lazy(() => import("@/pages/RetryManagement").then(m => (
 const DevelopmentFunctions = lazy(() => import("@/pages/DevelopmentFunctions").then(m => ({ default: m.DevelopmentFunctions })));
 const AllInterfaces = lazy(() => import("@/pages/AllInterfaces"));
 const Packages = lazy(() => import("@/pages/Packages").then(m => ({ default: m.Packages })));
+const AdapterMarketplace = lazy(() => import("@/pages/AdapterMarketplace"));
+const PluginMarketplace = lazy(() => import("@/pages/PluginMarketplace").then(m => ({ default: m.PluginMarketplace })));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Loading component
@@ -205,6 +207,16 @@ const App = () => {
  <Route path="packages" element={
  <Suspense fallback={<PageLoader />}>
  <Packages />
+ </Suspense>
+ } />
+ <Route path="adapter-marketplace" element={
+ <Suspense fallback={<PageLoader />}>
+ <AdapterMarketplace />
+ </Suspense>
+ } />
+ <Route path="plugin-marketplace" element={
+ <Suspense fallback={<PageLoader />}>
+ <PluginMarketplace />
  </Suspense>
  } />
  <Route path="*" element={

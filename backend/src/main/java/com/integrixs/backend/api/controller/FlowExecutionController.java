@@ -1,6 +1,7 @@
 package com.integrixs.backend.api.controller;
 
 import com.integrixs.backend.application.service.FlowExecutionApplicationService;
+import com.integrixs.backend.logging.BusinessOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class FlowExecutionController {
      */
     @PostMapping("/execute/{flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
+    @BusinessOperation(value = "FLOW.EXECUTE", module = "FlowEngine")
     public ResponseEntity<ExecuteFlowResponse> executeFlow(@PathVariable @NotBlank String flowId) {
         log.info("Received request to execute flow: {}", flowId);
         
@@ -76,6 +78,7 @@ public class FlowExecutionController {
      */
     @PostMapping("/execute/bulk")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
+    @BusinessOperation(value = "FLOW.BULK_EXECUTE", module = "FlowEngine")
     public ResponseEntity<BulkExecuteResponse> executeBulkFlows(@RequestBody @Valid BulkExecuteRequest request) {
         log.info("Received request to execute {} flows", request.getFlowIds().size());
         

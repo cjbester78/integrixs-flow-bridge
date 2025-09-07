@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,8 @@ import { logger, LogCategory } from '@/lib/logger';
 import {
  functionsByCategory,
  TransformationFunction,
- generateJavaFunctionCall
+ generateJavaFunctionCall,
+ TransformationFunctionService
 } from '@/services/transformationFunctions';
 
 interface FunctionPickerProps {
@@ -28,10 +29,30 @@ export const FunctionPicker: React.FC<FunctionPickerProps> = ({
  const [searchTerm, setSearchTerm] = useState('');
  const [selectedFunction, setSelectedFunction] = useState<TransformationFunction | null>(null);
  const [parameters, setParameters] = useState<Record<string, any>>({});
+ const [availableFunctions, setAvailableFunctions] = useState<Record<string, TransformationFunction[]>>({});
+ const [loading, setLoading] = useState(true);
 
  const [open, setOpen] = useState(false);
+ 
+ // Load functions from backend on mount
+ useEffect(() => {
+ const loadFunctions = async () => {
+ try {
+ setLoading(true);
+ const functions = await TransformationFunctionService.getFunctionsByCategoryAsync();
+ setAvailableFunctions(functions);
+ } catch (error) {
+ logger.error(LogCategory.UI, 'Failed to load functions', error);
+ // Fallback to local functions
+ setAvailableFunctions(functionsByCategory);
+ } finally {
+ setLoading(false);
+ }
+ };
+ loadFunctions();
+ }, []);
 
- const filteredFunctions = Object.entries(functionsByCategory).reduce((acc, [category, functions]) => {
+ const filteredFunctions = Object.entries(availableFunctions).reduce((acc, [category, functions]) => {
  const filtered = functions.filter(fn =>
  fn.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
  fn.description.toLowerCase().includes(searchTerm.toLowerCase())

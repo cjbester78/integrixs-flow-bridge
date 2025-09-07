@@ -19,12 +19,16 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.integrixs.data.repository.UserRepository;
 import com.integrixs.data.model.User;
+import com.integrixs.backend.logging.EnhancedAuthenticationLogger;
+import lombok.extern.slf4j.Slf4j;
 
 
+@Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private UserRepository userRepository;
+    private EnhancedAuthenticationLogger authLogger;
 
     @Autowired
     public JwtAuthFilter(JwtUtil jwtUtil) {
@@ -34,6 +38,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+    
+    @Autowired(required = false)
+    public void setAuthLogger(EnhancedAuthenticationLogger authLogger) {
+        this.authLogger = authLogger;
     }
 
     @Override
@@ -46,16 +55,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
+            
+            // Log authentication attempt
+            String ipAddress = request.getRemoteAddr();
+            String userAgent = request.getHeader("User-Agent");
 
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.extractUsername(token);
                 String role = jwtUtil.extractRole(token);
                 
-                System.out.println("JWT Auth - Username: " + username + ", Role: " + role);
+                log.debug("JWT Auth - Username: {}, Role: {}", username, role);
+                
+                if (authLogger != null) {
+                    authLogger.logAuthenticationAttempt(username, "JWT", ipAddress, userAgent);
+                }
                 
                 if (role == null) {
                     // For old tokens without role, invalidate them
-                    System.out.println("JWT Auth - Token missing role information, rejecting");
+                    log.warn("JWT Auth - Token missing role information, rejecting");
+                    if (authLogger != null) {
+                        authLogger.logAuthenticationFailure(username, "Token missing required role information", "JWT", ipAddress);
+                    }
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("{\"message\":\"Token missing required role information. Please login again.\"}");
                     return;
@@ -73,7 +93,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())
                 );
                 
-                System.out.println("JWT Auth - Authorities: " + authorities);
+                log.debug("JWT Auth - Authorities: {}", authorities);
                 
                 // Set either the User entity or username as principal
                 var auth = new UsernamePasswordAuthenticationToken(
@@ -84,9 +104,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 
-                System.out.println("JWT Auth - Authentication set for: " + request.getRequestURI() + " with principal: " + (user != null ? "User entity" : "username"));
+                log.debug("JWT Auth - Authentication set for: {} with principal: {}", 
+                    request.getRequestURI(), (user != null ? "User entity" : "username"));
+                    
+                if (authLogger != null) {
+                    authLogger.logAuthenticationSuccess(username, auth, 
+                        request.getSession(false) != null ? request.getSession().getId() : "NO_SESSION",
+                        jwtUtil.getExpirationDateFromToken(token).toInstant());
+                }
             } else {
-                System.out.println("JWT Auth - Invalid token for: " + request.getRequestURI());
+                log.warn("JWT Auth - Invalid token for: {}", request.getRequestURI());
+                if (authLogger != null) {
+                    String username = null;
+                    try {
+                        username = jwtUtil.extractUsername(token);
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                    authLogger.logAuthenticationFailure(username, "Invalid or expired token", "JWT", ipAddress);
+                }
             }
         }
 
@@ -96,7 +132,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        System.out.println("JWT Filter - Checking path: " + path);
+        log.trace("JWT Filter - Checking path: {}", path);
         
         // Skip JWT filter for WebSocket upgrade requests
         String upgradeHeader = request.getHeader("Upgrade");
@@ -117,7 +153,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                path.equals("/minimal-echo") ||
                path.equals("/basic");
                
-        System.out.println("JWT Filter - Should skip: " + shouldSkip);
+        log.trace("JWT Filter - Should skip: {}", shouldSkip);
         return shouldSkip;
     }
 }

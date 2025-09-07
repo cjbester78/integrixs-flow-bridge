@@ -14,9 +14,12 @@ import { communicationAdapterService } from '@/services/communicationAdapterServ
 import { dataStructureService } from '@/services/dataStructureService';
 import { integrationFlowService } from '@/services/integrationFlowService';
 import { flowService } from '@/services/flowService';
+import { OrchestrationTargetService } from '@/services/orchestrationTargetService';
+import { TargetFieldMappingService } from '@/services/targetFieldMappingService';
 import type { IntegrationPackage, CreatePackageRequest } from '@/types/package';
 import type { AdapterType } from '@/types/communicationAdapter';
 import { FieldMappingScreen } from '../FieldMappingScreen';
+import { OrchestrationTargetManager } from '../orchestration/OrchestrationTargetManager';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
@@ -453,37 +456,54 @@ export default function PackageCreationWizard({
  }
 
  const flowId = flowResponse.data.id;
- // Create field mappings
- if (wizardData.transformationRequired) {
+ 
+ // Handle orchestration flow targets and mappings
  if (wizardData.flowType === 'ORCHESTRATION') {
- // Create mappings for each orchestration target
- // TODO: Backend Enhancement Required - JIRA-XXXX
- // The backend needs to support:
- // 1. Multiple field mapping sets per flow (one per target)
- // 2. Association of mappings with specific target adapters
- // 3. Orchestration engine to route messages to correct targets
- // Current workaround: Only creating mappings for the first target
- // Impact: Limited orchestration functionality
- // Priority: Medium - affects multi-target orchestration flows
- const firstTarget = wizardData.orchestrationTargets?.[0];
- if (firstTarget?.mapping && firstTarget.mapping.length > 0) {
- await flowService.saveFieldMappings(flowId, firstTarget.mapping);
+ // Create orchestration targets using the new API
+ for (let i = 0; i < wizardData.orchestrationTargets!.length; i++) {
+ const target = wizardData.orchestrationTargets![i];
+ const adapterId = outboundAdapterIds[i];
+ const structureId = targetStructureIds[adapterId];
+ 
+ // Create orchestration target
+ const targetResponse = await OrchestrationTargetService.addTarget(flowId, {
+ targetAdapterId: adapterId,
+ executionOrder: i,
+ parallel: false,
+ conditionType: 'ALWAYS',
+ structureId: structureId,
+ awaitResponse: false,
+ timeoutMs: 30000,
+ retryPolicy: OrchestrationTargetService.getDefaultRetryPolicy(),
+ errorStrategy: 'FAIL_FLOW',
+ active: true,
+ description: `Target adapter: ${target.adapterName}`
+ });
+ 
+ // Create field mappings for this target if transformation is required
+ if (wizardData.transformationRequired && target.mapping && target.mapping.length > 0) {
+ const mappingRequests = target.mapping.map((mapping: any, idx: number) => ({
+ sourceFieldPath: mapping.sourcePaths?.[0] || mapping.sourceFields?.[0] || '',
+ targetFieldPath: mapping.targetPath || mapping.targetField || '',
+ mappingType: mapping.functionNode ? 'FUNCTION' : 'DIRECT',
+ transformationExpression: mapping.javaFunction || mapping.functionNode ? JSON.stringify(mapping.functionNode) : undefined,
+ required: mapping.required || false,
+ mappingOrder: idx,
+ active: true,
+ description: mapping.name || `Mapping ${idx + 1}`,
+ visualFlowData: mapping.visualFlowData ? JSON.stringify(mapping.visualFlowData) : undefined
+ }));
+ 
+ await TargetFieldMappingService.createMappings(
+ flowId, 
+ targetResponse.id, 
+ mappingRequests
+ );
  }
-
- // TODO: Enable multi-target mapping when backend API is ready
- // Requires: flowService.saveFieldMappingsForTarget(flowId, targetId, mappings)
- // for (let i = 0; i < wizardData.orchestrationTargets.length; i++) {
- // const target = wizardData.orchestrationTargets[i];
- // if (target.mapping && target.mapping.length > 0) {
- // await integrationFlowService.saveFieldMappingsForTarget(
- // flowId,
- // outboundAdapterIds[i],
- // target.mapping
- // );
- // }
- // }
- } else if (wizardData.fieldMappings && wizardData.fieldMappings.length > 0) {
- // Create mappings for direct integration
+ }
+ } else {
+ // Handle direct integration mappings (unchanged)
+ if (wizardData.transformationRequired && wizardData.fieldMappings && wizardData.fieldMappings.length > 0) {
  await flowService.saveFieldMappings(flowId, wizardData.fieldMappings);
  }
  }
@@ -1089,133 +1109,40 @@ export default function PackageCreationWizard({
  }
 
  case 'orchestration-targets': {
- const addOrchestrationTarget = () => {
- const newTarget = {
- adapterName: '',
- adapterType: '' as AdapterType | '',
- adapterConfig: {},
- structure: null,
- mapping: []
- };
- setWizardData({
- ...wizardData,
- orchestrationTargets: [...(wizardData.orchestrationTargets || []), newTarget]
- })
- };
-
- const removeOrchestrationTarget = (index: number) => {
- const targets = [...(wizardData.orchestrationTargets || [])];
- targets.splice(index, 1);
- setWizardData({ ...wizardData, orchestrationTargets: targets });
- };
-
- const updateOrchestrationTarget = (index: number, field: string, value: any) => {
- const targets = [...(wizardData.orchestrationTargets || [])];
- targets[index] = { ...targets[index], [field]: value };
- setWizardData({ ...wizardData, orchestrationTargets: targets });
- };
-
+ // For now, we'll use mock flow ID - in real scenario, the flow would be created first
+ const mockFlowId = 'temp-flow-' + Date.now();
+ 
+ // Transform ADAPTER_TYPES into format expected by OrchestrationTargetManager
+ const availableAdapters = ADAPTER_TYPES.map((type, index) => ({
+ id: `new-adapter-${type.value}-${index}`,
+ name: `New ${type.label} Adapter`,
+ type: type.value
+ }));
+ 
  return (
  <div className="space-y-6">
  <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
  <h4 className="font-medium mb-2">Target Adapters Configuration</h4>
  <p className="text-sm text-muted-foreground">
- Configure multiple target adapters for orchestration flow
+ Configure multiple target adapters for orchestration flow with drag-and-drop reordering
  </p>
  </div>
-
- <div className="space-y-4">
- {wizardData.orchestrationTargets && wizardData.orchestrationTargets.length > 0 ? (
- wizardData.orchestrationTargets.map((target, index) => (
- <Card key={index} className="relative overflow-hidden">
- <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
- <CardHeader className="pb-3">
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-2">
- <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-semibold">
- {index + 1}
- </div>
- <CardTitle className="text-base">Target Adapter</CardTitle>
- </div>
- <Button
- variant="ghost"
- size="sm"
- onClick={() => removeOrchestrationTarget(index)}
- className="text-destructive hover:text-destructive hover:bg-destructive/10"
- title="Remove target adapter"
- >
- <Trash2 className="w-4 h-4" />
- </Button>
- </div>
- </CardHeader>
- <CardContent className="space-y-4">
- <div>
- <Label htmlFor={`target-name-${index}`}>Adapter Name *</Label>
- <Input
- id={`target-name-${index}`}
- value={target.adapterName}
- onChange={(e) => updateOrchestrationTarget(index, 'adapterName', e.target.value)}
- placeholder="Enter adapter name"
- className="mt-1"
+ 
+ <OrchestrationTargetManager
+ flowId={mockFlowId}
+ availableAdapters={availableAdapters}
+ onTargetsChange={(targets) => {
+ // Convert targets to wizard format
+ const wizardTargets = targets.map(target => ({
+ adapterName: target.adapterName || '',
+ adapterType: (target.adapterType || '') as AdapterType | '',
+ adapterConfig: {},
+ structure: null,
+ mapping: []
+ }));
+ setWizardData({ ...wizardData, orchestrationTargets: wizardTargets });
+ }}
  />
- </div>
-
- <div>
- <Label htmlFor={`target-type-${index}`}>Adapter Type *</Label>
- <Select
- value={target.adapterType}
- onValueChange={(value) => updateOrchestrationTarget(index, 'adapterType', value)}
- >
- <SelectTrigger className="mt-1">
- <SelectValue placeholder="Select adapter type" />
- </SelectTrigger>
- <SelectContent>
- {ADAPTER_TYPES.map((type) => (
- <SelectItem key={type.value} value={type.value}>
- {type.label}
- </SelectItem>
- ))}
- </SelectContent>
- </Select>
- </div>
-
- {target.adapterType && (
- <div className="p-3 bg-muted/50 rounded-md">
- <p className="text-sm text-muted-foreground">
- Configuration for {target.adapterType} adapter will be set up in the next steps
- </p>
- </div>
- )}
- </CardContent>
- </Card>
- ))
- ) : (
- <Card className="border-dashed">
- <CardContent className="pt-6">
- <div className="text-center space-y-4">
- <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
- <Send className="w-8 h-8 text-muted-foreground" />
- </div>
- <div>
- <h3 className="font-medium text-lg">No Target Adapters Yet</h3>
- <p className="text-sm text-muted-foreground mt-1">
- Add at least one target adapter to start building your orchestration flow
- </p>
- </div>
- </div>
- </CardContent>
- </Card>
- )}
-
- <Button
- onClick={addOrchestrationTarget}
- variant="outline"
- className="w-full"
- >
- <Plus className="w-4 h-4 mr-2" />
- Add Target Adapter
- </Button>
- </div>
  </div>
  );
  }

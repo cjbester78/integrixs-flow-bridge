@@ -7,6 +7,7 @@ import com.integrixs.backend.api.dto.response.AdapterResponse;
 import com.integrixs.backend.api.dto.response.AdapterTestResponse;
 import com.integrixs.backend.application.service.AdapterTestingService;
 import com.integrixs.backend.application.service.CommunicationAdapterService;
+import com.integrixs.backend.logging.BusinessOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ public class CommunicationAdapterController {
     
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "ADAPTER.LIST", module = "AdapterManagement")
     public ResponseEntity<List<AdapterResponse>> getAllAdapters() {
         log.debug("Fetching all communication adapters");
         List<AdapterResponse> adapters = adapterService.getAllAdapters();
@@ -42,6 +44,7 @@ public class CommunicationAdapterController {
     
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "ADAPTER.GET", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> getAdapterById(@PathVariable String id) {
         log.debug("Fetching communication adapter: {}", id);
         try {
@@ -55,6 +58,7 @@ public class CommunicationAdapterController {
     
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "ADAPTER.CREATE", module = "AdapterManagement", logInput = true)
     public ResponseEntity<AdapterResponse> createAdapter(@Valid @RequestBody CreateAdapterRequest request) {
         log.debug("Creating new communication adapter: {}", request.getName());
         try {
@@ -68,6 +72,7 @@ public class CommunicationAdapterController {
     
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "ADAPTER.UPDATE", module = "AdapterManagement", logInput = true)
     public ResponseEntity<AdapterResponse> updateAdapter(
             @PathVariable String id, 
             @Valid @RequestBody UpdateAdapterRequest request) {
@@ -86,6 +91,7 @@ public class CommunicationAdapterController {
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER')")
+    @BusinessOperation(value = "ADAPTER.DELETE", module = "AdapterManagement")
     public ResponseEntity<Void> deleteAdapter(@PathVariable String id) {
         log.debug("Deleting communication adapter: {}", id);
         try {
@@ -102,6 +108,7 @@ public class CommunicationAdapterController {
     
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "ADAPTER.ACTIVATE", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> activateAdapter(@PathVariable String id) {
         log.debug("Activating communication adapter: {}", id);
         try {
@@ -118,6 +125,7 @@ public class CommunicationAdapterController {
     
     @PostMapping("/{id}/deactivate")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "ADAPTER.DEACTIVATE", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> deactivateAdapter(@PathVariable String id) {
         log.debug("Deactivating communication adapter: {}", id);
         try {
@@ -134,6 +142,7 @@ public class CommunicationAdapterController {
     
     @PostMapping("/test")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "ADAPTER.TEST", module = "AdapterManagement", includeMetrics = true)
     public ResponseEntity<AdapterTestResponse> testAdapter(@Valid @RequestBody TestAdapterRequest request) {
         log.debug("Testing adapter connection: {}", request.getAdapterId());
         try {

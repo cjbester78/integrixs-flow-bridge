@@ -4,6 +4,7 @@
     <property name="LOG_PATH" value="./logs" />
     <property name="LOG_FILE" value="integrix-flow-bridge" />
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+    <property name="STRUCTURED_PATTERN" value="#2.0#%d{yyyy MM dd HH:mm:ss:SSS}#+0200#%level#%X{component:-System}#%X{module:-Core}#%X{correlationId:-}#%X{userId:-Guest}#%X{operationId:-}##%logger{36}#%X{operationType:-}##%thread#Plain##%msg#%n" />
     
     <!-- Console Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -50,6 +51,60 @@
         </encoder>
     </appender>
     
+    <!-- Structured Application Log Appender -->
+    <appender name="STRUCTURED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/applications_00.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>${STRUCTURED_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/applications_00.%i.log</fileNamePattern>
+            <minIndex>0</minIndex>
+            <maxIndex>4</maxIndex>
+        </rollingPolicy>
+        
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+    </appender>
+    
+    <!-- Security Log Appender -->
+    <appender name="SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/security_00.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>${STRUCTURED_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/security_00.%i.log</fileNamePattern>
+            <minIndex>0</minIndex>
+            <maxIndex>4</maxIndex>
+        </rollingPolicy>
+        
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+    </appender>
+    
+    <!-- Async Appender for better performance -->
+    <appender name="ASYNC_STRUCTURED" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STRUCTURED_FILE" />
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <!-- Async Security Appender -->
+    <appender name="ASYNC_SECURITY" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SECURITY_FILE" />
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
     <!-- Set up logging for Spring Boot startup -->
     <logger name="org.springframework.boot" level="DEBUG" additivity="false">
         <appender-ref ref="FILE" />
@@ -58,6 +113,34 @@
     </logger>
     
     <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Enhanced Business Operation Logging -->
+    <logger name="com.integrixs.backend.logging.BusinessOperationLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_STRUCTURED" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Enhanced Authentication Logging -->
+    <logger name="com.integrixs.backend.logging.EnhancedAuthenticationLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_SECURITY" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Enhanced Flow Execution Logging -->
+    <logger name="com.integrixs.backend.logging.EnhancedFlowExecutionLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_STRUCTURED" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Adapter Communication Logging -->
+    <logger name="com.integrixs.adapters" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_STRUCTURED" />
         <appender-ref ref="FILE" />
         <appender-ref ref="CONSOLE" />
     </logger>

@@ -2,9 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-Integrix Flow Bridge is an enterprise integration middleware platform for visual flow composition, adapter management, and orchestration. It enables organizations to connect different systems, transform data, and orchestrate complex business processes.
+This prevents misunderstandings, wasted work, and ensures alignment between user expectations and implementation.
 
 ## Standard Workflow
 1. First think through the problem, read the codebase for relevant files, and write a plan to todo.md.
@@ -15,12 +13,14 @@ Integrix Flow Bridge is an enterprise integration middleware platform for visual
 6. Make every task and code change you do as simple as possible. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity.
 7. Finally, add a review section to the todo.md file with a summary of the changes you made and any other relevant information.
 
-**CRITICAL**: After every fix do a git commit.
-**CRITICAL**: Never create workarounds or temporary fixes always implement full solution and fix root issues.
 **CRITICAL**: Do what has been asked; nothing more, nothing less.
+**CRITICAL**: Never create work arounds.
+**CRITICAL**: Always implement full implementations do not create //TODO comments.
 **CRITICAL**: NEVER create files unless they're absolutely necessary for achieving your goal.
 **CRITICAL**: ALWAYS prefer editing an existing file to creating a new one.
 **CRITICAL**: NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+## CRITICAL: Instruction Verification Process
 
 **IMPORTANT**: Before implementing any user request, follow this process:
 
@@ -33,191 +33,266 @@ Integrix Flow Bridge is an enterprise integration middleware platform for visual
 4. **Wait** for user confirmation that you understood correctly
 5. **Only proceed** with implementation after confirmation
 
+## Project Overview
 
-## Architecture
+Integrix Flow Bridge is an enterprise integration platform built with:
+- **Backend**: Java 17, Spring Boot 3.5.3, PostgreSQL
+- **Frontend**: React 18, TypeScript, Vite, TanStack Query, shadcn/ui
+- **Architecture**: Multi-module Maven project with microservices
 
-The system follows a multi-module Maven architecture:
+## Build and Run Commands
 
-- **backend** - Spring Boot application serving REST APIs and WebSocket endpoints
-- **frontend** - React/TypeScript SPA with visual flow designer
-- **data-access** - JPA entities and repositories
-- **adapters** - Communication protocol implementations (HTTP, FTP, SFTP, JMS, Kafka, JDBC, Mail, OData, SAP RFC/IDoc)
-- **engine** - Flow execution and orchestration engine
-- **shared-lib** - Common DTOs, enums, and utilities
-- **webclient/webserver** - Inbound message processing endpoints
-- **soap-bindings** - SOAP/WSDL support
+### Backend (Java/Spring Boot)
 
-## Common Commands
-
-### Build and Deploy
 ```bash
-# Full build and deploy (kills existing processes, builds frontend, starts backend)
-./deploy.sh
-
 # Build entire project
 mvn clean install
 
 # Build without tests
 mvn clean install -DskipTests
 
-# Build specific module
-cd backend && mvn clean install
-```
+# Run backend only
+cd backend
+mvn spring-boot:run
 
-### Running Individual Components
-```bash
-# Run backend only (from backend directory)
-mvn spring-boot:run -Dspring-boot.run.arguments="--spring.main.allow-circular-references=true"
+# Run backend with specific profile
+mvn spring-boot:run -Dspring.profiles.active=dev
 
-# Run frontend development server (from frontend directory)
-npm run dev
-
-# Build frontend for production
-npm run build
-
-# Copy frontend build to backend
-npm run build-and-copy
-```
-
-### Testing
-```bash
-# Run all tests
-mvn test
-
-# Run tests for specific module
-cd backend && mvn test
+# Run specific module tests
+mvn test -pl backend
+mvn test -pl adapters
 
 # Run integration tests
-cd integration-tests && ./run-integration-tests.sh
-
-# Frontend tests/linting
-cd frontend && npm run lint
+cd integration-tests
+./run-integration-tests.sh
 ```
 
-### Database Operations
+### Frontend (React/Vite)
+
 ```bash
-# Create test users
-psql -U integrix -d integrixflowbridge -f scripts/database/create_test_users.sql
+cd frontend
 
-# Clear logs and errors
-./scripts/maintenance/clear_logs_and_errors.sh
+# Install dependencies
+npm install
 
-# Run specific migration
-mvn flyway:migrate -Dflyway.target=V123
+# Development server
+npm run dev
+
+# Build production
+npm run build
+
+# Build and copy to backend
+npm run build-and-copy
+
+# Lint
+npm run lint
 ```
 
-## Key Architecture Patterns
+### Database
 
-### Backend Structure
-The backend follows clean architecture principles with clear separation:
-- **api/controller** - REST endpoints, request/response DTOs
-- **application/service** - Application services orchestrating business logic
-- **domain/service** - Core business logic and domain rules
-- **infrastructure** - External integrations, adapters, persistence
+```bash
+# Using Docker Compose
+docker-compose up -d postgres
 
-### Authentication & Security
-- JWT-based authentication with role-based access control
-- Roles: ADMINISTRATOR, DEVELOPER, INTEGRATOR, VIEWER
-- Multi-tenancy support with tenant isolation
-- IP whitelisting and certificate management
+# Connect to PostgreSQL
+psql -h localhost -p 5432 -U integrix -d integrixflowbridge
+# Password: B3st3r@01
+```
 
-### Integration Flow Execution
-1. **Flow Definition** - Visual designer creates flow configurations
-2. **Deployment** - Flows are deployed with specific adapters
-3. **Execution** - Engine processes messages through transformation pipeline
-4. **Monitoring** - Real-time WebSocket updates for flow execution status
+## Architecture Overview
 
-### Data Model Relationships
-- **BusinessComponent** → groups related integration artifacts
-- **IntegrationFlow** → defines the flow logic and transformations
-- **CommunicationAdapter** → configures inbound/outbound connections
-- **FlowTransformation** → data transformation steps
-- **FieldMapping** → visual field-to-field mappings
+### Module Structure
+
+The project uses a multi-module Maven architecture:
+
+- **backend**: Main Spring Boot application and REST APIs
+- **adapters**: Integration adapter implementations (File, FTP, HTTP, SOAP, SAP, etc.)
+- **data-access**: JPA entities and repositories
+- **engine**: Flow execution engine
+- **frontend**: React web application
+- **db**: Database migrations (Flyway)
+- **shared-lib**: Common utilities
+- **webclient/webserver**: Web service endpoints
+- **soap-bindings**: SOAP/WSDL support
+- **monitoring**: System monitoring components
+- **integration-tests**: End-to-end tests
+
+### Key Architectural Patterns
+
+1. **Native XML Transformation Core**
+   - All data transforms through XML as intermediate format
+   - Message Structures (XSD) for non-SOAP adapters
+   - Flow Structures (WSDL) for SOAP adapters
+   - Visual field mapping with transformation functions
+
+2. **Adapter Pattern**
+   - AbstractAdapter base class
+   - Separate Inbound/Outbound handlers
+   - Configuration stored as JSON in database
+   - Each adapter type has dedicated configuration component
+
+3. **Multi-tenant Architecture**
+   - Business Components for logical separation
+   - Tenant context propagation
+   - Row-level security
+
+4. **Event-Driven Processing**
+   - Async message processing
+   - Event store for audit trail
+   - WebSocket for real-time updates
+
+### Database Schema Patterns
+
+- UUID primary keys throughout
+- JSONB columns for flexible configuration
+- Flyway migrations with PostgreSQL-specific features
+- Soft deletes with deletion constraints
+- Audit columns (created_at, updated_at, created_by, updated_by)
 
 ### Frontend Architecture
-- React with TypeScript and modern hooks
-- TanStack Query for server state management
+
+- Feature-based folder structure
+- TanStack Query for server state
 - Zustand for client state
-- XYFlow for visual flow editing
-- shadcn/ui components with Tailwind CSS
+- Dynamic form generation from schemas
+- React Flow for visual editors
+
+## Development Patterns
+
+### Adding New Adapters
+
+1. Create adapter configuration class in `adapters/src/main/java/com/integrixs/adapters/config/`
+2. Implement adapter in `adapters/src/main/java/com/integrixs/adapters/impl/`
+3. Add frontend configuration component in `frontend/src/components/adapter/`
+4. Register in `CreateCommunicationAdapter.tsx`
+
+### API Endpoints
+
+- All APIs under `/api/*`
+- Authentication required (JWT Bearer token)
+- Standard response format with ApiResponse wrapper
+- Pagination using Spring Pageable
+
+### Database Migrations
+
+- Migrations in `backend/src/main/resources/db/migration/`
+- PostgreSQL-specific syntax
+- Naming: `V{number}__{description}.sql`
+- Always include rollback considerations
+
+### Testing Approach
+
+- Unit tests alongside source files
+- Integration tests in separate module
+- Use `@SpringBootTest` for integration tests
+- Mock external dependencies
 
 ## Important Configuration
 
+### Spring Profiles
+
+- **dev**: Local development (default)
+- **test**: Testing environment
+- **prod**: Production environment
+- **docker**: Docker deployment
+
 ### Environment Variables
+
 ```bash
 # Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=integrixflowbridge
-DB_USER=integrix
-DB_PASSWORD=integrix
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/integrixflowbridge
+SPRING_DATASOURCE_USERNAME=integrix
+SPRING_DATASOURCE_PASSWORD=B3st3r@01
 
 # Security
 INTEGRIX_MASTER_KEY=IntegrixFlowBridge2024SecureKey
-JWT_SECRET=your-secret-key
 
-# Environment (DEVELOPMENT, QUALITY_ASSURANCE, PRODUCTION)
-SYSTEM_ENVIRONMENT_TYPE=DEVELOPMENT
+# Email (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
 ```
 
-### Spring Profiles
-- **dev** - Development with debug logging
-- **test** - Testing environment
-- **prod** - Production with optimizations
+### Frontend Environment
 
-### Key Configuration Files
-- `backend/src/main/resources/application.yml` - Main Spring configuration
-- `backend/src/main/resources/application-{profile}.yml` - Profile-specific configs
-- `frontend/.env` - Frontend environment variables
+```bash
+# API endpoint
+VITE_API_URL=http://localhost:8080
 
-## Development Workflow
+# Feature flags
+VITE_FEATURE_NEW_ADAPTER_SYSTEM=false
+```
 
-### Adding New Adapters
-1. Create adapter config class in `adapters/src/main/java/com/integrixs/adapters/config/`
-2. Implement adapter in `adapters/src/main/java/com/integrixs/adapters/core/`
-3. Add frontend configuration component in `frontend/src/components/adapter/`
-4. Update adapter types in database
+## Common Tasks
 
-### Creating New Flows
-1. Flows are created through the Package Creation Wizard (not individual flow creation)
-2. Use `/packages` route to access the wizard
-3. Flows support direct mapping or orchestration modes
+### Debug Backend
+```bash
+# Enable debug logging
+mvn spring-boot:run -Dlogging.level.com.integrixs=DEBUG
 
-### Database Migrations
-- Migrations use Flyway in `backend/src/main/resources/db/migration/`
-- Naming convention: `V{number}__{description}.sql`
-- Current version: V138
-- PostgreSQL-specific features are used (UUID, XML types)
+# Remote debugging
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+```
 
-## Known Issues and Workarounds
+### Clear Database
+```sql
+-- Clear all transaction data
+TRUNCATE TABLE messages, adapter_payloads, system_logs CASCADE;
 
-### Frontend TypeScript Issues
-The frontend has TypeScript suppressions due to migration complexity. When working on frontend:
-- Check for `@ts-nocheck` comments
-- Review suppression files before adding new suppressions
-- Prefer fixing TypeScript errors over suppressing them
+-- Reset sequences
+ALTER SEQUENCE messages_id_seq RESTART WITH 1;
+```
 
-### Circular Dependencies
-Backend allows circular references via Spring configuration. Be cautious when adding new dependencies between modules.
+### Generate TypeScript Types
+```bash
+cd frontend
+# Types are manually maintained in src/types/
+```
 
-### WebSocket Connections
-WebSocket is used for real-time updates. Ensure proper connection handling in both frontend and backend when implementing new real-time features.
+## Deployment
 
-## Testing Approach
+### Docker Deployment
+```bash
+# Build and run all services
+docker-compose up -d
 
-### Backend Testing
-- Unit tests for services and domain logic
-- Integration tests for API endpoints
-- Use `@SpringBootTest` for full context tests
-- Mock external dependencies with Mockito
+# View logs
+docker-compose logs -f backend
+```
 
-### Frontend Testing
-- Component testing with React Testing Library
-- API mocking with MSW (Mock Service Worker)
-- E2E tests for critical user flows
+### Production Build
+```bash
+# Backend
+mvn clean package -P prod
 
-### Performance Considerations
-- Database queries use batch fetching and lazy loading
-- Large payloads (>1MB) are stored externally
-- Connection pooling configured for high throughput
-- Frontend uses virtual scrolling for large lists
+# Frontend
+cd frontend
+npm run build
+
+# Copy frontend to backend
+npm run copy-to-backend
+```
+
+## Key Files to Understand
+
+1. **Backend Architecture**
+   - `backend/src/main/java/com/integrixs/backend/BackendApplication.java` - Entry point
+   - `adapters/src/main/java/com/integrixs/adapters/core/AbstractAdapter.java` - Adapter base
+   - `data-access/src/main/java/com/integrixs/data/model/` - Entity definitions
+
+2. **Frontend Architecture**
+   - `frontend/src/App.tsx` - Route definitions
+   - `frontend/src/services/` - API service layer
+   - `frontend/src/hooks/` - Custom React hooks
+   - `frontend/src/components/fieldMapping/VisualMappingCanvas.tsx` - Visual mapping
+
+3. **Configuration**
+   - `backend/src/main/resources/application.yml` - Spring configuration
+   - `frontend/vite.config.ts` - Frontend build configuration
+   - `docker-compose.yml` - Container orchestration
+
+## Recent Architecture Documents
+
+- `ADAPTERS_ARCHITECTURE.md` - New extensible adapter system design
+- `ADAPTER_XML_TRANSFORMATION_INTEGRATION.md` - XML transformation integration

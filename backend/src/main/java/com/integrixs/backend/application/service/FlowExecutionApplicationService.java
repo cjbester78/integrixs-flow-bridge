@@ -10,6 +10,7 @@ import com.integrixs.backend.service.transformation.EnrichmentTransformationServ
 import com.integrixs.backend.service.transformation.FilterTransformationService;
 import com.integrixs.backend.service.transformation.ValidationTransformationService;
 import com.integrixs.backend.util.FieldMapper;
+import com.integrixs.backend.service.JavaTransformationEngine;
 import com.integrixs.backend.util.JavaFunctionRunner;
 import com.integrixs.data.model.*;
 import com.integrixs.data.repository.*;
@@ -20,7 +21,9 @@ import com.integrixs.shared.dto.transformation.CustomFunctionConfigDTO;
 import com.integrixs.shared.dto.transformation.EnrichmentTransformationConfigDTO;
 import com.integrixs.shared.dto.transformation.FilterTransformationConfigDTO;
 import com.integrixs.shared.dto.transformation.ValidationTransformationConfigDTO;
-import lombok.RequiredArgsConstructor;
+import com.integrixs.backend.logging.EnhancedFlowExecutionLogger;
+import com.integrixs.backend.logging.EnhancedFlowExecutionLogger.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -36,7 +39,6 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class FlowExecutionApplicationService {
     
     private final FlowExecutionService flowExecutionService;
@@ -54,7 +56,43 @@ public class FlowExecutionApplicationService {
     private final EnrichmentTransformationService enrichmentTransformationService;
     private final ValidationTransformationService validationTransformationService;
     private final DevelopmentFunctionService developmentFunctionService;
+    private final JavaTransformationEngine javaTransformationEngine;
+    private final EnhancedFlowExecutionLogger flowLogger;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    @Autowired
+    public FlowExecutionApplicationService(
+            FlowExecutionService flowExecutionService,
+            AdapterConfigurationService adapterConfigurationService,
+            IntegrationFlowRepository flowRepository,
+            CommunicationAdapterRepository adapterRepository,
+            FlowTransformationRepository transformationRepository,
+            FieldMappingRepository fieldMappingRepository,
+            AdapterExecutor adapterExecutor,
+            FormatConversionService formatConversionService,
+            DirectFileTransferService directFileTransferService,
+            FilterTransformationService filterTransformationService,
+            EnrichmentTransformationService enrichmentTransformationService,
+            ValidationTransformationService validationTransformationService,
+            DevelopmentFunctionService developmentFunctionService,
+            JavaTransformationEngine javaTransformationEngine,
+            @Autowired(required = false) EnhancedFlowExecutionLogger flowLogger) {
+        this.flowExecutionService = flowExecutionService;
+        this.adapterConfigurationService = adapterConfigurationService;
+        this.flowRepository = flowRepository;
+        this.adapterRepository = adapterRepository;
+        this.transformationRepository = transformationRepository;
+        this.fieldMappingRepository = fieldMappingRepository;
+        this.adapterExecutor = adapterExecutor;
+        this.formatConversionService = formatConversionService;
+        this.directFileTransferService = directFileTransferService;
+        this.filterTransformationService = filterTransformationService;
+        this.enrichmentTransformationService = enrichmentTransformationService;
+        this.validationTransformationService = validationTransformationService;
+        this.developmentFunctionService = developmentFunctionService;
+        this.javaTransformationEngine = javaTransformationEngine;
+        this.flowLogger = flowLogger != null ? flowLogger : new EnhancedFlowExecutionLogger();
+    }
     
     /**
      * Execute a flow asynchronously
@@ -68,7 +106,10 @@ public class FlowExecutionApplicationService {
 
         // Create correlation ID for this flow execution
         String correlationId = UUID.randomUUID().toString();
-        // TODO: Replace with proper message service when available
+        String messageId = "MSG-" + UUID.randomUUID().toString();
+        long startTime = System.currentTimeMillis();
+        FlowExecutionContext flowContext = null;
+        
         log.info("Starting flow execution with correlation ID: {}", correlationId);
 
         try {
@@ -80,6 +121,20 @@ public class FlowExecutionApplicationService {
 
             // Validate flow can be executed
             flowExecutionService.validateFlowExecution(flow, inboundAdapter, outboundAdapter);
+            
+            // Log flow execution start
+            flowContext = FlowExecutionContext.builder()
+                .flowId(flow.getId().toString())
+                .flowName(flow.getName())
+                .flowVersion(flow.getVersion() != null ? flow.getVersion().toString() : "1.0")
+                .sourceSystem(inboundAdapter.getName())
+                .targetSystem(outboundAdapter.getName())
+                .correlationId(correlationId)
+                .messageId(messageId)
+                .payloadSize(0)
+                .build();
+            
+            flowLogger.logFlowStart(flowContext);
 
             // Check if we should skip XML conversion (direct passthrough)
             if (flowExecutionService.shouldUseDirectTransfer(flow)) {
@@ -89,19 +144,46 @@ public class FlowExecutionApplicationService {
             }
 
             // Execute the flow
+            long startTime = System.currentTimeMillis();
             try {
                 executeFlowWithTransformations(flow, inboundAdapter, outboundAdapter, correlationId);
+                
+                // Log flow completion
+                long duration = System.currentTimeMillis() - startTime;
+                flowContext = FlowExecutionContext.builder()
+                    .flowId(flow.getId().toString())
+                    .flowName(flow.getName())
+                    .flowVersion(flow.getVersion() != null ? flow.getVersion().toString() : "1.0")
+                    .sourceSystem(inboundAdapter.getName())
+                    .targetSystem(outboundAdapter.getName())
+                    .correlationId(correlationId)
+                    .messageId(messageId)
+                    .stepsExecuted(1)
+                    .messagesProcessed(1)
+                    .build();
+                    
+                flowLogger.logFlowComplete(flowContext, duration);
+                
             } catch (Exception e) {
                 throw new RuntimeException("Flow execution failed: " + e.getMessage(), e);
             }
 
         } catch (XmlConversionException e) {
+            long duration = System.currentTimeMillis() - startTime;
             log.error("XML conversion error executing flow: {}", flow.getName(), e);
-            // TODO: Replace logService.logFlowExecutionError(flow, e);
+            
+            flowContext.setCurrentStep("XML Conversion");
+            flowLogger.logFlowError(flowContext, e, duration);
+            
             throw new RuntimeException("XML conversion failed: " + e.getMessage(), e);
         } catch (Exception e) {
+            long duration = System.currentTimeMillis() - startTime;
             log.error("Error executing flow: {}", flow.getName(), e);
-            // TODO: Replace logService.logFlowExecutionError(flow, e);
+            
+            if (flowContext != null) {
+                flowLogger.logFlowError(flowContext, e, duration);
+            }
+            
             throw new RuntimeException("Error executing flow: " + flow.getName(), e);
         }
     }
@@ -113,6 +195,19 @@ public class FlowExecutionApplicationService {
             String correlationId) throws Exception {
         
         // Step 1: Fetch source data
+        // Log adapter communication
+        AdapterCommunicationContext inboundContext = AdapterCommunicationContext.builder()
+            .adapterName(inboundAdapter.getName())
+            .adapterType(inboundAdapter.getType())
+            .direction("INBOUND")
+            .endpoint(inboundAdapter.getConfiguration().get("url"))
+            .protocol(inboundAdapter.getType())
+            .sourceSystem(inboundAdapter.getName())
+            .payloadSize(0)
+            .build();
+        
+        flowLogger.logAdapterCommunication(inboundContext);
+        
         Object rawData = adapterExecutor.fetchDataAsObject(flow.getInboundAdapterId().toString());
         log.info("Fetched data from source adapter: {}", inboundAdapter.getName());
         
@@ -131,6 +226,19 @@ public class FlowExecutionApplicationService {
         String processedData = processData(flow, rawData, inboundAdapter, outboundAdapter);
 
         // Step 3: Send to target adapter
+        // Log outbound adapter communication
+        AdapterCommunicationContext outboundContext = AdapterCommunicationContext.builder()
+            .adapterName(outboundAdapter.getName())
+            .adapterType(outboundAdapter.getType())
+            .direction("OUTBOUND")
+            .endpoint(outboundAdapter.getConfiguration().get("url"))
+            .protocol(outboundAdapter.getType())
+            .targetSystem(outboundAdapter.getName())
+            .payloadSize(processedData.length())
+            .build();
+            
+        flowLogger.logAdapterCommunication(outboundContext);
+        
         Map<String, Object> context = flowExecutionService.buildExecutionContext(correlationId, flow.getId());
         adapterExecutor.sendData(flow.getOutboundAdapterId().toString(), processedData, context);
         log.info("Sent data to target adapter: {}", outboundAdapter.getName());
@@ -141,6 +249,12 @@ public class FlowExecutionApplicationService {
 
         // Step 4: Log success
         log.info("Flow execution successful for flow: {} - correlationId: {}", flow.getName(), correlationId);
+        
+        // Log response mapping if applicable
+        if (flowExecutionService.isMappingRequired(flow)) {
+            flowLogger.logResponseMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0", 
+                String.valueOf(System.currentTimeMillis() - System.currentTimeMillis()));
+        }
     }
     
     private String processData(
@@ -153,6 +267,9 @@ public class FlowExecutionApplicationService {
             log.info("Mapping required for flow: {}", flow.getName());
             
             // Convert source data to XML
+            flowLogger.logRequestMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0", 
+                inboundAdapter.getType(), "XML");
+            
             String xmlData = formatConversionService.convertToXml(rawData, inboundAdapter);
             log.debug("Converted source data to XML");
             
@@ -196,6 +313,18 @@ public class FlowExecutionApplicationService {
                 );
             }
 
+            TransformationContext transformContext = TransformationContext.builder()
+                .stepNumber(transformations.indexOf(transformation) + 1)
+                .totalSteps(transformations.size())
+                .transformationName(transformation.getName())
+                .transformationType(transformation.getType())
+                .inputFormat("XML")
+                .outputFormat("XML")
+                .configuration(transformation.getConfiguration())
+                .build();
+                
+            flowLogger.logTransformationStep(transformContext);
+            
             currentData = applyTransformation(transformation, currentData);
         }
         return currentData;
@@ -205,7 +334,7 @@ public class FlowExecutionApplicationService {
         switch (transformation.getType()) {
             case FIELD_MAPPING:
                 List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(transformation.getId());
-                return FieldMapper.apply(currentData, mappings, developmentFunctionService);
+                return FieldMapper.apply(currentData, mappings, javaTransformationEngine);
                 
             case CUSTOM_FUNCTION:
                 return applyCustomFunctionTransformation(transformation, currentData);

@@ -10,7 +10,7 @@ server:
 
 spring:
   application:
-    name: backend
+    name: integrixs-flow-bridge
   profiles:
     active: dev
   main:
@@ -116,7 +116,34 @@ logging:
   level:
     root: INFO
     com.integrixs: DEBUG
-    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "#2.0#%d{yyyy MM dd HH:mm:ss:SSS}#+0200#%level#%logger#%X{correlationId:--}#%X{userId:--}#%X{sessionId:--}#%thread#%msg%n"
+  # Business logging configuration
+  business:
+    enable-operation-logging: true
+    enable-authentication-details: true
+    enable-flow-execution-details: true
+    enable-transformation-steps: true
+    enable-adapter-communication: true
+    enable-performance-metrics: true
+    enable-message-routing: true
+    max-payload-length: 1000
+    include-stack-traces: true
+    log-sensitive-data: false
+    enable-structured-format: true
+    performance-threshold-ms: 1000
+    correlation-id-header: X-Correlation-ID
+    mdc:
+      enabled: true
+      include-user-id: true
+      include-flow-id: true
+      include-tenant-id: true
+      include-session-id: true
 
 # ✅ Actuator settings
 management:
@@ -127,6 +154,25 @@ management:
   endpoint:
     health:
       show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        integrix.flow.duration: true
+        integrix.adapter.duration: true
+        integrix.transformation.duration: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+        integrix.flow.duration: 0.5, 0.95, 0.99
+        integrix.adapter.duration: 0.5, 0.95, 0.99
+  info:
+    env:
+      enabled: true
 
 # ✅ Certificate path (used globally)
 certificates:
@@ -164,6 +210,24 @@ integrix:
     master-key: ${INTEGRIX_MASTER_KEY:IntegrixFlowBridge2024SecureKey}
     encryption:
       enabled: true
+  # Metrics configuration
+  metrics:
+    tags:
+      environment: ${METRICS_ENVIRONMENT:development}
+      region: ${METRICS_REGION:default}
+  # Health check configuration
+  health:
+    check:
+      interval: 30000
+      timeout: 10000
+      failure:
+        threshold: 3
+  # Business logging configuration
+  business:
+    logging:
+      enabled: true
+      include-stack-trace: false
+      mask-sensitive-data: true
 
 # ✅ IP Whitelist configuration
 security:

@@ -1,74 +1,113 @@
-# TypeScript Issues Resolution Plan
+# Phase 1: Adapter Architecture Foundation
 
-## Understanding
-The frontend has extensive TypeScript suppressions that need to be resolved properly:
-- Multiple files using `@ts-nocheck` comments
-- Suppression scripts (`fix-ts-errors.js`, `disable-ts.ts`, etc.)
-- Global suppression files
-- 42+ files with TypeScript errors being suppressed
+## Overview
+Implement the foundation for the extensible adapter system including database schema, backend services, and REST APIs.
 
-## Implementation Plan
+## Todo Items
 
-### Phase 1: Assessment ✅
-- [x] Run TypeScript compiler to identify all current errors
-- [x] Categorize errors by type (type mismatches, missing types, any usage, etc.)
-- [x] Identify common patterns in errors
+### Database Setup
+- [ ] Create Flyway migration V200__create_adapter_architecture.sql with adapter-related tables
+  - adapter_categories table
+  - adapter_types table
+  - adapter_config_templates table
+  - adapter_instances table (modification of existing)
+  - adapter_plugins table
 
-### Phase 2: Remove Suppressions and Identify Issues ✅
-- [x] Remove `@ts-nocheck` comments from all files
-- [x] Delete suppression scripts and global suppression files
-- [x] Run `npm run build` to get full error list
-- [x] Document error count and types
+### Entity Classes (data-access module)
+- [ ] Create AdapterCategory entity
+- [ ] Create AdapterType entity
+- [ ] Create AdapterConfigTemplate entity
+- [ ] Create AdapterPlugin entity
+- [ ] Update existing CommunicationAdapter entity to AdapterInstance
 
-### Phase 3: Fix Common Issues (Incremental Approach) ✅
-- [x] Fix missing type imports
-- [x] Add proper types for untyped variables
-- [x] Replace `any` types with proper types
-- [x] Fix type mismatches in props and function parameters
-- [x] Add missing return types
+### Repository Interfaces (data-access module)
+- [ ] Create AdapterCategoryRepository
+- [ ] Create AdapterTypeRepository
+- [ ] Create AdapterConfigTemplateRepository
+- [ ] Create AdapterPluginRepository
 
-### Phase 4: Component-by-Component Fixes ✅
-- [x] Fix admin components (SystemLogs, SystemSettings)
-- [x] Fix dataStructures components
-- [x] Fix fieldMapping components
-- [x] Fix flow components
-- [x] Fix orchestration components
-- [x] Fix UI components
+### DTOs (backend module)
+- [ ] Create AdapterTypeDTO
+- [ ] Create AdapterCategoryDTO
+- [ ] Create AdapterConfigTemplateDTO
+- [ ] Create ConfigurationSchemaDTO
 
-### Phase 5: Cleanup ✅
-- [x] Remove all suppression-related files
-- [x] Update tsconfig if needed
-- [x] Ensure build passes without suppressions
-- [x] Run linter to ensure code quality
+### Service Layer (backend module)
+- [ ] Create AdapterTypeService with methods:
+  - getAdapterTypes (with pagination, category, search)
+  - registerAdapterType
+  - updateAdapterType
+  - getConfigurationSchema
 
-## Results Summary
+### REST Controller (backend module)
+- [ ] Create AdapterTypeController with endpoints:
+  - GET /api/adapter-types (list with pagination)
+  - GET /api/adapter-types/{id}/schema/{direction}
+  - POST /api/adapter-types (register new type)
+  - PUT /api/adapter-types/{id} (update type)
 
-### Starting Point
-- **505 TypeScript errors** hidden by suppressions
-- 61 files with `@ts-nocheck`
-- 11 suppression-related files
+### Initial Data
+- [ ] Create V201__seed_adapter_categories.sql to populate initial categories
 
-### Errors Fixed
-1. **Removed all suppressions** - Exposed all hidden errors
-2. **Fixed 165 errors total** (505 → 340)
-   - 85 unused imports/variables removed
-   - 26 missing imports added (mostly `useToast`)
-   - 15 API response type errors fixed with type guards
-   - 8 undefined check errors fixed with optional chaining
-   - 12 type assignment errors fixed
-   - Various other type safety improvements
+## Notes
+- Follow existing patterns in the codebase
+- Use UUID for all primary keys
+- Include audit columns (created_at, updated_at, created_by, updated_by)
+- Keep implementation simple and minimal
 
-### Key Improvements
-1. **Created `api-response-utils.ts`** - Type guards for handling inconsistent API responses
-2. **Fixed all missing imports** - No more "Cannot find name" errors
-3. **Improved null safety** - Added optional chaining where needed
-4. **Removed console.log from JSX** - Fixed React render errors
+## Review
 
-### Remaining Work
-- 146 unused imports (low priority)
-- ~30 API response type issues
-- ~20 type mismatches
-- ~10 undefined checks
-- Other minor type issues
+### Summary of Changes Made
 
-The codebase is now significantly more type-safe with proper error visibility and systematic fixes applied.
+1. **Database Migrations**
+   - Created V200__create_adapter_architecture.sql with 5 new tables:
+     - adapter_categories: Organize adapter types into categories
+     - adapter_types: Registry of all available adapter types
+     - adapter_config_templates: Reusable configuration templates
+     - adapter_plugins: Plugin registration for custom adapters
+     - Modified communication_adapters table to add new columns
+   - Created V201__seed_adapter_categories.sql with 16 initial categories
+
+2. **Entity Classes (data-access module)**
+   - AdapterCategory: Category hierarchy for organizing adapters
+   - AdapterType: Core adapter type definition with configuration schemas
+   - AdapterConfigTemplate: Reusable configuration templates
+   - AdapterPlugin: Plugin registration entity
+
+3. **Repository Interfaces (data-access module)**
+   - AdapterCategoryRepository: Basic CRUD and hierarchy queries
+   - AdapterTypeRepository: Advanced filtering and search capabilities
+   - AdapterConfigTemplateRepository: Template management
+   - AdapterPluginRepository: Plugin management
+
+4. **DTOs (backend module)**
+   - AdapterCategoryDTO: Simple category data transfer
+   - AdapterTypeDTO: Comprehensive adapter type information
+   - AdapterConfigTemplateDTO: Template configuration
+   - ConfigurationSchemaDTO: Schema information for dynamic forms
+
+5. **Service Layer (backend module)**
+   - AdapterTypeService: Core business logic with methods:
+     - getAdapterTypes: Paginated listing with filters
+     - registerAdapterType: Create new adapter types
+     - updateAdapterType: Modify existing types
+     - getConfigurationSchema: Retrieve schemas for dynamic form generation
+
+6. **REST Controller (backend module)**
+   - AdapterTypeController: RESTful endpoints with proper authorization:
+     - GET /api/adapter-types: List with pagination
+     - GET /api/adapter-types/{id}: Get specific type
+     - GET /api/adapter-types/{id}/schema/{direction}: Get configuration schema
+     - POST /api/adapter-types: Register new type (admin only)
+     - PUT /api/adapter-types/{id}: Update type (admin only)
+
+### Key Design Decisions
+
+- Used JSONB columns for flexible configuration schemas
+- Maintained separation between inbound/outbound configurations
+- Followed existing patterns for repositories and services
+- Added proper authorization with @PreAuthorize
+- Kept implementation minimal as requested
+
+### Pending Task
+- Update existing CommunicationAdapter entity to AdapterInstance (left for separate implementation to minimize impact)

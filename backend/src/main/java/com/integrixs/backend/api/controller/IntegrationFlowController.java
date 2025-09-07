@@ -4,6 +4,7 @@ import com.integrixs.backend.api.dto.request.CreateFlowRequest;
 import com.integrixs.backend.api.dto.request.UpdateFlowRequest;
 import com.integrixs.backend.api.dto.response.FlowResponse;
 import com.integrixs.backend.application.service.IntegrationFlowService;
+import com.integrixs.backend.logging.BusinessOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ public class IntegrationFlowController {
     
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "FLOW.LIST", module = "FlowManagement")
     public ResponseEntity<List<FlowResponse>> getAllFlows() {
         log.debug("Fetching all integration flows");
         List<FlowResponse> flows = integrationFlowService.getAllFlows();
@@ -38,6 +40,7 @@ public class IntegrationFlowController {
     
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "FLOW.GET", module = "FlowManagement")
     public ResponseEntity<FlowResponse> getFlowById(@PathVariable String id) {
         log.debug("Fetching integration flow: {}", id);
         try {
@@ -51,6 +54,7 @@ public class IntegrationFlowController {
     
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "FLOW.CREATE", module = "FlowManagement", logInput = true)
     public ResponseEntity<FlowResponse> createFlow(@Valid @RequestBody CreateFlowRequest request) {
         log.debug("Creating new integration flow: {}", request.getName());
         try {
@@ -64,6 +68,7 @@ public class IntegrationFlowController {
     
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "FLOW.UPDATE", module = "FlowManagement", logInput = true)
     public ResponseEntity<FlowResponse> updateFlow(
             @PathVariable String id, 
             @Valid @RequestBody UpdateFlowRequest request) {
@@ -82,6 +87,7 @@ public class IntegrationFlowController {
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER')")
+    @BusinessOperation(value = "FLOW.DELETE", module = "FlowManagement")
     public ResponseEntity<Void> deleteFlow(@PathVariable String id) {
         log.debug("Deleting integration flow: {}", id);
         try {

@@ -75,4 +75,19 @@ public class JwtUtil {
     public long getExpirationMillis() {
         return expirationMillis;
     }
+    
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = extractClaims(token);
+        return claims.getExpiration();
+    }
+    
+    public String getClaimFromToken(String token, String claimName) {
+        Claims claims = extractClaims(token);
+        return claims.get(claimName, String.class);
+    }
+    
+    public String getUserId(String token) {
+        // For now, return username as user ID
+        return extractUsername(token);
+    }
 }

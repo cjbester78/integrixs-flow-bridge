@@ -1,10 +1,20 @@
 package com.integrixs.backend.config;
 
+import com.integrixs.backend.filter.MDCFilter;
+import com.integrixs.backend.logging.EnhancedAuthenticationLogger;
+import com.integrixs.backend.logging.EnhancedFlowExecutionLogger;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -12,6 +22,7 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 
 import java.io.IOException;
 
+@Slf4j
 @Configuration
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class WebConfig implements WebMvcConfigurer {
@@ -71,5 +82,66 @@ public class WebConfig implements WebMvcConfigurer {
                         return new ClassPathResource("/public/index.html");
                     }
                 });
+    }
+    
+    /**
+     * Register MDC filter with highest priority
+     */
+    @Bean
+    public FilterRegistrationBean<MDCFilter> mdcFilterRegistration(MDCFilter mdcFilter) {
+        FilterRegistrationBean<MDCFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(mdcFilter);
+        registration.addUrlPatterns("/*");
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setName("mdcFilter");
+        log.info("Registered MDC filter with highest priority");
+        return registration;
+    }
+    
+    /**
+     * Authentication event publisher for Spring Security events
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AuthenticationEventPublisher authenticationEventPublisher() {
+        log.info("Configured authentication event publisher");
+        return new DefaultAuthenticationEventPublisher();
+    }
+    
+    /**
+     * Request logging filter for debugging (optional)
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public CommonsRequestLoggingFilter requestLoggingFilter() {
+        CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
+        filter.setIncludeClientInfo(true);
+        filter.setIncludeQueryString(true);
+        filter.setIncludePayload(false); // Set to true for debugging
+        filter.setMaxPayloadLength(1000);
+        filter.setIncludeHeaders(false); // Set to true to log headers
+        filter.setBeforeMessagePrefix("REQUEST: ");
+        filter.setAfterMessagePrefix("REQUEST COMPLETE: ");
+        return filter;
+    }
+    
+    /**
+     * Ensure enhanced authentication logger is available
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EnhancedAuthenticationLogger enhancedAuthenticationLogger() {
+        log.info("Created enhanced authentication logger");
+        return new EnhancedAuthenticationLogger();
+    }
+    
+    /**
+     * Ensure enhanced flow execution logger is available
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EnhancedFlowExecutionLogger enhancedFlowExecutionLogger() {
+        log.info("Created enhanced flow execution logger");
+        return new EnhancedFlowExecutionLogger();
     }
 }

@@ -1,3 +1,5 @@
+import { DevelopmentFunctionService } from './developmentFunctionService';
+
 // Client-side transformation functions for preview and validation
 export interface TransformationFunction {
  name: string;
@@ -839,5 +841,53 @@ export class TransformationFunctionService {
  }
 
  return { valid: errors.length === 0, errors };
+  }
+  
+  private static javaFunctions: TransformationFunction[] | null = null;
+  
+  /**
+   * Load Java functions from backend
+   */
+  static async loadJavaFunctions(): Promise<TransformationFunction[]> {
+      try {
+          const response = await DevelopmentFunctionService.getAllFunctions(0, 1000);
+          const javaFunctions = DevelopmentFunctionService.convertToUIFormat(response.builtInFunctions);
+          
+          // Cache the functions
+          this.javaFunctions = javaFunctions;
+          
+          return javaFunctions;
+      } catch (error) {
+          console.error('Failed to load Java functions from backend:', error);
+          // Fallback to local functions
+          return allTransformationFunctions;
+      }
+  }
+  
+  /**
+   * Get all functions including Java functions from backend
+   */
+  static async getAllFunctionsAsync(): Promise<TransformationFunction[]> {
+      if (!this.javaFunctions) {
+          await this.loadJavaFunctions();
+      }
+      return this.javaFunctions || allTransformationFunctions;
+  }
+  
+  /**
+   * Get functions by category including Java functions
+   */
+  static async getFunctionsByCategoryAsync(): Promise<Record<string, TransformationFunction[]>> {
+      const functions = await this.getAllFunctionsAsync();
+      
+      // Group by category
+      return functions.reduce((acc, func) => {
+          const category = func.category || 'general';
+          if (!acc[category]) {
+              acc[category] = [];
+          }
+          acc[category].push(func);
+          return acc;
+      }, {} as Record<string, TransformationFunction[]>);
   }
 }

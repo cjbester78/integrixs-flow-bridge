@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.TransformationCustomFunction;
 import com.integrixs.backend.service.DevelopmentFunctionService;
+import com.integrixs.backend.service.JavaTransformationEngine;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,14 +15,14 @@ public class FieldMapper {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Applies field mappings to input JSON, supports direct Java function bodies or reusable functions referenced by functionName.
+     * Applies field mappings to input JSON, supports Java functions
      *
      * @param inputJson JSON string input data
      * @param mappings List of FieldMapping objects
-     * @param developmentFunctionService Service to resolve custom functions by name
+     * @param javaTransformationEngine Engine to execute Java functions
      * @return JSON string of mapped output fields
      */
-    public static String apply(String inputJson, List<FieldMapping> mappings, DevelopmentFunctionService developmentFunctionService) {
+    public static String apply(String inputJson, List<FieldMapping> mappings, JavaTransformationEngine javaTransformationEngine) {
         try {
             // Parse input JSON to a Map
             Map<String, Object> inputMap = objectMapper.readValue(inputJson, new TypeReference<>() {});
@@ -41,25 +42,16 @@ public class FieldMapper {
                     sourceData.put(field, inputMap.get(field));
                 }
 
-                // Determine Java function to execute
-                String javaFunctionBody = mapping.getJavaFunction();
-
-                // If no inline function, try to resolve custom function by functionName
-                if ((javaFunctionBody == null || javaFunctionBody.isBlank()) && developmentFunctionService != null) {
-                    String functionName = mapping.getFunctionName();
-                    if (functionName != null && !functionName.isBlank()) {
-                        try {
-                            TransformationCustomFunction customFunction = developmentFunctionService.getBuiltInFunctionByName(functionName);
-                            javaFunctionBody = customFunction.getFunctionBody();
-                        } catch (Exception e) {
-                            // Function not found, continue with null javaFunctionBody
-                        }
-                    }
-                }
-
                 Object value;
-                if (javaFunctionBody != null && !javaFunctionBody.isBlank()) {
-                    value = JavaFunctionRunner.run(javaFunctionBody, sourceFields, sourceData);
+                String functionName = mapping.getJavaFunction();
+                
+                // Check if this is a function-based mapping
+                if (functionName != null && !functionName.isBlank() && javaTransformationEngine != null) {
+                    // Execute Java function
+                    Object[] args = sourceFields.stream()
+                            .map(sourceData::get)
+                            .toArray();
+                    value = javaTransformationEngine.executeFunction(functionName, args);
                 } else if (mapping.getMappingRule() != null && !mapping.getMappingRule().isBlank()) {
                     // Simple mapping rule fallback: concatenate all non-null values with a space
                     value = sourceFields.stream()
@@ -68,7 +60,7 @@ public class FieldMapper {
                             .map(Object::toString)
                             .collect(Collectors.joining(" "));
                 } else {
-                    // No rule, just take first available field or null if none
+                    // Direct mapping: take first available field or null if none
                     value = sourceFields.isEmpty() ? null : sourceData.get(sourceFields.get(0));
                 }
 

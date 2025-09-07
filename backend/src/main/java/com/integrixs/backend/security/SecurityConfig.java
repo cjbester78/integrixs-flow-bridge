@@ -166,9 +166,9 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                     .authenticationEntryPoint(customAuthenticationEntryPoint)
                     .accessDeniedHandler(customAccessDeniedHandler)
-                )
+                );
                 
-                .build();
+                return http.build();
     }
 
     @Bean

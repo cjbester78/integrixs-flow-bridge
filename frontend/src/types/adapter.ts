@@ -197,6 +197,62 @@ export interface AdapterType {
  supportedModes: string[];
 }
 
+export interface AdapterTypeDetails {
+  id: string;
+  code: string;
+  name: string;
+  categoryId: string;
+  categoryName?: string;
+  vendor?: string;
+  version?: string;
+  description?: string;
+  icon?: string;
+  supportsInbound: boolean;
+  supportsOutbound: boolean;
+  supportsBidirectional: boolean;
+  inboundConfigSchema?: any;
+  outboundConfigSchema?: any;
+  commonConfigSchema?: any;
+  capabilities?: any;
+  supportedProtocols?: string[];
+  supportedFormats?: string[];
+  authenticationMethods?: string[];
+  documentationUrl?: string;
+  supportUrl?: string;
+  pricingTier?: string;
+  status: string;
+  isCertified: boolean;
+}
+
+export interface ConfigurationFieldSchema {
+  name: string;
+  type: 'text' | 'password' | 'number' | 'select' | 'multiselect' | 'boolean' | 'textarea' | 'json' | 'file' | 'group' | 'dynamic' | 'conditional';
+  label: string;
+  required?: boolean;
+  placeholder?: string;
+  help?: string;
+  default?: any;
+  validation?: {
+    pattern?: string;
+    message?: string;
+    min?: number;
+    max?: number;
+    minLength?: number;
+    maxLength?: number;
+  };
+  options?: Array<{ value: string; label: string }>;
+  fields?: ConfigurationFieldSchema[];
+  condition?: {
+    field: string;
+    value: any;
+    operator?: 'equals' | 'notEquals' | 'contains' | 'in' | 'notIn';
+  };
+  dynamicOptions?: {
+    endpoint: string;
+    params?: Record<string, string>;
+  };
+}
+
 export interface AdapterFilters {
  type?: string;
  mode?: string;

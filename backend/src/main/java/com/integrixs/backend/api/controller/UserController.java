@@ -6,6 +6,7 @@ import com.integrixs.backend.api.dto.request.UpdateUserRequest;
 import com.integrixs.backend.api.dto.response.PagedUserResponse;
 import com.integrixs.backend.api.dto.response.UserResponse;
 import com.integrixs.backend.application.service.UserManagementApplicationService;
+import com.integrixs.backend.logging.BusinessOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +37,7 @@ public class UserController {
     @PostMapping
     @Operation(summary = "Create a new user", description = "Create a new user account")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
+    @BusinessOperation(value = "USER.CREATE", module = "UserManagement", logInput = true)
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody CreateUserRequest request,
             @AuthenticationPrincipal UserDetails currentUser) {
@@ -48,6 +50,7 @@ public class UserController {
     @GetMapping("/{id}")
     @Operation(summary = "Get user by ID", description = "Retrieve user information by ID")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "USER.GET", module = "UserManagement")
     public ResponseEntity<UserResponse> getUserById(
             @Parameter(description = "User ID") @PathVariable String id) {
         
@@ -60,6 +63,7 @@ public class UserController {
     @GetMapping("/username/{username}")
     @Operation(summary = "Get user by username", description = "Retrieve user information by username")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "USER.GET_BY_USERNAME", module = "UserManagement")
     public ResponseEntity<UserResponse> getUserByUsername(
             @Parameter(description = "Username") @PathVariable String username) {
         
@@ -72,6 +76,7 @@ public class UserController {
     @GetMapping
     @Operation(summary = "Get all users", description = "Retrieve paginated list of users")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
+    @BusinessOperation(value = "USER.LIST", module = "UserManagement")
     public ResponseEntity<PagedUserResponse> getUsers(
             @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
@@ -86,6 +91,7 @@ public class UserController {
     @PutMapping("/{id}")
     @Operation(summary = "Update user", description = "Update user information")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
+    @BusinessOperation(value = "USER.UPDATE", module = "UserManagement", logInput = true)
     public ResponseEntity<UserResponse> updateUser(
             @Parameter(description = "User ID") @PathVariable String id,
             @Valid @RequestBody UpdateUserRequest request,
@@ -100,6 +106,7 @@ public class UserController {
     @PutMapping("/{id}/password")
     @Operation(summary = "Change password", description = "Change user password")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR') or #id == authentication.principal.id")
+    @BusinessOperation(value = "USER.CHANGE_PASSWORD", module = "UserManagement", logInput = false)
     public ResponseEntity<Void> changePassword(
             @Parameter(description = "User ID") @PathVariable String id,
             @Valid @RequestBody ChangePasswordRequest request,
@@ -113,6 +120,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user", description = "Delete a user account")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
+    @BusinessOperation(value = "USER.DELETE", module = "UserManagement")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "User ID") @PathVariable String id,
             @AuthenticationPrincipal UserDetails currentUser) {
@@ -125,6 +133,7 @@ public class UserController {
     @PutMapping("/{id}/activate")
     @Operation(summary = "Activate user", description = "Activate a user account")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
+    @BusinessOperation(value = "USER.ACTIVATE", module = "UserManagement")
     public ResponseEntity<Void> activateUser(
             @Parameter(description = "User ID") @PathVariable String id,
             @AuthenticationPrincipal UserDetails currentUser) {
@@ -137,6 +146,7 @@ public class UserController {
     @PutMapping("/{id}/deactivate")
     @Operation(summary = "Deactivate user", description = "Deactivate a user account")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
+    @BusinessOperation(value = "USER.DEACTIVATE", module = "UserManagement")
     public ResponseEntity<Void> deactivateUser(
             @Parameter(description = "User ID") @PathVariable String id,
             @AuthenticationPrincipal UserDetails currentUser) {

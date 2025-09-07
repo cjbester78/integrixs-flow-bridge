@@ -217,6 +217,14 @@ public class IntegrationFlow {
     @OneToMany(mappedBy = "flow", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<FlowTransformation> transformations = new ArrayList<>();
+    
+    /**
+     * Orchestration targets for this flow (when flow type is ORCHESTRATION)
+     */
+    @OneToMany(mappedBy = "flow", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("executionOrder ASC")
+    @Builder.Default
+    private List<OrchestrationTarget> orchestrationTargets = new ArrayList<>();
 
     /**
      * Business component that owns this flow
