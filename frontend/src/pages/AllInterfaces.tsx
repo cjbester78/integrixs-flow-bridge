@@ -455,7 +455,7 @@ export default function AllInterfaces() {
  </TableCell>
  </TableRow>
  );
- })
+ })}
  </TableBody>
  </Table>
  </div>
@@ -504,4 +504,3 @@ export default function AllInterfaces() {
  </div>
  );
 }
-`
