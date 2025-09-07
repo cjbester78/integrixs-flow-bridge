@@ -330,7 +330,7 @@ export const useDataStructures = () => {
  }
 
  let structure: any = {};
- let metadata: any = {};
+ const metadata: any = {};
 
  if (jsonInput) {
  structure = parseJsonStructure(jsonInput);
@@ -464,7 +464,7 @@ export const useDataStructures = () => {
  }
 
  let structure: any = {};
- let metadata: any = {};
+ const metadata: any = {};
 
  if (jsonInput) {
  structure = parseJsonStructure(jsonInput);

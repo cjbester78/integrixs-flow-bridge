@@ -26,9 +26,7 @@ interface SystemSetting {
  updatedBy?: string;
 }
 
-type SystemSettingsProps = Record<string, never>
-
-export const SystemSettings = ({}: SystemSettingsProps) => {
+export const SystemSettings = () => {
  const { toast } = useToast();
  const [settings, setSettings] = useState<SystemSetting[]>([]);
  const [categories, setCategories] = useState<string[]>([]);

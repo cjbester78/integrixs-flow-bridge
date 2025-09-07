@@ -515,7 +515,7 @@ export function CreateDirectMappingFlow() {
  }
 
  // Use the transformation name directly
- let mappingName = transformation.name || '';
+ const mappingName = transformation.name || '';
  logger.info(LogCategory.SYSTEM, `Transformation ${i}: name="${transformation.name}", executionOrder=${transformation.executionOrder}, messageType: ${messageType}`);
  // Parse sourceFields from JSON string to array for each mapping
  const parsedMappings = mappingsResponse.data.map((mapping: any) => {

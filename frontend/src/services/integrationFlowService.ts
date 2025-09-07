@@ -42,12 +42,7 @@ export const integrationFlowService = {
  },
 
  createFlow: async (data: CreateFlowRequest): Promise<ApiResponse<IntegrationFlow>> => {
- try {
-const response = await apiClient.post<IntegrationFlow>(API_PREFIX, data);
+ const response = await apiClient.post<IntegrationFlow>(API_PREFIX, data);
  return { success: true, data: response };
- } catch (error) {
-  // Handle error
-  throw error;
  }
-}
 };

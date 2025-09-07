@@ -104,7 +104,7 @@ export function MappingArea({
  logger.info(LogCategory.UI, '❌ Target field not found, attempting to create a proper target field from mapping data');
  // Extract the actual field name from the path if available
  let fieldName = existingMapping.targetField;
- let fieldPath = existingMapping.targetPath || existingMapping.targetField;
+ const fieldPath = existingMapping.targetPath || existingMapping.targetField;
  // If the targetPath contains dots, extract the last part as the field name
  if (existingMapping.targetPath && existingMapping.targetPath.includes('.')) {
  const pathParts = existingMapping.targetPath.split('.');

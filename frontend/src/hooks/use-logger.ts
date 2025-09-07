@@ -24,15 +24,13 @@ export const useComponentLogger = (componentName: string, props?: Record<string,
 }, []);
 
  // Log renders in development
- if (import.meta.env.DEV) {
  useEffect(() => {
- if (renderCount.current > 1) {
+ if (import.meta.env.DEV && renderCount.current > 1) {
  logger.debug(LogCategory.PERFORMANCE, `Component re-rendered: ${componentName}`, {
  renderCount: renderCount.current, extra: props
  });
  }
  });
- }
 };
 
 /**
