@@ -1,9 +1,9 @@
 # Complete List of Current Parsing Errors
 
-## Summary (Updated 2025-09-06)
-- **Current status**: 29 errors, 26 warnings (55 total problems)
-- **Files with errors**: 24 files (7 service files fixed, 3 field mapping components fixed, 11 flow/message/orchestration components fixed, 1 package component fixed, 11 UI components fixed)
-- **Error reduction achieved**: 81.4% (from 156 to 29)
+## Summary (Updated 2025-09-07)
+- **Current status**: 5 errors, 26 warnings (31 total problems)
+- **Files with errors**: 5 files (7 service files fixed, 3 field mapping components fixed, 11 flow/message/orchestration components fixed, 1 package component fixed, 20 UI components fixed)
+- **Error reduction achieved**: 96.8% (from 156 to 5)
 - **Note**: All complex components have been successfully fixed. Remaining errors are in simple UI components.
 
 ## Parsing Errors by Category
@@ -43,17 +43,17 @@
 - [x] ui/form.tsx - Fixed parsing errors (removed semicolon on line 145)
 - [x] ui/input-otp.tsx - Fixed parsing errors (already clean, no errors found)
 - [x] ui/input.tsx - Fixed parsing errors (removed semicolon after React.forwardRef<)
-- [x] ui/label.tsx - Fixed parsing errors (removed semicolon after cva()
-- [ ] ui/navigation-menu.tsx - Line 42:39: ')' expected
-- [ ] ui/password-confirmation.tsx - Line 154:4: Unterminated template literal
-- [ ] ui/progress.tsx - Line 27:1: Unterminated template literal
-- [ ] ui/radio-group.tsx - Line 12:26: Identifier expected
-- [ ] ui/sheet.tsx - Line 27:26: ')' expected
-- [ ] ui/sidebar.tsx - Line 48:41: Expression expected
-- [ ] ui/textarea.tsx - Line 7:70: ')' expected
-- [ ] ui/toast.tsx - Line 10:39: Expression expected
-- [ ] ui/toggle-group.tsx - Line 8:47: Expression expected
-- [ ] ui/toggle.tsx - Line 7:27: ')' expected
+- [x] ui/label.tsx - Fixed parsing errors (removed semicolon after cva())
+- [x] ui/navigation-menu.tsx - Fixed parsing errors (removed semicolon after cva())
+- [x] ui/password-confirmation.tsx - Fixed parsing errors (removed extra semicolon, backtick and parentheses)
+- [x] ui/progress.tsx - Fixed parsing errors (removed trailing backtick)
+- [x] ui/radio-group.tsx - Fixed parsing errors (removed semicolons after component names)
+- [x] ui/sheet.tsx - Fixed parsing errors (removed semicolon after cva())
+- [x] ui/sidebar.tsx - Fixed parsing errors (multiple semicolons, backticks, and formatting issues)
+- [x] ui/textarea.tsx - Fixed parsing errors (removed semicolon after React.forwardRef<)
+- [x] ui/toast.tsx - Fixed parsing errors (multiple semicolons and quotes from default variant)
+- [x] ui/toggle-group.tsx - Fixed parsing errors (semicolons after React.createContext< and component names)
+- [x] ui/toggle.tsx - Fixed parsing errors (semicolon after cva() and quotes from default properties)
 
 ### Pages (5 files)
 - [ ] AdapterMonitoring.tsx - Line 237:0: Unterminated template literal
