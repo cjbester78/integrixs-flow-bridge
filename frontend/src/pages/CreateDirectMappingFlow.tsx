@@ -320,12 +320,11 @@ export function CreateDirectMappingFlow() {
  })
  }
  }
-        }
-      }
-    //} catch (error) {
-    // logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error })
-    //}
- };
+ }
+     } catch (error) {
+       logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error })
+     }
+  };
 
  // Analyze both source and target structures
  if (sourceStructure) {
