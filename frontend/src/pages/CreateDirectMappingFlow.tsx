@@ -593,7 +593,7 @@ export function CreateDirectMappingFlow() {
  variant: "destructive",
  });
  }
- }, [editingFlow, flowId, mappingRequired, setInboundAdapter, setOutboundAdapter, setSelectedSourceBusinessComponent, setSelectedTargetBusinessComponent, setSourceDataStructure, setTargetDataStructure, setAsynchronous, setAdditionalMappings, toast]);
+ }, [editingFlow, flowId, setInboundAdapter, setOutboundAdapter, setAdditionalMappings, toast]);
 
  // Handle source adapter selection
  const handleInboundAdapterChange = (adapterId: string) => {
