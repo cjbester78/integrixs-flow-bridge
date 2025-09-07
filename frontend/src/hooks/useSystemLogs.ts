@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { adapterService, CommunicationAdapter } from '@/services/adapter';
 import { api } from '@/services/api';
 import { systemErrorLogger } from '@/services/systemErrorLogger';
@@ -55,7 +55,7 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  }
  };
 
- const fetchLogs = async () => {
+ const fetchLogs = useCallback(async () => {
  setLoading(true);
  setError(undefined);
 
@@ -103,7 +103,7 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  } finally {
  setLoading(false);
  }
- };
+ }, [params.source, params.sourceId, params.level, params.search, params.startDate, params.endDate, params.domainType, params.domainReferenceId]);
 
  const refetch = () => {
  fetchLogs();
@@ -117,7 +117,7 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  // Fetch logs when parameters change
  useEffect(() => {
  fetchLogs();
- }, [params.source, params.sourceId, params.level, params.search, params.startDate, params.endDate]);
+ }, [params.source, params.sourceId, params.level, params.search, params.startDate, params.endDate, fetchLogs]);
 
  // Auto refresh setup
  useEffect(() => {

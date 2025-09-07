@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { adapterMonitoringService, AdapterLog, AdapterLogsFilters } from '@/services/adapterMonitoringService';
 import { logger, LogCategory } from '@/lib/logger';
 
@@ -11,13 +11,7 @@ export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, 
  const filtersRef = useRef(filters);
  filtersRef.current = filters;
 
- useEffect(() => {
- if (adapterId && autoLoad) {
- loadLogs();
- }
- }, [adapterId, autoLoad]); // Removed filters from dependencies
-
- const loadLogs = async () => {
+ const loadLogs = useCallback(async () => {
  if (!adapterId) return;
 
  setLoading(true);
@@ -42,7 +36,13 @@ export const useAdapterLogs = (adapterId: string, filters?: AdapterLogsFilters, 
  } finally {
  setLoading(false);
  }
- };
+ }, [adapterId]);
+
+ useEffect(() => {
+ if (adapterId && autoLoad) {
+ loadLogs();
+ }
+ }, [adapterId, autoLoad, loadLogs]); // Removed filters from dependencies
 
  return {
  logs,

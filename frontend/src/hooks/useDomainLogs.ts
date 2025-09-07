@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/services/api';
 import { useSystemLogs } from './useSystemLogs';
 import { logger, LogCategory } from '@/lib/logger';
@@ -63,7 +63,7 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
  });
 
 
- const fetchDomainErrors = async () => {
+ const fetchDomainErrors = useCallback(async () => {
  setLoading(true);
  setError(undefined);
 
@@ -92,7 +92,7 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
  } finally {
  setLoading(false);
  }
- };
+ }, [params.domainType, params.referenceId]);
 
  const refetch = () => {
  fetchDomainErrors();
@@ -101,7 +101,7 @@ export const useDomainLogs = (params: UseDomainLogsParams) => {
  // Fetch domain errors when parameters change
  useEffect(() => {
  fetchDomainErrors();
- }, [params.domainType, params.referenceId]);
+ }, [params.domainType, params.referenceId, fetchDomainErrors]);
 
  // Auto refresh setup
  useEffect(() => {

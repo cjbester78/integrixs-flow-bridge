@@ -16,12 +16,16 @@ export const useComponentLogger = (componentName: string, props?: Record<string,
  // Log component mount
  logger.debug(LogCategory.UI, `Component mounted: ${componentName}`, { props: props, renderCount: renderCount.current });
 
+ // Copy ref values for cleanup function
+ const mountTimeValue = mountTime.current;
+ const renderCountValue = renderCount.current;
+
  return () => {
  // Log component unmount with lifetime
- const lifetime = Date.now() - mountTime.current;
- logger.debug(LogCategory.UI, `Component unmounted: ${componentName}`, { lifetime: lifetime, renderCount: renderCount.current });
+ const lifetime = Date.now() - mountTimeValue;
+ logger.debug(LogCategory.UI, `Component unmounted: ${componentName}`, { lifetime: lifetime, renderCount: renderCountValue });
  };
-}, []);
+}, [componentName, props]);
 
  // Log renders in development
  useEffect(() => {

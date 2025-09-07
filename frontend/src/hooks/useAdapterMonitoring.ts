@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { adapterMonitoringService, AdapterMonitoring } from '@/services/adapterMonitoringService';
 
 export const useAdapterMonitoring = (businessComponentId?: string) => {
@@ -6,11 +6,7 @@ export const useAdapterMonitoring = (businessComponentId?: string) => {
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
- loadAdapters();
- }, [businessComponentId]);
-
- const loadAdapters = async () => {
+ const loadAdapters = useCallback(async () => {
  setLoading(true);
  setError(null);
 
@@ -28,7 +24,11 @@ export const useAdapterMonitoring = (businessComponentId?: string) => {
  } finally {
  setLoading(false);
  }
- };
+ }, [businessComponentId]);
+
+ useEffect(() => {
+ loadAdapters();
+ }, [businessComponentId, loadAdapters]);
 
  return {
  adapters,
