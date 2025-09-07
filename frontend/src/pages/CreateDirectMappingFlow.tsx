@@ -622,8 +622,8 @@ export function CreateDirectMappingFlow() {
  toast({
  title: "Structure Auto-Selected",
  description: "Data structure has been automatically selected based on adapter configuration.",
- })
- }}
+ });
+ }
  }
 
  // Auto-detect flow mode based on adapter type
@@ -1468,6 +1468,7 @@ export function CreateDirectMappingFlow() {
  </CardContent>
  </Card>
  )}
+ </div>
  </div>
  </div>
  </div>
