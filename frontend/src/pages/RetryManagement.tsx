@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -57,11 +57,7 @@ export const RetryManagement = () => {
  const [activeTab, setActiveTab] = useState('policies');
  const { toast } = useToast();
 
- useEffect(() => {
- fetchData();
- }, [activeTab]);
-
- const fetchData = async () => {
+ const fetchData = useCallback(async () => {
  setIsLoading(true);
  try {
  if (activeTab === 'policies') {
@@ -80,7 +76,11 @@ export const RetryManagement = () => {
  } finally {
  setIsLoading(false);
  }
- };
+ }, [activeTab, toast]);
+
+ useEffect(() => {
+ fetchData();
+ }, [activeTab, fetchData]);
 
  const handleReprocess = async (messageId: string) => {
  try {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
@@ -107,14 +107,14 @@ export function CreateDirectMappingFlow() {
  // Load data on component mount
  useEffect(() => {
  loadComponentData();
- }, []);
+ }, [loadComponentData]);
 
  // Load existing flow data if editing
  useEffect(() => {
  if (editingFlow || flowId) {
  loadExistingFlow();
  }
- }, [editingFlow, flowId]);
+ }, [editingFlow, flowId, loadExistingFlow]);
 
  // Analyze structure when source or target changes
  useEffect(() => {
@@ -335,7 +335,7 @@ export function CreateDirectMappingFlow() {
   if (targetStructure) {
     analyzeStructureForWsdl(targetStructure);
   }
-}, [sourceStructure, targetStructure, dataStructures, toast]);
+}, [sourceStructure, targetStructure, dataStructures, toast, additionalMappings.length, flowName, location.pathname]);
 
  // Debug state changes
  useEffect(() => {
@@ -347,7 +347,7 @@ export function CreateDirectMappingFlow() {
  logger.info(LogCategory.SYSTEM, 'State updated - mappingRequired', { data: mappingRequired })
  }, [additionalMappings, isAsynchronous, mappingRequired]);
 
- const loadComponentData = async () => {
+ const loadComponentData = useCallback(async () => {
     try {
  setLoading(true);
 
@@ -397,9 +397,9 @@ export function CreateDirectMappingFlow() {
         } finally {
  setLoading(false);
  }
- };
+ }, [toast]);
 
- const loadExistingFlow = async () => {
+ const loadExistingFlow = useCallback(async () => {
     try {
  let flowData = editingFlow;
  // If no flow data passed through state, fetch it
@@ -593,7 +593,7 @@ export function CreateDirectMappingFlow() {
  variant: "destructive",
  });
  }
- };
+ }, [editingFlow, flowId, mappingRequired, setInboundAdapter, setOutboundAdapter, setSelectedSourceBusinessComponent, setSelectedTargetBusinessComponent, setSourceDataStructure, setTargetDataStructure, setAsynchronous, setAdditionalMappings, toast]);
 
  // Handle source adapter selection
  const handleInboundAdapterChange = (adapterId: string) => {
