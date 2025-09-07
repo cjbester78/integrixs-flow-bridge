@@ -180,7 +180,7 @@ export const CreateDataStructure = () => {
  usage: structureUsage,
  namespace: (selectedStructureType === 'xsd' || selectedStructureType === 'wsdl' || selectedStructureType === 'edmx') && namespaceConfig.uri ? namespaceConfig : undefined
  }
-}, [structureName, structureDescription, selectedStructureType, jsonInput, xsdInput, edmxInput, wsdlInput, customFields, namespaceConfig]);
+}, [structureName, structureDescription, selectedStructureType, jsonInput, xsdInput, edmxInput, wsdlInput, customFields, namespaceConfig, structureUsage]);
 
  // Helper function to add suffix to structure name
  const addUsageSuffix = (name: string) => {

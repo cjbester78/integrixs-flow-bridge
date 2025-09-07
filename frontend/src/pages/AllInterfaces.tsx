@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -70,9 +70,9 @@ export default function AllInterfaces() {
 
  useEffect(() => {
  fetchFlows();
- }, []);
+ }, [fetchFlows]);
 
- const fetchFlows = async () => {
+ const fetchFlows = useCallback(async () => {
     try {
  setLoading(true);
  const response = await flowService.getFlows();
@@ -90,7 +90,7 @@ export default function AllInterfaces() {
  } finally {
  setLoading(false);
  }
- };
+ }, [toast]);
 
  const handleRefresh = () => {
  fetchFlows();

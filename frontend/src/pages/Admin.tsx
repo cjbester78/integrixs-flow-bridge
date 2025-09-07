@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Shield, Key, FileArchive, ScrollText, Network, Settings, UserCheck } from 'lucide-react';
 import { AdminStats } from '@/components/admin/AdminStats';
@@ -36,7 +36,7 @@ export const Admin = () => {
  const [activeTab, setActiveTab] = useState('users');
 
  // Fetch users from backend
- const fetchUsers = async () => {
+ const fetchUsers = useCallback(async () => {
     try {
  setIsLoadingUsers(true);
  const response = await userService.getAllUsers();
@@ -61,10 +61,10 @@ export const Admin = () => {
  } finally {
  setIsLoadingUsers(false);
  }
- };
+ }, [toast]);
 
  // Fetch roles from backend
- const fetchRoles = async () => {
+ const fetchRoles = useCallback(async () => {
     try {
  setIsLoadingRoles(true);
  const response = await roleService.getAllRoles();
@@ -84,10 +84,10 @@ export const Admin = () => {
  } finally {
  setIsLoadingRoles(false);
  }
- };
+ }, [toast]);
 
  // Fetch certificates from backend
- const fetchCertificates = async () => {
+ const fetchCertificates = useCallback(async () => {
     try {
  setIsLoadingCertificates(true);
  const response = await certificateService.getAllCertificates();
@@ -105,10 +105,10 @@ export const Admin = () => {
  } finally {
  setIsLoadingCertificates(false);
  }
- };
+ }, [toast]);
 
  // Fetch JAR files from backend
- const fetchJarFiles = async () => {
+ const fetchJarFiles = useCallback(async () => {
     try {
  setIsLoadingJarFiles(true);
  const response = await jarFileService.getAllJarFiles();
@@ -126,10 +126,10 @@ export const Admin = () => {
  } finally {
  setIsLoadingJarFiles(false);
  }
- };
+ }, [toast]);
 
  // Fetch external auth configs from backend
- const fetchAuthConfigs = async () => {
+ const fetchAuthConfigs = useCallback(async () => {
     try {
  setIsLoadingAuthConfigs(true);
  const response = await externalAuthService.getAllAuthConfigs();
@@ -150,7 +150,7 @@ export const Admin = () => {
  } finally {
  setIsLoadingAuthConfigs(false);
  }
- };
+ }, [toast]);
 
  useEffect(() => {
  fetchUsers();
@@ -158,7 +158,7 @@ export const Admin = () => {
  fetchCertificates();
  fetchJarFiles();
  fetchAuthConfigs();
- }, []);
+ }, [fetchUsers, fetchRoles, fetchCertificates, fetchJarFiles, fetchAuthConfigs]);
 
  const handleJarFileAdded = (jarFile: JarFile) => {
  setJarFiles(prev => [...prev, jarFile]);

@@ -134,7 +134,7 @@ export const useSystemLogs = (params: UseSystemLogsParams = {}) => {
  fetchLogs(); // Refresh when new logs are added
  });
  return unsubscribe;
- }, []);
+ }, [fetchLogs]);
 
  return {
  logs,
