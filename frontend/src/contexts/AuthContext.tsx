@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, type User } from '../services/authService';
 import { useToast } from '@/hooks/use-toast';
@@ -75,6 +75,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  initAuth();
  }, []);
 
+ const logout = useCallback(async () => {
+    try {
+      // Clear state first to prevent any auth checks
+      setUser(null);
+      setTokenExpiry(null);
+
+      // Try to call logout API but don't wait for it
+      authService.logout().catch(error => {
+        logger.warn(LogCategory.SYSTEM, 'Logout API call failed', { data: error });
+      });
+
+      // Navigate to login immediately
+      navigate('/login');
+      toast({ title: "Success", description: 'Logged out successfully' });
+    } catch (error) {
+      logger.error(LogCategory.ERROR, 'Logout error', { error: error });
+      // Still navigate to login
+      navigate('/login');
+    }
+  }, [navigate, toast]);
+
  // Auto-logout when token expires
  useEffect(() => {
  if (!tokenExpiry) return;
@@ -90,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  }, timeUntilExpiry);
 
  return () => clearTimeout(timer);
- }, [tokenExpiry]);
+ }, [tokenExpiry, logout]);
 
  const login = async (username: string, password: string, redirectTo?: string): Promise<boolean> => {
  try {
@@ -123,27 +144,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  setIsLoading(false);
  }
  };
-
- const logout = async () => {
-    try {
-      // Clear state first to prevent any auth checks
-      setUser(null);
-      setTokenExpiry(null);
-
-      // Try to call logout API but don't wait for it
-      authService.logout().catch(error => {
-        logger.warn(LogCategory.SYSTEM, 'Logout API call failed', { data: error });
-      });
-
-      // Navigate to login immediately
-      navigate('/login');
-      toast({ title: "Success", description: 'Logged out successfully' });
-    } catch (error) {
-      logger.error(LogCategory.ERROR, 'Logout error', { error: error });
-      // Still navigate to login
-      navigate('/login');
-    }
-  };
 
  const isSessionValid = (): boolean => {
  // Check if we have a token

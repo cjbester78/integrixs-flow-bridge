@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -70,16 +70,16 @@ export const AdapterConfigurationCard = ({
   const getAdapterById = (id: string) => adapters.find(adapter => adapter.id === id);
   const [businessComponentAdapters, setBusinessComponentAdapters] = useState<string[]>([]);
 
+  const loadBusinessComponentAdapters = useCallback(async (businessComponentId: string) => {
+    const allowedAdapterIds = await getAdaptersForBusinessComponent(businessComponentId);
+    setBusinessComponentAdapters(allowedAdapterIds);
+  }, [getAdaptersForBusinessComponent]);
+
   useEffect(() => {
     if (sourceBusinessComponent) {
       loadBusinessComponentAdapters(sourceBusinessComponent);
     }
-  }, [sourceBusinessComponent]);
-
-  const loadBusinessComponentAdapters = async (businessComponentId: string) => {
-    const allowedAdapterIds = await getAdaptersForBusinessComponent(businessComponentId);
-    setBusinessComponentAdapters(allowedAdapterIds);
-  };
+  }, [sourceBusinessComponent, loadBusinessComponentAdapters]);
 
   const getFilteredAdapters = (businessComponentId: string) => {
     if (!businessComponentId) return adapters;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,16 +85,16 @@ export const TransformationConfigurationCard = ({
  const { businessComponents, loading, getStructuresForBusinessComponent } = useBusinessComponentAdapters();
  const [businessComponentStructures, setBusinessComponentStructures] = useState<string[]>([]);
 
+ const loadBusinessComponentStructures = useCallback(async (businessComponentId: string) => {
+ const allowedStructureIds = await getStructuresForBusinessComponent(businessComponentId);
+ setBusinessComponentStructures(allowedStructureIds);
+ }, [getStructuresForBusinessComponent]);
+
  useEffect(() => {
  if (sourceBusinessComponent) {
  loadBusinessComponentStructures(sourceBusinessComponent);
  }
- }, [sourceBusinessComponent]);
-
- const loadBusinessComponentStructures = async (businessComponentId: string) => {
- const allowedStructureIds = await getStructuresForBusinessComponent(businessComponentId);
- setBusinessComponentStructures(allowedStructureIds);
- };
+ }, [sourceBusinessComponent, loadBusinessComponentStructures]);
 
 
 

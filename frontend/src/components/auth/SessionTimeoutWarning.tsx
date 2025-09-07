@@ -61,7 +61,7 @@ export const SessionTimeoutWarning: React.FC = () => {
  }, 1000);
 
  return () => clearInterval(countdown);
- }, [showWarning, logout]);
+ }, [showWarning, logout, timeRemaining]);
 
  const handleExtendSession = async () => {
     try {
