@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Package, Edit, Trash2, Play, CheckCircle, FileDown, FileUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,11 +38,7 @@ export default function PackageManagement() {
  const [selectedPackage, setSelectedPackage] = useState<IntegrationPackage | null>(null);
  const { toast } = useToast();
 
- useEffect(() => {
- loadPackages();
- }, []);
-
- const loadPackages = async () => {
+ const loadPackages = useCallback(async () => {
     try {
         setIsLoading(true);
         const response = await packageService.getAllPackages();
@@ -59,7 +55,11 @@ export default function PackageManagement() {
  } finally {
  setIsLoading(false);
  }
- };
+ }, [toast]);
+
+ useEffect(() => {
+ loadPackages();
+ }, [loadPackages]);
 
  const handleValidatePackage = async (packageId: string) => {
  try {

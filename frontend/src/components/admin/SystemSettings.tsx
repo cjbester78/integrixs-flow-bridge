@@ -52,7 +52,7 @@ export const SystemSettings = () => {
  } finally {
  setIsLoading(false);
  }
- }, []);
+ }, [toast]);
 
  // Fetch categories (now done in fetchSettings)
  const fetchCategories = useCallback(async () => {

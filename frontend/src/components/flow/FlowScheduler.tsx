@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,11 +45,8 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  authentication: { type: 'none' }
  });
 
- useEffect(() => {
- loadSchedulesAndWebhooks();
- }, [flowDefinition.id]);
 
- const loadSchedulesAndWebhooks = async () => {
+ const loadSchedulesAndWebhooks = useCallback(async () => {
  // Mock data - in real implementation, fetch from API
  setSchedules([
  {
@@ -73,7 +70,11 @@ export const FlowScheduler: React.FC<FlowSchedulerProps> = ({ flowDefinition }) 
  authentication: { type: 'bearer', credentials: { token: 'hidden' } }
  }
  ]);
- };
+ }, [flowDefinition.id]);
+
+ useEffect(() => {
+ loadSchedulesAndWebhooks();
+ }, [flowDefinition.id, loadSchedulesAndWebhooks]);
 
  const createSchedule = async () => {
  if (!newSchedule.cronExpression) {

@@ -215,7 +215,7 @@ export const FunctionMappingModal: React.FC<FunctionMappingModalProps> = ({
  document.removeEventListener('mouseup', handleMouseUp);
  };
  }
- }, [dragState.isDragging, handleMouseMove, handleMouseUp]);
+ }, [dragState.isDragging, dragState.draggedItem?.name, handleMouseMove, handleMouseUp]);
 
  const handleFunctionOutputDragStart = useCallback((event: React.DragEvent) => {
  if (!targetField) return;

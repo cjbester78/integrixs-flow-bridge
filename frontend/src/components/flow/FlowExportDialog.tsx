@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
  Dialog,
  DialogContent,
@@ -53,13 +53,7 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
 
  const [tagInput, setTagInput] = useState('');
 
- React.useEffect(() => {
- if (open && flowId) {
- validateExport();
- }
- }, [open, flowId]);
-
- const validateExport = async () => {
+ const validateExport = useCallback(async () => {
  setValidating(true);
  try {
  const result = await flowExportImportService.validateExport(flowId);
@@ -73,7 +67,13 @@ export const FlowExportDialog: React.FC<FlowExportDialogProps> = ({
  } finally {
  setValidating(false);
  }
- };
+ }, [flowId, toast]);
+
+ React.useEffect(() => {
+ if (open && flowId) {
+ validateExport();
+ }
+ }, [open, flowId, validateExport]);
 
  const handleExport = async () => {
  if (!validation?.canExport) {

@@ -45,7 +45,7 @@ export const EnvironmentConfiguration = () => {
  } finally {
  setIsLoading(false);
  }
- }, []);
+ }, [toast]);
 
  // Save configuration changes
  const saveConfiguration = async () => {

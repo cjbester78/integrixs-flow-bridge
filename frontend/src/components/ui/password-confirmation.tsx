@@ -33,7 +33,7 @@ export const PasswordConfirmation = React.forwardRef<
  if (value !== password) {
  setPassword(value || "");
  }
- }, [value])
+ }, [value, password])
 
  const isPasswordMatch = password === confirmPassword;
  const showError = hasTypedConfirm && confirmPassword.length > 0 && !isPasswordMatch;

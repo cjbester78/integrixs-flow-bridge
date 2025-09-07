@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, useCallback } from 'react';
 import { apiClient, logger, LogCategory } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -40,7 +40,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   };
 
  // Load subscription info
- const loadSubscription = async () => {
+ const loadSubscription = useCallback(async () => {
     if (!currentTenant) return;
 
     try {
@@ -49,10 +49,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       logger.error(LogCategory.ERROR, 'Failed to load subscription', { error: error });
     }
-  };
+  }, [currentTenant]);
 
  // Load usage info
- const loadUsage = async () => {
+ const loadUsage = useCallback(async () => {
     if (!currentTenant) return;
 
     try {
@@ -61,7 +61,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       logger.error(LogCategory.ERROR, 'Failed to load usage', { error: error });
     }
-  };
+  }, [currentTenant]);
 
  // Switch tenant
  const switchTenant = async (tenantId: string) => {
@@ -174,7 +174,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
  loadSubscription();
  loadUsage();
  }
- }, [currentTenant]);
+ }, [currentTenant, loadSubscription, loadUsage]);
 
  const value: TenantContextType = {
  currentTenant,
