@@ -272,7 +272,6 @@ export const CreateDataStructure = () => {
  });
  }
  }
- }
  };
 
  const handleResetAllFields = () => {

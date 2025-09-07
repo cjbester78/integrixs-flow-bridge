@@ -320,20 +320,22 @@ export function CreateDirectMappingFlow() {
  })
  }
  }
- }
-     } catch (error) {
-       logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error })
-     }
+      }
+    }
+    }
+  } catch (error) {
+    logger.error(LogCategory.ERROR, 'Error analyzing WSDL structure', { error: error })
+  }
   };
 
- // Analyze both source and target structures
- if (sourceStructure) {
- analyzeStructureForWsdl(sourceStructure);
- }
- if (targetStructure) {
- analyzeStructureForWsdl(targetStructure);
- }
- }, [sourceStructure, targetStructure, dataStructures, toast]);
+  // Analyze both source and target structures
+  if (sourceStructure) {
+    analyzeStructureForWsdl(sourceStructure);
+  }
+  if (targetStructure) {
+    analyzeStructureForWsdl(targetStructure);
+  }
+}, [sourceStructure, targetStructure, dataStructures, toast]);
 
  // Debug state changes
  useEffect(() => {
@@ -385,14 +387,14 @@ export function CreateDirectMappingFlow() {
  logger.warn(LogCategory.SYSTEM, 'Could not load data structures', { data: error })
  setDataStructures([]);
  }
-} catch (error) {
- logger.error(LogCategory.ERROR, 'Error loading component data', { error: error })
+        } catch (error) {
+            logger.error(LogCategory.ERROR, 'Error loading component data', { error: error })
  toast({
  title: "Error",
  description: "Failed to load component data. Some features may not work properly.",
  variant: "destructive",
- })        }
-      } finally {
+ })
+        } finally {
  setLoading(false);
  }
  };
@@ -423,17 +425,18 @@ export function CreateDirectMappingFlow() {
  try {
  if (flowData.configuration) {
  const config = JSON.parse(flowData.configuration);
- logger.info(LogCategory.SYSTEM, 'Flow configuration', { data: config })
+ logger.info(LogCategory.SYSTEM, 'Flow configuration', { data: config });
  if (config.sourceBusinessComponentId) {
- logger.info(LogCategory.SYSTEM, 'Setting source business component from config', { data: config.sourceBusinessComponentId })
+ logger.info(LogCategory.SYSTEM, 'Setting source business component from config', { data: config.sourceBusinessComponentId });
  setSourceBusinessComponent(config.sourceBusinessComponentId);
  }
  if (config.targetBusinessComponentId) {
- logger.info(LogCategory.SYSTEM, 'Setting target business component from config', { data: config.targetBusinessComponentId })
+ logger.info(LogCategory.SYSTEM, 'Setting target business component from config', { data: config.targetBusinessComponentId });
  setTargetBusinessComponent(config.targetBusinessComponentId);
  }
+ }
  } catch (e) {
- logger.error(LogCategory.ERROR, 'Error parsing flow configuration', { error: e })
+ logger.error(LogCategory.ERROR, 'Error parsing flow configuration', { error: e });
  }
  // Set adapters
  if (flowData.inboundAdapterId) {
@@ -491,7 +494,7 @@ export function CreateDirectMappingFlow() {
  let config: any = {};
  try {
  config = JSON.parse(transformation.configuration || '{}');
- logger.info(LogCategory.SYSTEM, 'Transformation config', { data: config })
+ logger.info(LogCategory.SYSTEM, 'Transformation config', { data: config });
  // Use mappingType from config if available
  if (config.mappingType) {
  messageType = config.mappingType;
@@ -503,8 +506,10 @@ export function CreateDirectMappingFlow() {
  messageType = 'fault';
  } else {
  messageType = i === 1 ? 'response' : 'fault';
+ }
+ }
  } catch (e) {
-                logger.error(LogCategory.ERROR, 'Error parsing transformation config', { error: e })
+                logger.error(LogCategory.ERROR, 'Error parsing transformation config', { error: e });
  // Default fallback
  messageType = i === 0 ? 'request' : i === 1 ? 'response' : 'fault';
  }
@@ -529,7 +534,7 @@ export function CreateDirectMappingFlow() {
  ? JSON.parse(mapping.visualFlowData)
  : mapping.visualFlowData;
  } catch (e) {
- logger.error(LogCategory.ERROR, 'Error parsing visualFlowData', { error: e })
+ logger.error(LogCategory.ERROR, 'Error parsing visualFlowData', { error: e });
  }
  }
 
@@ -540,19 +545,19 @@ export function CreateDirectMappingFlow() {
  ? JSON.parse(mapping.functionNode)
  : mapping.functionNode;
  } catch (e) {
- logger.error(LogCategory.ERROR, 'Error parsing functionNode', { error: e })
+ logger.error(LogCategory.ERROR, 'Error parsing functionNode', { error: e });
  }
  }
 
  return parsedMapping;
  } catch (e) {
- logger.error(LogCategory.ERROR, 'Error parsing sourceFields for mapping', { data: mapping, error: e })
+ logger.error(LogCategory.ERROR, 'Error parsing sourceFields for mapping', { data: mapping, error: e });
  return {
  ...mapping,
  sourceFields: []
  };
  }
- })
+ });
 
  if (messageType === 'request') {
  setFieldMappings(parsedMappings);
@@ -564,8 +569,7 @@ export function CreateDirectMappingFlow() {
  name: mappingName || (messageType === 'response' ? 'Response Mapping' : 'Fault Mapping'),
  fieldMappings: parsedMappings,
  messageType: messageType
- })
- }
+ });
  }
  }
  }
@@ -576,20 +580,18 @@ export function CreateDirectMappingFlow() {
  setAdditionalMappings(allAdditionalMappings);
  }
  }
-
- // Debug logging is now handled by useEffect
- }
- } catch (error) {
- logger.error(LogCategory.ERROR, 'Error loading transformations and mappings', { error: error })
- }
- }
- } catch (error) {
- logger.error(LogCategory.ERROR, 'Error loading flow data', { error: error })
+			} catch (error) {
+				logger.error(LogCategory.ERROR, 'Error loading transformations and mappings', { error: error });
+			}
+			// Debug logging is now handled by useEffect
+		}
+	} catch (error) {
+		logger.error(LogCategory.ERROR, 'Error loading flow data', { error: error });
  toast({
  title: "Error",
  description: "Failed to load flow data for editing.",
  variant: "destructive",
- })
+ });
  }
  };
 
@@ -612,7 +614,7 @@ export function CreateDirectMappingFlow() {
  toast({
  title: "Passthrough Mode",
  description: "This adapter is configured for passthrough. Mapping has been disabled.",
- })
+ });
  } else if (transformationConfig?.dataStructureId) {
  // Auto-populate structure if available
  setSourceStructure(transformationConfig.dataStructureId);
@@ -647,7 +649,7 @@ export function CreateDirectMappingFlow() {
  toast({
  title: "Passthrough Mode",
  description: "This adapter is configured for passthrough. Mapping has been disabled.",
- })
+ });
  } else if (transformationConfig?.dataStructureId) {
  // Auto-populate structure if available
  setTargetStructure(transformationConfig.dataStructureId);
@@ -655,8 +657,8 @@ export function CreateDirectMappingFlow() {
  toast({
  title: "Structure Auto-Selected",
  description: "Data structure has been automatically selected based on adapter configuration.",
- })
- }}
+ });
+ }
  }
 
  // Auto-detect flow mode based on adapter type
@@ -687,8 +689,8 @@ export function CreateDirectMappingFlow() {
  toast({
  title: "Synchronous Mode Detected",
  description: "Flow mode set to synchronous based on adapter configuration.",
- })
- }}
+ });
+ }
  }
  };
 
@@ -757,7 +759,7 @@ export function CreateDirectMappingFlow() {
  // Include visual flow data if present
  visualFlowData: mapping.visualFlowData ? JSON.stringify(mapping.visualFlowData) : null,
  functionNode: mapping.functionNode ? JSON.stringify(mapping.functionNode) : null,
- mappingOrder: index;
+ mappingOrder: index
  }))
  : [];
 
@@ -793,7 +795,7 @@ export function CreateDirectMappingFlow() {
  // Include visual flow data if present
  visualFlowData: mapping.visualFlowData ? JSON.stringify(mapping.visualFlowData) : null,
  functionNode: mapping.functionNode ? JSON.stringify(mapping.functionNode) : null,
- mappingOrder: index;
+ mappingOrder: index
  }))
  }))
  : []
@@ -813,8 +815,10 @@ export function CreateDirectMappingFlow() {
  title: "Success",
  description: `Integration flow "${flowName}" has been created successfully.`,
  })
- navigateBack('/dashboard');      } catch (error: any) {
- logger.error(LogCategory.ERROR, 'Error saving flow', { error: error })
+ navigateBack('/dashboard');
+			}
+		} catch (error: any) {
+			logger.error(LogCategory.ERROR, 'Error saving flow', { error: error })
  logger.error(LogCategory.ERROR, 'Error response', { error: error.response })
  // Log detailed error information
  if (error.response) {
@@ -882,19 +886,20 @@ export function CreateDirectMappingFlow() {
 
  setSourceXml(sourceXmlResult.xmlContent);
  setTargetXml(targetXmlResult.xmlContent);
- setShowFieldMapping(true);      } catch (error: any) {
- logger.error(LogCategory.ERROR, 'Error converting structures', { error: error })
+ setShowFieldMapping(true);
+      } catch (error: any) {
+ logger.error(LogCategory.ERROR, 'Error converting structures', { error: error });
  const errorDetails = error.response?.data?.details ||
  error.response?.data?.error ||
  error.message ||
  "Failed to convert structures to XML";
- logger.error(LogCategory.ERROR, 'Error details', { error: error.response?.data })
+ logger.error(LogCategory.ERROR, 'Error details', { error: error.response?.data });
  toast({
  title: "Conversion Failed",
  description: errorDetails,
  variant: "destructive",
- })        }
-      } finally {
+ });
+ } finally {
  setConvertingStructures(false);
  }
  };
@@ -948,16 +953,14 @@ export function CreateDirectMappingFlow() {
  return updated;
  }
  return prev;
- })
+ });
  }
  setShowFieldMapping(false);
  toast({
  title: "Mappings Saved",
  description: `${mappings.length} ${currentMappingType} mappings have been configured.`,
- })
- }
- }
- }
+ });
+ }}
  initialMappingName={(() => {
  if (currentMappingType === 'request') {
  return requestMappingName || (flowName ? `${flowName} Request` : '');
@@ -966,6 +969,7 @@ export function CreateDirectMappingFlow() {
  m.messageType === (currentMappingType === 'response' ? 'response' : 'fault')
  );
  return mapping?.name || (flowName ? `${flowName} ${currentMappingType.charAt(0).toUpperCase() + currentMappingType.slice(1)}` : '');
+ }
  })()}
  initialMappings={(() => {
  // Return the appropriate mappings based on the current mapping type
@@ -1128,7 +1132,7 @@ export function CreateDirectMappingFlow() {
  </div>
  </SelectItem>
  );
- })
+ })}
  </SelectContent>
  </Select>
  </div>
@@ -1190,7 +1194,7 @@ export function CreateDirectMappingFlow() {
  </div>
  </SelectItem>
  );
- })
+ })}
  </SelectContent>
  </Select>
  </div>
@@ -1236,11 +1240,12 @@ export function CreateDirectMappingFlow() {
  id="mapping-required"
  checked={mappingRequired}
  onCheckedChange={(checked) => {
- logger.info(LogCategory.SYSTEM, 'Mapping Required toggle changed to', { data: checked })
+ logger.info(LogCategory.SYSTEM, 'Mapping Required toggle changed to', { data: checked });
  setMappingRequired(checked);
  // These are mutually exclusive
  setSkipXmlConversion(!checked);
- logger.info(LogCategory.SYSTEM, 'Skip XML Conversion automatically set to', { data: !checked })
+ logger.info(LogCategory.SYSTEM, 'Skip XML Conversion automatically set to', { data: !checked });
+ }}
  />
  </div>
 
@@ -1256,11 +1261,12 @@ export function CreateDirectMappingFlow() {
  id="skip-xml-conversion"
  checked={skipXmlConversion}
  onCheckedChange={(checked) => {
- logger.info(LogCategory.SYSTEM, 'Direct File Passthrough toggle changed to', { data: checked })
+ logger.info(LogCategory.SYSTEM, 'Direct File Passthrough toggle changed to', { data: checked });
  setSkipXmlConversion(checked);
  // These are mutually exclusive
  setMappingRequired(!checked);
- logger.info(LogCategory.SYSTEM, 'Mapping Required automatically set to', { data: !checked })
+ logger.info(LogCategory.SYSTEM, 'Mapping Required automatically set to', { data: !checked });
+ }}
  />
  </div>
 
@@ -1307,7 +1313,7 @@ export function CreateDirectMappingFlow() {
  <p className="text-sm text-muted-foreground">
  {(() => {
  const responseMapping = additionalMappings.find(m => m.messageType === 'response');
- return responseMapping?.fieldMappings?.length > 0;`
+ return responseMapping?.fieldMappings?.length > 0
  ? `${responseMapping.fieldMappings.length} mappings configured`
  : 'No mappings configured yet';
  })()}
@@ -1349,7 +1355,7 @@ export function CreateDirectMappingFlow() {
  <p className="text-sm text-muted-foreground">
  {(() => {
  const faultMapping = additionalMappings.find(m => m.messageType === 'fault');
- return faultMapping?.fieldMappings?.length > 0;`
+ return faultMapping?.fieldMappings?.length > 0
  ? `${faultMapping.fieldMappings.length} mappings configured`
  : 'No mappings configured yet';
  })()}
@@ -1462,7 +1468,6 @@ export function CreateDirectMappingFlow() {
  </CardContent>
  </Card>
  )}
- </div>
  </div>
  </div>
  </div>
