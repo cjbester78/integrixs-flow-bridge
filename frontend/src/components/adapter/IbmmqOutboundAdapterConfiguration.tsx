@@ -1,13 +1,16 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordConfirmation } from '@/components/ui/password-confirmation';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { CommunicationAdapter } from '@/types/adapter';
 import { CertificateSelection } from '@/components/ui/certificate-selection';
+import { useJarFiles } from '@/hooks/useJarFiles';
 
 interface IbmmqOutboundAdapterConfigurationProps {
  adapter: CommunicationAdapter;
@@ -20,6 +23,21 @@ export function IbmmqOutboundAdapterConfiguration({
  onUpdate,
  businessComponentId
 }: IbmmqOutboundAdapterConfigurationProps) {
+ 
+ // Fetch IBM MQ JAR files and validate dependencies
+ const { 
+   jarFiles, 
+   isLoading, 
+   validateIbmMqDependencies, 
+   getIbmMqConnectionInfo 
+ } = useJarFiles({
+   driverType: 'IBMMQ',
+   enabled: true
+ });
+
+ const dependencyCheck = validateIbmMqDependencies();
+ const connectionInfo = getIbmMqConnectionInfo();
+
  const handleInputChange = (field: string, value: string | number | boolean) => {
  onUpdate({
  ...adapter,
@@ -30,9 +48,43 @@ export function IbmmqOutboundAdapterConfiguration({
  });
  };
 
+ // Auto-populate connection classes when component mounts
+ useEffect(() => {
+   if (connectionInfo && !adapter.configuration.connectionFactoryClass) {
+     handleInputChange('connectionFactoryClass', connectionInfo.connectionFactoryClass);
+     handleInputChange('queueClass', connectionInfo.queueClass);
+   }
+ }, [jarFiles]);
 
  return (
  <div className="space-y-6">
+ {/* JAR Dependency Validation */}
+ {!isLoading && !dependencyCheck.valid && (
+   <Alert variant="destructive">
+     <AlertCircle className="h-4 w-4" />
+     <AlertTitle>Missing IBM MQ Dependencies</AlertTitle>
+     <AlertDescription className="space-y-2">
+       <p>IBM MQ requires {dependencyCheck.required} JAR files. Currently {dependencyCheck.uploaded} uploaded.</p>
+       <p className="text-sm">Missing JARs:</p>
+       <ul className="list-disc list-inside text-sm">
+         {dependencyCheck.missing.map((jar) => (
+           <li key={jar}>{jar}</li>
+         ))}
+       </ul>
+     </AlertDescription>
+   </Alert>
+ )}
+
+ {!isLoading && dependencyCheck.valid && (
+   <Alert variant="default" className="border-green-500">
+     <CheckCircle2 className="h-4 w-4 text-green-500" />
+     <AlertTitle>IBM MQ Dependencies Verified</AlertTitle>
+     <AlertDescription>
+       All required IBM MQ JAR files are available. Version: {connectionInfo.version}
+     </AlertDescription>
+   </Alert>
+ )}
+
  <Tabs defaultValue="target" className="w-full">
  <TabsList className="grid w-full grid-cols-2">
  <TabsTrigger value="target">Target</TabsTrigger>
@@ -43,6 +95,9 @@ export function IbmmqOutboundAdapterConfiguration({
  <Card>
  <CardHeader>
  <CardTitle>Connection Details</CardTitle>
+ <CardDescription>
+   Configure IBM MQ connection parameters
+ </CardDescription>
  </CardHeader>
  <CardContent className="space-y-4">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -50,20 +105,36 @@ export function IbmmqOutboundAdapterConfiguration({
  <Label htmlFor="connectionFactoryClass">Connection Factory class</Label>
  <Input
  id="connectionFactoryClass"
- placeholder="com.ibm.mq.jms.MQConnectionFactory"
- value={adapter.configuration.connectionFactoryClass || ''}
+ placeholder={connectionInfo.connectionFactoryClass}
+ value={adapter.configuration.connectionFactoryClass || connectionInfo.connectionFactoryClass}
  onChange={(e) => handleInputChange('connectionFactoryClass', e.target.value)}
+ readOnly={!!connectionInfo.connectionFactoryClass}
+ className={connectionInfo.connectionFactoryClass ? "bg-muted" : ""}
  />
+ {connectionInfo.connectionFactoryClass && (
+   <p className="text-xs text-muted-foreground flex items-center gap-1">
+     <CheckCircle2 className="h-3 w-3" />
+     Auto-detected from IBM MQ {connectionInfo.version}
+   </p>
+ )}
  </div>
 
  <div className="space-y-2">
  <Label htmlFor="queueClass">Queue class</Label>
  <Input
  id="queueClass"
- placeholder="com.ibm.mq.jms.MQQueue"
- value={adapter.configuration.queueClass || ''}
+ placeholder={connectionInfo.queueClass}
+ value={adapter.configuration.queueClass || connectionInfo.queueClass}
  onChange={(e) => handleInputChange('queueClass', e.target.value)}
+ readOnly={!!connectionInfo.queueClass}
+ className={connectionInfo.queueClass ? "bg-muted" : ""}
  />
+ {connectionInfo.queueClass && (
+   <p className="text-xs text-muted-foreground flex items-center gap-1">
+     <CheckCircle2 className="h-3 w-3" />
+     Auto-detected from IBM MQ {connectionInfo.version}
+   </p>
+ )}
  </div>
 
  <div className="space-y-2">
@@ -257,6 +328,28 @@ export function IbmmqOutboundAdapterConfiguration({
  </div>
  </CardContent>
  </Card>
+
+ {/* JAR Information Card */}
+ {jarFiles.length > 0 && (
+   <Card>
+     <CardHeader>
+       <CardTitle>Loaded IBM MQ Libraries</CardTitle>
+       <CardDescription>
+         {jarFiles.length} JAR files available for IBM MQ connectivity
+       </CardDescription>
+     </CardHeader>
+     <CardContent>
+       <div className="space-y-2">
+         {jarFiles.map((jar) => (
+           <div key={jar.id} className="flex items-center justify-between text-sm">
+             <span className="font-mono">{jar.file_name}</span>
+             <span className="text-muted-foreground">{jar.version}</span>
+           </div>
+         ))}
+       </div>
+     </CardContent>
+   </Card>
+ )}
  </TabsContent>
  </Tabs>
  </div>
