@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 // Removed logger import to avoid circular dependency with logger.ts
 
 /**

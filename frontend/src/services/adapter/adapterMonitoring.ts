@@ -1,5 +1,6 @@
 import { api, ApiResponse } from '../api';
 import { AdapterStats, AdapterLogParams } from '@/types/adapter';
+import { logger, LogCategory } from '@/lib/logger';
 
 export class AdapterMonitoring {
  private websocket: WebSocket | null = null;
@@ -36,7 +37,6 @@ export class AdapterMonitoring {
  }
 
  const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/adapters${adapterId ? `/${adapterId}/logs` : '/logs'}`;
-import { logger, LogCategory } from '@/lib/logger';
 
  try {
  this.websocket = new WebSocket(wsUrl);

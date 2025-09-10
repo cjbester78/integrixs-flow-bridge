@@ -78,7 +78,7 @@ INSERT INTO jar_files (id, name, version, description, file_name, size_bytes, dr
 ('jar-002', 'PostgreSQL JDBC Driver', '42.6.0', 'PostgreSQL JDBC Driver for database operations', 'postgresql-42.6.0.jar', 1234567, 'Database', '2024-01-10', 'user-integrator1'),
 ('jar-003', 'Oracle JDBC Driver', '21.7.0.0', 'Oracle Database JDBC Driver', 'ojdbc11-21.7.0.0.jar', 4567890, 'Database', '2024-01-12', 'user-admin'),
 ('jar-004', 'SQL Server JDBC Driver', '12.2.0', 'Microsoft SQL Server JDBC Driver', 'mssql-jdbc-12.2.0.jre11.jar', 2345678, 'Database', '2024-01-11', 'user-integrator1'),
-('jar-005', 'ActiveMQ Client', '5.18.3', 'ActiveMQ JMS Client for message queue operations', 'activemq-client-5.18.3.jar', 987654, 'Message Queue', '2024-01-08', 'user-integrator2'),
+('jar-005', 'ActiveMQ Client', '5.18.3', 'ActiveMQ IBM MQ Client for message queue operations', 'activemq-client-5.18.3.jar', 987654, 'Message Queue', '2024-01-08', 'user-integrator2'),
 ('jar-006', 'RabbitMQ Client', '5.16.0', 'RabbitMQ Java Client for AMQP messaging', 'amqp-client-5.16.0.jar', 876543, 'Message Queue', '2024-01-09', 'user-integrator2'),
 ('jar-007', 'Apache Kafka Client', '3.6.0', 'Apache Kafka client for event streaming', 'kafka-clients-3.6.0.jar', 1987654, 'Message Queue', '2024-01-07', 'user-admin'),
 ('jar-008', 'MongoDB Driver', '4.8.2', 'MongoDB Java Driver for NoSQL database operations', 'mongodb-driver-sync-4.8.2.jar', 1567890, 'Database', '2024-01-11', 'user-integrator1'),

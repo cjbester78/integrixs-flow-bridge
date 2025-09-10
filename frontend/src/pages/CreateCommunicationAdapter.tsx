@@ -23,8 +23,8 @@ import { HttpInboundAdapterConfiguration } from '@/components/adapter/HttpInboun
 import { HttpOutboundAdapterConfiguration } from '@/components/adapter/HttpOutboundAdapterConfiguration';
 import { IdocInboundAdapterConfiguration } from '@/components/adapter/IdocInboundAdapterConfiguration';
 import { IdocOutboundAdapterConfiguration } from '@/components/adapter/IdocOutboundAdapterConfiguration';
-import { JmsInboundAdapterConfiguration } from '@/components/adapter/JmsInboundAdapterConfiguration';
-import { JmsOutboundAdapterConfiguration } from '@/components/adapter/JmsOutboundAdapterConfiguration';
+import { IbmmqInboundAdapterConfiguration } from '@/components/adapter/IbmmqInboundAdapterConfiguration';
+import { IbmmqOutboundAdapterConfiguration } from '@/components/adapter/IbmmqOutboundAdapterConfiguration';
 import { RestInboundAdapterConfiguration } from '@/components/adapter/RestInboundAdapterConfiguration';
 import { RestOutboundAdapterConfiguration } from '@/components/adapter/RestOutboundAdapterConfiguration';
 import { SoapInboundAdapterConfiguration } from '@/components/adapter/SoapInboundAdapterConfiguration';
@@ -35,6 +35,25 @@ import { RfcOutboundAdapterConfiguration } from '@/components/adapter/RfcOutboun
 import { RfcInboundAdapterConfiguration } from '@/components/adapter/RfcInboundAdapterConfiguration';
 import { MailOutboundAdapterConfiguration } from '@/components/adapter/MailOutboundAdapterConfiguration';
 import { MailInboundAdapterConfiguration } from '@/components/adapter/MailInboundAdapterConfiguration';
+import { FacebookGraphApiConfiguration } from '@/components/adapter/FacebookGraphApiConfiguration';
+import { FacebookAdsApiConfiguration } from '@/components/adapter/FacebookAdsApiConfiguration';
+import { InstagramGraphApiConfiguration } from '@/components/adapter/InstagramGraphApiConfiguration';
+import { WhatsAppBusinessApiConfiguration } from '@/components/adapter/WhatsAppBusinessApiConfiguration';
+import { TwitterApiV2Configuration } from '@/components/adapter/TwitterApiV2Configuration';
+import { TwitterAdsApiConfiguration } from '@/components/adapter/TwitterAdsApiConfiguration';
+import { LinkedInApiConfiguration } from '@/components/adapter/LinkedInApiConfiguration';
+import { LinkedInAdsApiConfiguration } from '@/components/adapters/configurations/LinkedInAdsApiConfiguration';
+import { YouTubeDataApiConfiguration } from '@/components/adapters/configurations/YouTubeDataApiConfiguration';
+import { YouTubeAnalyticsApiConfiguration } from '@/components/adapters/configurations/YouTubeAnalyticsApiConfiguration';
+import { TikTokBusinessApiConfiguration } from '@/components/adapters/configurations/TikTokBusinessApiConfiguration';
+import { TikTokContentApiConfiguration } from '@/components/adapters/configurations/TikTokContentApiConfiguration';
+import { FacebookMessengerApiConfiguration } from '@/components/adapters/configurations/FacebookMessengerApiConfiguration';
+import { PinterestApiConfiguration } from '@/components/adapters/configurations/PinterestApiConfiguration';
+import { RedditApiConfiguration } from '@/components/adapters/configurations/RedditApiConfiguration';
+import { SnapchatAdsApiConfiguration } from '@/components/adapters/configurations/SnapchatAdsApiConfiguration';
+import { DiscordApiConfiguration } from '@/components/adapters/configurations/DiscordApiConfiguration';
+import { TelegramBotApiConfiguration } from '@/components/adapters/social/TelegramBotApiConfiguration';
+import { SlackApiConfiguration } from '@/components/adapters/collaboration/SlackApiConfiguration';
 import { useToast } from '@/hooks/use-toast';
 import { adapterService } from '@/services/adapter';
 import { AdapterValidationDialog } from '@/components/adapter/AdapterValidationDialog';
@@ -70,7 +89,17 @@ import {
  Cloud,
  Server,
  Activity,
- ArrowLeftRight
+ ArrowLeftRight,
+ Facebook,
+ Instagram,
+ Twitter,
+ Linkedin,
+ Youtube,
+ Send,
+ Groups,
+ Radio,
+ Share2,
+ Repeat
 } from 'lucide-react';
 import { RestrictedPage } from '@/components/common/RestrictedPage';
 import { logger, LogCategory } from '@/lib/logger';
@@ -99,19 +128,64 @@ interface CommunicationAdapter {
 
 const communicationAdapters: CommunicationAdapter[] = [
  {
- id: 'sms-gateway',
- name: 'SMS Gateway',
+ id: 'sms',
+ name: 'SMS',
  icon: Smartphone,
- description: 'Send SMS messages via gateway API',
- category: 'SMS',
+ description: 'Send and receive SMS messages via various providers',
+ category: 'Messaging',
  fields: [
- { name: 'provider', label: 'SMS Provider', type: 'select', required: true, options: ['Twilio', 'AWS SNS', 'Nexmo', 'Custom'] },
- { name: 'apiKey', label: 'API Key', type: 'password', required: true, placeholder: 'Your API Key' },
- { name: 'apiSecret', label: 'API Secret', type: 'password', required: true, placeholder: 'Your API Secret' },
- { name: 'endpoint', label: 'API Endpoint', type: 'text', required: true, placeholder: 'https://api.twilio.com/2010-04-01' },
- { name: 'fromNumber', label: 'From Number', type: 'text', required: true, placeholder: '+1234567890' },
- { name: 'region', label: 'Region', type: 'select', required: false, options: ['US', 'EU', 'APAC'] },
- { name: 'authType', label: 'Authentication', type: 'select', required: false, options: ['None', 'Basic Auth', 'Bearer Token', 'API Key', 'OAuth', 'OAuth 2.0', 'SSL Certificate'] }
+ { name: 'provider', label: 'SMS Provider', type: 'select', required: true, options: ['Twilio', 'Vonage/Nexmo', 'AWS SNS', 'MessageBird', 'Clickatell', 'Plivo', 'Infobip'] },
+ { name: 'accountId', label: 'Account ID/SID', type: 'text', required: true, placeholder: 'Your account identifier' },
+ { name: 'authToken', label: 'Auth Token', type: 'password', required: true, placeholder: 'Your authentication token' },
+ { name: 'apiKey', label: 'API Key', type: 'text', required: false, placeholder: 'API key (if required)' },
+ { name: 'apiSecret', label: 'API Secret', type: 'password', required: false, placeholder: 'API secret (if required)' },
+ { name: 'defaultSenderNumber', label: 'Default Sender Number', type: 'text', required: true, placeholder: '+1234567890' },
+ { name: 'webhookUrl', label: 'Webhook URL', type: 'text', required: false, placeholder: 'https://your-domain.com/sms/webhook' },
+ { name: 'enableDeliveryReceipts', label: 'Enable Delivery Receipts', type: 'checkbox', required: false },
+ { name: 'enableIncoming', label: 'Enable Incoming Messages', type: 'checkbox', required: false }
+ ]
+ },
+ {
+ id: 'rabbitmq',
+ name: 'RabbitMQ',
+ icon: Share2,
+ description: 'Advanced message queuing protocol broker',
+ category: 'Messaging',
+ fields: [
+ { name: 'host', label: 'Host', type: 'text', required: true, placeholder: 'localhost or rabbitmq.example.com' },
+ { name: 'port', label: 'Port', type: 'number', required: true, placeholder: '5672' },
+ { name: 'virtualHost', label: 'Virtual Host', type: 'text', required: false, placeholder: '/ (default)' },
+ { name: 'username', label: 'Username', type: 'text', required: true, placeholder: 'guest' },
+ { name: 'password', label: 'Password', type: 'password', required: true, placeholder: 'RabbitMQ password' },
+ { name: 'exchangeName', label: 'Exchange Name', type: 'text', required: false, placeholder: 'my-exchange' },
+ { name: 'exchangeType', label: 'Exchange Type', type: 'select', required: false, options: ['direct', 'topic', 'fanout', 'headers'] },
+ { name: 'queueName', label: 'Queue Name', type: 'text', required: false, placeholder: 'my-queue' },
+ { name: 'routingKey', label: 'Routing Key', type: 'text', required: false, placeholder: 'routing.key' },
+ { name: 'durable', label: 'Durable', type: 'checkbox', required: false },
+ { name: 'autoAck', label: 'Auto Acknowledge', type: 'checkbox', required: false },
+ { name: 'enableSSL', label: 'Enable SSL/TLS', type: 'checkbox', required: false },
+ { name: 'prefetchCount', label: 'Prefetch Count', type: 'number', required: false, placeholder: '1' }
+ ]
+ },
+ {
+ id: 'amqp',
+ name: 'AMQP',
+ icon: Repeat,
+ description: 'Advanced Message Queuing Protocol (AMQP 1.0)',
+ category: 'Messaging',
+ fields: [
+ { name: 'host', label: 'Host', type: 'text', required: true, placeholder: 'amqp.example.com' },
+ { name: 'port', label: 'Port', type: 'number', required: true, placeholder: '5672' },
+ { name: 'username', label: 'Username', type: 'text', required: false, placeholder: 'Username' },
+ { name: 'password', label: 'Password', type: 'password', required: false, placeholder: 'Password' },
+ { name: 'connectionUrl', label: 'Connection URL', type: 'text', required: false, placeholder: 'amqp://user:pass@host:port' },
+ { name: 'sourceAddress', label: 'Source Address', type: 'text', required: false, placeholder: 'queue://my-queue', conditionalField: 'sender' },
+ { name: 'targetAddress', label: 'Target Address', type: 'text', required: false, placeholder: 'queue://target-queue', conditionalField: 'receiver' },
+ { name: 'brokerType', label: 'Broker Type', type: 'select', required: false, options: ['Generic', 'ActiveMQ Artemis', 'Azure Service Bus', 'Qpid', 'Solace'] },
+ { name: 'saslMechanism', label: 'SASL Mechanism', type: 'select', required: false, options: ['PLAIN', 'ANONYMOUS', 'EXTERNAL', 'SCRAM-SHA-256'] },
+ { name: 'enableSSL', label: 'Enable SSL/TLS', type: 'checkbox', required: false },
+ { name: 'enableTransactions', label: 'Enable Transactions', type: 'checkbox', required: false },
+ { name: 'maxFrameSize', label: 'Max Frame Size', type: 'number', required: false, placeholder: '65536' }
  ]
  },
  {
@@ -225,13 +299,13 @@ const communicationAdapters: CommunicationAdapter[] = [
  ]
  },
  {
- id: 'jms',
- name: 'JMS',
+ id: 'ibmmq',
+ name: 'IBM MQ',
  icon: MessageSquare,
- description: 'Java Message Service connections',
+ description: 'IBM MQ (formerly WebSphere MQ) connections',
  category: 'Messaging',
  fields: [
- { name: 'driverJar', label: 'JMS Driver JAR', type: 'jar-selector', required: true, driverTypeFilter: 'Message Queue' },
+ { name: 'driverJar', label: 'IBM MQ Driver JAR', type: 'jar-selector', required: true, driverTypeFilter: 'Message Queue' },
  { name: 'brokerUrl', label: 'Broker URL', type: 'text', required: true, placeholder: 'tcp://localhost:61616' },
  { name: 'queueName', label: 'Queue Name', type: 'text', required: false, placeholder: 'myqueue' },
  { name: 'topicName', label: 'Topic Name', type: 'text', required: false, placeholder: 'mytopic' },
@@ -351,6 +425,298 @@ const communicationAdapters: CommunicationAdapter[] = [
  { name: 'folderName', label: 'Folder Name', type: 'text', required: false, placeholder: 'INBOX' }
  ]
  }
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    icon: Facebook,
+    description: 'Facebook Graph API for social media integration',
+    category: 'Social Media',
+    fields: [
+      { name: 'appId', label: 'Facebook App ID', type: 'text', required: true, placeholder: 'Your Facebook App ID' },
+      { name: 'appSecret', label: 'Facebook App Secret', type: 'password', required: true, placeholder: 'Your Facebook App Secret' },
+      { name: 'pageId', label: 'Facebook Page ID', type: 'text', required: true, placeholder: 'Your Facebook Page ID' },
+      { name: 'accessToken', label: 'Page Access Token', type: 'password', required: false, placeholder: 'Will be obtained via OAuth' },
+      { name: 'webhookEnabled', label: 'Enable Webhooks', type: 'checkbox', required: false },
+      { name: 'webhookVerifyToken', label: 'Webhook Verify Token', type: 'text', required: false, placeholder: 'Create a secure verify token' },
+      { name: 'apiVersion', label: 'API Version', type: 'text', required: false, placeholder: 'v18.0' }
+    ]
+  },
+  {
+    id: 'facebookads',
+    name: 'Facebook Ads',
+    icon: Facebook,
+    description: 'Facebook Ads API for advertising campaign management',
+    category: 'Social Media',
+    fields: [
+      { name: 'appId', label: 'Facebook App ID', type: 'text', required: true, placeholder: 'Your Facebook App ID' },
+      { name: 'appSecret', label: 'Facebook App Secret', type: 'password', required: true, placeholder: 'Your Facebook App Secret' },
+      { name: 'adAccountId', label: 'Ad Account ID', type: 'text', required: true, placeholder: 'Your Ad Account ID (without act_ prefix)' },
+      { name: 'businessId', label: 'Business Manager ID', type: 'text', required: false, placeholder: 'Your Business Manager ID' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'Will be obtained via OAuth' },
+      { name: 'apiVersion', label: 'API Version', type: 'text', required: false, placeholder: 'v18.0' }
+    ]
+  },
+  {
+    id: 'instagram',
+    name: 'Instagram',
+    icon: Instagram,
+    description: 'Instagram Graph API for social media content and analytics',
+    category: 'Social Media',
+    fields: [
+      { name: 'appId', label: 'Facebook App ID', type: 'text', required: true, placeholder: 'Your Facebook App ID' },
+      { name: 'appSecret', label: 'Facebook App Secret', type: 'password', required: true, placeholder: 'Your Facebook App Secret' },
+      { name: 'instagramBusinessAccountId', label: 'Instagram Business Account ID', type: 'text', required: true, placeholder: 'Your Instagram Business Account ID' },
+      { name: 'facebookPageId', label: 'Facebook Page ID', type: 'text', required: true, placeholder: 'Connected Facebook Page ID' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'Will be obtained via OAuth' },
+      { name: 'apiVersion', label: 'API Version', type: 'text', required: false, placeholder: 'v18.0' }
+    ]
+  },
+  {
+    id: 'whatsapp',
+    name: 'WhatsApp Business',
+    icon: MessageCircle,
+    description: 'WhatsApp Business API for messaging and customer communication',
+    category: 'Social Media',
+    fields: [
+      { name: 'appId', label: 'Facebook App ID', type: 'text', required: true, placeholder: 'Your Facebook App ID' },
+      { name: 'appSecret', label: 'Facebook App Secret', type: 'password', required: true, placeholder: 'Your Facebook App Secret' },
+      { name: 'phoneNumberId', label: 'Phone Number ID', type: 'text', required: true, placeholder: 'WhatsApp Phone Number ID' },
+      { name: 'businessAccountId', label: 'Business Account ID', type: 'text', required: true, placeholder: 'WhatsApp Business Account ID' },
+      { name: 'verifyToken', label: 'Webhook Verify Token', type: 'text', required: false, placeholder: 'Secure token for webhook verification' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'Will be obtained via OAuth' },
+      { name: 'systemUserAccessToken', label: 'System User Token', type: 'password', required: false, placeholder: 'For production use' },
+      { name: 'apiVersion', label: 'API Version', type: 'text', required: false, placeholder: 'v18.0' }
+    ]
+  },
+  {
+    id: 'twitter',
+    name: 'Twitter',
+    icon: Twitter,
+    description: 'Twitter/X API v2 for social media engagement and analytics',
+    category: 'Social Media',
+    fields: [
+      { name: 'apiKey', label: 'API Key (Consumer Key)', type: 'text', required: true, placeholder: 'Your Twitter API Key' },
+      { name: 'apiKeySecret', label: 'API Key Secret', type: 'password', required: true, placeholder: 'Your Twitter API Key Secret' },
+      { name: 'accessToken', label: 'Access Token', type: 'text', required: false, placeholder: 'User access token' },
+      { name: 'accessTokenSecret', label: 'Access Token Secret', type: 'password', required: false, placeholder: 'User access token secret' },
+      { name: 'bearerToken', label: 'Bearer Token', type: 'password', required: false, placeholder: 'App-only authentication token' },
+      { name: 'clientId', label: 'OAuth 2.0 Client ID', type: 'text', required: false, placeholder: 'For OAuth 2.0 flows' },
+      { name: 'clientSecret', label: 'OAuth 2.0 Client Secret', type: 'password', required: false, placeholder: 'For OAuth 2.0 flows' }
+    ]
+  },
+  {
+    id: 'twitterads',
+    name: 'Twitter Ads',
+    icon: Twitter,
+    description: 'Twitter/X Ads API for advertising campaign management',
+    category: 'Social Media',
+    fields: [
+      { name: 'adsAccountId', label: 'Ads Account ID', type: 'text', required: true, placeholder: 'Your Twitter Ads account ID' },
+      { name: 'apiKey', label: 'API Key (Consumer Key)', type: 'text', required: true, placeholder: 'Your Twitter API Key' },
+      { name: 'apiKeySecret', label: 'API Key Secret', type: 'password', required: true, placeholder: 'Your Twitter API Key Secret' },
+      { name: 'accessToken', label: 'Access Token', type: 'text', required: true, placeholder: 'User access token with ads permissions' },
+      { name: 'accessTokenSecret', label: 'Access Token Secret', type: 'password', required: true, placeholder: 'User access token secret' }
+    ]
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    icon: Linkedin,
+    description: 'LinkedIn API for professional networking and content management',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Your LinkedIn app Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Your LinkedIn app Client Secret' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' },
+      { name: 'memberUrn', label: 'Member URN', type: 'text', required: false, placeholder: 'urn:li:person:ABC123' },
+      { name: 'organizationId', label: 'Organization ID', type: 'text', required: false, placeholder: 'Company page ID' }
+    ]
+  },
+  {
+    id: 'linkedinads',
+    name: 'LinkedIn Ads',
+    icon: Linkedin,
+    description: 'LinkedIn Ads API for advertising campaign management',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Your LinkedIn app Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Your LinkedIn app Client Secret' },
+      { name: 'adAccountId', label: 'Ad Account ID', type: 'text', required: true, placeholder: 'Your LinkedIn Ads account ID' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube Data API',
+    icon: Youtube,
+    description: 'YouTube Data API v3 for video, playlist, and channel management',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Google OAuth2 Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Google OAuth2 Client Secret' },
+      { name: 'channelId', label: 'Channel ID', type: 'text', required: false, placeholder: 'Your YouTube channel ID' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'youtubeanalytics',
+    name: 'YouTube Analytics API',
+    icon: Youtube,
+    description: 'YouTube Analytics API v2 for comprehensive channel and video analytics',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Google OAuth2 Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Google OAuth2 Client Secret' },
+      { name: 'channelId', label: 'Channel ID', type: 'text', required: true, placeholder: 'YouTube channel ID to analyze' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'tiktokbusiness',
+    name: 'TikTok Business API',
+    icon: Share2,
+    description: 'TikTok Business API for advertising campaigns, creative management, and analytics',
+    category: 'Social Media',
+    fields: [
+      { name: 'appId', label: 'App ID', type: 'text', required: true, placeholder: 'TikTok App ID' },
+      { name: 'appSecret', label: 'App Secret', type: 'password', required: true, placeholder: 'TikTok App Secret' },
+      { name: 'advertiserId', label: 'Advertiser ID', type: 'text', required: true, placeholder: 'TikTok Advertiser ID' },
+      { name: 'businessId', label: 'Business ID', type: 'text', required: false, placeholder: 'Business Center ID (optional)' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'tiktokcontent',
+    name: 'TikTok Content API',
+    icon: Share2,
+    description: 'TikTok Content API for video publishing, engagement, trends, and creator tools',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientKey', label: 'Client Key', type: 'text', required: true, placeholder: 'TikTok Client Key' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'TikTok Client Secret' },
+      { name: 'userId', label: 'User ID', type: 'text', required: true, placeholder: 'TikTok User ID' },
+      { name: 'username', label: 'Username', type: 'text', required: false, placeholder: 'TikTok Username' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'facebookmessenger',
+    name: 'Facebook Messenger',
+    icon: MessageSquare,
+    description: 'Facebook Messenger Platform for chatbots, messaging automation, and customer service',
+    category: 'Social Media',
+    fields: [
+      { name: 'pageId', label: 'Page ID', type: 'text', required: true, placeholder: 'Your Facebook Page ID' },
+      { name: 'pageAccessToken', label: 'Page Access Token', type: 'password', required: true, placeholder: 'Long-lived page access token' },
+      { name: 'appSecret', label: 'App Secret', type: 'password', required: true, placeholder: 'Facebook App Secret' },
+      { name: 'verifyToken', label: 'Verify Token', type: 'text', required: true, placeholder: 'Custom verify token for webhook' },
+      { name: 'webhookUrl', label: 'Webhook URL', type: 'text', required: false, placeholder: 'Your webhook endpoint URL' }
+    ]
+  },
+  {
+    id: 'pinterest',
+    name: 'Pinterest',
+    icon: Share2,
+    description: 'Pinterest API for pins, boards, shopping, and advertising',
+    category: 'Social Media',
+    fields: [
+      { name: 'appId', label: 'App ID', type: 'text', required: true, placeholder: 'Your Pinterest App ID' },
+      { name: 'appSecret', label: 'App Secret', type: 'password', required: true, placeholder: 'Your Pinterest App Secret' },
+      { name: 'advertiserId', label: 'Advertiser ID', type: 'text', required: false, placeholder: 'Pinterest Advertiser ID (for ads)' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', required: false, placeholder: 'OAuth 2.0 access token' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'reddit',
+    name: 'Reddit',
+    icon: MessageCircle,
+    description: 'Reddit API for posts, comments, moderation, and community management',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Your Reddit App ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Your Reddit App Secret' },
+      { name: 'userAgent', label: 'User Agent', type: 'text', required: true, placeholder: 'platform:app_id:version (by /u/username)' },
+      { name: 'username', label: 'Username', type: 'text', required: false, placeholder: 'Reddit username (for script apps)' },
+      { name: 'password', label: 'Password', type: 'password', required: false, placeholder: 'Reddit password (for script apps)' }
+    ]
+  },
+  {
+    id: 'snapchatads',
+    name: 'Snapchat Ads',
+    icon: Camera,
+    description: 'Snapchat Ads API for advertising campaigns and creative management',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Your Snapchat Ads Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Your Snapchat Ads Client Secret' },
+      { name: 'adAccountId', label: 'Ad Account ID', type: 'text', required: true, placeholder: 'Your Snapchat Ad Account ID' },
+      { name: 'organizationId', label: 'Organization ID', type: 'text', required: false, placeholder: 'Your Snapchat Organization ID' },
+      { name: 'pixelId', label: 'Pixel ID', type: 'text', required: false, placeholder: 'Your Snapchat Pixel ID' },
+      { name: 'refreshToken', label: 'Refresh Token', type: 'password', required: false, placeholder: 'OAuth 2.0 refresh token' }
+    ]
+  },
+  {
+    id: 'discord',
+    name: 'Discord',
+    icon: MessageSquare,
+    description: 'Discord API for bots, servers, channels, and real-time messaging',
+    category: 'Social Media',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Your Discord Application Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Your Discord Application Client Secret' },
+      { name: 'botToken', label: 'Bot Token', type: 'password', required: true, placeholder: 'Your Discord Bot Token' },
+      { name: 'publicKey', label: 'Public Key', type: 'text', required: true, placeholder: 'Your Discord Application Public Key' },
+      { name: 'applicationId', label: 'Application ID', type: 'text', required: true, placeholder: 'Your Discord Application ID' },
+      { name: 'guildId', label: 'Guild ID', type: 'text', required: false, placeholder: 'Specific Guild/Server ID (optional)' }
+    ]
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    icon: Send,
+    description: 'Telegram Bot API for messaging, groups, channels, and bot interactions',
+    category: 'Social Media',
+    fields: [
+      { name: 'botToken', label: 'Bot Token', type: 'password', required: true, placeholder: 'Your Telegram Bot Token from @BotFather' },
+      { name: 'botUsername', label: 'Bot Username', type: 'text', required: false, placeholder: 'Your bot username (without @)' },
+      { name: 'webhookUrl', label: 'Webhook URL', type: 'text', required: false, placeholder: 'HTTPS URL for webhook (optional)' },
+      { name: 'defaultChatId', label: 'Default Chat ID', type: 'text', required: false, placeholder: 'Default chat/channel ID (optional)' }
+    ]
+  },
+  {
+    id: 'slack',
+    name: 'Slack',
+    icon: MessageSquare,
+    description: 'Slack API for workspace messaging, apps, workflows, and integrations',
+    category: 'Collaboration',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Your Slack App Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Your Slack App Client Secret' },
+      { name: 'botToken', label: 'Bot User OAuth Token', type: 'password', required: true, placeholder: 'xoxb-...' },
+      { name: 'signingSecret', label: 'Signing Secret', type: 'password', required: true, placeholder: 'Your Slack App Signing Secret' }
+    ]
+  },
+  {
+    id: 'teams',
+    name: 'Microsoft Teams',
+    icon: Groups,
+    description: 'Microsoft Teams API for collaboration, meetings, channels, and Microsoft 365 integration',
+    category: 'Collaboration',
+    fields: [
+      { name: 'tenantId', label: 'Tenant ID', type: 'text', required: true, placeholder: 'Your Azure AD Tenant ID' },
+      { name: 'clientId', label: 'Client ID', type: 'text', required: true, placeholder: 'Application (client) ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', required: true, placeholder: 'Client secret value' },
+      { name: 'botId', label: 'Bot ID', type: 'text', required: false, placeholder: 'Bot ID (usually same as Client ID)' }
+    ]
+  }
 ];
 
 export const CreateCommunicationAdapter = () => {
@@ -874,8 +1240,8 @@ export const CreateCommunicationAdapter = () => {
  configuration={configuration}
  onConfigurationChange={(field, value) => handleConfigurationChange(field, value)}
  />
- ) : selectedAdapter === 'jms' && adapterMode === 'sender' ? (
- <JmsInboundAdapterConfiguration
+ ) : selectedAdapter === 'ibmmq' && adapterMode === 'sender' ? (
+ <IbmmqInboundAdapterConfiguration
  adapter={{
  name: '',
  type: 'jms',
@@ -885,8 +1251,8 @@ export const CreateCommunicationAdapter = () => {
  }}
  onUpdate={(adapter) => setConfiguration(adapter.configuration)}
  />
- ) : selectedAdapter === 'jms' && adapterMode === 'receiver' ? (
- <JmsOutboundAdapterConfiguration
+ ) : selectedAdapter === 'ibmmq' && adapterMode === 'receiver' ? (
+ <IbmmqOutboundAdapterConfiguration
  adapter={{
  name: '',
  type: 'jms',
@@ -948,7 +1314,119 @@ export const CreateCommunicationAdapter = () => {
  configuration={configuration}
  onConfigurationChange={(field, value) => handleConfigurationChange(field, value)}
  />
- ) : (
+                ) : selectedAdapter === 'facebook' ? (
+                  <FacebookGraphApiConfiguration
+                    config={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                    onTest={() => handleTestConnection()}
+                    mode={isEditMode ? 'edit' : 'create'}
+                  />
+                ) : selectedAdapter === 'facebookads' ? (
+                  <FacebookAdsApiConfiguration
+                    config={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                    onTest={() => handleTestConnection()}
+                    mode={isEditMode ? 'edit' : 'create'}
+                  />
+                ) : selectedAdapter === 'instagram' ? (
+                  <InstagramGraphApiConfiguration
+                    config={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                    onTest={() => handleTestConnection()}
+                    mode={isEditMode ? 'edit' : 'create'}
+                  />
+                ) : selectedAdapter === 'whatsapp' ? (
+                  <WhatsAppBusinessApiConfiguration
+                    config={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                    onTest={() => handleTestConnection()}
+                    mode={isEditMode ? 'edit' : 'create'}
+                  />
+                ) : selectedAdapter === 'twitter' ? (
+                  <TwitterApiV2Configuration
+                    configuration={configuration}
+                    onConfigurationChange={(newConfig) => setConfiguration(newConfig)}
+                    onValidation={(isValid) => {
+                      // Handle validation state if needed
+                    }}
+                  />
+                ) : selectedAdapter === 'twitterads' ? (
+                  <TwitterAdsApiConfiguration
+                    configuration={configuration}
+                    onConfigurationChange={(newConfig) => setConfiguration(newConfig)}
+                    onValidation={(isValid) => {
+                      // Handle validation state if needed
+                    }}
+                  />
+                ) : selectedAdapter === 'linkedin' ? (
+                  <LinkedInApiConfiguration
+                    configuration={configuration}
+                    onConfigurationChange={(newConfig) => setConfiguration(newConfig)}
+                    onValidation={(isValid) => {
+                      // Handle validation state if needed
+                    }}
+                  />
+                ) : selectedAdapter === 'linkedinads' ? (
+                  <LinkedInAdsApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'youtube' ? (
+                  <YouTubeDataApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'youtubeanalytics' ? (
+                  <YouTubeAnalyticsApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'tiktokbusiness' ? (
+                  <TikTokBusinessApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'tiktokcontent' ? (
+                  <TikTokContentApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'facebookmessenger' ? (
+                  <FacebookMessengerApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'pinterest' ? (
+                  <PinterestApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'reddit' ? (
+                  <RedditApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'snapchatads' ? (
+                  <SnapchatAdsApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'discord' ? (
+                  <DiscordApiConfiguration
+                    configuration={configuration}
+                    onChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'telegram' ? (
+                  <TelegramBotApiConfiguration
+                    configuration={configuration}
+                    onConfigurationChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : selectedAdapter === 'slack' ? (
+                  <SlackApiConfiguration
+                    configuration={configuration}
+                    onConfigurationChange={(newConfig) => setConfiguration(newConfig)}
+                  />
+                ) : (
  <Card className="animate-scale-in" style={{ animationDelay: '0.2s' }}>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">

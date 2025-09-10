@@ -54,4 +54,9 @@ public class UserRepositoryImpl implements UserRepository {
     public void delete(User user) {
         jpaRepository.delete(user);
     }
+    
+    @Override
+    public long countByRole(String role) {
+        return jpaRepository.countByRole(role);
+    }
 }

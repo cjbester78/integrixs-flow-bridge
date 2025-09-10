@@ -34,7 +34,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
                 case SFTP -> createSftpSender(configuration);
                 case RFC -> createRfcSender(configuration);
                 case IDOC -> createIdocSender(configuration);
-                case JMS -> createJmsSender(configuration);
+                case IBMMQ -> createIbmmqSender(configuration);
                 case ODATA -> createOdataSender(configuration);
                 case KAFKA -> createKafkaSender(configuration);
                 default -> throw new AdapterException.ConfigurationException(adapterType, 
@@ -72,7 +72,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
                 case SFTP -> createSftpReceiver(configuration);
                 case RFC -> createRfcReceiver(configuration);
                 case IDOC -> createIdocReceiver(configuration);
-                case JMS -> createJmsReceiver(configuration);
+                case IBMMQ -> createIbmmqReceiver(configuration);
                 case ODATA -> createOdataReceiver(configuration);
                 case KAFKA -> createKafkaReceiver(configuration);
                 default -> throw new AdapterException.ConfigurationException(adapterType, 
@@ -204,13 +204,13 @@ public class DefaultAdapterFactory implements AdapterFactory {
                 (com.integrixs.adapters.config.IdocInboundAdapterConfig) configuration);
     }
     
-    private InboundAdapterPort createJmsSender(Object configuration) throws AdapterException {
-        if (!(configuration instanceof com.integrixs.adapters.config.JmsInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JMS, 
-                    "JMS sender requires JmsInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+    private InboundAdapterPort createIbmmqSender(Object configuration) throws AdapterException {
+        if (!(configuration instanceof com.integrixs.adapters.config.IbmmqInboundAdapterConfig)) {
+            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
+                    "IBM MQ sender requires IbmmqInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
-        return new com.integrixs.adapters.infrastructure.adapter.JmsInboundAdapter(
-                (com.integrixs.adapters.config.JmsInboundAdapterConfig) configuration);
+        return new com.integrixs.adapters.infrastructure.adapter.IbmmqInboundAdapter(
+                (com.integrixs.adapters.config.IbmmqInboundAdapterConfig) configuration);
     }
     
     private InboundAdapterPort createOdataSender(Object configuration) throws AdapterException {
@@ -323,13 +323,13 @@ public class DefaultAdapterFactory implements AdapterFactory {
                 (com.integrixs.adapters.config.IdocOutboundAdapterConfig) configuration);
     }
     
-    private OutboundAdapterPort createJmsReceiver(Object configuration) throws AdapterException {
-        if (!(configuration instanceof com.integrixs.adapters.config.JmsOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JMS, 
-                    "JMS receiver requires JmsOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+    private OutboundAdapterPort createIbmmqReceiver(Object configuration) throws AdapterException {
+        if (!(configuration instanceof com.integrixs.adapters.config.IbmmqOutboundAdapterConfig)) {
+            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
+                    "IBM MQ receiver requires IbmmqOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
-        return new com.integrixs.adapters.infrastructure.adapter.JmsOutboundAdapter(
-                (com.integrixs.adapters.config.JmsOutboundAdapterConfig) configuration);
+        return new com.integrixs.adapters.infrastructure.adapter.IbmmqOutboundAdapter(
+                (com.integrixs.adapters.config.IbmmqOutboundAdapterConfig) configuration);
     }
     
     private OutboundAdapterPort createOdataReceiver(Object configuration) throws AdapterException {

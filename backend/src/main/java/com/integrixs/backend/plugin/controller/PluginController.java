@@ -235,6 +235,32 @@ public class PluginController {
             return ResponseEntity.notFound().build();
         }
         
+        // Calculate trends by comparing last 5 minutes with previous 5 minutes
+        var last5Min = performanceMonitor.getStatistics(pluginId, java.time.Duration.ofMinutes(5));
+        var prev5Min = performanceMonitor.getStatistics(pluginId, java.time.Duration.ofMinutes(10));
+        
+        // Calculate trend percentages
+        double messagesTrend = calculateTrendPercentage(
+            last5Min.getSampleCount(), 
+            prev5Min.getSampleCount() - last5Min.getSampleCount()
+        );
+        
+        double successRateTrend = calculateTrendPercentage(
+            last5Min.getSuccessRate(),
+            prev5Min.getSuccessRate()
+        );
+        
+        double responseTimeTrend = calculateTrendPercentage(
+            last5Min.getAverageProcessingTime(),
+            prev5Min.getAverageProcessingTime()
+        );
+        
+        // For errors, we need to get error count from the time windows
+        long recentErrors = last5Min.getSampleCount() - last5Min.getSuccessCount();
+        long previousErrors = (prev5Min.getSampleCount() - last5Min.getSampleCount()) - 
+                             (prev5Min.getSuccessCount() - last5Min.getSuccessCount());
+        double errorsTrend = calculateTrendPercentage(recentErrors, previousErrors);
+        
         return ResponseEntity.ok(Map.of(
             "pluginId", pluginId,
             "messagesProcessed", metrics.getMessagesProcessed().get(),
@@ -243,12 +269,27 @@ public class PluginController {
             "errors", metrics.getErrors().get(),
             "errorSummary", metrics.getErrorCounts(),
             "trend", Map.of(
-                "messages", 0, // TODO: Calculate trends
-                "successRate", 0,
-                "responseTime", 0,
-                "errors", 0
+                "messages", messagesTrend,
+                "successRate", successRateTrend,
+                "responseTime", responseTimeTrend,
+                "errors", errorsTrend
+            ),
+            "recentStats", Map.of(
+                "last5Minutes", last5Min,
+                "sampleCount", last5Min.getSampleCount()
             )
         ));
+    }
+    
+    /**
+     * Calculate trend percentage between current and previous values
+     * Positive percentage indicates increase, negative indicates decrease
+     */
+    private double calculateTrendPercentage(double current, double previous) {
+        if (previous == 0) {
+            return current > 0 ? 100.0 : 0.0;
+        }
+        return ((current - previous) / previous) * 100.0;
     }
     
     @GetMapping("/{pluginId}/performance-report")

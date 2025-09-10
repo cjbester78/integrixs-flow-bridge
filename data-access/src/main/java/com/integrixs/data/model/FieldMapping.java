@@ -62,12 +62,34 @@ public class FieldMapping {
     private String sourceFields;
 
     /**
-     * Target field name
+     * Target field name (deprecated - use targetFields for 1-to-many support)
      */
-    @Column(name = "target_field", length = 500, nullable = false)
-    @NotBlank(message = "Target field is required")
+    @Column(name = "target_field", length = 500)
     @Size(max = 500, message = "Target field cannot exceed 500 characters")
     private String targetField;
+    
+    /**
+     * Target fields in JSON format (supports 1-to-many mappings)
+     */
+    @Column(name = "target_fields", columnDefinition = "json")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Size(max = 5000, message = "Target fields cannot exceed 5000 characters")
+    private String targetFields;
+    
+    /**
+     * Mapping type indicating how source maps to target
+     */
+    @Column(name = "mapping_type", length = 50)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private MappingType mappingType = MappingType.DIRECT;
+    
+    /**
+     * For SPLIT type: defines how to split source into multiple targets
+     */
+    @Column(name = "split_configuration", columnDefinition = "json")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    private String splitConfiguration;
 
     /**
      * JavaScript/Java function for transformation
@@ -218,6 +240,12 @@ public class FieldMapping {
      */
     @Transient
     private List<String> parsedSourceFields;
+    
+    /**
+     * Transient field for parsed target fields list
+     */
+    @Transient
+    private List<String> parsedTargetFields;
 
     /**
      * Gets the source fields as a list
@@ -251,6 +279,71 @@ public class FieldMapping {
         }
     }
 
+    /**
+     * Gets the target fields as a list
+     * 
+     * @return list of target field names
+     */
+    public List<String> getTargetFieldsList() {
+        // If targetFields is set, use it (new multi-target support)
+        if (targetFields != null && !targetFields.isEmpty()) {
+            if (parsedTargetFields == null) {
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    parsedTargetFields = mapper.readValue(targetFields, new TypeReference<List<String>>() {});
+                } catch (Exception e) {
+                    parsedTargetFields = Collections.emptyList();
+                }
+            }
+            return parsedTargetFields != null ? parsedTargetFields : Collections.emptyList();
+        }
+        // Fall back to single targetField for backward compatibility
+        else if (targetField != null && !targetField.isEmpty()) {
+            return Collections.singletonList(targetField);
+        }
+        return Collections.emptyList();
+    }
+    
+    /**
+     * Sets the target fields from a list
+     * 
+     * @param fields list of target field names
+     */
+    public void setTargetFieldsList(List<String> fields) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            this.targetFields = mapper.writeValueAsString(fields);
+            this.parsedTargetFields = fields;
+            // Clear single targetField when using multiple
+            if (fields != null && fields.size() > 1) {
+                this.targetField = null;
+            } else if (fields != null && fields.size() == 1) {
+                // Set single field for backward compatibility
+                this.targetField = fields.get(0);
+            }
+        } catch (Exception e) {
+            this.targetFields = "[]";
+        }
+    }
+    
+    /**
+     * Checks if this is a 1-to-many mapping
+     */
+    public boolean isOneToManyMapping() {
+        return getTargetFieldsList().size() > 1;
+    }
+    
+    /**
+     * Mapping type enum
+     */
+    public enum MappingType {
+        DIRECT,       // Direct field to field(s) mapping
+        SPLIT,        // Split single value to multiple fields
+        AGGREGATE,    // Aggregate multiple sources to multiple targets
+        CONDITIONAL,  // Conditional mapping based on rules
+        ITERATE       // Iterate over arrays/collections
+    }
+    
     /**
      * Convenience method to parse inputTypes JSON into List<String>
      * 

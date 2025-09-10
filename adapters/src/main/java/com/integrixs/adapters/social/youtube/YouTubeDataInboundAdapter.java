@@ -1,0 +1,598 @@
+package com.integrixs.adapters.social.youtube;
+
+import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
+import com.integrixs.adapters.social.youtube.YouTubeDataApiConfig.*;
+import com.integrixs.core.api.channel.Message;
+import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.CredentialEncryptionService;
+import com.integrixs.shared.enums.MessageStatus;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+
+import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Slf4j
+@Component("youTubeDataInboundAdapter")
+public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter<YouTubeDataApiConfig> {
+    
+    private static final String YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
+    private static final String YOUTUBE_UPLOAD_BASE = "https://www.googleapis.com/upload/youtube/v3";
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
+    private final Map<String, String> lastEtag = new ConcurrentHashMap<>();
+    
+    @Autowired
+    public YouTubeDataInboundAdapter(
+            YouTubeDataApiConfig config,
+            RateLimiterService rateLimiterService,
+            OAuth2TokenRefreshService tokenRefreshService,
+            CredentialEncryptionService credentialEncryptionService,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper) {
+        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+    }
+    
+    @Override
+    public void startListening() throws AdapterException {
+        if (!isConfigValid()) {
+            throw new AdapterException("YouTube Data API configuration is invalid");
+        }
+        
+        log.info("Starting YouTube Data API inbound adapter for channel: {}", config.getChannelId());
+        
+        // Refresh access token if needed
+        refreshAccessTokenIfNeeded();
+        
+        isListening = true;
+        
+        // Initialize polling based on enabled features
+        scheduleChannelActivityPolling();
+        scheduleVideoCommentsPolling();
+        scheduleSubscriberUpdatesPolling();
+        scheduleLiveStreamPolling();
+        scheduleCommunityPostPolling();
+        schedulePlaylistUpdatesPolling();
+    }
+    
+    @Override
+    public void stopListening() {
+        log.info("Stopping YouTube Data API inbound adapter");
+        isListening = false;
+    }
+    
+    @Override
+    protected Message processInboundData(String data, String type) {
+        try {
+            Message message = new Message();
+            message.setMessageId(UUID.randomUUID().toString());
+            message.setTimestamp(Instant.now());
+            message.setStatus(MessageStatus.RECEIVED);
+            
+            JsonNode dataNode = objectMapper.readTree(data);
+            
+            switch (type) {
+                case "CHANNEL_ACTIVITY":
+                    message = processChannelActivity(dataNode);
+                    break;
+                case "VIDEO_COMMENT":
+                    message = processVideoComment(dataNode);
+                    break;
+                case "SUBSCRIBER_UPDATE":
+                    message = processSubscriberUpdate(dataNode);
+                    break;
+                case "LIVE_STREAM":
+                    message = processLiveStream(dataNode);
+                    break;
+                case "COMMUNITY_POST":
+                    message = processCommunityPost(dataNode);
+                    break;
+                case "PLAYLIST_UPDATE":
+                    message = processPlaylistUpdate(dataNode);
+                    break;
+                case "VIDEO_STATISTICS":
+                    message = processVideoStatistics(dataNode);
+                    break;
+                case "CHANNEL_STATISTICS":
+                    message = processChannelStatistics(dataNode);
+                    break;
+                default:
+                    message.setPayload(data);
+                    message.setHeaders(Map.of("type", type, "source", "youtube_data"));
+            }
+            
+            return message;
+        } catch (Exception e) {
+            log.error("Error processing YouTube Data inbound data", e);
+            throw new AdapterException("Failed to process inbound data", e);
+        }
+    }
+    
+    @Override
+    public Message processWebhookData(Map<String, Object> webhookData) {
+        try {
+            // YouTube uses push notifications (webhooks) for real-time updates
+            String topic = webhookData.getOrDefault("topic", "").toString();
+            
+            if (topic.contains("feeds/videos")) {
+                // New video upload notification
+                return processVideoUploadNotification(webhookData);
+            } else if (topic.contains("channel")) {
+                // Channel update notification
+                return processChannelUpdateNotification(webhookData);
+            }
+            
+            return null;
+        } catch (Exception e) {
+            log.error("Error processing YouTube webhook data", e);
+            return null;
+        }
+    }
+    
+    // Scheduled polling methods
+    @Scheduled(fixedDelayString = "${integrixs.adapters.youtube.data.activityPollingInterval:300000}") // 5 minutes
+    private void pollChannelActivity() {
+        if (!isListening || !config.getFeatures().isEnableChannelManagement()) return;
+        
+        try {
+            rateLimiterService.acquire("youtube_data_api", 1);
+            
+            String url = YOUTUBE_API_BASE + "/activities";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "snippet,contentDetails");
+            params.put("channelId", config.getChannelId());
+            params.put("maxResults", "50");
+            
+            LocalDateTime lastPoll = lastPollTime.get("activities");
+            if (lastPoll != null) {
+                params.put("publishedAfter", lastPoll.format(DateTimeFormatter.ISO_INSTANT));
+            }
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                processInboundData(response.getBody(), "CHANNEL_ACTIVITY");
+                lastPollTime.put("activities", LocalDateTime.now());
+            }
+        } catch (Exception e) {
+            log.error("Error polling channel activity", e);
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.youtube.data.commentsPollingInterval:600000}") // 10 minutes
+    private void pollVideoComments() {
+        if (!isListening || !config.getFeatures().isEnableCommentManagement()) return;
+        
+        try {
+            rateLimiterService.acquire("youtube_data_api", 2);
+            
+            // First get recent videos
+            String videosUrl = YOUTUBE_API_BASE + "/search";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "id");
+            params.put("channelId", config.getChannelId());
+            params.put("type", "video");
+            params.put("order", "date");
+            params.put("maxResults", "10");
+            
+            ResponseEntity<String> videosResponse = makeApiCall(videosUrl, HttpMethod.GET, params);
+            if (videosResponse.getStatusCode().is2xxSuccessful()) {
+                JsonNode videos = objectMapper.readTree(videosResponse.getBody());
+                
+                // Poll comments for each recent video
+                if (videos.has("items")) {
+                    for (JsonNode video : videos.get("items")) {
+                        String videoId = video.path("id").path("videoId").asText();
+                        pollCommentsForVideo(videoId);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error polling video comments", e);
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.youtube.data.subscriberPollingInterval:3600000}") // 1 hour
+    private void pollSubscriberUpdates() {
+        if (!isListening || !config.getFeatures().isEnableSubscriberManagement()) return;
+        
+        try {
+            rateLimiterService.acquire("youtube_data_api", 1);
+            
+            String url = YOUTUBE_API_BASE + "/channels";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "statistics");
+            params.put("id", config.getChannelId());
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                processInboundData(response.getBody(), "CHANNEL_STATISTICS");
+            }
+        } catch (Exception e) {
+            log.error("Error polling subscriber updates", e);
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.youtube.data.liveStreamPollingInterval:60000}") // 1 minute
+    private void pollLiveStreams() {
+        if (!isListening || !config.getFeatures().isEnableLiveStreaming()) return;
+        
+        try {
+            rateLimiterService.acquire("youtube_data_api", 1);
+            
+            String url = YOUTUBE_API_BASE + "/liveBroadcasts";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "snippet,status,contentDetails");
+            params.put("broadcastStatus", "active,upcoming");
+            params.put("maxResults", "10");
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                processInboundData(response.getBody(), "LIVE_STREAM");
+            }
+        } catch (Exception e) {
+            log.error("Error polling live streams", e);
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.youtube.data.communityPollingInterval:1800000}") // 30 minutes
+    private void pollCommunityPosts() {
+        if (!isListening || !config.getFeatures().isEnableCommunityPosts()) return;
+        
+        try {
+            // Community posts are part of channel activities
+            pollChannelActivity();
+        } catch (Exception e) {
+            log.error("Error polling community posts", e);
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.youtube.data.playlistPollingInterval:1800000}") // 30 minutes
+    private void pollPlaylistUpdates() {
+        if (!isListening || !config.getFeatures().isEnablePlaylistManagement()) return;
+        
+        try {
+            rateLimiterService.acquire("youtube_data_api", 1);
+            
+            String url = YOUTUBE_API_BASE + "/playlists";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "snippet,contentDetails");
+            params.put("channelId", config.getChannelId());
+            params.put("maxResults", "50");
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                processInboundData(response.getBody(), "PLAYLIST_UPDATE");
+            }
+        } catch (Exception e) {
+            log.error("Error polling playlist updates", e);
+        }
+    }
+    
+    // Process different types of data
+    private Message processChannelActivity(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "CHANNEL_ACTIVITY");
+        headers.put("source", "youtube_data");
+        headers.put("channelId", config.getChannelId());
+        
+        if (data.has("items") && data.get("items").size() > 0) {
+            JsonNode firstItem = data.get("items").get(0);
+            String activityType = firstItem.path("snippet").path("type").asText();
+            headers.put("activityType", activityType);
+            
+            if ("upload".equals(activityType)) {
+                headers.put("videoId", firstItem.path("contentDetails").path("upload").path("videoId").asText());
+            }
+        }
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processVideoComment(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "VIDEO_COMMENT");
+        headers.put("source", "youtube_data");
+        
+        if (data.has("items")) {
+            headers.put("commentCount", data.get("items").size());
+        }
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processSubscriberUpdate(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "SUBSCRIBER_UPDATE");
+        headers.put("source", "youtube_data");
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processLiveStream(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "LIVE_STREAM");
+        headers.put("source", "youtube_data");
+        
+        if (data.has("items")) {
+            int activeStreams = 0;
+            int upcomingStreams = 0;
+            
+            for (JsonNode item : data.get("items")) {
+                String status = item.path("status").path("lifeCycleStatus").asText();
+                if ("live".equals(status) || "liveStarting".equals(status)) {
+                    activeStreams++;
+                } else if ("upcoming".equals(status)) {
+                    upcomingStreams++;
+                }
+            }
+            
+            headers.put("activeStreams", activeStreams);
+            headers.put("upcomingStreams", upcomingStreams);
+        }
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processCommunityPost(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "COMMUNITY_POST");
+        headers.put("source", "youtube_data");
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processPlaylistUpdate(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "PLAYLIST_UPDATE");
+        headers.put("source", "youtube_data");
+        
+        if (data.has("items")) {
+            headers.put("playlistCount", data.get("items").size());
+        }
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processVideoStatistics(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "VIDEO_STATISTICS");
+        headers.put("source", "youtube_data");
+        
+        if (data.has("items") && data.get("items").size() > 0) {
+            JsonNode stats = data.get("items").get(0).path("statistics");
+            headers.put("viewCount", stats.path("viewCount").asLong());
+            headers.put("likeCount", stats.path("likeCount").asLong());
+            headers.put("commentCount", stats.path("commentCount").asLong());
+        }
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    private Message processChannelStatistics(JsonNode data) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "CHANNEL_STATISTICS");
+        headers.put("source", "youtube_data");
+        
+        if (data.has("items") && data.get("items").size() > 0) {
+            JsonNode stats = data.get("items").get(0).path("statistics");
+            headers.put("subscriberCount", stats.path("subscriberCount").asLong());
+            headers.put("viewCount", stats.path("viewCount").asLong());
+            headers.put("videoCount", stats.path("videoCount").asLong());
+        }
+        
+        message.setHeaders(headers);
+        message.setPayload(data.toString());
+        
+        return message;
+    }
+    
+    // Helper methods
+    private void pollCommentsForVideo(String videoId) {
+        try {
+            String url = YOUTUBE_API_BASE + "/commentThreads";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "snippet,replies");
+            params.put("videoId", videoId);
+            params.put("maxResults", "100");
+            params.put("order", "time");
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                processInboundData(response.getBody(), "VIDEO_COMMENT");
+            }
+        } catch (Exception e) {
+            log.error("Error polling comments for video: " + videoId, e);
+        }
+    }
+    
+    private Message processVideoUploadNotification(Map<String, Object> webhookData) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "VIDEO_UPLOAD_NOTIFICATION");
+        headers.put("source", "youtube_webhook");
+        headers.put("videoId", webhookData.getOrDefault("videoId", ""));
+        
+        message.setHeaders(headers);
+        message.setPayload(objectMapper.valueToTree(webhookData).toString());
+        
+        return message;
+    }
+    
+    private Message processChannelUpdateNotification(Map<String, Object> webhookData) {
+        Message message = new Message();
+        message.setMessageId(UUID.randomUUID().toString());
+        message.setTimestamp(Instant.now());
+        message.setStatus(MessageStatus.RECEIVED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("type", "CHANNEL_UPDATE_NOTIFICATION");
+        headers.put("source", "youtube_webhook");
+        
+        message.setHeaders(headers);
+        message.setPayload(objectMapper.valueToTree(webhookData).toString());
+        
+        return message;
+    }
+    
+    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, Map<String, String> params) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(getAccessToken());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        // Add If-None-Match header for etag support
+        String etagKey = url + params.toString();
+        if (lastEtag.containsKey(etagKey)) {
+            headers.set("If-None-Match", lastEtag.get(etagKey));
+        }
+        
+        StringBuilder urlBuilder = new StringBuilder(url);
+        if (!params.isEmpty()) {
+            urlBuilder.append("?");
+            params.forEach((key, value) -> 
+                urlBuilder.append(key).append("=").append(value).append("&"));
+            urlBuilder.setLength(urlBuilder.length() - 1);
+        }
+        
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
+        
+        // Store etag for future requests
+        if (response.getHeaders().getETag() != null) {
+            lastEtag.put(etagKey, response.getHeaders().getETag());
+        }
+        
+        return response;
+    }
+    
+    private String getAccessToken() {
+        return credentialEncryptionService.decrypt(config.getAccessToken());
+    }
+    
+    private void refreshAccessTokenIfNeeded() {
+        try {
+            if (config.getRefreshToken() != null) {
+                tokenRefreshService.refreshToken(
+                    config.getClientId(),
+                    config.getClientSecret(),
+                    config.getRefreshToken(),
+                    "https://oauth2.googleapis.com/token"
+                );
+            }
+        } catch (Exception e) {
+            log.error("Error refreshing YouTube access token", e);
+        }
+    }
+    
+    private void scheduleChannelActivityPolling() {
+        log.info("Scheduled channel activity polling for YouTube Data API");
+    }
+    
+    private void scheduleVideoCommentsPolling() {
+        log.info("Scheduled video comments polling for YouTube Data API");
+    }
+    
+    private void scheduleSubscriberUpdatesPolling() {
+        log.info("Scheduled subscriber updates polling for YouTube Data API");
+    }
+    
+    private void scheduleLiveStreamPolling() {
+        log.info("Scheduled live stream polling for YouTube Data API");
+    }
+    
+    private void scheduleCommunityPostPolling() {
+        log.info("Scheduled community post polling for YouTube Data API");
+    }
+    
+    private void schedulePlaylistUpdatesPolling() {
+        log.info("Scheduled playlist updates polling for YouTube Data API");
+    }
+    
+    private boolean isConfigValid() {
+        return config != null 
+            && config.getClientId() != null
+            && config.getClientSecret() != null
+            && config.getAccessToken() != null;
+    }
+}

@@ -12,7 +12,7 @@ spring:
   application:
     name: integrixs-flow-bridge
   profiles:
-    active: dev
+    active: dev,camunda,messaging
   main:
     allow-bean-definition-overriding: true
   servlet:

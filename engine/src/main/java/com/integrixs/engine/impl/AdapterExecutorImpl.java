@@ -7,6 +7,7 @@ import com.integrixs.adapters.domain.model.FetchRequest;
 import com.integrixs.adapters.domain.model.SendRequest;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
+import com.integrixs.adapters.domain.port.StreamingAdapterPort;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
@@ -134,14 +135,81 @@ public class AdapterExecutorImpl implements AdapterExecutor {
     
     @Override
     public WritableByteChannel getWritableChannel(String adapterId, Map<String, Object> config) {
-        // TODO: Implement streaming support when needed
-        throw new UnsupportedOperationException("WritableByteChannel not yet implemented");
+        try {
+            CommunicationAdapter adapter = getAdapter(adapterId);
+            validateOutboundAdapter(adapter);
+            
+            AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
+            Map<String, Object> adapterConfig = parseConfiguration(adapter.getConfiguration());
+            
+            // Merge provided config with adapter config
+            if (config != null && !config.isEmpty()) {
+                adapterConfig.putAll(config);
+            }
+            
+            // Create outbound adapter
+            OutboundAdapterPort outboundAdapter = adapterFactoryManager.createReceiver(adapterType, adapterConfig);
+            
+            // Check if adapter supports streaming
+            if (!(outboundAdapter instanceof StreamingAdapterPort)) {
+                throw new UnsupportedOperationException(
+                    "Adapter " + adapterId + " (" + adapter.getType() + ") does not support streaming"
+                );
+            }
+            
+            StreamingAdapterPort streamingAdapter = (StreamingAdapterPort) outboundAdapter;
+            
+            // Check if adapter supports WritableByteChannel specifically
+            if (!streamingAdapter.supportsWritableByteChannel()) {
+                throw new UnsupportedOperationException(
+                    "Adapter " + adapterId + " does not support WritableByteChannel, use OutputStream instead"
+                );
+            }
+            
+            log.info("Creating WritableByteChannel for adapter: {} ({})", adapter.getName(), adapter.getType());
+            return streamingAdapter.getWritableChannel(adapterConfig);
+            
+        } catch (UnsupportedOperationException e) {
+            throw e; // Re-throw as-is
+        } catch (Exception e) {
+            log.error("Error creating WritableByteChannel for adapter {}: {}", adapterId, e.getMessage(), e);
+            throw new RuntimeException("Failed to create WritableByteChannel for adapter " + adapterId, e);
+        }
     }
     
     @Override
     public OutputStream getOutputStream(String adapterId, Map<String, Object> config) {
-        // TODO: Implement streaming support when needed
-        throw new UnsupportedOperationException("OutputStream not yet implemented");
+        try {
+            CommunicationAdapter adapter = getAdapter(adapterId);
+            validateOutboundAdapter(adapter);
+            
+            AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
+            Map<String, Object> adapterConfig = parseConfiguration(adapter.getConfiguration());
+            
+            // Merge provided config with adapter config
+            if (config != null && !config.isEmpty()) {
+                adapterConfig.putAll(config);
+            }
+            
+            // Create outbound adapter
+            OutboundAdapterPort outboundAdapter = adapterFactoryManager.createReceiver(adapterType, adapterConfig);
+            
+            // Check if adapter supports streaming
+            if (!(outboundAdapter instanceof StreamingAdapterPort)) {
+                // Fallback: Create a buffered OutputStream that collects data and sends when closed
+                log.info("Adapter {} does not support native streaming, using buffered approach", adapterId);
+                return new BufferedAdapterOutputStream(adapterId, outboundAdapter, adapterConfig);
+            }
+            
+            StreamingAdapterPort streamingAdapter = (StreamingAdapterPort) outboundAdapter;
+            
+            log.info("Creating OutputStream for adapter: {} ({})", adapter.getName(), adapter.getType());
+            return streamingAdapter.getOutputStream(adapterConfig);
+            
+        } catch (Exception e) {
+            log.error("Error creating OutputStream for adapter {}: {}", adapterId, e.getMessage(), e);
+            throw new RuntimeException("Failed to create OutputStream for adapter " + adapterId, e);
+        }
     }
     
     private CommunicationAdapter getAdapter(String adapterId) {
@@ -173,7 +241,7 @@ public class AdapterExecutorImpl implements AdapterExecutor {
             case JDBC -> AdapterConfiguration.AdapterTypeEnum.JDBC;
             case FTP -> AdapterConfiguration.AdapterTypeEnum.FTP;
             case SFTP -> AdapterConfiguration.AdapterTypeEnum.SFTP;
-            case JMS -> AdapterConfiguration.AdapterTypeEnum.JMS;
+            case IBMMQ -> AdapterConfiguration.AdapterTypeEnum.IBMMQ;
             case KAFKA -> AdapterConfiguration.AdapterTypeEnum.KAFKA;
             case SOAP -> AdapterConfiguration.AdapterTypeEnum.SOAP;
             case FILE -> AdapterConfiguration.AdapterTypeEnum.FILE;
@@ -213,5 +281,83 @@ public class AdapterExecutorImpl implements AdapterExecutor {
             }
         }
         return data.toString();
+    }
+    
+    /**
+     * Buffered OutputStream implementation for adapters that don't support native streaming
+     * Collects data in memory and sends it when the stream is closed
+     */
+    private class BufferedAdapterOutputStream extends OutputStream {
+        private final String adapterId;
+        private final OutboundAdapterPort adapter;
+        private final Map<String, Object> config;
+        private final ByteArrayOutputStream buffer;
+        private boolean closed = false;
+        
+        public BufferedAdapterOutputStream(String adapterId, OutboundAdapterPort adapter, Map<String, Object> config) {
+            this.adapterId = adapterId;
+            this.adapter = adapter;
+            this.config = config;
+            this.buffer = new ByteArrayOutputStream();
+        }
+        
+        @Override
+        public void write(int b) throws java.io.IOException {
+            ensureOpen();
+            buffer.write(b);
+        }
+        
+        @Override
+        public void write(byte[] b, int off, int len) throws java.io.IOException {
+            ensureOpen();
+            buffer.write(b, off, len);
+        }
+        
+        @Override
+        public void flush() throws java.io.IOException {
+            ensureOpen();
+            buffer.flush();
+            // Note: We don't send data on flush, only on close
+            // This prevents partial data from being sent
+        }
+        
+        @Override
+        public void close() throws java.io.IOException {
+            if (closed) {
+                return;
+            }
+            
+            try {
+                // Send the collected data
+                byte[] data = buffer.toByteArray();
+                if (data.length > 0) {
+                    SendRequest sendRequest = SendRequest.builder()
+                        .requestId(UUID.randomUUID().toString())
+                        .adapterId(adapterId)
+                        .payload(data)
+                        .parameters(config)
+                        .synchronous(true)
+                        .build();
+                    
+                    AdapterOperationResult result = adapter.send(sendRequest);
+                    
+                    if (!result.isSuccess()) {
+                        throw new java.io.IOException("Failed to send buffered data: " + result.getMessage());
+                    }
+                    
+                    log.debug("Successfully sent {} bytes through buffered stream to adapter {}", 
+                        data.length, adapterId);
+                }
+            } finally {
+                closed = true;
+                buffer.close();
+            }
+        }
+        
+        private void ensureOpen() throws java.io.IOException {
+            if (closed) {
+                throw new java.io.IOException("Stream is closed");
+            }
+        }
     }
 }

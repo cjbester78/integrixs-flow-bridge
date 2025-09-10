@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,6 +57,9 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
                 .build();
         
         activeWorkflows.put(workflowId, context);
+        
+        // Save initial input data for potential resume
+        context.addGlobalVariable("inputData", inputData);
         
         // Save workflow to repository
         workflowRepository.save(context);
@@ -173,8 +177,35 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
     public boolean suspendWorkflow(String workflowId) {
         WorkflowContext context = activeWorkflows.get(workflowId);
         if (context != null && context.getState() == WorkflowContext.WorkflowState.IN_PROGRESS) {
+            // Set state to SUSPENDED
             context.setState(WorkflowContext.WorkflowState.SUSPENDED);
-            log.info("Workflow {} suspended", workflowId);
+            
+            // Save any current data to global variables for resume
+            if (context.getCurrentStep() != null) {
+                context.addMetadata("suspendedAtStep", context.getCurrentStep().getStepId());
+                context.addMetadata("suspendedAtStepName", context.getCurrentStep().getStepName());
+                
+                // If there's output data from the last completed step, save it
+                for (WorkflowStep step : context.getSteps()) {
+                    if (step.getStatus() == WorkflowStep.StepStatus.COMPLETED && 
+                        step.getOutputData() != null) {
+                        context.addGlobalVariable("lastStepOutputData", step.getOutputData());
+                    }
+                }
+            }
+            
+            // Save suspension time
+            context.addMetadata("suspendedAt", LocalDateTime.now().toString());
+            
+            // Persist to repository
+            workflowRepository.save(context);
+            
+            // Log suspension event
+            saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_SUSPENDED, 
+                "Workflow suspended at step: " + 
+                (context.getCurrentStep() != null ? context.getCurrentStep().getStepName() : "unknown"));
+            
+            log.info("Workflow {} suspended successfully", workflowId);
             return true;
         }
         return false;
@@ -182,14 +213,48 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
     
     @Override
     public boolean resumeWorkflow(String workflowId) {
+        // Get context from memory or load from repository
         WorkflowContext context = activeWorkflows.get(workflowId);
-        if (context != null && context.getState() == WorkflowContext.WorkflowState.SUSPENDED) {
-            context.setState(WorkflowContext.WorkflowState.IN_PROGRESS);
-            log.info("Workflow {} resumed", workflowId);
-            // TODO: Implement actual resume logic
-            return true;
+        if (context == null) {
+            Optional<WorkflowContext> savedContext = workflowRepository.findById(workflowId);
+            if (savedContext.isPresent()) {
+                context = savedContext.get();
+                activeWorkflows.put(workflowId, context);
+            } else {
+                log.warn("Workflow {} not found for resume", workflowId);
+                return false;
+            }
         }
-        return false;
+        
+        // Check if workflow is in suspended state
+        if (context.getState() != WorkflowContext.WorkflowState.SUSPENDED) {
+            log.warn("Workflow {} is not in SUSPENDED state, current state: {}", workflowId, context.getState());
+            return false;
+        }
+        
+        // Update state to IN_PROGRESS
+        context.setState(WorkflowContext.WorkflowState.IN_PROGRESS);
+        workflowRepository.save(context);
+        log.info("Workflow {} state changed to IN_PROGRESS", workflowId);
+        
+        // Log resume event
+        saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_RESUMED, "Workflow resumed from suspended state");
+        
+        // Execute resume logic asynchronously
+        CompletableFuture.runAsync(() -> {
+            try {
+                resumeWorkflowExecution(context);
+            } catch (Exception e) {
+                log.error("Failed to resume workflow {}: {}", workflowId, e.getMessage(), e);
+                context.setState(WorkflowContext.WorkflowState.FAILED);
+                context.addMetadata("resumeError", e.getMessage());
+                workflowRepository.save(context);
+                saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_FAILED, 
+                    "Workflow failed during resume: " + e.getMessage());
+            }
+        });
+        
+        return true;
     }
     
     @Override
@@ -330,5 +395,122 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
         }
         
         workflowEventRepository.save(event);
+    }
+    
+    /**
+     * Resume workflow execution from the last completed step
+     */
+    private void resumeWorkflowExecution(WorkflowContext context) {
+        log.info("Resuming workflow {} execution", context.getWorkflowId());
+        
+        // Find the last completed step and the next step to execute
+        WorkflowStep lastCompletedStep = null;
+        WorkflowStep nextStepToExecute = null;
+        Object lastOutputData = null;
+        
+        for (int i = 0; i < context.getSteps().size(); i++) {
+            WorkflowStep step = context.getSteps().get(i);
+            
+            if (step.getStatus() == WorkflowStep.StepStatus.COMPLETED) {
+                lastCompletedStep = step;
+                // Get the output data from the last completed step
+                if (step.getOutputData() != null) {
+                    lastOutputData = step.getOutputData();
+                }
+            } else if (step.getStatus() == WorkflowStep.StepStatus.IN_PROGRESS ||
+                       step.getStatus() == WorkflowStep.StepStatus.PENDING ||
+                       step.getStatus() == WorkflowStep.StepStatus.RETRY) {
+                nextStepToExecute = step;
+                break;
+            }
+        }
+        
+        // If no next step found, check if workflow should be completed
+        if (nextStepToExecute == null) {
+            if (lastCompletedStep != null && 
+                context.getSteps().indexOf(lastCompletedStep) == context.getSteps().size() - 1) {
+                // All steps completed
+                context.setState(WorkflowContext.WorkflowState.COMPLETED);
+                context.setEndTime(System.currentTimeMillis());
+                if (lastOutputData != null) {
+                    context.addGlobalVariable("outputData", lastOutputData);
+                }
+                workflowRepository.save(context);
+                saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_COMPLETED, 
+                    "Workflow completed after resume");
+                log.info("Workflow {} completed after resume", context.getWorkflowId());
+                return;
+            }
+        }
+        
+        // Prepare data for resume
+        Object currentData = lastOutputData;
+        if (currentData == null) {
+            // Try to get initial input data from global variables
+            currentData = context.getGlobalVariables().get("inputData");
+        }
+        
+        // Resume execution from the next step
+        if (nextStepToExecute != null) {
+            log.info("Resuming workflow {} from step: {}", context.getWorkflowId(), nextStepToExecute.getStepName());
+            
+            // If the step was in progress, reset it to retry
+            if (nextStepToExecute.getStatus() == WorkflowStep.StepStatus.IN_PROGRESS) {
+                nextStepToExecute.setStatus(WorkflowStep.StepStatus.RETRY);
+                if (nextStepToExecute.getRetryCount() == null) {
+                    nextStepToExecute.setRetryCount(0);
+                }
+                nextStepToExecute.setRetryCount(nextStepToExecute.getRetryCount() + 1);
+            }
+            
+            // Continue execution from this step
+            boolean foundStartingStep = false;
+            for (WorkflowStep step : context.getSteps()) {
+                if (!foundStartingStep) {
+                    if (step.getStepId().equals(nextStepToExecute.getStepId())) {
+                        foundStartingStep = true;
+                    } else {
+                        continue;
+                    }
+                }
+                
+                // Execute the step
+                context.setCurrentStep(step);
+                currentData = executeStepWithData(step, context, currentData);
+                
+                // Check if step failed
+                if (step.getStatus() == WorkflowStep.StepStatus.FAILED) {
+                    context.setState(WorkflowContext.WorkflowState.FAILED);
+                    context.setEndTime(System.currentTimeMillis());
+                    context.addMetadata("failedDuringResume", true);
+                    context.addMetadata("failedStep", step.getStepName());
+                    workflowRepository.save(context);
+                    saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_FAILED, 
+                        "Workflow failed during resume at step: " + step.getStepName());
+                    log.error("Workflow {} failed during resume at step: {}", 
+                        context.getWorkflowId(), step.getStepName());
+                    return;
+                }
+                
+                // Save progress after each step
+                workflowRepository.save(context);
+            }
+            
+            // Mark workflow as completed if all steps finished
+            context.setState(WorkflowContext.WorkflowState.COMPLETED);
+            context.setEndTime(System.currentTimeMillis());
+            context.addGlobalVariable("outputData", currentData);
+            workflowRepository.save(context);
+            saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_COMPLETED, 
+                "Workflow completed successfully after resume");
+            log.info("Workflow {} completed successfully after resume", context.getWorkflowId());
+            
+        } else {
+            // No steps to execute - this shouldn't happen normally
+            log.warn("No steps found to resume for workflow {}", context.getWorkflowId());
+            context.setState(WorkflowContext.WorkflowState.FAILED);
+            context.addMetadata("resumeError", "No steps found to resume");
+            workflowRepository.save(context);
+        }
     }
 }

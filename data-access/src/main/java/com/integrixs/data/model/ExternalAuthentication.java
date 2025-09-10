@@ -85,6 +85,13 @@ public class ExternalAuthentication {
     
     @Column(name = "oauth1_token_secret", columnDefinition = "TEXT")
     private String oauth1TokenSecret;
+    
+    @Column(name = "oauth1_signature_method", length = 50)
+    @Builder.Default
+    private String oauth1SignatureMethod = "HMAC-SHA1";
+    
+    @Column(name = "oauth1_realm", length = 255)
+    private String oauth1Realm;
 
     // OAuth 2.0 fields
     @Column(name = "client_id", length = 255)

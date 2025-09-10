@@ -106,6 +106,10 @@ class AdapterTypeService {
   async updateAdapterType(id: string, updates: Partial<AdapterType>): Promise<ApiResponse<void>> {
     return api.put(`/adapter-types/${id}`, updates);
   }
+  
+  async getAdapterCountsByCategory(): Promise<ApiResponse<Record<string, number>>> {
+    return api.get('/adapter-types/counts-by-category');
+  }
 }
 
 export const adapterTypeService = new AdapterTypeService();

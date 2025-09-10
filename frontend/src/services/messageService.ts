@@ -117,7 +117,7 @@ class MessageService {
  }
 
  // WebSocket Real-time Updates
- connectWebSocket(businessComponentId?: string): void {
+ connectWebSocket(businessComponentId?: string, connectionParams?: Record<string, any>): void {
 
  if (this.websocket?.readyState === WebSocket.OPEN) {
  return; // Already connected
@@ -132,6 +132,14 @@ class MessageService {
  const params = new URLSearchParams();
  if (businessComponentId) {
  params.append('businessComponentId', businessComponentId);
+ }
+ // Add additional connection parameters for filtering
+ if (connectionParams) {
+ Object.entries(connectionParams).forEach(([key, value]) => {
+ if (value !== undefined && value !== null) {
+ params.append(key, String(value));
+ }
+ });
  }
 
  const queryString = params.toString();
@@ -162,7 +170,7 @@ class MessageService {
 
  this.websocket.onclose = () => {
  logger.info(LogCategory.API, 'WebSocket connection closed');
- this.attemptReconnect(businessComponentId);
+ this.attemptReconnect(businessComponentId, connectionParams);
  };
 
  this.websocket.onerror = (error) => {
@@ -173,13 +181,13 @@ class MessageService {
  }
   }
 
- private attemptReconnect(businessComponentId?: string): void {
+ private attemptReconnect(businessComponentId?: string, connectionParams?: Record<string, any>): void {
  if (this.reconnectAttempts < this.maxReconnectAttempts) {
  this.reconnectAttempts++;
  logger.info(LogCategory.API, `Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
  setTimeout(() => {
- this.connectWebSocket(businessComponentId);
+ this.connectWebSocket(businessComponentId, connectionParams);
  }, this.reconnectInterval * this.reconnectAttempts);
  } else {
  logger.error(LogCategory.API, 'Max reconnection attempts reached');

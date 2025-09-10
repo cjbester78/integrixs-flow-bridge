@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MessageRepository extends JpaRepository<Message, UUID> {
+public interface MessageRepository extends JpaRepository<Message, UUID>, MessageRepositoryCustom {
     
     Optional<Message> findByMessageId(String messageId);
     
@@ -49,4 +49,60 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     
     @Query("SELECT m.messageContent FROM Message m WHERE m.id = :id")
     String findMessageContentById(@Param("id") UUID id);
+    
+    // Statistics queries
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.status = :status")
+    Long countByStatus(@Param("status") Message.MessageStatus status);
+    
+    @Query("SELECT m.status, COUNT(m) FROM Message m GROUP BY m.status")
+    List<Object[]> countByStatusGrouped();
+    
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (m.completed_at - m.received_at)) * 1000) FROM message m " +
+           "WHERE m.status IN ('PROCESSED', 'COMPLETED') " +
+           "AND m.received_at IS NOT NULL AND m.completed_at IS NOT NULL", nativeQuery = true)
+    Double calculateAverageProcessingTime();
+    
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (m.completed_at - m.received_at)) * 1000) FROM message m " +
+           "WHERE m.status IN ('PROCESSED', 'COMPLETED') " +
+           "AND m.flow_id = :flowId " +
+           "AND m.received_at IS NOT NULL AND m.completed_at IS NOT NULL", nativeQuery = true)
+    Double calculateAverageProcessingTimeByFlowId(@Param("flowId") UUID flowId);
+    
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (m.completed_at - m.received_at)) * 1000) FROM message m " +
+           "WHERE m.status IN ('PROCESSED', 'COMPLETED') " +
+           "AND m.received_at BETWEEN :startDate AND :endDate " +
+           "AND m.received_at IS NOT NULL AND m.completed_at IS NOT NULL", nativeQuery = true)
+    Double calculateAverageProcessingTimeForPeriod(@Param("startDate") LocalDateTime startDate, 
+                                                  @Param("endDate") LocalDateTime endDate);
+    
+    // Additional filtered statistics queries
+    @Query("SELECT m.status, COUNT(m) FROM Message m " +
+           "WHERE m.flowExecution.businessComponent.id = :businessComponentId " +
+           "GROUP BY m.status")
+    List<Object[]> countByStatusGroupedAndBusinessComponent(@Param("businessComponentId") String businessComponentId);
+    
+    @Query("SELECT m.status, COUNT(m) FROM Message m " +
+           "WHERE m.flow.id = :flowId " +
+           "GROUP BY m.status")
+    List<Object[]> countByStatusGroupedAndFlow(@Param("flowId") UUID flowId);
+    
+    @Query("SELECT m.status, COUNT(m) FROM Message m " +
+           "WHERE m.receivedAt BETWEEN :startDate AND :endDate " +
+           "GROUP BY m.status")
+    List<Object[]> countByStatusGroupedAndDateRange(@Param("startDate") LocalDateTime startDate,
+                                                   @Param("endDate") LocalDateTime endDate);
+    
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (m.completed_at - m.received_at)) * 1000) FROM message m " +
+           "JOIN flow_execution fe ON m.flow_execution_id = fe.id " +
+           "WHERE m.status IN ('PROCESSED', 'COMPLETED') " +
+           "AND fe.business_component_id = :businessComponentId " +
+           "AND m.received_at IS NOT NULL AND m.completed_at IS NOT NULL", nativeQuery = true)
+    Double calculateAverageProcessingTimeByBusinessComponent(@Param("businessComponentId") String businessComponentId);
+    
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (m.completed_at - m.received_at)) * 1000) FROM message m " +
+           "WHERE m.status IN ('PROCESSED', 'COMPLETED') " +
+           "AND m.received_at BETWEEN :startDate AND :endDate " +
+           "AND m.received_at IS NOT NULL AND m.completed_at IS NOT NULL", nativeQuery = true)
+    Double calculateAverageProcessingTimeByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                    @Param("endDate") LocalDateTime endDate);
 }

@@ -7,12 +7,26 @@ import com.integrixs.monitoring.domain.repository.AlertRepository;
 import com.integrixs.monitoring.domain.service.AlertingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 
+import jakarta.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -24,6 +38,35 @@ import java.util.UUID;
 public class AlertingServiceImpl implements AlertingService {
     
     private final AlertRepository alertRepository;
+    
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
+    
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    @Value("${notifications.email.enabled:false}")
+    private boolean emailEnabled;
+    
+    @Value("${notifications.email.from:alerts@integrix.com}")
+    private String fromEmail;
+    
+    @Value("${notifications.sms.enabled:false}")
+    private boolean smsEnabled;
+    
+    @Value("${notifications.sms.twilio.account-sid:}")
+    private String twilioAccountSid;
+    
+    @Value("${notifications.sms.twilio.auth-token:}")
+    private String twilioAuthToken;
+    
+    @Value("${notifications.sms.twilio.from-number:}")
+    private String twilioFromNumber;
+    
+    @Value("${notifications.webhook.enabled:true}")
+    private boolean webhookEnabled;
+    
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     @Override
     @Transactional
@@ -246,18 +289,15 @@ public class AlertingServiceImpl implements AlertingService {
         try {
             switch (alert.getAction().getType()) {
                 case EMAIL:
-                    // TODO: Implement email notification
-                    log.info("Sending email alert for: {}", alert.getAlertName());
+                    sendEmailNotification(alert);
                     break;
                     
                 case WEBHOOK:
-                    // TODO: Implement webhook notification
-                    log.info("Sending webhook alert for: {}", alert.getAlertName());
+                    sendWebhookNotification(alert);
                     break;
                     
                 case SMS:
-                    // TODO: Implement SMS notification
-                    log.info("Sending SMS alert for: {}", alert.getAlertName());
+                    sendSmsNotification(alert);
                     break;
                     
                 default:
@@ -292,5 +332,230 @@ public class AlertingServiceImpl implements AlertingService {
                 log.warn("Unknown comparison operator: {}", rule.getComparison());
                 return false;
         }
+    }
+    
+    /**
+     * Send email notification for alert
+     */
+    private void sendEmailNotification(Alert alert) {
+        if (!emailEnabled || mailSender == null) {
+            log.info("Email notifications disabled. Would have sent alert: {}", alert.getAlertName());
+            return;
+        }
+        
+        if (alert.getAction() == null || alert.getAction().getParameters() == null) {
+            log.warn("No email parameters configured for alert: {}", alert.getAlertName());
+            return;
+        }
+        
+        try {
+            String to = alert.getAction().getParameters().get("to");
+            if (to == null || to.isEmpty()) {
+                log.warn("No recipient email configured for alert: {}", alert.getAlertName());
+                return;
+            }
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(to.split(","));
+            helper.setSubject(formatEmailSubject(alert));
+            helper.setText(formatEmailBody(alert), true);
+            
+            mailSender.send(message);
+            log.info("Email alert sent successfully for: {} to {}", alert.getAlertName(), to);
+            
+        } catch (Exception e) {
+            log.error("Failed to send email notification for alert: {}", alert.getAlertName(), e);
+        }
+    }
+    
+    /**
+     * Send webhook notification for alert
+     */
+    private void sendWebhookNotification(Alert alert) {
+        if (!webhookEnabled) {
+            log.info("Webhook notifications disabled. Would have sent alert: {}", alert.getAlertName());
+            return;
+        }
+        
+        if (alert.getAction() == null || alert.getAction().getParameters() == null) {
+            log.warn("No webhook parameters configured for alert: {}", alert.getAlertName());
+            return;
+        }
+        
+        try {
+            String url = alert.getAction().getParameters().get("url");
+            if (url == null || url.isEmpty()) {
+                log.warn("No webhook URL configured for alert: {}", alert.getAlertName());
+                return;
+            }
+            
+            // Build request body
+            Map<String, Object> body = new HashMap<>();
+            body.put("alert_id", alert.getAlertId());
+            body.put("alert_name", alert.getAlertName());
+            body.put("alert_type", alert.getAlertType().name());
+            body.put("severity", alert.getSeverity().name());
+            body.put("message", alert.getMessage());
+            body.put("source", alert.getSource());
+            body.put("triggered_at", alert.getTriggeredAt().format(DATE_FORMAT));
+            body.put("domain_type", alert.getDomainType());
+            body.put("domain_reference_id", alert.getDomainReferenceId());
+            body.put("metadata", alert.getMetadata());
+            
+            // Build headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            // Add authentication if configured
+            String authType = alert.getAction().getParameters().get("auth_type");
+            if ("bearer".equalsIgnoreCase(authType)) {
+                String token = alert.getAction().getParameters().get("auth_token");
+                if (token != null) {
+                    headers.setBearerAuth(token);
+                }
+            } else if ("api_key".equalsIgnoreCase(authType)) {
+                String keyHeader = alert.getAction().getParameters().get("api_key_header");
+                String keyValue = alert.getAction().getParameters().get("api_key_value");
+                if (keyHeader != null && keyValue != null) {
+                    headers.add(keyHeader, keyValue);
+                }
+            }
+            
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            
+            String method = alert.getAction().getParameters().getOrDefault("method", "POST");
+            ResponseEntity<String> response;
+            
+            if ("PUT".equalsIgnoreCase(method)) {
+                response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
+            } else {
+                response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+            }
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Webhook alert sent successfully for: {} to {}", alert.getAlertName(), url);
+            } else {
+                log.warn("Webhook returned non-success status {} for alert: {}", 
+                        response.getStatusCode(), alert.getAlertName());
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to send webhook notification for alert: {}", alert.getAlertName(), e);
+        }
+    }
+    
+    /**
+     * Send SMS notification for alert
+     */
+    private void sendSmsNotification(Alert alert) {
+        if (!smsEnabled) {
+            log.info("SMS notifications disabled. Would have sent alert: {}", alert.getAlertName());
+            return;
+        }
+        
+        if (alert.getAction() == null || alert.getAction().getParameters() == null) {
+            log.warn("No SMS parameters configured for alert: {}", alert.getAlertName());
+            return;
+        }
+        
+        try {
+            String to = alert.getAction().getParameters().get("to");
+            if (to == null || to.isEmpty()) {
+                log.warn("No recipient phone number configured for alert: {}", alert.getAlertName());
+                return;
+            }
+            
+            // Initialize Twilio if not already done
+            if (twilioAccountSid != null && !twilioAccountSid.isEmpty() && 
+                twilioAuthToken != null && !twilioAuthToken.isEmpty()) {
+                
+                Twilio.init(twilioAccountSid, twilioAuthToken);
+                
+                String messageBody = formatSmsMessage(alert);
+                
+                Message message = Message.creator(
+                        new PhoneNumber(to),
+                        new PhoneNumber(twilioFromNumber),
+                        messageBody
+                    ).create();
+                
+                log.info("SMS alert sent successfully for: {} to {} with SID: {}", 
+                        alert.getAlertName(), to, message.getSid());
+            } else {
+                log.warn("Twilio credentials not configured for SMS alerts");
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to send SMS notification for alert: {}", alert.getAlertName(), e);
+        }
+    }
+    
+    /**
+     * Format email subject
+     */
+    private String formatEmailSubject(Alert alert) {
+        return String.format("[%s] %s - %s",
+                alert.getSeverity(),
+                alert.getAlertType(),
+                alert.getAlertName());
+    }
+    
+    /**
+     * Format email body
+     */
+    private String formatEmailBody(Alert alert) {
+        StringBuilder body = new StringBuilder();
+        body.append("<html><body>");
+        body.append("<h2>").append(alert.getAlertName()).append("</h2>");
+        body.append("<p><strong>Alert ID:</strong> ").append(alert.getAlertId()).append("</p>");
+        body.append("<p><strong>Type:</strong> ").append(alert.getAlertType()).append("</p>");
+        body.append("<p><strong>Severity:</strong> ").append(alert.getSeverity()).append("</p>");
+        body.append("<p><strong>Time:</strong> ").append(alert.getTriggeredAt().format(DATE_FORMAT)).append("</p>");
+        body.append("<p><strong>Source:</strong> ").append(alert.getSource()).append("</p>");
+        
+        if (alert.getDomainType() != null) {
+            body.append("<p><strong>Domain:</strong> ").append(alert.getDomainType())
+                .append(" (").append(alert.getDomainReferenceId()).append(")</p>");
+        }
+        
+        body.append("<hr/>");
+        body.append("<h3>Message</h3>");
+        body.append("<p>").append(alert.getMessage()).append("</p>");
+        
+        if (alert.getCondition() != null) {
+            body.append("<p><strong>Condition:</strong> ").append(alert.getCondition()).append("</p>");
+        }
+        
+        if (!alert.getMetadata().isEmpty()) {
+            body.append("<h3>Additional Details</h3>");
+            body.append("<ul>");
+            for (Map.Entry<String, Object> entry : alert.getMetadata().entrySet()) {
+                body.append("<li><strong>").append(entry.getKey()).append(":</strong> ")
+                    .append(entry.getValue()).append("</li>");
+            }
+            body.append("</ul>");
+        }
+        
+        body.append("<hr/>");
+        body.append("<p><small>This is an automated message from Integrix Monitoring System</small></p>");
+        body.append("</body></html>");
+        
+        return body.toString();
+    }
+    
+    /**
+     * Format SMS message (must be concise)
+     */
+    private String formatSmsMessage(Alert alert) {
+        return String.format("%s ALERT: %s - %s. %s",
+                alert.getSeverity(),
+                alert.getAlertType(),
+                alert.getAlertName(),
+                alert.getMessage().length() > 100 ? 
+                    alert.getMessage().substring(0, 97) + "..." : 
+                    alert.getMessage());
     }
 }

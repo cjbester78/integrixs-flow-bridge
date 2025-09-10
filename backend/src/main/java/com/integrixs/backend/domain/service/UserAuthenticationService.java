@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Domain service for user authentication
@@ -67,5 +71,47 @@ public class UserAuthenticationService {
      */
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
+    }
+    
+    /**
+     * Register a new user (Admin-only function)
+     * Users are created by admin staff and are immediately active
+     */
+    @Transactional
+    public User register(String username, String email, String password, String role) {
+        log.info("Admin registering new user with username: {} and email: {}", username, email);
+        
+        // Validate username doesn't exist
+        if (userExists(username)) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        
+        // Validate email doesn't exist
+        if (emailExists(email)) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        
+        // Validate password strength
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long");
+        }
+        
+        // Create new user
+        User newUser = new User();
+        newUser.setId(UUID.randomUUID());
+        newUser.setUsername(username);
+        newUser.setEmail(email);
+        newUser.setPasswordHash(passwordEncoder.encode(password));
+        newUser.setRole(role != null ? role : "USER");
+        newUser.setActive(true); // Admin-created users are immediately active
+        newUser.setEmailVerified(true); // No email verification required
+        newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setUpdatedAt(LocalDateTime.now());
+        
+        // Save user
+        User savedUser = userRepository.save(newUser);
+        log.info("User registered successfully with ID: {} by admin", savedUser.getId());
+        
+        return savedUser;
     }
 }

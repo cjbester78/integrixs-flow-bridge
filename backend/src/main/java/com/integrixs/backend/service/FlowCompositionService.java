@@ -47,6 +47,12 @@ public class FlowCompositionService {
     private FieldMappingApplicationService fieldMappingService;
     
     @Autowired
+    private FieldMappingServiceAdapter fieldMappingServiceAdapter;
+    
+    @Autowired
+    private FlowOrchestrationStepRepository orchestrationStepRepository;
+    
+    @Autowired
     private UserRepository userRepository;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -156,8 +162,7 @@ public class FlowCompositionService {
             for (FieldMappingDTO mapping : request.getFieldMappings()) {
                 mapping.setTransformationId(savedTransformation.getId().toString());
                 mapping.setMappingOrder(mappingOrder++);
-                // TODO: Update to use createMapping method
-                // fieldMappingService.save(mapping);
+                fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
             }
         }
         
@@ -208,8 +213,7 @@ public class FlowCompositionService {
                     for (FieldMappingDTO mapping : additionalMapping.getFieldMappings()) {
                         mapping.setTransformationId(savedTransformation.getId().toString());
                         mapping.setMappingOrder(fieldMappingOrder++);
-                        // TODO: Update to use createMapping method
-                // fieldMappingService.save(mapping);
+                        fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
                     }
                 }
             }
@@ -316,8 +320,7 @@ public class FlowCompositionService {
             for (FieldMappingDTO mapping : request.getFieldMappings()) {
                 mapping.setTransformationId(savedRequestTransformation.getId().toString());
                 mapping.setMappingOrder(mappingOrder++);
-                // TODO: Update to use createMapping method
-                // fieldMappingService.save(mapping);
+                fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
             }
             
             // Handle additional mappings (e.g., response mappings for synchronous flows)
@@ -350,8 +353,7 @@ public class FlowCompositionService {
                     for (FieldMappingDTO mapping : additionalMapping.getFieldMappings()) {
                         mapping.setTransformationId(savedTransformation.getId().toString());
                         mapping.setMappingOrder(fieldMappingOrder++);
-                        // TODO: Update to use createMapping method
-                // fieldMappingService.save(mapping);
+                        fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
                     }
                 }
             }
@@ -396,25 +398,80 @@ public class FlowCompositionService {
         // Set flow type to orchestration
         flow.setFlowType(FlowType.ORCHESTRATION);
         
-        // TODO: Store orchestration steps in a proper table structure instead of JSON
-        
         // Save the flow
         IntegrationFlow savedFlow = flowRepository.save(flow);
         
-        // Create transformations for each orchestration step
+        // Store orchestration steps in the proper table structure
         if (request.getOrchestrationSteps() != null) {
             int order = 1;
             for (OrchestrationStep step : request.getOrchestrationSteps()) {
+                // Create orchestration step entity
+                FlowOrchestrationStep orchestrationStep = FlowOrchestrationStep.builder()
+                    .flow(savedFlow)
+                    .stepType(step.getType())
+                    .stepName(step.getType() + "_" + order)
+                    .executionOrder(order++)
+                    .configuration(step.getConfiguration() instanceof Map ? 
+                        (Map<String, Object>) step.getConfiguration() : 
+                        Map.of("data", step.getConfiguration()))
+                    .isActive(true)
+                    .build();
+                
+                // Extract specific fields based on configuration
+                if (step.getConfiguration() instanceof Map) {
+                    Map<String, Object> config = (Map<String, Object>) step.getConfiguration();
+                    
+                    // Extract common fields
+                    orchestrationStep.setStepName((String) config.getOrDefault("name", orchestrationStep.getStepName()));
+                    orchestrationStep.setDescription((String) config.get("description"));
+                    orchestrationStep.setConditionExpression((String) config.get("condition"));
+                    orchestrationStep.setIsConditional(config.containsKey("condition"));
+                    
+                    // Extract routing specific fields
+                    if ("ROUTE".equalsIgnoreCase(step.getType())) {
+                        String targetAdapterId = (String) config.get("targetAdapterId");
+                        if (targetAdapterId != null) {
+                            orchestrationStep.setTargetAdapterId(UUID.fromString(targetAdapterId));
+                        }
+                        String targetFlowStructureId = (String) config.get("targetFlowStructureId");
+                        if (targetFlowStructureId != null) {
+                            orchestrationStep.setTargetFlowStructureId(UUID.fromString(targetFlowStructureId));
+                        }
+                    }
+                    
+                    // Extract transformation specific fields
+                    if ("TRANSFORM".equalsIgnoreCase(step.getType())) {
+                        String transformationId = (String) config.get("transformationId");
+                        if (transformationId != null) {
+                            orchestrationStep.setTransformationId(UUID.fromString(transformationId));
+                        }
+                    }
+                    
+                    // Extract timeout and retry settings
+                    if (config.containsKey("timeout")) {
+                        orchestrationStep.setTimeoutSeconds(((Number) config.get("timeout")).intValue());
+                    }
+                    if (config.containsKey("retryAttempts")) {
+                        orchestrationStep.setRetryAttempts(((Number) config.get("retryAttempts")).intValue());
+                    }
+                    if (config.containsKey("retryDelay")) {
+                        orchestrationStep.setRetryDelaySeconds(((Number) config.get("retryDelay")).intValue());
+                    }
+                }
+                
+                orchestrationStepRepository.save(orchestrationStep);
+                
+                // Also create transformations for backward compatibility if needed
                 FlowTransformationDTO transformation = new FlowTransformationDTO();
                 transformation.setFlowId(savedFlow.getId().toString());
                 transformation.setType(step.getType());
                 try {
-					transformation.setConfiguration(objectMapper.writeValueAsString(step.getConfiguration()));
-				} catch (JsonProcessingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                transformation.setExecutionOrder(order++);
+                    transformation.setConfiguration(objectMapper.writeValueAsString(step.getConfiguration()));
+                } catch (JsonProcessingException e) {
+                    log.error("Error serializing orchestration step configuration", e);
+                    transformation.setConfiguration("{}");
+                }
+                transformation.setExecutionOrder(orchestrationStep.getExecutionOrder());
                 transformation.setActive(true);
                 
                 transformationService.save(transformation);

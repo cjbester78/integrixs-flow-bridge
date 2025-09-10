@@ -78,7 +78,7 @@ interface BusinessComponent {
 }
 
 const adapterTypes = [
- 'FILE', 'FTP', 'HTTP', 'IDOC', 'JDBC', 'JMS',
+ 'FILE', 'FTP', 'HTTP', 'IDOC', 'JDBC', 'IBMMQ',
  'MAIL', 'ODATA', 'REST', 'RFC', 'SFTP', 'SOAP'
 ];
 

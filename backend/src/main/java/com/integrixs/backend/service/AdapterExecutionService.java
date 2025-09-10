@@ -3,6 +3,7 @@ package com.integrixs.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
+import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.shared.enums.AdapterType;
 import org.slf4j.Logger;
@@ -40,9 +41,11 @@ public class AdapterExecutionService {
     @Autowired
     private ObjectMapper objectMapper;
     
-    
     @Autowired
     private IntegrationFlowRepository flowRepository;
+    
+    @Autowired
+    private MessageService messageService;
     
     /**
      * Execute an adapter with the given message
@@ -89,10 +92,10 @@ public class AdapterExecutionService {
         // Log adapter execution start
         if (flow != null && correlationId != null) {
             try {
-                // TODO: Replace messageService.logProcessingStep(correlationId, flow,
-                //    "SOAP adapter starting: " + adapter.getName(),
-                //    "Preparing to send SOAP request",
-                //    com.integrixs.data.model.SystemLog.LogLevel.INFO);
+                messageService.logProcessingStep(correlationId, flow,
+                    "SOAP adapter starting: " + adapter.getName(),
+                    "Preparing to send SOAP request",
+                    SystemLog.LogLevel.INFO);
             } catch (Exception e) {
                 logger.warn("Failed to log processing step: {}", e.getMessage());
             }
@@ -100,11 +103,11 @@ public class AdapterExecutionService {
         
         // Log to adapter activity log
         try {
-            // TODO: Replace messageService.logAdapterActivity(adapter,
-            //    "Processing outbound SOAP request",
-            //    "Flow: " + (flow != null ? flow.getName() : "Unknown"),
-            //    com.integrixs.data.model.SystemLog.LogLevel.INFO,
-            //    correlationId);
+            messageService.logAdapterActivity(adapter,
+                "Processing outbound SOAP request",
+                "Flow: " + (flow != null ? flow.getName() : "Unknown"),
+                SystemLog.LogLevel.INFO,
+                correlationId);
         } catch (Exception e) {
             logger.warn("Failed to log adapter activity: {}", e.getMessage());
         }
@@ -133,20 +136,20 @@ public class AdapterExecutionService {
             logger.error("SOAP endpoint not configured for adapter: {} (ID: {}). Available config keys: {}", 
                         adapter.getName(), adapter.getId(), config.keySet());
             if (flow != null && correlationId != null) {
-                // TODO: Replace messageService.logProcessingStep(correlationId, flow,
-                //    "SOAP adapter error: " + adapter.getName(),
-                //    "No endpoint configured for SOAP adapter",
-                //    com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+                messageService.logProcessingStep(correlationId, flow,
+                    "SOAP adapter error: " + adapter.getName(),
+                    "No endpoint configured for SOAP adapter",
+                    SystemLog.LogLevel.ERROR);
             }
             throw new IllegalArgumentException("SOAP endpoint not configured");
         }
         
         // Log endpoint found
         if (flow != null && correlationId != null) {
-            // TODO: Replace messageService.logProcessingStep(correlationId, flow,
-            //    "SOAP endpoint configured",
-            //    "Endpoint: " + endpoint,
-            //    com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            messageService.logProcessingStep(correlationId, flow,
+                "SOAP endpoint configured",
+                "Endpoint: " + endpoint,
+                SystemLog.LogLevel.INFO);
         }
         
         // Check if message is already a SOAP envelope
@@ -194,10 +197,10 @@ public class AdapterExecutionService {
         
         // Log SOAP call details
         if (flow != null && correlationId != null) {
-            // TODO: Replace messageService.logProcessingStep(correlationId, flow,
-            //    "Sending SOAP request",
-            //    "Endpoint: " + endpoint + "\nSOAP Action: " + (soapAction != null ? soapAction : "none"),
-            //    com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            messageService.logProcessingStep(correlationId, flow,
+                "Sending SOAP request",
+                "Endpoint: " + endpoint + "\nSOAP Action: " + (soapAction != null ? soapAction : "none"),
+                SystemLog.LogLevel.INFO);
         }
         
         try {
@@ -215,24 +218,24 @@ public class AdapterExecutionService {
             // Check if this is a SOAP endpoint flow (where IntegrationEndpointService will log the final response)
             boolean isEndpointFlow = context.get("isEndpointFlow") != null && (boolean) context.get("isEndpointFlow");
             if (correlationId != null && !isEndpointFlow) {
-                // TODO: Replace messageService.logAdapterPayload(correlationId, adapter, "RESPONSE", response.getBody(), "OUTBOUND");
+                messageService.logAdapterPayload(correlationId, adapter, "RESPONSE", response.getBody(), "OUTBOUND");
             }
             
             // Log successful response
             if (flow != null && correlationId != null) {
-                // TODO: Replace messageService.logProcessingStep(correlationId, flow,
-                //    "SOAP response received",
-                //    "Status: " + response.getStatusCode() + "\nResponse size: " + 
-                //    (response.getBody() != null ? response.getBody().length() : 0) + " bytes",
-                //    com.integrixs.data.model.SystemLog.LogLevel.INFO);
+                messageService.logProcessingStep(correlationId, flow,
+                    "SOAP response received",
+                    "Status: " + response.getStatusCode() + "\nResponse size: " + 
+                    (response.getBody() != null ? response.getBody().length() : 0) + " bytes",
+                    SystemLog.LogLevel.INFO);
             }
             
             // Log to adapter activity
-            // TODO: Replace messageService.logAdapterActivity(adapter,
-            //    "SOAP request completed successfully",
-            //    "Endpoint: " + endpoint + "\nStatus: " + response.getStatusCode(),
-            //    com.integrixs.data.model.SystemLog.LogLevel.INFO,
-            //    correlationId);
+            messageService.logAdapterActivity(adapter,
+                "SOAP request completed successfully",
+                "Endpoint: " + endpoint + "\nStatus: " + response.getStatusCode(),
+                SystemLog.LogLevel.INFO,
+                correlationId);
             
             // Extract SOAP body from response
             String extractedBody = extractSoapBody(response.getBody());
@@ -246,10 +249,10 @@ public class AdapterExecutionService {
             // Log error
             if (flow != null && correlationId != null) {
                 try {
-                    // TODO: Replace messageService.logProcessingStep(correlationId, flow,
-                    //    "SOAP call failed",
-                    //    "Endpoint: " + endpoint + ", Error: " + e.getMessage(),
-                    //    com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+                    messageService.logProcessingStep(correlationId, flow,
+                        "SOAP call failed",
+                        "Endpoint: " + endpoint + ", Error: " + e.getMessage(),
+                        SystemLog.LogLevel.ERROR);
                 } catch (Exception logEx) {
                     logger.warn("Failed to log error step: {}", logEx.getMessage());
                 }
@@ -257,11 +260,11 @@ public class AdapterExecutionService {
             
             // Log to adapter activity
             try {
-                // TODO: Replace messageService.logAdapterActivity(adapter,
-                //    "SOAP request failed",
-                //    "Endpoint: " + endpoint + ", Error: " + e.getMessage(),
-                //    com.integrixs.data.model.SystemLog.LogLevel.ERROR,
-                //    correlationId);
+                messageService.logAdapterActivity(adapter,
+                    "SOAP request failed",
+                    "Endpoint: " + endpoint + ", Error: " + e.getMessage(),
+                    SystemLog.LogLevel.ERROR,
+                    correlationId);
             } catch (Exception logEx) {
                 logger.warn("Failed to log adapter error: {}", logEx.getMessage());
             }
@@ -313,7 +316,7 @@ public class AdapterExecutionService {
             // Check if this is a SOAP endpoint flow (where IntegrationEndpointService will log the final response)
             boolean isEndpointFlow = context.get("isEndpointFlow") != null && (boolean) context.get("isEndpointFlow");
             if (correlationId != null && !isEndpointFlow) {
-                // TODO: Replace messageService.logAdapterPayload(correlationId, adapter, "RESPONSE", response.getBody(), "OUTBOUND");
+                messageService.logAdapterPayload(correlationId, adapter, "RESPONSE", response.getBody(), "OUTBOUND");
             }
             
             return response.getBody();

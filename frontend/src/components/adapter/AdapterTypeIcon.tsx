@@ -5,6 +5,7 @@ import {
   Database,
   Mail,
   MessageSquare,
+  MessageCircle,
   FileText,
   HardDrive,
   Globe,
@@ -31,7 +32,11 @@ import {
   FileCode,
   Zap,
   Send,
-  Key
+  Key,
+  Camera,
+  Twitter,
+  Linkedin,
+  Youtube
 } from 'lucide-react';
 
 interface AdapterTypeIconProps {
@@ -75,13 +80,32 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   email: Mail,
   sms: Smartphone,
   jdbc: Database,
-  jms: MessageSquare,
+  ibmmq: MessageSquare,
   kafka: Layers,
   http: Network,
   https: Shield,
   odata: Cable,
   rfc: Activity,
   idoc: FileCode,
+  facebook: Zap,  // Using Zap icon as placeholder since lucide-react doesn't have Facebook icon
+  facebookads: CreditCard,  // Using CreditCard icon for Facebook Ads
+  instagram: Camera,  // Using Camera icon for Instagram
+  whatsapp: MessageSquare,  // MessageSquare icon for WhatsApp
+  twitter: Twitter,  // Twitter/X icon
+  twitterads: CreditCard,  // Using CreditCard icon for Twitter Ads
+  linkedin: Linkedin,  // LinkedIn icon
+  linkedinads: CreditCard,  // Using CreditCard icon for LinkedIn Ads
+  youtube: Youtube,  // YouTube icon
+  youtubeanalytics: BarChart,  // Using BarChart icon for YouTube Analytics
+  tiktokbusiness: Share2,  // Using Share2 icon for TikTok Business
+  tiktokcontent: Share2,  // Using Share2 icon for TikTok Content
+  tiktok: Share2,  // Using Share2 icon for TikTok
+  facebookmessenger: MessageSquare,  // Using MessageSquare icon for Facebook Messenger
+  pinterest: Share2,  // Using Share2 icon for Pinterest
+  reddit: MessageCircle,  // Using MessageCircle icon for Reddit
+  snapchatads: Camera,  // Using Camera icon for Snapchat Ads
+  snapchat: Camera,  // Using Camera icon for Snapchat
+  discord: MessageSquare,  // Using MessageSquare icon for Discord
   
   // Default
   adapter: Zap,

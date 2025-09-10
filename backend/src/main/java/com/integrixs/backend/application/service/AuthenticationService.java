@@ -12,6 +12,8 @@ import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.User;
 import com.integrixs.data.model.UserSession;
 import com.integrixs.shared.dto.user.UserDTO;
+import com.integrixs.shared.dto.user.RegisterResponseDTO;
+import com.integrixs.shared.dto.user.UserRegisterResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -76,11 +78,18 @@ public class AuthenticationService {
      * Handle user logout
      */
     @Transactional
-    public void logout(String refreshToken, User currentUser) {
-        sessionService.invalidateSession(refreshToken);
+    public void logout(String username, String refreshToken) {
+        if (refreshToken != null) {
+            sessionService.invalidateSession(refreshToken);
+        }
         
-        auditTrailService.logAction("User", currentUser.getId().toString(), 
-                AuditTrail.AuditAction.LOGOUT, null);
+        if (username != null) {
+            User currentUser = authService.findByUsername(username);
+            if (currentUser != null) {
+                auditTrailService.logAction("User", currentUser.getId().toString(), 
+                        AuditTrail.AuditAction.LOGOUT, null);
+            }
+        }
     }
     
     /**
@@ -138,5 +147,44 @@ public class AuthenticationService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
+    }
+    
+    /**
+     * Handle user registration (Admin-only)
+     * Users are created by admin staff and are immediately active
+     */
+    @Transactional
+    public RegisterResponseDTO register(UserRegisterResponseDTO request, String ipAddress) {
+        log.info("Admin registration request for email: {}", request.getEmail());
+        
+        try {
+            // Register user through domain service
+            User newUser = authService.register(
+                request.getUsername(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getRole()
+            );
+            
+            // Audit trail
+            Map<String, Object> registrationDetails = new HashMap<>();
+            registrationDetails.put("ipAddress", ipAddress);
+            registrationDetails.put("email", request.getEmail());
+            registrationDetails.put("role", request.getRole());
+            registrationDetails.put("createdByAdmin", true);
+            auditTrailService.logAction("User", newUser.getId().toString(), 
+                AuditTrail.AuditAction.CREATE, registrationDetails);
+            
+            // Return success response
+            return RegisterResponseDTO.builder()
+                    .success(true)
+                    .message("User created successfully. The user can now login with their credentials.")
+                    .userId(newUser.getId())
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("User registration failed for email: {}", request.getEmail(), e);
+            throw new IllegalArgumentException("Registration failed: " + e.getMessage());
+        }
     }
 }

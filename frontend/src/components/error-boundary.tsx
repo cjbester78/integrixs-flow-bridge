@@ -3,7 +3,7 @@ import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { logger, LogCategory } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface Props {
  children: ReactNode;

@@ -120,15 +120,6 @@ public class AuthController {
         }
     }
     
-    /**
-     * User registration endpoint
-     * TODO: Move to separate RegistrationController
-     */
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody UserRegisterResponseDTO request) {
-        // TODO: Implement registration in AuthenticationService
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
     
     /**
      * Extract IP address from request

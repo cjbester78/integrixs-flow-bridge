@@ -9,7 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Settings, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EnvironmentConfiguration } from './EnvironmentConfiguration';
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface SystemSetting {
  id: string;

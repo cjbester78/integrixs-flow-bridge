@@ -1,0 +1,155 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+  
+  cloud:
+    gateway:
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            exposedHeaders:
+              - X-Request-ID
+              - X-RateLimit-Limit
+              - X-RateLimit-Remaining
+              - X-RateLimit-Reset
+            allowCredentials: true
+            maxAge: 3600
+      
+      # Default filters for all routes
+      default-filters:
+        - AddResponseHeader=X-Response-Time, ${spring.application.name}
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      
+      # Request size limits
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 30s
+        pool:
+          type: elastic
+          max-idle-time: 15s
+          max-life-time: 60s
+      
+      # Discovery locator (if using service discovery)
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+  
+  # Redis for rate limiting and session
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 10s
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 8
+        min-idle: 2
+        max-wait: -1ms
+  
+  # Security
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080}
+
+# Gateway specific configuration
+gateway:
+  backend:
+    url: ${BACKEND_URL:http://localhost:8080}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+  
+  # Rate limiting defaults
+  rate-limit:
+    default:
+      replenish-rate: 100
+      burst-capacity: 200
+      requested-tokens: 1
+    
+    strict:
+      replenish-rate: 10
+      burst-capacity: 20
+      requested-tokens: 1
+    
+    public:
+      replenish-rate: 20
+      burst-capacity: 40
+      requested-tokens: 1
+
+# Circuit breaker configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        sliding-window-type: TIME_BASED
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+    
+    instances:
+      backend-cb:
+        base-config: default
+        failure-rate-threshold: 60
+        slow-call-duration-threshold: 3s
+  
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s
+    instances:
+      backend-cb:
+        base-config: default
+
+# JWT configuration
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-change-this-in-production}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,prometheus
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging
+logging:
+  level:
+    com.integrixs.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.reactive: INFO
+    reactor.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %X{requestId} - %msg%n"

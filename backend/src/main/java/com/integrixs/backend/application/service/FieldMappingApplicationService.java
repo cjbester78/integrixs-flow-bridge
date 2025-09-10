@@ -182,7 +182,29 @@ public class FieldMappingApplicationService {
      */
     private void updateMappingFromRequest(FieldMapping mapping, CreateFieldMappingRequest request) {
         mapping.setSourceFieldsList(request.getSourceFields());
-        mapping.setTargetField(request.getTargetField());
+        
+        // Handle target fields - support both single and multiple
+        if (request.getTargetFields() != null && !request.getTargetFields().isEmpty()) {
+            mapping.setTargetFieldsList(request.getTargetFields());
+        } else if (request.getTargetField() != null) {
+            mapping.setTargetField(request.getTargetField());
+        }
+        
+        // Set mapping type
+        if (request.getMappingType() != null) {
+            try {
+                mapping.setMappingType(FieldMapping.MappingType.valueOf(request.getMappingType()));
+            } catch (IllegalArgumentException e) {
+                mapping.setMappingType(FieldMapping.MappingType.DIRECT);
+            }
+        }
+        
+        // Set split configuration if present
+        if (request.getSplitConfiguration() != null) {
+            String splitConfigJson = mappingEngineService.serializeSplitConfiguration(request.getSplitConfiguration());
+            mapping.setSplitConfiguration(splitConfigJson);
+        }
+        
         mapping.setJavaFunction(request.getJavaFunction());
         mapping.setMappingRule(request.getMappingRule());
         mapping.setInputTypes(request.getInputTypes());
@@ -213,6 +235,10 @@ public class FieldMappingApplicationService {
             .transformationId(mapping.getTransformation() != null ? mapping.getTransformation().getId().toString() : null)
             .sourceFields(mapping.getSourceFieldsList())
             .targetField(mapping.getTargetField())
+            .targetFields(mapping.getTargetFieldsList())
+            .mappingType(mapping.getMappingType() != null ? mapping.getMappingType().toString() : "DIRECT")
+            .splitConfiguration(mapping.getSplitConfiguration() != null ? 
+                mappingEngineService.deserializeSplitConfiguration(mapping.getSplitConfiguration()) : null)
             .javaFunction(mapping.getJavaFunction())
             .mappingRule(mapping.getMappingRule())
             .inputTypes(mapping.getInputTypes())

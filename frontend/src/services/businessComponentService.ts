@@ -1,5 +1,6 @@
 import { BusinessComponent, CreateBusinessComponentRequest, UpdateBusinessComponentRequest } from '@/types/businessComponent';
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 
 class BusinessComponentService {
  async getAllBusinessComponents(): Promise<{ success: boolean; data?: BusinessComponent[]; error?: string }> {

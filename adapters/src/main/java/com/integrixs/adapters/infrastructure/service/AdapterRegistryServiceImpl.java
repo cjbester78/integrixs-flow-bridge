@@ -134,13 +134,13 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
                     return new FileOutboundAdapter(fileReceiverConfig);
                 }
                 
-            case JMS:
+            case IBMMQ:
                 if (configuration.getAdapterMode() == AdapterConfiguration.AdapterModeEnum.INBOUND) {
-                    JmsInboundAdapterConfig jmsSenderConfig = createJmsSenderConfig(configuration);
-                    return new JmsInboundAdapter(jmsSenderConfig);
+                    IbmmqInboundAdapterConfig ibmmqSenderConfig = createIbmmqSenderConfig(configuration);
+                    return new IbmmqInboundAdapter(ibmmqSenderConfig);
                 } else {
-                    JmsOutboundAdapterConfig jmsReceiverConfig = createJmsReceiverConfig(configuration);
-                    return new JmsOutboundAdapter(jmsReceiverConfig);
+                    IbmmqOutboundAdapterConfig ibmmqReceiverConfig = createIbmmqReceiverConfig(configuration);
+                    return new IbmmqOutboundAdapter(ibmmqReceiverConfig);
                 }
                 
             case KAFKA:
@@ -221,7 +221,7 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
                 AdapterConfiguration.AdapterTypeEnum.SFTP,
                 AdapterConfiguration.AdapterTypeEnum.SOAP,
                 AdapterConfiguration.AdapterTypeEnum.FILE,
-                AdapterConfiguration.AdapterTypeEnum.JMS,
+                AdapterConfiguration.AdapterTypeEnum.IBMMQ,
                 AdapterConfiguration.AdapterTypeEnum.KAFKA,
                 AdapterConfiguration.AdapterTypeEnum.MAIL,
                 AdapterConfiguration.AdapterTypeEnum.RFC,
@@ -526,8 +526,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private JmsInboundAdapterConfig createJmsSenderConfig(AdapterConfiguration configuration) {
-        JmsInboundAdapterConfig config = new JmsInboundAdapterConfig();
+    private IbmmqInboundAdapterConfig createIbmmqSenderConfig(AdapterConfiguration configuration) {
+        IbmmqInboundAdapterConfig config = new IbmmqInboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setHost((String) props.getOrDefault("brokerUrl", "tcp://localhost:61616"));
@@ -538,8 +538,8 @@ public class AdapterRegistryServiceImpl implements AdapterRegistryService {
         return config;
     }
     
-    private JmsOutboundAdapterConfig createJmsReceiverConfig(AdapterConfiguration configuration) {
-        JmsOutboundAdapterConfig config = new JmsOutboundAdapterConfig();
+    private IbmmqOutboundAdapterConfig createIbmmqReceiverConfig(AdapterConfiguration configuration) {
+        IbmmqOutboundAdapterConfig config = new IbmmqOutboundAdapterConfig();
         Map<String, Object> props = configuration.getConnectionProperties();
         
         config.setProviderUrl((String) props.getOrDefault("brokerUrl", "tcp://localhost:61616"));

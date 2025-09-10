@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import com.fasterxml.jackson.databind.JsonNode;
 
 @Service
 @RequiredArgsConstructor
@@ -170,13 +171,13 @@ public class MessageStructureService {
                     .description(entity.getDescription())
                     .xsdContent(entity.getXsdContent())
                     .namespace(extractMessageNamespaceData(entity))
-                    .metadata(new HashMap<>()) // TODO: Load from metadata table if implemented
-                    .tags(new HashSet<>()) // TODO: Load from tags table if implemented
+                    .metadata(new HashMap<>()) // Note: Metadata table not yet implemented
+                    .tags(new HashSet<>()) // Note: Tags table not yet implemented
                     .version(entity.getVersion())
                     .sourceType(entity.getSourceType())
                     .isEditable(entity.getIsEditable())
                     .isActive(entity.getIsActive())
-                    .importMetadata(new HashMap<>()) // TODO: Load from import metadata table if implemented
+                    .importMetadata(new HashMap<>()) // Note: Import metadata table not yet implemented
                     .businessComponent(toBusinessComponentDTO(entity.getBusinessComponent()))
                     .createdBy(convertToUserDTO(entity.getCreatedBy()))
                     .updatedBy(convertToUserDTO(entity.getUpdatedBy()))
@@ -212,7 +213,7 @@ public class MessageStructureService {
         
         // Extract namespace from namespaces relationship or use default
         if (entity.getNamespaces() != null && !entity.getNamespaces().isEmpty()) {
-            // TODO: Load namespace data from MessageStructureNamespace entities
+            // Note: MessageStructureNamespace entities not yet implemented - using default namespace
             namespaceData.put("prefix", "msg");
             namespaceData.put("uri", "http://integrixflowbridge.com/messages/" + entity.getName());
         } else {
@@ -653,6 +654,199 @@ public class MessageStructureService {
         } catch (Exception e) {
             log.error("Error extracting namespace info from XSD", e);
             return null;
+        }
+    }
+    
+    /**
+     * Infer XML structure from streaming elements
+     */
+    public Map<String, Object> inferXmlStructure(List<Map<String, Object>> elements) {
+        Map<String, Object> structure = new HashMap<>();
+        structure.put("type", "xml");
+        structure.put("elements", new ArrayList<>());
+        
+        // Analyze elements to infer structure
+        Map<String, Map<String, Object>> elementTypes = new HashMap<>();
+        
+        for (Map<String, Object> element : elements) {
+            String elementName = (String) element.get("_name");
+            if (elementName != null) {
+                Map<String, Object> elementType = elementTypes.computeIfAbsent(
+                    elementName, k -> new HashMap<>()
+                );
+                
+                // Update element type info
+                elementType.put("name", elementName);
+                elementType.put("path", element.get("_path"));
+                
+                // Collect attributes
+                Map<String, String> attributes = (Map<String, String>) element.get("_attributes");
+                if (attributes != null && !attributes.isEmpty()) {
+                    Map<String, String> existingAttrs = (Map<String, String>) elementType.get("attributes");
+                    if (existingAttrs == null) {
+                        elementType.put("attributes", new HashMap<>(attributes));
+                    } else {
+                        existingAttrs.putAll(attributes);
+                    }
+                }
+                
+                // Check for text content
+                if (element.containsKey("_text")) {
+                    elementType.put("hasTextContent", true);
+                    String textSample = (String) element.get("_text");
+                    if (textSample != null && textSample.length() > 50) {
+                        textSample = textSample.substring(0, 50) + "...";
+                    }
+                    elementType.put("textSample", textSample);
+                }
+                
+                // Track child elements
+                element.forEach((key, value) -> {
+                    if (!key.startsWith("_") && value instanceof Map) {
+                        Set<String> children = (Set<String>) elementType.computeIfAbsent(
+                            "children", k -> new HashSet<>()
+                        );
+                        children.add(key);
+                    }
+                });
+            }
+        }
+        
+        // Convert to list
+        List<Map<String, Object>> elementList = new ArrayList<>(elementTypes.values());
+        structure.put("elements", elementList);
+        structure.put("sampleSize", elements.size());
+        structure.put("uniqueElements", elementTypes.size());
+        
+        return structure;
+    }
+    
+    /**
+     * Infer JSON structure from streaming elements
+     */
+    public Map<String, Object> inferJsonStructure(List<JsonNode> elements) {
+        Map<String, Object> structure = new HashMap<>();
+        structure.put("type", "json");
+        
+        if (elements.isEmpty()) {
+            structure.put("fields", Collections.emptyList());
+            return structure;
+        }
+        
+        // Analyze first element for structure (assume homogeneous)
+        JsonNode sample = elements.get(0);
+        Map<String, Object> schema = inferJsonSchema(sample);
+        structure.put("schema", schema);
+        
+        // Collect field statistics
+        Map<String, Map<String, Object>> fieldStats = new HashMap<>();
+        for (JsonNode element : elements) {
+            analyzeJsonFields(element, "", fieldStats);
+        }
+        
+        List<Map<String, Object>> fields = new ArrayList<>();
+        fieldStats.forEach((path, stats) -> {
+            Map<String, Object> field = new HashMap<>();
+            field.put("path", path);
+            field.put("type", stats.get("type"));
+            field.put("nullable", stats.get("nullCount") != null && (int) stats.get("nullCount") > 0);
+            field.put("samples", stats.get("samples"));
+            fields.add(field);
+        });
+        
+        structure.put("fields", fields);
+        structure.put("sampleSize", elements.size());
+        structure.put("fieldCount", fields.size());
+        
+        return structure;
+    }
+    
+    private Map<String, Object> inferJsonSchema(JsonNode node) {
+        Map<String, Object> schema = new HashMap<>();
+        
+        if (node.isObject()) {
+            schema.put("type", "object");
+            Map<String, Object> properties = new HashMap<>();
+            
+            node.fields().forEachRemaining(entry -> {
+                properties.put(entry.getKey(), inferJsonSchema(entry.getValue()));
+            });
+            
+            schema.put("properties", properties);
+        } else if (node.isArray()) {
+            schema.put("type", "array");
+            if (node.size() > 0) {
+                schema.put("items", inferJsonSchema(node.get(0)));
+            }
+        } else if (node.isTextual()) {
+            schema.put("type", "string");
+            String sample = node.asText();
+            if (sample.length() > 50) {
+                sample = sample.substring(0, 50) + "...";
+            }
+            schema.put("sample", sample);
+        } else if (node.isNumber()) {
+            if (node.isIntegralNumber()) {
+                schema.put("type", "integer");
+            } else {
+                schema.put("type", "number");
+            }
+            schema.put("sample", node.numberValue());
+        } else if (node.isBoolean()) {
+            schema.put("type", "boolean");
+            schema.put("sample", node.booleanValue());
+        } else if (node.isNull()) {
+            schema.put("type", "null");
+        }
+        
+        return schema;
+    }
+    
+    private void analyzeJsonFields(JsonNode node, String path, Map<String, Map<String, Object>> fieldStats) {
+        if (node.isObject()) {
+            node.fields().forEachRemaining(entry -> {
+                String fieldPath = path.isEmpty() ? entry.getKey() : path + "." + entry.getKey();
+                updateFieldStats(fieldPath, entry.getValue(), fieldStats);
+                analyzeJsonFields(entry.getValue(), fieldPath, fieldStats);
+            });
+        } else if (node.isArray() && node.size() > 0) {
+            updateFieldStats(path + "[]", node.get(0), fieldStats);
+            analyzeJsonFields(node.get(0), path + "[]", fieldStats);
+        }
+    }
+    
+    private void updateFieldStats(String path, JsonNode value, Map<String, Map<String, Object>> fieldStats) {
+        Map<String, Object> stats = fieldStats.computeIfAbsent(path, k -> new HashMap<>());
+        
+        // Determine type
+        String type;
+        if (value.isTextual()) type = "string";
+        else if (value.isNumber()) type = value.isIntegralNumber() ? "integer" : "number";
+        else if (value.isBoolean()) type = "boolean";
+        else if (value.isArray()) type = "array";
+        else if (value.isObject()) type = "object";
+        else if (value.isNull()) type = "null";
+        else type = "unknown";
+        
+        stats.put("type", type);
+        
+        // Count nulls
+        if (value.isNull()) {
+            stats.put("nullCount", (int) stats.getOrDefault("nullCount", 0) + 1);
+        }
+        
+        // Collect samples
+        if (!value.isNull() && !value.isObject() && !value.isArray()) {
+            List<Object> samples = (List<Object>) stats.computeIfAbsent("samples", k -> new ArrayList<>());
+            if (samples.size() < 3) {
+                String sampleValue = value.asText();
+                if (sampleValue.length() > 50) {
+                    sampleValue = sampleValue.substring(0, 50) + "...";
+                }
+                if (!samples.contains(sampleValue)) {
+                    samples.add(sampleValue);
+                }
+            }
         }
     }
 }

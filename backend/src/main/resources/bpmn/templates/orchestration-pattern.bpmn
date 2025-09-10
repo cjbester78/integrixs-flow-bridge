@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_Orchestration"
+                  targetNamespace="http://integrix.com/bpmn"
+                  exporter="Integrix Flow Bridge"
+                  exporterVersion="1.0">
+  
+  <bpmn:process id="OrchestrationPattern" name="Orchestration Pattern" isExecutable="true">
+    
+    <!-- Start Event -->
+    <bpmn:startEvent id="StartEvent_1" name="Orchestration Triggered">
+      <bpmn:outgoing>Flow_Start</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <!-- Prepare Message -->
+    <bpmn:serviceTask id="Task_PrepareMessage" name="Prepare Message" camunda:type="external" camunda:topic="integrix-transformation">
+      <bpmn:incoming>Flow_Start</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <!-- Parallel Gateway Split -->
+    <bpmn:parallelGateway id="Gateway_Split" name="Split">
+      <bpmn:incoming>Flow_ToGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToTarget1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToTarget2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToTarget3</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    
+    <!-- Target 1 -->
+    <bpmn:serviceTask id="Task_Target1" name="Send to Target 1" camunda:type="external" camunda:topic="integrix-adapter">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="adapterId">${target1AdapterId}</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:failedJobRetryTimeCycle>R3/PT30S</camunda:failedJobRetryTimeCycle>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToTarget1</bpmn:incoming>
+      <bpmn:outgoing>Flow_FromTarget1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <!-- Target 2 -->
+    <bpmn:serviceTask id="Task_Target2" name="Send to Target 2" camunda:type="external" camunda:topic="integrix-adapter">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="adapterId">${target2AdapterId}</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:failedJobRetryTimeCycle>R3/PT30S</camunda:failedJobRetryTimeCycle>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToTarget2</bpmn:incoming>
+      <bpmn:outgoing>Flow_FromTarget2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <!-- Target 3 (Conditional) -->
+    <bpmn:serviceTask id="Task_Target3" name="Send to Target 3" camunda:type="external" camunda:topic="integrix-adapter">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="adapterId">${target3AdapterId}</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:failedJobRetryTimeCycle>R3/PT30S</camunda:failedJobRetryTimeCycle>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToTarget3</bpmn:incoming>
+      <bpmn:outgoing>Flow_FromTarget3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <!-- Parallel Gateway Join -->
+    <bpmn:parallelGateway id="Gateway_Join" name="Join">
+      <bpmn:incoming>Flow_FromTarget1</bpmn:incoming>
+      <bpmn:incoming>Flow_FromTarget2</bpmn:incoming>
+      <bpmn:incoming>Flow_FromTarget3</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToAggregate</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    
+    <!-- Aggregate Results -->
+    <bpmn:serviceTask id="Task_AggregateResults" name="Aggregate Results" camunda:type="external" camunda:topic="integrix-service">
+      <bpmn:incoming>Flow_ToAggregate</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <!-- End Event -->
+    <bpmn:endEvent id="EndEvent_1" name="Orchestration Complete">
+      <bpmn:incoming>Flow_ToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <!-- Error Boundary Events -->
+    <bpmn:boundaryEvent id="BoundaryEvent_Target1Error" name="Target 1 Error" attachedToRef="Task_Target1">
+      <bpmn:outgoing>Flow_Target1Error</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1" />
+    </bpmn:boundaryEvent>
+    
+    <bpmn:boundaryEvent id="BoundaryEvent_Target2Error" name="Target 2 Error" attachedToRef="Task_Target2">
+      <bpmn:outgoing>Flow_Target2Error</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_2" />
+    </bpmn:boundaryEvent>
+    
+    <bpmn:boundaryEvent id="BoundaryEvent_Target3Error" name="Target 3 Error" attachedToRef="Task_Target3">
+      <bpmn:outgoing>Flow_Target3Error</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_3" />
+    </bpmn:boundaryEvent>
+    
+    <!-- Error Handler -->
+    <bpmn:serviceTask id="Task_HandleOrchestrationError" name="Handle Orchestration Error" camunda:delegateExpression="#{integrixErrorHandler}">
+      <bpmn:incoming>Flow_Target1Error</bpmn:incoming>
+      <bpmn:incoming>Flow_Target2Error</bpmn:incoming>
+      <bpmn:incoming>Flow_Target3Error</bpmn:incoming>
+      <bpmn:outgoing>Flow_ErrorToEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <!-- Error End Event -->
+    <bpmn:endEvent id="EndEvent_Error" name="Orchestration Failed">
+      <bpmn:incoming>Flow_ErrorToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <!-- Compensation Activities -->
+    <bpmn:boundaryEvent id="CompensateEvent_Target1" attachedToRef="Task_Target1">
+      <bpmn:compensateEventDefinition id="CompensateEventDefinition_1" />
+    </bpmn:boundaryEvent>
+    
+    <bpmn:serviceTask id="Task_CompensateTarget1" name="Compensate Target 1" isForCompensation="true" camunda:type="external" camunda:topic="integrix-compensation" />
+    
+    <!-- Timer Boundary Event -->
+    <bpmn:boundaryEvent id="TimerEvent_Timeout" name="Timeout" attachedToRef="Task_AggregateResults" cancelActivity="true">
+      <bpmn:outgoing>Flow_Timeout</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT5M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    
+    <bpmn:endEvent id="EndEvent_Timeout" name="Timeout">
+      <bpmn:incoming>Flow_Timeout</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <!-- Sequence Flows -->
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="StartEvent_1" targetRef="Task_PrepareMessage" />
+    <bpmn:sequenceFlow id="Flow_ToGateway" sourceRef="Task_PrepareMessage" targetRef="Gateway_Split" />
+    <bpmn:sequenceFlow id="Flow_ToTarget1" sourceRef="Gateway_Split" targetRef="Task_Target1" />
+    <bpmn:sequenceFlow id="Flow_ToTarget2" sourceRef="Gateway_Split" targetRef="Task_Target2" />
+    <bpmn:sequenceFlow id="Flow_ToTarget3" sourceRef="Gateway_Split" targetRef="Task_Target3">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${includeTarget3 == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_FromTarget1" sourceRef="Task_Target1" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_FromTarget2" sourceRef="Task_Target2" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_FromTarget3" sourceRef="Task_Target3" targetRef="Gateway_Join" />
+    <bpmn:sequenceFlow id="Flow_ToAggregate" sourceRef="Gateway_Join" targetRef="Task_AggregateResults" />
+    <bpmn:sequenceFlow id="Flow_ToEnd" sourceRef="Task_AggregateResults" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_Target1Error" sourceRef="BoundaryEvent_Target1Error" targetRef="Task_HandleOrchestrationError" />
+    <bpmn:sequenceFlow id="Flow_Target2Error" sourceRef="BoundaryEvent_Target2Error" targetRef="Task_HandleOrchestrationError" />
+    <bpmn:sequenceFlow id="Flow_Target3Error" sourceRef="BoundaryEvent_Target3Error" targetRef="Task_HandleOrchestrationError" />
+    <bpmn:sequenceFlow id="Flow_ErrorToEnd" sourceRef="Task_HandleOrchestrationError" targetRef="EndEvent_Error" />
+    <bpmn:sequenceFlow id="Flow_Timeout" sourceRef="TimerEvent_Timeout" targetRef="EndEvent_Timeout" />
+    
+    <!-- Association for Compensation -->
+    <bpmn:association id="Association_1" sourceRef="CompensateEvent_Target1" targetRef="Task_CompensateTarget1" />
+    
+  </bpmn:process>
+  
+</bpmn:definitions>

@@ -1,4 +1,5 @@
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 import type { IntegrationFlow } from '@/types/flow';
 
 const API_PREFIX = '/flows';

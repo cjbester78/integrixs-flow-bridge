@@ -536,8 +536,8 @@ public class FlowStructureService {
         
         flowStructure.setWsdlContent(generatedWsdl);
         
-        // TODO: Store operation info in a separate table or configuration field
-        // For now, operation info is derived from the flow structure's properties
+        // Note: Operation info is stored in the metadata field as 'operationInfo'
+        // See generateOperationMetadata() method for details
     }
     
     private String getElementNameForMessageType(MessageType type) {
@@ -634,7 +634,7 @@ public class FlowStructureService {
                     .sourceType(entity.getSourceType())
                     .namespace(extractNamespaceData(entity))
                     .metadata(generateOperationMetadata(entity))
-                    .tags(new HashSet<>()) // TODO: Load from tags table if implemented
+                    .tags(new HashSet<>()) // Note: Tags table not yet implemented
                     .version(entity.getVersion())
                     .isActive(entity.getIsActive())
                     .businessComponent(convertToBusinessComponentDTO(entity.getBusinessComponent()))
@@ -666,8 +666,8 @@ public class FlowStructureService {
                     .description(entity.getDescription())
                     .xsdContent(entity.getXsdContent())
                     .namespace(extractMessageNamespaceData(entity))
-                    .metadata(new HashMap<>()) // TODO: Load from metadata table if implemented
-                    .tags(new HashSet<>()) // TODO: Load from tags table if implemented
+                    .metadata(new HashMap<>()) // Note: Metadata table not yet implemented
+                    .tags(new HashSet<>()) // Note: Tags table not yet implemented
                     .version(entity.getVersion())
                     .isActive(entity.getIsActive())
                     .createdAt(entity.getCreatedAt())

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Database, MessageSquare, FileArchive, RefreshCw } from 'lucide-react';
 import { JdbcDriverModal } from './JdbcDriverModal';
-import { JmsDriverModal } from './JmsDriverModal';
+import { IbmmqDriverModal } from './IbmmqDriverModal';
 import { JarFile } from '@/types/admin';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -18,7 +18,7 @@ interface ConnectionDriverSelectionProps {
 
 export const ConnectionDriverSelection = ({ jarFiles, isLoading = false, onRefresh, onJarFileAdded, onJarFileDeleted }: ConnectionDriverSelectionProps) => {
  const [showJdbcModal, setShowJdbcModal] = useState(false);
- const [showJmsModal, setShowJmsModal] = useState(false);
+ const [showIbmmqModal, setShowIbmmqModal] = useState(false);
 
  return (
  <div className="space-y-6">
@@ -46,20 +46,20 @@ export const ConnectionDriverSelection = ({ jarFiles, isLoading = false, onRefre
 
  <Card
  className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/20"
- onClick={() => setShowJmsModal(true)}
+ onClick={() => setShowIbmmqModal(true)}
  >
  <CardHeader className="text-center pb-4">
  <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
  <MessageSquare className="h-8 w-8 text-success dark:text-success" />
  </div>
- <CardTitle className="text-xl">JMS Driver</CardTitle>
+ <CardTitle className="text-xl">IBM MQ Driver</CardTitle>
  <CardDescription>
- Upload Java Message Service drivers for ActiveMQ, RabbitMQ, and other message brokers
+ Upload IBM MQ drivers for WebSphere MQ and other IBM messaging solutions
  </CardDescription>
  </CardHeader>
  <CardContent className="text-center pt-0">
  <Button variant="outline" className="w-full">
- Upload JMS Driver
+ Upload IBM MQ Driver
  </Button>
  </CardContent>
  </Card>
@@ -111,7 +111,7 @@ export const ConnectionDriverSelection = ({ jarFiles, isLoading = false, onRefre
  <EmptyState
  icon={FileArchive}
  title="No connection drivers uploaded"
- description="Upload JDBC database drivers or JMS client libraries to enable connections to external systems."
+ description="Upload JDBC database drivers or IBM MQ client libraries to enable connections to external systems."
  />
  ) : (
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -167,9 +167,9 @@ export const ConnectionDriverSelection = ({ jarFiles, isLoading = false, onRefre
  onDriverAdded={onJarFileAdded}
  />
 
- <JmsDriverModal
- open={showJmsModal}
- onOpenChange={setShowJmsModal}
+ <IbmmqDriverModal
+ open={showIbmmqModal}
+ onOpenChange={setShowIbmmqModal}
  onDriverAdded={onJarFileAdded}
  />
  </div>

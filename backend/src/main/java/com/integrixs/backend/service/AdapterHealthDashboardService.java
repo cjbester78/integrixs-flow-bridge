@@ -811,7 +811,7 @@ public class AdapterHealthDashboardService {
     }
     
     private boolean isMessageBasedAdapter(CommunicationAdapter adapter) {
-        return adapter.getType().toString().contains("JMS") || 
+        return adapter.getType().toString().contains("IBMMQ") || 
                adapter.getType().toString().contains("KAFKA");
     }
     

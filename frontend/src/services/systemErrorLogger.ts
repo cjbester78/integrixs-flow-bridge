@@ -1,5 +1,6 @@
 import { SystemLogEntry } from '@/hooks/useSystemLogs';
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 
 class SystemErrorLogger {
  private listeners: ((log: SystemLogEntry) => void)[] = [];

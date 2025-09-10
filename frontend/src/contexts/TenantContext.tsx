@@ -1,5 +1,6 @@
 import { useState, useEffect, ReactNode, useCallback } from 'react';
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { TenantContext, type Tenant, type TenantSubscription, type TenantUsage } from './tenant-context-types';

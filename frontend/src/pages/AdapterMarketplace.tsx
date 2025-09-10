@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAdapterTypes } from '@/hooks/useAdapterTypes';
 import { useAdapterCategories } from '@/hooks/useAdapterCategories';
+import { useAdapterCounts } from '@/hooks/useAdapterCounts';
 import { CategoryFilter } from '@/components/adapter/CategoryFilter';
 import { AdapterGrid } from '@/components/adapter/AdapterGrid';
 import { AdapterSearchBar } from '@/components/adapter/AdapterSearchBar';
@@ -16,6 +17,7 @@ export const AdapterMarketplace = () => {
   const [currentPage, setCurrentPage] = useState(0);
 
   const { data: categories, isLoading: categoriesLoading } = useAdapterCategories();
+  const { data: adapterCounts, isLoading: countsLoading } = useAdapterCounts();
   const { 
     data: adapterTypesData, 
     isLoading: adapterTypesLoading, 
@@ -56,7 +58,7 @@ export const AdapterMarketplace = () => {
         <div className="flex gap-6">
           {/* Category Filter */}
           <div className="w-64 flex-shrink-0">
-            {categoriesLoading ? (
+            {categoriesLoading || countsLoading ? (
               <Card>
                 <CardContent className="p-4 space-y-2">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -69,7 +71,7 @@ export const AdapterMarketplace = () => {
                 categories={categories || []}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
-                adapterCounts={{}} // TODO: Add adapter counts per category
+                adapterCounts={adapterCounts || {}}
               />
             )}
           </div>

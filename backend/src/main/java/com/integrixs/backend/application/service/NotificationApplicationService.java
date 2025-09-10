@@ -2,11 +2,15 @@ package com.integrixs.backend.application.service;
 
 import com.integrixs.backend.domain.service.NotificationManagementService;
 import com.integrixs.backend.infrastructure.notification.EmailNotificationService;
+import com.integrixs.monitoring.domain.model.Alert;
+import com.integrixs.monitoring.domain.service.AlertingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Application service for notification management
@@ -19,6 +23,10 @@ public class NotificationApplicationService {
     
     private final NotificationManagementService notificationManagementService;
     private final EmailNotificationService emailNotificationService;
+    private final AlertingService alertingService;
+    
+    @Autowired(required = false)
+    private AuthenticationService authenticationService;
     
     /**
      * Send a system alert notification
@@ -40,7 +48,18 @@ public class NotificationApplicationService {
                 log.info("Email notifications disabled. Alert logged: {} - {}", subject, message);
             }
             
-            // TODO: Could also send via other channels (SMS, webhook, etc.)
+            // Send via monitoring AlertingService which supports SMS, webhook, and email
+            Alert monitoringAlert = Alert.builder()
+                .alertName(subject)
+                .message(message)
+                .alertType("SYSTEM_ALERT")
+                .severity(Alert.AlertSeverity.valueOf((String) alert.get("severity")))
+                .source("NotificationApplicationService")
+                .domainType((String) alert.get("domainType"))
+                .domainReferenceId((String) alert.get("domainReferenceId"))
+                .build();
+            
+            alertingService.triggerAlert(monitoringAlert);
             
         } catch (Exception e) {
             log.error("Failed to send system alert: {}", e.getMessage(), e);
@@ -54,9 +73,61 @@ public class NotificationApplicationService {
         try {
             log.info("Sending user notification to {}: {}", userId, subject);
             
-            // TODO: Look up user email from user service
-            // For now, just log it
-            log.info("User notification for {}: {} - {}", userId, subject, message);
+            // Look up user email from authentication service
+            String userEmail = null;
+            String username = null;
+            
+            if (authenticationService != null) {
+                try {
+                    // Assuming userId is a UUID
+                    com.integrixs.backend.api.dto.user.UserProfileResponse userProfile = 
+                        authenticationService.getUserProfile(userId);
+                    
+                    if (userProfile != null) {
+                        userEmail = userProfile.getEmail();
+                        username = userProfile.getUsername();
+                    }
+                } catch (Exception ex) {
+                    // Try by username if UUID lookup fails
+                    try {
+                        com.integrixs.backend.api.dto.user.UserProfileResponse userProfile = 
+                            authenticationService.getUserProfile(userId);
+                        
+                        if (userProfile != null) {
+                            userEmail = userProfile.getEmail();
+                            username = userProfile.getUsername();
+                        }
+                    } catch (Exception e2) {
+                        log.warn("Could not find user with ID/username: {}", userId);
+                    }
+                }
+            }
+            
+            if (userEmail != null) {
+                // Send email notification
+                if (emailNotificationService.isEmailEnabled()) {
+                    emailNotificationService.sendEmail(userEmail, subject, message);
+                    log.info("Email notification sent to user {} ({})", username, userEmail);
+                }
+                
+                // Also trigger alert for multi-channel support
+                Alert userAlert = Alert.builder()
+                    .alertName(subject)
+                    .message(message)
+                    .alertType("USER_NOTIFICATION")
+                    .severity(Alert.AlertSeverity.INFO)
+                    .source("NotificationApplicationService")
+                    .domainType("User")
+                    .domainReferenceId(userId)
+                    .build();
+                
+                userAlert.addMetadata("userEmail", userEmail);
+                userAlert.addMetadata("username", username);
+                
+                alertingService.triggerAlert(userAlert);
+            } else {
+                log.warn("No email found for user {}. Notification logged: {} - {}", userId, subject, message);
+            }
             
         } catch (Exception e) {
             log.error("Failed to send user notification: {}", e.getMessage(), e);

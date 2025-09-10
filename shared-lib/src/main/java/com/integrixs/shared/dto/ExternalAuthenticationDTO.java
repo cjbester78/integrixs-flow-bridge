@@ -59,6 +59,8 @@ public class ExternalAuthenticationDTO {
     private String consumerSecret; // Only used for create/update, never returned
     private String oauth1Token;
     private String oauth1TokenSecret; // Only used for create/update, never returned
+    private String oauth1SignatureMethod; // HMAC-SHA1, HMAC-SHA256, PLAINTEXT
+    private String oauth1Realm;
     private boolean hasConsumerSecret;
     private boolean hasOauth1TokenSecret;
     

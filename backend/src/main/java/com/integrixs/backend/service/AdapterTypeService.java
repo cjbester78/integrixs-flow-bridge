@@ -34,7 +34,10 @@ public class AdapterTypeService {
         
         UUID categoryId = null;
         if (category != null && !category.isEmpty()) {
-            // TODO: Resolve category code to ID
+            // Resolve category code to ID
+            categoryId = adapterCategoryRepository.findByCode(category)
+                .map(AdapterCategory::getId)
+                .orElse(null);
         }
         
         return adapterTypeRepository.findWithFilters(categoryId, "active", search, pageable);

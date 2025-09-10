@@ -78,6 +78,11 @@ public class AdapterMetadata {
     private String minPlatformVersion;
     
     /**
+     * Maximum supported platform version
+     */
+    private String maxPlatformVersion;
+    
+    /**
      * License information
      */
     private String license;

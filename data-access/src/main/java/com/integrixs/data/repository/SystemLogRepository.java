@@ -3,6 +3,9 @@ package com.integrixs.data.repository;
 import com.integrixs.data.model.SystemLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +41,12 @@ public interface SystemLogRepository extends JpaRepository<SystemLog, UUID>, Jpa
     // Methods for payload viewer
     List<SystemLog> findByCorrelationIdAndCategoryOrderByTimestampDesc(String correlationId, String category);
     List<SystemLog> findByCorrelationIdOrderByTimestampDesc(String correlationId);
+    List<SystemLog> findByCorrelationIdOrderByTimestamp(String correlationId);
     List<SystemLog> findByCategoryOrderByTimestampDesc(String category);
     List<SystemLog> findAllByOrderByTimestampDesc(org.springframework.data.domain.Pageable pageable);
+    
+    // Cleanup method
+    @Modifying
+    @Query("DELETE FROM SystemLog s WHERE s.timestamp < :cutoffDate")
+    int deleteByTimestampBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
 }

@@ -1,0 +1,715 @@
+package com.integrixs.adapters.social.discord;
+
+import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
+import com.integrixs.adapters.social.discord.DiscordApiConfig.*;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.enums.AdapterType;
+import com.integrixs.shared.exceptions.AdapterException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+@Component
+@Slf4j
+public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    
+    private static final String API_BASE_URL = "https://discord.com/api/v10";
+    private static final String GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json";
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
+    
+    @Autowired
+    private DiscordApiConfig config;
+    
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    private WebSocketSession gatewaySession;
+    private ScheduledExecutorService heartbeatExecutor;
+    private long lastSequence = 0;
+    private String sessionId;
+    private boolean isConnected = false;
+    
+    // Cache for frequently accessed data
+    private final Map<String, JsonNode> guildCache = new ConcurrentHashMap<>();
+    private final Map<String, JsonNode> channelCache = new ConcurrentHashMap<>();
+    private final Map<String, JsonNode> userCache = new ConcurrentHashMap<>();
+    
+    @Override
+    public AdapterType getType() {
+        return AdapterType.REST; // Using REST as Discord is not yet in AdapterType enum
+    }
+    
+    @Override
+    public String getName() {
+        return "Discord API Adapter";
+    }
+    
+    // Initialize Gateway connection (for real-time events)
+    @Override
+    public void initialize() {
+        super.initialize();
+        if (config.getBotToken() != null) {
+            connectToGateway();
+        }
+    }
+    
+    // Guild polling
+    @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.guilds:3600000}")
+    public void pollGuilds() {
+        if (!config.getFeatures().isEnableGuildManagement()) {
+            return;
+        }
+        
+        try {
+            log.debug("Polling Discord guilds");
+            JsonNode guilds = makeAuthenticatedRequest("/users/@me/guilds", HttpMethod.GET);
+            
+            if (guilds != null && guilds.isArray()) {
+                processGuilds(guilds);
+            }
+        } catch (Exception e) {
+            log.error("Error polling guilds", e);
+        }
+    }
+    
+    // Channel polling for specific guild
+    @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.channels:1800000}")
+    public void pollChannels() {
+        if (!config.getFeatures().isEnableChannelOperations() || config.getGuildId() == null) {
+            return;
+        }
+        
+        try {
+            log.debug("Polling Discord channels for guild: {}", config.getGuildId());
+            String endpoint = String.format("/guilds/%s/channels", config.getGuildId());
+            JsonNode channels = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
+            
+            if (channels != null && channels.isArray()) {
+                processChannels(channels);
+            }
+        } catch (Exception e) {
+            log.error("Error polling channels", e);
+        }
+    }
+    
+    // Message polling for specific channels
+    @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.messages:300000}")
+    public void pollMessages() {
+        if (!config.getFeatures().isEnableMessageManagement()) {
+            return;
+        }
+        
+        try {
+            // Poll messages for cached channels
+            channelCache.keySet().forEach(channelId -> {
+                try {
+                    String endpoint = String.format("/channels/%s/messages?limit=100", channelId);
+                    JsonNode messages = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
+                    
+                    if (messages != null && messages.isArray()) {
+                        processMessages(channelId, messages);
+                    }
+                } catch (Exception e) {
+                    log.error("Error polling messages for channel: {}", channelId, e);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Error polling messages", e);
+        }
+    }
+    
+    // Member polling for specific guild
+    @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.members:3600000}")
+    public void pollMembers() {
+        if (!config.getFeatures().isEnableMemberManagement() || config.getGuildId() == null) {
+            return;
+        }
+        
+        try {
+            log.debug("Polling Discord members for guild: {}", config.getGuildId());
+            String endpoint = String.format("/guilds/%s/members?limit=1000", config.getGuildId());
+            JsonNode members = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
+            
+            if (members != null && members.isArray()) {
+                processMembers(members);
+            }
+        } catch (Exception e) {
+            log.error("Error polling members", e);
+        }
+    }
+    
+    // Scheduled events polling
+    @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.events:1800000}")
+    public void pollScheduledEvents() {
+        if (!config.getFeatures().isEnableEventManagement() || config.getGuildId() == null) {
+            return;
+        }
+        
+        try {
+            log.debug("Polling Discord scheduled events");
+            String endpoint = String.format("/guilds/%s/scheduled-events", config.getGuildId());
+            JsonNode events = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
+            
+            if (events != null && events.isArray()) {
+                processScheduledEvents(events);
+            }
+        } catch (Exception e) {
+            log.error("Error polling scheduled events", e);
+        }
+    }
+    
+    // Voice states polling
+    @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.voice:60000}")
+    public void pollVoiceStates() {
+        if (!config.getFeatures().isEnableVoiceSupport()) {
+            return;
+        }
+        
+        try {
+            // Voice states are typically received via Gateway events
+            // This is a backup polling mechanism for specific guild
+            if (config.getGuildId() != null && gatewaySession == null) {
+                log.debug("Polling voice states via REST API");
+                // Voice states are part of guild data
+                String endpoint = String.format("/guilds/%s?with_counts=true", config.getGuildId());
+                JsonNode guild = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
+                
+                if (guild != null && guild.has("voice_states")) {
+                    processVoiceStates(guild.get("voice_states"));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error polling voice states", e);
+        }
+    }
+    
+    // Gateway connection management
+    private void connectToGateway() {
+        try {
+            StandardWebSocketClient client = new StandardWebSocketClient();
+            gatewaySession = client.doHandshake(new DiscordWebSocketHandler(), GATEWAY_URL).get();
+            log.info("Connected to Discord Gateway");
+        } catch (Exception e) {
+            log.error("Failed to connect to Discord Gateway", e);
+        }
+    }
+    
+    // WebSocket handler for Gateway events
+    private class DiscordWebSocketHandler extends TextWebSocketHandler {
+        @Override
+        protected void handleTextMessage(WebSocketSession session, org.springframework.web.socket.TextMessage message) {
+            try {
+                JsonNode payload = objectMapper.readTree(message.getPayload());
+                handleGatewayEvent(payload);
+            } catch (Exception e) {
+                log.error("Error handling gateway message", e);
+            }
+        }
+        
+        @Override
+        public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) {
+            log.warn("Discord Gateway connection closed: {}", status);
+            isConnected = false;
+            // Attempt to reconnect after delay
+            scheduleReconnect();
+        }
+    }
+    
+    private void handleGatewayEvent(JsonNode payload) {
+        int opcode = payload.get("op").asInt();
+        
+        switch (opcode) {
+            case 0: // Dispatch
+                handleDispatchEvent(payload);
+                break;
+            case 1: // Heartbeat request
+                sendHeartbeat();
+                break;
+            case 7: // Reconnect
+                reconnectGateway();
+                break;
+            case 9: // Invalid session
+                handleInvalidSession(payload);
+                break;
+            case 10: // Hello
+                handleHello(payload);
+                break;
+            case 11: // Heartbeat ACK
+                log.trace("Heartbeat acknowledged");
+                break;
+        }
+        
+        // Update sequence number
+        if (payload.has("s") && !payload.get("s").isNull()) {
+            lastSequence = payload.get("s").asLong();
+        }
+    }
+    
+    private void handleDispatchEvent(JsonNode payload) {
+        String eventType = payload.get("t").asText();
+        JsonNode data = payload.get("d");
+        
+        EventType event = EventType.valueOf(eventType);
+        
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put("event_type", eventType);
+        eventData.put("timestamp", Instant.now().toString());
+        eventData.put("data", data);
+        
+        // Cache relevant data
+        switch (event) {
+            case GUILD_CREATE:
+            case GUILD_UPDATE:
+                guildCache.put(data.get("id").asText(), data);
+                break;
+            case CHANNEL_CREATE:
+            case CHANNEL_UPDATE:
+                channelCache.put(data.get("id").asText(), data);
+                break;
+            case READY:
+                sessionId = data.get("session_id").asText();
+                isConnected = true;
+                break;
+        }
+        
+        // Create message for queue
+        MessageDTO message = MessageDTO.builder()
+            .type("discord_event")
+            .category(eventType)
+            .source("discord_gateway")
+            .destination(getQueueName())
+            .content(objectMapper.writeValueAsString(eventData))
+            .timestamp(Instant.now().toEpochMilli())
+            .build();
+            
+        publishToQueue(message);
+    }
+    
+    private void handleHello(JsonNode payload) {
+        JsonNode data = payload.get("d");
+        int heartbeatInterval = data.get("heartbeat_interval").asInt();
+        
+        // Start heartbeat
+        startHeartbeat(heartbeatInterval);
+        
+        // Send identify or resume
+        if (sessionId != null) {
+            sendResume();
+        } else {
+            sendIdentify();
+        }
+    }
+    
+    private void sendIdentify() {
+        try {
+            ObjectNode identify = objectMapper.createObjectNode();
+            identify.put("op", 2);
+            
+            ObjectNode data = objectMapper.createObjectNode();
+            data.put("token", config.getBotToken());
+            data.put("intents", calculateIntents());
+            
+            ObjectNode properties = objectMapper.createObjectNode();
+            properties.put("$os", "linux");
+            properties.put("$browser", "integrixs");
+            properties.put("$device", "integrixs");
+            data.set("properties", properties);
+            
+            identify.set("d", data);
+            
+            gatewaySession.sendMessage(new org.springframework.web.socket.TextMessage(
+                objectMapper.writeValueAsString(identify)
+            ));
+        } catch (Exception e) {
+            log.error("Error sending identify", e);
+        }
+    }
+    
+    private void sendResume() {
+        try {
+            ObjectNode resume = objectMapper.createObjectNode();
+            resume.put("op", 6);
+            
+            ObjectNode data = objectMapper.createObjectNode();
+            data.put("token", config.getBotToken());
+            data.put("session_id", sessionId);
+            data.put("seq", lastSequence);
+            
+            resume.set("d", data);
+            
+            gatewaySession.sendMessage(new org.springframework.web.socket.TextMessage(
+                objectMapper.writeValueAsString(resume)
+            ));
+        } catch (Exception e) {
+            log.error("Error sending resume", e);
+        }
+    }
+    
+    private void startHeartbeat(int interval) {
+        if (heartbeatExecutor != null) {
+            heartbeatExecutor.shutdown();
+        }
+        
+        heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
+        heartbeatExecutor.scheduleAtFixedRate(this::sendHeartbeat, interval, interval, TimeUnit.MILLISECONDS);
+    }
+    
+    private void sendHeartbeat() {
+        try {
+            ObjectNode heartbeat = objectMapper.createObjectNode();
+            heartbeat.put("op", 1);
+            heartbeat.put("d", lastSequence > 0 ? lastSequence : null);
+            
+            gatewaySession.sendMessage(new org.springframework.web.socket.TextMessage(
+                objectMapper.writeValueAsString(heartbeat)
+            ));
+        } catch (Exception e) {
+            log.error("Error sending heartbeat", e);
+        }
+    }
+    
+    private int calculateIntents() {
+        int intents = 0;
+        // Add intents based on configuration
+        if (config.getFeatures().isEnableGuildManagement()) {
+            intents |= 1 << 0; // GUILDS
+        }
+        if (config.getFeatures().isEnableMemberManagement()) {
+            intents |= 1 << 1; // GUILD_MEMBERS
+        }
+        if (config.getFeatures().isEnableMessageManagement()) {
+            intents |= 1 << 9; // GUILD_MESSAGES
+            intents |= 1 << 12; // DIRECT_MESSAGES
+            intents |= 1 << 15; // MESSAGE_CONTENT
+        }
+        if (config.getFeatures().isEnableVoiceSupport()) {
+            intents |= 1 << 7; // GUILD_VOICE_STATES
+        }
+        if (config.getFeatures().isEnableEventManagement()) {
+            intents |= 1 << 16; // GUILD_SCHEDULED_EVENTS
+        }
+        return intents;
+    }
+    
+    // Processing methods
+    private void processGuilds(JsonNode guilds) {
+        guilds.forEach(guild -> {
+            try {
+                Map<String, Object> guildData = new HashMap<>();
+                guildData.put("id", guild.get("id").asText());
+                guildData.put("name", guild.get("name").asText());
+                guildData.put("icon", guild.has("icon") ? guild.get("icon").asText() : null);
+                guildData.put("owner", guild.get("owner").asBoolean());
+                guildData.put("permissions", guild.get("permissions").asText());
+                
+                // Cache guild data
+                guildCache.put(guild.get("id").asText(), guild);
+                
+                MessageDTO message = MessageDTO.builder()
+                    .type("guild")
+                    .category("guild_data")
+                    .source("discord")
+                    .destination(getQueueName())
+                    .content(objectMapper.writeValueAsString(guildData))
+                    .timestamp(Instant.now().toEpochMilli())
+                    .build();
+                    
+                publishToQueue(message);
+            } catch (Exception e) {
+                log.error("Error processing guild", e);
+            }
+        });
+    }
+    
+    private void processChannels(JsonNode channels) {
+        channels.forEach(channel -> {
+            try {
+                Map<String, Object> channelData = new HashMap<>();
+                channelData.put("id", channel.get("id").asText());
+                channelData.put("type", channel.get("type").asInt());
+                channelData.put("guild_id", channel.has("guild_id") ? channel.get("guild_id").asText() : null);
+                channelData.put("name", channel.has("name") ? channel.get("name").asText() : null);
+                channelData.put("position", channel.get("position").asInt());
+                channelData.put("parent_id", channel.has("parent_id") ? channel.get("parent_id").asText() : null);
+                
+                // Cache channel data
+                channelCache.put(channel.get("id").asText(), channel);
+                
+                MessageDTO message = MessageDTO.builder()
+                    .type("channel")
+                    .category("channel_data")
+                    .source("discord")
+                    .destination(getQueueName())
+                    .content(objectMapper.writeValueAsString(channelData))
+                    .timestamp(Instant.now().toEpochMilli())
+                    .build();
+                    
+                publishToQueue(message);
+            } catch (Exception e) {
+                log.error("Error processing channel", e);
+            }
+        });
+    }
+    
+    private void processMessages(String channelId, JsonNode messages) {
+        messages.forEach(message -> {
+            try {
+                Map<String, Object> messageData = new HashMap<>();
+                messageData.put("id", message.get("id").asText());
+                messageData.put("channel_id", channelId);
+                messageData.put("author", message.get("author"));
+                messageData.put("content", message.get("content").asText());
+                messageData.put("timestamp", message.get("timestamp").asText());
+                messageData.put("edited_timestamp", message.has("edited_timestamp") ? 
+                    message.get("edited_timestamp").asText() : null);
+                messageData.put("tts", message.get("tts").asBoolean());
+                messageData.put("mention_everyone", message.get("mention_everyone").asBoolean());
+                messageData.put("attachments", message.get("attachments"));
+                messageData.put("embeds", message.get("embeds"));
+                messageData.put("reactions", message.has("reactions") ? message.get("reactions") : null);
+                messageData.put("pinned", message.get("pinned").asBoolean());
+                messageData.put("type", message.get("type").asInt());
+                
+                MessageDTO msg = MessageDTO.builder()
+                    .type("message")
+                    .category("message_data")
+                    .source("discord")
+                    .destination(getQueueName())
+                    .content(objectMapper.writeValueAsString(messageData))
+                    .timestamp(Instant.now().toEpochMilli())
+                    .build();
+                    
+                publishToQueue(msg);
+            } catch (Exception e) {
+                log.error("Error processing message", e);
+            }
+        });
+    }
+    
+    private void processMembers(JsonNode members) {
+        members.forEach(member -> {
+            try {
+                Map<String, Object> memberData = new HashMap<>();
+                memberData.put("user", member.get("user"));
+                memberData.put("nick", member.has("nick") ? member.get("nick").asText() : null);
+                memberData.put("roles", member.get("roles"));
+                memberData.put("joined_at", member.get("joined_at").asText());
+                memberData.put("premium_since", member.has("premium_since") ? 
+                    member.get("premium_since").asText() : null);
+                memberData.put("deaf", member.get("deaf").asBoolean());
+                memberData.put("mute", member.get("mute").asBoolean());
+                
+                MessageDTO message = MessageDTO.builder()
+                    .type("member")
+                    .category("member_data")
+                    .source("discord")
+                    .destination(getQueueName())
+                    .content(objectMapper.writeValueAsString(memberData))
+                    .timestamp(Instant.now().toEpochMilli())
+                    .build();
+                    
+                publishToQueue(message);
+            } catch (Exception e) {
+                log.error("Error processing member", e);
+            }
+        });
+    }
+    
+    private void processScheduledEvents(JsonNode events) {
+        events.forEach(event -> {
+            try {
+                Map<String, Object> eventData = new HashMap<>();
+                eventData.put("id", event.get("id").asText());
+                eventData.put("guild_id", event.get("guild_id").asText());
+                eventData.put("channel_id", event.has("channel_id") ? event.get("channel_id").asText() : null);
+                eventData.put("creator_id", event.has("creator_id") ? event.get("creator_id").asText() : null);
+                eventData.put("name", event.get("name").asText());
+                eventData.put("description", event.has("description") ? event.get("description").asText() : null);
+                eventData.put("scheduled_start_time", event.get("scheduled_start_time").asText());
+                eventData.put("scheduled_end_time", event.has("scheduled_end_time") ? 
+                    event.get("scheduled_end_time").asText() : null);
+                eventData.put("privacy_level", event.get("privacy_level").asInt());
+                eventData.put("status", event.get("status").asInt());
+                eventData.put("entity_type", event.get("entity_type").asInt());
+                eventData.put("entity_id", event.has("entity_id") ? event.get("entity_id").asText() : null);
+                eventData.put("entity_metadata", event.has("entity_metadata") ? event.get("entity_metadata") : null);
+                eventData.put("user_count", event.has("user_count") ? event.get("user_count").asInt() : 0);
+                
+                MessageDTO message = MessageDTO.builder()
+                    .type("scheduled_event")
+                    .category("event_data")
+                    .source("discord")
+                    .destination(getQueueName())
+                    .content(objectMapper.writeValueAsString(eventData))
+                    .timestamp(Instant.now().toEpochMilli())
+                    .build();
+                    
+                publishToQueue(message);
+            } catch (Exception e) {
+                log.error("Error processing scheduled event", e);
+            }
+        });
+    }
+    
+    private void processVoiceStates(JsonNode voiceStates) {
+        voiceStates.forEach(state -> {
+            try {
+                Map<String, Object> voiceData = new HashMap<>();
+                voiceData.put("guild_id", state.has("guild_id") ? state.get("guild_id").asText() : null);
+                voiceData.put("channel_id", state.has("channel_id") ? state.get("channel_id").asText() : null);
+                voiceData.put("user_id", state.get("user_id").asText());
+                voiceData.put("member", state.has("member") ? state.get("member") : null);
+                voiceData.put("session_id", state.get("session_id").asText());
+                voiceData.put("deaf", state.get("deaf").asBoolean());
+                voiceData.put("mute", state.get("mute").asBoolean());
+                voiceData.put("self_deaf", state.get("self_deaf").asBoolean());
+                voiceData.put("self_mute", state.get("self_mute").asBoolean());
+                voiceData.put("self_stream", state.has("self_stream") ? state.get("self_stream").asBoolean() : false);
+                voiceData.put("self_video", state.get("self_video").asBoolean());
+                voiceData.put("suppress", state.get("suppress").asBoolean());
+                
+                MessageDTO message = MessageDTO.builder()
+                    .type("voice_state")
+                    .category("voice_data")
+                    .source("discord")
+                    .destination(getQueueName())
+                    .content(objectMapper.writeValueAsString(voiceData))
+                    .timestamp(Instant.now().toEpochMilli())
+                    .build();
+                    
+                publishToQueue(message);
+            } catch (Exception e) {
+                log.error("Error processing voice state", e);
+            }
+        });
+    }
+    
+    // Interaction/Webhook verification
+    public boolean verifyWebhookSignature(String signature, String timestamp, String body) {
+        try {
+            String message = timestamp + body;
+            
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(
+                config.getPublicKey().getBytes(StandardCharsets.UTF_8), 
+                "HmacSHA256"
+            );
+            mac.init(secretKey);
+            
+            byte[] signatureBytes = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
+            String calculatedSignature = bytesToHex(signatureBytes);
+            
+            return calculatedSignature.equals(signature);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Error verifying webhook signature", e);
+            return false;
+        }
+    }
+    
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02x", b));
+        }
+        return result.toString();
+    }
+    
+    // Reconnection logic
+    private void scheduleReconnect() {
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+            log.info("Attempting to reconnect to Discord Gateway");
+            connectToGateway();
+        }, 5, TimeUnit.SECONDS);
+    }
+    
+    private void reconnectGateway() {
+        try {
+            if (gatewaySession != null && gatewaySession.isOpen()) {
+                gatewaySession.close();
+            }
+            connectToGateway();
+        } catch (Exception e) {
+            log.error("Error reconnecting to gateway", e);
+        }
+    }
+    
+    private void handleInvalidSession(JsonNode payload) {
+        boolean resumable = payload.get("d").asBoolean();
+        if (resumable) {
+            sendResume();
+        } else {
+            sessionId = null;
+            sendIdentify();
+        }
+    }
+    
+    // Helper methods
+    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method) {
+        return makeAuthenticatedRequest(endpoint, method, null);
+    }
+    
+    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, Object body) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bot " + config.getBotToken());
+            headers.set("Content-Type", "application/json");
+            headers.set("User-Agent", "DiscordBot (https://integrixs.com, 1.0)");
+            
+            HttpEntity<?> entity = body != null ? 
+                new HttpEntity<>(body, headers) : new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                API_BASE_URL + endpoint, method, entity, String.class
+            );
+            
+            return objectMapper.readTree(response.getBody());
+        } catch (HttpClientErrorException e) {
+            log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AdapterException("Discord API request failed", e);
+        } catch (Exception e) {
+            log.error("Error making authenticated request", e);
+            throw new AdapterException("Failed to make authenticated request", e);
+        }
+    }
+    
+    @Override
+    public void destroy() {
+        super.destroy();
+        if (heartbeatExecutor != null) {
+            heartbeatExecutor.shutdown();
+        }
+        if (gatewaySession != null && gatewaySession.isOpen()) {
+            try {
+                gatewaySession.close();
+            } catch (Exception e) {
+                log.error("Error closing gateway session", e);
+            }
+        }
+    }
+}

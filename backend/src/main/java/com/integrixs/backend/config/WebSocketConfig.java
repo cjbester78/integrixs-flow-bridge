@@ -1,8 +1,10 @@
 package com.integrixs.backend.config;
 
 import com.integrixs.backend.websocket.FlowExecutionWebSocketHandler;
+import com.integrixs.backend.websocket.JobProgressWebSocketHandler;
 import com.integrixs.backend.websocket.MessageWebSocketHandler;
 import com.integrixs.backend.websocket.SimpleWebSocketHandler;
+import com.integrixs.backend.websocket.StreamingProgressWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +27,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
     
     @Autowired(required = false)
     private SimpleWebSocketHandler simpleWebSocketHandler;
+    
+    @Autowired(required = false)
+    private JobProgressWebSocketHandler jobProgressWebSocketHandler;
+    
+    @Autowired(required = false)
+    private StreamingProgressWebSocketHandler streamingProgressWebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -47,6 +55,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
             registry.addHandler(simpleWebSocketHandler, "/ws/test")
                     .setAllowedOrigins("*");
             log.info("Registered /ws/test WebSocket endpoint");
+        }
+        
+        // Job progress monitoring
+        if (jobProgressWebSocketHandler != null) {
+            registry.addHandler(jobProgressWebSocketHandler, "/ws/job-progress")
+                    .setAllowedOrigins("*");
+            log.info("Registered /ws/job-progress WebSocket endpoint");
+        }
+        
+        // Streaming upload progress
+        if (streamingProgressWebSocketHandler != null) {
+            registry.addHandler(streamingProgressWebSocketHandler, "/ws/streaming-progress")
+                    .setAllowedOrigins("*");
+            log.info("Registered /ws/streaming-progress WebSocket endpoint");
         }
         
         log.info("=== WebSocket handler registration complete ===");

@@ -3,6 +3,7 @@ package com.integrixs.backend.config;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -19,5 +20,17 @@ public class RestTemplateConfig {
             .setConnectTimeout(Duration.ofSeconds(30))
             .setReadTimeout(Duration.ofSeconds(60))
             .build();
+    }
+    
+    @Bean
+    public RestTemplate connectionTestRestTemplate(RestTemplateBuilder builder) {
+        // Special RestTemplate for connection testing with shorter timeouts
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000); // 5 seconds for connection
+        factory.setReadTimeout(10000); // 10 seconds for read
+        
+        return builder
+                .requestFactory(() -> factory)
+                .build();
     }
 }

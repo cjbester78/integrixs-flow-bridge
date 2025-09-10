@@ -1,100 +1,118 @@
 package com.integrixs.backend.security;
 
-import com.integrixs.data.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.UUID;
 
 /**
- * Utility class for security-related operations
+ * Security utility class
  */
-@Component
 public class SecurityUtils {
     
+    private SecurityUtils() {
+        // Utility class
+    }
+    
     /**
-     * Get the currently authenticated user
+     * Get current username
      */
-    public User getCurrentUser() {
+    public static String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            return (User) authentication.getPrincipal();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserDetails) {
+                return ((UserDetails) principal).getUsername();
+            } else if (principal instanceof String) {
+                return (String) principal;
+            }
         }
         return null;
     }
     
     /**
-     * Get the username of the currently authenticated user
+     * Get current user ID
      */
-    public String getCurrentUsername() {
-        User user = getCurrentUser();
-        return user != null ? user.getUsername() : "system";
-    }
-    
-    /**
-     * Check if a user is authenticated
-     */
-    public boolean isAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated();
-    }
-    
-    /**
-     * Get the username of the currently authenticated user (static method)
-     */
-    public static String getCurrentUsernameStatic() {
+    public static UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
-            if (principal instanceof User) {
-                return ((User) principal).getUsername();
-            } else if (principal instanceof String) {
-                return (String) principal;
+            if (principal instanceof UserPrincipal) {
+                return ((UserPrincipal) principal).getUserId();
             }
-            return authentication.getName();
         }
-        return "system";
+        return null;
     }
     
     /**
-     * Get the user ID of the currently authenticated user (static method)
-     */
-    public static String getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            // In a real system, you'd extract the user ID from the authentication object
-            // For now, we'll return the username as the ID
-            return authentication.getName();
-        }
-        return "system";
-    }
-    
-    /**
-     * Check if the current user has a specific role (static method)
+     * Check if user has role
      */
     public static boolean hasRole(String role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             return authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_" + role) || 
-                                 auth.getAuthority().equals(role));
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_" + role));
         }
         return false;
     }
     
     /**
-     * Get the current user's role (static method)
+     * Custom user principal
      */
-    public static String getCurrentUserRole() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            // Return the first role found
-            return authentication.getAuthorities().stream()
-                .map(auth -> auth.getAuthority())
-                .filter(auth -> auth.startsWith("ROLE_"))
-                .map(auth -> auth.substring(5)) // Remove ROLE_ prefix
-                .findFirst()
-                .orElse("USER");
+    public static class UserPrincipal implements UserDetails {
+        private final UUID userId;
+        private final String username;
+        private final String password;
+        private final boolean enabled;
+        private final java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities;
+        
+        public UserPrincipal(UUID userId, String username, String password, boolean enabled,
+                           java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities) {
+            this.userId = userId;
+            this.username = username;
+            this.password = password;
+            this.enabled = enabled;
+            this.authorities = authorities;
         }
-        return "ANONYMOUS";
+        
+        public UUID getUserId() {
+            return userId;
+        }
+        
+        @Override
+        public java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> getAuthorities() {
+            return authorities;
+        }
+        
+        @Override
+        public String getPassword() {
+            return password;
+        }
+        
+        @Override
+        public String getUsername() {
+            return username;
+        }
+        
+        @Override
+        public boolean isAccountNonExpired() {
+            return true;
+        }
+        
+        @Override
+        public boolean isAccountNonLocked() {
+            return true;
+        }
+        
+        @Override
+        public boolean isCredentialsNonExpired() {
+            return true;
+        }
+        
+        @Override
+        public boolean isEnabled() {
+            return enabled;
+        }
     }
 }

@@ -33,6 +33,7 @@ public class MessageQueueManagementService {
     private final SystemLogRepository systemLogRepository;
     private final MessageProcessingService processingService;
     private final MessageQueue messageQueue;
+    private final FlowExecutionApplicationService flowExecutionService;
     
     private static final int DEFAULT_PRIORITY = 5;
     private static final int MAX_RETRY_COUNT = 3;
@@ -83,8 +84,8 @@ public class MessageQueueManagementService {
         messageRepository.save(message);
         
         try {
-            // Execute the flow
-            // TODO: Implement async flow execution
+            // Execute the flow asynchronously
+            flowExecutionService.executeFlow(message.getFlow().getId().toString());
             log.info("Flow execution triggered for flow: {}", message.getFlow().getId());
             
             // Mark as completed

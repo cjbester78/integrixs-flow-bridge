@@ -29,8 +29,21 @@ public class MappingEngineService {
             throw new IllegalArgumentException("Source fields are required");
         }
         
-        if (mapping.getTargetField() == null || mapping.getTargetField().isBlank()) {
-            throw new IllegalArgumentException("Target field is required");
+        // Validate target fields - must have at least one
+        List<String> targetFields = mapping.getTargetFieldsList();
+        if (targetFields == null || targetFields.isEmpty()) {
+            throw new IllegalArgumentException("At least one target field is required");
+        }
+        
+        // Validate split configuration for SPLIT type
+        if (mapping.getMappingType() == FieldMapping.MappingType.SPLIT && 
+            mapping.getSplitConfiguration() == null) {
+            throw new IllegalArgumentException("Split configuration is required for SPLIT mapping type");
+        }
+        
+        // For 1-to-many mappings, ensure proper configuration
+        if (targetFields.size() > 1 && mapping.getMappingType() == FieldMapping.MappingType.DIRECT) {
+            throw new IllegalArgumentException("Direct mapping type cannot have multiple target fields. Use SPLIT type instead.");
         }
         
         if (mapping.isArrayMapping() && (mapping.getArrayContextPath() == null || mapping.getArrayContextPath().isBlank())) {
@@ -153,7 +166,22 @@ public class MappingEngineService {
     public FieldMapping updateMapping(FieldMapping existing, FieldMapping updates) {
         // Update fields
         existing.setSourceFieldsList(updates.getSourceFieldsList());
-        existing.setTargetField(updates.getTargetField());
+        
+        // Update target fields - handle both single and multiple
+        if (updates.getTargetFieldsList() != null && !updates.getTargetFieldsList().isEmpty()) {
+            existing.setTargetFieldsList(updates.getTargetFieldsList());
+        } else if (updates.getTargetField() != null) {
+            existing.setTargetField(updates.getTargetField());
+        }
+        
+        // Update mapping type and split configuration
+        if (updates.getMappingType() != null) {
+            existing.setMappingType(updates.getMappingType());
+        }
+        if (updates.getSplitConfiguration() != null) {
+            existing.setSplitConfiguration(updates.getSplitConfiguration());
+        }
+        
         existing.setJavaFunction(updates.getJavaFunction());
         existing.setMappingRule(updates.getMappingRule());
         existing.setInputTypes(updates.getInputTypes());
@@ -175,8 +203,8 @@ public class MappingEngineService {
         
         validateMapping(existing);
         
-        log.info("Updating field mapping {} with target field: {}", 
-            existing.getId(), existing.getTargetField());
+        log.info("Updating field mapping {} with {} target field(s)", 
+            existing.getId(), existing.getTargetFieldsList().size());
         
         return existing;
     }
@@ -185,6 +213,36 @@ public class MappingEngineService {
         // Basic validation - could be enhanced with more comprehensive checks
         if (!javaFunction.contains("(") || !javaFunction.contains(")")) {
             throw new IllegalArgumentException("Invalid Java function format");
+        }
+    }
+    
+    /**
+     * Serialize split configuration to JSON string
+     */
+    public String serializeSplitConfiguration(Object splitConfiguration) {
+        if (splitConfiguration == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(splitConfiguration);
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing split configuration", e);
+            return "{}";
+        }
+    }
+    
+    /**
+     * Deserialize split configuration from JSON string
+     */
+    public Object deserializeSplitConfiguration(String splitConfigurationJson) {
+        if (splitConfigurationJson == null || splitConfigurationJson.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(splitConfigurationJson, Object.class);
+        } catch (Exception e) {
+            log.error("Error deserializing split configuration: {}", splitConfigurationJson, e);
+            return null;
         }
     }
 }

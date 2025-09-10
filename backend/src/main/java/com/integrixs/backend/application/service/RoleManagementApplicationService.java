@@ -1,6 +1,7 @@
 package com.integrixs.backend.application.service;
 
 import com.integrixs.backend.domain.repository.RoleRepository;
+import com.integrixs.backend.domain.repository.UserRepository;
 import com.integrixs.backend.domain.service.RoleManagementService;
 import com.integrixs.backend.exception.ConflictException;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 public class RoleManagementApplicationService {
     
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
     private final RoleManagementService roleManagementService;
     private final AuditTrailService auditTrailService;
     
@@ -185,7 +187,14 @@ public class RoleManagementApplicationService {
             throw new AccessDeniedException("System roles cannot be deleted");
         }
         
-        // TODO: Check if role is in use by any users
+        // Check if role is in use by any users
+        long userCount = userRepository.countByRole(role.getName());
+        if (userCount > 0) {
+            throw new ConflictException(String.format(
+                "Cannot delete role '%s'. It is currently assigned to %d user(s).", 
+                role.getName(), userCount
+            ));
+        }
         
         // Delete
         roleRepository.deleteById(roleId);

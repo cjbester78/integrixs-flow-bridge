@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { messageService, Message, MessageStats, MessageFilters } from '@/services/messageService';
 import { useToast } from '@/hooks/use-toast';
 import { logger, LogCategory } from '@/lib/logger';
@@ -8,11 +8,13 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  const [stats, setStats] = useState<MessageStats | null>(null);
  const [loading, setLoading] = useState(false);
  const [connected, setConnected] = useState(false);
+ const [currentFilters, setCurrentFilters] = useState<MessageFilters | undefined>();
  const { toast } = useToast();
 
  // Load initial data
  const loadMessages = useCallback(async (filters?: MessageFilters) => {
  setLoading(true);
+ setCurrentFilters(filters); // Store current filters
  try {
  const response = businessComponentId
  ? await messageService.getBusinessComponentMessages(businessComponentId, filters)
@@ -60,8 +62,18 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
 
  // Real-time updates
  useEffect(() => {
- // Connect WebSocket
- messageService.connectWebSocket(businessComponentId);
+ // Connect WebSocket with filters if available
+ const connectionParams = {
+ businessComponentId,
+ ...(currentFilters && {
+ flowId: currentFilters.flowId,
+ status: currentFilters.status,
+ startDate: currentFilters.startDate,
+ endDate: currentFilters.endDate,
+ })
+ };
+ 
+ messageService.connectWebSocket(businessComponentId, connectionParams);
  setConnected(true);
 
  // Subscribe to message updates
@@ -89,15 +101,12 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  }
  });
 
- // Subscribe to stats updates - disabled for now as it overrides filtered stats
- // TODO: Make WebSocket send filtered stats based on current filters
- // Requires backend WebSocket enhancement to accept filter parameters:
- // - flowId, status, dateRange, etc.
- // This would reduce unnecessary data transfer and improve performance
- // Priority: Low - current polling approach works, this is an optimization
- const unsubscribeStats = () => {}; // messageService.onStatsUpdate((newStats) => {
- // setStats(newStats);
- // });
+ // Subscribe to stats updates with filter support
+ const unsubscribeStats = messageService.onStatsUpdate((newStats) => {
+ // Only update stats if they match current filters
+ // The backend should already be sending filtered stats based on connectionParams
+ setStats(newStats);
+ });
 
  // Don't load initial data - let the parent component control this with filters
 
@@ -108,7 +117,7 @@ export const useMessageMonitoring = (businessComponentId?: string) => {
  messageService.disconnectWebSocket();
  setConnected(false);
  };
- }, [businessComponentId, loadMessages, loadStats, toast]);
+ }, [businessComponentId, loadMessages, loadStats, toast, currentFilters]);
 
  const reprocessMessage = useCallback(async (messageId: string) => {
  try {

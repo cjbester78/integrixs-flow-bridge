@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { ConditionalFields } from './ConditionalFields';
 import { FieldGroup } from './FieldGroup';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { DynamicFieldLoader } from './DynamicFieldLoader';
 
 interface FieldRendererProps {
   field: ConfigurationFieldSchema;
@@ -95,8 +97,16 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
         );
 
       case 'multiselect':
-        // TODO: Implement multi-select component
-        return <div>Multi-select not yet implemented</div>;
+        return (
+          <MultiSelect
+            options={field.options || []}
+            selected={value || []}
+            onChange={onChange}
+            placeholder={field.placeholder || 'Select multiple options'}
+            className={error ? 'border-red-500' : ''}
+            disabled={field.disabled}
+          />
+        );
 
       case 'boolean':
         return (
@@ -162,8 +172,15 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
         );
 
       case 'dynamic':
-        // TODO: Implement dynamic field loading
-        return <div>Dynamic field loading not yet implemented</div>;
+        return (
+          <DynamicFieldLoader
+            field={field}
+            value={value}
+            onChange={onChange}
+            allValues={allValues}
+            error={error}
+          />
+        );
 
       case 'file':
         return (

@@ -20,6 +20,8 @@ import type { IntegrationPackage, CreatePackageRequest } from '@/types/package';
 import type { AdapterType } from '@/types/communicationAdapter';
 import { FieldMappingScreen } from '../FieldMappingScreen';
 import { OrchestrationTargetManager } from '../orchestration/OrchestrationTargetManager';
+import { WsdlValidator } from '../structure/WsdlValidator';
+import { JsonSchemaEditor } from '../structure/JsonSchemaEditor';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
@@ -126,7 +128,7 @@ const ADAPTER_TYPES: { value: AdapterType; label: string }[] = [
  { value: 'HTTP', label: 'HTTP' },
  { value: 'REST', label: 'REST' },
  { value: 'SOAP', label: 'SOAP' },
- { value: 'JMS', label: 'JMS' },
+ { value: 'IBMMQ', label: 'IBM MQ' },
  { value: 'JDBC', label: 'JDBC' },
  { value: 'IDOC', label: 'IDoc' },
  { value: 'ODATA', label: 'OData' },
@@ -787,19 +789,14 @@ export default function PackageCreationWizard({
  </p>
  </div>
 
- <div className="space-y-4">
- <div>
- <Label htmlFor="sourceFlowWsdl">WSDL Content *</Label>
- <Textarea
- id="sourceFlowWsdl"
- value={wizardData.sourceFlowStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, sourceFlowStructure: e.target.value })}
- placeholder="Paste your WSDL content here..."
- className="mt-1 font-mono text-sm"
- rows={12}
+ <WsdlValidator
+ initialContent={wizardData.sourceFlowStructure || ''}
+ onChange={(content, isValid) => {
+ setWizardData({ ...wizardData, sourceFlowStructure: content });
+ }}
+ height="500px"
+ autoValidate={true}
  />
- </div>
- </div>
  </div>
  );
 
@@ -813,19 +810,14 @@ export default function PackageCreationWizard({
  </p>
  </div>
 
- <div className="space-y-4">
- <div>
- <Label htmlFor="sourceMessageJson">JSON Schema *</Label>
- <Textarea
- id="sourceMessageJson"
- value={wizardData.sourceMessageStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, sourceMessageStructure: e.target.value })}
- placeholder={'{\n "type": "object",\n "properties": {\n "id": { "type": "string" }\n }\n}'}
- className="mt-1 font-mono text-sm"
- rows={12}
+ <JsonSchemaEditor
+ initialContent={wizardData.sourceMessageStructure || ''}
+ onChange={(content, isValid) => {
+ setWizardData({ ...wizardData, sourceMessageStructure: content });
+ }}
+ height="500px"
+ autoValidate={true}
  />
- </div>
- </div>
  </div>
  );
 
@@ -906,19 +898,14 @@ export default function PackageCreationWizard({
  </p>
  </div>
 
- <div className="space-y-4">
- <div>
- <Label htmlFor="targetFlowWsdl">WSDL Content *</Label>
- <Textarea
- id="targetFlowWsdl"
- value={wizardData.targetFlowStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, targetFlowStructure: e.target.value })}
- placeholder="Paste your WSDL content here..."
- className="mt-1 font-mono text-sm"
- rows={12}
+ <WsdlValidator
+ initialContent={wizardData.targetFlowStructure || ''}
+ onChange={(content, isValid) => {
+ setWizardData({ ...wizardData, targetFlowStructure: content });
+ }}
+ height="500px"
+ autoValidate={true}
  />
- </div>
- </div>
  </div>
  );
 
@@ -932,19 +919,14 @@ export default function PackageCreationWizard({
  </p>
  </div>
 
- <div className="space-y-4">
- <div>
- <Label htmlFor="targetMessageJson">JSON Schema *</Label>
- <Textarea
- id="targetMessageJson"
- value={wizardData.targetMessageStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, targetMessageStructure: e.target.value })}
- placeholder={'{\n "type": "object",\n "properties": {\n "id": { "type": "string" }\n }\n}'}
- className="mt-1 font-mono text-sm"
- rows={12}
+ <JsonSchemaEditor
+ initialContent={wizardData.targetMessageStructure || ''}
+ onChange={(content, isValid) => {
+ setWizardData({ ...wizardData, targetMessageStructure: content });
+ }}
+ height="500px"
+ autoValidate={true}
  />
- </div>
- </div>
  </div>
  );
 
@@ -958,19 +940,14 @@ export default function PackageCreationWizard({
  </p>
  </div>
 
- <div className="space-y-4">
- <div>
- <Label htmlFor="responseJson">Response JSON Schema *</Label>
- <Textarea
- id="responseJson"
- value={wizardData.responseStructure || ''}
- onChange={(e) => setWizardData({ ...wizardData, responseStructure: e.target.value })}
- placeholder={'{\n "type": "object",\n "properties": {\n "status": { "type": "string" },\n "message": { "type": "string" }\n }\n}'}
- className="mt-1 font-mono text-sm"
- rows={12}
+ <JsonSchemaEditor
+ initialContent={wizardData.responseStructure || ''}
+ onChange={(content, isValid) => {
+ setWizardData({ ...wizardData, responseStructure: content });
+ }}
+ height="500px"
+ autoValidate={true}
  />
- </div>
- </div>
  </div>
  );
 

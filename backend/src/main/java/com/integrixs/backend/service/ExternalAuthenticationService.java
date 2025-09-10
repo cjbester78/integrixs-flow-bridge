@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Base64;
 
 /**
  * Service for managing external authentication configurations.
@@ -266,6 +267,18 @@ public class ExternalAuthenticationService {
                     result.put("message", "API key authentication is configured");
                     break;
                     
+                case OAUTH1:
+                    if (auth.getConsumerKey() == null || auth.getConsumerSecret() == null) {
+                        throw new IllegalStateException("OAuth1 requires consumer key and secret");
+                    }
+                    result.put("status", "CONFIGURED");
+                    result.put("message", "OAuth1 authentication is configured");
+                    result.put("signatureMethod", auth.getOauth1SignatureMethod());
+                    if (auth.getOauth1Realm() != null) {
+                        result.put("realm", auth.getOauth1Realm());
+                    }
+                    break;
+                    
                 default:
                     result.put("status", "UNSUPPORTED");
                     result.put("message", "Authentication type not yet supported");
@@ -351,8 +364,238 @@ public class ExternalAuthenticationService {
     
     private void applyOAuth1Auth(ExternalAuthentication auth, Map<String, String> headers, 
                                 Map<String, Object> requestContext) {
-        // TODO: Implement OAuth1 signature generation
-        logger.warn("OAuth1 authentication not implemented yet");
+        try {
+            // Get OAuth1 credentials
+            String consumerKey = auth.getConsumerKey();
+            String consumerSecret = encryptionService.decrypt(auth.getConsumerSecret());
+            String token = auth.getOauth1Token();
+            String tokenSecret = auth.getOauth1TokenSecret() != null ? 
+                encryptionService.decrypt(auth.getOauth1TokenSecret()) : "";
+            
+            // Get request details from context
+            String httpMethod = (String) requestContext.getOrDefault("httpMethod", "GET");
+            String requestUrl = (String) requestContext.get("requestUrl");
+            if (requestUrl == null) {
+                throw new IllegalArgumentException("Request URL is required for OAuth1 authentication");
+            }
+            
+            // Parse query parameters if present
+            Map<String, String> queryParams = new HashMap<>();
+            String queryString = (String) requestContext.get("queryString");
+            if (queryString != null && !queryString.isEmpty()) {
+                parseQueryParameters(queryString, queryParams);
+            }
+            
+            // Generate OAuth parameters
+            Map<String, String> oauthParams = new TreeMap<>();
+            oauthParams.put("oauth_consumer_key", consumerKey);
+            oauthParams.put("oauth_nonce", generateNonce());
+            oauthParams.put("oauth_signature_method", "HMAC-SHA1");
+            oauthParams.put("oauth_timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+            oauthParams.put("oauth_version", "1.0");
+            
+            if (token != null && !token.isEmpty()) {
+                oauthParams.put("oauth_token", token);
+            }
+            
+            // Additional parameters from auth config
+            if (auth.getOauth1SignatureMethod() != null) {
+                oauthParams.put("oauth_signature_method", auth.getOauth1SignatureMethod());
+            }
+            
+            if (auth.getOauth1Realm() != null) {
+                // Realm is included in Authorization header but not in signature
+            }
+            
+            // Combine all parameters for signature base string
+            Map<String, String> allParams = new TreeMap<>();
+            allParams.putAll(queryParams);
+            allParams.putAll(oauthParams);
+            
+            // Handle request body parameters for POST with form data
+            if ("POST".equalsIgnoreCase(httpMethod) && requestContext.containsKey("formParams")) {
+                @SuppressWarnings("unchecked")
+                Map<String, String> formParams = (Map<String, String>) requestContext.get("formParams");
+                allParams.putAll(formParams);
+            }
+            
+            // Build signature base string
+            String signatureBaseString = buildSignatureBaseString(httpMethod, requestUrl, allParams);
+            
+            // Generate signature
+            String signature = generateSignature(signatureBaseString, consumerSecret, tokenSecret, 
+                oauthParams.get("oauth_signature_method"));
+            
+            // Add signature to OAuth parameters
+            oauthParams.put("oauth_signature", signature);
+            
+            // Build Authorization header
+            StringBuilder authHeader = new StringBuilder("OAuth ");
+            
+            // Add realm if specified
+            if (auth.getOauth1Realm() != null) {
+                authHeader.append("realm=\"").append(percentEncode(auth.getOauth1Realm())).append("\", ");
+            }
+            
+            // Add OAuth parameters
+            boolean first = auth.getOauth1Realm() == null;
+            for (Map.Entry<String, String> entry : oauthParams.entrySet()) {
+                if (!first) {
+                    authHeader.append(", ");
+                }
+                authHeader.append(entry.getKey()).append("=\"")
+                         .append(percentEncode(entry.getValue())).append("\"");
+                first = false;
+            }
+            
+            headers.put("Authorization", authHeader.toString());
+            
+            logger.debug("OAuth1 signature generated for {}: {}", auth.getName(), signatureBaseString);
+            
+        } catch (Exception e) {
+            logger.error("Failed to apply OAuth1 authentication", e);
+            throw new RuntimeException("OAuth1 authentication failed: " + e.getMessage(), e);
+        }
+    }
+    
+    private String generateNonce() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+    
+    private void parseQueryParameters(String queryString, Map<String, String> params) {
+        if (queryString == null || queryString.isEmpty()) {
+            return;
+        }
+        
+        String[] pairs = queryString.split("&");
+        for (String pair : pairs) {
+            int idx = pair.indexOf("=");
+            if (idx > 0) {
+                try {
+                    String key = java.net.URLDecoder.decode(pair.substring(0, idx), "UTF-8");
+                    String value = idx < pair.length() - 1 ? 
+                        java.net.URLDecoder.decode(pair.substring(idx + 1), "UTF-8") : "";
+                    params.put(key, value);
+                } catch (Exception e) {
+                    logger.warn("Failed to parse query parameter: {}", pair);
+                }
+            }
+        }
+    }
+    
+    private String buildSignatureBaseString(String httpMethod, String requestUrl, Map<String, String> params) {
+        // 1. Convert HTTP method to uppercase
+        String method = httpMethod.toUpperCase();
+        
+        // 2. Normalize request URL (remove query string and fragment)
+        String normalizedUrl = normalizeUrl(requestUrl);
+        
+        // 3. Normalize parameters
+        String normalizedParams = normalizeParameters(params);
+        
+        // 4. Construct signature base string
+        return method + "&" + percentEncode(normalizedUrl) + "&" + percentEncode(normalizedParams);
+    }
+    
+    private String normalizeUrl(String url) {
+        try {
+            java.net.URL parsedUrl = new java.net.URL(url);
+            
+            // Reconstruct URL without query string or fragment
+            String scheme = parsedUrl.getProtocol().toLowerCase();
+            String host = parsedUrl.getHost().toLowerCase();
+            int port = parsedUrl.getPort();
+            String path = parsedUrl.getPath();
+            
+            // Normalize port
+            if (port == parsedUrl.getDefaultPort() || port == -1) {
+                return scheme + "://" + host + path;
+            } else {
+                return scheme + "://" + host + ":" + port + path;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid URL: " + url, e);
+        }
+    }
+    
+    private String normalizeParameters(Map<String, String> params) {
+        // OAuth spec requires parameters to be sorted and concatenated
+        List<String> paramPairs = new ArrayList<>();
+        
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            // Skip oauth_signature
+            if ("oauth_signature".equals(entry.getKey())) {
+                continue;
+            }
+            
+            String encodedKey = percentEncode(entry.getKey());
+            String encodedValue = percentEncode(entry.getValue());
+            paramPairs.add(encodedKey + "=" + encodedValue);
+        }
+        
+        // Sort parameters lexicographically
+        Collections.sort(paramPairs);
+        
+        // Join with &
+        return String.join("&", paramPairs);
+    }
+    
+    private String percentEncode(String value) {
+        if (value == null) {
+            return "";
+        }
+        
+        try {
+            // OAuth1 percent encoding is slightly different from URLEncoder
+            String encoded = java.net.URLEncoder.encode(value, "UTF-8");
+            // OAuth1 requires these specific replacements
+            return encoded
+                .replace("+", "%20")
+                .replace("*", "%2A")
+                .replace("%7E", "~");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to encode value: " + value, e);
+        }
+    }
+    
+    private String generateSignature(String signatureBaseString, String consumerSecret, 
+                                   String tokenSecret, String signatureMethod) {
+        try {
+            // Build signing key
+            String signingKey = percentEncode(consumerSecret) + "&" + percentEncode(tokenSecret);
+            
+            // Generate signature based on method
+            if ("HMAC-SHA256".equals(signatureMethod)) {
+                return hmacSha256(signatureBaseString, signingKey);
+            } else if ("HMAC-SHA1".equals(signatureMethod)) {
+                return hmacSha1(signatureBaseString, signingKey);
+            } else if ("PLAINTEXT".equals(signatureMethod)) {
+                // PLAINTEXT method just returns the signing key
+                return signingKey;
+            } else {
+                throw new IllegalArgumentException("Unsupported signature method: " + signatureMethod);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate signature", e);
+        }
+    }
+    
+    private String hmacSha1(String data, String key) throws Exception {
+        javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA1");
+        javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(
+            key.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA1");
+        mac.init(secretKey);
+        byte[] rawHmac = mac.doFinal(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(rawHmac);
+    }
+    
+    private String hmacSha256(String data, String key) throws Exception {
+        javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+        javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(
+            key.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKey);
+        byte[] rawHmac = mac.doFinal(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(rawHmac);
     }
     
     private void applyHmacAuth(ExternalAuthentication auth, Map<String, String> headers,
@@ -504,6 +747,9 @@ public class ExternalAuthenticationService {
                 if (dto.getOauth1TokenSecret() != null && !dto.getOauth1TokenSecret().isEmpty()) {
                     auth.setOauth1TokenSecret(encryptionService.encrypt(dto.getOauth1TokenSecret()));
                 }
+                auth.setOauth1SignatureMethod(dto.getOauth1SignatureMethod() != null ? 
+                    dto.getOauth1SignatureMethod() : "HMAC-SHA1");
+                auth.setOauth1Realm(dto.getOauth1Realm());
                 break;
                 
             case HMAC:
@@ -599,6 +845,8 @@ public class ExternalAuthenticationService {
             case OAUTH1:
                 dto.setConsumerKey(auth.getConsumerKey());
                 dto.setOauth1Token(auth.getOauth1Token());
+                dto.setOauth1SignatureMethod(auth.getOauth1SignatureMethod());
+                dto.setOauth1Realm(auth.getOauth1Realm());
                 dto.setHasConsumerSecret(auth.getConsumerSecret() != null);
                 dto.setHasOauth1TokenSecret(auth.getOauth1TokenSecret() != null);
                 break;

@@ -5,6 +5,7 @@ import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.shared.enums.AdapterType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,9 @@ public class AdapterPoolManager {
     
     // Pool maintenance executor
     private final ScheduledExecutorService maintenanceExecutor = Executors.newScheduledThreadPool(2);
+    
+    // JSON ObjectMapper
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
     public void setHealthMonitor(AdapterHealthMonitor healthMonitor) {
@@ -460,7 +464,7 @@ public class AdapterPoolManager {
                 case JDBC -> 10; // Database connections need larger pool
                 case HTTP, REST -> 15; // HTTP can handle more concurrent connections
                 case FILE, FTP, SFTP -> 5; // File operations are usually limited
-                case JMS -> 8; // Message queues have moderate concurrency
+                case IBMMQ -> 8; // IBM MQ has moderate concurrency
                 default -> DEFAULT_POOL_SIZE;
             };
         }
@@ -574,9 +578,77 @@ public class AdapterPoolManager {
     // Helper methods
     
     private Object buildAdapterConfiguration(CommunicationAdapter adapter) {
-        // TODO: Implement proper configuration building
-        // This would parse the JSON configuration and create appropriate config objects
-        return new HashMap<String, Object>();
+        // Parse the JSON configuration and create appropriate config objects
+        Map<String, Object> config = new HashMap<>();
+        
+        try {
+            // Parse the JSON configuration if present
+            if (adapter.getConfiguration() != null && !adapter.getConfiguration().isEmpty()) {
+                config = objectMapper.readValue(adapter.getConfiguration(), Map.class);
+            }
+            
+            // Add standard fields from adapter entity
+            config.put("adapterId", adapter.getId().toString());
+            config.put("adapterName", adapter.getName());
+            config.put("adapterType", adapter.getType().toString());
+            
+            // Add type-specific configurations
+            switch (adapter.getType()) {
+                case HTTP:
+                case REST:
+                    // Ensure required HTTP fields
+                    config.putIfAbsent("endpoint", config.getOrDefault("url", ""));
+                    config.putIfAbsent("method", "POST");
+                    config.putIfAbsent("timeout", 30000);
+                    config.putIfAbsent("contentType", "application/json");
+                    break;
+                    
+                case SOAP:
+                    // Ensure required SOAP fields
+                    config.putIfAbsent("wsdlUrl", config.getOrDefault("url", ""));
+                    config.putIfAbsent("soapAction", "");
+                    config.putIfAbsent("soapVersion", "1.1");
+                    break;
+                    
+                case FILE:
+                case FTP:
+                case SFTP:
+                    // Ensure required file transfer fields
+                    config.putIfAbsent("directory", config.getOrDefault("path", "/"));
+                    config.putIfAbsent("filePattern", "*");
+                    config.putIfAbsent("pollInterval", 60000);
+                    break;
+                    
+                case DATABASE:
+                    // Ensure required database fields
+                    config.putIfAbsent("connectionUrl", config.getOrDefault("url", ""));
+                    config.putIfAbsent("driverClass", config.getOrDefault("driver", ""));
+                    config.putIfAbsent("poolSize", 5);
+                    break;
+                    
+                case MQ:
+                case IBMMQ:
+                    // Ensure required messaging fields
+                    config.putIfAbsent("queueName", config.getOrDefault("queue", ""));
+                    config.putIfAbsent("connectionFactory", config.getOrDefault("factory", ""));
+                    break;
+                    
+                default:
+                    // Generic configuration
+                    logger.debug("Using generic configuration for adapter type: {}", adapter.getType());
+            }
+            
+            // Add common fields
+            config.putIfAbsent("retryCount", 3);
+            config.putIfAbsent("retryDelay", 1000);
+            config.putIfAbsent("enabled", true);
+            
+        } catch (Exception e) {
+            logger.error("Error building adapter configuration for adapter {}: {}", 
+                adapter.getName(), e.getMessage());
+        }
+        
+        return config;
     }
     
     private com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum mapToAdapterType(AdapterType sharedType) {

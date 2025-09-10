@@ -27,6 +27,7 @@ public class MessageWebSocketHandler extends TextWebSocketHandler {
     
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, String> sessionToUser = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, String>> sessionFilters = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
@@ -40,14 +41,29 @@ public class MessageWebSocketHandler extends TextWebSocketHandler {
         logger.info("WebSocket connection established: {}", session.getId());
         sessions.put(session.getId(), session);
         
-        // Don't send initial stats - let the client request with filters
-        // sendMessageStats(session);
+        // Extract query parameters as initial filters
+        Map<String, String> filters = new HashMap<>();
+        if (session.getUri() != null && session.getUri().getQuery() != null) {
+            String[] params = session.getUri().getQuery().split("&");
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length == 2) {
+                    filters.put(keyValue[0], keyValue[1]);
+                }
+            }
+        }
+        sessionFilters.put(session.getId(), filters);
+        
+        // Send initial stats with filters
+        sendMessageStats(session, filters);
     }
     
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         logger.info("WebSocket connection closed: {}", session.getId());
         sessions.remove(session.getId());
+        sessionFilters.remove(session.getId());
+        sessionToUser.remove(session.getId());
     }
     
     @Override
@@ -59,7 +75,22 @@ public class MessageWebSocketHandler extends TextWebSocketHandler {
             String command = (String) payload.get("command");
             
             if ("get_stats".equals(command)) {
-                sendMessageStats(session);
+                Map<String, String> filters = sessionFilters.getOrDefault(session.getId(), new HashMap<>());
+                sendMessageStats(session, filters);
+            } else if ("update_filters".equals(command)) {
+                // Update session filters
+                Map<String, Object> data = (Map<String, Object>) payload.get("data");
+                if (data != null) {
+                    Map<String, String> newFilters = new HashMap<>();
+                    data.forEach((key, value) -> {
+                        if (value != null) {
+                            newFilters.put(key, value.toString());
+                        }
+                    });
+                    sessionFilters.put(session.getId(), newFilters);
+                    // Send updated stats with new filters
+                    sendMessageStats(session, newFilters);
+                }
             }
         } catch (Exception e) {
             logger.error("Error handling WebSocket message", e);
@@ -73,58 +104,51 @@ public class MessageWebSocketHandler extends TextWebSocketHandler {
     }
     
     /**
-     * Broadcast updates to all connected sessions
+     * Broadcast updates to all connected sessions with their specific filters
      */
-    // Disabled scheduled updates as they override filtered stats in the UI
-    // TODO: Implement filtered stats based on client's current filters
-    // @Scheduled(fixedDelay = 5000) // Every 5 seconds
+    @Scheduled(fixedDelay = 5000) // Every 5 seconds
     public void broadcastUpdates() {
         if (sessions.isEmpty()) {
             return;
         }
         
-        // Get latest stats
-        MessageStatsDTO stats = messageStatsService.getMessageStats(new HashMap<>());
-        
-        Map<String, Object> update = new HashMap<>();
-        update.put("type", "stats_update");
-        update.put("stats", stats);
-        
-        String jsonMessage;
-        try {
-            jsonMessage = objectMapper.writeValueAsString(update);
-        } catch (Exception e) {
-            logger.error("Error serializing stats update", e);
-            return;
-        }
-        
-        // Broadcast to all connected sessions
-        sessions.values().forEach(session -> {
+        // Send filtered stats to each session
+        sessions.forEach((sessionId, session) -> {
             if (session.isOpen()) {
+                Map<String, String> filters = sessionFilters.getOrDefault(sessionId, new HashMap<>());
                 try {
+                    MessageStatsDTO stats = messageStatsService.getMessageStats(filters);
+                    
+                    Map<String, Object> update = new HashMap<>();
+                    update.put("type", "stats_update");
+                    update.put("stats", stats);
+                    update.put("filters", filters);
+                    
+                    String jsonMessage = objectMapper.writeValueAsString(update);
                     session.sendMessage(new TextMessage(jsonMessage));
-                } catch (IOException e) {
-                    logger.error("Error sending WebSocket message to session: " + session.getId(), e);
+                } catch (Exception e) {
+                    logger.error("Error sending filtered stats to session: " + sessionId, e);
                 }
             }
         });
     }
     
     /**
-     * Send message stats to a specific session
+     * Send message stats to a specific session with filters
      */
-    private void sendMessageStats(WebSocketSession session) {
+    private void sendMessageStats(WebSocketSession session, Map<String, String> filters) {
         try {
-            MessageStatsDTO stats = messageStatsService.getMessageStats(new HashMap<>());
+            MessageStatsDTO stats = messageStatsService.getMessageStats(filters);
             
             Map<String, Object> response = new HashMap<>();
             response.put("type", "stats_update");
             response.put("stats", stats);
+            response.put("filters", filters);
             
             String jsonMessage = objectMapper.writeValueAsString(response);
             session.sendMessage(new TextMessage(jsonMessage));
         } catch (Exception e) {
-            logger.error("Error sending stats to session: " + session.getId(), e);
+            logger.error("Error sending filtered stats to session: " + session.getId(), e);
         }
     }
     

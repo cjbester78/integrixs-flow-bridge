@@ -1,0 +1,15 @@
+{
+  "errorCase1": {
+    "userId": "invalid-user",
+    "expectedError": "HTTP request failed"
+  },
+  "errorCase2": {
+    "userId": null,
+    "expectedError": "Invalid input"
+  },
+  "errorCase3": {
+    "userId": "timeout-user",
+    "timeout": 5000,
+    "expectedError": "Request timeout"
+  }
+}

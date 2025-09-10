@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.domain.service.FlowExecutionService;
 import com.integrixs.backend.infrastructure.adapter.AdapterConfigurationService;
 import com.integrixs.backend.service.*;
-// import com.integrixs.backend.service.deprecated.MessageService;
-// import com.integrixs.backend.service.deprecated.LogService;
+import com.integrixs.backend.service.MessageService;
 import com.integrixs.backend.service.transformation.EnrichmentTransformationService;
 import com.integrixs.backend.service.transformation.FilterTransformationService;
 import com.integrixs.backend.service.transformation.ValidationTransformationService;
@@ -50,8 +49,7 @@ public class FlowExecutionApplicationService {
     private final AdapterExecutor adapterExecutor;
     private final FormatConversionService formatConversionService;
     private final DirectFileTransferService directFileTransferService;
-    // private final MessageService messageService;
-    // private final LogService logService;
+    private final MessageService messageService;
     private final FilterTransformationService filterTransformationService;
     private final EnrichmentTransformationService enrichmentTransformationService;
     private final ValidationTransformationService validationTransformationService;
@@ -71,6 +69,7 @@ public class FlowExecutionApplicationService {
             AdapterExecutor adapterExecutor,
             FormatConversionService formatConversionService,
             DirectFileTransferService directFileTransferService,
+            MessageService messageService,
             FilterTransformationService filterTransformationService,
             EnrichmentTransformationService enrichmentTransformationService,
             ValidationTransformationService validationTransformationService,
@@ -86,6 +85,7 @@ public class FlowExecutionApplicationService {
         this.adapterExecutor = adapterExecutor;
         this.formatConversionService = formatConversionService;
         this.directFileTransferService = directFileTransferService;
+        this.messageService = messageService;
         this.filterTransformationService = filterTransformationService;
         this.enrichmentTransformationService = enrichmentTransformationService;
         this.validationTransformationService = validationTransformationService;
@@ -213,8 +213,7 @@ public class FlowExecutionApplicationService {
         
         // Log source adapter payload
         String rawDataStr = flowExecutionService.convertRawDataToString(rawData);
-        // TODO: Replace messageService.logAdapterPayload(correlationId, inboundAdapter, "REQUEST", rawDataStr, "INBOUND");
-        log.debug("Source adapter payload - correlationId: {}, adapter: {}, payload: {}", correlationId, inboundAdapter.getName(), rawDataStr);
+        messageService.logAdapterPayload(correlationId, inboundAdapter, "REQUEST", rawDataStr, "INBOUND");
 
         // Check if the data is binary and should skip XML conversion
         if (flowExecutionService.isBinaryData(rawData)) {
@@ -244,8 +243,7 @@ public class FlowExecutionApplicationService {
         log.info("Sent data to target adapter: {}", outboundAdapter.getName());
         
         // Log target adapter payload
-        // TODO: Replace messageService.logAdapterPayload(correlationId, outboundAdapter, "REQUEST", processedData, "OUTBOUND");
-        log.debug("Target adapter payload - correlationId: {}, adapter: {}, payload: {}", correlationId, outboundAdapter.getName(), processedData);
+        messageService.logAdapterPayload(correlationId, outboundAdapter, "REQUEST", processedData, "OUTBOUND");
 
         // Step 4: Log success
         log.info("Flow execution successful for flow: {} - correlationId: {}", flow.getName(), correlationId);

@@ -1,5 +1,5 @@
 export type AdapterType = 'FILE' | 'FTP' | 'SFTP' | 'HTTP' | 'REST' | 'SOAP' |
- 'JMS' | 'JDBC' | 'IDOC' | 'ODATA' | 'MAIL' | 'RFC';
+ 'IBMMQ' | 'JDBC' | 'IDOC' | 'ODATA' | 'MAIL' | 'RFC';
 
 export type AdapterMode = 'INBOUND' | 'OUTBOUND';
 

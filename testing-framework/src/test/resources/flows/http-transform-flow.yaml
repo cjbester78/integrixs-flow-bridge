@@ -1,0 +1,45 @@
+name: HTTP Transform Flow
+description: Fetches user data and transforms it
+version: 1.0.0
+
+steps:
+  - name: fetch-user
+    type: http
+    config:
+      method: GET
+      url: "https://api.example.com/users/${input.userId}"
+      headers:
+        Accept: application/json
+        X-Request-ID: "${header.X-Request-ID}"
+    outputMapping:
+      userData: "$"
+  
+  - name: transform-data
+    type: transform
+    config:
+      expression: |
+        {
+          "user": {
+            "id": input.userData.data.id,
+            "name": input.userData.data.name,
+            "email": input.userData.data.email,
+            "timestamp": new Date().toISOString()
+          }
+        }
+    condition: "${var.userData.status} == 'success'"
+  
+  - name: premium-processing
+    type: enrich
+    condition: "${input.premium} == true"
+    config:
+      source: premiumFeatures
+      target: user.premiumFeatures
+    inputMapping:
+      userId: "${var.userData.data.id}"
+
+errorHandler:
+  retry:
+    attempts: 3
+    delay: 1000
+  fallback:
+    error: "Failed to process user data"

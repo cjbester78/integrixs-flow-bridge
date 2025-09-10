@@ -1,0 +1,730 @@
+package com.integrixs.adapters.social.linkedin;
+
+import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
+import com.integrixs.adapters.social.linkedin.LinkedInApiConfig.*;
+import com.integrixs.core.api.channel.Message;
+import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.CredentialEncryptionService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import java.util.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+@Slf4j
+@Component("linkedInOutboundAdapter")
+public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<LinkedInApiConfig> {
+    
+    private static final String LINKEDIN_API_BASE = "https://api.linkedin.com/v2";
+    private static final String LINKEDIN_API_REST_BASE = "https://api.linkedin.com/rest";
+    private static final String LINKEDIN_MEDIA_UPLOAD = "https://api.linkedin.com/mediaUpload";
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    
+    @Autowired
+    public LinkedInOutboundAdapter(
+            LinkedInApiConfig config,
+            RateLimiterService rateLimiterService,
+            OAuth2TokenRefreshService tokenRefreshService,
+            CredentialEncryptionService credentialEncryptionService,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper) {
+        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+    }
+    
+    @Override
+    public Message sendMessage(Message message) throws AdapterException {
+        try {
+            validateConfiguration();
+            
+            String operation = message.getHeaders().getOrDefault("operation", "").toString();
+            log.info("Processing LinkedIn operation: {}", operation);
+            
+            switch (operation.toUpperCase()) {
+                // Content sharing
+                case "CREATE_POST":
+                    return createPost(message);
+                case "CREATE_ARTICLE":
+                    return createArticle(message);
+                case "SHARE_IMAGE":
+                    return shareImage(message);
+                case "SHARE_VIDEO":
+                    return shareVideo(message);
+                case "SHARE_DOCUMENT":
+                    return shareDocument(message);
+                case "UPDATE_POST":
+                    return updatePost(message);
+                case "DELETE_POST":
+                    return deletePost(message);
+                
+                // Engagement
+                case "CREATE_COMMENT":
+                    return createComment(message);
+                case "DELETE_COMMENT":
+                    return deleteComment(message);
+                case "ADD_REACTION":
+                    return addReaction(message);
+                case "REMOVE_REACTION":
+                    return removeReaction(message);
+                
+                // Profile & Company
+                case "GET_PROFILE":
+                    return getProfile(message);
+                case "UPDATE_PROFILE":
+                    return updateProfile(message);
+                case "GET_COMPANY_INFO":
+                    return getCompanyInfo(message);
+                case "UPDATE_COMPANY_PAGE":
+                    return updateCompanyPage(message);
+                
+                // Connections & Messaging
+                case "SEND_CONNECTION_REQUEST":
+                    return sendConnectionRequest(message);
+                case "ACCEPT_CONNECTION":
+                    return acceptConnection(message);
+                case "SEND_MESSAGE":
+                    return sendDirectMessage(message);
+                
+                // Analytics
+                case "GET_POST_ANALYTICS":
+                    return getPostAnalytics(message);
+                case "GET_FOLLOWER_STATISTICS":
+                    return getFollowerStatistics(message);
+                case "GET_SHARE_STATISTICS":
+                    return getShareStatistics(message);
+                
+                // Events
+                case "CREATE_EVENT":
+                    return createEvent(message);
+                case "UPDATE_EVENT":
+                    return updateEvent(message);
+                
+                // Hashtag tracking
+                case "FOLLOW_HASHTAG":
+                    return followHashtag(message);
+                case "UNFOLLOW_HASHTAG":
+                    return unfollowHashtag(message);
+                
+                default:
+                    throw new AdapterException("Unsupported operation: " + operation);
+            }
+        } catch (Exception e) {
+            log.error("Error in LinkedIn outbound adapter", e);
+            throw new AdapterException("Failed to process outbound message", e);
+        }
+    }
+    
+    // Content Sharing Methods
+    private Message createPost(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/posts";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        
+        // Author - can be person or organization
+        String author = payload.has("organizationUrn") 
+            ? payload.get("organizationUrn").asText()
+            : config.getMemberUrn();
+        requestBody.put("author", author);
+        
+        // Content
+        ObjectNode commentary = objectMapper.createObjectNode();
+        commentary.put("text", payload.path("text").asText());
+        requestBody.set("commentary", commentary);
+        
+        // Visibility
+        ObjectNode visibility = objectMapper.createObjectNode();
+        String visibilityValue = payload.path("visibility").asText(Visibility.CONNECTIONS.name());
+        visibility.put("com.linkedin.ugc.MemberNetworkVisibility", visibilityValue);
+        requestBody.set("visibility", visibility);
+        
+        // Distribution
+        ObjectNode distribution = objectMapper.createObjectNode();
+        distribution.put("feedDistribution", payload.path("distribution").asText(Distribution.MAIN_FEED.name()));
+        requestBody.set("distribution", distribution);
+        
+        // Lifecycle state
+        requestBody.put("lifecycleState", "PUBLISHED");
+        
+        // Media attachments
+        if (payload.has("media") && payload.get("media").isArray()) {
+            ArrayNode content = requestBody.putArray("content");
+            for (JsonNode mediaItem : payload.get("media")) {
+                ObjectNode media = content.addObject();
+                media.put("entity", mediaItem.path("entity").asText());
+                if (mediaItem.has("title")) {
+                    ObjectNode mediaTitle = media.putObject("title");
+                    mediaTitle.put("text", mediaItem.get("title").asText());
+                }
+                if (mediaItem.has("description")) {
+                    ObjectNode mediaDesc = media.putObject("description");
+                    mediaDesc.put("text", mediaItem.get("description").asText());
+                }
+            }
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "POST_CREATED");
+    }
+    
+    private Message createArticle(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/articles";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("author", config.getMemberUrn());
+        requestBody.put("title", payload.path("title").asText());
+        requestBody.put("content", payload.path("content").asText());
+        
+        if (payload.has("coverImage")) {
+            requestBody.put("coverImage", payload.get("coverImage").asText());
+        }
+        
+        if (payload.has("publishedAt")) {
+            requestBody.put("publishedAt", payload.get("publishedAt").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "ARTICLE_CREATED");
+    }
+    
+    private Message shareImage(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        // First, register the image upload
+        String registerUrl = LINKEDIN_API_REST_BASE + "/images";
+        
+        ObjectNode registerBody = objectMapper.createObjectNode();
+        registerBody.put("initializeUploadRequest", objectMapper.createObjectNode()
+            .put("owner", config.getMemberUrn()));
+        
+        ResponseEntity<String> registerResponse = makeApiCall(registerUrl, HttpMethod.POST, registerBody.toString());
+        JsonNode uploadInfo = objectMapper.readTree(registerResponse.getBody());
+        
+        String uploadUrl = uploadInfo.path("value").path("uploadUrl").asText();
+        String imageUrn = uploadInfo.path("value").path("image").asText();
+        
+        // Upload the image
+        if (payload.has("imageData")) {
+            byte[] imageData = Base64.getDecoder().decode(payload.get("imageData").asText());
+            uploadMedia(uploadUrl, imageData, "image/jpeg");
+        } else if (payload.has("imagePath")) {
+            byte[] imageData = Files.readAllBytes(Paths.get(payload.get("imagePath").asText()));
+            uploadMedia(uploadUrl, imageData, detectContentType(payload.get("imagePath").asText()));
+        }
+        
+        // Create post with image
+        ObjectNode postPayload = objectMapper.createObjectNode();
+        postPayload.put("text", payload.path("caption").asText());
+        
+        ArrayNode media = postPayload.putArray("media");
+        ObjectNode mediaItem = media.addObject();
+        mediaItem.put("entity", imageUrn);
+        if (payload.has("altText")) {
+            mediaItem.put("altText", payload.get("altText").asText());
+        }
+        
+        Message postMessage = new Message();
+        postMessage.setPayload(postPayload.toString());
+        postMessage.setHeaders(Map.of("operation", "CREATE_POST"));
+        
+        return createPost(postMessage);
+    }
+    
+    private Message shareVideo(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        // Register video upload
+        String registerUrl = LINKEDIN_API_REST_BASE + "/videos";
+        
+        ObjectNode registerBody = objectMapper.createObjectNode();
+        ObjectNode initRequest = registerBody.putObject("initializeUploadRequest");
+        initRequest.put("owner", config.getMemberUrn());
+        initRequest.put("fileSizeBytes", payload.path("fileSize").asLong());
+        initRequest.put("uploadCaptions", false);
+        
+        ResponseEntity<String> registerResponse = makeApiCall(registerUrl, HttpMethod.POST, registerBody.toString());
+        JsonNode uploadInfo = objectMapper.readTree(registerResponse.getBody());
+        
+        String videoUrn = uploadInfo.path("value").path("video").asText();
+        JsonNode uploadInstructions = uploadInfo.path("value").path("uploadInstructions");
+        
+        // Upload video in parts if needed
+        if (uploadInstructions.isArray()) {
+            for (JsonNode instruction : uploadInstructions) {
+                String uploadUrl = instruction.path("uploadUrl").asText();
+                // Upload video chunk logic here
+            }
+        }
+        
+        // Finalize upload
+        String finalizeUrl = LINKEDIN_API_REST_BASE + "/videos/" + videoUrn + "/uploadFinalized";
+        makeApiCall(finalizeUrl, HttpMethod.POST, "{}");
+        
+        // Create post with video
+        ObjectNode postPayload = objectMapper.createObjectNode();
+        postPayload.put("text", payload.path("caption").asText());
+        
+        ArrayNode media = postPayload.putArray("media");
+        ObjectNode mediaItem = media.addObject();
+        mediaItem.put("entity", videoUrn);
+        if (payload.has("title")) {
+            ObjectNode title = mediaItem.putObject("title");
+            title.put("text", payload.get("title").asText());
+        }
+        
+        Message postMessage = new Message();
+        postMessage.setPayload(postPayload.toString());
+        postMessage.setHeaders(Map.of("operation", "CREATE_POST"));
+        
+        return createPost(postMessage);
+    }
+    
+    private Message shareDocument(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        // Register document upload
+        String registerUrl = LINKEDIN_API_REST_BASE + "/documents";
+        
+        ObjectNode registerBody = objectMapper.createObjectNode();
+        ObjectNode initRequest = registerBody.putObject("initializeUploadRequest");
+        initRequest.put("owner", config.getMemberUrn());
+        
+        ResponseEntity<String> registerResponse = makeApiCall(registerUrl, HttpMethod.POST, registerBody.toString());
+        JsonNode uploadInfo = objectMapper.readTree(registerResponse.getBody());
+        
+        String documentUrn = uploadInfo.path("value").path("document").asText();
+        String uploadUrl = uploadInfo.path("value").path("uploadUrl").asText();
+        
+        // Upload document
+        if (payload.has("documentPath")) {
+            byte[] documentData = Files.readAllBytes(Paths.get(payload.get("documentPath").asText()));
+            uploadMedia(uploadUrl, documentData, "application/pdf");
+        }
+        
+        // Create post with document
+        ObjectNode postPayload = objectMapper.createObjectNode();
+        postPayload.put("text", payload.path("caption").asText());
+        
+        ArrayNode media = postPayload.putArray("media");
+        ObjectNode mediaItem = media.addObject();
+        mediaItem.put("entity", documentUrn);
+        
+        Message postMessage = new Message();
+        postMessage.setPayload(postPayload.toString());
+        postMessage.setHeaders(Map.of("operation", "CREATE_POST"));
+        
+        return createPost(postMessage);
+    }
+    
+    private Message updatePost(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String postUrn = payload.path("postUrn").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/posts/" + postUrn;
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        
+        if (payload.has("commentary")) {
+            ObjectNode commentary = requestBody.putObject("commentary");
+            commentary.put("text", payload.get("commentary").asText());
+        }
+        
+        if (payload.has("visibility")) {
+            ObjectNode visibility = requestBody.putObject("visibility");
+            visibility.put("com.linkedin.ugc.MemberNetworkVisibility", payload.get("visibility").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.PATCH, requestBody.toString());
+        return createResponseMessage(response, "POST_UPDATED");
+    }
+    
+    private Message deletePost(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String postUrn = payload.path("postUrn").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/posts/" + postUrn;
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
+        return createResponseMessage(response, "POST_DELETED");
+    }
+    
+    // Engagement Methods
+    private Message createComment(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/socialActions/" + 
+                     payload.path("postUrn").asText() + "/comments";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("actor", config.getMemberUrn());
+        ObjectNode commentText = requestBody.putObject("message");
+        commentText.put("text", payload.path("text").asText());
+        
+        if (payload.has("parentCommentUrn")) {
+            requestBody.put("parentComment", payload.get("parentCommentUrn").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "COMMENT_CREATED");
+    }
+    
+    private Message deleteComment(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String commentUrn = payload.path("commentUrn").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/socialActions/comments/" + commentUrn;
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
+        return createResponseMessage(response, "COMMENT_DELETED");
+    }
+    
+    private Message addReaction(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/reactions";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("actor", config.getMemberUrn());
+        requestBody.put("entity", payload.path("entityUrn").asText());
+        requestBody.put("reactionType", payload.path("reactionType").asText(ReactionType.LIKE.name()));
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "REACTION_ADDED");
+    }
+    
+    private Message removeReaction(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String entityUrn = payload.path("entityUrn").asText();
+        String url = LINKEDIN_API_REST_BASE + "/reactions/(actor:" + config.getMemberUrn() + 
+                     ",entity:" + entityUrn + ")";
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
+        return createResponseMessage(response, "REACTION_REMOVED");
+    }
+    
+    // Profile & Company Methods
+    private Message getProfile(Message message) throws Exception {
+        String profileId = message.getHeaders()
+            .getOrDefault("profileId", config.getMemberUrn()).toString();
+        
+        String url = LINKEDIN_API_REST_BASE + "/people/" + profileId;
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("projection", "(id,firstName,lastName,headline,vanityName,profilePicture)");
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null, params);
+        return createResponseMessage(response, "PROFILE_RETRIEVED");
+    }
+    
+    private Message updateProfile(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/people/" + config.getMemberUrn();
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        
+        if (payload.has("headline")) {
+            requestBody.put("headline", payload.get("headline").asText());
+        }
+        
+        if (payload.has("summary")) {
+            requestBody.put("summary", payload.get("summary").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.PATCH, requestBody.toString());
+        return createResponseMessage(response, "PROFILE_UPDATED");
+    }
+    
+    private Message getCompanyInfo(Message message) throws Exception {
+        String organizationId = message.getHeaders()
+            .getOrDefault("organizationId", config.getOrganizationId()).toString();
+        
+        String url = LINKEDIN_API_REST_BASE + "/organizations/" + organizationId;
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
+        return createResponseMessage(response, "COMPANY_INFO_RETRIEVED");
+    }
+    
+    private Message updateCompanyPage(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String organizationId = config.getOrganizationId();
+        
+        String url = LINKEDIN_API_REST_BASE + "/organizations/" + organizationId;
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        
+        if (payload.has("description")) {
+            requestBody.put("description", payload.get("description").asText());
+        }
+        
+        if (payload.has("specialties")) {
+            requestBody.set("specialties", payload.get("specialties"));
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.PATCH, requestBody.toString());
+        return createResponseMessage(response, "COMPANY_PAGE_UPDATED");
+    }
+    
+    // Connection & Messaging Methods
+    private Message sendConnectionRequest(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/invitations";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("invitee", payload.path("inviteeUrn").asText());
+        requestBody.put("invitationType", "CONNECTION");
+        
+        if (payload.has("message")) {
+            ObjectNode invitationMessage = requestBody.putObject("message");
+            invitationMessage.put("text", payload.get("message").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "CONNECTION_REQUEST_SENT");
+    }
+    
+    private Message acceptConnection(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String invitationUrn = payload.path("invitationUrn").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/invitations/" + invitationUrn + "/accept";
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, "{}");
+        return createResponseMessage(response, "CONNECTION_ACCEPTED");
+    }
+    
+    private Message sendDirectMessage(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/messages";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        ArrayNode recipients = requestBody.putArray("recipients");
+        
+        if (payload.has("recipientUrns") && payload.get("recipientUrns").isArray()) {
+            for (JsonNode recipient : payload.get("recipientUrns")) {
+                recipients.add(recipient.asText());
+            }
+        }
+        
+        ObjectNode messageBody = requestBody.putObject("body");
+        messageBody.put("text", payload.path("text").asText());
+        
+        if (payload.has("subject")) {
+            requestBody.put("subject", payload.get("subject").asText());
+        }
+        
+        if (payload.has("attachments") && payload.get("attachments").isArray()) {
+            ArrayNode attachments = requestBody.putArray("attachments");
+            for (JsonNode attachment : payload.get("attachments")) {
+                attachments.add(attachment);
+            }
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "MESSAGE_SENT");
+    }
+    
+    // Analytics Methods
+    private Message getPostAnalytics(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String postUrn = payload.path("postUrn").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/socialActions/" + postUrn + "/statistics";
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
+        return createResponseMessage(response, "POST_ANALYTICS_RETRIEVED");
+    }
+    
+    private Message getFollowerStatistics(Message message) throws Exception {
+        String organizationId = config.getOrganizationId();
+        
+        String url = LINKEDIN_API_REST_BASE + "/organizationPageStatistics";
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("q", "organization");
+        params.put("organization", "urn:li:organization:" + organizationId);
+        params.put("timeInterval", "MONTH");
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null, params);
+        return createResponseMessage(response, "FOLLOWER_STATISTICS_RETRIEVED");
+    }
+    
+    private Message getShareStatistics(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/organizationShareStatistics";
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("q", "organizationShareStatistics");
+        
+        if (config.getOrganizationId() != null) {
+            params.put("organization", "urn:li:organization:" + config.getOrganizationId());
+        } else {
+            params.put("author", config.getMemberUrn());
+        }
+        
+        if (payload.has("startTime")) {
+            params.put("timeInterval.start", payload.get("startTime").asText());
+        }
+        if (payload.has("endTime")) {
+            params.put("timeInterval.end", payload.get("endTime").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null, params);
+        return createResponseMessage(response, "SHARE_STATISTICS_RETRIEVED");
+    }
+    
+    // Event Methods
+    private Message createEvent(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        
+        String url = LINKEDIN_API_REST_BASE + "/events";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("organizer", config.getMemberUrn());
+        requestBody.put("name", payload.path("name").asText());
+        requestBody.put("description", payload.path("description").asText());
+        requestBody.put("startAt", payload.path("startAt").asText());
+        requestBody.put("endAt", payload.path("endAt").asText());
+        
+        if (payload.has("location")) {
+            requestBody.set("location", payload.get("location"));
+        }
+        
+        if (payload.has("isOnline")) {
+            requestBody.put("isOnline", payload.get("isOnline").asBoolean());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "EVENT_CREATED");
+    }
+    
+    private Message updateEvent(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String eventUrn = payload.path("eventUrn").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/events/" + eventUrn;
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        
+        if (payload.has("name")) {
+            requestBody.put("name", payload.get("name").asText());
+        }
+        if (payload.has("description")) {
+            requestBody.put("description", payload.get("description").asText());
+        }
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.PATCH, requestBody.toString());
+        return createResponseMessage(response, "EVENT_UPDATED");
+    }
+    
+    // Hashtag Methods
+    private Message followHashtag(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String hashtag = payload.path("hashtag").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/follows";
+        
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("follower", config.getMemberUrn());
+        requestBody.put("followedEntity", "urn:li:hashtag:" + hashtag);
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.POST, requestBody.toString());
+        return createResponseMessage(response, "HASHTAG_FOLLOWED");
+    }
+    
+    private Message unfollowHashtag(Message message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String hashtag = payload.path("hashtag").asText();
+        
+        String url = LINKEDIN_API_REST_BASE + "/follows/(follower:" + config.getMemberUrn() + 
+                     ",followedEntity:urn:li:hashtag:" + hashtag + ")";
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
+        return createResponseMessage(response, "HASHTAG_UNFOLLOWED");
+    }
+    
+    // Helper Methods
+    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body) {
+        return makeApiCall(url, method, body, null);
+    }
+    
+    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(getAccessToken());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("LinkedIn-Version", "202401");
+        headers.set("X-Restli-Protocol-Version", "2.0.0");
+        
+        StringBuilder urlBuilder = new StringBuilder(url);
+        if (params != null && !params.isEmpty()) {
+            urlBuilder.append("?");
+            params.forEach((key, value) -> 
+                urlBuilder.append(key).append("=").append(value).append("&"));
+            urlBuilder.setLength(urlBuilder.length() - 1);
+        }
+        
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        
+        rateLimiterService.acquire("linkedin_api", 1);
+        
+        return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
+    }
+    
+    private void uploadMedia(String uploadUrl, byte[] mediaData, String contentType) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(contentType));
+        headers.setBearerAuth(getAccessToken());
+        
+        HttpEntity<byte[]> entity = new HttpEntity<>(mediaData, headers);
+        restTemplate.exchange(uploadUrl, HttpMethod.POST, entity, String.class);
+    }
+    
+    private String detectContentType(String fileName) {
+        String lowerName = fileName.toLowerCase();
+        if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) return "image/jpeg";
+        if (lowerName.endsWith(".png")) return "image/png";
+        if (lowerName.endsWith(".gif")) return "image/gif";
+        if (lowerName.endsWith(".mp4")) return "video/mp4";
+        if (lowerName.endsWith(".pdf")) return "application/pdf";
+        return "application/octet-stream";
+    }
+    
+    private String getAccessToken() {
+        return credentialEncryptionService.decrypt(config.getAccessToken());
+    }
+    
+    private void validateConfiguration() throws AdapterException {
+        if (config.getClientId() == null || config.getClientSecret() == null) {
+            throw new AdapterException("LinkedIn OAuth credentials are not configured");
+        }
+        if (config.getAccessToken() == null) {
+            throw new AdapterException("LinkedIn access token is not configured");
+        }
+        if (config.getMemberUrn() == null && config.getOrganizationId() == null) {
+            throw new AdapterException("Neither member URN nor organization ID is configured");
+        }
+    }
+}

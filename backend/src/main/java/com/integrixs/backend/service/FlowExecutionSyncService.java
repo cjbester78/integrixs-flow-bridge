@@ -6,6 +6,7 @@ import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.FlowStructure;
 import com.integrixs.data.model.FlowTransformation;
+import com.integrixs.data.model.MessageStructure;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.repository.FieldMappingRepository;
 import com.integrixs.data.repository.FlowStructureRepository;
@@ -52,6 +53,12 @@ public class FlowExecutionSyncService {
     
     @Autowired
     private FlowStructureRepository flowStructureRepository;
+    
+    @Autowired
+    private XmlValidationService xmlValidationService;
+    
+    @Autowired
+    private WsdlSampleExtractorService wsdlSampleExtractor;
     
     /**
      * Process a message through an integration flow
@@ -120,12 +127,25 @@ public class FlowExecutionSyncService {
                 FlowStructure sourceFlowStructure = flowStructureRepository.findById(flow.getSourceFlowStructureId())
                     .orElse(null);
                 if (sourceFlowStructure != null) {
-                    // TODO: Implement validateMessage for FlowStructure
-                    // validatedMessage = validateMessage(message, sourceFlowStructure, context);
+                    // Validate message against FlowStructure
+                    XmlValidationService.ValidationResult validationResult = 
+                        xmlValidationService.validateMessageAgainstFlowStructure(message, sourceFlowStructure, context);
+                    
+                    if (validationResult.isValid()) {
+                        validatedMessage = validationResult.getValidatedMessage();
+                        logger.info("Message validated successfully against FlowStructure: {}", sourceFlowStructure.getName());
+                    } else {
+                        logger.error("Message validation failed against FlowStructure {}: {}", 
+                            sourceFlowStructure.getName(), String.join(", ", validationResult.getErrors()));
+                        // For now, log the error but continue processing
+                        // In the future, could add a strict validation flag to flow configuration
+                        logger.warn("Continuing despite validation errors");
+                    }
+                    
                     try {
                         logger.info("Processing step - correlationId: {}, flow: {}, " + 
                             "Message validation completed",
-                            "Structure: " + sourceFlowStructure.getName(),
+                            "Structure: " + sourceFlowStructure.getName() + ", Valid: " + validationResult.isValid(),
                             com.integrixs.data.model.SystemLog.LogLevel.INFO);
                     } catch (Exception e) {
                         logger.warn("Failed to log validation completion: {}", e.getMessage());
@@ -210,8 +230,16 @@ public class FlowExecutionSyncService {
                                             }
                                         }
                                         
-                                        // TODO: Extract sample XML from WSDL
-                                        targetTemplate = null; // Let the mapper create the structure for now
+                                        // Extract sample XML from WSDL for the target structure
+                                        String operationName = (String) context.get("operationName");
+                                        if (operationName != null) {
+                                            targetTemplate = wsdlSampleExtractor.extractSampleRequestXml(
+                                                targetFlowStructure.getWsdlContent(), operationName);
+                                            logger.info("Extracted sample XML template for operation: {}", operationName);
+                                        } else {
+                                            targetTemplate = null; // Let the mapper create the structure
+                                            logger.debug("No operation name in context, mapper will create structure");
+                                        }
                                     }
                                 } else {
                                     logger.warn("Target flow structure not found!");
@@ -312,8 +340,62 @@ public class FlowExecutionSyncService {
             
             logger.info("Target adapter execution completed");
             
-            // Step 4: Process response if needed
-            // TODO: Handle response transformations if needed
+            // Step 4: Process response transformations if needed
+            String finalResponse = response;
+            if (response != null && "WITH_MAPPING".equals(flow.getMappingMode().toString()) && 
+                flow.getTransformations() != null && flow.getTransformations().size() > 1) {
+                
+                logger.info("Processing response transformation for flow: {}", flow.getName());
+                
+                // Get the response transformation (higher execution order)
+                FlowTransformation responseTransformation = flow.getTransformations().stream()
+                    .filter(t -> t.getExecutionOrder() > 1)
+                    .min((t1, t2) -> Integer.compare(t1.getExecutionOrder(), t2.getExecutionOrder()))
+                    .orElse(null);
+                
+                if (responseTransformation != null) {
+                    try {
+                        String transformationId = responseTransformation.getId().toString();
+                        logger.info("Using response transformation: {} (ID: {})", 
+                            responseTransformation.getName(), transformationId);
+                        
+                        // Get field mappings for response transformation
+                        List<FieldMapping> responseMappings = fieldMappingRepository.findByTransformationId(
+                            UUID.fromString(transformationId));
+                        logger.info("Found {} response field mappings", responseMappings.size());
+                        
+                        if (!responseMappings.isEmpty()) {
+                            // Extract namespaces for response
+                            Map<String, String> responseNamespaces = new HashMap<>();
+                            
+                            // Use target structure namespaces for response source
+                            if (flow.getTargetFlowStructureId() != null) {
+                                FlowStructure targetFlowStructure = flowStructureRepository.findById(
+                                    flow.getTargetFlowStructureId()).orElse(null);
+                                if (targetFlowStructure != null && targetFlowStructure.getWsdlContent() != null) {
+                                    Map<String, String> targetNamespaces = 
+                                        WsdlNamespaceExtractor.extractNamespaces(targetFlowStructure.getWsdlContent());
+                                    responseNamespaces.putAll(targetNamespaces);
+                                }
+                            }
+                            
+                            // Apply response transformation
+                            finalResponse = xmlFieldMapper.mapXmlFields(
+                                response,
+                                null, // Let mapper create structure
+                                responseMappings,
+                                responseNamespaces
+                            );
+                            
+                            logger.info("Successfully applied response transformation");
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error applying response transformation: {}", e.getMessage(), e);
+                        // Continue with original response if transformation fails
+                        finalResponse = response;
+                    }
+                }
+            }
             
             logger.info("Successfully processed message through flow: {}", flow.getName());
             
@@ -324,7 +406,7 @@ public class FlowExecutionSyncService {
                 logger.warn("Failed to update message status to completed: {}", e.getMessage());
             }
             
-            return response;
+            return finalResponse;
             
         } catch (Exception e) {
             logger.error("Error processing message through flow: {} (ID: {}). Error type: {}, Message: {}", 
@@ -366,5 +448,33 @@ public class FlowExecutionSyncService {
         }
     }
     
-    // TODO: Implement validation methods for FlowStructure and MessageStructure when needed
+    /**
+     * Validates a message against a FlowStructure
+     */
+    private String validateMessage(String message, FlowStructure flowStructure, Map<String, Object> context) 
+            throws Exception {
+        XmlValidationService.ValidationResult result = 
+            xmlValidationService.validateMessageAgainstFlowStructure(message, flowStructure, context);
+        
+        if (!result.isValid()) {
+            throw new RuntimeException("Message validation failed: " + String.join(", ", result.getErrors()));
+        }
+        
+        return result.getValidatedMessage();
+    }
+    
+    /**
+     * Validates a message against a MessageStructure
+     */
+    private String validateMessage(String message, MessageStructure messageStructure, Map<String, Object> context) 
+            throws Exception {
+        XmlValidationService.ValidationResult result = 
+            xmlValidationService.validateMessageAgainstMessageStructure(message, messageStructure, context);
+        
+        if (!result.isValid()) {
+            throw new RuntimeException("Message validation failed: " + String.join(", ", result.getErrors()));
+        }
+        
+        return result.getValidatedMessage();
+    }
 }

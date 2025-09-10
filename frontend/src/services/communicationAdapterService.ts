@@ -1,4 +1,5 @@
-import { apiClient, logger, LogCategory } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
+import { logger, LogCategory } from '@/lib/logger';
 import type { CommunicationAdapter, AdapterType, AdapterMode } from '@/types/communicationAdapter';
 
 const API_PREFIX = '/adapters';

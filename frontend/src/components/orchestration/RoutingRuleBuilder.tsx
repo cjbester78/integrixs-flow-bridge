@@ -18,9 +18,11 @@ import {
   Hash,
   Type,
   Calendar,
-  ToggleLeft
+  ToggleLeft,
+  TestTube2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ConditionTester } from './ConditionTester';
 
 interface RoutingRule {
   id: string;
@@ -65,6 +67,7 @@ export function RoutingRuleBuilder({
   const [rules, setRules] = useState<RoutingRule[]>([]);
   const [expression, setExpression] = useState(routingCondition || '');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [showTester, setShowTester] = useState(false);
 
   // Initialize rules from existing condition
   React.useEffect(() => {
@@ -178,29 +181,6 @@ export function RoutingRuleBuilder({
     }
   }, [rules, conditionType, buildExpression, onChange]);
 
-  const testCondition = useCallback(() => {
-    if (!testPayload) {
-      setTestResult({ 
-        success: false, 
-        message: 'No test payload provided' 
-      });
-      return;
-    }
-
-    try {
-      // In a real implementation, this would evaluate the expression
-      // against the test payload using a safe expression evaluator
-      setTestResult({ 
-        success: true, 
-        message: 'Condition would match this payload' 
-      });
-    } catch (error) {
-      setTestResult({ 
-        success: false, 
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` 
-      });
-    }
-  }, [expression, testPayload]);
 
   if (conditionType === 'ALWAYS') {
     return (
@@ -439,33 +419,31 @@ export function RoutingRuleBuilder({
         />
       </div>
 
-      {/* Test Section */}
-      {testPayload && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Test Condition</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={testCondition}
-              disabled={!expression}
-            >
-              Test
-            </Button>
+      {/* Test Button */}
+      {conditionType !== 'ALWAYS' && expression && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTester(true)}
+            className="gap-2"
+          >
+            <TestTube2 className="h-4 w-4" />
+            Test Condition
+          </Button>
+        </div>
+      )}
+      
+      {/* Condition Tester Modal */}
+      {showTester && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
+          <div className="fixed left-[50%] top-[50%] z-50 w-full max-w-4xl max-h-[90vh] overflow-y-auto translate-x-[-50%] translate-y-[-50%]">
+            <ConditionTester
+              condition={expression}
+              conditionType={conditionType}
+              onClose={() => setShowTester(false)}
+            />
           </div>
-          
-          {testResult && (
-            <Alert className={cn(
-              testResult.success ? "border-green-500" : "border-red-500"
-            )}>
-              {testResult.success ? (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-red-500" />
-              )}
-              <AlertDescription>{testResult.message}</AlertDescription>
-            </Alert>
-          )}
         </div>
       )}
     </div>

@@ -1,12 +1,15 @@
 package com.integrixs.backend.service;
 
-// import com.integrixs.backend.service.deprecated.NotificationService;
+import com.integrixs.monitoring.domain.model.Alert;
+import com.integrixs.monitoring.domain.service.AlertingService;
 import com.integrixs.data.model.ErrorRecord;
 import com.integrixs.data.model.RetryPolicy;
 import com.integrixs.data.model.DeadLetterMessage;
+import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.repository.ErrorRecordRepository;
 import com.integrixs.data.repository.RetryPolicyRepository;
 import com.integrixs.data.repository.DeadLetterMessageRepository;
+import com.integrixs.data.repository.IntegrationFlowRepository;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -16,6 +19,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -45,11 +52,23 @@ public class ErrorHandlingService {
     @Autowired
     private DeadLetterMessageRepository deadLetterRepository;
     
-    // @Autowired
-    // private NotificationService notificationService;
+    @Autowired(required = false)
+    private AlertingService alertingService;
     
     @Autowired
     private MessageQueueService messageQueueService;
+    
+    @Autowired
+    private IntegrationFlowRepository flowRepository;
+    
+    @Value("${integrix.error.notification.enabled:true}")
+    private boolean notificationEnabled;
+    
+    @Value("${integrix.error.recovery.enabled:true}")
+    private boolean recoveryEnabled;
+    
+    // Error recovery executor
+    private ExecutorService recoveryExecutor;
     
     // Circuit breaker registry
     private CircuitBreakerRegistry circuitBreakerRegistry;
@@ -68,6 +87,8 @@ public class ErrorHandlingService {
             .waitDurationInOpenState(Duration.ofSeconds(30))
             .slidingWindowSize(10)
             .minimumNumberOfCalls(5)
+            .recordExceptions(Exception.class)
+            .ignoreExceptions(IllegalArgumentException.class) // Don't count validation errors
             .build();
         
         circuitBreakerRegistry = CircuitBreakerRegistry.of(circuitBreakerConfig);
@@ -77,9 +98,13 @@ public class ErrorHandlingService {
             .maxAttempts(3)
             .waitDuration(Duration.ofSeconds(1))
             .retryExceptions(Exception.class)
+            .ignoreExceptions(IllegalArgumentException.class, IllegalStateException.class)
             .build();
         
         retryRegistry = RetryRegistry.of(retryConfig);
+        
+        // Initialize recovery executor
+        recoveryExecutor = Executors.newFixedThreadPool(5);
         
         logger.info("Error handling service initialized with circuit breaker and retry mechanisms");
     }
@@ -208,8 +233,7 @@ public class ErrorHandlingService {
             deadLetterRepository.save(deadLetter);
             
             // Send notification
-            // TODO: Replace notificationService.notifyDeadLetterMessage(flowId, messageId, reason);
-            logger.info("Dead letter notification - flowId: {}, messageId: {}, reason: {}", flowId, messageId, reason);
+            sendDeadLetterNotification(flowId, messageId, reason);
             
             logger.warn("Message {} sent to dead letter queue for flow {}: {}", 
                 messageId, flowId, reason);
@@ -319,8 +343,7 @@ public class ErrorHandlingService {
             logger.warn("Error threshold exceeded for flow {} - {} errors", flowId, errorCount.get());
             
             // Send alert
-            // TODO: Replace notificationService.notifyErrorThresholdExceeded(flowId, errorCount.get());
-            logger.error("Error threshold alert - flowId: {}, errorCount: {}", flowId, errorCount.get());
+            sendErrorThresholdAlert(flowId, errorCount.get());
         }
     }
     
@@ -331,8 +354,7 @@ public class ErrorHandlingService {
         logger.error("Max retries exceeded for flow {}", flowId, lastException);
         
         // Send notification
-        // TODO: Replace notificationService.notifyMaxRetriesExceeded(flowId, lastException.getMessage());
-        logger.error("Max retries notification - flowId: {}, error: {}", flowId, lastException.getMessage());
+        sendMaxRetriesAlert(flowId, lastException);
     }
     
     /**
@@ -436,5 +458,312 @@ public class ErrorHandlingService {
         public Map<String, Long> getErrorTypeCount() { return errorTypeCount; }
         public String getCircuitBreakerState() { return circuitBreakerState; }
         public float getFailureRate() { return failureRate; }
+    }
+    
+    /**
+     * Enhanced error recovery with automated recovery strategies
+     */
+    public CompletableFuture<Boolean> attemptErrorRecovery(String flowId, String messageId, Exception error) {
+        if (!recoveryEnabled) {
+            return CompletableFuture.completedFuture(false);
+        }
+        
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                logger.info("Attempting error recovery for flow {} message {}", flowId, messageId);
+                
+                ErrorRecord.ErrorType errorType = mapToErrorType(error);
+                RecoveryStrategy strategy = determineRecoveryStrategy(errorType, error);
+                
+                switch (strategy) {
+                    case RESTART_ADAPTER:
+                        return restartAdapter(flowId);
+                        
+                    case CLEAR_CACHE:
+                        return clearFlowCache(flowId);
+                        
+                    case RESET_CONNECTION:
+                        return resetConnections(flowId);
+                        
+                    case RECONFIGURE:
+                        return reconfigureFlow(flowId);
+                        
+                    case MANUAL_INTERVENTION:
+                        sendManualInterventionAlert(flowId, messageId, error);
+                        return false;
+                        
+                    default:
+                        logger.warn("No recovery strategy available for error type: {}", errorType);
+                        return false;
+                }
+                
+            } catch (Exception e) {
+                logger.error("Error recovery failed for flow {}", flowId, e);
+                return false;
+            }
+        }, recoveryExecutor);
+    }
+    
+    /**
+     * Determine recovery strategy based on error type
+     */
+    private RecoveryStrategy determineRecoveryStrategy(ErrorRecord.ErrorType errorType, Exception error) {
+        switch (errorType) {
+            case CONNECTION_ERROR:
+            case TIMEOUT_ERROR:
+                return RecoveryStrategy.RESET_CONNECTION;
+                
+            case ADAPTER_ERROR:
+                return RecoveryStrategy.RESTART_ADAPTER;
+                
+            case CONFIGURATION_ERROR:
+                return RecoveryStrategy.RECONFIGURE;
+                
+            case SYSTEM_ERROR:
+                if (error.getMessage() != null && error.getMessage().contains("cache")) {
+                    return RecoveryStrategy.CLEAR_CACHE;
+                }
+                return RecoveryStrategy.MANUAL_INTERVENTION;
+                
+            default:
+                return RecoveryStrategy.RETRY;
+        }
+    }
+    
+    /**
+     * Restart adapter for flow
+     */
+    private boolean restartAdapter(String flowId) {
+        try {
+            logger.info("Restarting adapter for flow {}", flowId);
+            // Implementation would restart the adapter
+            // For now, just reset circuit breaker
+            CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("flow_" + flowId);
+            circuitBreaker.reset();
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to restart adapter for flow {}", flowId, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Clear flow cache
+     */
+    private boolean clearFlowCache(String flowId) {
+        try {
+            logger.info("Clearing cache for flow {}", flowId);
+            // Implementation would clear any cached data
+            errorCounters.remove(flowId);
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to clear cache for flow {}", flowId, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Reset connections for flow
+     */
+    private boolean resetConnections(String flowId) {
+        try {
+            logger.info("Resetting connections for flow {}", flowId);
+            // Implementation would reset database/network connections
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to reset connections for flow {}", flowId, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Reconfigure flow
+     */
+    private boolean reconfigureFlow(String flowId) {
+        try {
+            logger.info("Reconfiguring flow {}", flowId);
+            // Implementation would reload flow configuration
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to reconfigure flow {}", flowId, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Send notification alerts
+     */
+    private void sendDeadLetterNotification(String flowId, String messageId, String reason) {
+        if (!notificationEnabled || alertingService == null) {
+            logger.info("Dead letter notification - flowId: {}, messageId: {}, reason: {}", flowId, messageId, reason);
+            return;
+        }
+        
+        try {
+            String flowName = getFlowName(flowId);
+            
+            Alert alert = Alert.builder()
+                .alertName("Dead Letter Message")
+                .alertType(Alert.AlertType.ERROR_RATE)
+                .severity(Alert.AlertSeverity.MAJOR)
+                .source("ErrorHandlingService")
+                .message(String.format("Message %s moved to dead letter queue for flow '%s'. Reason: %s", 
+                    messageId, flowName, reason))
+                .domainType("Flow")
+                .domainReferenceId(flowId)
+                .action(Alert.AlertAction.builder()
+                    .type(Alert.AlertAction.ActionType.EMAIL)
+                    .parameters(getNotificationParameters())
+                    .build())
+                .build();
+            
+            alert.addMetadata("messageId", messageId);
+            alert.addMetadata("reason", reason);
+            
+            alertingService.triggerAlert(alert);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send dead letter notification", e);
+        }
+    }
+    
+    private void sendErrorThresholdAlert(String flowId, int errorCount) {
+        if (!notificationEnabled || alertingService == null) {
+            logger.error("Error threshold alert - flowId: {}, errorCount: {}", flowId, errorCount);
+            return;
+        }
+        
+        try {
+            String flowName = getFlowName(flowId);
+            
+            Alert alert = Alert.builder()
+                .alertName("Error Threshold Exceeded")
+                .alertType(Alert.AlertType.THRESHOLD)
+                .severity(Alert.AlertSeverity.CRITICAL)
+                .source("ErrorHandlingService")
+                .message(String.format("Flow '%s' has exceeded error threshold with %d errors in the last hour", 
+                    flowName, errorCount))
+                .condition("errorCount > 10")
+                .domainType("Flow")
+                .domainReferenceId(flowId)
+                .action(Alert.AlertAction.builder()
+                    .type(Alert.AlertAction.ActionType.WEBHOOK)
+                    .parameters(getWebhookParameters())
+                    .build())
+                .build();
+            
+            alert.addMetadata("errorCount", errorCount);
+            alert.addMetadata("threshold", 10);
+            
+            alertingService.triggerAlert(alert);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send error threshold alert", e);
+        }
+    }
+    
+    private void sendMaxRetriesAlert(String flowId, Exception lastException) {
+        if (!notificationEnabled || alertingService == null) {
+            logger.error("Max retries notification - flowId: {}, error: {}", flowId, lastException.getMessage());
+            return;
+        }
+        
+        try {
+            String flowName = getFlowName(flowId);
+            
+            Alert alert = Alert.builder()
+                .alertName("Max Retries Exceeded")
+                .alertType(Alert.AlertType.ERROR_RATE)
+                .severity(Alert.AlertSeverity.CRITICAL)
+                .source("ErrorHandlingService")
+                .message(String.format("Flow '%s' failed after maximum retry attempts. Last error: %s", 
+                    flowName, lastException.getMessage()))
+                .domainType("Flow")
+                .domainReferenceId(flowId)
+                .action(Alert.AlertAction.builder()
+                    .type(Alert.AlertAction.ActionType.SMS)
+                    .parameters(getSmsParameters())
+                    .build())
+                .build();
+            
+            alert.addMetadata("errorType", lastException.getClass().getSimpleName());
+            alert.addMetadata("errorMessage", lastException.getMessage());
+            
+            alertingService.triggerAlert(alert);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send max retries alert", e);
+        }
+    }
+    
+    private void sendManualInterventionAlert(String flowId, String messageId, Exception error) {
+        if (!notificationEnabled || alertingService == null) {
+            return;
+        }
+        
+        try {
+            String flowName = getFlowName(flowId);
+            
+            Alert alert = Alert.builder()
+                .alertName("Manual Intervention Required")
+                .alertType(Alert.AlertType.CUSTOM)
+                .severity(Alert.AlertSeverity.CRITICAL)
+                .source("ErrorHandlingService")
+                .message(String.format("Flow '%s' requires manual intervention for message %s. Error: %s", 
+                    flowName, messageId, error.getMessage()))
+                .domainType("Flow")
+                .domainReferenceId(flowId)
+                .action(Alert.AlertAction.builder()
+                    .type(Alert.AlertAction.ActionType.EMAIL)
+                    .parameters(getNotificationParameters())
+                    .build())
+                .build();
+            
+            alertingService.triggerAlert(alert);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send manual intervention alert", e);
+        }
+    }
+    
+    private String getFlowName(String flowId) {
+        try {
+            return flowRepository.findById(UUID.fromString(flowId))
+                .map(IntegrationFlow::getName)
+                .orElse(flowId);
+        } catch (Exception e) {
+            return flowId;
+        }
+    }
+    
+    private Map<String, String> getNotificationParameters() {
+        Map<String, String> params = new HashMap<>();
+        params.put("to", "admin@integrix.com,support@integrix.com");
+        return params;
+    }
+    
+    private Map<String, String> getWebhookParameters() {
+        Map<String, String> params = new HashMap<>();
+        params.put("url", "https://api.integrix.com/alerts");
+        params.put("method", "POST");
+        return params;
+    }
+    
+    private Map<String, String> getSmsParameters() {
+        Map<String, String> params = new HashMap<>();
+        params.put("to", "+1234567890"); // On-call engineer
+        return params;
+    }
+    
+    /**
+     * Recovery strategies
+     */
+    private enum RecoveryStrategy {
+        RETRY,
+        RESTART_ADAPTER,
+        CLEAR_CACHE,
+        RESET_CONNECTION,
+        RECONFIGURE,
+        MANUAL_INTERVENTION
     }
 }

@@ -12,6 +12,7 @@ import com.integrixs.backend.service.AdapterPoolManager.PooledAdapter;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
+import com.integrixs.data.model.Alert;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.engine.mapper.HierarchicalXmlFieldMapper;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.time.LocalDateTime;
 
 /**
  * Enhanced Adapter Execution Service - Bridges the gap between message queue and actual adapter execution
@@ -66,11 +68,11 @@ public class EnhancedAdapterExecutionService {
     @Autowired
     private ErrorHandlingService errorHandlingService;
     
-    // @Autowired
-    // private MessageService messageService;
+    @Autowired
+    private MessageService messageService;
     
-    // @Autowired
-    // private FlowExecutionMonitoringService monitoringService;
+    @Autowired
+    private FlowExecutionMonitoringService monitoringService;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -85,6 +87,9 @@ public class EnhancedAdapterExecutionService {
                 // Load flow configuration
                 IntegrationFlow flow = flowRepository.findById(UUID.fromString(flowId))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
+                
+                // Start monitoring
+                monitoringService.startExecution(correlationId, flowId, flow.getName());
                 
                 // Start saga transaction
                 var transaction = sagaService.startTransaction(flow, correlationId);
@@ -107,11 +112,18 @@ public class EnhancedAdapterExecutionService {
                             if (sourceMetrics != null) sourceMetrics.recordMessage(true, duration / 2);
                             if (targetMetrics != null) targetMetrics.recordMessage(true, duration / 2);
                             
+                            // Complete monitoring
+                            monitoringService.completeExecution(correlationId, true, "Flow executed successfully");
+                            
                             return ExecutionResult.success(
                                 sagaResult.getContext().get("processedData"),
                                 duration
                             );
                         } else {
+                            // Complete monitoring with failure
+                            monitoringService.completeExecution(correlationId, false, 
+                                "Flow execution failed: " + sagaResult.getErrorMessage());
+                            
                             return ExecutionResult.failure(
                                 sagaResult.getErrorMessage(),
                                 sagaResult.getErrorDetails()
@@ -126,6 +138,11 @@ public class EnhancedAdapterExecutionService {
             } catch (Exception e) {
                 logger.error("Flow execution failed for {}", flowId, e);
                 errorHandlingService.handleError(flowId, e);
+                
+                // Complete monitoring with failure
+                monitoringService.completeExecution(correlationId, false, 
+                    "Flow execution failed with exception: " + e.getMessage());
+                
                 return ExecutionResult.failure(e.getMessage(), e.toString());
             }
         });
@@ -202,14 +219,12 @@ public class EnhancedAdapterExecutionService {
                 // Log adapter request
                 adapterEntity = adapterRepository.findById(UUID.fromString(adapterId)).orElse(null);
                 if (adapterEntity != null) {
-                    // TODO: Replace messageService.logAdapterActivity(adapterEntity, "Fetch data start", "Starting data fetch from adapter", SystemLog.LogLevel.INFO, correlationId);
-                    logger.info("Starting data fetch from adapter - adapterId: {}, correlationId: {}", adapterId, correlationId);
+                    messageService.logAdapterActivity(adapterEntity, "Fetch data start", "Starting data fetch from adapter", SystemLog.LogLevel.INFO, correlationId);
                 }
                 
                 // Update monitoring
-                // TODO: Replace monitoringService.updateExecutionProgress(correlationId, "FETCH_FROM_ADAPTER", 
-                //    "Fetching data from adapter: " + adapterId);
-                logger.info("Fetching data from adapter: {} - correlationId: {}", adapterId, correlationId);
+                monitoringService.updateExecutionProgress(correlationId, "FETCH_FROM_ADAPTER", 
+                   "Fetching data from adapter: " + adapterId);
                 
                 // Fetch data
                 // Create fetch request for InboundAdapterPort
@@ -222,17 +237,14 @@ public class EnhancedAdapterExecutionService {
                 if (result.isSuccess()) {
                     // Log successful fetch
                     if (adapterEntity != null) {
-                        // TODO: Replace messageService.logAdapterActivity(adapterEntity, "Fetch data success", 
-                        //    "Fetched " + (result.getData() != null ? result.getData().toString().length() : 0) + " bytes", 
-                        //    SystemLog.LogLevel.INFO, correlationId);
-                        logger.info("Fetch data success - adapterId: {}, correlationId: {}, bytes: {}", adapterId, correlationId, 
-                            result.getData() != null ? result.getData().toString().length() : 0);
+                        messageService.logAdapterActivity(adapterEntity, "Fetch data success", 
+                           "Fetched " + (result.getData() != null ? result.getData().toString().length() : 0) + " bytes", 
+                           SystemLog.LogLevel.INFO, correlationId);
                     }
                     
                     // Update monitoring
-                    // TODO: Replace monitoringService.updateExecutionProgress(correlationId, "FETCH_COMPLETE", 
-                    //    "Successfully fetched data from adapter");
-                    logger.info("Successfully fetched data from adapter - correlationId: {}", correlationId);
+                    monitoringService.updateExecutionProgress(correlationId, "FETCH_COMPLETE", 
+                       "Successfully fetched data from adapter");
                     
                     return result.getData();
                 } else {
@@ -242,9 +254,8 @@ public class EnhancedAdapterExecutionService {
             } catch (Exception e) {
                 logger.error("Failed to fetch from adapter {}", adapterId, e);
                 if (adapterEntity != null) {
-                    // TODO: Replace messageService.logAdapterActivity(adapterEntity, "Fetch error", e.getMessage(), 
-                    //    SystemLog.LogLevel.ERROR, correlationId);
-                    logger.error("Fetch error - adapterId: {}, correlationId: {}, error: {}", adapterId, correlationId, e.getMessage());
+                    messageService.logAdapterActivity(adapterEntity, "Fetch error", e.getMessage(), 
+                       SystemLog.LogLevel.ERROR, correlationId);
                 }
                 throw new RuntimeException("Adapter fetch failed", e);
             } finally {
@@ -278,17 +289,14 @@ public class EnhancedAdapterExecutionService {
                 // Log adapter request
                 adapterEntity = adapterRepository.findById(UUID.fromString(adapterId)).orElse(null);
                 if (adapterEntity != null) {
-                    // TODO: Replace messageService.logAdapterActivity(adapterEntity, "Send data start", 
-                    //    "Sending " + (data != null ? data.toString().length() : 0) + " bytes", 
-                    //    SystemLog.LogLevel.INFO, correlationId);
-                    logger.info("Send data start - adapterId: {}, correlationId: {}, bytes: {}", adapterId, correlationId, 
-                        data != null ? data.toString().length() : 0);
+                    messageService.logAdapterActivity(adapterEntity, "Send data start", 
+                       "Sending " + (data != null ? data.toString().length() : 0) + " bytes", 
+                       SystemLog.LogLevel.INFO, correlationId);
                 }
                 
                 // Update monitoring
-                // TODO: Replace monitoringService.updateExecutionProgress(correlationId, "SEND_TO_ADAPTER", 
-                //    "Sending data to adapter: " + adapterId);
-                logger.info("Sending data to adapter: {} - correlationId: {}", adapterId, correlationId);
+                monitoringService.updateExecutionProgress(correlationId, "SEND_TO_ADAPTER", 
+                   "Sending data to adapter: " + adapterId);
                 
                 // Send data
                 // Create send request for OutboundAdapterPort
@@ -301,15 +309,13 @@ public class EnhancedAdapterExecutionService {
                 if (result.isSuccess()) {
                     // Log successful send
                     if (adapterEntity != null) {
-                        // TODO: Replace messageService.logAdapterActivity(adapterEntity, "Send data success", "Data sent successfully", 
-                        //    SystemLog.LogLevel.INFO, correlationId);
-                        logger.info("Send data success - adapterId: {}, correlationId: {}", adapterId, correlationId);
+                        messageService.logAdapterActivity(adapterEntity, "Send data success", "Data sent successfully", 
+                           SystemLog.LogLevel.INFO, correlationId);
                     }
                     
                     // Update monitoring
-                    // TODO: Replace monitoringService.updateExecutionProgress(correlationId, "SEND_COMPLETE", 
-                    //    "Successfully sent data to adapter");
-                    logger.info("Successfully sent data to adapter - correlationId: {}", correlationId);
+                    monitoringService.updateExecutionProgress(correlationId, "SEND_COMPLETE", 
+                       "Successfully sent data to adapter");
                 } else {
                     throw new RuntimeException("Send failed: " + result.getMessage());
                 }
@@ -317,9 +323,8 @@ public class EnhancedAdapterExecutionService {
             } catch (Exception e) {
                 logger.error("Failed to send to adapter {}", adapterId, e);
                 if (adapterEntity != null) {
-                    // TODO: Replace messageService.logAdapterActivity(adapterEntity, "Send error", e.getMessage(), 
-                    //    SystemLog.LogLevel.ERROR, correlationId);
-                    logger.error("Send error - adapterId: {}, correlationId: {}, error: {}", adapterId, correlationId, e.getMessage());
+                    messageService.logAdapterActivity(adapterEntity, "Send error", e.getMessage(), 
+                       SystemLog.LogLevel.ERROR, correlationId);
                 }
                 throw new RuntimeException("Adapter send failed", e);
             } finally {
@@ -361,16 +366,12 @@ public class EnhancedAdapterExecutionService {
                 Object sourceData = context.get("sourceData");
                 
                 // Update monitoring
-                // TODO: Replace monitoringService.updateExecutionProgress(correlationId, "DATA_TRANSFORM", 
-                //    "Starting data transformation");
-                logger.info("Starting data transformation - correlationId: {}, flowId: {}", correlationId, flowId);
+                monitoringService.updateExecutionProgress(correlationId, "DATA_TRANSFORM", 
+                   "Starting data transformation");
                 
                 // Use message processing engine for transformation
-                // TODO: Replace with actual message processing engine when available
-                // var result = messageProcessingEngine.processMessage(
-                //     flowId, 
-                //     sourceData
-                // ).get();
+                // When message processing engine is available, replace with:
+                // var result = messageProcessingEngine.processMessage(flowId, sourceData).get();
                 
                 // Temporary stub implementation
                 var result = new ProcessingResult();
@@ -381,9 +382,8 @@ public class EnhancedAdapterExecutionService {
                     context.put("processedData", result.getProcessedData());
                     
                     // Update monitoring
-                    // TODO: Replace monitoringService.updateExecutionProgress(correlationId, "TRANSFORM_COMPLETE", 
-                    //    "Data transformation completed successfully");
-                    logger.info("Data transformation completed - correlationId: {}", correlationId);
+                    monitoringService.updateExecutionProgress(correlationId, "TRANSFORM_COMPLETE", 
+                       "Data transformation completed successfully");
                     
                     return SagaTransactionService.StepResult.success(
                         objectMapper.writeValueAsString(result.getProcessedData())
@@ -427,8 +427,60 @@ public class EnhancedAdapterExecutionService {
         });
         
         sagaService.registerCompensationHandler("ADAPTER_SEND", (step, context) -> {
-            // TODO: Implement compensation logic (e.g., send reversal message)
-            logger.info("Compensating adapter send step - would send reversal if supported");
+            // Implement compensation logic for adapter send failures
+            String adapterId = (String) step.getParameters().get("adapterId");
+            String correlationId = (String) step.getParameters().get("correlationId");
+            
+            logger.info("Compensating adapter send step for adapter: {} with correlationId: {}", 
+                adapterId, correlationId);
+            
+            try {
+                // Check if adapter supports reversals
+                CommunicationAdapter adapter = adapterRepository.findById(UUID.fromString(adapterId))
+                    .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
+                
+                Map<String, String> config = adapter.getConfiguration();
+                boolean supportsReversal = Boolean.parseBoolean(config.getOrDefault("supportsReversal", "false"));
+                
+                if (supportsReversal) {
+                    // Build reversal message
+                    Object originalData = context.get("processedData");
+                    if (originalData == null) {
+                        originalData = context.get("sourceData");
+                    }
+                    
+                    Map<String, Object> reversalMessage = new HashMap<>();
+                    reversalMessage.put("action", "REVERSAL");
+                    reversalMessage.put("originalCorrelationId", correlationId);
+                    reversalMessage.put("reversalTimestamp", LocalDateTime.now().toString());
+                    reversalMessage.put("originalData", originalData);
+                    
+                    // Send reversal through adapter
+                    sendToAdapter(adapterId, reversalMessage, "REV-" + correlationId)
+                        .thenAccept(result -> logger.info("Reversal sent successfully for correlationId: {}", correlationId))
+                        .exceptionally(ex -> {
+                            logger.error("Failed to send reversal for correlationId: {}", correlationId, ex);
+                            return null;
+                        });
+                } else {
+                    // Log compensation attempt for audit trail
+                    logger.warn("Adapter {} does not support reversals. Manual intervention may be required for correlationId: {}", 
+                        adapter.getName(), correlationId);
+                    
+                    // Create alert for manual intervention
+                    Alert compensationAlert = Alert.builder()
+                        .alertName("Adapter Compensation Required")
+                        .message(String.format("Manual compensation needed for adapter %s, correlation ID: %s", 
+                            adapter.getName(), correlationId))
+                        .alertType("COMPENSATION_REQUIRED")
+                        .severity(Alert.AlertSeverity.HIGH)
+                        .build();
+                    
+                    alertingService.triggerAlert(compensationAlert);
+                }
+            } catch (Exception e) {
+                logger.error("Error during adapter send compensation for correlationId: {}", correlationId, e);
+            }
         });
     }
     

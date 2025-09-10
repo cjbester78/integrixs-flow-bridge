@@ -38,7 +38,7 @@ public class AdapterConfiguration {
         FILE,      // Local file system
         FTP,       // FTP protocol
         SFTP,      // Secure FTP
-        JMS,       // Java Message Service
+        IBMMQ,     // IBM MQ (formerly WebSphere MQ)
         KAFKA,     // Apache Kafka
         MAIL,      // Email (SMTP/POP3/IMAP)
         ODATA,     // OData protocol

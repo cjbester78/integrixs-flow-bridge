@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Service for managing plugins
@@ -33,6 +34,7 @@ public class PluginService {
     private final PluginValidator pluginValidator;
     private final PluginSecurityScanner securityScanner;
     private final PluginVersionManager versionManager;
+    private final PlatformVersionService platformVersionService;
     
     @Value("${plugin.upload.directory:${user.home}/.integrix/plugins}")
     private String pluginUploadDirectory;
@@ -105,9 +107,24 @@ public class PluginService {
             
             // Collect warnings
             List<String> warnings = new ArrayList<>();
+            
+            // Check platform version compatibility
             if (metadata.getMinPlatformVersion() != null) {
-                // TODO: Check platform version compatibility
-                warnings.add("Platform version compatibility check not implemented");
+                boolean isCompatible = platformVersionService.isPluginCompatible(
+                    metadata.getMinPlatformVersion(), 
+                    metadata.getMaxPlatformVersion()
+                );
+                
+                if (!isCompatible) {
+                    String compatMessage = platformVersionService.getCompatibilityMessage(
+                        metadata.getMinPlatformVersion(),
+                        metadata.getMaxPlatformVersion()
+                    );
+                    warnings.add("Platform compatibility warning: " + compatMessage);
+                    log.warn("Plugin {} may not be compatible: {}", metadata.getId(), compatMessage);
+                } else {
+                    log.info("Plugin {} platform compatibility verified", metadata.getId());
+                }
             }
             if (scanResult.getRiskLevel() != PluginSecurityScanner.RiskLevel.MINIMAL) {
                 warnings.add("Security risk level: " + scanResult.getRiskLevel());
@@ -155,7 +172,39 @@ public class PluginService {
         
         pluginRegistry.unregisterPlugin(pluginId);
         
-        // TODO: Remove plugin JAR file from disk
+        // Remove plugin JAR file from disk
+        try {
+            // Get current version to find JAR file path
+            PluginVersionManager.PluginVersion currentVersion = versionManager.getCurrentVersion(pluginId);
+            if (currentVersion != null && currentVersion.getJarPath() != null) {
+                Path jarPath = Path.of(currentVersion.getJarPath());
+                if (Files.exists(jarPath)) {
+                    Files.delete(jarPath);
+                    log.info("Removed plugin JAR file: {}", jarPath);
+                } else {
+                    log.warn("Plugin JAR file not found: {}", jarPath);
+                }
+            } else {
+                log.warn("No version information found for plugin: {}", pluginId);
+            }
+            
+            // Also try to remove any other versions from the plugin directory
+            Path pluginDir = Path.of(pluginUploadDirectory);
+            if (Files.exists(pluginDir)) {
+                Files.list(pluginDir)
+                    .filter(path -> path.getFileName().toString().startsWith(pluginId + "-"))
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                            log.info("Removed plugin file: {}", path);
+                        } catch (IOException e) {
+                            log.error("Failed to delete plugin file: {}", path, e);
+                        }
+                    });
+            }
+        } catch (IOException e) {
+            log.error("Failed to remove plugin JAR files for: {}", pluginId, e);
+        }
         
         log.info("Unregistered plugin: {}", pluginId);
     }
@@ -303,7 +352,7 @@ public class PluginService {
                 return value instanceof List;
             case "date":
             case "datetime":
-                return value instanceof String; // TODO: Validate date format
+                return value instanceof String && isValidDateFormat((String) value, type.equals("datetime"));
             case "json":
                 return true; // Accept any type for JSON fields
             default:
@@ -357,5 +406,38 @@ public class PluginService {
     
     private boolean isBooleanString(String str) {
         return "true".equalsIgnoreCase(str) || "false".equalsIgnoreCase(str);
+    }
+    
+    /**
+     * Validate date format
+     * Supports ISO-8601 formats:
+     * - Date: yyyy-MM-dd
+     * - DateTime: yyyy-MM-dd'T'HH:mm:ss (with optional timezone)
+     */
+    private boolean isValidDateFormat(String dateStr, boolean includeTime) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return false;
+        }
+        
+        try {
+            if (includeTime) {
+                // Try to parse as LocalDateTime first (without timezone)
+                if (dateStr.length() >= 19 && !dateStr.contains("+") && !dateStr.contains("Z")) {
+                    java.time.LocalDateTime.parse(dateStr);
+                    return true;
+                } else {
+                    // Try to parse as OffsetDateTime (with timezone)
+                    java.time.OffsetDateTime.parse(dateStr);
+                    return true;
+                }
+            } else {
+                // Parse as LocalDate (yyyy-MM-dd)
+                java.time.LocalDate.parse(dateStr);
+                return true;
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            log.debug("Invalid date format: {} - {}", dateStr, e.getMessage());
+            return false;
+        }
     }
 }
