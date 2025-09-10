@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ConfigurationFieldSchema } from '@/types/adapter';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,7 +33,7 @@ export const DynamicFieldLoader: React.FC<DynamicFieldLoaderProps> = ({
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadOptions = async () => {
+  const loadOptions = useCallback(async () => {
     if (!field.dynamicSource) {
       setLoadError('No dynamic source configured');
       return;
@@ -92,7 +92,12 @@ export const DynamicFieldLoader: React.FC<DynamicFieldLoaderProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [field.dynamicSource, allValues]);
+
+  // Extract complex dependency calculation
+  const dependencyValues = field.dynamicSource?.dependencies
+    ? field.dynamicSource.dependencies.map((dep: string) => allValues[dep]).join(',')
+    : '';
 
   useEffect(() => {
     // Load options when component mounts or dependencies change
@@ -112,7 +117,7 @@ export const DynamicFieldLoader: React.FC<DynamicFieldLoaderProps> = ({
     } else {
       loadOptions();
     }
-  }, [field.dynamicSource?.dependencies?.map((dep: string) => allValues[dep]).join(',')]);
+  }, [dependencyValues, loadOptions, onChange, setOptions, field.dynamicSource?.dependencies, allValues]);
 
   if (loading) {
     return (

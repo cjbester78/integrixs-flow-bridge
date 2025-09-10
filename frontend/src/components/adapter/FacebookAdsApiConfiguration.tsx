@@ -113,7 +113,7 @@ export const FacebookAdsApiConfiguration: React.FC<FacebookAdsApiConfigurationPr
       features,
       limits
     });
-  }, [features, limits]);
+  }, [features, limits, config, onChange]);
 
   const isViewMode = mode === 'view';
 

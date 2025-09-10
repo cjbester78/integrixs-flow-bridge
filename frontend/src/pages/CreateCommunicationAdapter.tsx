@@ -415,16 +415,15 @@ const communicationAdapters: CommunicationAdapter[] = [
  icon: Mail,
  description: 'Email communication via IMAP/POP3/SMTP',
  category: 'Email',
- fields: [
- { name: 'mailServerHost', label: 'Mail Server Host', type: 'text', required: true, placeholder: 'imap.mailserver.com' },
- { name: 'mailServerPort', label: 'Mail Server Port', type: 'number', required: true, placeholder: '993' },
- { name: 'mailProtocol', label: 'Protocol', type: 'select', required: true, options: ['IMAP', 'POP3'] },
- { name: 'mailUsername', label: 'Username', type: 'text', required: true, placeholder: 'user@example.com' },
- { name: 'mailPassword', label: 'Password', type: 'password', required: true, placeholder: 'password' },
- { name: 'useSSLTLS', label: 'Use SSL/TLS', type: 'checkbox', required: false },
- { name: 'folderName', label: 'Folder Name', type: 'text', required: false, placeholder: 'INBOX' }
- ]
- }
+    fields: [
+      { name: 'mailServerHost', label: 'Mail Server Host', type: 'text', required: true, placeholder: 'imap.mailserver.com' },
+      { name: 'mailServerPort', label: 'Mail Server Port', type: 'number', required: true, placeholder: '993' },
+      { name: 'mailProtocol', label: 'Protocol', type: 'select', required: true, options: ['IMAP', 'POP3'] },
+      { name: 'mailUsername', label: 'Username', type: 'text', required: true, placeholder: 'user@example.com' },
+      { name: 'mailPassword', label: 'Password', type: 'password', required: true, placeholder: 'password' },
+      { name: 'useSSLTLS', label: 'Use SSL/TLS', type: 'checkbox', required: false },
+      { name: 'folderName', label: 'Folder Name', type: 'text', required: false, placeholder: 'INBOX' }
+    ]
   },
   {
     id: 'facebook',

@@ -28,6 +28,25 @@ export const DynamicAdapterForm: React.FC<DynamicAdapterFormProps> = ({
   onChange,
   errors = {}
 }) => {
+  // Calculate fields to render early to avoid conditional hook call
+  const fieldsToRender = useMemo(() => {
+    const fields: ConfigurationFieldSchema[] = [];
+    
+    if (schema.common?.fields) {
+      fields.push(...schema.common.fields);
+    }
+    
+    if (direction === 'inbound' && schema.inbound?.fields) {
+      fields.push(...schema.inbound.fields);
+    }
+    
+    if (direction === 'outbound' && schema.outbound?.fields) {
+      fields.push(...schema.outbound.fields);
+    }
+    
+    return fields;
+  }, [schema, direction]);
+
   const handleFieldChange = (fieldName: string, value: any) => {
     onChange({
       ...values,
@@ -113,24 +132,6 @@ export const DynamicAdapterForm: React.FC<DynamicAdapterFormProps> = ({
   }
 
   // For single direction, just show the relevant fields
-  const fieldsToRender = useMemo(() => {
-    const fields: ConfigurationFieldSchema[] = [];
-    
-    if (schema.common?.fields) {
-      fields.push(...schema.common.fields);
-    }
-    
-    if (direction === 'inbound' && schema.inbound?.fields) {
-      fields.push(...schema.inbound.fields);
-    }
-    
-    if (direction === 'outbound' && schema.outbound?.fields) {
-      fields.push(...schema.outbound.fields);
-    }
-    
-    return fields;
-  }, [schema, direction]);
-
   return (
     <div className="space-y-4">
       {renderFields(fieldsToRender)}
