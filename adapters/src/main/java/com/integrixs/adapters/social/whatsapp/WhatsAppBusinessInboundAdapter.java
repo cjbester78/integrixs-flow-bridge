@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.whatsapp;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.whatsapp.WhatsAppBusinessApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -30,24 +32,32 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
 
-@Slf4j
 @Component("whatsappBusinessInboundAdapter")
-public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAdapter<WhatsAppBusinessApiConfig> {
+public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(WhatsAppBusinessInboundAdapter.class);
+
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> messageTimestamps = new ConcurrentHashMap<>();
     private final Set<String> processedMessageIds = ConcurrentHashMap.newKeySet();
     
+    private WhatsAppBusinessApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    private volatile boolean isListening = false;
+    
     @Autowired
     public WhatsAppBusinessInboundAdapter(
-            WhatsAppBusinessApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -80,12 +90,12 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            MessageDTO message = new MessageDTO();
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setMessageTimestamp(Instant.now());
+            message.setStatus(MessageStatus.NEW);
             
             JsonNode dataNode = objectMapper.readTree(data);
             
@@ -118,7 +128,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             String object = (String) webhookData.get("object");
             if (!"whatsapp_business_account".equals(object)) {
@@ -156,7 +166,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         }
     }
     
-    private Message processWebhookMessages(Map<String, Object> value) {
+    private MessageDTO processWebhookMessages(Map<String, Object> value) {
         List<Map<String, Object>> messages = (List<Map<String, Object>>) value.get("messages");
         if (messages == null || messages.isEmpty()) {
             return null;
@@ -167,14 +177,14 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         
         // Check if already processed
         if (processedMessageIds.contains(messageId)) {
-            log.debug("Message {} already processed", messageId);
+            log.debug("MessageDTO {} already processed", messageId);
             return null;
         }
         
-        Message message = new Message();
-        message.setMessageId(messageId);
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(messageId);
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "INBOUND_MESSAGE");
@@ -239,7 +249,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processWebhookStatuses(Map<String, Object> value) {
+    private MessageDTO processWebhookStatuses(Map<String, Object> value) {
         List<Map<String, Object>> statuses = (List<Map<String, Object>>) value.get("statuses");
         if (statuses == null || statuses.isEmpty()) {
             return null;
@@ -247,10 +257,10 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         
         Map<String, Object> status = statuses.get(0);
         
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "STATUS_UPDATE");
@@ -270,11 +280,11 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processWebhookBusinessProfile(Map<String, Object> value) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processWebhookBusinessProfile(Map<String, Object> value) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUSINESS_PROFILE_UPDATE");
@@ -286,11 +296,11 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processInboundMessage(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(data.path("id").asText());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processInboundMessage(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(data.path("id").asText());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "MESSAGE");
@@ -304,11 +314,11 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processStatusUpdate(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processStatusUpdate(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "STATUS_UPDATE");
@@ -322,11 +332,11 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processTemplateStatus(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processTemplateStatus(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "TEMPLATE_STATUS");
@@ -340,11 +350,11 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processBusinessUpdate(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processBusinessUpdate(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUSINESS_UPDATE");
@@ -357,11 +367,11 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processFlowUpdate(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processFlowUpdate(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "FLOW_UPDATE");
@@ -484,5 +494,9 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         }
         log.warn("WhatsApp webhook verification failed");
         return null;
+    }
+    
+    public void setConfiguration(WhatsAppBusinessApiConfig config) {
+        this.config = config;
     }
 }

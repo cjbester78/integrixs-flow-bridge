@@ -1,7 +1,9 @@
 package com.integrixs.adapters.social.facebook;
 
-import com.integrixs.shared.dto.FlowMessage;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.dto.MessageDTO;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -14,21 +16,22 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Processes Facebook webhook events
  */
-@Slf4j
 @Component
 public class FacebookWebhookProcessor {
+    private static final Logger log = LoggerFactory.getLogger(FacebookWebhookProcessor.class);
+
     
     // Store events by flow ID for processing
-    private final Map<String, Queue<FlowMessage>> eventQueues = new ConcurrentHashMap<>();
+    private final Map<String, Queue<MessageDTO>> eventQueues = new ConcurrentHashMap<>();
     
     /**
      * Process incoming webhook event
      */
     public void processWebhookEvent(Map<String, Object> event, String flowId) {
         try {
-            FlowMessage message = convertWebhookToFlowMessage(event);
+            MessageDTO message = convertWebhookToMessageDTO(event);
             
-            Queue<FlowMessage> queue = eventQueues.computeIfAbsent(flowId, k -> new ConcurrentLinkedQueue<>());
+            Queue<MessageDTO> queue = eventQueues.computeIfAbsent(flowId, k -> new ConcurrentLinkedQueue<>());
             queue.offer(message);
             
             log.debug("Queued webhook event for flow: {}", flowId);
@@ -41,8 +44,8 @@ public class FacebookWebhookProcessor {
     /**
      * Get next event for a flow
      */
-    public FlowMessage getNextEvent(String flowId) {
-        Queue<FlowMessage> queue = eventQueues.get(flowId);
+    public MessageDTO getNextEvent(String flowId) {
+        Queue<MessageDTO> queue = eventQueues.get(flowId);
         if (queue != null) {
             return queue.poll();
         }
@@ -74,12 +77,12 @@ public class FacebookWebhookProcessor {
     }
     
     /**
-     * Convert webhook event to FlowMessage
+     * Convert webhook event to MessageDTO
      */
-    private FlowMessage convertWebhookToFlowMessage(Map<String, Object> event) {
-        FlowMessage message = new FlowMessage();
+    private MessageDTO convertWebhookToMessageDTO(Map<String, Object> event) {
+        MessageDTO message = new MessageDTO();
         message.setCorrelationId(java.util.UUID.randomUUID().toString());
-        message.setTimestamp(LocalDateTime.now());
+        message.setMessageTimestamp(java.time.Instant.now());
         
         Map<String, String> headers = new HashMap<>();
         headers.put("source", "facebook-webhook");
@@ -99,8 +102,13 @@ public class FacebookWebhookProcessor {
         message.setHeaders(headers);
         
         // Set the entire event as payload
-        message.setPayload(com.fasterxml.jackson.databind.ObjectMapperBuilder.create().build()
-            .writeValueAsString(event));
+        try {
+            message.setPayload(new com.fasterxml.jackson.databind.ObjectMapper()
+                .writeValueAsString(event));
+        } catch (Exception e) {
+            log.error("Error serializing webhook event", e);
+            message.setPayload("{}");
+        }
         
         return message;
     }
@@ -108,7 +116,7 @@ public class FacebookWebhookProcessor {
     /**
      * Process page-specific webhook event
      */
-    private void processPageWebhookEvent(Map<String, Object> event, FlowMessage message, Map<String, String> headers) {
+    private void processPageWebhookEvent(Map<String, Object> event, MessageDTO message, Map<String, String> headers) {
         try {
             java.util.List<Map<String, Object>> entries = (java.util.List<Map<String, Object>>) event.get("entry");
             if (entries != null && !entries.isEmpty()) {

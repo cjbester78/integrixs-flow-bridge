@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
   Users, 
@@ -79,11 +79,7 @@ export const HumanTaskManager: React.FC<HumanTaskManagerProps> = ({
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [assigneeEmail, setAssigneeEmail] = useState('');
 
-  useEffect(() => {
-    loadTasks();
-  }, [processInstanceId, filter]);
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     setIsLoading(true);
     try {
       // In a real implementation, this would fetch from the process engine
@@ -209,7 +205,11 @@ export const HumanTaskManager: React.FC<HumanTaskManagerProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [processInstanceId, filter, selectedTask, userId]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
   const claimTask = async (taskId: string) => {
     try {

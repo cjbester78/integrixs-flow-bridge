@@ -1,13 +1,14 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.config.FileOutboundAdapterConfig;
 import com.integrixs.adapters.core.AbstractOutboundAdapter;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.domain.model.SendRequest;
 import com.integrixs.adapters.domain.port.StreamingAdapterPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -21,8 +22,9 @@ import java.util.UUID;
  * File adapter implementation with streaming support
  * Extends the regular FileOutboundAdapter to add streaming capabilities
  */
-@Slf4j
 public class FileStreamingAdapter extends AbstractOutboundAdapter implements StreamingAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(FileStreamingAdapter.class);
+
     
     private FileOutboundAdapterConfig config;
     private Path targetDirectory;
@@ -173,18 +175,6 @@ public class FileStreamingAdapter extends AbstractOutboundAdapter implements Str
         return generateFilename(null);
     }
     
-    private String generateFilename(Map<String, Object> parameters) {
-        String pattern = config.getFileNamePattern();
-        if (parameters != null && parameters.containsKey("filename")) {
-            return parameters.get("filename").toString();
-        }
-        
-        return pattern
-            .replace("{timestamp}", String.valueOf(System.currentTimeMillis()))
-            .replace("{uuid}", UUID.randomUUID().toString())
-            .replace("{date}", java.time.LocalDate.now().toString())
-            .replace("{time}", java.time.LocalTime.now().toString().replace(":", "-"));
-    }
     
     private OpenOption[] getOpenOptions() {
         String mode = config.getFileMode();

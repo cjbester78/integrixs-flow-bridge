@@ -1,12 +1,14 @@
 package com.integrixs.adapters.infrastructure.service;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.model.AdapterMetadata;
 import com.integrixs.adapters.domain.port.AdapterPort;
 import com.integrixs.adapters.domain.service.AdapterRegistryService;
 import com.integrixs.adapters.infrastructure.adapter.*;
 import com.integrixs.adapters.config.*;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,9 +18,10 @@ import java.util.stream.Collectors;
 /**
  * Infrastructure implementation of adapter registry service
  */
-@Slf4j
 @Service
 public class AdapterRegistryServiceImpl implements AdapterRegistryService {
+    private static final Logger log = LoggerFactory.getLogger(AdapterRegistryServiceImpl.class);
+
     
     private final Map<String, AdapterPort> adapterRegistry = new ConcurrentHashMap<>();
     private final Map<String, AdapterMetadata> metadataCache = new ConcurrentHashMap<>();

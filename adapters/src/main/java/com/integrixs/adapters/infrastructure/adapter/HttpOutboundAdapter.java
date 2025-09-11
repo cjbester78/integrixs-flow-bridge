@@ -1,13 +1,14 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.HttpOutboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
-
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -26,8 +27,9 @@ import java.util.HashMap; * HTTP Receiver Adapter implementation for sending dat
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Supports various HTTP methods, authentication, and content types.
  */
-@Slf4j
 public class HttpOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(HttpOutboundAdapter.class);
+
     
     private final HttpOutboundAdapterConfig config;
     private HttpClient httpClient;
@@ -47,7 +49,7 @@ public class HttpOutboundAdapter extends AbstractAdapter implements OutboundAdap
             
             log.info("HTTP outbound adapter initialized successfully");
             return AdapterOperationResult.success("Initialized successfully");
-        } catch (AdapterException.ConfigurationException e) {
+        } catch (AdapterException e) {
             log.error("Configuration error during initialization", e);
             return AdapterOperationResult.failure("Configuration error: " + e.getMessage());
         }
@@ -182,7 +184,7 @@ public class HttpOutboundAdapter extends AbstractAdapter implements OutboundAdap
                     }
                     break;
                 default:
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP, 
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.HTTP, 
                             "Unsupported HTTP method for receiver: " + method);
             }
             
@@ -199,11 +201,11 @@ public class HttpOutboundAdapter extends AbstractAdapter implements OutboundAdap
         } catch (Exception e) {
             log.error("HTTP send operation failed", e);
             if (e instanceof java.net.ConnectException) {
-                throw new AdapterException.ConnectionException(AdapterConfiguration.AdapterTypeEnum.HTTP,  "Connection failed: " + e.getMessage(), e);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.HTTP, e);
             } else if (e instanceof java.net.SocketTimeoutException) {
                 throw new AdapterException.TimeoutException(AdapterConfiguration.AdapterTypeEnum.HTTP,  "Request timeout: " + e.getMessage(), e);
             } else if (e instanceof javax.net.ssl.SSLException) {
-                throw new AdapterException.ConnectionException(AdapterConfiguration.AdapterTypeEnum.HTTP,  "SSL connection failed: " + e.getMessage(), e);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.HTTP, e);
             }
             throw new AdapterException.ProcessingException(AdapterConfiguration.AdapterTypeEnum.HTTP,  "HTTP request failed: " + e.getMessage(), e);
         }
@@ -374,20 +376,16 @@ public class HttpOutboundAdapter extends AbstractAdapter implements OutboundAdap
         return URLEncoder.encode(payload.toString(), StandardCharsets.UTF_8);
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getTargetEndpointUrl() == null || config.getTargetEndpointUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP,  "Target URL is required");
-        }
-        
-        if (config.getHttpMethod().name() == null || config.getHttpMethod().name().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP,  "HTTP method is required");
+            throw new AdapterException("Target URL is required", null);
         }
         
         // Validate authentication configuration
         String authType = config.getAuthenticationType() != null ? config.getAuthenticationType().name() : "NONE";
         if ("basic".equalsIgnoreCase(authType)) {
             if (config.getBasicUsername() == null || config.getBasicPassword() == null) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP,  
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.HTTP,  
                         "Username and password required for basic authentication");
             }
         }
@@ -432,9 +430,5 @@ public class HttpOutboundAdapter extends AbstractAdapter implements OutboundAdap
 
 
    
-    protected AdapterOperationResult performSend(Object payload, Map<String, Object> headers) throws Exception {
-        // Implementation depends on adapter type
-        return performSend(payload);
-    }
 
 }

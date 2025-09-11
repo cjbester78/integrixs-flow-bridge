@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Play, 
   Pause, 
@@ -62,22 +62,16 @@ export const ProcessExecutionManager: React.FC<ProcessExecutionManagerProps> = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  // Fetch instances and stats
-  useEffect(() => {
-    fetchInstances();
-    fetchStats();
-
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchInstances();
-        fetchStats();
-      }, 2000);
-
-      return () => clearInterval(interval);
+  const fetchInstanceDetails = useCallback(async (instanceId: string) => {
+    try {
+      const response = await apiClient.get(`/api/process-engine/instance/${instanceId}`);
+      setSelectedInstance(response.data);
+    } catch (error) {
+      logger.error('Failed to fetch instance details:', error);
     }
-  }, [processDefinitionId, autoRefresh]);
+  }, []);
 
-  const fetchInstances = async () => {
+  const fetchInstances = useCallback(async () => {
     try {
       const response = await apiClient.get('/api/process-engine/instances');
       const processInstances = response.data.filter(
@@ -95,25 +89,31 @@ export const ProcessExecutionManager: React.FC<ProcessExecutionManagerProps> = (
     } catch (error) {
       logger.error('Failed to fetch process instances:', error);
     }
-  };
+  }, [processDefinitionId, selectedInstance, fetchInstanceDetails]);
 
-  const fetchInstanceDetails = async (instanceId: string) => {
-    try {
-      const response = await apiClient.get(`/api/process-engine/instance/${instanceId}`);
-      setSelectedInstance(response.data);
-    } catch (error) {
-      logger.error('Failed to fetch instance details:', error);
-    }
-  };
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await apiClient.get(`/api/process-engine/stats/${processDefinitionId}`);
       setStats(response.data);
     } catch (error) {
       logger.error('Failed to fetch process stats:', error);
     }
-  };
+  }, [processDefinitionId]);
+
+  // Fetch instances and stats
+  useEffect(() => {
+    fetchInstances();
+    fetchStats();
+
+    if (autoRefresh) {
+      const interval = setInterval(() => {
+        fetchInstances();
+        fetchStats();
+      }, 2000);
+
+      return () => clearInterval(interval);
+    }
+  }, [processDefinitionId, autoRefresh, fetchInstances, fetchStats]);
 
   const startProcessInstance = async () => {
     setIsStarting(true);

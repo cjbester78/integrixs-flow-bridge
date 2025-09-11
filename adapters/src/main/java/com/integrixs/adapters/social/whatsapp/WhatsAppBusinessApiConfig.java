@@ -3,13 +3,8 @@ package com.integrixs.adapters.social.whatsapp;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.whatsapp.business")
-@EqualsAndHashCode(callSuper = true)
 public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
     
     private String phoneNumberId;
@@ -19,8 +14,12 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
     private WhatsAppFeatures features = new WhatsAppFeatures();
     private WhatsAppSettings settings = new WhatsAppSettings();
     
-    @Data
-    public static class WhatsAppFeatures {
+    @Override
+    public String getPlatformName() {
+        return "whatsapp";
+    }
+    
+        public static class WhatsAppFeatures {
         private boolean enableTextMessaging = true;
         private boolean enableMediaMessaging = true;
         private boolean enableTemplateMessaging = true;
@@ -35,11 +34,10 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         private boolean enableFlows = true;
     }
     
-    @Data
-    public static class WhatsAppSettings {
+        public static class WhatsAppSettings {
         private int maxTextLength = 4096;
         private int maxCaptionLength = 1024;
-        private int maxButtonsPerMessage = 3;
+        private int maxButtonsPerMessageDTO = 3;
         private int maxSectionsPerList = 10;
         private int maxItemsPerSection = 10;
         private int sessionTimeoutMinutes = 24 * 60; // 24 hours
@@ -48,7 +46,7 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         private String mediaStoragePath = "/tmp/whatsapp-media";
     }
     
-    // Message types
+    // MessageDTO types
     public enum MessageType {
         TEXT,
         IMAGE,
@@ -79,7 +77,7 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         AUTHENTICATION
     }
     
-    // Message status
+    // MessageDTO status
     public enum MessageDeliveryStatus {
         SENT,
         DELIVERED,
@@ -97,4 +95,50 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         VERTICAL,
         WEBSITES
     }
+    // Getters and Setters
+    public String getPhoneNumberId() {
+        return phoneNumberId;
+    }
+    public void setPhoneNumberId(String phoneNumberId) {
+        this.phoneNumberId = phoneNumberId;
+    }
+    public String getBusinessAccountId() {
+        return businessAccountId;
+    }
+    public void setBusinessAccountId(String businessAccountId) {
+        this.businessAccountId = businessAccountId;
+    }
+    public String getVerifyToken() {
+        return verifyToken;
+    }
+    public void setVerifyToken(String verifyToken) {
+        this.verifyToken = verifyToken;
+    }
+    public String getSystemUserAccessToken() {
+        return systemUserAccessToken;
+    }
+    public void setSystemUserAccessToken(String systemUserAccessToken) {
+        this.systemUserAccessToken = systemUserAccessToken;
+    }
+    public WhatsAppFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(WhatsAppFeatures features) {
+        this.features = features;
+    }
+    public WhatsAppSettings getSettings() {
+        return settings;
+    }
+    public void setSettings(WhatsAppSettings settings) {
+        this.settings = settings;
+    }
+
+    public boolean isAutoDownloadMedia() {
+        return autoDownloadMedia;
+    }
+
+    public boolean isSaveMediaLocally() {
+        return saveMediaLocally;
+    }
+
 }

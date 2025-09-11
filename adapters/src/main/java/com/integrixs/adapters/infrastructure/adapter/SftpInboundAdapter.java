@@ -1,11 +1,10 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.config.SftpInboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
 
 import com.jcraft.jsch.*;
 import java.io.*;
@@ -17,7 +16,6 @@ import java.util.List;import java.util.stream.Collectors;
 import java.util.List;import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.Map;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -483,7 +481,7 @@ public class SftpInboundAdapter extends AbstractAdapter implements InboundAdapte
                 log.debug("Ignoring empty SFTP file: {}", entry.getFilename());
                 return null;
             case "error":
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
                         "Empty file not allowed: " + entry.getFilename());
             case "process":
             default:
@@ -634,37 +632,34 @@ public class SftpInboundAdapter extends AbstractAdapter implements InboundAdapte
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
-        if (config.getServerAddress() == null || config.getServerAddress().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "SFTP server address is required");
+    private void initializePatterns() {
+        // Initialize file patterns if configured
+        if (config.getFileName() != null && !config.getFileName().isEmpty()) {
+            String pattern = config.getFileName()
+                    .replace(".", "\\.")
+                    .replace("*", ".*")
+                    .replace("?", ".");
+            filePattern = Pattern.compile(pattern);
         }
-        if (config.getUserName() == null || config.getUserName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "SFTP username is required");
+        
+        // Initialize exclusion patterns if configured
+        if (config.getExclusionPattern() != null && !config.getExclusionPattern().isEmpty()) {
+            exclusionPattern = Pattern.compile(config.getExclusionPattern());
+        }
+    }
+    
+    private void validateConfiguration() throws AdapterException {
+        if (config.getServerAddress() == null || config.getServerAddress().trim().isEmpty()) {
+            throw new AdapterException("SFTP server address is required", null);
         }
         
         // Validate authentication configuration
         if ("password".equals(config.getAuthenticationType()) && config.getPassword() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "Password is required for password authentication");
-        }
-        
-        if ("publickey".equals(config.getAuthenticationType()) && config.getPrivateKey() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "Private key is required for public key authentication");
+            throw new AdapterException("Password is required for password authentication", null);
         }
         
         if (config.getSourceDirectory() == null || config.getSourceDirectory().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "SFTP source directory is required");
-        }
-    }
-    
-    private void initializePatterns() throws Exception {
-        // Initialize exclusion pattern if configured
-        if (config.getExclusionMask() != null && !config.getExclusionMask().trim().isEmpty()) {
-            try {
-                exclusionPattern = Pattern.compile(config.getExclusionMask());
-            } catch (Exception e) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                        "Invalid exclusion pattern: " + config.getExclusionMask(), e);
-            }
+            throw new AdapterException("SFTP source directory is required", null);
         }
     }
     
@@ -805,5 +800,4 @@ public class SftpInboundAdapter extends AbstractAdapter implements InboundAdapte
     public boolean isPolling() {
         return polling.get();
     }
-
 }

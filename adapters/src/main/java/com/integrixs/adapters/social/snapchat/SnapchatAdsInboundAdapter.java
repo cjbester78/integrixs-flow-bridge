@@ -1,5 +1,8 @@
 package com.integrixs.adapters.social.snapchat;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.snapchat.SnapchatAdsApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -13,8 +16,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -28,8 +29,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Slf4j
 public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(SnapchatAdsInboundAdapter.class);
+
     
     private static final String API_BASE_URL = "https://adsapi.snapchat.com/v1";
     private static final String AUTH_URL = "https://accounts.snapchat.com/login/oauth2/access_token";
@@ -263,7 +265,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         eventData.put("timestamp", Instant.now().toString());
         eventData.put("data", event);
         
-        MessageDTO message = MessageDTO.builder()
+        MessageDTO message = new MessageDTO()
             .type("webhook_event")
             .category(webhookEventType.name())
             .source("snapchat_ads_webhook")
@@ -313,7 +315,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     campaignData.put("end_time", campaign.get("end_time").asText());
                 }
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("campaign")
                     .category("campaign_data")
                     .source("snapchat_ads")
@@ -342,7 +344,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 adSquadData.put("daily_budget_micro", adSquad.get("daily_budget_micro").asLong());
                 adSquadData.put("optimization_goal", adSquad.get("optimization_goal").asText());
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("ad_squad")
                     .category("ad_squad_data")
                     .source("snapchat_ads")
@@ -377,7 +379,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     creativeData.put("headline", creative.get("headline").asText());
                 }
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("creative")
                     .category("creative_data")
                     .source("snapchat_ads")
@@ -405,7 +407,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 audienceData.put("upload_size", audience.get("upload_audience_size").asLong());
                 audienceData.put("match_rate", audience.get("audience_match_rate").asDouble());
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("audience")
                     .category("audience_data")
                     .source("snapchat_ads")
@@ -433,7 +435,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     pixelData.put(eventType, stats.get(eventType).asLong());
                 });
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("pixel_stats")
                     .category("pixel_data")
                     .source("snapchat_ads")
@@ -458,7 +460,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 reportData.put("end_time", report.get("end_time").asText());
                 reportData.put("dimension_breakdown", report.get("dimension_stats"));
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("report")
                     .category("campaign_report")
                     .source("snapchat_ads")
@@ -483,7 +485,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 reportData.put("end_time", report.get("end_time").asText());
                 reportData.put("dimension_breakdown", report.get("dimension_stats"));
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("report")
                     .category("ad_squad_report")
                     .source("snapchat_ads")
@@ -508,7 +510,7 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 reportData.put("end_time", report.get("end_time").asText());
                 reportData.put("dimension_breakdown", report.get("dimension_stats"));
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("report")
                     .category("creative_report")
                     .source("snapchat_ads")
@@ -540,9 +542,6 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         return makeAuthenticatedRequest(endpoint, method, null, null);
     }
     
-    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, Map<String, String> queryParams) {
-        return makeAuthenticatedRequest(endpoint, method, queryParams, null);
-    }
     
     private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, 
                                             Map<String, String> queryParams, Object body) {
@@ -577,9 +576,6 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         } catch (HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AdapterException("Snapchat API request failed", e);
-        } catch (Exception e) {
-            log.error("Error making authenticated request", e);
-            throw new AdapterException("Failed to make authenticated request", e);
         }
     }
 }

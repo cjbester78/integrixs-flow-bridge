@@ -1,11 +1,13 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.FileOutboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
@@ -22,8 +24,9 @@ import java.util.concurrent.CompletableFuture;
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Supports file creation, atomic writes, batching, backup, and validation.
  */
-@Slf4j
 public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(FileOutboundAdapter.class);
+
     
     private final FileOutboundAdapterConfig config;
     private Path targetDirectory;
@@ -144,11 +147,6 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
         }
     }
     
-    protected AdapterOperationResult performReceive() throws Exception {
-        // Default receive without criteria
-        throw new AdapterException.OperationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                "File Receiver requires data payload for file operations");
-    }
     
     private AdapterOperationResult addToBatch(Object payload) throws Exception {
         synchronized (batchBuffer) {
@@ -209,45 +207,37 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
     }
     
     private AdapterOperationResult writeItemsToFile(Path targetFile, List<Object> items, boolean isBatch) throws Exception {
-        // Check if file already exists and handle accordingly
-        if (Files.exists(targetFile) && !config.isOverwriteExistingFile()) {
-            if ("create".equals(config.getFileConstructionMode())) {
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                        "File already exists and overwrite is disabled: " + targetFile);
-            }
-        }
-        
-        // Create backup if configured
-        if (config.isCreateBackup() && Files.exists(targetFile)) {
-            createBackup(targetFile);
-        }
-        
-        // Use atomic write if configured
         Path writeTarget = targetFile;
-        if (config.isUseAtomicWrite()) {
-            String tempFileName = targetFile.getFileName().toString() + config.getTemporaryFileExtension();
-            writeTarget = config.getTemporaryDirectory() != null ? 
-                    Paths.get(config.getTemporaryDirectory()).resolve(tempFileName) :
-                    targetFile.resolveSibling(tempFileName);
-        }
-        
-        // Ensure parent directories exist
-        Files.createDirectories(writeTarget.getParent());
+        long bytesWritten = 0;
         
         try {
-            long bytesWritten = 0;
+            // Check if file already exists and handle accordingly
+            if (Files.exists(targetFile) && !config.isOverwriteExistingFile()) {
+                if ("create".equals(config.getFileConstructionMode())) {
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, "File already exists: " + targetFile);
+                }
+            }
             
-            // Write data based on construction mode
-            switch (config.getFileConstructionMode().toLowerCase()) {
-                case "create":
-                case "overwrite":
-                    bytesWritten = writeNewFile(writeTarget, items);
-                    break;
-                case "append":
-                    bytesWritten = appendToFile(writeTarget, items);
-                    break;
-                default:
-                    bytesWritten = writeNewFile(writeTarget, items);
+            // Use temporary file for atomic write if configured
+            if (config.isUseAtomicWrite()) {
+                String tempDir = config.getTemporaryDirectory();
+                if (tempDir != null) {
+                    writeTarget = Paths.get(tempDir).resolve(targetFile.getFileName() + ".tmp");
+                } else {
+                    writeTarget = targetFile.resolveSibling(targetFile.getFileName() + ".tmp");
+                }
+            }
+            
+            // Create backup if file exists and backup is configured
+            if (Files.exists(targetFile) && config.getBackupDirectory() != null) {
+                createBackup(targetFile);
+            }
+            
+            // Write the file
+            if ("append".equals(config.getFileConstructionMode()) && Files.exists(writeTarget)) {
+                bytesWritten = appendToFile(writeTarget, items);
+            } else {
+                bytesWritten = writeNewFile(writeTarget, items);
             }
             
             // Move from temporary location if atomic write
@@ -398,21 +388,7 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
             case "skip":
                 return null;
             case "error":
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                        "Empty message not allowed");
-            case "create_empty":
-            default:
-                return "";
-        }
-    }
-    
-    private String generateFileName(Object payload) {
-        if (config.getTargetFileName() != null && !config.getTargetFileName().isEmpty()) {
-            return processTemplate(config.getTargetFileName(), payload);
-        }
-        
-        if (config.getFileNamePattern() != null && !config.getFileNamePattern().isEmpty()) {
-            return processTemplate(config.getFileNamePattern(), payload);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, "Empty message not allowed");
         }
         
         // Generate default filename
@@ -429,6 +405,31 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
         return String.format("batch_%s_%d.txt", 
                 DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now()),
                 batchCounter.incrementAndGet());
+    }
+    
+    
+    private String generateFileName(Object payload) throws Exception {
+        // Check if a specific target file name is configured
+        if (config.getTargetFileName() != null && !config.getTargetFileName().isEmpty()) {
+            return config.getTargetFileName();
+        }
+        
+        // Use file name pattern if configured
+        if (config.getFileNamePattern() != null && !config.getFileNamePattern().isEmpty()) {
+            return processTemplate(config.getFileNamePattern(), payload);
+        }
+        
+        // Check if payload has filename hint
+        if (payload instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) payload;
+            if (map.containsKey("filename")) {
+                return String.valueOf(map.get("filename"));
+            }
+        }
+        
+        // Generate default filename
+        return String.format("file_%s.txt", 
+                DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now()));
     }
     
     private String processTemplate(String template, Object payload) {
@@ -537,42 +538,32 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
     
     private void validateFileCreation(Path file, long expectedBytes) throws Exception {
         if (!Files.exists(file)) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "File was not created: " + file);
         }
         
         if (!Files.isRegularFile(file)) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "Created path is not a regular file: " + file);
         }
         
         if (config.getMaxFileSize() != Long.MAX_VALUE && Files.size(file) > config.getMaxFileSize()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                    "File size exceeds maximum allowed: " + Files.size(file) + " > " + config.getMaxFileSize());
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, null);
         }
     }
     
-    private java.nio.charset.Charset getCharset() {
-        return config.getFileEncoding() != null ? 
-                java.nio.charset.Charset.forName(config.getFileEncoding()) : 
-                java.nio.charset.StandardCharsets.UTF_8;
-    }
-    
-    private String getLineEnding() {
-        switch (config.getLineEnding().toLowerCase()) {
-            case "unix":
-                return "\n";
-            case "windows":
-                return "\r\n";
-            case "system":
-            default:
-                return System.lineSeparator();
-        }
-    }
-    
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getTargetDirectory() == null || config.getTargetDirectory().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, "Target directory is required");
+            throw new AdapterException("Target directory is required", null);
+        }
+        
+        if (config.isEnableBatching()) {
+            if (config.getBatchStrategy() == null) {
+                throw new AdapterException("Batch strategy is required when batching is enabled", null);
+            }
+            if (config.getBatchTimeoutMs() == null || config.getBatchTimeoutMs() <= 0) {
+                config.setBatchTimeoutMs(60000L); // Default to 1 minute
+            }
         }
     }
     
@@ -584,17 +575,17 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
         }
         
         if (!Files.exists(targetDirectory)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "Target directory does not exist: " + targetDirectory);
         }
         
         if (!Files.isDirectory(targetDirectory)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "Target path is not a directory: " + targetDirectory);
         }
         
         if (!Files.isWritable(targetDirectory)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "Target directory is not writable: " + targetDirectory);
         }
     }
@@ -612,16 +603,37 @@ public class FileOutboundAdapter extends AbstractAdapter implements OutboundAdap
                 Files.createDirectories(path); // Create if doesn't exist
                 
                 if (!Files.isDirectory(path)) {
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                             "Support path is not a directory: " + path);
                 }
                 
                 if (!Files.isWritable(path)) {
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                             "Support directory is not writable: " + path);
                 }
             }
         }
+    }
+    
+        
+    private java.nio.charset.Charset getCharset() {
+        if (config.getFileEncoding() != null && !config.getFileEncoding().isEmpty()) {
+            try {
+                return java.nio.charset.Charset.forName(config.getFileEncoding());
+            } catch (Exception e) {
+                log.warn("Invalid charset: {}, using UTF-8", config.getFileEncoding());
+            }
+        }
+        return java.nio.charset.StandardCharsets.UTF_8;
+    }
+    
+    private String getLineEnding() {
+        String lineEnding = config.getLineEnding();
+        if (lineEnding != null) {
+            return lineEnding;
+        }
+        // Default to system line separator
+        return System.lineSeparator();
     }
     
     protected long getPollingIntervalMs() {

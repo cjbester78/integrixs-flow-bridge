@@ -1,5 +1,9 @@
 package com.integrixs.adapters.collaboration.slack;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.collaboration.slack.SlackApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -18,8 +22,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,8 +30,59 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Slf4j
 public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    
+    
+
+    
+    @Override
+
+    
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.SLACK;
+    }
+    
+    
+
+    
+    @Override
+
+    
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> adapterConfig = new HashMap<>();
+        adapterConfig.put("botToken", config.getBotToken());
+        adapterConfig.put("appToken", config.getAppToken());
+        adapterConfig.put("signingSecret", config.getSigningSecret());
+        adapterConfig.put("features", Map.of(
+            "enableMessaging", config.getFeatures().isEnableMessaging(),
+            "enableFiles", config.getFeatures().isEnableFiles(),
+            "enableChannels", config.getFeatures().isEnableChannels(),
+            "enableReactions", config.getFeatures().isEnableReactions(),
+            "enableSocketMode", config.getFeatures().isEnableSocketMode(),
+            "enableAdminApis", config.getFeatures().isEnableAdminApis()
+        ));
+        adapterConfig.put("limits", Map.of(
+            "maxMessagesPerRequest", config.getLimits().getMaxMessagesPerRequest(),
+            "maxUsersPerRequest", config.getLimits().getMaxUsersPerRequest(),
+            "maxChannelsPerRequest", config.getLimits().getMaxChannelsPerRequest(),
+            "maxFileSizeMb", config.getLimits().getMaxFileSizeMb(),
+            "websocketReconnectMaxAttempts", config.getLimits().getWebsocketReconnectMaxAttempts()
+        ));
+        return adapterConfig;
+    }
+    
+    
+
+    
+    @Override
+
+    
+    protected Map<String, Object> getConfig() {
+        return getAdapterConfig();
+    }
+
+    private static final Logger log = LoggerFactory.getLogger(SlackOutboundAdapter.class);
+
     
     private static final String API_URL = "https://slack.com/api/";
     private static final int MAX_RETRY_ATTEMPTS = 3;
@@ -47,18 +100,13 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     // Rate limit tracking
     private final Map<String, Long> rateLimitResetTimes = new ConcurrentHashMap<>();
     
-    @Override
-    public AdapterType getType() {
-        return AdapterType.SLACK;
-    }
+            
+
     
-    @Override
-    public String getName() {
-        return "Slack API Adapter";
-    }
+            @Override
+
     
-    @Override
-    public void processMessage(MessageDTO message) {
+            public MessageDTO processMessage(MessageDTO message) {
         try {
             JsonNode content = objectMapper.readTree(message.getContent());
             String action = content.get("action").asText();
@@ -231,7 +279,8 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
                 default:
                     log.warn("Unknown action: {}", action);
                     response = createErrorResponse("Unknown action: " + action);
-            }
+            
+        return createSuccessResponse(message.getCorrelationId(), Map.of("status", "processed"));}
             
             if (response != null) {
                 publishResponse(response, message);
@@ -472,7 +521,10 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         
         Resource fileResource = new ByteArrayResource(fileBytes) {
+            
+
             @Override
+
             public String getFilename() {
                 return filename;
             }
@@ -983,7 +1035,7 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         result.put("success", true);
         result.put("data", response);
         
-        return MessageDTO.builder()
+        return new MessageDTO()
             .type("slack_response")
             .category("success")
             .content(result)
@@ -991,16 +1043,53 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
             .build();
     }
     
+    private MessageDTO createSuccessResponse(String correlationId, Map<String, Object> data) {
+        MessageDTO response = new MessageDTO();
+        response.setType("slack_response");
+        response.setCorrelationId(correlationId);
+        try {
+            response.setPayload(objectMapper.writeValueAsString(data));
+        } catch (Exception e) {
+            response.setPayload(data.toString());
+        }
+        response.setMessageTimestamp(Instant.now());
+        return response;
+    }
+    
     private MessageDTO createErrorResponse(String error) {
         Map<String, Object> result = new HashMap<>();
         result.put("success", false);
         result.put("error", error);
         
-        return MessageDTO.builder()
+        return new MessageDTO()
             .type("slack_response")
             .category("error")
             .content(result)
             .timestamp(Instant.now().toEpochMilli())
             .build();
+    }
+    
+    private MessageDTO createMessageDTOWithValues(String type, String category, Map<String, Object> content, long timestamp) {
+        MessageDTO message = new MessageDTO();
+        message.setType(type);
+        message.setCorrelationId(java.util.UUID.randomUUID().toString());
+        try {
+            message.setPayload(objectMapper.writeValueAsString(content));
+        } catch (Exception e) {
+            message.setPayload(content.toString());
+        }
+        message.setMessageTimestamp(Instant.ofEpochMilli(timestamp));
+        return message;
+    }
+
+    
+    protected void publishResponse(MessageDTO response, MessageDTO originalMessage) {
+        // TODO: Implement response publishing logic
+        log.debug("Publishing response for message {}", originalMessage.getCorrelationId());
+    }
+    
+    protected void publishErrorResponse(Exception e, MessageDTO originalMessage) {
+        // TODO: Implement error response publishing logic
+        log.error("Error processing message {}: {}", originalMessage.getCorrelationId(), e.getMessage());
     }
 }

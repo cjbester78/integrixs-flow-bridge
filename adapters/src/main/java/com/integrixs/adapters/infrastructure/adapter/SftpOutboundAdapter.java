@@ -1,11 +1,10 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.SftpOutboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
 
 import com.jcraft.jsch.*;
 import java.io.*;
@@ -13,12 +12,11 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.List;import java.util.concurrent.CompletableFuture;
-import java.util.List;import java.util.concurrent.atomic.AtomicInteger;
-import java.util.List;import java.util.stream.Collectors;
-import java.util.List;
-import java.util.Map;
-import java.util.List;/**
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+/**
  * SFTP Receiver Adapter implementation for SFTP file upload and transfer (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Supports SFTP connections, file uploads, batching, and SSH authentication.
@@ -131,7 +129,7 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
                 // Test directory access
                 try {
                     testChannel.cd(config.getTargetDirectory());
-        } catch (SftpException e) {
+                } catch (SftpException e) {
                     // Try to create directory if configured
                     if (config.isCreateFileDirectory()) {
                         createDirectoryPath(testChannel, config.getTargetDirectory());
@@ -363,19 +361,8 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
                     createDirectoryPath(channel, config.getTargetDirectory());
                     channel.cd(config.getTargetDirectory());
                 } else {
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                            "Target directory does not exist: " + config.getTargetDirectory(), e);
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, "Target directory does not exist: " + config.getTargetDirectory());
                 }
-            }
-            
-            // Validate before upload if configured
-            if (config.isValidateBeforeUpload()) {
-                validateContent(content);
-            }
-            
-            // Create backup if configured
-            if (config.isEnableFileBackup()) {
-                createBackup(channel, fileName);
             }
             
             // Use temporary file for atomic upload if configured
@@ -478,7 +465,7 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
                 case "ignore":
                     return "";
                 case "error":
-                    throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
                             "Empty message not allowed");
                 case "process":
                 default:
@@ -505,24 +492,36 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
             case "ignore":
                 return new byte[0];
             case "error":
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                        "Empty message not allowed");
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, "Empty message not allowed");
             case "process":
             default:
                 return new byte[0];
         }
     }
     
-    private String generateFileName(Object payload) {
-        if (config.getTargetFileName() != null && !config.getTargetFileName().isEmpty()) {
-            return processTemplate(config.getTargetFileName(), payload);
+    private String generateFileName(Object payload) throws Exception {
+        if (payload == null) {
+            return handleEmptyFileName();
         }
         
-        if (config.getFileNamingPattern() != null && !config.getFileNamingPattern().isEmpty()) {
-            return processTemplate(config.getFileNamingPattern(), payload);
+        // If filename is configured
+        if (config.getFileName() != null && !config.getFileName().isEmpty()) {
+            return processTemplate(config.getFileName(), payload);
         }
         
         // Generate default filename
+        String baseName = "file_" + System.currentTimeMillis();
+        
+        if (config.isIncludeTimestamp()) {
+            String timestamp = DateTimeFormatter.ofPattern(config.getTimestampFormat()).format(LocalDateTime.now());
+            baseName = "file_" + timestamp;
+        }
+        
+        return baseName + ".txt";
+    }
+    
+    private String handleEmptyFileName() throws Exception {
+        // Generate default filename for empty payload
         String baseName = "file_" + System.currentTimeMillis();
         
         if (config.isIncludeTimestamp()) {
@@ -616,7 +615,7 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
     
     private void validateContent(byte[] content) throws Exception {
         if (content.length > config.getMaxFileSize()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
                     "Content size exceeds maximum allowed: " + content.length + " > " + config.getMaxFileSize());
         }
         // Additional validation based on checksum if configured
@@ -631,18 +630,19 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
             @SuppressWarnings("unchecked")
             Vector<ChannelSftp.LsEntry> files = channel.ls(fileName);
             if (files == null || files.isEmpty()) {
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
                         "Upload validation failed - file not found after upload: " + fileName);
             }
             
             long actualSize = files.get(0).getAttrs().getSize();
             if (actualSize != expectedSize) {
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                        "Upload validation failed - size mismatch: expected " + expectedSize + ", actual " + actualSize);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
+                        String.format("Upload validation failed - file size mismatch: expected %d, actual %d", 
+                                expectedSize, actualSize));
             }
         } catch (SftpException e) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                    "Upload validation failed - cannot verify file: " + fileName, e);
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
+                    "Upload validation failed: " + e.getMessage());
         }
     }
     
@@ -771,25 +771,18 @@ public class SftpOutboundAdapter extends AbstractAdapter implements OutboundAdap
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getServerAddress() == null || config.getServerAddress().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "SFTP server address is required");
-        }
-        if (config.getUserName() == null || config.getUserName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "SFTP username is required");
+            throw new AdapterException("SFTP server address is required", null);
         }
         
         // Validate authentication configuration
         if ("password".equals(config.getAuthenticationType()) && config.getPassword() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "Password is required for password authentication");
-        }
-        
-        if ("publickey".equals(config.getAuthenticationType()) && config.getPrivateKey() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "Private key is required for public key authentication");
+            throw new AdapterException("Password is required for password authentication", null);
         }
         
         if (config.getTargetDirectory() == null || config.getTargetDirectory().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, "SFTP target directory is required");
+            throw new AdapterException("SFTP target directory is required", null);
         }
     }
     public long getTimeout() {

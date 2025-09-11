@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.SoapOutboundAdapterConfig;
@@ -20,15 +23,14 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.*;
 import com.integrixs.adapters.domain.model.*;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * SOAP Receiver Adapter implementation for SOAP service calls (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Makes SOAP requests to external SOAP services.
  */
-@Slf4j
 public class SoapOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(SoapOutboundAdapter.class);
+
     
     private final SoapOutboundAdapterConfig config;
     private SOAPConnectionFactory soapConnectionFactory;
@@ -201,7 +203,7 @@ public class SoapOutboundAdapter extends AbstractAdapter implements OutboundAdap
             Map<String, Object> dataMap = (Map<String, Object>) payload;
             createSoapBodyFromMap(soapBody, dataMap);
         } else {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.SOAP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SOAP, 
                     "Unsupported payload type: " + payload.getClass().getName());
         }
         soapMessage.saveChanges();
@@ -322,9 +324,9 @@ public class SoapOutboundAdapter extends AbstractAdapter implements OutboundAdap
         return message;
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getEffectiveEndpoint() == null || config.getEffectiveEndpoint().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SOAP, "Endpoint URL is required");
+            throw new AdapterException("Endpoint URL is required", null);
         }
         if (config.getSoapVersion() == null || config.getSoapVersion().trim().isEmpty()) {
             config.setSoapVersion("1.1"); // Default to SOAP 1.1

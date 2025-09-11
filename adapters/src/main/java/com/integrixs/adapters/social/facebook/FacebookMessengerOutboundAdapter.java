@@ -1,12 +1,13 @@
 package com.integrixs.adapters.social.facebook;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.platform.models.Message;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.config.AdapterConfig;
-import com.integrixs.shared.service.RateLimiterService;
-import com.integrixs.shared.utils.CredentialEncryptionService;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.*;
@@ -19,10 +20,11 @@ import java.util.*;
  * Outbound adapter for Facebook Messenger Platform integration.
  * Handles message sending, template management, and conversation control.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "integrixs.adapters.facebook.messenger.enabled", havingValue = "true", matchIfMissing = false)
 public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(FacebookMessengerOutboundAdapter.class);
+
 
     private final FacebookMessengerApiConfig config;
     private final RestTemplate restTemplate;
@@ -39,7 +41,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     @Override
-    protected SocialMediaAdapterConfig getConfig() {
+    protected FacebookMessengerApiConfig getConfig() {
         return config;
     }
 
@@ -49,7 +51,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     @Override
-    public Message processMessage(Message message) {
+    public MessageDTO processMessage(MessageDTO message) {
         String action = message.getHeader("action");
         
         try {
@@ -126,7 +128,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         }
     }
 
-    private Message sendTextMessage(Message message) throws Exception {
+    private MessageDTO sendTextMessage(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String text = message.getPayloadAsString();
         String messagingType = message.getHeader("messagingType", "RESPONSE");
@@ -156,23 +158,23 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendImage(Message message) throws Exception {
+    private MessageDTO sendImage(MessageDTO message) throws Exception {
         return sendMediaMessage(message, "image");
     }
 
-    private Message sendVideo(Message message) throws Exception {
+    private MessageDTO sendVideo(MessageDTO message) throws Exception {
         return sendMediaMessage(message, "video");
     }
 
-    private Message sendAudio(Message message) throws Exception {
+    private MessageDTO sendAudio(MessageDTO message) throws Exception {
         return sendMediaMessage(message, "audio");
     }
 
-    private Message sendFile(Message message) throws Exception {
+    private MessageDTO sendFile(MessageDTO message) throws Exception {
         return sendMediaMessage(message, "file");
     }
 
-    private Message sendMediaMessage(Message message, String type) throws Exception {
+    private MessageDTO sendMediaMessage(MessageDTO message, String type) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String url = message.getHeader("mediaUrl");
         boolean isReusable = Boolean.parseBoolean(message.getHeader("isReusable", "false"));
@@ -196,7 +198,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendTemplate(Message message) throws Exception {
+    private MessageDTO sendTemplate(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String templateType = message.getHeader("templateType");
         Map<String, Object> templateData = message.getPayloadAsMap();
@@ -220,7 +222,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendButtonTemplate(Message message) throws Exception {
+    private MessageDTO sendButtonTemplate(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String text = message.getHeader("text");
         List<Map<String, Object>> buttons = (List<Map<String, Object>>) message.getPayloadAsMap().get("buttons");
@@ -247,7 +249,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendGenericTemplate(Message message) throws Exception {
+    private MessageDTO sendGenericTemplate(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         List<Map<String, Object>> elements = (List<Map<String, Object>>) message.getPayloadAsMap().get("elements");
 
@@ -272,7 +274,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendListTemplate(Message message) throws Exception {
+    private MessageDTO sendListTemplate(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         Map<String, Object> listData = message.getPayloadAsMap();
 
@@ -302,7 +304,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendReceiptTemplate(Message message) throws Exception {
+    private MessageDTO sendReceiptTemplate(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         Map<String, Object> receiptData = message.getPayloadAsMap();
 
@@ -326,7 +328,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendMediaTemplate(Message message) throws Exception {
+    private MessageDTO sendMediaTemplate(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String mediaType = message.getHeader("mediaType");
         String attachmentId = message.getHeader("attachmentId");
@@ -368,11 +370,11 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendCarousel(Message message) throws Exception {
+    private MessageDTO sendCarousel(MessageDTO message) throws Exception {
         return sendGenericTemplate(message); // Carousel is implemented as generic template with multiple elements
     }
 
-    private Message sendQuickReplies(Message message) throws Exception {
+    private MessageDTO sendQuickReplies(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String text = message.getHeader("text");
         List<Map<String, Object>> quickReplies = (List<Map<String, Object>>) message.getPayloadAsMap().get("quickReplies");
@@ -393,7 +395,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendLocation(Message message) throws Exception {
+    private MessageDTO sendLocation(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         double latitude = Double.parseDouble(message.getHeader("latitude"));
         double longitude = Double.parseDouble(message.getHeader("longitude"));
@@ -425,15 +427,15 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendTypingIndicator(Message message) throws Exception {
+    private MessageDTO sendTypingIndicator(MessageDTO message) throws Exception {
         return sendSenderAction(message, "typing_on");
     }
 
-    private Message markSeen(Message message) throws Exception {
+    private MessageDTO markSeen(MessageDTO message) throws Exception {
         return sendSenderAction(message, "mark_seen");
     }
 
-    private Message sendSenderAction(Message message, String action) throws Exception {
+    private MessageDTO sendSenderAction(MessageDTO message, String action) throws Exception {
         String recipientId = message.getHeader("recipientId");
 
         Map<String, Object> request = Map.of(
@@ -447,7 +449,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message setPersistentMenu(Message message) throws Exception {
+    private MessageDTO setPersistentMenu(MessageDTO message) throws Exception {
         List<Map<String, Object>> menuItems = (List<Map<String, Object>>) message.getPayloadAsMap().get("menuItems");
         String locale = message.getHeader("locale", "default");
 
@@ -465,7 +467,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message setGetStarted(Message message) throws Exception {
+    private MessageDTO setGetStarted(MessageDTO message) throws Exception {
         String payload = message.getPayloadAsString();
 
         Map<String, Object> request = Map.of("get_started", Map.of("payload", payload));
@@ -476,7 +478,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message setGreeting(Message message) throws Exception {
+    private MessageDTO setGreeting(MessageDTO message) throws Exception {
         List<Map<String, Object>> greetings = (List<Map<String, Object>>) message.getPayloadAsMap().get("greetings");
 
         Map<String, Object> request = Map.of("greeting", greetings);
@@ -487,7 +489,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message setIceBreakers(Message message) throws Exception {
+    private MessageDTO setIceBreakers(MessageDTO message) throws Exception {
         List<Map<String, Object>> iceBreakers = (List<Map<String, Object>>) message.getPayloadAsMap().get("iceBreakers");
 
         Map<String, Object> request = Map.of("ice_breakers", iceBreakers);
@@ -498,7 +500,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message createPersona(Message message) throws Exception {
+    private MessageDTO createPersona(MessageDTO message) throws Exception {
         Map<String, Object> personaData = message.getPayloadAsMap();
 
         String url = config.getApiUrl() + "/me/personas";
@@ -507,7 +509,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message updatePersona(Message message) throws Exception {
+    private MessageDTO updatePersona(MessageDTO message) throws Exception {
         String personaId = message.getHeader("personaId");
         Map<String, Object> personaData = message.getPayloadAsMap();
 
@@ -517,7 +519,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message deletePersona(Message message) throws Exception {
+    private MessageDTO deletePersona(MessageDTO message) throws Exception {
         String personaId = message.getHeader("personaId");
 
         String url = config.getApiUrl() + "/" + personaId;
@@ -526,7 +528,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message passThreadControl(Message message) throws Exception {
+    private MessageDTO passThreadControl(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String targetAppId = message.getHeader("targetAppId");
         String metadata = message.getHeader("metadata");
@@ -545,7 +547,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message takeThreadControl(Message message) throws Exception {
+    private MessageDTO takeThreadControl(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String metadata = message.getHeader("metadata");
 
@@ -562,7 +564,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message requestThreadControl(Message message) throws Exception {
+    private MessageDTO requestThreadControl(MessageDTO message) throws Exception {
         String recipientId = message.getHeader("recipientId");
         String metadata = message.getHeader("metadata");
 
@@ -579,7 +581,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendBroadcast(Message message) throws Exception {
+    private MessageDTO sendBroadcast(MessageDTO message) throws Exception {
         String messageCreativeId = message.getHeader("messageCreativeId");
         String customLabelId = message.getHeader("customLabelId");
         String notificationType = message.getHeader("notificationType", "REGULAR");
@@ -602,7 +604,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message createBroadcastMessage(Message message) throws Exception {
+    private MessageDTO createBroadcastMessage(MessageDTO message) throws Exception {
         Map<String, Object> messageData = message.getPayloadAsMap();
 
         Map<String, Object> request = Map.of("messages", List.of(messageData));
@@ -613,7 +615,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendSponsoredMessage(Message message) throws Exception {
+    private MessageDTO sendSponsoredMessage(MessageDTO message) throws Exception {
         String adAccountId = message.getHeader("adAccountId");
         String targetingSpec = message.getHeader("targetingSpec");
         Map<String, Object> messageData = message.getPayloadAsMap();
@@ -628,7 +630,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message sendPrivateReply(Message message) throws Exception {
+    private MessageDTO sendPrivateReply(MessageDTO message) throws Exception {
         String commentId = message.getHeader("commentId");
         String text = message.getPayloadAsString();
 
@@ -640,7 +642,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message getUserProfile(Message message) throws Exception {
+    private MessageDTO getUserProfile(MessageDTO message) throws Exception {
         String userId = message.getHeader("userId");
         String fields = message.getHeader("fields", "first_name,last_name,profile_pic");
 
@@ -654,7 +656,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return createSuccessResponse(message, response);
     }
 
-    private Message uploadAttachment(Message message) throws Exception {
+    private MessageDTO uploadAttachment(MessageDTO message) throws Exception {
         String type = message.getHeader("attachmentType");
         String url = message.getHeader("attachmentUrl");
         boolean isReusable = Boolean.parseBoolean(message.getHeader("isReusable", "true"));

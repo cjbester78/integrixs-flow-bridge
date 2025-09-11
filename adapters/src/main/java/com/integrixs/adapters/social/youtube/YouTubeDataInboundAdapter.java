@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.youtube;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.youtube.YouTubeDataApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -26,9 +28,10 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Component("youTubeDataInboundAdapter")
-public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter<YouTubeDataApiConfig> {
+public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(YouTubeDataInboundAdapter.class);
+
     
     private static final String YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
     private static final String YOUTUBE_UPLOAD_BASE = "https://www.googleapis.com/upload/youtube/v3";
@@ -37,15 +40,22 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private final Map<String, String> lastEtag = new ConcurrentHashMap<>();
     
+    private YouTubeDataApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    private volatile boolean isListening = false;
+    
     @Autowired
     public YouTubeDataInboundAdapter(
-            YouTubeDataApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -79,12 +89,12 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            MessageDTO message = new MessageDTO();
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setMessageTimestamp(Instant.now());
+            message.setStatus(MessageStatus.NEW);
             
             JsonNode dataNode = objectMapper.readTree(data);
             
@@ -126,7 +136,7 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             // YouTube uses push notifications (webhooks) for real-time updates
             String topic = webhookData.getOrDefault("topic", "").toString();
@@ -286,11 +296,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
     
     // Process different types of data
-    private Message processChannelActivity(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processChannelActivity(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CHANNEL_ACTIVITY");
@@ -313,11 +323,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processVideoComment(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processVideoComment(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "VIDEO_COMMENT");
@@ -333,11 +343,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processSubscriberUpdate(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processSubscriberUpdate(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "SUBSCRIBER_UPDATE");
@@ -349,11 +359,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processLiveStream(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processLiveStream(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "LIVE_STREAM");
@@ -382,11 +392,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processCommunityPost(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processCommunityPost(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "COMMUNITY_POST");
@@ -398,11 +408,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processPlaylistUpdate(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processPlaylistUpdate(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "PLAYLIST_UPDATE");
@@ -418,11 +428,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processVideoStatistics(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processVideoStatistics(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "VIDEO_STATISTICS");
@@ -441,11 +451,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processChannelStatistics(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processChannelStatistics(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CHANNEL_STATISTICS");
@@ -483,11 +493,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
     
-    private Message processVideoUploadNotification(Map<String, Object> webhookData) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processVideoUploadNotification(Map<String, Object> webhookData) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "VIDEO_UPLOAD_NOTIFICATION");
@@ -500,11 +510,11 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processChannelUpdateNotification(Map<String, Object> webhookData) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processChannelUpdateNotification(Map<String, Object> webhookData) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CHANNEL_UPDATE_NOTIFICATION");
@@ -594,5 +604,9 @@ public class YouTubeDataInboundAdapter extends AbstractSocialMediaInboundAdapter
             && config.getClientId() != null
             && config.getClientSecret() != null
             && config.getAccessToken() != null;
+    }
+    
+    public void setConfiguration(YouTubeDataApiConfig config) {
+        this.config = config;
     }
 }

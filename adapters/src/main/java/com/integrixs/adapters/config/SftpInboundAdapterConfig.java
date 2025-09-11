@@ -107,11 +107,6 @@ public class SftpInboundAdapterConfig {
         
         public FileAccessAdvancedEntry() {}
         
-        public FileAccessAdvancedEntry(String pattern, String operation, String condition) {
-            this.pattern = pattern;
-            this.operation = operation;
-            this.condition = condition;
-        }
         
         // Getters and setters
         public String getPattern() { return pattern; }
@@ -133,13 +128,6 @@ public class SftpInboundAdapterConfig {
         this.password = password;
     }
     
-    public SftpInboundAdapterConfig(String serverAddress, String userName, String privateKey, String passphrase) {
-        this.serverAddress = serverAddress;
-        this.userName = userName;
-        this.privateKey = privateKey;
-        this.passphrase = passphrase;
-        this.authenticationType = "publickey";
-    }
     
     // Getters and Setters
     public String getServerAddress() { return serverAddress; }

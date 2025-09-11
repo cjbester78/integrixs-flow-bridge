@@ -1,13 +1,16 @@
 package com.integrixs.adapters.social.facebook;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.integrixs.adapters.base.OutboundAdapter;
+import com.integrixs.adapters.core.OutboundAdapter;
+import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.facebook.model.FacebookPost;
 import com.integrixs.adapters.social.facebook.model.FacebookPostResponse;
-import com.integrixs.backend.security.CredentialEncryptionService;
-import com.integrixs.shared.dto.FlowMessage;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +22,10 @@ import java.util.*;
  * Facebook Graph API Outbound Adapter
  * Handles sending data to Facebook (posts, comments, messages)
  */
-@Slf4j
 @Component
-public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphApiConfig> {
+public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(FacebookGraphOutboundAdapter.class);
+
     
     @Autowired
     private FacebookGraphApiClient apiClient;
@@ -41,7 +45,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     }
     
     @Override
-    public void send(FlowMessage message, String flowId, FacebookGraphApiConfig config) {
+    public void send(MessageDTO message, String flowId, FacebookGraphApiConfig config) {
         try {
             // Ensure we have valid access token
             String accessToken = ensureValidAccessToken(config);
@@ -89,7 +93,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Create a Facebook post
      */
-    private void createPost(FlowMessage message, FacebookGraphApiConfig config, String accessToken) {
+    private void createPost(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
             FacebookPost post = convertToFacebookPost(message, config);
             
@@ -124,7 +128,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Post a comment
      */
-    private void postComment(FlowMessage message, FacebookGraphApiConfig config, String accessToken) {
+    private void postComment(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
             String parentId = message.getHeaders().get("parent_id");
             if (parentId == null) {
@@ -146,7 +150,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Delete content
      */
-    private void deleteContent(FlowMessage message, FacebookGraphApiConfig config, String accessToken) {
+    private void deleteContent(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
             String contentId = message.getHeaders().get("content_id");
             if (contentId == null) {
@@ -169,7 +173,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Update content
      */
-    private void updateContent(FlowMessage message, FacebookGraphApiConfig config, String accessToken) {
+    private void updateContent(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         // Facebook Graph API has limited support for updating posts
         // Mainly can update page posts' message field
         log.warn("Update operation has limited support in Facebook Graph API");
@@ -179,7 +183,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Create a Facebook Story
      */
-    private void createStory(FlowMessage message, FacebookGraphApiConfig config, String accessToken) {
+    private void createStory(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
             if (!config.getFeatures().isEnableStories()) {
                 throw new IllegalStateException("Stories feature is not enabled");
@@ -206,7 +210,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Create a Facebook Reel
      */
-    private void createReel(FlowMessage message, FacebookGraphApiConfig config, String accessToken) {
+    private void createReel(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
             if (!config.getFeatures().isEnableReels()) {
                 throw new IllegalStateException("Reels feature is not enabled");
@@ -234,9 +238,9 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     }
     
     /**
-     * Convert FlowMessage to FacebookPost
+     * Convert MessageDTO to FacebookPost
      */
-    private FacebookPost convertToFacebookPost(FlowMessage message, FacebookGraphApiConfig config) {
+    private FacebookPost convertToFacebookPost(MessageDTO message, FacebookGraphApiConfig config) {
         try {
             Map<String, Object> payload = parsePayload(message);
             
@@ -318,7 +322,7 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     /**
      * Extract text content from message
      */
-    private String extractTextContent(FlowMessage message) {
+    private String extractTextContent(MessageDTO message) {
         try {
             Map<String, Object> payload = parsePayload(message);
             
@@ -347,9 +351,9 @@ public class FacebookGraphOutboundAdapter extends OutboundAdapter<FacebookGraphA
     }
     
     /**
-     * Parse payload from FlowMessage
+     * Parse payload from MessageDTO
      */
-    private Map<String, Object> parsePayload(FlowMessage message) {
+    private Map<String, Object> parsePayload(MessageDTO message) {
         try {
             if (message.getPayload() != null && message.getPayload().startsWith("{")) {
                 return objectMapper.readValue(message.getPayload(), Map.class);

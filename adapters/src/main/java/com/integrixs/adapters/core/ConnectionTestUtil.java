@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Utility class for standardized connection testing across all adapters.
@@ -212,13 +213,13 @@ public class ConnectionTestUtil {
      * @param adapterType the adapter type
      * @param fieldName the field name
      * @param fieldValue the field value
-     * @throws AdapterException.ConfigurationException if validation fails
+     * @throws AdapterException if validation fails
      */
     public static void validateRequiredField(AdapterConfiguration.AdapterTypeEnum adapterType, String fieldName, String fieldValue) 
-            throws AdapterException.ConfigurationException {
+            throws AdapterException {
         
         if (fieldValue == null || fieldValue.trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(adapterType, 
+            throw new AdapterException(adapterType, 
                     fieldName + " is required and cannot be null or empty");
         }
     }
@@ -231,14 +232,14 @@ public class ConnectionTestUtil {
      * @param value the numeric value
      * @param minValue minimum allowed value (inclusive)
      * @param maxValue maximum allowed value (inclusive)
-     * @throws AdapterException.ConfigurationException if validation fails
+     * @throws AdapterException if validation fails
      */
     public static void validateNumericRange(AdapterConfiguration.AdapterTypeEnum adapterType, String fieldName, 
                                           int value, int minValue, int maxValue) 
-            throws AdapterException.ConfigurationException {
+            throws AdapterException {
         
         if (value < minValue || value > maxValue) {
-            throw new AdapterException.ConfigurationException(adapterType, 
+            throw new AdapterException(adapterType, 
                     String.format("%s must be between %d and %d, got %d", 
                                 fieldName, minValue, maxValue, value));
         }

@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.function.Consumer;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Monitoring service for adapter health, performance, and error tracking.
@@ -535,7 +536,6 @@ class HealthStatus {
     }
     
     public boolean isHealthy() { return healthy; }
-    public String getAdapterId() { return adapterId; }
     public LocalDateTime getLastUpdateTime() { return lastUpdateTime; }
     public String getLastErrorMessage() { return lastErrorMessage; }
     public LocalDateTime getLastErrorTime() { return lastErrorTime; }

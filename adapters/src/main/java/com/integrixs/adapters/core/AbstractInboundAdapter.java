@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Abstract base implementation for inbound adapters.
@@ -43,26 +44,15 @@ public abstract class AbstractInboundAdapter extends AbstractAdapter implements 
     }
     
     @Override
-    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
-        validateReady();
-        
-        if (payload == null) {
-            throw new AdapterException.ValidationException(getAdapterType(), "Payload cannot be null");
-        }
-        
-        return executeTimedOperation("send", () -> doSend(payload, headers));
-    }
-    
-    @Override
     public void sendAsync(Object payload, AdapterCallback callback) throws AdapterException {
         validateReady();
         
         if (payload == null) {
-            throw new AdapterException.ValidationException(getAdapterType(), "Payload cannot be null");
+            throw new AdapterException("Payload cannot be null");
         }
         
         if (callback == null) {
-            throw new AdapterException.ValidationException(getAdapterType(), "Callback cannot be null");
+            throw new AdapterException("Callback cannot be null");
         }
         
         CompletableFuture.supplyAsync(() -> {
@@ -71,15 +61,19 @@ public abstract class AbstractInboundAdapter extends AbstractAdapter implements 
             } catch (AdapterException e) {
                 return AdapterResult.failure("Async send failed: " + e.getMessage(), e);
             }
-        }, asyncExecutor).thenAccept(result -> {
-            if (result.isSuccess()) {
-                callback.onSuccess(result);
-            } else {
-                callback.onFailure(result);
+        }, asyncExecutor).handle((result, throwable) -> {
+            if (throwable != null) {
+                AdapterResult failure = AdapterResult.failure("Unexpected async error", throwable);
+                callback.onFailure(failure);
+                return failure;
+            } else if (result != null) {
+                if (result.isSuccess()) {
+                    callback.onSuccess(result);
+                } else {
+                    callback.onFailure(result);
+                }
+                return result;
             }
-        }).exceptionally(throwable -> {
-            logger.error("Unexpected error in async send", throwable);
-            callback.onFailure(AdapterResult.failure("Unexpected async error", throwable));
             return null;
         });
     }
@@ -89,7 +83,7 @@ public abstract class AbstractInboundAdapter extends AbstractAdapter implements 
         validateReady();
         
         if (payloads == null || payloads.isEmpty()) {
-            throw new AdapterException.ValidationException(getAdapterType(), "Payloads collection cannot be null or empty");
+            throw new AdapterException("Payloads collection cannot be null or empty");
         }
         
         return executeTimedOperation("sendBatch", () -> doSendBatch(payloads));

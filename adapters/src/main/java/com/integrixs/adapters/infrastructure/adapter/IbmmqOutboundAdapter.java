@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.IbmmqOutboundAdapterConfig;
@@ -15,16 +18,15 @@ import java.util.HashMap;import java.util.List;import com.integrixs.adapters.dom
 import java.util.HashMap;import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * IBM MQ Outbound Adapter implementation for IBM MQ message publishing (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Sends messages to IBM MQ queues/topics in external systems.
  * Supports IBM MQ (formerly WebSphere MQ) specific features.
  */
-@Slf4j
 public class IbmmqOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(IbmmqOutboundAdapter.class);
+
     
     private final IbmmqOutboundAdapterConfig config;
     private Connection connection;
@@ -159,7 +161,7 @@ public class IbmmqOutboundAdapter extends AbstractAdapter implements OutboundAda
             } else if (payload instanceof Serializable) {
                 message = session.createObjectMessage((Serializable) payload);
             } else {
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
                         "Unsupported payload type: " + payload.getClass().getName());
             }
             
@@ -254,17 +256,10 @@ public class IbmmqOutboundAdapter extends AbstractAdapter implements OutboundAda
             connectionFactory = (ConnectionFactory) context.lookup(config.getJndiName());
         } else {
             // For simulation/testing, would create vendor-specific connection factory here
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
-                    "IBM MQ connection factory configuration required");
-        }
-    }
-    
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
-        if (config.getDestinationName() == null || config.getDestinationName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, "Destination name is required");
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, null);
         }
         if (config.getDestinationType() == null || config.getDestinationType().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, "Destination type is required");
+            throw new AdapterException("Destination type is required", null);
         }
         
         // Set defaults

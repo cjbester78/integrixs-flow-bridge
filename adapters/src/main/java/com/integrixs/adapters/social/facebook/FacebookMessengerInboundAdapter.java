@@ -1,23 +1,24 @@
 package com.integrixs.adapters.social.facebook;
 
-import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
-import com.integrixs.platform.events.EventType;
-import com.integrixs.platform.models.Message;
-import com.integrixs.shared.config.AdapterConfig;
-import com.integrixs.shared.service.RateLimiterService;
-import com.integrixs.shared.utils.CredentialEncryptionService;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.adapters.core.AbstractInboundAdapter;
+import com.integrixs.shared.dto.MessageDTO;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationEventPublisher;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -27,32 +28,35 @@ import java.util.concurrent.ConcurrentHashMap;
  * Inbound adapter for Facebook Messenger Platform integration.
  * Handles webhook events, message polling, and conversation management.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "integrixs.adapters.facebook.messenger.enabled", havingValue = "true", matchIfMissing = false)
-public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundAdapter {
+public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(FacebookMessengerInboundAdapter.class);
 
-    private final FacebookMessengerApiConfig config;
+
+    private Map<String, Object> configuration = new HashMap<>();
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
     private final Set<String> processedMessages = ConcurrentHashMap.newKeySet();
     private final Set<String> processedPostbacks = ConcurrentHashMap.newKeySet();
     
     @Autowired
-    public FacebookMessengerInboundAdapter(
-            FacebookMessengerApiConfig config,
-            RateLimiterService rateLimiterService,
-            CredentialEncryptionService credentialEncryptionService) {
-        super(rateLimiterService, credentialEncryptionService);
-        this.config = config;
+    public FacebookMessengerInboundAdapter(RestTemplate restTemplate, ObjectMapper objectMapper, 
+                                         ApplicationEventPublisher eventPublisher) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
-    protected SocialMediaAdapterConfig getConfig() {
-        return config;
+    protected Map<String, Object> getConfig() {
+        return configuration;
     }
 
     @Override
-    public AdapterConfig getAdapterConfig() {
-        return config;
+    public Map<String, Object> getAdapterConfig() {
+        return configuration;
     }
 
     /**
@@ -60,7 +64,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
      */
     @Scheduled(fixedDelayString = "${integrixs.adapters.facebook.messenger.polling.interval:60000}")
     public void pollMessages() {
-        if (!config.getPollingConfig().isEnabled()) {
+        if (!Boolean.TRUE.equals(configuration.get("pollingEnabled"))) {
             return;
         }
 
@@ -77,7 +81,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
      */
     @Scheduled(fixedDelayString = "${integrixs.adapters.facebook.messenger.polling.insights-interval:3600000}")
     public void pollInsights() {
-        if (!config.getFeatures().isEnableMessageInsights()) {
+        if (!Boolean.TRUE.equals(configuration.get("enableMessageInsights"))) {
             return;
         }
 
@@ -90,13 +94,13 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
     }
 
     private void pollConversations() throws Exception {
-        String url = config.getApiUrl() + "/" + config.getPageId() + "/conversations";
+        String url = (String) configuration.get("apiUrl") + "/" + (String) configuration.get("pageId") + "/conversations";
         Map<String, String> params = new HashMap<>();
-        params.put("access_token", getDecryptedCredential("pageAccessToken"));
+        params.put("access_token", (String) configuration.get("pageAccessToken"));
         params.put("fields", "id,participants,updated_time,messages{id,from,to,message,attachments,created_time}");
         params.put("limit", "25");
 
-        String response = executeApiCall(() -> makeGetRequest(url, params));
+        String response = makeGetRequest(url, params);
         Map<String, Object> responseData = parseJsonResponse(response);
 
         if (responseData.containsKey("data")) {
@@ -107,7 +111,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         }
 
         // Handle pagination
-        handlePagination(responseData, this::pollConversations);
+        handlePagination(responseData);
     }
 
     private void processConversation(Map<String, Object> conversation) {
@@ -131,23 +135,22 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
             return; // Already processed
         }
 
-        FacebookMessengerMessage message = FacebookMessengerMessage.builder()
-                .messageId(messageId)
-                .conversationId(conversationId)
-                .from(extractUserInfo((Map<String, Object>) messageData.get("from")))
-                .to(extractUserInfo((Map<String, Object>) messageData.get("to")))
-                .text((String) messageData.get("message"))
-                .attachments(extractAttachments((List<Map<String, Object>>) messageData.get("attachments")))
-                .timestamp((String) messageData.get("created_time"))
-                .build();
+        FacebookMessengerMessageDTO message = new FacebookMessengerMessageDTO();
+        message.messageId = messageId;
+        message.conversationId = conversationId;
+        message.from = extractUserInfo((Map<String, Object>) messageData.get("from"));
+        message.to = extractUserInfo((Map<String, Object>) messageData.get("to"));
+        message.text = (String) messageData.get("message");
+        message.attachments = extractAttachments((List<Map<String, Object>>) messageData.get("attachments"));
+        message.timestamp = (String) messageData.get("created_time");
 
         publishMessage("messenger.message.received", message);
     }
 
     private void fetchInsights() throws Exception {
-        String url = config.getApiUrl() + "/" + config.getPageId() + "/insights";
+        String url = (String) configuration.get("apiUrl") + "/" + (String) configuration.get("pageId") + "/insights";
         Map<String, String> params = new HashMap<>();
-        params.put("access_token", getDecryptedCredential("pageAccessToken"));
+        params.put("access_token", (String) configuration.get("pageAccessToken"));
         params.put("metric", String.join(",", Arrays.asList(
                 "page_messages_total_messaging_connections",
                 "page_messages_new_conversations_unique",
@@ -156,7 +159,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         )));
         params.put("period", "day");
 
-        String response = executeApiCall(() -> makeGetRequest(url, params));
+        String response = makeGetRequest(url, params);
         Map<String, Object> responseData = parseJsonResponse(response);
 
         if (responseData.containsKey("data")) {
@@ -171,12 +174,10 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
             List<Map<String, Object>> values = (List<Map<String, Object>>) insight.get("values");
             
             for (Map<String, Object> value : values) {
-                FacebookMessengerInsight insightData = FacebookMessengerInsight.builder()
-                        .metric(metricName)
-                        .value(value.get("value"))
-                        .endTime((String) value.get("end_time"))
-                        .build();
-
+                FacebookMessengerInsight insightData = new FacebookMessengerInboundAdapter.FacebookMessengerInsight();
+        insightData.metric = metricName;
+        insightData.value = value.get("value");
+        insightData.endTime = (String) value.get("end_time");
                 publishMessage("messenger.insights.received", insightData);
             }
         }
@@ -236,18 +237,16 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
             return; // Already processed
         }
 
-        FacebookMessengerMessage message = FacebookMessengerMessage.builder()
-                .messageId(messageId)
-                .from(extractUserInfo(sender))
-                .to(extractUserInfo(recipient))
-                .text((String) messageData.get("text"))
-                .attachments(extractAttachments((List<Map<String, Object>>) messageData.get("attachments")))
-                .quickReplies(extractQuickReplies((List<Map<String, Object>>) messageData.get("quick_replies")))
-                .replyTo((String) messageData.get("reply_to"))
-                .isEcho(Boolean.TRUE.equals(messageData.get("is_echo")))
-                .timestamp(String.valueOf(timestamp))
-                .build();
-
+        FacebookMessengerMessageDTO message = new FacebookMessengerInboundAdapter.FacebookMessengerMessageDTO();
+        message.messageId = messageId;
+        message.from = extractUserInfo(sender);
+        message.to = extractUserInfo(recipient);
+        message.text = (String) messageData.get("text");
+        message.attachments = extractAttachments((List<Map<String, Object>>) messageData.get("attachments"));
+        message.quickReplies = extractQuickReplies((List<Map<String, Object>>) messageData.get("quick_replies"));
+        message.replyTo = (String) messageData.get("reply_to");
+        message.isEcho = Boolean.TRUE.equals(messageData.get("is_echo"));
+        message.timestamp = String.valueOf(timestamp);
         publishMessage("messenger.message.webhook", message);
     }
 
@@ -261,15 +260,13 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
             return; // Already processed
         }
 
-        FacebookMessengerPostback postback = FacebookMessengerPostback.builder()
-                .senderId((String) sender.get("id"))
-                .recipientId((String) recipient.get("id"))
-                .payload(payload)
-                .title((String) postbackData.get("title"))
-                .referral(extractReferral((Map<String, Object>) postbackData.get("referral")))
-                .timestamp(String.valueOf(timestamp))
-                .build();
-
+        FacebookMessengerPostback postback = new FacebookMessengerInboundAdapter.FacebookMessengerPostback();
+        postback.senderId = (String) sender.get("id");
+        postback.recipientId = (String) recipient.get("id");
+        postback.payload = payload;
+        postback.title = (String) postbackData.get("title");
+        postback.referral = extractReferral((Map<String, Object>) postbackData.get("referral"));
+        postback.timestamp = String.valueOf(timestamp);
         publishMessage("messenger.postback.received", postback);
     }
 
@@ -289,14 +286,12 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
                                      Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> optinData = (Map<String, Object>) event.get("optin");
         
-        FacebookMessengerOptin optin = FacebookMessengerOptin.builder()
-                .senderId((String) sender.get("id"))
-                .recipientId((String) recipient.get("id"))
-                .ref((String) optinData.get("ref"))
-                .userRef((String) optinData.get("user_ref"))
-                .timestamp(String.valueOf(timestamp))
-                .build();
-
+        FacebookMessengerOptin optin = new FacebookMessengerInboundAdapter.FacebookMessengerOptin();
+        optin.senderId = (String) sender.get("id");
+        optin.recipientId = (String) recipient.get("id");
+        optin.ref = (String) optinData.get("ref");
+        optin.userRef = (String) optinData.get("user_ref");
+        optin.timestamp = String.valueOf(timestamp);
         publishMessage("messenger.optin.received", optin);
     }
 
@@ -304,14 +299,12 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
                                         Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> deliveryData = (Map<String, Object>) event.get("delivery");
         
-        FacebookMessengerDelivery delivery = FacebookMessengerDelivery.builder()
-                .senderId((String) sender.get("id"))
-                .recipientId((String) recipient.get("id"))
-                .messageIds((List<String>) deliveryData.get("mids"))
-                .watermark(((Number) deliveryData.get("watermark")).longValue())
-                .timestamp(String.valueOf(timestamp))
-                .build();
-
+        FacebookMessengerDelivery delivery = new FacebookMessengerInboundAdapter.FacebookMessengerDelivery();
+        delivery.senderId = (String) sender.get("id");
+        delivery.recipientId = (String) recipient.get("id");
+        delivery.messageIds = (List<String>) deliveryData.get("mids");
+        delivery.watermark = ((Number) deliveryData.get("watermark")).longValue();
+        delivery.timestamp = String.valueOf(timestamp);
         publishMessage("messenger.delivery.received", delivery);
     }
 
@@ -319,13 +312,11 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
                                     Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> readData = (Map<String, Object>) event.get("read");
         
-        FacebookMessengerRead read = FacebookMessengerRead.builder()
-                .senderId((String) sender.get("id"))
-                .recipientId((String) recipient.get("id"))
-                .watermark(((Number) readData.get("watermark")).longValue())
-                .timestamp(String.valueOf(timestamp))
-                .build();
-
+        FacebookMessengerRead read = new FacebookMessengerInboundAdapter.FacebookMessengerRead();
+        read.senderId = (String) sender.get("id");
+        read.recipientId = (String) recipient.get("id");
+        read.watermark = ((Number) readData.get("watermark")).longValue();
+        read.timestamp = String.valueOf(timestamp);
         publishMessage("messenger.read.received", read);
     }
 
@@ -333,16 +324,14 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
                                         Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> reactionData = (Map<String, Object>) event.get("reaction");
         
-        FacebookMessengerReaction reaction = FacebookMessengerReaction.builder()
-                .senderId((String) sender.get("id"))
-                .recipientId((String) recipient.get("id"))
-                .messageId((String) reactionData.get("mid"))
-                .action((String) reactionData.get("action"))
-                .emoji((String) reactionData.get("emoji"))
-                .reaction((String) reactionData.get("reaction"))
-                .timestamp(String.valueOf(timestamp))
-                .build();
-
+        FacebookMessengerReaction reaction = new FacebookMessengerInboundAdapter.FacebookMessengerReaction();
+        reaction.senderId = (String) sender.get("id");
+        reaction.recipientId = (String) recipient.get("id");
+        reaction.messageId = (String) reactionData.get("mid");
+        reaction.action = (String) reactionData.get("action");
+        reaction.emoji = (String) reactionData.get("emoji");
+        reaction.reaction = (String) reactionData.get("reaction");
+        reaction.timestamp = String.valueOf(timestamp);
         publishMessage("messenger.reaction.received", reaction);
     }
 
@@ -354,17 +343,14 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
 
         try {
             String expectedSignature = signature.substring(7); // Remove "sha256=" prefix
-            String appSecret = getDecryptedCredential("appSecret");
+            String appSecret = (String) configuration.get("appSecret");
             
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             
             String calculatedSignature = bytesToHex(hash);
-            return MessageDigest.isEqual(
-                    expectedSignature.getBytes(StandardCharsets.UTF_8),
-                    calculatedSignature.getBytes(StandardCharsets.UTF_8)
-            );
+            return expectedSignature.equals(calculatedSignature);
         } catch (Exception e) {
             log.error("Error verifying webhook signature", e);
             return false;
@@ -377,16 +363,16 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
     }
 
     @Override
-    protected List<EventType> getSupportedEventTypes() {
+    protected List<String> getSupportedEventTypes() {
         return Arrays.asList(
-                EventType.SOCIAL_MEDIA_MESSAGE,
-                EventType.SOCIAL_MEDIA_POSTBACK,
-                EventType.SOCIAL_MEDIA_REFERRAL,
-                EventType.SOCIAL_MEDIA_OPTIN,
-                EventType.SOCIAL_MEDIA_DELIVERY,
-                EventType.SOCIAL_MEDIA_READ,
-                EventType.SOCIAL_MEDIA_REACTION,
-                EventType.SOCIAL_MEDIA_INSIGHTS
+                "SOCIAL_MEDIA_MESSAGE",
+                "SOCIAL_MEDIA_POSTBACK",
+                "SOCIAL_MEDIA_REFERRAL",
+                "SOCIAL_MEDIA_OPTIN",
+                "SOCIAL_MEDIA_DELIVERY",
+                "SOCIAL_MEDIA_READ",
+                "SOCIAL_MEDIA_REACTION",
+                "SOCIAL_MEDIA_INSIGHTS"
         );
     }
 
@@ -396,8 +382,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         }
         return FacebookMessengerUser.builder()
                 .id((String) user.get("id"))
-                .name((String) user.get("name"))
-                .build();
+                .name((String) user.get("name"));
     }
 
     private List<FacebookMessengerAttachment> extractAttachments(List<Map<String, Object>> attachmentsList) {
@@ -407,10 +392,9 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
 
         List<FacebookMessengerAttachment> attachments = new ArrayList<>();
         for (Map<String, Object> attachmentData : attachmentsList) {
-            FacebookMessengerAttachment attachment = FacebookMessengerAttachment.builder()
-                    .type((String) attachmentData.get("type"))
-                    .payload(attachmentData.get("payload"))
-                    .build();
+            FacebookMessengerAttachment attachment = new FacebookMessengerInboundAdapter.FacebookMessengerAttachment();
+        attachment.type = (String) attachmentData.get("type");
+        attachment.payload = attachmentData.get("payload");
             attachments.add(attachment);
         }
         return attachments;
@@ -440,8 +424,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
                 .ref((String) referralData.get("ref"))
                 .source((String) referralData.get("source"))
                 .type((String) referralData.get("type"))
-                .adId((String) referralData.get("ad_id"))
-                .build();
+                .adId((String) referralData.get("ad_id"));
     }
 
     private String bytesToHex(byte[] bytes) {
@@ -451,11 +434,60 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         }
         return result.toString();
     }
+    
+    private String makeGetRequest(String url, Map<String, String> params) {
+        try {
+            StringBuilder urlBuilder = new StringBuilder(url);
+            if (!params.isEmpty()) {
+                urlBuilder.append("?");
+                params.forEach((key, value) -> 
+                    urlBuilder.append(key).append("=").append(value).append("&"));
+                urlBuilder.setLength(urlBuilder.length() - 1); // Remove trailing &
+            }
+            
+            ResponseEntity<String> response = restTemplate.getForEntity(
+                urlBuilder.toString(), String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Error making GET request to: {}", url, e);
+            return "{}";
+        }
+    }
+    
+    private Map<String, Object> parseJsonResponse(String json) {
+        try {
+            return objectMapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            log.error("Error parsing JSON response", e);
+            return new HashMap<>();
+        }
+    }
+    
+    private void handlePagination(Map<String, Object> responseData) {
+        if (responseData.containsKey("paging") && responseData.get("paging") instanceof Map) {
+            Map<String, Object> paging = (Map<String, Object>) responseData.get("paging");
+            if (paging.containsKey("next")) {
+                log.debug("More pages available: {}", paging.get("next"));
+                // Could process next page if needed
+            }
+        }
+    }
+    
+    private void publishMessage(String eventType, Object message) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", eventType);
+        event.put("data", message);
+        event.put("timestamp", System.currentTimeMillis());
+        
+        // In a real implementation, this would publish to an event bus or message queue
+        log.debug("Publishing event: {} with data: {}", eventType, message);
+        
+        // Could use Spring's ApplicationEventPublisher
+        // eventPublisher.publishEvent(new CustomEvent(eventType, message));
+    }
 
     // Data classes for Facebook Messenger entities
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerMessage {
+        public static class FacebookMessengerMessageDTO {
         private String messageId;
         private String conversationId;
         private FacebookMessengerUser from;
@@ -468,23 +500,17 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerUser {
+        public static class FacebookMessengerUser {
         private String id;
         private String name;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerAttachment {
+        public static class FacebookMessengerAttachment {
         private String type;
         private Object payload;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerPostback {
+        public static class FacebookMessengerPostback {
         private String senderId;
         private String recipientId;
         private String payload;
@@ -493,9 +519,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerReferral {
+        public static class FacebookMessengerReferral {
         private String ref;
         private String source;
         private String type;
@@ -505,9 +529,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerOptin {
+        public static class FacebookMessengerOptin {
         private String senderId;
         private String recipientId;
         private String ref;
@@ -515,9 +537,7 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerDelivery {
+        public static class FacebookMessengerDelivery {
         private String senderId;
         private String recipientId;
         private List<String> messageIds;
@@ -525,18 +545,14 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerRead {
+        public static class FacebookMessengerRead {
         private String senderId;
         private String recipientId;
         private Long watermark;
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerReaction {
+        public static class FacebookMessengerReaction {
         private String senderId;
         private String recipientId;
         private String messageId;
@@ -546,11 +562,292 @@ public class FacebookMessengerInboundAdapter extends AbstractSocialMediaInboundA
         private String timestamp;
     }
 
-    @Data
-    @lombok.Builder
-    public static class FacebookMessengerInsight {
+        public static class FacebookMessengerInsight {
         private String metric;
         private Object value;
         private String endTime;
+    }
+    // Getters and Setters
+    public Map<String, Object> getConfiguration() {
+        return configuration;
+    }
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.configuration = configuration;
+    }
+    public RestTemplate getRestTemplate() {
+        return restTemplate;
+    }
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+    public ApplicationEventPublisher getEventPublisher() {
+        return eventPublisher;
+    }
+    public Set<String> getProcessedMessages() {
+        return processedMessages;
+    }
+    public Set<String> getProcessedPostbacks() {
+        return processedPostbacks;
+    }
+    public String getMessageId() {
+        return messageId;
+    }
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+    public String getConversationId() {
+        return conversationId;
+    }
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
+    }
+    public FacebookMessengerUser getFrom() {
+        return from;
+    }
+    public void setFrom(FacebookMessengerUser from) {
+        this.from = from;
+    }
+    public FacebookMessengerUser getTo() {
+        return to;
+    }
+    public void setTo(FacebookMessengerUser to) {
+        this.to = to;
+    }
+    public String getText() {
+        return text;
+    }
+    public void setText(String text) {
+        this.text = text;
+    }
+    public List<FacebookMessengerAttachment> getAttachments() {
+        return attachments;
+    }
+    public void setAttachments(List<FacebookMessengerAttachment> attachments) {
+        this.attachments = attachments;
+    }
+    public List<String> getQuickReplies() {
+        return quickReplies;
+    }
+    public void setQuickReplies(List<String> quickReplies) {
+        this.quickReplies = quickReplies;
+    }
+    public String getReplyTo() {
+        return replyTo;
+    }
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
+    }
+    public boolean isIsEcho() {
+        return isEcho;
+    }
+    public void setIsEcho(boolean isEcho) {
+        this.isEcho = isEcho;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+    public Object getPayload() {
+        return payload;
+    }
+    public void setPayload(Object payload) {
+        this.payload = payload;
+    }
+    public String getSenderId() {
+        return senderId;
+    }
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+    public String getRecipientId() {
+        return recipientId;
+    }
+    public void setRecipientId(String recipientId) {
+        this.recipientId = recipientId;
+    }
+    public String getPayload() {
+        return payload;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public FacebookMessengerReferral getReferral() {
+        return referral;
+    }
+    public void setReferral(FacebookMessengerReferral referral) {
+        this.referral = referral;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+    public String getRef() {
+        return ref;
+    }
+    public void setRef(String ref) {
+        this.ref = ref;
+    }
+    public String getSource() {
+        return source;
+    }
+    public void setSource(String source) {
+        this.source = source;
+    }
+    public String getAdId() {
+        return adId;
+    }
+    public void setAdId(String adId) {
+        this.adId = adId;
+    }
+    public String getSenderId() {
+        return senderId;
+    }
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+    public String getRecipientId() {
+        return recipientId;
+    }
+    public void setRecipientId(String recipientId) {
+        this.recipientId = recipientId;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+    public String getSenderId() {
+        return senderId;
+    }
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+    public String getRecipientId() {
+        return recipientId;
+    }
+    public void setRecipientId(String recipientId) {
+        this.recipientId = recipientId;
+    }
+    public String getUserRef() {
+        return userRef;
+    }
+    public void setUserRef(String userRef) {
+        this.userRef = userRef;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+    public String getSenderId() {
+        return senderId;
+    }
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+    public String getRecipientId() {
+        return recipientId;
+    }
+    public void setRecipientId(String recipientId) {
+        this.recipientId = recipientId;
+    }
+    public List<String> getMessageIds() {
+        return messageIds;
+    }
+    public void setMessageIds(List<String> messageIds) {
+        this.messageIds = messageIds;
+    }
+    public Long getWatermark() {
+        return watermark;
+    }
+    public void setWatermark(Long watermark) {
+        this.watermark = watermark;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+    public String getSenderId() {
+        return senderId;
+    }
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+    public String getRecipientId() {
+        return recipientId;
+    }
+    public void setRecipientId(String recipientId) {
+        this.recipientId = recipientId;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+    public String getAction() {
+        return action;
+    }
+    public void setAction(String action) {
+        this.action = action;
+    }
+    public String getEmoji() {
+        return emoji;
+    }
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
+    }
+    public String getReaction() {
+        return reaction;
+    }
+    public void setReaction(String reaction) {
+        this.reaction = reaction;
+    }
+    public String getMetric() {
+        return metric;
+    }
+    public void setMetric(String metric) {
+        this.metric = metric;
+    }
+    public Object getValue() {
+        return value;
+    }
+    public void setValue(Object value) {
+        this.value = value;
+    }
+    public String getEndTime() {
+        return endTime;
+    }
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
     }
 }

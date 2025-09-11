@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -38,7 +38,7 @@ export function IbmmqOutboundAdapterConfiguration({
  const dependencyCheck = validateIbmMqDependencies();
  const connectionInfo = getIbmMqConnectionInfo();
 
- const handleInputChange = (field: string, value: string | number | boolean) => {
+ const handleInputChange = useCallback((field: string, value: string | number | boolean) => {
  onUpdate({
  ...adapter,
  configuration: {
@@ -46,7 +46,7 @@ export function IbmmqOutboundAdapterConfiguration({
  [field]: value
  }
  });
- };
+ }, [adapter, onUpdate]);
 
  // Auto-populate connection classes when component mounts
  useEffect(() => {
@@ -54,7 +54,7 @@ export function IbmmqOutboundAdapterConfiguration({
      handleInputChange('connectionFactoryClass', connectionInfo.connectionFactoryClass);
      handleInputChange('queueClass', connectionInfo.queueClass);
    }
- }, [jarFiles]);
+ }, [jarFiles, connectionInfo, adapter.configuration.connectionFactoryClass, handleInputChange]);
 
  return (
  <div className="space-y-6">

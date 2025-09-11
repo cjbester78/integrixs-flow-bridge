@@ -123,9 +123,6 @@ public class SftpOutboundAdapterConfig {
     // Constructors
     public SftpOutboundAdapterConfig() {}
     
-    public SftpOutboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getTargetServerAddress() { return targetServerAddress; }

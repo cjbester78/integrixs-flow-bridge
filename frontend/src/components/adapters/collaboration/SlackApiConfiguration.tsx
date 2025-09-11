@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -168,7 +168,7 @@ const SlackApiConfiguration: React.FC<SlackApiConfigurationProps> = ({
   useEffect(() => {
     // Generate app manifest when configuration changes
     generateManifest();
-  }, [configuration, selectedScopes]);
+  }, [configuration, selectedScopes, generateManifest]);
 
   const handleChange = (field: string, value: any) => {
     onConfigurationChange({
@@ -206,7 +206,7 @@ const SlackApiConfiguration: React.FC<SlackApiConfigurationProps> = ({
     handleChange('scopes', newScopes);
   };
 
-  const generateManifest = () => {
+  const generateManifest = useCallback(() => {
     const manifest: ManifestJson = {
       display_information: {
         name: configuration.appName || 'Integrixs Slack App',
@@ -236,7 +236,7 @@ const SlackApiConfiguration: React.FC<SlackApiConfigurationProps> = ({
     };
 
     setManifest(manifest);
-  };
+  }, [configuration, selectedScopes]);
 
   const copyManifest = () => {
     if (manifest) {

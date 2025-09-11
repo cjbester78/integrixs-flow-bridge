@@ -1,5 +1,8 @@
 package com.integrixs.adapters.collaboration.teams;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.collaboration.teams.MicrosoftTeamsApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -18,8 +21,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,8 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Slf4j
 public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(MicrosoftTeamsOutboundAdapter.class);
+
     
     private static final String LOGIN_URL = "https://login.microsoftonline.com/%s/oauth2/v2.0/token";
     private static final long TOKEN_REFRESH_BUFFER = 300000; // 5 minutes before expiry
@@ -388,7 +390,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             throw new AdapterException("Either teamId/channelId or chatId must be specified");
         }
         
-        makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
+        makeGraphApiRequest(endpoint, null);
         return createSuccessResponse(Map.of("deleted", true));
     }
     
@@ -1078,7 +1080,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             throw new AdapterException("Either teamId or userId must be specified");
         }
         
-        makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
+        makeGraphApiRequest(endpoint, null);
         return createSuccessResponse(Map.of("uninstalled", true));
     }
     
@@ -1367,7 +1369,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         result.put("success", true);
         result.put("data", data);
         
-        return MessageDTO.builder()
+        return new MessageDTO()
             .type("teams_response")
             .category("success")
             .content(result)
@@ -1380,7 +1382,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         result.put("success", false);
         result.put("error", error);
         
-        return MessageDTO.builder()
+        return new MessageDTO()
             .type("teams_response")
             .category("error")
             .content(result)

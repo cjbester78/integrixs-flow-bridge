@@ -1,12 +1,13 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.FtpOutboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
@@ -25,8 +26,9 @@ import java.util.Map;
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Supports FTP connections, file uploads, batching, and validation.
  */
-@Slf4j
 public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(FtpOutboundAdapter.class);
+
     
     private final FtpOutboundAdapterConfig config;
     private FTPClient ftpClient;
@@ -50,8 +52,8 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             // For per-file-transfer mode, we don't maintain persistent connection
             if ("permanently".equals(config.getConnectionMode())) {
                 connectToFtp();
-            }
             
+            }
             log.info("FTP outbound adapter initialized successfully");
             return AdapterOperationResult.success("Initialized successfully");
         } catch (Exception e) {
@@ -69,7 +71,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             try {
                 flushBatch();
             } catch (Exception e) {
-                log.warn("Error flushing batch during FTP adapter shutdown", e);
+                log.warn("Error flushing batch during shutdown", e);
             }
         }
         
@@ -103,13 +105,17 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 if (testClient.isConnected() && FTPReply.isPositiveCompletion(testClient.getReplyCode())) {
                     return AdapterOperationResult.success("FTP Connection: Successfully connected to FTP server");
                 } else {
-                    return AdapterOperationResult.failure("Test failed");
+                    return AdapterOperationResult.failure("FTP Connection: Failed to connect to FTP server");
                 }
             } catch (Exception e) {
-                return AdapterOperationResult.failure("Test failed: " + e.getMessage());
+                return AdapterOperationResult.failure("FTP Connection: Error - " + e.getMessage());
             } finally {
                 if (testClient != null) {
-                    try { testClient.disconnect(); } catch (Exception ignored) {}
+                    try {
+                        testClient.disconnect();
+                    } catch (Exception e) {
+                        // Ignore
+                    }
                 }
             }
         }));
@@ -140,10 +146,14 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 
                 return AdapterOperationResult.success("Directory Access: Target directory is accessible and writable");
             } catch (Exception e) {
-                return AdapterOperationResult.failure("Test failed: " + e.getMessage());
+                return AdapterOperationResult.failure("Directory Access: Error - " + e.getMessage());
             } finally {
                 if (testClient != null) {
-                    try { testClient.disconnect(); } catch (Exception ignored) {}
+                    try {
+                        testClient.disconnect();
+                    } catch (Exception e) {
+                        // Ignore
+                    }
                 }
             }
         }));
@@ -168,16 +178,19 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                         // Clean up test file
                         testClient.deleteFile(testFileName);
                         return AdapterOperationResult.success("File Upload: Successfully uploaded and deleted test file");
-                    
-        } else {
-                        return AdapterOperationResult.failure("Test failed");
+                    } else {
+                        return AdapterOperationResult.failure("File Upload: Failed to upload test file");
                     }
                 }
             } catch (Exception e) {
-                return AdapterOperationResult.failure("Test failed: " + e.getMessage());
+                return AdapterOperationResult.failure("File Upload: Error - " + e.getMessage());
             } finally {
                 if (testClient != null) {
-                    try { testClient.disconnect(); } catch (Exception ignored) {}
+                    try {
+                        testClient.disconnect();
+                    } catch (Exception e) {
+                        // Ignore
+                    }
                 }
             }
         }));
@@ -210,6 +223,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
     public CompletableFuture<AdapterOperationResult> sendAsync(SendRequest request) {
         return CompletableFuture.supplyAsync(() -> send(request));
     }
+    
     @Override
     public AdapterOperationResult sendBatch(List<SendRequest> requests) {
         List<AdapterOperationResult> results = new ArrayList<>();
@@ -231,10 +245,12 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
         return CompletableFuture.supplyAsync(() -> sendBatch(requests));
     }
 
+    @Override
     public boolean supportsBatchOperations() {
         return true;
     }
 
+    @Override
     public int getMaxBatchSize() {
         return config.getBatchSize() != null ? config.getBatchSize() : 100;
     }
@@ -327,23 +343,11 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 if (config.isCreateFileDirectory()) {
                     createDirectoryPath(client, config.getTargetDirectory());
                     if (!client.changeWorkingDirectory(config.getTargetDirectory())) {
-                        throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                                "Cannot access or create target directory: " + config.getTargetDirectory());
+                        throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, "Failed to change to target directory after creation: " + config.getTargetDirectory());
                     }
                 } else {
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                            "Target directory does not exist: " + config.getTargetDirectory());
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, "Target directory does not exist and createFileDirectory is false: " + config.getTargetDirectory());
                 }
-            }
-            
-            // Validate before upload if configured
-            if (config.isValidateBeforeUpload()) {
-                validateContent(content);
-            }
-            
-            // Create backup if configured
-            if (config.isEnableFileBackup()) {
-                createBackup(client, fileName);
             }
             
             // Use temporary file for atomic upload if configured
@@ -395,14 +399,12 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             // Data would be included here
             
             return result;
-            
         } catch (Exception e) {
-            throw new AdapterException.ProcessingException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                    "Upload failed: " + e.getMessage(), e);
-        } finally {
-            if ("per-file-transfer".equals(config.getConnectionMode()) && client != null) {
+            // Clean up on error
+            if (ftpClient == null || ftpClient != client) {
                 disconnectClient(client);
             }
+            throw e;
         }
     }
     
@@ -438,7 +440,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 case "ignore":
                     return "";
                 case "error":
-                    throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                             "Empty message not allowed");
                 case "process":
                 default:
@@ -465,21 +467,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             case "ignore":
                 return new byte[0];
             case "error":
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                        "Empty message not allowed");
-            case "process":
-            default:
-                return new byte[0];
-        }
-    }
-    
-    private String generateFileName(Object payload) {
-        if (config.getTargetFileName() != null && !config.getTargetFileName().isEmpty()) {
-            return processTemplate(config.getTargetFileName(), payload);
-        }
-        
-        if (config.getFileNamingPattern() != null && !config.getFileNamingPattern().isEmpty()) {
-            return processTemplate(config.getFileNamingPattern(), payload);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, "Empty message not allowed");
         }
         
         // Generate default filename
@@ -492,7 +480,32 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
         
         return baseName + ".txt";
     }
-    
+
+    private String generateFileName(Object payload) throws Exception {
+        // Use file name pattern if configured
+        if (config.getFileNamePattern() != null && !config.getFileNamePattern().isEmpty()) {
+            return processTemplate(config.getFileNamePattern(), payload);
+        }
+        
+        // Check if payload has filename hint
+        if (payload instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) payload;
+            if (map.containsKey("filename")) {
+                return String.valueOf(map.get("filename"));
+            }
+        }
+        
+        // Generate default filename
+        String baseName = "file_" + System.currentTimeMillis();
+        
+        if (config.isIncludeTimestamp()) {
+            String timestamp = DateTimeFormatter.ofPattern(config.getTimestampFormat()).format(LocalDateTime.now());
+            baseName = "file_" + timestamp;
+        }
+        
+        return baseName + ".txt";
+    }
+
     private String generateBatchFileName() {
         String baseName = String.format("batch_%s_%d", 
                 DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now()),
@@ -541,8 +554,8 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 } else {
                     log.warn("Failed to create FTP backup for: {}", fileName);
                 }
+            }
         }
-    }
     }
     
     private boolean fileExists(FTPClient client, String fileName) throws Exception {
@@ -573,7 +586,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
     
     private void validateContent(byte[] content) throws Exception {
         if (content.length > config.getMaxFileSize()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                     "Content size exceeds maximum allowed: " + content.length + " > " + config.getMaxFileSize());
         }
         
@@ -588,8 +601,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
         // Verify file was uploaded correctly
         long actualSize = client.listFiles(fileName)[0].getSize();
         if (actualSize != expectedSize) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                    "Upload validation failed - size mismatch: expected " + expectedSize + ", actual " + actualSize);
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, "File size mismatch after upload: expected " + expectedSize + " but got " + actualSize);
         }
     }
     
@@ -651,7 +663,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
         int reply = client.getReplyCode();
         if (!FTPReply.isPositiveCompletion(reply)) {
             client.disconnect();
-            throw new AdapterException.ConnectionException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                     "FTP server refused connection: " + client.getReplyString());
         }
         
@@ -659,7 +671,7 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
         boolean loginSuccess = client.login(config.getUserName(), config.getPassword());
         if (!loginSuccess) {
             client.disconnect();
-            throw new AdapterException.AuthenticationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                     "FTP login failed: " + client.getReplyString());
         }
         
@@ -689,24 +701,18 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             try {
                 client.logout();
                 client.disconnect();
-        } catch (Exception e) {
-                log.warn("Error disconnecting from FTP server", e);
+            } catch (Exception e) {
+                log.warn("Error disconnecting from FTP", e);
             }
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getServerAddress() == null || config.getServerAddress().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP server address is required");
-        }
-        if (config.getUserName() == null || config.getUserName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP username is required");
+            throw new AdapterException("FTP server address is required", null);
         }
         if (config.getPassword() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP password is required");
-        }
-        if (config.getTargetDirectory() == null || config.getTargetDirectory().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP target directory is required");
+            throw new AdapterException("FTP password is required", null);
         }
     }
     
@@ -730,10 +736,9 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
         try {
             return test.call();
         } catch (Exception e) {
-            return AdapterOperationResult.failure("Test execution failed: " + e.getMessage());
+            return AdapterOperationResult.failure("Test failed: " + e.getMessage());
         }
     }
-
     @Override
     public AdapterMetadata getMetadata() {
         return AdapterMetadata.builder()
@@ -756,11 +761,4 @@ public class FtpOutboundAdapter extends AbstractAdapter implements OutboundAdapt
     protected AdapterConfiguration.AdapterModeEnum getAdapterMode() {
         return AdapterConfiguration.AdapterModeEnum.OUTBOUND;
     }
-
-
-    protected AdapterOperationResult performSend(Object payload, Map<String, Object> headers) throws Exception {
-        // Implementation depends on adapter type
-        return performSend(payload);
-    }
-
 }

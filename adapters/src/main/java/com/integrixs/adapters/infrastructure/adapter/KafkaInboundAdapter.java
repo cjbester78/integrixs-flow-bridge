@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.domain.model.FetchRequest;
@@ -8,7 +11,6 @@ import com.integrixs.adapters.domain.model.AdapterMetadata;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.config.KafkaInboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
@@ -23,8 +25,9 @@ import java.util.Map;
  * Kafka implementation of inbound adapter (consumes messages from Kafka topics)
  * Follows middleware convention: Inbound = receives data FROM external systems.
  */
-@Slf4j
 public class KafkaInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(KafkaInboundAdapter.class);
+
     
     private final KafkaInboundAdapterConfig config;
     private KafkaConsumer<String, String> consumer;
@@ -313,17 +316,17 @@ public class KafkaInboundAdapter extends AbstractAdapter implements InboundAdapt
         return data;
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getBootstrapServers() == null || config.getBootstrapServers().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Bootstrap servers are required");
+            throw new AdapterException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Bootstrap servers are required");
         }
         
         if (config.getTopics() == null || config.getTopics().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Topics are required");
+            throw new AdapterException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Topics are required");
         }
         
         if (config.getGroupId() == null || config.getGroupId().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Group ID is required");
+            throw new AdapterException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Group ID is required");
         }
     }
     public long getPollingInterval() {

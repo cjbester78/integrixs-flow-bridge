@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.discord;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.discord")
-@EqualsAndHashCode(callSuper = true)
 public class DiscordApiConfig extends SocialMediaAdapterConfig {
     
     private String clientId;
@@ -22,8 +18,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     private DiscordFeatures features = new DiscordFeatures();
     private DiscordLimits limits = new DiscordLimits();
     
-    @Data
-    public static class DiscordFeatures {
+        public static class DiscordFeatures {
         private boolean enableGuildManagement = true;
         private boolean enableChannelOperations = true;
         private boolean enableMessageManagement = true;
@@ -46,13 +41,12 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         private boolean enableStreamNotifications = true;
     }
     
-    @Data
-    public static class DiscordLimits {
+        public static class DiscordLimits {
         private int maxMessageLength = 2000;
         private int maxEmbedLength = 6000;
         private int maxEmbedFields = 25;
         private int maxFileSize = 8388608; // 8MB for free, 50MB for Nitro
-        private int maxReactionsPerMessage = 20;
+        private int maxReactionsPerMessageDTO = 20;
         private int maxChannelsPerGuild = 500;
         private int maxRolesPerGuild = 250;
         private int maxEmojisPerGuild = 50; // Without boosts
@@ -105,7 +99,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         GUILD_FORUM
     }
     
-    // Message types
+    // MessageDTO types
     public enum MessageType {
         DEFAULT,
         RECIPIENT_ADD,
@@ -561,5 +555,264 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         public int getCode() {
             return code;
         }
+    }
+    // Getters and Setters
+    public String getClientId() {
+        return clientId;
+    }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+    public String getClientSecret() {
+        return clientSecret;
+    }
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+    public String getBotToken() {
+        return botToken;
+    }
+    public void setBotToken(String botToken) {
+        this.botToken = botToken;
+    }
+    public String getPublicKey() {
+        return publicKey;
+    }
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+    public String getGuildId() {
+        return guildId;
+    }
+    public void setGuildId(String guildId) {
+        this.guildId = guildId;
+    }
+    public String getApplicationId() {
+        return applicationId;
+    }
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+    }
+    public DiscordFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(DiscordFeatures features) {
+        this.features = features;
+    }
+    public DiscordLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(DiscordLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableGuildManagement() {
+        return enableGuildManagement;
+    }
+    public void setEnableGuildManagement(boolean enableGuildManagement) {
+        this.enableGuildManagement = enableGuildManagement;
+    }
+    public boolean isEnableChannelOperations() {
+        return enableChannelOperations;
+    }
+    public void setEnableChannelOperations(boolean enableChannelOperations) {
+        this.enableChannelOperations = enableChannelOperations;
+    }
+    public boolean isEnableMessageManagement() {
+        return enableMessageManagement;
+    }
+    public void setEnableMessageManagement(boolean enableMessageManagement) {
+        this.enableMessageManagement = enableMessageManagement;
+    }
+    public boolean isEnableVoiceSupport() {
+        return enableVoiceSupport;
+    }
+    public void setEnableVoiceSupport(boolean enableVoiceSupport) {
+        this.enableVoiceSupport = enableVoiceSupport;
+    }
+    public boolean isEnableSlashCommands() {
+        return enableSlashCommands;
+    }
+    public void setEnableSlashCommands(boolean enableSlashCommands) {
+        this.enableSlashCommands = enableSlashCommands;
+    }
+    public boolean isEnableWebhooks() {
+        return enableWebhooks;
+    }
+    public void setEnableWebhooks(boolean enableWebhooks) {
+        this.enableWebhooks = enableWebhooks;
+    }
+    public boolean isEnableRoleManagement() {
+        return enableRoleManagement;
+    }
+    public void setEnableRoleManagement(boolean enableRoleManagement) {
+        this.enableRoleManagement = enableRoleManagement;
+    }
+    public boolean isEnableMemberManagement() {
+        return enableMemberManagement;
+    }
+    public void setEnableMemberManagement(boolean enableMemberManagement) {
+        this.enableMemberManagement = enableMemberManagement;
+    }
+    public boolean isEnableEmojiManagement() {
+        return enableEmojiManagement;
+    }
+    public void setEnableEmojiManagement(boolean enableEmojiManagement) {
+        this.enableEmojiManagement = enableEmojiManagement;
+    }
+    public boolean isEnableEventManagement() {
+        return enableEventManagement;
+    }
+    public void setEnableEventManagement(boolean enableEventManagement) {
+        this.enableEventManagement = enableEventManagement;
+    }
+    public boolean isEnableThreadSupport() {
+        return enableThreadSupport;
+    }
+    public void setEnableThreadSupport(boolean enableThreadSupport) {
+        this.enableThreadSupport = enableThreadSupport;
+    }
+    public boolean isEnableStageChannels() {
+        return enableStageChannels;
+    }
+    public void setEnableStageChannels(boolean enableStageChannels) {
+        this.enableStageChannels = enableStageChannels;
+    }
+    public boolean isEnableAutoModeration() {
+        return enableAutoModeration;
+    }
+    public void setEnableAutoModeration(boolean enableAutoModeration) {
+        this.enableAutoModeration = enableAutoModeration;
+    }
+    public boolean isEnableInteractions() {
+        return enableInteractions;
+    }
+    public void setEnableInteractions(boolean enableInteractions) {
+        this.enableInteractions = enableInteractions;
+    }
+    public boolean isEnableEmbeds() {
+        return enableEmbeds;
+    }
+    public void setEnableEmbeds(boolean enableEmbeds) {
+        this.enableEmbeds = enableEmbeds;
+    }
+    public boolean isEnableReactions() {
+        return enableReactions;
+    }
+    public void setEnableReactions(boolean enableReactions) {
+        this.enableReactions = enableReactions;
+    }
+    public boolean isEnableDirectMessages() {
+        return enableDirectMessages;
+    }
+    public void setEnableDirectMessages(boolean enableDirectMessages) {
+        this.enableDirectMessages = enableDirectMessages;
+    }
+    public boolean isEnableFileUploads() {
+        return enableFileUploads;
+    }
+    public void setEnableFileUploads(boolean enableFileUploads) {
+        this.enableFileUploads = enableFileUploads;
+    }
+    public boolean isEnableVoiceRecording() {
+        return enableVoiceRecording;
+    }
+    public void setEnableVoiceRecording(boolean enableVoiceRecording) {
+        this.enableVoiceRecording = enableVoiceRecording;
+    }
+    public boolean isEnableStreamNotifications() {
+        return enableStreamNotifications;
+    }
+    public void setEnableStreamNotifications(boolean enableStreamNotifications) {
+        this.enableStreamNotifications = enableStreamNotifications;
+    }
+    public int getMaxMessageLength() {
+        return maxMessageLength;
+    }
+    public void setMaxMessageLength(int maxMessageLength) {
+        this.maxMessageLength = maxMessageLength;
+    }
+    public int getMaxEmbedLength() {
+        return maxEmbedLength;
+    }
+    public void setMaxEmbedLength(int maxEmbedLength) {
+        this.maxEmbedLength = maxEmbedLength;
+    }
+    public int getMaxEmbedFields() {
+        return maxEmbedFields;
+    }
+    public void setMaxEmbedFields(int maxEmbedFields) {
+        this.maxEmbedFields = maxEmbedFields;
+    }
+    public int getMaxFileSize() {
+        return maxFileSize;
+    }
+    public void setMaxFileSize(int maxFileSize) {
+        this.maxFileSize = maxFileSize;
+    }
+    public int getMaxReactionsPerMessageDTO() {
+        return maxReactionsPerMessageDTO;
+    }
+    public void setMaxReactionsPerMessageDTO(int maxReactionsPerMessageDTO) {
+        this.maxReactionsPerMessageDTO = maxReactionsPerMessageDTO;
+    }
+    public int getMaxChannelsPerGuild() {
+        return maxChannelsPerGuild;
+    }
+    public void setMaxChannelsPerGuild(int maxChannelsPerGuild) {
+        this.maxChannelsPerGuild = maxChannelsPerGuild;
+    }
+    public int getMaxRolesPerGuild() {
+        return maxRolesPerGuild;
+    }
+    public void setMaxRolesPerGuild(int maxRolesPerGuild) {
+        this.maxRolesPerGuild = maxRolesPerGuild;
+    }
+    public int getMaxEmojisPerGuild() {
+        return maxEmojisPerGuild;
+    }
+    public void setMaxEmojisPerGuild(int maxEmojisPerGuild) {
+        this.maxEmojisPerGuild = maxEmojisPerGuild;
+    }
+    public int getMaxWebhooksPerChannel() {
+        return maxWebhooksPerChannel;
+    }
+    public void setMaxWebhooksPerChannel(int maxWebhooksPerChannel) {
+        this.maxWebhooksPerChannel = maxWebhooksPerChannel;
+    }
+    public int getMaxInvitesPerGuild() {
+        return maxInvitesPerGuild;
+    }
+    public void setMaxInvitesPerGuild(int maxInvitesPerGuild) {
+        this.maxInvitesPerGuild = maxInvitesPerGuild;
+    }
+    public int getMaxBansPerGuild() {
+        return maxBansPerGuild;
+    }
+    public void setMaxBansPerGuild(int maxBansPerGuild) {
+        this.maxBansPerGuild = maxBansPerGuild;
+    }
+    public int getRateLimitPerMinute() {
+        return rateLimitPerMinute;
+    }
+    public void setRateLimitPerMinute(int rateLimitPerMinute) {
+        this.rateLimitPerMinute = rateLimitPerMinute;
+    }
+    public int getBulkDeleteLimit() {
+        return bulkDeleteLimit;
+    }
+    public void setBulkDeleteLimit(int bulkDeleteLimit) {
+        this.bulkDeleteLimit = bulkDeleteLimit;
+    }
+    public int getMessageHistoryLimit() {
+        return messageHistoryLimit;
+    }
+    public void setMessageHistoryLimit(int messageHistoryLimit) {
+        this.messageHistoryLimit = messageHistoryLimit;
+    }
+    public int getGuildMemberLimit() {
+        return guildMemberLimit;
+    }
+    public void setGuildMemberLimit(int guildMemberLimit) {
+        this.guildMemberLimit = guildMemberLimit;
     }
 }

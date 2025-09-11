@@ -1,47 +1,58 @@
 package com.integrixs.adapters.social.twitter;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.adapters.social.twitter.TwitterAdsApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.adapters.social.twitter.TwitterAdsApiConfig;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
+import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.time.Instant;
 
-@Slf4j
 @Component("twitterAdsOutboundAdapter")
-public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapter<TwitterAdsApiConfig> {
+public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TwitterAdsOutboundAdapter.class);
+
     
     private static final String TWITTER_ADS_API_BASE = "https://ads-api.twitter.com/12";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private TwitterAdsApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public TwitterAdsOutboundAdapter(
-            TwitterAdsApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    public Message sendMessage(Message message) throws AdapterException {
+    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         try {
             validateConfiguration();
             
@@ -120,12 +131,11 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
             }
         } catch (Exception e) {
             log.error("Error in Twitter Ads outbound adapter", e);
-            throw new AdapterException("Failed to process outbound message", e);
         }
     }
     
     // Campaign Management Methods
-    private Message createCampaign(Message message) throws Exception {
+    private MessageDTO createCampaign(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/campaigns", 
@@ -150,7 +160,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CAMPAIGN_CREATED");
     }
     
-    private Message updateCampaign(Message message) throws Exception {
+    private MessageDTO updateCampaign(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String campaignId = payload.path("campaign_id").asText();
         
@@ -173,7 +183,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CAMPAIGN_UPDATED");
     }
     
-    private Message deleteCampaign(Message message) throws Exception {
+    private MessageDTO deleteCampaign(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String campaignId = payload.path("campaign_id").asText();
         
@@ -184,7 +194,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CAMPAIGN_DELETED");
     }
     
-    private Message pauseCampaign(Message message) throws Exception {
+    private MessageDTO pauseCampaign(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String campaignId = payload.path("campaign_id").asText();
         
@@ -198,7 +208,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CAMPAIGN_PAUSED");
     }
     
-    private Message resumeCampaign(Message message) throws Exception {
+    private MessageDTO resumeCampaign(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String campaignId = payload.path("campaign_id").asText();
         
@@ -213,7 +223,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
     }
     
     // Ad Group Management Methods
-    private Message createAdGroup(Message message) throws Exception {
+    private MessageDTO createAdGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/line_items", 
@@ -240,7 +250,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "AD_GROUP_CREATED");
     }
     
-    private Message updateAdGroup(Message message) throws Exception {
+    private MessageDTO updateAdGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String lineItemId = payload.path("line_item_id").asText();
         
@@ -262,7 +272,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "AD_GROUP_UPDATED");
     }
     
-    private Message deleteAdGroup(Message message) throws Exception {
+    private MessageDTO deleteAdGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String lineItemId = payload.path("line_item_id").asText();
         
@@ -274,7 +284,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
     }
     
     // Creative Management Methods
-    private Message createPromotedTweet(Message message) throws Exception {
+    private MessageDTO createPromotedTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/promoted_tweets", 
@@ -288,7 +298,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "PROMOTED_TWEET_CREATED");
     }
     
-    private Message createCard(Message message) throws Exception {
+    private MessageDTO createCard(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String cardType = payload.path("card_type").asText("WEBSITE");
         
@@ -336,7 +346,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CARD_CREATED");
     }
     
-    private Message updateCreative(Message message) throws Exception {
+    private MessageDTO updateCreative(MessageDTO message) throws Exception {
         // Update creative properties
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String creativeType = payload.path("creative_type").asText();
@@ -347,7 +357,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
     }
     
     // Audience Management Methods
-    private Message createCustomAudience(Message message) throws Exception {
+    private MessageDTO createCustomAudience(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/custom_audiences", 
@@ -361,7 +371,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CUSTOM_AUDIENCE_CREATED");
     }
     
-    private Message updateCustomAudience(Message message) throws Exception {
+    private MessageDTO updateCustomAudience(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String audienceId = payload.path("audience_id").asText();
         
@@ -380,7 +390,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CUSTOM_AUDIENCE_UPDATED");
     }
     
-    private Message addToCustomAudience(Message message) throws Exception {
+    private MessageDTO addToCustomAudience(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String audienceId = payload.path("audience_id").asText();
         
@@ -408,7 +418,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "USERS_ADDED_TO_AUDIENCE");
     }
     
-    private Message removeFromCustomAudience(Message message) throws Exception {
+    private MessageDTO removeFromCustomAudience(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String audienceId = payload.path("audience_id").asText();
         
@@ -430,7 +440,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "USERS_REMOVED_FROM_AUDIENCE");
     }
     
-    private Message createLookalikeAudience(Message message) throws Exception {
+    private MessageDTO createLookalikeAudience(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/custom_audiences", 
@@ -446,7 +456,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
     }
     
     // Targeting Methods
-    private Message setTargeting(Message message) throws Exception {
+    private MessageDTO setTargeting(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String lineItemId = payload.path("line_item_id").asText();
         
@@ -473,13 +483,13 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "TARGETING_SET");
     }
     
-    private Message updateTargeting(Message message) throws Exception {
+    private MessageDTO updateTargeting(MessageDTO message) throws Exception {
         // Similar to setTargeting but updates existing criteria
         return setTargeting(message);
     }
     
     // Budget & Bidding Methods
-    private Message updateBudget(Message message) throws Exception {
+    private MessageDTO updateBudget(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String campaignId = payload.path("campaign_id").asText();
         
@@ -500,7 +510,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "BUDGET_UPDATED");
     }
     
-    private Message updateBid(Message message) throws Exception {
+    private MessageDTO updateBid(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String lineItemId = payload.path("line_item_id").asText();
         
@@ -519,7 +529,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
     }
     
     // Reporting Methods
-    private Message createReport(Message message) throws Exception {
+    private MessageDTO createReport(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/stats/jobs", 
@@ -537,7 +547,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "REPORT_CREATED");
     }
     
-    private Message getMetrics(Message message) throws Exception {
+    private MessageDTO getMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String entity = payload.path("entity").asText("CAMPAIGN");
         String entityIds = payload.path("entity_ids").asText();
@@ -557,13 +567,13 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "METRICS_RETRIEVED");
     }
     
-    private Message exportData(Message message) throws Exception {
+    private MessageDTO exportData(MessageDTO message) throws Exception {
         // Create async export job
         return createReport(message);
     }
     
     // Conversion Tracking Methods
-    private Message createConversionEvent(Message message) throws Exception {
+    private MessageDTO createConversionEvent(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/web_conversions", 
@@ -584,7 +594,7 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return createResponseMessage(response, "CONVERSION_EVENT_CREATED");
     }
     
-    private Message createWebEventTag(Message message) throws Exception {
+    private MessageDTO createWebEventTag(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/accounts/%s/web_event_tags", 
@@ -606,28 +616,6 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         return makeApiCall(url, method, body, null);
     }
     
-    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        
-        // OAuth 1.0a authentication for Twitter Ads API
-        String authHeader = generateOAuth1Header(url, method.name());
-        headers.set("Authorization", authHeader);
-        
-        StringBuilder urlBuilder = new StringBuilder(url);
-        if (params != null && !params.isEmpty()) {
-            urlBuilder.append("?");
-            params.forEach((key, value) -> 
-                urlBuilder.append(key).append("=").append(value).append("&"));
-            urlBuilder.setLength(urlBuilder.length() - 1);
-        }
-        
-        HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        
-        rateLimiterService.acquire("twitter_ads_api", 1);
-        
-        return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
-    }
     
     private String generateOAuth1Header(String url, String method) {
         // Simplified OAuth 1.0a header generation
@@ -676,9 +664,63 @@ public class TwitterAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapte
         try {
             java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(email.toLowerCase().getBytes("UTF-8"));
-            return javax.xml.bind.DatatypeConverter.printHexBinary(hash).toLowerCase();
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
         } catch (Exception e) {
             return email;
         }
+    }
+    
+    private MessageDTO createResponseMessage(ResponseEntity<String> response, String operationType) {
+        MessageDTO responseMessage = new MessageDTO();
+        responseMessage.setCorrelationId(UUID.randomUUID().toString());
+        responseMessage.setMessageTimestamp(Instant.now());
+        if (response != null) {
+            responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+            responseMessage.setHeaders(Map.of(
+                "operation", operationType,
+                "statusCode", response.getStatusCodeValue(),
+                "source", "twitter_ads"
+            ));
+            responseMessage.setPayload(response.getBody());
+        } else {
+            responseMessage.setStatus(MessageStatus.PROCESSED);
+            responseMessage.setHeaders(Map.of(
+                "operation", operationType,
+                "source", "twitter_ads"
+            ));
+            responseMessage.setPayload("{\"status\":\"success\"}");
+        }
+        return responseMessage;
+    }
+    
+    public void setConfiguration(TwitterAdsApiConfig config) {
+        this.config = config;
+    }
+    
+    // Twitter Ads API Enums
+    private enum CampaignObjective {
+        AWARENESS,
+        TWEET_ENGAGEMENTS,
+        VIDEO_VIEWS,
+        PREROLL_VIEWS,
+        APP_INSTALLS,
+        WEBSITE_TRAFFIC,
+        APP_REENGAGEMENTS,
+        REACH,
+        FOLLOWERS,
+        WEBSITE_CONVERSIONS,
+        APP_DOWNLOADS
+    }
+    
+    private enum BidType {
+        AUTO,
+        MAX,
+        TARGET
     }
 }

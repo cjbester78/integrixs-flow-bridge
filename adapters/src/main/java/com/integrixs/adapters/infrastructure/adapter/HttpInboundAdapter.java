@@ -1,13 +1,14 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.config.HttpInboundAdapterConfig;
 import com.integrixs.adapters.config.HttpMethod;
-import lombok.extern.slf4j.Slf4j;
-
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -25,8 +26,9 @@ import java.util.List;/**
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Supports various HTTP methods, authentication types, and response processing.
  */
-@Slf4j
 public class HttpInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(HttpInboundAdapter.class);
+
     
     private final HttpInboundAdapterConfig config;
     private HttpClient httpClient;
@@ -179,7 +181,7 @@ public class HttpInboundAdapter extends AbstractAdapter implements InboundAdapte
         } catch (Exception e) {
             log.error("HTTP fetch operation failed", e);
             if (e instanceof java.net.ConnectException) {
-                throw new AdapterException.ConnectionException(AdapterConfiguration.AdapterTypeEnum.HTTP, "Connection failed: " + e.getMessage(), e);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.HTTP, e);
             } else if (e instanceof java.net.SocketTimeoutException) {
                 throw new AdapterException.TimeoutException(AdapterConfiguration.AdapterTypeEnum.HTTP, "Request timeout: " + e.getMessage(), e);
             }
@@ -311,9 +313,9 @@ public class HttpInboundAdapter extends AbstractAdapter implements InboundAdapte
         return url.replaceAll("://[^:]+:[^@]+@", "://***:***@");
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getUrl() == null || config.getUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP, "Endpoint URL is required");
+            throw new AdapterException("Endpoint URL is required", null);
         }
         
         if (config.getHttpMethod() == null) {
@@ -324,7 +326,7 @@ public class HttpInboundAdapter extends AbstractAdapter implements InboundAdapte
         String authType = config.getAuthenticationType() != null ? config.getAuthenticationType().name() : "NONE";
         if ("basic".equalsIgnoreCase(authType)) {
             if (config.getBasicUsername() == null || config.getBasicPassword() == null) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.HTTP, 
                         "Username and password required for basic authentication");
             }
         }

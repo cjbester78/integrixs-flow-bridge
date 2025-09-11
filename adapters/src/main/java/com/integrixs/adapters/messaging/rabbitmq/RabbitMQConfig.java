@@ -1,16 +1,12 @@
 package com.integrixs.adapters.messaging.rabbitmq;
 
 import com.integrixs.adapters.config.BaseAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 import java.util.HashMap;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
 @Configuration
 @ConfigurationProperties(prefix = "integrixs.adapters.rabbitmq")
 public class RabbitMQConfig extends BaseAdapterConfig {
@@ -183,8 +179,7 @@ public class RabbitMQConfig extends BaseAdapterConfig {
     // Features configuration
     private Features features = new Features();
     
-    @Data
-    public static class Features {
+        public static class Features {
         private boolean enableMessageOrdering = false;
         private boolean enableMessageDeduplication = false;
         private boolean enablePriorityQueues = false;
@@ -200,13 +195,439 @@ public class RabbitMQConfig extends BaseAdapterConfig {
     // RabbitMQ Management API settings
     private ManagementApi managementApi = new ManagementApi();
     
-    @Data
-    public static class ManagementApi {
+        public static class ManagementApi {
         private boolean enabled = false;
         private String url = "http://localhost:15672";
         private String username = "guest";
         private String password = "guest";
         private int connectionTimeout = 5000;
         private int readTimeout = 10000;
+    }
+    // Getters and Setters
+    public String getHost() {
+        return host;
+    }
+    public void setHost(String host) {
+        this.host = host;
+    }
+    public int getPort() {
+        return port;
+    }
+    public void setPort(int port) {
+        this.port = port;
+    }
+    public String getVirtualHost() {
+        return virtualHost;
+    }
+    public void setVirtualHost(String virtualHost) {
+        this.virtualHost = virtualHost;
+    }
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+    public int getRequestedHeartbeat() {
+        return requestedHeartbeat;
+    }
+    public void setRequestedHeartbeat(int requestedHeartbeat) {
+        this.requestedHeartbeat = requestedHeartbeat;
+    }
+    public int getChannelCacheSize() {
+        return channelCacheSize;
+    }
+    public void setChannelCacheSize(int channelCacheSize) {
+        this.channelCacheSize = channelCacheSize;
+    }
+    public long getChannelCheckoutTimeout() {
+        return channelCheckoutTimeout;
+    }
+    public void setChannelCheckoutTimeout(long channelCheckoutTimeout) {
+        this.channelCheckoutTimeout = channelCheckoutTimeout;
+    }
+    public String getExchangeName() {
+        return exchangeName;
+    }
+    public void setExchangeName(String exchangeName) {
+        this.exchangeName = exchangeName;
+    }
+    public ExchangeType getExchangeType() {
+        return exchangeType;
+    }
+    public void setExchangeType(ExchangeType exchangeType) {
+        this.exchangeType = exchangeType;
+    }
+    public boolean isExchangeDurable() {
+        return exchangeDurable;
+    }
+    public void setExchangeDurable(boolean exchangeDurable) {
+        this.exchangeDurable = exchangeDurable;
+    }
+    public boolean isExchangeAutoDelete() {
+        return exchangeAutoDelete;
+    }
+    public void setExchangeAutoDelete(boolean exchangeAutoDelete) {
+        this.exchangeAutoDelete = exchangeAutoDelete;
+    }
+    public Map<String, Object> getExchangeArguments() {
+        return exchangeArguments;
+    }
+    public void setExchangeArguments(Map<String, Object> exchangeArguments) {
+        this.exchangeArguments = exchangeArguments;
+    }
+    public String getQueueName() {
+        return queueName;
+    }
+    public void setQueueName(String queueName) {
+        this.queueName = queueName;
+    }
+    public boolean isQueueDurable() {
+        return queueDurable;
+    }
+    public void setQueueDurable(boolean queueDurable) {
+        this.queueDurable = queueDurable;
+    }
+    public boolean isQueueExclusive() {
+        return queueExclusive;
+    }
+    public void setQueueExclusive(boolean queueExclusive) {
+        this.queueExclusive = queueExclusive;
+    }
+    public boolean isQueueAutoDelete() {
+        return queueAutoDelete;
+    }
+    public void setQueueAutoDelete(boolean queueAutoDelete) {
+        this.queueAutoDelete = queueAutoDelete;
+    }
+    public Map<String, Object> getQueueArguments() {
+        return queueArguments;
+    }
+    public void setQueueArguments(Map<String, Object> queueArguments) {
+        this.queueArguments = queueArguments;
+    }
+    public String getRoutingKey() {
+        return routingKey;
+    }
+    public void setRoutingKey(String routingKey) {
+        this.routingKey = routingKey;
+    }
+    public String getBindingKey() {
+        return bindingKey;
+    }
+    public void setBindingKey(String bindingKey) {
+        this.bindingKey = bindingKey;
+    }
+    public int getPrefetchCount() {
+        return prefetchCount;
+    }
+    public void setPrefetchCount(int prefetchCount) {
+        this.prefetchCount = prefetchCount;
+    }
+    public boolean isAutoAck() {
+        return autoAck;
+    }
+    public void setAutoAck(boolean autoAck) {
+        this.autoAck = autoAck;
+    }
+    public String getConsumerTag() {
+        return consumerTag;
+    }
+    public void setConsumerTag(String consumerTag) {
+        this.consumerTag = consumerTag;
+    }
+    public boolean isExclusive() {
+        return exclusive;
+    }
+    public void setExclusive(boolean exclusive) {
+        this.exclusive = exclusive;
+    }
+    public boolean isNoLocal() {
+        return noLocal;
+    }
+    public void setNoLocal(boolean noLocal) {
+        this.noLocal = noLocal;
+    }
+    public boolean isPublisherConfirms() {
+        return publisherConfirms;
+    }
+    public void setPublisherConfirms(boolean publisherConfirms) {
+        this.publisherConfirms = publisherConfirms;
+    }
+    public boolean isPublisherReturns() {
+        return publisherReturns;
+    }
+    public void setPublisherReturns(boolean publisherReturns) {
+        this.publisherReturns = publisherReturns;
+    }
+    public boolean isMandatory() {
+        return mandatory;
+    }
+    public void setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
+    }
+    public boolean isImmediate() {
+        return immediate;
+    }
+    public void setImmediate(boolean immediate) {
+        this.immediate = immediate;
+    }
+    public MessageDeliveryMode getDeliveryMode() {
+        return deliveryMode;
+    }
+    public void setDeliveryMode(MessageDeliveryMode deliveryMode) {
+        this.deliveryMode = deliveryMode;
+    }
+    public int getPriority() {
+        return priority;
+    }
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+    public long getTtl() {
+        return ttl;
+    }
+    public void setTtl(long ttl) {
+        this.ttl = ttl;
+    }
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+    public long getRetryDelay() {
+        return retryDelay;
+    }
+    public void setRetryDelay(long retryDelay) {
+        this.retryDelay = retryDelay;
+    }
+    public boolean isEnableDeadLetterExchange() {
+        return enableDeadLetterExchange;
+    }
+    public void setEnableDeadLetterExchange(boolean enableDeadLetterExchange) {
+        this.enableDeadLetterExchange = enableDeadLetterExchange;
+    }
+    public String getDeadLetterExchangeName() {
+        return deadLetterExchangeName;
+    }
+    public void setDeadLetterExchangeName(String deadLetterExchangeName) {
+        this.deadLetterExchangeName = deadLetterExchangeName;
+    }
+    public String getDeadLetterRoutingKey() {
+        return deadLetterRoutingKey;
+    }
+    public void setDeadLetterRoutingKey(String deadLetterRoutingKey) {
+        this.deadLetterRoutingKey = deadLetterRoutingKey;
+    }
+    public boolean isSslEnabled() {
+        return sslEnabled;
+    }
+    public void setSslEnabled(boolean sslEnabled) {
+        this.sslEnabled = sslEnabled;
+    }
+    public String getTrustStore() {
+        return trustStore;
+    }
+    public void setTrustStore(String trustStore) {
+        this.trustStore = trustStore;
+    }
+    public String getTrustStorePassword() {
+        return trustStorePassword;
+    }
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword;
+    }
+    public String getKeyStore() {
+        return keyStore;
+    }
+    public void setKeyStore(String keyStore) {
+        this.keyStore = keyStore;
+    }
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
+    }
+    public String getSslProtocol() {
+        return sslProtocol;
+    }
+    public void setSslProtocol(String sslProtocol) {
+        this.sslProtocol = sslProtocol;
+    }
+    public boolean isUseConnectionPool() {
+        return useConnectionPool;
+    }
+    public void setUseConnectionPool(boolean useConnectionPool) {
+        this.useConnectionPool = useConnectionPool;
+    }
+    public int getMaxConnections() {
+        return maxConnections;
+    }
+    public void setMaxConnections(int maxConnections) {
+        this.maxConnections = maxConnections;
+    }
+    public int getMinConnections() {
+        return minConnections;
+    }
+    public void setMinConnections(int minConnections) {
+        this.minConnections = minConnections;
+    }
+    public long getConnectionIdleTimeout() {
+        return connectionIdleTimeout;
+    }
+    public void setConnectionIdleTimeout(long connectionIdleTimeout) {
+        this.connectionIdleTimeout = connectionIdleTimeout;
+    }
+    public boolean isEnableMetrics() {
+        return enableMetrics;
+    }
+    public void setEnableMetrics(boolean enableMetrics) {
+        this.enableMetrics = enableMetrics;
+    }
+    public boolean isEnableTracing() {
+        return enableTracing;
+    }
+    public void setEnableTracing(boolean enableTracing) {
+        this.enableTracing = enableTracing;
+    }
+    public boolean isEnablePublisherBatching() {
+        return enablePublisherBatching;
+    }
+    public void setEnablePublisherBatching(boolean enablePublisherBatching) {
+        this.enablePublisherBatching = enablePublisherBatching;
+    }
+    public int getPublisherBatchSize() {
+        return publisherBatchSize;
+    }
+    public void setPublisherBatchSize(int publisherBatchSize) {
+        this.publisherBatchSize = publisherBatchSize;
+    }
+    public long getPublisherBatchTimeout() {
+        return publisherBatchTimeout;
+    }
+    public void setPublisherBatchTimeout(long publisherBatchTimeout) {
+        this.publisherBatchTimeout = publisherBatchTimeout;
+    }
+    public boolean isEnableTransactions() {
+        return enableTransactions;
+    }
+    public void setEnableTransactions(boolean enableTransactions) {
+        this.enableTransactions = enableTransactions;
+    }
+    public String[] getClusterAddresses() {
+        return clusterAddresses;
+    }
+    public void setClusterAddresses(String[] clusterAddresses) {
+        this.clusterAddresses = clusterAddresses;
+    }
+    public boolean isEnableClusterFailover() {
+        return enableClusterFailover;
+    }
+    public void setEnableClusterFailover(boolean enableClusterFailover) {
+        this.enableClusterFailover = enableClusterFailover;
+    }
+    public Features getFeatures() {
+        return features;
+    }
+    public void setFeatures(Features features) {
+        this.features = features;
+    }
+    public boolean isEnableMessageOrdering() {
+        return enableMessageOrdering;
+    }
+    public void setEnableMessageOrdering(boolean enableMessageOrdering) {
+        this.enableMessageOrdering = enableMessageOrdering;
+    }
+    public boolean isEnableMessageDeduplication() {
+        return enableMessageDeduplication;
+    }
+    public void setEnableMessageDeduplication(boolean enableMessageDeduplication) {
+        this.enableMessageDeduplication = enableMessageDeduplication;
+    }
+    public boolean isEnablePriorityQueues() {
+        return enablePriorityQueues;
+    }
+    public void setEnablePriorityQueues(boolean enablePriorityQueues) {
+        this.enablePriorityQueues = enablePriorityQueues;
+    }
+    public boolean isEnableLazyQueues() {
+        return enableLazyQueues;
+    }
+    public void setEnableLazyQueues(boolean enableLazyQueues) {
+        this.enableLazyQueues = enableLazyQueues;
+    }
+    public boolean isEnableQuorumQueues() {
+        return enableQuorumQueues;
+    }
+    public void setEnableQuorumQueues(boolean enableQuorumQueues) {
+        this.enableQuorumQueues = enableQuorumQueues;
+    }
+    public boolean isEnableStreamQueues() {
+        return enableStreamQueues;
+    }
+    public void setEnableStreamQueues(boolean enableStreamQueues) {
+        this.enableStreamQueues = enableStreamQueues;
+    }
+    public boolean isEnableRpcPattern() {
+        return enableRpcPattern;
+    }
+    public void setEnableRpcPattern(boolean enableRpcPattern) {
+        this.enableRpcPattern = enableRpcPattern;
+    }
+    public boolean isEnableDelayedMessaging() {
+        return enableDelayedMessaging;
+    }
+    public void setEnableDelayedMessaging(boolean enableDelayedMessaging) {
+        this.enableDelayedMessaging = enableDelayedMessaging;
+    }
+    public boolean isEnableMessageTracing() {
+        return enableMessageTracing;
+    }
+    public void setEnableMessageTracing(boolean enableMessageTracing) {
+        this.enableMessageTracing = enableMessageTracing;
+    }
+    public boolean isEnableSchemaValidation() {
+        return enableSchemaValidation;
+    }
+    public void setEnableSchemaValidation(boolean enableSchemaValidation) {
+        this.enableSchemaValidation = enableSchemaValidation;
+    }
+    public ManagementApi getManagementApi() {
+        return managementApi;
+    }
+    public void setManagementApi(ManagementApi managementApi) {
+        this.managementApi = managementApi;
+    }
+    public boolean isEnabled() {
+        return enabled;
+    }
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+    public void setReadTimeout(int readTimeout) {
+        this.readTimeout = readTimeout;
     }
 }

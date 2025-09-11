@@ -101,13 +101,6 @@ export function WsdlValidator({
     namespaces: false
   });
 
-  // Validate WSDL when content changes (debounced)
-  useEffect(() => {
-    if (autoValidate && debouncedContent.trim()) {
-      validateWsdl(debouncedContent);
-    }
-  }, [debouncedContent, autoValidate]);
-
   const validateWsdl = useCallback(async (wsdlContent: string) => {
     if (!wsdlContent.trim()) {
       setValidationResult(null);
@@ -151,6 +144,13 @@ export function WsdlValidator({
       setIsValidating(false);
     }
   }, [onChange, onValidationComplete]);
+
+  // Validate WSDL when content changes (debounced)
+  useEffect(() => {
+    if (autoValidate && debouncedContent.trim()) {
+      validateWsdl(debouncedContent);
+    }
+  }, [debouncedContent, autoValidate, validateWsdl]);
 
   const handleContentChange = useCallback((value: string | undefined) => {
     if (value !== undefined) {

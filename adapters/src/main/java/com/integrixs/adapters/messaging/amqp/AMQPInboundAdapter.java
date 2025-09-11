@@ -1,5 +1,8 @@
 package com.integrixs.adapters.messaging.amqp;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.messaging.amqp.AMQPConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -12,11 +15,9 @@ import org.apache.qpid.proton.message.Message;
 import org.apache.qpid.jms.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.jms.*;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.jms.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,8 +25,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class AMQPInboundAdapter extends AbstractInboundAdapter implements MessageListener {
+    private static final Logger log = LoggerFactory.getLogger(AMQPInboundAdapter.class);
+
     
     @Autowired
     private AMQPConfig config;
@@ -73,37 +75,6 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
             log.error("Failed to initialize AMQP Inbound Adapter", e);
             throw new AdapterException("Failed to initialize AMQP adapter", e);
         }
-    }
-    
-    private void setupConnectionFactory() {
-        String connectionUrl = buildConnectionUrl();
-        
-        connectionFactory = new JmsConnectionFactory(connectionUrl);
-        
-        // Set connection properties
-        connectionFactory.setUsername(config.getUsername());
-        connectionFactory.setPassword(config.getPassword());
-        connectionFactory.setClientID(config.getContainerId() != null ? 
-            config.getContainerId() : "IntegrixsFlowBridge-" + UUID.randomUUID());
-        
-        // Configure connection factory properties
-        connectionFactory.setReceiveLocalOnly(false);
-        connectionFactory.setReceiveNoWaitLocalOnly(false);
-        
-        // SSL configuration
-        if (config.isUseSsl()) {
-            connectionFactory.setKeyStoreLocation(config.getKeyStore());
-            connectionFactory.setKeyStorePassword(config.getKeyStorePassword());
-            connectionFactory.setTrustStoreLocation(config.getTrustStore());
-            connectionFactory.setTrustStorePassword(config.getTrustStorePassword());
-            connectionFactory.setVerifyHost(config.isVerifyHost());
-        }
-        
-        // Set AMQP properties
-        connectionFactory.setAmqpOpenServerListAction("REPLACE");
-        connectionFactory.setPopulateJMSXUserID(true);
-        
-        log.info("AMQP connection factory configured for: {}", connectionUrl);
     }
     
     private String buildConnectionUrl() {
@@ -176,22 +147,17 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
     }
     
     private void createConsumer() throws JMSException {
-        // Create session
-        boolean transacted = config.isEnableTransactions();
-        int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
-        
-        if (!config.isAutoAck()) {
-            acknowledgeMode = Session.CLIENT_ACKNOWLEDGE;
+        if (session == null) {
+            createSession();
         }
         
-        session = connection.createSession(transacted, acknowledgeMode);
-        
-        // Create destination
         Destination destination = createDestination();
         
-        // Create consumer with optional selector
-        String messageSelector = buildMessageSelector();
-        consumer = session.createConsumer(destination, messageSelector);
+        // Create consumer with message selector if configured
+        String messageSelector = config.getMessageSelector();
+        consumer = (messageSelector != null && !messageSelector.isEmpty()) ?
+                session.createConsumer(destination, messageSelector) :
+                session.createConsumer(destination);
         
         // Set message listener
         consumer.setMessageListener(this);
@@ -203,7 +169,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         String address = config.getSourceAddress();
         
         if (address == null || address.isEmpty()) {
-            throw new AdapterException("Source address not configured");
+            throw new AdapterException("Source address not configured", null);
         }
         
         // Handle broker-specific addressing
@@ -244,41 +210,41 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         List<String> selectors = new ArrayList<>();
         
         config.getSourceFilters().forEach((key, value) -> {
-            if (value instanceof String) {
-                selectors.add(key + " = '" + value + "'");
-            } else if (value instanceof Number) {
-                selectors.add(key + " = " + value);
-            } else if (value instanceof Boolean) {
-                selectors.add(key + " = " + value);
-            }
+            selectors.add(String.format("%s = '%s'", key, value));
         });
         
-        return selectors.isEmpty() ? null : String.join(" AND ", selectors);
+        return String.join(" AND ", selectors);
+    }
+    
+    private void createSession() throws JMSException {
+        if (connection == null) {
+            throw new IllegalStateException("Connection not established");
+        }
+        
+        // Create session based on configuration
+        session = connection.createSession(
+            config.isEnableTransactions(),
+            config.isAutoAck() ? Session.AUTO_ACKNOWLEDGE : Session.CLIENT_ACKNOWLEDGE
+        );
     }
     
     @Override
-    public void onMessage(javax.jms.Message jmsMessage) {
+    public void onMessage(jakarta.jms.Message jmsMessage) {
         messagesReceived.incrementAndGet();
         
-        messageProcessor.execute(() -> {
+        // Process asynchronously
+        messageProcessor.submit(() -> {
             try {
                 processMessage(jmsMessage);
                 messagesProcessed.incrementAndGet();
-                
-                // Acknowledge if manual acknowledgment
-                if (!config.isAutoAck() && !config.isEnableTransactions()) {
-                    jmsMessage.acknowledge();
-                }
-                
             } catch (Exception e) {
-                log.error("Error processing AMQP message", e);
                 messagesFailed.incrementAndGet();
                 handleMessageError(jmsMessage, e);
             }
         });
     }
     
-    private void processMessage(javax.jms.Message jmsMessage) throws JMSException {
+    private void processMessage(jakarta.jms.Message jmsMessage) throws JMSException {
         String messageId = jmsMessage.getJMSMessageID();
         
         // Duplicate detection
@@ -313,7 +279,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
             messageContent.put("redelivered", jmsMessage.getJMSRedelivered());
             
             // Create MessageDTO
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .id(messageId)
                 .type("amqp_message")
                 .source(String.format("amqp://%s:%d/%s", 
@@ -349,7 +315,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         }
     }
     
-    private String extractMessageBody(javax.jms.Message message) throws JMSException {
+    private String extractMessageBody(jakarta.jms.Message message) throws JMSException {
         if (message instanceof TextMessage) {
             return ((TextMessage) message).getText();
         } else if (message instanceof BytesMessage) {
@@ -377,7 +343,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         return "";
     }
     
-    private Map<String, Object> extractMessageProperties(javax.jms.Message message) throws JMSException {
+    private Map<String, Object> extractMessageProperties(jakarta.jms.Message message) throws JMSException {
         Map<String, Object> properties = new HashMap<>();
         
         // Standard JMS properties
@@ -401,7 +367,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         return properties;
     }
     
-    private Map<String, Object> extractMessageHeaders(javax.jms.Message message) throws JMSException {
+    private Map<String, Object> extractMessageHeaders(jakarta.jms.Message message) throws JMSException {
         Map<String, Object> headers = new HashMap<>();
         
         Enumeration<String> propertyNames = message.getPropertyNames();
@@ -414,7 +380,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         return headers;
     }
     
-    private void handleMessageError(javax.jms.Message message, Exception error) {
+    private void handleMessageError(jakarta.jms.Message message, Exception error) {
         try {
             int deliveryCount = message.getIntProperty("JMSXDeliveryCount");
             
@@ -444,7 +410,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         }
     }
     
-    private void sendToDeadLetter(javax.jms.Message message) {
+    private void sendToDeadLetter(jakarta.jms.Message message) {
         try {
             Destination deadLetter = session.createQueue(config.getDeadLetterAddress());
             MessageProducer deadLetterProducer = session.createProducer(deadLetter);

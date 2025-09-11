@@ -99,7 +99,7 @@ export const FacebookGraphApiConfiguration: React.FC<FacebookGraphApiConfigurati
       ...config,
       features
     });
-  }, [features]);
+  }, [features, config, onChange]);
 
   const isViewMode = mode === 'view';
 

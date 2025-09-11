@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.twitter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.twitter.ads")
-@EqualsAndHashCode(callSuper = true)
 public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
     
     private String adsAccountId;
@@ -21,8 +17,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
     private TwitterAdsFeatures features = new TwitterAdsFeatures();
     private TwitterAdsLimits limits = new TwitterAdsLimits();
     
-    @Data
-    public static class TwitterAdsFeatures {
+        public static class TwitterAdsFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAdGroupManagement = true;
         private boolean enableCreativeManagement = true;
@@ -45,8 +40,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         private boolean enableLeadGenCards = true;
     }
     
-    @Data
-    public static class TwitterAdsLimits {
+        public static class TwitterAdsLimits {
         private int maxCampaignsPerAccount = 200;
         private int maxAdGroupsPerCampaign = 100;
         private int maxAdsPerAdGroup = 50;
@@ -175,5 +169,228 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         HOUR,
         DAY,
         TOTAL
+    }
+    // Getters and Setters
+    public String getAdsAccountId() {
+        return adsAccountId;
+    }
+    public void setAdsAccountId(String adsAccountId) {
+        this.adsAccountId = adsAccountId;
+    }
+    public String getApiKey() {
+        return apiKey;
+    }
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+    public String getApiKeySecret() {
+        return apiKeySecret;
+    }
+    public void setApiKeySecret(String apiKeySecret) {
+        this.apiKeySecret = apiKeySecret;
+    }
+    public String getAccessToken() {
+        return accessToken;
+    }
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+    public String getAccessTokenSecret() {
+        return accessTokenSecret;
+    }
+    public void setAccessTokenSecret(String accessTokenSecret) {
+        this.accessTokenSecret = accessTokenSecret;
+    }
+    public TwitterAdsFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(TwitterAdsFeatures features) {
+        this.features = features;
+    }
+    public TwitterAdsLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(TwitterAdsLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableCampaignManagement() {
+        return enableCampaignManagement;
+    }
+    public void setEnableCampaignManagement(boolean enableCampaignManagement) {
+        this.enableCampaignManagement = enableCampaignManagement;
+    }
+    public boolean isEnableAdGroupManagement() {
+        return enableAdGroupManagement;
+    }
+    public void setEnableAdGroupManagement(boolean enableAdGroupManagement) {
+        this.enableAdGroupManagement = enableAdGroupManagement;
+    }
+    public boolean isEnableCreativeManagement() {
+        return enableCreativeManagement;
+    }
+    public void setEnableCreativeManagement(boolean enableCreativeManagement) {
+        this.enableCreativeManagement = enableCreativeManagement;
+    }
+    public boolean isEnableAudienceTargeting() {
+        return enableAudienceTargeting;
+    }
+    public void setEnableAudienceTargeting(boolean enableAudienceTargeting) {
+        this.enableAudienceTargeting = enableAudienceTargeting;
+    }
+    public boolean isEnableBudgetManagement() {
+        return enableBudgetManagement;
+    }
+    public void setEnableBudgetManagement(boolean enableBudgetManagement) {
+        this.enableBudgetManagement = enableBudgetManagement;
+    }
+    public boolean isEnableBidding() {
+        return enableBidding;
+    }
+    public void setEnableBidding(boolean enableBidding) {
+        this.enableBidding = enableBidding;
+    }
+    public boolean isEnableAnalytics() {
+        return enableAnalytics;
+    }
+    public void setEnableAnalytics(boolean enableAnalytics) {
+        this.enableAnalytics = enableAnalytics;
+    }
+    public boolean isEnableConversionTracking() {
+        return enableConversionTracking;
+    }
+    public void setEnableConversionTracking(boolean enableConversionTracking) {
+        this.enableConversionTracking = enableConversionTracking;
+    }
+    public boolean isEnableReporting() {
+        return enableReporting;
+    }
+    public void setEnableReporting(boolean enableReporting) {
+        this.enableReporting = enableReporting;
+    }
+    public boolean isEnableCustomAudiences() {
+        return enableCustomAudiences;
+    }
+    public void setEnableCustomAudiences(boolean enableCustomAudiences) {
+        this.enableCustomAudiences = enableCustomAudiences;
+    }
+    public boolean isEnableTailoredAudiences() {
+        return enableTailoredAudiences;
+    }
+    public void setEnableTailoredAudiences(boolean enableTailoredAudiences) {
+        this.enableTailoredAudiences = enableTailoredAudiences;
+    }
+    public boolean isEnablePromotedTweets() {
+        return enablePromotedTweets;
+    }
+    public void setEnablePromotedTweets(boolean enablePromotedTweets) {
+        this.enablePromotedTweets = enablePromotedTweets;
+    }
+    public boolean isEnablePromotedAccounts() {
+        return enablePromotedAccounts;
+    }
+    public void setEnablePromotedAccounts(boolean enablePromotedAccounts) {
+        this.enablePromotedAccounts = enablePromotedAccounts;
+    }
+    public boolean isEnablePromotedTrends() {
+        return enablePromotedTrends;
+    }
+    public void setEnablePromotedTrends(boolean enablePromotedTrends) {
+        this.enablePromotedTrends = enablePromotedTrends;
+    }
+    public boolean isEnableVideoAds() {
+        return enableVideoAds;
+    }
+    public void setEnableVideoAds(boolean enableVideoAds) {
+        this.enableVideoAds = enableVideoAds;
+    }
+    public boolean isEnableCarouselAds() {
+        return enableCarouselAds;
+    }
+    public void setEnableCarouselAds(boolean enableCarouselAds) {
+        this.enableCarouselAds = enableCarouselAds;
+    }
+    public boolean isEnableMomentAds() {
+        return enableMomentAds;
+    }
+    public void setEnableMomentAds(boolean enableMomentAds) {
+        this.enableMomentAds = enableMomentAds;
+    }
+    public boolean isEnableWebsiteCards() {
+        return enableWebsiteCards;
+    }
+    public void setEnableWebsiteCards(boolean enableWebsiteCards) {
+        this.enableWebsiteCards = enableWebsiteCards;
+    }
+    public boolean isEnableAppCards() {
+        return enableAppCards;
+    }
+    public void setEnableAppCards(boolean enableAppCards) {
+        this.enableAppCards = enableAppCards;
+    }
+    public boolean isEnableLeadGenCards() {
+        return enableLeadGenCards;
+    }
+    public void setEnableLeadGenCards(boolean enableLeadGenCards) {
+        this.enableLeadGenCards = enableLeadGenCards;
+    }
+    public int getMaxCampaignsPerAccount() {
+        return maxCampaignsPerAccount;
+    }
+    public void setMaxCampaignsPerAccount(int maxCampaignsPerAccount) {
+        this.maxCampaignsPerAccount = maxCampaignsPerAccount;
+    }
+    public int getMaxAdGroupsPerCampaign() {
+        return maxAdGroupsPerCampaign;
+    }
+    public void setMaxAdGroupsPerCampaign(int maxAdGroupsPerCampaign) {
+        this.maxAdGroupsPerCampaign = maxAdGroupsPerCampaign;
+    }
+    public int getMaxAdsPerAdGroup() {
+        return maxAdsPerAdGroup;
+    }
+    public void setMaxAdsPerAdGroup(int maxAdsPerAdGroup) {
+        this.maxAdsPerAdGroup = maxAdsPerAdGroup;
+    }
+    public int getMaxKeywordsPerAdGroup() {
+        return maxKeywordsPerAdGroup;
+    }
+    public void setMaxKeywordsPerAdGroup(int maxKeywordsPerAdGroup) {
+        this.maxKeywordsPerAdGroup = maxKeywordsPerAdGroup;
+    }
+    public int getMaxTargetingCriteriaPerAdGroup() {
+        return maxTargetingCriteriaPerAdGroup;
+    }
+    public void setMaxTargetingCriteriaPerAdGroup(int maxTargetingCriteriaPerAdGroup) {
+        this.maxTargetingCriteriaPerAdGroup = maxTargetingCriteriaPerAdGroup;
+    }
+    public double getMinDailyBudget() {
+        return minDailyBudget;
+    }
+    public void setMinDailyBudget(double minDailyBudget) {
+        this.minDailyBudget = minDailyBudget;
+    }
+    public double getMaxDailyBudget() {
+        return maxDailyBudget;
+    }
+    public void setMaxDailyBudget(double maxDailyBudget) {
+        this.maxDailyBudget = maxDailyBudget;
+    }
+    public int getMaxCustomAudienceSize() {
+        return maxCustomAudienceSize;
+    }
+    public void setMaxCustomAudienceSize(int maxCustomAudienceSize) {
+        this.maxCustomAudienceSize = maxCustomAudienceSize;
+    }
+    public int getMinCustomAudienceSize() {
+        return minCustomAudienceSize;
+    }
+    public void setMinCustomAudienceSize(int minCustomAudienceSize) {
+        this.minCustomAudienceSize = minCustomAudienceSize;
+    }
+    public int getMaxConversionEventsPerDay() {
+        return maxConversionEventsPerDay;
+    }
+    public void setMaxConversionEventsPerDay(int maxConversionEventsPerDay) {
+        this.maxConversionEventsPerDay = maxConversionEventsPerDay;
     }
 }

@@ -1,18 +1,19 @@
 package com.integrixs.adapters.social.instagram;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
-import com.integrixs.adapters.social.instagram.InstagramGraphApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.adapters.social.instagram.InstagramGraphApiConfig;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -30,31 +31,36 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Component("instagramGraphInboundAdapter")
-public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdapter<InstagramGraphApiConfig> {
+public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(InstagramGraphInboundAdapter.class);
+
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private final Set<String> processedMediaIds = ConcurrentHashMap.newKeySet();
     
+    private final RateLimiterService rateLimiterService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    private InstagramGraphApiConfig config;
+    private volatile boolean isListening = false;
+    
     @Autowired
     public InstagramGraphInboundAdapter(
-            InstagramGraphApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
     public void startListening() throws AdapterException {
-        if (!isConfigValid()) {
+        if (config == null || config.getInstagramBusinessAccountId() == null) {
             throw new AdapterException("Instagram configuration is invalid");
         }
         
@@ -63,17 +69,16 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         isListening = true;
         
         // Initialize polling based on enabled features
-        if (config.getFeatures().isEnableUserInsights()) {
+        if (config.isEnableInsights()) {
             scheduleInsightsPolling();
         }
         
-        if (config.getFeatures().isEnableCommentManagement()) {
+        if (config.isEnableCommentFiltering()) {
             scheduleCommentPolling();
         }
         
-        if (config.getFeatures().isEnableMentionMonitoring()) {
-            scheduleMentionPolling();
-        }
+        // Always enable mention monitoring
+        scheduleMentionPolling();
     }
     
     @Override
@@ -82,13 +87,12 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         isListening = false;
     }
     
-    @Override
-    protected Message processInboundData(String data, String type) {
+    private MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            MessageDTO message = new MessageDTO();
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setMessageTimestamp(Instant.now());
+            message.setStatus(MessageStatus.NEW);
             
             JsonNode dataNode = objectMapper.readTree(data);
             
@@ -127,7 +131,7 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             String object = (String) webhookData.get("object");
             if (!"instagram".equals(object)) {
@@ -167,32 +171,6 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         } catch (Exception e) {
             log.error("Error processing Instagram webhook", e);
             throw new AdapterException("Failed to process webhook", e);
-        }
-    }
-    
-    // Scheduled polling methods
-    @Scheduled(fixedDelayString = "${integrixs.adapters.instagram.pollingInterval:300000}") // 5 minutes
-    private void pollNewContent() {
-        if (!isListening) return;
-        
-        try {
-            rateLimiterService.acquire("instagram_api", 1);
-            
-            // Poll for new media
-            pollNewMedia();
-            
-            // Poll for comments if enabled
-            if (config.getFeatures().isEnableCommentManagement()) {
-                pollNewComments();
-            }
-            
-            // Poll for mentions if enabled
-            if (config.getFeatures().isEnableMentionMonitoring()) {
-                pollMentions();
-            }
-            
-        } catch (Exception e) {
-            log.error("Error polling Instagram content", e);
         }
     }
     
@@ -275,7 +253,7 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
     
     @Scheduled(fixedDelayString = "${integrixs.adapters.instagram.insightsInterval:3600000}") // 1 hour
     private void pollInsights() {
-        if (!isListening || !config.getFeatures().isEnableUserInsights()) return;
+        if (!isListening || !config.isEnableInsights()) return;
         
         try {
             rateLimiterService.acquire("instagram_api", 1);
@@ -349,11 +327,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
     }
     
     // Process different types of data
-    private Message processWebhookEvent(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processWebhookEvent(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "WEBHOOK_EVENT");
@@ -366,11 +344,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processNewMedia(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processNewMedia(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "NEW_MEDIA");
@@ -385,11 +363,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processNewComment(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processNewComment(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "NEW_COMMENT");
@@ -405,11 +383,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processNewMention(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processNewMention(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "NEW_MENTION");
@@ -421,11 +399,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processInsightsUpdate(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processInsightsUpdate(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "INSIGHTS_UPDATE");
@@ -438,11 +416,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processStoryInsight(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processStoryInsight(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "STORY_INSIGHT");
@@ -455,11 +433,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processHashtagAnalytics(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processHashtagAnalytics(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "HASHTAG_ANALYTICS");
@@ -472,23 +450,23 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processWebhookComment(Map<String, Object> value) {
+    private MessageDTO processWebhookComment(Map<String, Object> value) {
         ObjectNode node = objectMapper.createObjectNode();
         node.putPOJO("comment_data", value);
         return processNewComment(node);
     }
     
-    private Message processWebhookMention(Map<String, Object> value) {
+    private MessageDTO processWebhookMention(Map<String, Object> value) {
         ObjectNode node = objectMapper.createObjectNode();
         node.putPOJO("mention_data", value);
         return processNewMention(node);
     }
     
-    private Message processWebhookLiveVideo(Map<String, Object> value) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processWebhookLiveVideo(Map<String, Object> value) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         message.setHeaders(Map.of(
             "type", "LIVE_VIDEO_EVENT",
             "source", "instagram",
@@ -498,11 +476,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processWebhookStory(Map<String, Object> value) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processWebhookStory(Map<String, Object> value) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         message.setHeaders(Map.of(
             "type", "STORY_EVENT",
             "source", "instagram",
@@ -549,7 +527,11 @@ public class InstagramGraphInboundAdapter extends AbstractSocialMediaInboundAdap
         return config != null 
             && config.getInstagramBusinessAccountId() != null 
             && config.getAccessToken() != null
-            && config.getAppId() != null
-            && config.getAppSecret() != null;
+            && config.getClientId() != null
+            && config.getClientSecret() != null;
+    }
+    
+    public void setConfiguration(InstagramGraphApiConfig config) {
+        this.config = config;
     }
 }

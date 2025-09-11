@@ -1,7 +1,9 @@
 package com.integrixs.adapters.social.facebook;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -13,10 +15,11 @@ import java.util.Map;
 /**
  * REST controller to handle Facebook webhook events
  */
-@Slf4j
 @RestController
 @RequestMapping("/webhooks/facebook")
 public class FacebookWebhookController {
+    private static final Logger log = LoggerFactory.getLogger(FacebookWebhookController.class);
+
     
     @Autowired
     private FacebookWebhookProcessor webhookProcessor;

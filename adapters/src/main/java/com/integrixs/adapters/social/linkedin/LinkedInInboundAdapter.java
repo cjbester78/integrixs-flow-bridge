@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.linkedin;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.linkedin.LinkedInApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -26,9 +28,10 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Component("linkedInInboundAdapter")
-public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<LinkedInApiConfig> {
+public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(LinkedInInboundAdapter.class);
+
     
     private static final String LINKEDIN_API_BASE = "https://api.linkedin.com/v2";
     private static final String LINKEDIN_API_REST_BASE = "https://api.linkedin.com/rest";
@@ -41,7 +44,7 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
     public LinkedInInboundAdapter(
             LinkedInApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
@@ -96,9 +99,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
+            MessageDTO message = new MessageDTO();
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
@@ -143,7 +146,7 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             // LinkedIn uses webhooks for certain events
             String eventType = (String) webhookData.get("eventType");
@@ -157,17 +160,7 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
             return null;
         } catch (Exception e) {
             log.error("Error processing LinkedIn webhook", e);
-            throw new AdapterException("Failed to process webhook", e);
-        }
-    }
-    
-    // Scheduled polling methods
-    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.feedPollingInterval:300000}") // 5 minutes
-    private void pollFeed() {
-        if (!isListening || !config.getFeatures().isEnablePostSharing()) return;
-        
-        try {
-            rateLimiterService.acquire("linkedin_api", 1);
+            throw new AdapterException("Failed to process webhook", 1);
             
             // Poll user's feed/shares
             String url = LINKEDIN_API_REST_BASE + "/posts";
@@ -333,8 +326,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
     }
     
     // Process different types of data
-    private Message processFeedPost(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processFeedPost(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(data.path("id").asText());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -370,8 +363,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processComment(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processComment(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -390,8 +383,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processReaction(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processReaction(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -406,8 +399,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processMessage(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processMessage(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -422,8 +415,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processConnection(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processConnection(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -442,8 +435,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processAnalytics(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAnalytics(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -476,8 +469,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processOrganizationActivity(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processOrganizationActivity(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -497,8 +490,8 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
         return message;
     }
     
-    private Message processShareStatistics(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processShareStatistics(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -514,13 +507,13 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter<Li
     }
     
     // Webhook processing
-    private Message processOrganizationSocialAction(Map<String, Object> webhookData) {
+    private MessageDTO processOrganizationSocialAction(Map<String, Object> webhookData) {
         ObjectNode node = objectMapper.createObjectNode();
         node.putPOJO("webhook_data", webhookData);
         return processOrganizationActivity(node);
     }
     
-    private Message processShareWebhook(Map<String, Object> webhookData) {
+    private MessageDTO processShareWebhook(Map<String, Object> webhookData) {
         ObjectNode node = objectMapper.createObjectNode();
         node.putPOJO("webhook_data", webhookData);
         return processFeedPost(node);

@@ -1,18 +1,19 @@
 package com.integrixs.adapters.social.tiktok;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.tiktok.TikTokContentApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -31,9 +32,10 @@ import java.security.MessageDigest;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-@Slf4j
 @Component("tikTokContentInboundAdapter")
-public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapter<TikTokContentApiConfig> {
+public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TikTokContentInboundAdapter.class);
+
     
     private static final String TIKTOK_API_BASE = "https://open-api.tiktok.com";
     private static final String TIKTOK_API_VERSION = "/v1.3";
@@ -42,15 +44,21 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private final Map<String, String> lastVideoId = new ConcurrentHashMap<>();
     
+    private final TikTokContentApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public TikTokContentInboundAdapter(
             TikTokContentApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        super();
+        this.config = config;
+        this.rateLimiterService = rateLimiterService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -96,9 +104,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
+            MessageDTO message = new MessageDTO();
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
@@ -143,10 +151,10 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // TikTok Content API supports webhooks for certain events
         try {
-            Message message = new Message();
+            MessageDTO message = new MessageDTO();
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
@@ -189,17 +197,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             return message;
         } catch (Exception e) {
             log.error("Error processing TikTok Content webhook", e);
-            throw new AdapterException("Failed to process webhook data", e);
-        }
-    }
-    
-    // Scheduled polling methods
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.videoPollInterval:3600000}") // 1 hour
-    private void pollVideos() {
-        if (!isListening || !config.getFeatures().isEnableVideoRetrieval()) return;
-        
-        try {
-            rateLimiterService.acquire("tiktok_content_api", 1);
+            throw new AdapterException("Failed to process webhook data", 1);
             
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/list/";
             
@@ -347,8 +345,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     }
     
     // Process different data types
-    private Message processVideoData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processVideoData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -389,8 +387,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processCommentData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processCommentData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -429,8 +427,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processEngagementData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processEngagementData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -460,8 +458,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processTrendingData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processTrendingData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -481,8 +479,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processFollowerData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processFollowerData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -518,8 +516,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processHashtagData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processHashtagData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -547,8 +545,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processAnalyticsData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAnalyticsData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -575,8 +573,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         return message;
     }
     
-    private Message processNotificationData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processNotificationData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -708,5 +706,34 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             && config.getClientSecret() != null
             && config.getUserId() != null
             && config.getAccessToken() != null;
+    }
+    
+    @Override
+    protected String getAdapterType() {
+        return "TIKTOK_CONTENT";
+    }
+    
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList(
+            "SOCIAL_MEDIA_VIDEO",
+            "SOCIAL_MEDIA_COMMENT", 
+            "SOCIAL_MEDIA_ENGAGEMENT",
+            "SOCIAL_MEDIA_ANALYTICS"
+        );
+    }
+    
+    @Override
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("clientKey", config.getClientKey());
+        configMap.put("userId", config.getUserId());
+        configMap.put("enabled", config.isEnabled());
+        return configMap;
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
     }
 }

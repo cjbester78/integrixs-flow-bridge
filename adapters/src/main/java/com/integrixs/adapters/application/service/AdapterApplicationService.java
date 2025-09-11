@@ -6,8 +6,8 @@ import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.domain.service.AdapterManagementService;
 import com.integrixs.adapters.domain.service.AdapterRegistryService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +22,19 @@ import java.util.stream.Collectors;
  * Application service for adapter operations
  * Orchestrates domain services and handles use cases
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterApplicationService {
+    
+    private static final Logger log = LoggerFactory.getLogger(AdapterApplicationService.class);
     
     private final AdapterManagementService adapterManagementService;
     private final AdapterRegistryService adapterRegistryService;
+    
+    public AdapterApplicationService(AdapterManagementService adapterManagementService, 
+                                   AdapterRegistryService adapterRegistryService) {
+        this.adapterManagementService = adapterManagementService;
+        this.adapterRegistryService = adapterRegistryService;
+    }
     
     /**
      * Create a new adapter
@@ -367,26 +373,6 @@ public class AdapterApplicationService {
                 .build();
     }
     
-    private AdapterConfiguration convertToConfiguration(UpdateAdapterRequestDTO request, String adapterId) {
-        AdapterConfiguration existing = adapterManagementService.getAdapterConfiguration(adapterId);
-        
-        return AdapterConfiguration.builder()
-                .adapterId(adapterId)
-                .adapterType(existing.getAdapterType())
-                .adapterMode(existing.getAdapterMode())
-                .name(request.getName() != null ? request.getName() : existing.getName())
-                .description(request.getDescription() != null ? request.getDescription() : existing.getDescription())
-                .connectionProperties(request.getConnectionProperties() != null ? 
-                    request.getConnectionProperties() : existing.getConnectionProperties())
-                .operationProperties(request.getOperationProperties() != null ? 
-                    request.getOperationProperties() : existing.getOperationProperties())
-                .authentication(request.getAuthentication() != null ? 
-                    convertAuthConfig(request.getAuthentication()) : existing.getAuthentication())
-                .retryConfig(request.getRetryConfig() != null ? 
-                    convertRetryConfig(request.getRetryConfig()) : existing.getRetryConfig())
-                .timeout(request.getTimeout() != null ? request.getTimeout().intValue() : existing.getTimeout())
-                .build();
-    }
     
     private AuthenticationConfig convertAuthConfig(AuthenticationConfigDTO dto) {
         if (dto == null) {

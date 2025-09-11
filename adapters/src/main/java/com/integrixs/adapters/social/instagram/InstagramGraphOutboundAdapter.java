@@ -1,18 +1,19 @@
 package com.integrixs.adapters.social.instagram;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.adapters.social.instagram.InstagramGraphApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.adapters.social.instagram.InstagramGraphApiConfig;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -30,29 +31,35 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.net.URLEncoder;
 
-@Slf4j
 @Component("instagramGraphOutboundAdapter")
-public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAdapter<InstagramGraphApiConfig> {
+public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(InstagramGraphOutboundAdapter.class);
+
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private final RateLimiterService rateLimiterService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    private InstagramGraphApiConfig config;
+    
     @Autowired
     public InstagramGraphOutboundAdapter(
-            InstagramGraphApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    public Message processMessage(Message message) throws AdapterException {
-        validateConfiguration();
+    public MessageDTO processMessage(MessageDTO message) throws AdapterException {
+        if (config == null) {
+            throw new AdapterException("Instagram configuration is not set");
+        }
         
         String operation = (String) message.getHeaders().get("operation");
         if (operation == null) {
@@ -62,104 +69,43 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         log.debug("Processing Instagram operation: {}", operation);
         
         try {
-            rateLimiterService.acquire("instagram_api", 1);
-            
-            Message response;
             switch (operation.toUpperCase()) {
-                // Content publishing operations
                 case "PUBLISH_IMAGE":
-                    response = publishImage(message);
-                    break;
+                    return publishImage(message);
                 case "PUBLISH_VIDEO":
-                    response = publishVideo(message);
-                    break;
+                    return publishVideo(message);
                 case "PUBLISH_CAROUSEL":
-                    response = publishCarousel(message);
-                    break;
-                case "PUBLISH_REEL":
-                    response = publishReel(message);
-                    break;
+                    return publishCarousel(message);
                 case "PUBLISH_STORY":
-                    response = publishStory(message);
-                    break;
-                case "PUBLISH_IGTV":
-                    response = publishIGTV(message);
-                    break;
-                    
-                // Comment operations
-                case "POST_COMMENT":
-                    response = postComment(message);
-                    break;
-                case "DELETE_COMMENT":
-                    response = deleteComment(message);
-                    break;
-                case "HIDE_COMMENT":
-                    response = hideComment(message);
-                    break;
+                    return publishStory(message);
+                case "GET_INSIGHTS":
+                    return getInsights(message);
+                case "GET_MEDIA":
+                    return getMedia(message);
+                case "GET_COMMENTS":
+                    return getComments(message);
                 case "REPLY_TO_COMMENT":
-                    response = replyToComment(message);
-                    break;
-                    
-                // Media operations
-                case "UPDATE_MEDIA":
-                    response = updateMedia(message);
-                    break;
-                case "DELETE_MEDIA":
-                    response = deleteMedia(message);
-                    break;
-                case "GET_MEDIA_INSIGHTS":
-                    response = getMediaInsights(message);
-                    break;
-                    
-                // Account operations
-                case "GET_ACCOUNT_INFO":
-                    response = getAccountInfo(message);
-                    break;
-                case "GET_ACCOUNT_INSIGHTS":
-                    response = getAccountInsights(message);
-                    break;
-                case "GET_AUDIENCE_INSIGHTS":
-                    response = getAudienceInsights(message);
-                    break;
-                    
-                // Hashtag operations
-                case "GET_HASHTAG_ID":
-                    response = getHashtagId(message);
-                    break;
-                case "GET_HASHTAG_MEDIA":
-                    response = getHashtagMedia(message);
-                    break;
-                case "SEARCH_HASHTAGS":
-                    response = searchHashtags(message);
-                    break;
-                    
-                // Shopping operations
-                case "TAG_PRODUCTS":
-                    response = tagProducts(message);
-                    break;
-                case "GET_TAGGED_PRODUCTS":
-                    response = getTaggedProducts(message);
-                    break;
-                    
-                // Discovery operations
-                case "GET_MEDIA_DISCOVERY":
-                    response = getMediaDiscovery(message);
-                    break;
-                case "GET_USER_TAGS":
-                    response = getUserTags(message);
-                    break;
-                    
+                    return replyToComment(message);
+                case "DELETE_COMMENT":
+                    return deleteComment(message);
+                case "HIDE_COMMENT":
+                    return hideComment(message);
+                case "GET_MENTIONS":
+                    return getMentions(message);
+                case "GET_TAGGED_MEDIA":
+                    return getTaggedMedia(message);
+                case "GET_STORIES":
+                    return getStories(message);
+                case "SCHEDULE_POST":
+                    return schedulePost(message);
                 default:
                     throw new AdapterException("Unknown operation: " + operation);
             }
-            
-            return response;
-            
         } catch (Exception e) {
-            log.error("Error processing Instagram message", e);
-            Message errorResponse = new Message();
-            errorResponse.setMessageId(message.getMessageId());
-            errorResponse.setStatus(MessageStatus.ERROR);
+            log.error("Error processing Instagram operation: " + operation, e);
+            MessageDTO errorResponse = new MessageDTO();
+            errorResponse.setCorrelationId(message.getCorrelationId());
+            errorResponse.setStatus(MessageStatus.FAILED);
             errorResponse.setHeaders(Map.of(
                 "error", e.getMessage(),
                 "originalOperation", operation
@@ -168,7 +114,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
     }
     
-    private Message publishImage(Message message) throws Exception {
+    private MessageDTO publishImage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Step 1: Create media container
@@ -217,7 +163,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), publishResponse.getBody(), "IMAGE_PUBLISHED");
     }
     
-    private Message publishVideo(Message message) throws Exception {
+    private MessageDTO publishVideo(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Step 1: Create video container
@@ -280,7 +226,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), publishResponse.getBody(), "VIDEO_PUBLISHED");
     }
     
-    private Message publishCarousel(Message message) throws Exception {
+    private MessageDTO publishCarousel(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         ArrayNode items = (ArrayNode) payload.path("items");
         
@@ -356,7 +302,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), publishResponse.getBody(), "CAROUSEL_PUBLISHED");
     }
     
-    private Message publishReel(Message message) throws Exception {
+    private MessageDTO publishReel(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Reels are published similar to videos but with specific requirements
@@ -408,7 +354,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), publishResponse.getBody(), "REEL_PUBLISHED");
     }
     
-    private Message publishStory(Message message) throws Exception {
+    private MessageDTO publishStory(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String containerUrl = String.format("%s/%s/%s/media", 
@@ -451,13 +397,13 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), publishResponse.getBody(), "STORY_PUBLISHED");
     }
     
-    private Message publishIGTV(Message message) throws Exception {
+    private MessageDTO publishIGTV(MessageDTO message) throws Exception {
         // IGTV is being phased out in favor of Reels
         // Redirect to reel publishing
         return publishReel(message);
     }
     
-    private Message postComment(Message message) throws Exception {
+    private MessageDTO postComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -479,7 +425,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "COMMENT_POSTED");
     }
     
-    private Message deleteComment(Message message) throws Exception {
+    private MessageDTO deleteComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("comment_id").asText();
         
@@ -497,7 +443,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "COMMENT_DELETED");
     }
     
-    private Message hideComment(Message message) throws Exception {
+    private MessageDTO hideComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("comment_id").asText();
         
@@ -519,7 +465,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "COMMENT_HIDDEN");
     }
     
-    private Message replyToComment(Message message) throws Exception {
+    private MessageDTO replyToComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("comment_id").asText();
         
@@ -541,7 +487,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "REPLY_POSTED");
     }
     
-    private Message updateMedia(Message message) throws Exception {
+    private MessageDTO updateMedia(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -566,7 +512,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_UPDATED");
     }
     
-    private Message deleteMedia(Message message) throws Exception {
+    private MessageDTO deleteMedia(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -584,7 +530,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_DELETED");
     }
     
-    private Message getMediaInsights(Message message) throws Exception {
+    private MessageDTO getMediaInsights(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -611,7 +557,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_INSIGHTS_RETRIEVED");
     }
     
-    private Message getAccountInfo(Message message) throws Exception {
+    private MessageDTO getAccountInfo(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -636,7 +582,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "ACCOUNT_INFO_RETRIEVED");
     }
     
-    private Message getAccountInsights(Message message) throws Exception {
+    private MessageDTO getAccountInsights(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/insights", 
@@ -664,7 +610,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "ACCOUNT_INSIGHTS_RETRIEVED");
     }
     
-    private Message getAudienceInsights(Message message) throws Exception {
+    private MessageDTO getAudienceInsights(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/insights", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -689,7 +635,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "AUDIENCE_INSIGHTS_RETRIEVED");
     }
     
-    private Message getHashtagId(Message message) throws Exception {
+    private MessageDTO getHashtagId(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String hashtag = payload.path("hashtag").asText().replace("#", "");
         
@@ -716,7 +662,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "HASHTAG_ID_RETRIEVED");
     }
     
-    private Message getHashtagMedia(Message message) throws Exception {
+    private MessageDTO getHashtagMedia(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String hashtagId = payload.path("hashtag_id").asText();
         
@@ -745,7 +691,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "HASHTAG_MEDIA_RETRIEVED");
     }
     
-    private Message searchHashtags(Message message) throws Exception {
+    private MessageDTO searchHashtags(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String query = payload.path("query").asText();
         
@@ -772,7 +718,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "HASHTAGS_SEARCHED");
     }
     
-    private Message tagProducts(Message message) throws Exception {
+    private MessageDTO tagProducts(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -794,7 +740,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "PRODUCTS_TAGGED");
     }
     
-    private Message getTaggedProducts(Message message) throws Exception {
+    private MessageDTO getTaggedProducts(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -820,7 +766,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "TAGGED_PRODUCTS_RETRIEVED");
     }
     
-    private Message getMediaDiscovery(Message message) throws Exception {
+    private MessageDTO getMediaDiscovery(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/media", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -846,7 +792,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_DISCOVERY_RETRIEVED");
     }
     
-    private Message getUserTags(Message message) throws Exception {
+    private MessageDTO getUserTags(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/tags", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -870,11 +816,11 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_TAGS_RETRIEVED");
     }
     
-    private Message createSuccessResponse(String messageId, String responseBody, String operation) {
-        Message response = new Message();
-        response.setMessageId(messageId);
+    private MessageDTO createSuccessResponse(String messageId, String responseBody, String operation) {
+        MessageDTO response = new MessageDTO();
+        response.setCorrelationId(messageId);
         response.setStatus(MessageStatus.SUCCESS);
-        response.setTimestamp(Instant.now());
+        response.setMessageTimestamp(Instant.now());
         response.setHeaders(Map.of(
             "operation", operation,
             "source", "instagram"
@@ -899,4 +845,102 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
             throw new AdapterException("Access token is required");
         }
     }
+    
+    public void setConfiguration(InstagramGraphApiConfig config) {
+        this.config = config;
+    }
+
+    private MessageDTO getInsights(MessageDTO message) throws Exception {
+        return getMediaInsights(message);
+    }
+    
+    private MessageDTO getMedia(MessageDTO message) throws Exception {
+        return getMediaDiscovery(message);
+    }
+    
+    private MessageDTO getComments(MessageDTO message) throws Exception {
+        JsonNode payload = objectMapper.readTree(message.getPayload());
+        String mediaId = payload.path("media_id").asText();
+        
+        String url = String.format("%s/%s/%s/comments", 
+            config.getBaseUrl(), 
+            config.getApiVersion(), 
+            mediaId);
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("access_token", getAccessToken());
+        params.put("fields", "id,text,username,timestamp,like_count");
+        
+        StringBuilder urlBuilder = new StringBuilder(url);
+        urlBuilder.append("?");
+        params.forEach((key, value) -> 
+            urlBuilder.append(key).append("=").append(value).append("&"));
+        
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(
+            urlBuilder.toString(), HttpMethod.GET, request, String.class);
+        
+        return createSuccessResponse(message.getMessageId(), response.getBody(), "COMMENTS_RETRIEVED");
+    }
+    
+    private MessageDTO getMentions(MessageDTO message) throws Exception {
+        String url = String.format("%s/%s/%s/mentioned_media", 
+            config.getBaseUrl(), 
+            config.getApiVersion(), 
+            config.getInstagramBusinessAccountId());
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("access_token", getAccessToken());
+        params.put("fields", "id,media_type,media_url,caption,permalink,timestamp");
+        
+        StringBuilder urlBuilder = new StringBuilder(url);
+        urlBuilder.append("?");
+        params.forEach((key, value) -> 
+            urlBuilder.append(key).append("=").append(value).append("&"));
+        
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(
+            urlBuilder.toString(), HttpMethod.GET, request, String.class);
+        
+        return createSuccessResponse(message.getMessageId(), response.getBody(), "MENTIONS_RETRIEVED");
+    }
+    
+    private MessageDTO getTaggedMedia(MessageDTO message) throws Exception {
+        return getUserTags(message);
+    }
+    
+    private MessageDTO getStories(MessageDTO message) throws Exception {
+        String url = String.format("%s/%s/%s/stories", 
+            config.getBaseUrl(), 
+            config.getApiVersion(), 
+            config.getInstagramBusinessAccountId());
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("access_token", getAccessToken());
+        params.put("fields", "id,media_type,media_url,permalink,timestamp");
+        
+        StringBuilder urlBuilder = new StringBuilder(url);
+        urlBuilder.append("?");
+        params.forEach((key, value) -> 
+            urlBuilder.append(key).append("=").append(value).append("&"));
+        
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(
+            urlBuilder.toString(), HttpMethod.GET, request, String.class);
+        
+        return createSuccessResponse(message.getMessageId(), response.getBody(), "STORIES_RETRIEVED");
+    }
+    
+    private MessageDTO schedulePost(MessageDTO message) throws Exception {
+        // Instagram doesn't support scheduling through API yet
+        // This would need to be implemented with a scheduling service
+        throw new AdapterException("Post scheduling is not yet supported by Instagram API");
+    }
+
 }

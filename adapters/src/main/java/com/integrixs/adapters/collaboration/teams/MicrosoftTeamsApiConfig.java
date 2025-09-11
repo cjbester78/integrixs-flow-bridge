@@ -3,14 +3,10 @@ package com.integrixs.adapters.collaboration.teams;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.teams")
-@EqualsAndHashCode(callSuper = true)
 public class MicrosoftTeamsApiConfig extends SocialMediaAdapterConfig {
     
     private String tenantId;
@@ -26,8 +22,7 @@ public class MicrosoftTeamsApiConfig extends SocialMediaAdapterConfig {
     private TeamsLimits limits = new TeamsLimits();
     private List<String> scopes; // Microsoft Graph API scopes
     
-    @Data
-    public static class TeamsFeatures {
+        public static class TeamsFeatures {
         private boolean enableMessaging = true;
         private boolean enableChannels = true;
         private boolean enableTeams = true;
@@ -60,8 +55,7 @@ public class MicrosoftTeamsApiConfig extends SocialMediaAdapterConfig {
         private boolean enablePraise = true;
     }
     
-    @Data
-    public static class TeamsLimits {
+        public static class TeamsLimits {
         private int maxMessageLength = 28000; // characters
         private int maxCardSize = 25; // KB for adaptive cards
         private int maxAttachmentsPerMessage = 10;
@@ -421,5 +415,390 @@ public class MicrosoftTeamsApiConfig extends SocialMediaAdapterConfig {
         public String getMessage() {
             return message;
         }
+    }
+    // Getters and Setters
+    public String getTenantId() {
+        return tenantId;
+    }
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+    public String getClientId() {
+        return clientId;
+    }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+    public String getClientSecret() {
+        return clientSecret;
+    }
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+    public String getBotId() {
+        return botId;
+    }
+    public void setBotId(String botId) {
+        this.botId = botId;
+    }
+    public String getBotName() {
+        return botName;
+    }
+    public void setBotName(String botName) {
+        this.botName = botName;
+    }
+    public String getWebhookUrl() {
+        return webhookUrl;
+    }
+    public void setWebhookUrl(String webhookUrl) {
+        this.webhookUrl = webhookUrl;
+    }
+    public String getNotificationUrl() {
+        return notificationUrl;
+    }
+    public void setNotificationUrl(String notificationUrl) {
+        this.notificationUrl = notificationUrl;
+    }
+    public String getGraphApiUrl() {
+        return graphApiUrl;
+    }
+    public void setGraphApiUrl(String graphApiUrl) {
+        this.graphApiUrl = graphApiUrl;
+    }
+    public String getBotFrameworkUrl() {
+        return botFrameworkUrl;
+    }
+    public void setBotFrameworkUrl(String botFrameworkUrl) {
+        this.botFrameworkUrl = botFrameworkUrl;
+    }
+    public TeamsFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(TeamsFeatures features) {
+        this.features = features;
+    }
+    public TeamsLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(TeamsLimits limits) {
+        this.limits = limits;
+    }
+    public List<String> getScopes() {
+        return scopes;
+    }
+    public void setScopes(List<String> scopes) {
+        this.scopes = scopes;
+    }
+    public boolean isEnableMessaging() {
+        return enableMessaging;
+    }
+    public void setEnableMessaging(boolean enableMessaging) {
+        this.enableMessaging = enableMessaging;
+    }
+    public boolean isEnableChannels() {
+        return enableChannels;
+    }
+    public void setEnableChannels(boolean enableChannels) {
+        this.enableChannels = enableChannels;
+    }
+    public boolean isEnableTeams() {
+        return enableTeams;
+    }
+    public void setEnableTeams(boolean enableTeams) {
+        this.enableTeams = enableTeams;
+    }
+    public boolean isEnableMeetings() {
+        return enableMeetings;
+    }
+    public void setEnableMeetings(boolean enableMeetings) {
+        this.enableMeetings = enableMeetings;
+    }
+    public boolean isEnableCalls() {
+        return enableCalls;
+    }
+    public void setEnableCalls(boolean enableCalls) {
+        this.enableCalls = enableCalls;
+    }
+    public boolean isEnableFiles() {
+        return enableFiles;
+    }
+    public void setEnableFiles(boolean enableFiles) {
+        this.enableFiles = enableFiles;
+    }
+    public boolean isEnableTabs() {
+        return enableTabs;
+    }
+    public void setEnableTabs(boolean enableTabs) {
+        this.enableTabs = enableTabs;
+    }
+    public boolean isEnableBots() {
+        return enableBots;
+    }
+    public void setEnableBots(boolean enableBots) {
+        this.enableBots = enableBots;
+    }
+    public boolean isEnableCards() {
+        return enableCards;
+    }
+    public void setEnableCards(boolean enableCards) {
+        this.enableCards = enableCards;
+    }
+    public boolean isEnableConnectors() {
+        return enableConnectors;
+    }
+    public void setEnableConnectors(boolean enableConnectors) {
+        this.enableConnectors = enableConnectors;
+    }
+    public boolean isEnableWebhooks() {
+        return enableWebhooks;
+    }
+    public void setEnableWebhooks(boolean enableWebhooks) {
+        this.enableWebhooks = enableWebhooks;
+    }
+    public boolean isEnableProactiveMessaging() {
+        return enableProactiveMessaging;
+    }
+    public void setEnableProactiveMessaging(boolean enableProactiveMessaging) {
+        this.enableProactiveMessaging = enableProactiveMessaging;
+    }
+    public boolean isEnableAdaptiveCards() {
+        return enableAdaptiveCards;
+    }
+    public void setEnableAdaptiveCards(boolean enableAdaptiveCards) {
+        this.enableAdaptiveCards = enableAdaptiveCards;
+    }
+    public boolean isEnableMessageExtensions() {
+        return enableMessageExtensions;
+    }
+    public void setEnableMessageExtensions(boolean enableMessageExtensions) {
+        this.enableMessageExtensions = enableMessageExtensions;
+    }
+    public boolean isEnableActivityFeed() {
+        return enableActivityFeed;
+    }
+    public void setEnableActivityFeed(boolean enableActivityFeed) {
+        this.enableActivityFeed = enableActivityFeed;
+    }
+    public boolean isEnableShifts() {
+        return enableShifts;
+    }
+    public void setEnableShifts(boolean enableShifts) {
+        this.enableShifts = enableShifts;
+    }
+    public boolean isEnablePlanner() {
+        return enablePlanner;
+    }
+    public void setEnablePlanner(boolean enablePlanner) {
+        this.enablePlanner = enablePlanner;
+    }
+    public boolean isEnableOneNote() {
+        return enableOneNote;
+    }
+    public void setEnableOneNote(boolean enableOneNote) {
+        this.enableOneNote = enableOneNote;
+    }
+    public boolean isEnableSharePoint() {
+        return enableSharePoint;
+    }
+    public void setEnableSharePoint(boolean enableSharePoint) {
+        this.enableSharePoint = enableSharePoint;
+    }
+    public boolean isEnablePowerApps() {
+        return enablePowerApps;
+    }
+    public void setEnablePowerApps(boolean enablePowerApps) {
+        this.enablePowerApps = enablePowerApps;
+    }
+    public boolean isEnablePowerAutomate() {
+        return enablePowerAutomate;
+    }
+    public void setEnablePowerAutomate(boolean enablePowerAutomate) {
+        this.enablePowerAutomate = enablePowerAutomate;
+    }
+    public boolean isEnableYammer() {
+        return enableYammer;
+    }
+    public void setEnableYammer(boolean enableYammer) {
+        this.enableYammer = enableYammer;
+    }
+    public boolean isEnableStream() {
+        return enableStream;
+    }
+    public void setEnableStream(boolean enableStream) {
+        this.enableStream = enableStream;
+    }
+    public boolean isEnableForms() {
+        return enableForms;
+    }
+    public void setEnableForms(boolean enableForms) {
+        this.enableForms = enableForms;
+    }
+    public boolean isEnableWhiteboard() {
+        return enableWhiteboard;
+    }
+    public void setEnableWhiteboard(boolean enableWhiteboard) {
+        this.enableWhiteboard = enableWhiteboard;
+    }
+    public boolean isEnableLists() {
+        return enableLists;
+    }
+    public void setEnableLists(boolean enableLists) {
+        this.enableLists = enableLists;
+    }
+    public boolean isEnableApprovals() {
+        return enableApprovals;
+    }
+    public void setEnableApprovals(boolean enableApprovals) {
+        this.enableApprovals = enableApprovals;
+    }
+    public boolean isEnableBookings() {
+        return enableBookings;
+    }
+    public void setEnableBookings(boolean enableBookings) {
+        this.enableBookings = enableBookings;
+    }
+    public boolean isEnablePolls() {
+        return enablePolls;
+    }
+    public void setEnablePolls(boolean enablePolls) {
+        this.enablePolls = enablePolls;
+    }
+    public boolean isEnablePraise() {
+        return enablePraise;
+    }
+    public void setEnablePraise(boolean enablePraise) {
+        this.enablePraise = enablePraise;
+    }
+    public int getMaxMessageLength() {
+        return maxMessageLength;
+    }
+    public void setMaxMessageLength(int maxMessageLength) {
+        this.maxMessageLength = maxMessageLength;
+    }
+    public int getMaxCardSize() {
+        return maxCardSize;
+    }
+    public void setMaxCardSize(int maxCardSize) {
+        this.maxCardSize = maxCardSize;
+    }
+    public int getMaxAttachmentsPerMessage() {
+        return maxAttachmentsPerMessage;
+    }
+    public void setMaxAttachmentsPerMessage(int maxAttachmentsPerMessage) {
+        this.maxAttachmentsPerMessage = maxAttachmentsPerMessage;
+    }
+    public int getMaxTabsPerChannel() {
+        return maxTabsPerChannel;
+    }
+    public void setMaxTabsPerChannel(int maxTabsPerChannel) {
+        this.maxTabsPerChannel = maxTabsPerChannel;
+    }
+    public int getMaxPrivateChannels() {
+        return maxPrivateChannels;
+    }
+    public void setMaxPrivateChannels(int maxPrivateChannels) {
+        this.maxPrivateChannels = maxPrivateChannels;
+    }
+    public int getMaxChannelsPerTeam() {
+        return maxChannelsPerTeam;
+    }
+    public void setMaxChannelsPerTeam(int maxChannelsPerTeam) {
+        this.maxChannelsPerTeam = maxChannelsPerTeam;
+    }
+    public int getMaxMembersPerTeam() {
+        return maxMembersPerTeam;
+    }
+    public void setMaxMembersPerTeam(int maxMembersPerTeam) {
+        this.maxMembersPerTeam = maxMembersPerTeam;
+    }
+    public int getMaxTeamsPerUser() {
+        return maxTeamsPerUser;
+    }
+    public void setMaxTeamsPerUser(int maxTeamsPerUser) {
+        this.maxTeamsPerUser = maxTeamsPerUser;
+    }
+    public int getMaxMeetingDuration() {
+        return maxMeetingDuration;
+    }
+    public void setMaxMeetingDuration(int maxMeetingDuration) {
+        this.maxMeetingDuration = maxMeetingDuration;
+    }
+    public int getMaxMeetingParticipants() {
+        return maxMeetingParticipants;
+    }
+    public void setMaxMeetingParticipants(int maxMeetingParticipants) {
+        this.maxMeetingParticipants = maxMeetingParticipants;
+    }
+    public int getMaxFileSizeMB() {
+        return maxFileSizeMB;
+    }
+    public void setMaxFileSizeMB(int maxFileSizeMB) {
+        this.maxFileSizeMB = maxFileSizeMB;
+    }
+    public int getMaxBotMessagesPerSecond() {
+        return maxBotMessagesPerSecond;
+    }
+    public void setMaxBotMessagesPerSecond(int maxBotMessagesPerSecond) {
+        this.maxBotMessagesPerSecond = maxBotMessagesPerSecond;
+    }
+    public int getMaxBotMessagesPerMinute() {
+        return maxBotMessagesPerMinute;
+    }
+    public void setMaxBotMessagesPerMinute(int maxBotMessagesPerMinute) {
+        this.maxBotMessagesPerMinute = maxBotMessagesPerMinute;
+    }
+    public int getMaxBotConversationsPerSecond() {
+        return maxBotConversationsPerSecond;
+    }
+    public void setMaxBotConversationsPerSecond(int maxBotConversationsPerSecond) {
+        this.maxBotConversationsPerSecond = maxBotConversationsPerSecond;
+    }
+    public int getMaxCardActions() {
+        return maxCardActions;
+    }
+    public void setMaxCardActions(int maxCardActions) {
+        this.maxCardActions = maxCardActions;
+    }
+    public int getMaxSuggestedActions() {
+        return maxSuggestedActions;
+    }
+    public void setMaxSuggestedActions(int maxSuggestedActions) {
+        this.maxSuggestedActions = maxSuggestedActions;
+    }
+    public int getMaxMessageExtensionResults() {
+        return maxMessageExtensionResults;
+    }
+    public void setMaxMessageExtensionResults(int maxMessageExtensionResults) {
+        this.maxMessageExtensionResults = maxMessageExtensionResults;
+    }
+    public int getRateLimitPerSecond() {
+        return rateLimitPerSecond;
+    }
+    public void setRateLimitPerSecond(int rateLimitPerSecond) {
+        this.rateLimitPerSecond = rateLimitPerSecond;
+    }
+    public int getRateLimitPerMinute() {
+        return rateLimitPerMinute;
+    }
+    public void setRateLimitPerMinute(int rateLimitPerMinute) {
+        this.rateLimitPerMinute = rateLimitPerMinute;
+    }
+    public int getBurstLimit() {
+        return burstLimit;
+    }
+    public void setBurstLimit(int burstLimit) {
+        this.burstLimit = burstLimit;
+    }
+    public int getMaxBatchRequests() {
+        return maxBatchRequests;
+    }
+    public void setMaxBatchRequests(int maxBatchRequests) {
+        this.maxBatchRequests = maxBatchRequests;
+    }
+    public int getWebhookExpiryHours() {
+        return webhookExpiryHours;
+    }
+    public void setWebhookExpiryHours(int webhookExpiryHours) {
+        this.webhookExpiryHours = webhookExpiryHours;
     }
 }

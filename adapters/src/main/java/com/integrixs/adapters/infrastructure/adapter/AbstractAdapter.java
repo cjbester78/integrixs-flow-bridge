@@ -4,8 +4,7 @@ import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.domain.model.AdapterMetadata;
 import com.integrixs.adapters.domain.port.AdapterPort;
-import com.integrixs.adapters.core.AdapterException;
-import lombok.Getter;
+import com.integrixs.shared.exceptions.AdapterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Abstract base class for all adapter implementations
  */
-@Getter
 public abstract class AbstractAdapter implements AdapterPort {
     
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -28,6 +26,35 @@ public abstract class AbstractAdapter implements AdapterPort {
     protected long lastActivityTimestamp;
     protected int messagesProcessed;
     protected int errorCount;
+    
+    // Getters
+    public AdapterConfiguration getConfiguration() {
+        return configuration;
+    }
+    
+    public AtomicBoolean getInitialized() {
+        return initialized;
+    }
+    
+    public AtomicBoolean getRunning() {
+        return running;
+    }
+    
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+    
+    public long getLastActivityTimestamp() {
+        return lastActivityTimestamp;
+    }
+    
+    public int getMessagesProcessed() {
+        return messagesProcessed;
+    }
+    
+    public int getErrorCount() {
+        return errorCount;
+    }
     
     @Override
     public void initialize(AdapterConfiguration config) {

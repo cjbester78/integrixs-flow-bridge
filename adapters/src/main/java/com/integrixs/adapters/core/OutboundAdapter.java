@@ -2,6 +2,7 @@ package com.integrixs.adapters.core;
 
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import java.util.Collection;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Interface for outbound adapters that pull data from external systems.

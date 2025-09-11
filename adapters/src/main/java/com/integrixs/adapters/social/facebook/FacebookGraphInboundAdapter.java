@@ -1,14 +1,15 @@
 package com.integrixs.adapters.social.facebook;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.integrixs.adapters.base.InboundAdapter;
+import com.integrixs.adapters.core.InboundAdapter;
+import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.facebook.model.FacebookPost;
-import com.integrixs.backend.service.OAuth2TokenRefreshService;
-import com.integrixs.backend.security.CredentialEncryptionService;
-import com.integrixs.shared.dto.FlowMessage;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,18 +22,16 @@ import java.util.Map;
  * Facebook Graph API Inbound Adapter
  * Handles incoming data from Facebook (webhooks, polling)
  */
-@Slf4j
 @Component
-public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApiConfig> {
+public class FacebookGraphInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(FacebookGraphInboundAdapter.class);
+
     
     @Autowired
     private FacebookGraphApiClient apiClient;
     
     @Autowired
-    private OAuth2TokenRefreshService tokenRefreshService;
-    
-    @Autowired
-    private CredentialEncryptionService encryptionService;
+    private com.integrixs.shared.services.CredentialEncryptionService encryptionService;
     
     @Autowired
     private FacebookWebhookProcessor webhookProcessor;
@@ -46,16 +45,16 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     }
     
     @Override
-    public FlowMessage receive(String flowId, FacebookGraphApiConfig config) {
+    public MessageDTO receive(String flowId, FacebookGraphApiConfig config) {
         try {
             // Ensure we have valid access token
             String accessToken = ensureValidAccessToken(config);
             
             if (config.isWebhookEnabled() && webhookProcessor != null) {
                 // Process webhook events if available
-                FlowMessage webhookMessage = webhookProcessor.getNextEvent(flowId);
-                if (webhookMessage != null) {
-                    return webhookMessage;
+                MessageDTO webhookMessageDTO = webhookProcessor.getNextEvent(flowId);
+                if (webhookMessageDTO != null) {
+                    return webhookMessageDTO;
                 }
             }
             
@@ -71,7 +70,7 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     /**
      * Poll Facebook for new data
      */
-    private FlowMessage pollFacebookData(FacebookGraphApiConfig config, String accessToken) {
+    private MessageDTO pollFacebookData(FacebookGraphApiConfig config, String accessToken) {
         try {
             // Example: Get recent posts from the page
             JsonNode posts = apiClient.getPost(config.getPageId() + "/posts", accessToken, config);
@@ -79,9 +78,9 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
             if (posts != null && posts.has("data") && posts.get("data").size() > 0) {
                 JsonNode firstPost = posts.get("data").get(0);
                 
-                FlowMessage message = new FlowMessage();
+                MessageDTO message = new MessageDTO();
                 message.setCorrelationId(java.util.UUID.randomUUID().toString());
-                message.setTimestamp(LocalDateTime.now());
+                message.setMessageTimestamp(java.time.Instant.now());
                 
                 // Set headers
                 Map<String, String> headers = new HashMap<>();
@@ -126,11 +125,11 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     /**
      * Process webhook event
      */
-    public FlowMessage processWebhookEvent(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookEvent(Map<String, Object> webhookData) {
         try {
-            FlowMessage message = new FlowMessage();
+            MessageDTO message = new MessageDTO();
             message.setCorrelationId(java.util.UUID.randomUUID().toString());
-            message.setTimestamp(LocalDateTime.now());
+            message.setMessageTimestamp(java.time.Instant.now());
             
             // Extract webhook type and data
             String object = (String) webhookData.get("object");
@@ -162,7 +161,7 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     /**
      * Process page-specific webhook
      */
-    private void processPageWebhook(Map<String, Object> entry, FlowMessage message) throws Exception {
+    private void processPageWebhook(Map<String, Object> entry, MessageDTO message) throws Exception {
         java.util.List<Map<String, Object>> changes = (java.util.List<Map<String, Object>>) entry.get("changes");
         
         for (Map<String, Object> change : changes) {
@@ -206,7 +205,7 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     /**
      * Process Instagram-specific webhook
      */
-    private void processInstagramWebhook(Map<String, Object> entry, FlowMessage message) throws Exception {
+    private void processInstagramWebhook(Map<String, Object> entry, MessageDTO message) throws Exception {
         // Implementation for Instagram webhooks
         message.getHeaders().put("platform", "instagram");
         message.setPayload(objectMapper.writeValueAsString(entry));
@@ -215,7 +214,7 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     /**
      * Process WhatsApp-specific webhook
      */
-    private void processWhatsAppWebhook(Map<String, Object> entry, FlowMessage message) throws Exception {
+    private void processWhatsAppWebhook(Map<String, Object> entry, MessageDTO message) throws Exception {
         // Implementation for WhatsApp webhooks
         message.getHeaders().put("platform", "whatsapp");
         message.setPayload(objectMapper.writeValueAsString(entry));
@@ -244,10 +243,10 @@ public class FacebookGraphInboundAdapter extends InboundAdapter<FacebookGraphApi
     /**
      * Create empty message when no data available
      */
-    private FlowMessage createEmptyMessage() {
-        FlowMessage message = new FlowMessage();
+    private MessageDTO createEmptyMessage() {
+        MessageDTO message = new MessageDTO();
         message.setCorrelationId(java.util.UUID.randomUUID().toString());
-        message.setTimestamp(LocalDateTime.now());
+        message.setMessageTimestamp(java.time.Instant.now());
         
         Map<String, String> headers = new HashMap<>();
         headers.put("source", "facebook");

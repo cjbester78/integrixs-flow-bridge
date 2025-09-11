@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -17,15 +20,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import lombok.extern.slf4j.Slf4j;
-import java.util.Map;
 /**
  * Mail Receiver Adapter implementation for email sending and delivery (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Supports SMTP protocol, email composition, attachments, and authentication.
  */
-@Slf4j
 public class MailOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(MailOutboundAdapter.class);
+
     
     private final MailOutboundAdapterConfig config;
     private Session mailSession;
@@ -408,18 +410,12 @@ public class MailOutboundAdapter extends AbstractAdapter implements OutboundAdap
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getSmtpServerHost() == null || config.getSmtpServerHost().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "SMTP server host is required");
-        }
-        if (config.getSmtpUsername() == null || config.getSmtpUsername().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "SMTP username is required");
+            throw new AdapterException("SMTP server host is required", null);
         }
         if (config.getSmtpPassword() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "SMTP password is required");
-        }
-        if (config.getFromAddress() == null || config.getFromAddress().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "From address is required");
+            throw new AdapterException("SMTP password is required", null);
         }
     }
     public long getTimeout() {

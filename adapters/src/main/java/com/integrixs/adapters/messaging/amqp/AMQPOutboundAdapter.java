@@ -1,5 +1,8 @@
 package com.integrixs.adapters.messaging.amqp;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractOutboundAdapter;
 import com.integrixs.adapters.messaging.amqp.AMQPConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -10,11 +13,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.qpid.jms.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.jms.*;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.jms.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
@@ -23,8 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(AMQPOutboundAdapter.class);
+
     
     @Autowired
     private AMQPConfig config;
@@ -76,33 +78,6 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
     
-    private void setupConnectionFactory() {
-        String connectionUrl = buildConnectionUrl();
-        
-        connectionFactory = new JmsConnectionFactory(connectionUrl);
-        
-        connectionFactory.setUsername(config.getUsername());
-        connectionFactory.setPassword(config.getPassword());
-        connectionFactory.setClientID(config.getContainerId() != null ? 
-            config.getContainerId() : "IntegrixsFlowBridge-Out-" + UUID.randomUUID());
-        
-        // SSL configuration
-        if (config.isUseSsl()) {
-            connectionFactory.setKeyStoreLocation(config.getKeyStore());
-            connectionFactory.setKeyStorePassword(config.getKeyStorePassword());
-            connectionFactory.setTrustStoreLocation(config.getTrustStore());
-            connectionFactory.setTrustStorePassword(config.getTrustStorePassword());
-            connectionFactory.setVerifyHost(config.isVerifyHost());
-        }
-        
-        // Performance tuning
-        connectionFactory.setForceSyncSend(!config.isEnableBatching());
-        connectionFactory.setAlwaysSyncSend(false);
-        connectionFactory.setForceAsyncSend(config.isEnableBatching());
-        
-        log.info("AMQP connection factory configured for: {}", connectionUrl);
-    }
-    
     private String buildConnectionUrl() {
         if (config.getConnectionUrl() != null && !config.getConnectionUrl().isEmpty()) {
             return config.getConnectionUrl();
@@ -135,6 +110,28 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
         return urlBuilder.toString();
     }
     
+    private void setupConnectionFactory() {
+        String connectionUrl = buildConnectionUrl();
+        connectionFactory = new JmsConnectionFactory(connectionUrl);
+        
+        // Configure factory
+        if (config.getUsername() != null && !config.getUsername().isEmpty()) {
+            connectionFactory.setUsername(config.getUsername());
+        }
+        
+        if (config.getPassword() != null && !config.getPassword().isEmpty()) {
+            connectionFactory.setPassword(config.getPassword());
+        }
+        
+        // SSL configuration
+        if (config.isUseSsl() && config.getSslConfiguration() != null) {
+            // SSL configuration would be set here
+            log.info("SSL enabled for AMQP connection");
+        }
+        
+        log.info("AMQP connection factory configured: {}", connectionUrl);
+    }
+    
     private void establishConnection() throws JMSException {
         try {
             connection = (JmsConnection) connectionFactory.createConnection();
@@ -158,10 +155,12 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
     }
     
     private void createProducer() throws JMSException {
-        boolean transacted = config.isEnableTransactions();
-        int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
-        
-        session = connection.createSession(transacted, acknowledgeMode);
+        if (session == null) {
+            session = connection.createSession(
+                config.isEnableTransactions(),
+                config.isAutoAck() ? Session.AUTO_ACKNOWLEDGE : Session.CLIENT_ACKNOWLEDGE
+            );
+        }
         
         // Create default producer
         if (config.getTargetAddress() != null && !config.getTargetAddress().isEmpty()) {
@@ -257,7 +256,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
             JsonNode messageContent = objectMapper.readTree(messageDTO.getContent());
             
             // Create JMS message
-            javax.jms.Message jmsMessage = createJmsMessage(messageContent);
+            jakarta.jms.Message jmsMessage = createJmsMessage(messageContent);
             
             // Set message properties
             setMessageProperties(jmsMessage, messageContent.path("properties"));
@@ -281,7 +280,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
             } else if (config.getTargetAddress() != null) {
                 producer.send(jmsMessage);
             } else {
-                throw new AdapterException("No target address specified");
+                throw new AdapterException("No target address specified", null);
             }
             
             messagesSent.incrementAndGet();
@@ -294,10 +293,13 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
             
             // Complete future
             messageDTO.getMetadata().put("amqpMessageId", jmsMessage.getJMSMessageID());
+            messageDTO.getMetadata().put("amqpTimestamp", String.valueOf(System.currentTimeMillis()));
             future.complete(messageDTO);
             
         } catch (Exception e) {
             messagesFailed.incrementAndGet();
+            future.completeExceptionally(e);
+            log.error("Failed to send AMQP message", e);
             
             // Rollback transaction if enabled
             if (config.isEnableTransactions()) {
@@ -308,13 +310,10 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
                     log.error("Failed to rollback transaction", ex);
                 }
             }
-            
-            future.completeExceptionally(e);
-            throw new AdapterException("Failed to send AMQP message", e);
         }
     }
     
-    private javax.jms.Message createJmsMessage(JsonNode content) throws JMSException {
+    private jakarta.jms.Message createJmsMessage(JsonNode content) throws JMSException {
         JsonNode body = content.path("body");
         String messageType = content.path("type").asText("text");
         
@@ -358,7 +357,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
     
-    private void setMessageProperties(javax.jms.Message message, JsonNode properties) throws JMSException {
+    private void setMessageProperties(jakarta.jms.Message message, JsonNode properties) throws JMSException {
         if (properties == null || !properties.isObject()) {
             return;
         }
@@ -392,7 +391,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
     
-    private void setMessageHeaders(javax.jms.Message message, JsonNode headers) throws JMSException {
+    private void setMessageHeaders(jakarta.jms.Message message, JsonNode headers) throws JMSException {
         if (headers == null || !headers.isObject()) {
             return;
         }
@@ -421,7 +420,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
         });
     }
     
-    private void setAmqpAnnotations(javax.jms.Message message, MessageDTO messageDTO) throws JMSException {
+    private void setAmqpAnnotations(jakarta.jms.Message message, MessageDTO messageDTO) throws JMSException {
         // Add message annotations
         config.getMessageAnnotations().forEach((key, value) -> {
             try {

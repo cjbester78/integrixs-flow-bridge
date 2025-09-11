@@ -1,6 +1,6 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.domain.model.*;
@@ -176,12 +176,9 @@ public class SoapInboundAdapter extends AbstractAdapter implements InboundAdapte
         return data;
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getEndpointUrl() == null || config.getEndpointUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SOAP, "Endpoint URL is required");
-        }
-        if (config.getServiceName() == null || config.getServiceName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SOAP, "Service name is required");
+            throw new AdapterException("Endpoint URL is required", null);
         }
         if (config.getSoapVersion() == null || config.getSoapVersion().trim().isEmpty()) {
             config.setSoapVersion("1.1"); // Default to SOAP 1.1

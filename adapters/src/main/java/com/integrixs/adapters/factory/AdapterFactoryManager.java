@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Manager for adapter factories that supports multiple factory implementations
@@ -175,20 +176,19 @@ public class AdapterFactoryManager {
         if (factoryName == null) {
             factory = defaultFactory;
             if (factory == null) {
-                throw new AdapterException.ConfigurationException(adapterType, "No default factory available");
+                throw new AdapterException("No default factory available", null);
             }
         } else {
             factory = factoryByName.get(factoryName);
             if (factory == null) {
-                throw new AdapterException.ConfigurationException(adapterType, 
-                        "Factory not found: " + factoryName);
+                throw new AdapterException(
+                    String.format("Factory '%s' not found", factoryName));
             }
-        }
-        
-        if (!factory.supports(adapterType, adapterMode)) {
-            throw new AdapterException.ConfigurationException(adapterType, 
+            if (!factory.supports(adapterType, adapterMode)) {
+                throw new AdapterException(
                     String.format("Factory %s does not support %s %s", 
                             factory.getFactoryName(), adapterType, adapterMode));
+            }
         }
         
         return factory;

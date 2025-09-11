@@ -93,9 +93,6 @@ public class IdocOutboundAdapterConfig {
     // Constructors
     public IdocOutboundAdapterConfig() {}
     
-    public IdocOutboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getTargetSapSystemId() { return targetSapSystemId; }

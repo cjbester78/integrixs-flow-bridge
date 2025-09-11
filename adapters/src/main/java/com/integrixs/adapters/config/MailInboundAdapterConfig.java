@@ -88,11 +88,6 @@ public class MailInboundAdapterConfig {
     // Constructors
     public MailInboundAdapterConfig() {}
     
-    public MailInboundAdapterConfig(String mailServerHost, String mailUsername, String mailPassword) {
-        this.mailServerHost = mailServerHost;
-        this.mailUsername = mailUsername;
-        this.mailPassword = mailPassword;
-    }
     
     // Essential getters and setters
     public String getMailServerHost() { return mailServerHost; }

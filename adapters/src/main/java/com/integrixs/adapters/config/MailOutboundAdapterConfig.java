@@ -115,12 +115,6 @@ public class MailOutboundAdapterConfig {
     // Constructors
     public MailOutboundAdapterConfig() {}
     
-    public MailOutboundAdapterConfig(String smtpServerHost, String smtpUsername, String smtpPassword, String fromAddress) {
-        this.smtpServerHost = smtpServerHost;
-        this.smtpUsername = smtpUsername;
-        this.smtpPassword = smtpPassword;
-        this.fromAddress = fromAddress;
-    }
     
     // Essential getters and setters
     public String getSmtpServerHost() { return smtpServerHost; }

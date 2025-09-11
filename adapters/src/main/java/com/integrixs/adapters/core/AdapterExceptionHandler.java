@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Centralized exception handling framework for all adapters.
@@ -155,13 +156,13 @@ public class AdapterExceptionHandler {
     }
     
     private ErrorClassification classifyError(Exception exception) {
-        if (exception instanceof AdapterException.ConnectionException) {
+        if (exception instanceof AdapterException) {
             return ErrorClassification.CONNECTION_ERROR;
-        } else if (exception instanceof AdapterException.AuthenticationException) {
+        } else if (exception instanceof AdapterException) {
             return ErrorClassification.AUTHENTICATION_ERROR;
-        } else if (exception instanceof AdapterException.ConfigurationException) {
+        } else if (exception instanceof AdapterException) {
             return ErrorClassification.CONFIGURATION_ERROR;
-        } else if (exception instanceof AdapterException.ValidationException) {
+        } else if (exception instanceof AdapterException) {
             return ErrorClassification.VALIDATION_ERROR;
         } else if (exception instanceof AdapterException.TimeoutException) {
             return ErrorClassification.TIMEOUT_ERROR;
@@ -483,7 +484,6 @@ class ErrorHandlingResult {
     
     public ErrorClassification getClassification() { return classification; }
     public RetryStrategy getRetryStrategy() { return retryStrategy; }
-    public boolean isCircuitOpen() { return circuitOpen; }
     public AdapterErrorEvent getErrorEvent() { return errorEvent; }
     public java.util.List<String> getRecommendations() { return new java.util.ArrayList<>(recommendations); }
 }
@@ -516,7 +516,6 @@ class AdapterErrorEvent {
     public AdapterConfiguration.AdapterModeEnum getAdapterMode() { return adapterMode; }
     public String getAdapterId() { return adapterId; }
     public Exception getException() { return exception; }
-    public ErrorClassification getClassification() { return classification; }
     public LocalDateTime getTimestamp() { return timestamp; }
     public Map<String, Object> getContext() { return new HashMap<>(context); }
     

@@ -113,9 +113,6 @@ public class OdataInboundAdapterConfig {
     // Constructors
     public OdataInboundAdapterConfig() {}
     
-    public OdataInboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getSourceServiceEndpointUrl() { return sourceServiceEndpointUrl; }

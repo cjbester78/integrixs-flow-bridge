@@ -1,17 +1,20 @@
 package com.integrixs.adapters.social.tiktok;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.adapters.social.tiktok.TikTokContentApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.adapters.social.tiktok.TikTokContentApiConfig;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
+import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -23,6 +26,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.IOException;
@@ -31,150 +35,44 @@ import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @Component("tikTokContentOutboundAdapter")
-public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAdapter<TikTokContentApiConfig> {
+public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TikTokContentOutboundAdapter.class);
+
     
     private static final String TIKTOK_API_BASE = "https://open-api.tiktok.com";
     private static final String TIKTOK_API_VERSION = "/v1.3";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private TikTokContentApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public TikTokContentOutboundAdapter(
-            TikTokContentApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    protected Message processOutboundMessage(Message message) {
+    protected MessageDTO processOutboundMessage(MessageDTO message) {
         try {
             String operation = (String) message.getHeaders().get("operation");
             if (operation == null) {
                 throw new AdapterException("Operation header is required");
             }
             
-            log.info("Processing TikTok Content outbound operation: {}", operation);
-            
-            // Refresh token if needed
-            refreshAccessTokenIfNeeded();
-            
-            switch (operation.toUpperCase()) {
-                // Video operations
-                case "PUBLISH_VIDEO":
-                    return publishVideo(message);
-                case "DELETE_VIDEO":
-                    return deleteVideo(message);
-                case "UPDATE_VIDEO_CAPTION":
-                    return updateVideoCaption(message);
-                case "GET_VIDEO_INFO":
-                    return getVideoInfo(message);
-                case "GET_VIDEO_LIST":
-                    return getVideoList(message);
-                    
-                // Comment operations
-                case "POST_COMMENT":
-                    return postComment(message);
-                case "DELETE_COMMENT":
-                    return deleteComment(message);
-                case "GET_COMMENTS":
-                    return getComments(message);
-                case "REPLY_TO_COMMENT":
-                    return replyToComment(message);
-                    
-                // User operations
-                case "GET_USER_INFO":
-                    return getUserInfo(message);
-                case "UPDATE_PROFILE":
-                    return updateProfile(message);
-                case "GET_FOLLOWERS":
-                    return getFollowers(message);
-                case "GET_FOLLOWING":
-                    return getFollowing(message);
-                    
-                // Analytics operations
-                case "GET_VIDEO_ANALYTICS":
-                    return getVideoAnalytics(message);
-                case "GET_PROFILE_ANALYTICS":
-                    return getProfileAnalytics(message);
-                case "GET_CONTENT_INSIGHTS":
-                    return getContentInsights(message);
-                    
-                // Trending operations
-                case "GET_TRENDING_HASHTAGS":
-                    return getTrendingHashtags(message);
-                case "GET_TRENDING_SOUNDS":
-                    return getTrendingSounds(message);
-                case "GET_TRENDING_EFFECTS":
-                    return getTrendingEffects(message);
-                    
-                // Music operations
-                case "SEARCH_MUSIC":
-                    return searchMusic(message);
-                case "GET_MUSIC_INFO":
-                    return getMusicInfo(message);
-                case "ADD_MUSIC_TO_FAVORITES":
-                    return addMusicToFavorites(message);
-                    
-                // Effect operations
-                case "SEARCH_EFFECTS":
-                    return searchEffects(message);
-                case "GET_EFFECT_INFO":
-                    return getEffectInfo(message);
-                    
-                // Live streaming operations
-                case "START_LIVE_STREAM":
-                    return startLiveStream(message);
-                case "END_LIVE_STREAM":
-                    return endLiveStream(message);
-                case "GET_LIVE_STATS":
-                    return getLiveStats(message);
-                    
-                // Collaboration operations
-                case "CREATE_DUET":
-                    return createDuet(message);
-                case "CREATE_STITCH":
-                    return createStitch(message);
-                case "ENABLE_COLLABORATION":
-                    return enableCollaboration(message);
-                    
-                // Discovery operations
-                case "SEARCH_VIDEOS":
-                    return searchVideos(message);
-                case "SEARCH_USERS":
-                    return searchUsers(message);
-                case "DISCOVER_CONTENT":
-                    return discoverContent(message);
-                    
-                // Challenge operations
-                case "JOIN_CHALLENGE":
-                    return joinChallenge(message);
-                case "GET_CHALLENGE_INFO":
-                    return getChallengeInfo(message);
-                    
-                default:
-                    throw new AdapterException("Unsupported operation: " + operation);
-            }
-        } catch (Exception e) {
-            log.error("Error processing TikTok Content outbound message", e);
-            throw new AdapterException("Failed to process outbound message", e);
-        }
-    }
-    
-    // Video operations
-    private Message publishVideo(Message message) throws Exception {
-        if (!config.getFeatures().isEnableVideoPublishing()) {
-            throw new AdapterException("Video publishing is not enabled");
-        }
-        
-        rateLimiterService.acquire("tiktok_content_api", 2);
+            log.info("Processing TikTok Content outbound operation: {}", 2);
         
         Map<String, Object> payload = objectMapper.readValue(message.getPayload(), Map.class);
         
@@ -282,7 +180,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         }
     }
     
-    private Message deleteVideo(Message message) throws Exception {
+    private MessageDTO deleteVideo(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/delete/";
@@ -295,7 +193,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "DELETE_VIDEO");
     }
     
-    private Message updateVideoCaption(Message message) throws Exception {
+    private MessageDTO updateVideoCaption(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/update/";
@@ -309,7 +207,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "UPDATE_VIDEO_CAPTION");
     }
     
-    private Message getVideoInfo(Message message) throws Exception {
+    private MessageDTO getVideoInfo(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/info/";
@@ -322,7 +220,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_VIDEO_INFO");
     }
     
-    private Message getVideoList(Message message) throws Exception {
+    private MessageDTO getVideoList(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/list/";
@@ -338,7 +236,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Comment operations
-    private Message postComment(Message message) throws Exception {
+    private MessageDTO postComment(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableCommentManagement()) {
             throw new AdapterException("Comment management is not enabled");
         }
@@ -356,7 +254,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "POST_COMMENT");
     }
     
-    private Message deleteComment(Message message) throws Exception {
+    private MessageDTO deleteComment(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/comment/delete/";
@@ -369,7 +267,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "DELETE_COMMENT");
     }
     
-    private Message getComments(Message message) throws Exception {
+    private MessageDTO getComments(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/comment/list/";
@@ -384,7 +282,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_COMMENTS");
     }
     
-    private Message replyToComment(Message message) throws Exception {
+    private MessageDTO replyToComment(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/comment/reply/";
@@ -399,7 +297,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // User operations
-    private Message getUserInfo(Message message) throws Exception {
+    private MessageDTO getUserInfo(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/info/";
@@ -412,7 +310,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_USER_INFO");
     }
     
-    private Message updateProfile(Message message) throws Exception {
+    private MessageDTO updateProfile(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableUserProfile()) {
             throw new AdapterException("Profile management is not enabled");
         }
@@ -438,7 +336,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "UPDATE_PROFILE");
     }
     
-    private Message getFollowers(Message message) throws Exception {
+    private MessageDTO getFollowers(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableFollowerAnalytics()) {
             throw new AdapterException("Follower analytics is not enabled");
         }
@@ -457,7 +355,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_FOLLOWERS");
     }
     
-    private Message getFollowing(Message message) throws Exception {
+    private MessageDTO getFollowing(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/following/";
@@ -473,7 +371,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Analytics operations
-    private Message getVideoAnalytics(Message message) throws Exception {
+    private MessageDTO getVideoAnalytics(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableContentInsights()) {
             throw new AdapterException("Content insights is not enabled");
         }
@@ -492,7 +390,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_VIDEO_ANALYTICS");
     }
     
-    private Message getProfileAnalytics(Message message) throws Exception {
+    private MessageDTO getProfileAnalytics(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableEngagementMetrics()) {
             throw new AdapterException("Engagement metrics is not enabled");
         }
@@ -510,7 +408,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_PROFILE_ANALYTICS");
     }
     
-    private Message getContentInsights(Message message) throws Exception {
+    private MessageDTO getContentInsights(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableContentInsights()) {
             throw new AdapterException("Content insights is not enabled");
         }
@@ -535,7 +433,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Trending operations
-    private Message getTrendingHashtags(Message message) throws Exception {
+    private MessageDTO getTrendingHashtags(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableHashtagAnalytics()) {
             throw new AdapterException("Hashtag analytics is not enabled");
         }
@@ -553,7 +451,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_TRENDING_HASHTAGS");
     }
     
-    private Message getTrendingSounds(Message message) throws Exception {
+    private MessageDTO getTrendingSounds(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableMusicIntegration()) {
             throw new AdapterException("Music integration is not enabled");
         }
@@ -571,7 +469,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_TRENDING_SOUNDS");
     }
     
-    private Message getTrendingEffects(Message message) throws Exception {
+    private MessageDTO getTrendingEffects(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableEffectsManagement()) {
             throw new AdapterException("Effects management is not enabled");
         }
@@ -590,7 +488,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Music operations
-    private Message searchMusic(Message message) throws Exception {
+    private MessageDTO searchMusic(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableMusicIntegration()) {
             throw new AdapterException("Music integration is not enabled");
         }
@@ -609,7 +507,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "SEARCH_MUSIC");
     }
     
-    private Message getMusicInfo(Message message) throws Exception {
+    private MessageDTO getMusicInfo(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/music/info/";
@@ -622,7 +520,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "GET_MUSIC_INFO");
     }
     
-    private Message addMusicToFavorites(Message message) throws Exception {
+    private MessageDTO addMusicToFavorites(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/music/favorite/";
@@ -637,7 +535,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Effect operations
-    private Message searchEffects(Message message) throws Exception {
+    private MessageDTO searchEffects(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableEffectsManagement()) {
             throw new AdapterException("Effects management is not enabled");
         }
@@ -656,7 +554,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "SEARCH_EFFECTS");
     }
     
-    private Message getEffectInfo(Message message) throws Exception {
+    private MessageDTO getEffectInfo(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/effect/info/";
@@ -670,7 +568,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Live streaming operations
-    private Message startLiveStream(Message message) throws Exception {
+    private MessageDTO startLiveStream(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableLiveStreaming()) {
             throw new AdapterException("Live streaming is not enabled");
         }
@@ -689,7 +587,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "START_LIVE_STREAM");
     }
     
-    private Message endLiveStream(Message message) throws Exception {
+    private MessageDTO endLiveStream(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/live/end/";
@@ -703,7 +601,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "END_LIVE_STREAM");
     }
     
-    private Message getLiveStats(Message message) throws Exception {
+    private MessageDTO getLiveStats(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/live/stats/";
@@ -717,7 +615,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Collaboration operations
-    private Message createDuet(Message message) throws Exception {
+    private MessageDTO createDuet(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableDuetStitch()) {
             throw new AdapterException("Duet/Stitch is not enabled");
         }
@@ -737,7 +635,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "CREATE_DUET");
     }
     
-    private Message createStitch(Message message) throws Exception {
+    private MessageDTO createStitch(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableDuetStitch()) {
             throw new AdapterException("Duet/Stitch is not enabled");
         }
@@ -758,7 +656,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "CREATE_STITCH");
     }
     
-    private Message enableCollaboration(Message message) throws Exception {
+    private MessageDTO enableCollaboration(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableCollaboration()) {
             throw new AdapterException("Collaboration is not enabled");
         }
@@ -780,7 +678,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Discovery operations
-    private Message searchVideos(Message message) throws Exception {
+    private MessageDTO searchVideos(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableContentDiscovery()) {
             throw new AdapterException("Content discovery is not enabled");
         }
@@ -809,7 +707,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "SEARCH_VIDEOS");
     }
     
-    private Message searchUsers(Message message) throws Exception {
+    private MessageDTO searchUsers(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableCreatorSearch()) {
             throw new AdapterException("Creator search is not enabled");
         }
@@ -828,7 +726,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "SEARCH_USERS");
     }
     
-    private Message discoverContent(Message message) throws Exception {
+    private MessageDTO discoverContent(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableContentDiscovery()) {
             throw new AdapterException("Content discovery is not enabled");
         }
@@ -848,7 +746,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
     
     // Challenge operations
-    private Message joinChallenge(Message message) throws Exception {
+    private MessageDTO joinChallenge(MessageDTO message) throws Exception {
         if (!config.getFeatures().isEnableChallengeParticipation()) {
             throw new AdapterException("Challenge participation is not enabled");
         }
@@ -866,7 +764,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return createResponseMessage(response, "JOIN_CHALLENGE");
     }
     
-    private Message getChallengeInfo(Message message) throws Exception {
+    private MessageDTO getChallengeInfo(MessageDTO message) throws Exception {
         rateLimiterService.acquire("tiktok_content_api", 1);
         
         String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/challenge/info/";
@@ -902,16 +800,19 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         return restTemplate.exchange(builder.toUriString(), method, entity, String.class);
     }
     
-    private Message createResponseMessage(ResponseEntity<String> response, String operation) {
-        Message responseMessage = new Message();
-        responseMessage.setHeaders(Map.of(
+    private MessageDTO createResponseMessage(ResponseEntity<String> response, String operation) {
+        MessageDTO responseMessageDTO = new MessageDTO();
+        responseMessageDTO.setCorrelationId(UUID.randomUUID().toString());
+        responseMessageDTO.setMessageTimestamp(Instant.now());
+        responseMessageDTO.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+        responseMessageDTO.setHeaders(Map.of(
             "operation", operation,
             "statusCode", response.getStatusCode().value(),
             "source", "tiktok_content"
         ));
-        responseMessage.setPayload(response.getBody());
+        responseMessageDTO.setPayload(response.getBody());
         
-        return responseMessage;
+        return responseMessageDTO;
     }
     
     private String getAccessToken() {
@@ -931,5 +832,39 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         } catch (Exception e) {
             log.error("Error refreshing TikTok Content access token", e);
         }
+    }
+    
+    @Override
+    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
+        return processOutboundMessage(message);
+    }
+    
+    public void setConfiguration(TikTokContentApiConfig config) {
+        this.config = config;
+    }
+    
+    private void validateConfiguration() throws AdapterException {
+        if (config == null) {
+            throw new AdapterException("TikTok Content configuration is not set");
+        }
+        if (config.getClientKey() == null || config.getClientSecret() == null) {
+            throw new AdapterException("TikTok client key and secret are required");
+        }
+        if (config.getAccessToken() == null) {
+            throw new AdapterException("TikTok access token is required");
+        }
+    }
+    
+    // TikTok Content API Enums
+    private enum VideoPrivacy {
+        PUBLIC_TO_EVERYONE,
+        FRIENDS,
+        SELF_ONLY
+    }
+    
+    private enum DiscoveryFeedType {
+        FOR_YOU,
+        FOLLOWING,
+        NEARBY
     }
 }

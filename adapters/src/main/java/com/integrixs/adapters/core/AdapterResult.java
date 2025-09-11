@@ -56,13 +56,6 @@ public class AdapterResult {
         return result;
     }
     
-    public static AdapterResult failure(String message, Throwable error) {
-        AdapterResult result = new AdapterResult();
-        result.status = Status.FAILURE;
-        result.message = message;
-        result.error = error;
-        return result;
-    }
     
     public static AdapterResult connectionError(String message, Throwable error) {
         AdapterResult result = new AdapterResult();

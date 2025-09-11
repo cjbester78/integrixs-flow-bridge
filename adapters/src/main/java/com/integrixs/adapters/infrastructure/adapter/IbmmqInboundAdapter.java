@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.config.IbmmqInboundAdapterConfig;
@@ -13,8 +16,7 @@ import java.util.List;import java.util.concurrent.CompletableFuture;
 import java.util.List;import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;import com.integrixs.adapters.domain.model.*;
 import java.util.Map;
-import java.util.List;import lombok.extern.slf4j.Slf4j;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.List;import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,8 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Listens to IBM MQ queues/topics and receives messages from external systems.
  * Supports WebSphere MQ (now IBM MQ) specific features like queue managers and channels.
  */
-@Slf4j
 public class IbmmqInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(IbmmqInboundAdapter.class);
+
     
     private final IbmmqInboundAdapterConfig config;
     private Connection connection;
@@ -243,17 +246,10 @@ public class IbmmqInboundAdapter extends AbstractAdapter implements InboundAdapt
             connectionFactory = (ConnectionFactory) context.lookup(config.getJndiName());
         } else {
             // For simulation/testing, would create vendor-specific connection factory here
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
-                    "IBM MQ connection factory configuration required");
-        }
-    }
-    
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
-        if (config.getDestinationName() == null || config.getDestinationName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, "Destination name is required");
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, null);
         }
         if (config.getDestinationType() == null || config.getDestinationType().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, "Destination type is required");
+            throw new AdapterException("Destination type is required", null);
         }
         
         // Set defaults

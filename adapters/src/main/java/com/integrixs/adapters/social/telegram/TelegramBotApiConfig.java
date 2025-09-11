@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.telegram;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.telegram.bot")
-@EqualsAndHashCode(callSuper = true)
 public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
     
     private String botToken;
@@ -23,8 +19,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
     private TelegramFeatures features = new TelegramFeatures();
     private TelegramLimits limits = new TelegramLimits();
     
-    @Data
-    public static class TelegramFeatures {
+        public static class TelegramFeatures {
         private boolean enableMessages = true;
         private boolean enableInlineQueries = true;
         private boolean enableCallbackQueries = true;
@@ -50,8 +45,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         private boolean enableBotAPI70 = true; // Features from Bot API 7.0+
     }
     
-    @Data
-    public static class TelegramLimits {
+        public static class TelegramLimits {
         private int maxMessageLength = 4096; // UTF-8 characters
         private int maxCaptionLength = 1024;
         private int maxInlineResultsPerQuery = 50;
@@ -99,7 +93,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         DELETED_BUSINESS_MESSAGES
     }
     
-    // Message types
+    // MessageDTO types
     public enum MessageType {
         TEXT,
         PHOTO,
@@ -436,5 +430,312 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         public String getMessage() {
             return message;
         }
+    }
+    // Getters and Setters
+    public String getBotToken() {
+        return botToken;
+    }
+    public void setBotToken(String botToken) {
+        this.botToken = botToken;
+    }
+    public String getBotUsername() {
+        return botUsername;
+    }
+    public void setBotUsername(String botUsername) {
+        this.botUsername = botUsername;
+    }
+    public String getWebhookUrl() {
+        return webhookUrl;
+    }
+    public void setWebhookUrl(String webhookUrl) {
+        this.webhookUrl = webhookUrl;
+    }
+    public String getWebhookPath() {
+        return webhookPath;
+    }
+    public void setWebhookPath(String webhookPath) {
+        this.webhookPath = webhookPath;
+    }
+    public String getWebhookSecret() {
+        return webhookSecret;
+    }
+    public void setWebhookSecret(String webhookSecret) {
+        this.webhookSecret = webhookSecret;
+    }
+    public Long getDefaultChatId() {
+        return defaultChatId;
+    }
+    public void setDefaultChatId(Long defaultChatId) {
+        this.defaultChatId = defaultChatId;
+    }
+    public String getApiUrl() {
+        return apiUrl;
+    }
+    public void setApiUrl(String apiUrl) {
+        this.apiUrl = apiUrl;
+    }
+    public TelegramFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(TelegramFeatures features) {
+        this.features = features;
+    }
+    public TelegramLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(TelegramLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableMessages() {
+        return enableMessages;
+    }
+    public void setEnableMessages(boolean enableMessages) {
+        this.enableMessages = enableMessages;
+    }
+    public boolean isEnableInlineQueries() {
+        return enableInlineQueries;
+    }
+    public void setEnableInlineQueries(boolean enableInlineQueries) {
+        this.enableInlineQueries = enableInlineQueries;
+    }
+    public boolean isEnableCallbackQueries() {
+        return enableCallbackQueries;
+    }
+    public void setEnableCallbackQueries(boolean enableCallbackQueries) {
+        this.enableCallbackQueries = enableCallbackQueries;
+    }
+    public boolean isEnableChannelPosts() {
+        return enableChannelPosts;
+    }
+    public void setEnableChannelPosts(boolean enableChannelPosts) {
+        this.enableChannelPosts = enableChannelPosts;
+    }
+    public boolean isEnableGroupManagement() {
+        return enableGroupManagement;
+    }
+    public void setEnableGroupManagement(boolean enableGroupManagement) {
+        this.enableGroupManagement = enableGroupManagement;
+    }
+    public boolean isEnableFileHandling() {
+        return enableFileHandling;
+    }
+    public void setEnableFileHandling(boolean enableFileHandling) {
+        this.enableFileHandling = enableFileHandling;
+    }
+    public boolean isEnablePayments() {
+        return enablePayments;
+    }
+    public void setEnablePayments(boolean enablePayments) {
+        this.enablePayments = enablePayments;
+    }
+    public boolean isEnableWebhooks() {
+        return enableWebhooks;
+    }
+    public void setEnableWebhooks(boolean enableWebhooks) {
+        this.enableWebhooks = enableWebhooks;
+    }
+    public boolean isEnablePolling() {
+        return enablePolling;
+    }
+    public void setEnablePolling(boolean enablePolling) {
+        this.enablePolling = enablePolling;
+    }
+    public boolean isEnableKeyboards() {
+        return enableKeyboards;
+    }
+    public void setEnableKeyboards(boolean enableKeyboards) {
+        this.enableKeyboards = enableKeyboards;
+    }
+    public boolean isEnableCommands() {
+        return enableCommands;
+    }
+    public void setEnableCommands(boolean enableCommands) {
+        this.enableCommands = enableCommands;
+    }
+    public boolean isEnableStickers() {
+        return enableStickers;
+    }
+    public void setEnableStickers(boolean enableStickers) {
+        this.enableStickers = enableStickers;
+    }
+    public boolean isEnableGames() {
+        return enableGames;
+    }
+    public void setEnableGames(boolean enableGames) {
+        this.enableGames = enableGames;
+    }
+    public boolean isEnablePolls() {
+        return enablePolls;
+    }
+    public void setEnablePolls(boolean enablePolls) {
+        this.enablePolls = enablePolls;
+    }
+    public boolean isEnablePassport() {
+        return enablePassport;
+    }
+    public void setEnablePassport(boolean enablePassport) {
+        this.enablePassport = enablePassport;
+    }
+    public boolean isEnableBusinessConnection() {
+        return enableBusinessConnection;
+    }
+    public void setEnableBusinessConnection(boolean enableBusinessConnection) {
+        this.enableBusinessConnection = enableBusinessConnection;
+    }
+    public boolean isEnableWebApps() {
+        return enableWebApps;
+    }
+    public void setEnableWebApps(boolean enableWebApps) {
+        this.enableWebApps = enableWebApps;
+    }
+    public boolean isEnableInlineMode() {
+        return enableInlineMode;
+    }
+    public void setEnableInlineMode(boolean enableInlineMode) {
+        this.enableInlineMode = enableInlineMode;
+    }
+    public boolean isEnableForumSupport() {
+        return enableForumSupport;
+    }
+    public void setEnableForumSupport(boolean enableForumSupport) {
+        this.enableForumSupport = enableForumSupport;
+    }
+    public boolean isEnableReactions() {
+        return enableReactions;
+    }
+    public void setEnableReactions(boolean enableReactions) {
+        this.enableReactions = enableReactions;
+    }
+    public boolean isEnableTopics() {
+        return enableTopics;
+    }
+    public void setEnableTopics(boolean enableTopics) {
+        this.enableTopics = enableTopics;
+    }
+    public boolean isEnableBotAPI60() {
+        return enableBotAPI60;
+    }
+    public void setEnableBotAPI60(boolean enableBotAPI60) {
+        this.enableBotAPI60 = enableBotAPI60;
+    }
+    public boolean isEnableBotAPI70() {
+        return enableBotAPI70;
+    }
+    public void setEnableBotAPI70(boolean enableBotAPI70) {
+        this.enableBotAPI70 = enableBotAPI70;
+    }
+    public int getMaxMessageLength() {
+        return maxMessageLength;
+    }
+    public void setMaxMessageLength(int maxMessageLength) {
+        this.maxMessageLength = maxMessageLength;
+    }
+    public int getMaxCaptionLength() {
+        return maxCaptionLength;
+    }
+    public void setMaxCaptionLength(int maxCaptionLength) {
+        this.maxCaptionLength = maxCaptionLength;
+    }
+    public int getMaxInlineResultsPerQuery() {
+        return maxInlineResultsPerQuery;
+    }
+    public void setMaxInlineResultsPerQuery(int maxInlineResultsPerQuery) {
+        this.maxInlineResultsPerQuery = maxInlineResultsPerQuery;
+    }
+    public int getMaxCallbackDataLength() {
+        return maxCallbackDataLength;
+    }
+    public void setMaxCallbackDataLength(int maxCallbackDataLength) {
+        this.maxCallbackDataLength = maxCallbackDataLength;
+    }
+    public int getMaxInlineQueryLength() {
+        return maxInlineQueryLength;
+    }
+    public void setMaxInlineQueryLength(int maxInlineQueryLength) {
+        this.maxInlineQueryLength = maxInlineQueryLength;
+    }
+    public int getMaxFileSizeMB() {
+        return maxFileSizeMB;
+    }
+    public void setMaxFileSizeMB(int maxFileSizeMB) {
+        this.maxFileSizeMB = maxFileSizeMB;
+    }
+    public int getMaxPhotoSizeMB() {
+        return maxPhotoSizeMB;
+    }
+    public void setMaxPhotoSizeMB(int maxPhotoSizeMB) {
+        this.maxPhotoSizeMB = maxPhotoSizeMB;
+    }
+    public int getMaxVideoSizeMB() {
+        return maxVideoSizeMB;
+    }
+    public void setMaxVideoSizeMB(int maxVideoSizeMB) {
+        this.maxVideoSizeMB = maxVideoSizeMB;
+    }
+    public int getMaxAnimationSizeMB() {
+        return maxAnimationSizeMB;
+    }
+    public void setMaxAnimationSizeMB(int maxAnimationSizeMB) {
+        this.maxAnimationSizeMB = maxAnimationSizeMB;
+    }
+    public int getMaxAudioSizeMB() {
+        return maxAudioSizeMB;
+    }
+    public void setMaxAudioSizeMB(int maxAudioSizeMB) {
+        this.maxAudioSizeMB = maxAudioSizeMB;
+    }
+    public int getMaxDocumentSizeMB() {
+        return maxDocumentSizeMB;
+    }
+    public void setMaxDocumentSizeMB(int maxDocumentSizeMB) {
+        this.maxDocumentSizeMB = maxDocumentSizeMB;
+    }
+    public int getMaxStickerSizeKB() {
+        return maxStickerSizeKB;
+    }
+    public void setMaxStickerSizeKB(int maxStickerSizeKB) {
+        this.maxStickerSizeKB = maxStickerSizeKB;
+    }
+    public int getMaxAnimatedStickerSizeKB() {
+        return maxAnimatedStickerSizeKB;
+    }
+    public void setMaxAnimatedStickerSizeKB(int maxAnimatedStickerSizeKB) {
+        this.maxAnimatedStickerSizeKB = maxAnimatedStickerSizeKB;
+    }
+    public int getMaxVideoStickerSizeKB() {
+        return maxVideoStickerSizeKB;
+    }
+    public void setMaxVideoStickerSizeKB(int maxVideoStickerSizeKB) {
+        this.maxVideoStickerSizeKB = maxVideoStickerSizeKB;
+    }
+    public int getWebhookMaxConnections() {
+        return webhookMaxConnections;
+    }
+    public void setWebhookMaxConnections(int webhookMaxConnections) {
+        this.webhookMaxConnections = webhookMaxConnections;
+    }
+    public int getRateLimitPerSecond() {
+        return rateLimitPerSecond;
+    }
+    public void setRateLimitPerSecond(int rateLimitPerSecond) {
+        this.rateLimitPerSecond = rateLimitPerSecond;
+    }
+    public int getRateLimitPerMinute() {
+        return rateLimitPerMinute;
+    }
+    public void setRateLimitPerMinute(int rateLimitPerMinute) {
+        this.rateLimitPerMinute = rateLimitPerMinute;
+    }
+    public int getMaxKeyboardButtons() {
+        return maxKeyboardButtons;
+    }
+    public void setMaxKeyboardButtons(int maxKeyboardButtons) {
+        this.maxKeyboardButtons = maxKeyboardButtons;
+    }
+    public int getMaxInlineKeyboardButtons() {
+        return maxInlineKeyboardButtons;
+    }
+    public void setMaxInlineKeyboardButtons(int maxInlineKeyboardButtons) {
+        this.maxInlineKeyboardButtons = maxInlineKeyboardButtons;
     }
 }

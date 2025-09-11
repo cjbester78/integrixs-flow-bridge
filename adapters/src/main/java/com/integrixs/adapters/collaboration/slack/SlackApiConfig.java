@@ -3,22 +3,24 @@ package com.integrixs.adapters.collaboration.slack;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.slack")
-@EqualsAndHashCode(callSuper = true)
 public class SlackApiConfig extends SocialMediaAdapterConfig {
+    
+    @Override
+    public String getPlatformName() {
+        return "slack";
+    }
     
     private String clientId;
     private String clientSecret;
     private String botToken;
     private String userToken;
     private String workspaceId;
-    private String signingSecret; // For request verification
+    private String signingSecret;
+    private String appToken; // For request verification
     private String webhookUrl;
     private String slashCommandPrefix = "/";
     private String apiUrl = "https://slack.com/api/"; // Allow custom URL for enterprise
@@ -26,8 +28,7 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
     private SlackLimits limits = new SlackLimits();
     private List<String> scopes; // OAuth scopes
     
-    @Data
-    public static class SlackFeatures {
+        public static class SlackFeatures {
         private boolean enableMessaging = true;
         private boolean enableChannels = true;
         private boolean enableDirectMessages = true;
@@ -58,35 +59,169 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
         private boolean enableGuestAccess = true;
         private boolean enableSharedChannels = true;
         private boolean enableConnectChannels = true;
+        
+        // Getters and setters
+        public boolean isEnableMessaging() { return enableMessaging; }
+        public void setEnableMessaging(boolean enableMessaging) { this.enableMessaging = enableMessaging; }
+        public boolean isEnableChannels() { return enableChannels; }
+        public void setEnableChannels(boolean enableChannels) { this.enableChannels = enableChannels; }
+        public boolean isEnableDirectMessages() { return enableDirectMessages; }
+        public void setEnableDirectMessages(boolean enableDirectMessages) { this.enableDirectMessages = enableDirectMessages; }
+        public boolean isEnableGroups() { return enableGroups; }
+        public void setEnableGroups(boolean enableGroups) { this.enableGroups = enableGroups; }
+        public boolean isEnableFiles() { return enableFiles; }
+        public void setEnableFiles(boolean enableFiles) { this.enableFiles = enableFiles; }
+        public boolean isEnableSnippets() { return enableSnippets; }
+        public void setEnableSnippets(boolean enableSnippets) { this.enableSnippets = enableSnippets; }
+        public boolean isEnableSlashCommands() { return enableSlashCommands; }
+        public void setEnableSlashCommands(boolean enableSlashCommands) { this.enableSlashCommands = enableSlashCommands; }
+        public boolean isEnableInteractiveComponents() { return enableInteractiveComponents; }
+        public void setEnableInteractiveComponents(boolean enableInteractiveComponents) { this.enableInteractiveComponents = enableInteractiveComponents; }
+        public boolean isEnableWorkflows() { return enableWorkflows; }
+        public void setEnableWorkflows(boolean enableWorkflows) { this.enableWorkflows = enableWorkflows; }
+        public boolean isEnableAppHome() { return enableAppHome; }
+        public void setEnableAppHome(boolean enableAppHome) { this.enableAppHome = enableAppHome; }
+        public boolean isEnableShortcuts() { return enableShortcuts; }
+        public void setEnableShortcuts(boolean enableShortcuts) { this.enableShortcuts = enableShortcuts; }
+        public boolean isEnableScheduledMessages() { return enableScheduledMessages; }
+        public void setEnableScheduledMessages(boolean enableScheduledMessages) { this.enableScheduledMessages = enableScheduledMessages; }
+        public boolean isEnableThreads() { return enableThreads; }
+        public void setEnableThreads(boolean enableThreads) { this.enableThreads = enableThreads; }
+        public boolean isEnableReactions() { return enableReactions; }
+        public void setEnableReactions(boolean enableReactions) { this.enableReactions = enableReactions; }
+        public boolean isEnablePins() { return enablePins; }
+        public void setEnablePins(boolean enablePins) { this.enablePins = enablePins; }
+        public boolean isEnableBookmarks() { return enableBookmarks; }
+        public void setEnableBookmarks(boolean enableBookmarks) { this.enableBookmarks = enableBookmarks; }
+        public boolean isEnableReminders() { return enableReminders; }
+        public void setEnableReminders(boolean enableReminders) { this.enableReminders = enableReminders; }
+        public boolean isEnableSearch() { return enableSearch; }
+        public void setEnableSearch(boolean enableSearch) { this.enableSearch = enableSearch; }
+        public boolean isEnableCalls() { return enableCalls; }
+        public void setEnableCalls(boolean enableCalls) { this.enableCalls = enableCalls; }
+        public boolean isEnableHuddles() { return enableHuddles; }
+        public void setEnableHuddles(boolean enableHuddles) { this.enableHuddles = enableHuddles; }
+        public boolean isEnableCanvas() { return enableCanvas; }
+        public void setEnableCanvas(boolean enableCanvas) { this.enableCanvas = enableCanvas; }
+        public boolean isEnableEventSubscriptions() { return enableEventSubscriptions; }
+        public void setEnableEventSubscriptions(boolean enableEventSubscriptions) { this.enableEventSubscriptions = enableEventSubscriptions; }
+        public boolean isEnableRealTimeMessaging() { return enableRealTimeMessaging; }
+        public void setEnableRealTimeMessaging(boolean enableRealTimeMessaging) { this.enableRealTimeMessaging = enableRealTimeMessaging; }
+        public boolean isEnableSocketMode() { return enableSocketMode; }
+        public void setEnableSocketMode(boolean enableSocketMode) { this.enableSocketMode = enableSocketMode; }
+        public boolean isEnableEnterpriseGrid() { return enableEnterpriseGrid; }
+        public void setEnableEnterpriseGrid(boolean enableEnterpriseGrid) { this.enableEnterpriseGrid = enableEnterpriseGrid; }
+        public boolean isEnableAdminApis() { return enableAdminApis; }
+        public void setEnableAdminApis(boolean enableAdminApis) { this.enableAdminApis = enableAdminApis; }
+        public boolean isEnableApprovalWorkflows() { return enableApprovalWorkflows; }
+        public void setEnableApprovalWorkflows(boolean enableApprovalWorkflows) { this.enableApprovalWorkflows = enableApprovalWorkflows; }
+        public boolean isEnableGuestAccess() { return enableGuestAccess; }
+        public void setEnableGuestAccess(boolean enableGuestAccess) { this.enableGuestAccess = enableGuestAccess; }
+        public boolean isEnableSharedChannels() { return enableSharedChannels; }
+        public void setEnableSharedChannels(boolean enableSharedChannels) { this.enableSharedChannels = enableSharedChannels; }
+        public boolean isEnableConnectChannels() { return enableConnectChannels; }
+        public void setEnableConnectChannels(boolean enableConnectChannels) { this.enableConnectChannels = enableConnectChannels; }
     }
     
-    @Data
-    public static class SlackLimits {
-        private int maxMessageLength = 40000; // characters
-        private int maxAttachmentsPerMessage = 20;
+        public static class SlackLimits {
+        private int maxMessageLength = 4000;
+        private int maxAttachmentsPerMessage = 100;
         private int maxBlocksPerMessage = 50;
         private int maxInteractiveComponentsPerMessage = 25;
         private int maxFileSizeMB = 1000; // 1GB
-        private int maxSnippetSizeKB = 1000; // 1MB
+        private int maxSnippetSizeKB = 1000;
         private int maxChannelsPerRequest = 1000;
         private int maxUsersPerRequest = 1000;
-        private int rateLimitTier1PerMinute = 1; // Tier 1 methods
-        private int rateLimitTier2PerMinute = 20; // Tier 2 methods
-        private int rateLimitTier3PerMinute = 50; // Tier 3 methods
-        private int rateLimitTier4PerMinute = 100; // Tier 4 methods
-        private int rateLimitSpecialPerMinute = 1; // Special tier methods
-        private int maxWorkflowSteps = 20;
+        private int maxMessagesPerRequest = 100;
+        private int maxFileSizeMb = 10;
+        private int rateLimitTier1PerMinute = 1;
+        private int rateLimitTier2PerMinute = 20;
+        private int rateLimitTier3PerMinute = 50;
+        private int rateLimitTier4PerMinute = 100;
+        private int rateLimitSpecialPerMinute = 200;
+        private int maxWorkflowSteps = 50;
         private int maxShortcutsPerApp = 10;
-        private int maxSlashCommandsPerApp = 25;
-        private int maxScheduledMessagesPerChannel = 120;
+        private int maxSlashCommandsPerApp = 100;
+        private int maxScheduledMessagesPerChannel = 10;
         private int maxPinsPerChannel = 100;
         private int maxBookmarksPerChannel = 50;
         private int burstLimitRequests = 10;
         private int websocketReconnectMaxAttempts = 5;
         private int websocketPingIntervalSeconds = 30;
-    }
-    
-    // OAuth scopes
+        
+        // Getters and setters
+        public int getMaxMessageLength() { return maxMessageLength; }
+        public void setMaxMessageLength(int maxMessageLength) { this.maxMessageLength = maxMessageLength; }
+        
+        public int getMaxMessagesPerRequest() { return maxMessagesPerRequest; }
+        public void setMaxMessagesPerRequest(int maxMessagesPerRequest) { this.maxMessagesPerRequest = maxMessagesPerRequest; }
+        
+        public int getMaxFileSizeMb() { return maxFileSizeMb; }
+        public void setMaxFileSizeMb(int maxFileSizeMb) { this.maxFileSizeMb = maxFileSizeMb; }
+        
+        public int getMaxAttachmentsPerMessage() { return maxAttachmentsPerMessage; }
+        public void setMaxAttachmentsPerMessage(int maxAttachmentsPerMessage) { this.maxAttachmentsPerMessage = maxAttachmentsPerMessage; }
+        
+        public int getMaxBlocksPerMessage() { return maxBlocksPerMessage; }
+        public void setMaxBlocksPerMessage(int maxBlocksPerMessage) { this.maxBlocksPerMessage = maxBlocksPerMessage; }
+        
+        public int getMaxInteractiveComponentsPerMessage() { return maxInteractiveComponentsPerMessage; }
+        public void setMaxInteractiveComponentsPerMessage(int maxInteractiveComponentsPerMessage) { this.maxInteractiveComponentsPerMessage = maxInteractiveComponentsPerMessage; }
+        
+        public int getMaxFileSizeMB() { return maxFileSizeMB; }
+        public void setMaxFileSizeMB(int maxFileSizeMB) { this.maxFileSizeMB = maxFileSizeMB; }
+        
+        public int getMaxSnippetSizeKB() { return maxSnippetSizeKB; }
+        public void setMaxSnippetSizeKB(int maxSnippetSizeKB) { this.maxSnippetSizeKB = maxSnippetSizeKB; }
+        
+        public int getMaxChannelsPerRequest() { return maxChannelsPerRequest; }
+        public void setMaxChannelsPerRequest(int maxChannelsPerRequest) { this.maxChannelsPerRequest = maxChannelsPerRequest; }
+        
+        public int getMaxUsersPerRequest() { return maxUsersPerRequest; }
+        public void setMaxUsersPerRequest(int maxUsersPerRequest) { this.maxUsersPerRequest = maxUsersPerRequest; }
+        
+        public int getRateLimitTier1PerMinute() { return rateLimitTier1PerMinute; }
+        public void setRateLimitTier1PerMinute(int rateLimitTier1PerMinute) { this.rateLimitTier1PerMinute = rateLimitTier1PerMinute; }
+        
+        public int getRateLimitTier2PerMinute() { return rateLimitTier2PerMinute; }
+        public void setRateLimitTier2PerMinute(int rateLimitTier2PerMinute) { this.rateLimitTier2PerMinute = rateLimitTier2PerMinute; }
+        
+        public int getRateLimitTier3PerMinute() { return rateLimitTier3PerMinute; }
+        public void setRateLimitTier3PerMinute(int rateLimitTier3PerMinute) { this.rateLimitTier3PerMinute = rateLimitTier3PerMinute; }
+        
+        public int getRateLimitTier4PerMinute() { return rateLimitTier4PerMinute; }
+        public void setRateLimitTier4PerMinute(int rateLimitTier4PerMinute) { this.rateLimitTier4PerMinute = rateLimitTier4PerMinute; }
+        
+        public int getRateLimitSpecialPerMinute() { return rateLimitSpecialPerMinute; }
+        public void setRateLimitSpecialPerMinute(int rateLimitSpecialPerMinute) { this.rateLimitSpecialPerMinute = rateLimitSpecialPerMinute; }
+        
+        public int getMaxWorkflowSteps() { return maxWorkflowSteps; }
+        public void setMaxWorkflowSteps(int maxWorkflowSteps) { this.maxWorkflowSteps = maxWorkflowSteps; }
+        
+        public int getMaxShortcutsPerApp() { return maxShortcutsPerApp; }
+        public void setMaxShortcutsPerApp(int maxShortcutsPerApp) { this.maxShortcutsPerApp = maxShortcutsPerApp; }
+        
+        public int getMaxSlashCommandsPerApp() { return maxSlashCommandsPerApp; }
+        public void setMaxSlashCommandsPerApp(int maxSlashCommandsPerApp) { this.maxSlashCommandsPerApp = maxSlashCommandsPerApp; }
+        
+        public int getMaxScheduledMessagesPerChannel() { return maxScheduledMessagesPerChannel; }
+        public void setMaxScheduledMessagesPerChannel(int maxScheduledMessagesPerChannel) { this.maxScheduledMessagesPerChannel = maxScheduledMessagesPerChannel; }
+        
+        public int getMaxPinsPerChannel() { return maxPinsPerChannel; }
+        public void setMaxPinsPerChannel(int maxPinsPerChannel) { this.maxPinsPerChannel = maxPinsPerChannel; }
+        
+        public int getMaxBookmarksPerChannel() { return maxBookmarksPerChannel; }
+        public void setMaxBookmarksPerChannel(int maxBookmarksPerChannel) { this.maxBookmarksPerChannel = maxBookmarksPerChannel; }
+        
+        public int getBurstLimitRequests() { return burstLimitRequests; }
+        public void setBurstLimitRequests(int burstLimitRequests) { this.burstLimitRequests = burstLimitRequests; }
+        
+        public int getWebsocketReconnectMaxAttempts() { return websocketReconnectMaxAttempts; }
+        public void setWebsocketReconnectMaxAttempts(int websocketReconnectMaxAttempts) { this.websocketReconnectMaxAttempts = websocketReconnectMaxAttempts; }
+        
+        public int getWebsocketPingIntervalSeconds() { return websocketPingIntervalSeconds; }
+        public void setWebsocketPingIntervalSeconds(int websocketPingIntervalSeconds) { this.websocketPingIntervalSeconds = websocketPingIntervalSeconds; }
+    }// OAuth scopes
     public enum OAuthScope {
         // Messaging scopes
         CHANNELS_READ("channels:read"),
@@ -168,7 +303,7 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
     }
     
     // Event types for event subscriptions
-    public enum EventType {
+    public static enum EventType {
         // Message events
         MESSAGE_CHANNELS("message.channels"),
         MESSAGE_GROUPS("message.groups"),
@@ -274,7 +409,17 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
         URL_VERIFICATION("url_verification"),
         
         // Event callback wrapper
-        EVENT_CALLBACK("event_callback")
+        EVENT_CALLBACK("event_callback");
+        
+        private final String eventName;
+        
+        private EventType(String eventName) {
+            this.eventName = eventName;
+        }
+        
+        public String getEventName() {
+            return eventName;
+        }
     }
     
     // Interactive component types
@@ -299,7 +444,17 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
         SHORTCUT("shortcut"),
         WORKFLOW_STEP_EDIT("workflow_step_edit"),
         WORKFLOW_STEP_SAVE("workflow_step_save"),
-        WORKFLOW_STEP_EXECUTE("workflow_step_execute")
+        WORKFLOW_STEP_EXECUTE("workflow_step_execute");
+        
+        private final String type;
+        
+        InteractionType(String type) {
+            this.type = type;
+        }
+        
+        public String getType() {
+            return type;
+        }
     }
     
     // Block types for rich messaging
@@ -316,7 +471,17 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
         MRKDWN("mrkdwn"),
         RICH_TEXT("rich_text"),
         VIDEO("video"),
-        CALL("call")
+        CALL("call");
+        
+        private final String type;
+        
+        BlockType(String type) {
+            this.type = type;
+        }
+        
+        public String getType() {
+            return type;
+        }
     }
     
     // Conversation types
@@ -535,5 +700,98 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
         public String getMessage() {
             return message;
         }
+    }
+    // Getters and Setters
+    public String getClientId() {
+        return clientId;
+    }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+    public String getClientSecret() {
+        return clientSecret;
+    }
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+    public String getBotToken() {
+        return botToken;
+    }
+    public void setBotToken(String botToken) {
+        this.botToken = botToken;
+    }
+    public String getUserToken() {
+        return userToken;
+    }
+    public void setUserToken(String userToken) {
+        this.userToken = userToken;
+    }
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+    public String getSigningSecret() {
+        return signingSecret;
+    }
+    
+    public String getAppToken() { return appToken; }
+    public void setAppToken(String appToken) { this.appToken = appToken; }
+    public void setSigningSecret(String signingSecret) {
+        this.signingSecret = signingSecret;
+    }
+    public String getWebhookUrl() {
+        return webhookUrl;
+    }
+    public void setWebhookUrl(String webhookUrl) {
+        this.webhookUrl = webhookUrl;
+    }
+    public String getSlashCommandPrefix() {
+        return slashCommandPrefix;
+    }
+    public void setSlashCommandPrefix(String slashCommandPrefix) {
+        this.slashCommandPrefix = slashCommandPrefix;
+    }
+    public String getApiUrl() {
+        return apiUrl;
+    }
+    public void setApiUrl(String apiUrl) {
+        this.apiUrl = apiUrl;
+    }
+    public SlackFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(SlackFeatures features) {
+        this.features = features;
+    }
+    public SlackLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(SlackLimits limits) {
+        this.limits = limits;
+    }
+    public List<String> getScopes() {
+        return scopes;
+    }
+    public void setScopes(List<String> scopes) {
+        this.scopes = scopes;
+    }
+
+    
+    // OAuth URL implementations (Slack uses different auth flow)
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://slack.com/oauth/v2/authorize";
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return "https://slack.com/api/oauth.v2.access";
+    }
+    
+    @Override
+    public String getUserInfoUrl() {
+        return "https://slack.com/api/users.identity";
     }
 }

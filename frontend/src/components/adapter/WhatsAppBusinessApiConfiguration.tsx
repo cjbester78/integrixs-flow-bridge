@@ -117,7 +117,7 @@ export const WhatsAppBusinessApiConfiguration: React.FC<WhatsAppBusinessApiConfi
       features,
       settings
     });
-  }, [features, settings]);
+  }, [features, settings, config, onChange]);
 
   const isViewMode = mode === 'view';
 

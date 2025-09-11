@@ -108,10 +108,6 @@ public class FileOutboundAdapterConfig {
     // Constructors
     public FileOutboundAdapterConfig() {}
     
-    public FileOutboundAdapterConfig(String targetDirectory, String targetFileName) {
-        this.targetDirectory = targetDirectory;
-        this.targetFileName = targetFileName;
-    }
     
     // Essential getters and setters
     public String getTargetDirectory() { return targetDirectory; }

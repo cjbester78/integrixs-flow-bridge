@@ -5,7 +5,7 @@ package com.integrixs.adapters.config;
  * In middleware terminology, outbound adapters send data TO external target systems.
  * This configuration focuses on producing messages to JMS queues/topics.
  */
-public class JmsOutboundAdapterConfig {
+public class IbmmqOutboundAdapterConfig {
 
     // Target Connection Details for Message Production
     private String targetConnectionFactoryClass;
@@ -105,11 +105,8 @@ public class JmsOutboundAdapterConfig {
     private String configParam;
     
     // Constructors
-    public JmsOutboundAdapterConfig() {}
+    public IbmmqOutboundAdapterConfig() {}
     
-    public JmsOutboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getTargetConnectionFactoryClass() { return targetConnectionFactoryClass; }

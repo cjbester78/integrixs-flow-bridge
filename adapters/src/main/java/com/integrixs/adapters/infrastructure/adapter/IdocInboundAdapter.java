@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -10,9 +13,6 @@ import com.integrixs.adapters.config.IdocInboundAdapterConfig;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.text.SimpleDateFormat;
-import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * IDoc Sender Adapter implementation for SAP IDoc receiving (INBOUND).
  * Follows middleware convention: Inbound = receives data FROM external systems.
@@ -20,8 +20,9 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * Note: This is a simulation. Real implementation would require SAP JCo IDoc libraries.
  */
-@Slf4j
 public class IdocInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(IdocInboundAdapter.class);
+
     
     private final IdocInboundAdapterConfig config;
     private final Map<String, Object> receivedIdocs = new ConcurrentHashMap<>();
@@ -142,7 +143,7 @@ public class IdocInboundAdapter extends AbstractAdapter implements InboundAdapte
             if (config.getAllowedIdocTypes() != null && !config.getAllowedIdocTypes().isEmpty()) {
                 List<String> allowedTypes = Arrays.asList(config.getAllowedIdocTypes().split(","));
                 if (!allowedTypes.contains(idocType)) {
-                    throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
                             "IDoc type not allowed: " + idocType);
                 }
             }
@@ -229,15 +230,12 @@ public class IdocInboundAdapter extends AbstractAdapter implements InboundAdapte
         return String.format("%016d", System.currentTimeMillis() % 10000000000000000L);
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getProgramId() == null || config.getProgramId().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Program ID is required");
-        }
-        if (config.getGatewayHost() == null || config.getGatewayHost().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Gateway host is required");
+            throw new AdapterException("Program ID is required", null);
         }
         if (config.getGatewayService() == null || config.getGatewayService().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Gateway service is required");
+            throw new AdapterException("Gateway service is required", null);
         }
     }
     public long getPollingInterval() {

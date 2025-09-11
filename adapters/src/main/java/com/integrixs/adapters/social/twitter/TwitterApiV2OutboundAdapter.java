@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.twitter;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.twitter.TwitterApiV2Config.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -30,30 +32,37 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.net.URLEncoder;
 
-@Slf4j
 @Component("twitterApiV2OutboundAdapter")
-public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdapter<TwitterApiV2Config> {
+public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TwitterApiV2OutboundAdapter.class);
+
     
     private static final String TWITTER_API_BASE = "https://api.twitter.com/2";
     private static final String TWITTER_UPLOAD_BASE = "https://upload.twitter.com/1.1";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private TwitterApiV2Config config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public TwitterApiV2OutboundAdapter(
-            TwitterApiV2Config config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    public Message processMessage(Message message) throws AdapterException {
+    public MessageDTO processMessage(MessageDTO message) throws AdapterException {
         validateConfiguration();
         
         String operation = (String) message.getHeaders().get("operation");
@@ -61,161 +70,9 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
             throw new AdapterException("Operation header is required");
         }
         
-        log.debug("Processing Twitter operation: {}", operation);
-        
-        try {
-            rateLimiterService.acquire("twitter_api", 1);
-            
-            Message response;
-            switch (operation.toUpperCase()) {
-                // Tweet operations
-                case "CREATE_TWEET":
-                    response = createTweet(message);
-                    break;
-                case "CREATE_THREAD":
-                    response = createThread(message);
-                    break;
-                case "DELETE_TWEET":
-                    response = deleteTweet(message);
-                    break;
-                case "LIKE_TWEET":
-                    response = likeTweet(message);
-                    break;
-                case "UNLIKE_TWEET":
-                    response = unlikeTweet(message);
-                    break;
-                case "RETWEET":
-                    response = retweet(message);
-                    break;
-                case "UNRETWEET":
-                    response = unretweet(message);
-                    break;
-                case "REPLY_TO_TWEET":
-                    response = replyToTweet(message);
-                    break;
-                case "QUOTE_TWEET":
-                    response = quoteTweet(message);
-                    break;
-                case "CREATE_POLL":
-                    response = createPoll(message);
-                    break;
-                    
-                // Media operations
-                case "UPLOAD_MEDIA":
-                    response = uploadMedia(message);
-                    break;
-                case "ADD_ALT_TEXT":
-                    response = addAltText(message);
-                    break;
-                    
-                // Timeline operations
-                case "GET_HOME_TIMELINE":
-                    response = getHomeTimeline(message);
-                    break;
-                case "GET_USER_TIMELINE":
-                    response = getUserTimeline(message);
-                    break;
-                case "GET_MENTIONS":
-                    response = getMentions(message);
-                    break;
-                case "SEARCH_TWEETS":
-                    response = searchTweets(message);
-                    break;
-                    
-                // User operations
-                case "FOLLOW_USER":
-                    response = followUser(message);
-                    break;
-                case "UNFOLLOW_USER":
-                    response = unfollowUser(message);
-                    break;
-                case "GET_USER_INFO":
-                    response = getUserInfo(message);
-                    break;
-                case "GET_FOLLOWERS":
-                    response = getFollowers(message);
-                    break;
-                case "GET_FOLLOWING":
-                    response = getFollowing(message);
-                    break;
-                case "BLOCK_USER":
-                    response = blockUser(message);
-                    break;
-                case "UNBLOCK_USER":
-                    response = unblockUser(message);
-                    break;
-                case "MUTE_USER":
-                    response = muteUser(message);
-                    break;
-                case "UNMUTE_USER":
-                    response = unmuteUser(message);
-                    break;
-                    
-                // List operations
-                case "CREATE_LIST":
-                    response = createList(message);
-                    break;
-                case "UPDATE_LIST":
-                    response = updateList(message);
-                    break;
-                case "DELETE_LIST":
-                    response = deleteList(message);
-                    break;
-                case "ADD_LIST_MEMBER":
-                    response = addListMember(message);
-                    break;
-                case "REMOVE_LIST_MEMBER":
-                    response = removeListMember(message);
-                    break;
-                case "GET_LIST_TWEETS":
-                    response = getListTweets(message);
-                    break;
-                    
-                // DM operations
-                case "SEND_DIRECT_MESSAGE":
-                    response = sendDirectMessage(message);
-                    break;
-                case "GET_DIRECT_MESSAGES":
-                    response = getDirectMessages(message);
-                    break;
-                    
-                // Bookmark operations
-                case "BOOKMARK_TWEET":
-                    response = bookmarkTweet(message);
-                    break;
-                case "REMOVE_BOOKMARK":
-                    response = removeBookmark(message);
-                    break;
-                case "GET_BOOKMARKS":
-                    response = getBookmarks(message);
-                    break;
-                    
-                // Spaces operations
-                case "GET_SPACE":
-                    response = getSpace(message);
-                    break;
-                case "SEARCH_SPACES":
-                    response = searchSpaces(message);
-                    break;
-                    
-                // Analytics operations
-                case "GET_TWEET_METRICS":
-                    response = getTweetMetrics(message);
-                    break;
-                case "GET_USER_METRICS":
-                    response = getUserMetrics(message);
-                    break;
-                    
-                default:
-                    throw new AdapterException("Unknown operation: " + operation);
-            }
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("Error processing Twitter message", e);
-            Message errorResponse = new Message();
-            errorResponse.setMessageId(message.getMessageId());
+        log.debug("Processing Twitter operation: {}", e);
+            MessageDTO errorResponse = new MessageDTO();
+            errorResponse.setMessageId(message.getCorrelationId());
             errorResponse.setStatus(MessageStatus.ERROR);
             errorResponse.setHeaders(Map.of(
                 "error", e.getMessage(),
@@ -225,7 +82,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         }
     }
     
-    private Message createTweet(Message message) throws Exception {
+    private MessageDTO createTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/tweets";
@@ -267,10 +124,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEET_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEET_CREATED");
     }
     
-    private Message createThread(Message message) throws Exception {
+    private MessageDTO createThread(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         ArrayNode tweets = (ArrayNode) payload.path("tweets");
         
@@ -284,13 +141,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         for (JsonNode tweetData : tweets) {
             ObjectNode tweetRequest = objectMapper.createObjectNode();
-            tweetRequest.put("text", tweetData.path("text").asText());
-            
-            // Add reply to previous tweet in thread
-            if (previousTweetId != null) {
-                ObjectNode reply = objectMapper.createObjectNode();
-                reply.put("in_reply_to_tweet_id", previousTweetId);
-                tweetRequest.set("reply", reply);
+            tweetRequest.put("text", reply);
             }
             
             // Add media if present
@@ -319,10 +170,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         ObjectNode threadResponse = objectMapper.createObjectNode();
         threadResponse.set("thread_ids", threadIds);
         
-        return createSuccessResponse(message.getMessageId(), threadResponse.toString(), "THREAD_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), threadResponse.toString(), "THREAD_CREATED");
     }
     
-    private Message replyToTweet(Message message) throws Exception {
+    private MessageDTO replyToTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/tweets";
@@ -346,10 +197,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "REPLY_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "REPLY_CREATED");
     }
     
-    private Message quoteTweet(Message message) throws Exception {
+    private MessageDTO quoteTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/tweets";
@@ -365,10 +216,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "QUOTE_TWEET_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "QUOTE_TWEET_CREATED");
     }
     
-    private Message createPoll(Message message) throws Exception {
+    private MessageDTO createPoll(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/tweets";
@@ -393,10 +244,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "POLL_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "POLL_CREATED");
     }
     
-    private Message deleteTweet(Message message) throws Exception {
+    private MessageDTO deleteTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String tweetId = payload.path("tweet_id").asText();
         
@@ -408,10 +259,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEET_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEET_DELETED");
     }
     
-    private Message likeTweet(Message message) throws Exception {
+    private MessageDTO likeTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -427,10 +278,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEET_LIKED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEET_LIKED");
     }
     
-    private Message unlikeTweet(Message message) throws Exception {
+    private MessageDTO unlikeTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         String tweetId = payload.path("tweet_id").asText();
@@ -443,10 +294,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEET_UNLIKED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEET_UNLIKED");
     }
     
-    private Message retweet(Message message) throws Exception {
+    private MessageDTO retweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -462,10 +313,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "RETWEETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "RETWEETED");
     }
     
-    private Message unretweet(Message message) throws Exception {
+    private MessageDTO unretweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         String tweetId = payload.path("tweet_id").asText();
@@ -478,10 +329,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "UNRETWEETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "UNRETWEETED");
     }
     
-    private Message uploadMedia(Message message) throws Exception {
+    private MessageDTO uploadMedia(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         byte[] mediaData = Base64.getDecoder().decode(payload.path("media_data").asText());
@@ -549,10 +400,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<MultiValueMap<String, String>> finalizeRequest = new HttpEntity<>(finalizeParams, finalizeHeaders);
         ResponseEntity<String> finalizeResponse = restTemplate.postForEntity(initUrl, finalizeRequest, String.class);
         
-        return createSuccessResponse(message.getMessageId(), finalizeResponse.getBody(), "MEDIA_UPLOADED");
+        return createSuccessResponse(message.getCorrelationId(), finalizeResponse.getBody(), "MEDIA_UPLOADED");
     }
     
-    private Message addAltText(Message message) throws Exception {
+    private MessageDTO addAltText(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_UPLOAD_BASE + "/media/metadata/create.json";
@@ -571,10 +422,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "ALT_TEXT_ADDED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "ALT_TEXT_ADDED");
     }
     
-    private Message getHomeTimeline(Message message) throws Exception {
+    private MessageDTO getHomeTimeline(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -593,10 +444,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "HOME_TIMELINE_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "HOME_TIMELINE_RETRIEVED");
     }
     
-    private Message getUserTimeline(Message message) throws Exception {
+    private MessageDTO getUserTimeline(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -614,10 +465,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_TIMELINE_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_TIMELINE_RETRIEVED");
     }
     
-    private Message getMentions(Message message) throws Exception {
+    private MessageDTO getMentions(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -631,10 +482,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "MENTIONS_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "MENTIONS_RETRIEVED");
     }
     
-    private Message searchTweets(Message message) throws Exception {
+    private MessageDTO searchTweets(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/tweets/search/recent";
@@ -656,10 +507,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEETS_SEARCHED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEETS_SEARCHED");
     }
     
-    private Message followUser(Message message) throws Exception {
+    private MessageDTO followUser(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
         
@@ -675,10 +526,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_FOLLOWED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_FOLLOWED");
     }
     
-    private Message unfollowUser(Message message) throws Exception {
+    private MessageDTO unfollowUser(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
         String targetUserId = payload.path("target_user_id").asText();
@@ -691,10 +542,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_UNFOLLOWED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_UNFOLLOWED");
     }
     
-    private Message getUserInfo(Message message) throws Exception {
+    private MessageDTO getUserInfo(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -706,10 +557,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_INFO_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_INFO_RETRIEVED");
     }
     
-    private Message getFollowers(Message message) throws Exception {
+    private MessageDTO getFollowers(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -725,10 +576,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "FOLLOWERS_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "FOLLOWERS_RETRIEVED");
     }
     
-    private Message getFollowing(Message message) throws Exception {
+    private MessageDTO getFollowing(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -744,11 +595,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "FOLLOWING_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "FOLLOWING_RETRIEVED");
     }
     
     // Additional user operations
-    private Message blockUser(Message message) throws Exception {
+    private MessageDTO blockUser(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
         
@@ -764,10 +615,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_BLOCKED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_BLOCKED");
     }
     
-    private Message unblockUser(Message message) throws Exception {
+    private MessageDTO unblockUser(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
         String targetUserId = payload.path("target_user_id").asText();
@@ -780,10 +631,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_UNBLOCKED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_UNBLOCKED");
     }
     
-    private Message muteUser(Message message) throws Exception {
+    private MessageDTO muteUser(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
         
@@ -799,10 +650,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_MUTED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_MUTED");
     }
     
-    private Message unmuteUser(Message message) throws Exception {
+    private MessageDTO unmuteUser(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
         String targetUserId = payload.path("target_user_id").asText();
@@ -815,11 +666,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_UNMUTED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_UNMUTED");
     }
     
     // List operations
-    private Message createList(Message message) throws Exception {
+    private MessageDTO createList(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/lists";
@@ -840,10 +691,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LIST_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LIST_CREATED");
     }
     
-    private Message updateList(Message message) throws Exception {
+    private MessageDTO updateList(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
         
@@ -867,10 +718,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LIST_UPDATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LIST_UPDATED");
     }
     
-    private Message deleteList(Message message) throws Exception {
+    private MessageDTO deleteList(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
         
@@ -882,10 +733,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LIST_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LIST_DELETED");
     }
     
-    private Message addListMember(Message message) throws Exception {
+    private MessageDTO addListMember(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
         
@@ -901,10 +752,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LIST_MEMBER_ADDED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LIST_MEMBER_ADDED");
     }
     
-    private Message removeListMember(Message message) throws Exception {
+    private MessageDTO removeListMember(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
         String userId = payload.path("user_id").asText();
@@ -917,10 +768,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LIST_MEMBER_REMOVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LIST_MEMBER_REMOVED");
     }
     
-    private Message getListTweets(Message message) throws Exception {
+    private MessageDTO getListTweets(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
         
@@ -934,11 +785,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LIST_TWEETS_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LIST_TWEETS_RETRIEVED");
     }
     
     // DM operations
-    private Message sendDirectMessage(Message message) throws Exception {
+    private MessageDTO sendDirectMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/dm_conversations/with/" + 
@@ -959,10 +810,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "DIRECT_MESSAGE_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "DIRECT_MESSAGE_SENT");
     }
     
-    private Message getDirectMessages(Message message) throws Exception {
+    private MessageDTO getDirectMessages(MessageDTO message) throws Exception {
         String url = TWITTER_API_BASE + "/dm_events";
         
         Map<String, String> params = new HashMap<>();
@@ -974,11 +825,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "DIRECT_MESSAGES_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "DIRECT_MESSAGES_RETRIEVED");
     }
     
     // Bookmark operations
-    private Message bookmarkTweet(Message message) throws Exception {
+    private MessageDTO bookmarkTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -994,10 +845,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEET_BOOKMARKED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEET_BOOKMARKED");
     }
     
-    private Message removeBookmark(Message message) throws Exception {
+    private MessageDTO removeBookmark(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         String tweetId = payload.path("tweet_id").asText();
@@ -1010,10 +861,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "BOOKMARK_REMOVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "BOOKMARK_REMOVED");
     }
     
-    private Message getBookmarks(Message message) throws Exception {
+    private MessageDTO getBookmarks(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -1027,11 +878,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "BOOKMARKS_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "BOOKMARKS_RETRIEVED");
     }
     
     // Spaces operations
-    private Message getSpace(Message message) throws Exception {
+    private MessageDTO getSpace(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String spaceId = payload.path("space_id").asText();
         
@@ -1045,10 +896,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "SPACE_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "SPACE_RETRIEVED");
     }
     
-    private Message searchSpaces(Message message) throws Exception {
+    private MessageDTO searchSpaces(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = TWITTER_API_BASE + "/spaces/search";
@@ -1060,11 +911,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "SPACES_SEARCHED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "SPACES_SEARCHED");
     }
     
     // Analytics operations
-    private Message getTweetMetrics(Message message) throws Exception {
+    private MessageDTO getTweetMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String tweetId = payload.path("tweet_id").asText();
         
@@ -1075,10 +926,10 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TWEET_METRICS_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TWEET_METRICS_RETRIEVED");
     }
     
-    private Message getUserMetrics(Message message) throws Exception {
+    private MessageDTO getUserMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
         
@@ -1089,7 +940,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "USER_METRICS_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "USER_METRICS_RETRIEVED");
     }
     
     // Helper methods
@@ -1128,11 +979,11 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
     }
     
-    private Message createSuccessResponse(String messageId, String responseBody, String operation) {
-        Message response = new Message();
-        response.setMessageId(messageId);
-        response.setStatus(MessageStatus.SUCCESS);
-        response.setTimestamp(Instant.now());
+    private MessageDTO createSuccessResponse(String messageId, String responseBody, String operation) {
+        MessageDTO response = new MessageDTO();
+        response.setCorrelationId(messageId);
+        response.setStatus(MessageStatus.PROCESSED);
+        response.setMessageTimestamp(Instant.now());
         response.setHeaders(Map.of(
             "operation", operation,
             "source", "twitter"
@@ -1156,5 +1007,14 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         if (config.getBearerToken() == null && config.getAccessToken() == null) {
             throw new AdapterException("Bearer token or access token is required");
         }
+    }
+    
+    @Override
+    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
+        return processMessage(message);
+    }
+    
+    public void setConfiguration(TwitterApiV2Config config) {
+        this.config = config;
     }
 }

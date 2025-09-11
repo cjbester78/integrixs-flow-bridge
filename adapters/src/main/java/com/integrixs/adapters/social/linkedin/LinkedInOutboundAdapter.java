@@ -1,21 +1,26 @@
 package com.integrixs.adapters.social.linkedin;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.adapters.social.linkedin.LinkedInApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.adapters.social.linkedin.LinkedInApiConfig;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
+import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,10 +29,12 @@ import java.util.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 
-@Slf4j
 @Component("linkedInOutboundAdapter")
-public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<LinkedInApiConfig> {
+public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(LinkedInOutboundAdapter.class);
+
     
     private static final String LINKEDIN_API_BASE = "https://api.linkedin.com/v2";
     private static final String LINKEDIN_API_REST_BASE = "https://api.linkedin.com/rest";
@@ -35,21 +42,27 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private LinkedInApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public LinkedInOutboundAdapter(
-            LinkedInApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    public Message sendMessage(Message message) throws AdapterException {
+    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         try {
             validateConfiguration();
             
@@ -125,24 +138,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
                     throw new AdapterException("Unsupported operation: " + operation);
             }
         } catch (Exception e) {
-            log.error("Error in LinkedIn outbound adapter", e);
-            throw new AdapterException("Failed to process outbound message", e);
-        }
-    }
-    
-    // Content Sharing Methods
-    private Message createPost(Message message) throws Exception {
-        JsonNode payload = objectMapper.readTree(message.getPayload());
-        
-        String url = LINKEDIN_API_REST_BASE + "/posts";
-        
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        
-        // Author - can be person or organization
-        String author = payload.has("organizationUrn") 
-            ? payload.get("organizationUrn").asText()
-            : config.getMemberUrn();
-        requestBody.put("author", author);
+            log.error("Error in LinkedIn outbound adapter", author);
         
         // Content
         ObjectNode commentary = objectMapper.createObjectNode();
@@ -184,7 +180,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "POST_CREATED");
     }
     
-    private Message createArticle(Message message) throws Exception {
+    private MessageDTO createArticle(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/articles";
@@ -206,7 +202,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "ARTICLE_CREATED");
     }
     
-    private Message shareImage(Message message) throws Exception {
+    private MessageDTO shareImage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // First, register the image upload
@@ -242,14 +238,14 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
             mediaItem.put("altText", payload.get("altText").asText());
         }
         
-        Message postMessage = new Message();
+        MessageDTO postMessageDTO = new MessageDTO();
         postMessage.setPayload(postPayload.toString());
         postMessage.setHeaders(Map.of("operation", "CREATE_POST"));
         
         return createPost(postMessage);
     }
     
-    private Message shareVideo(Message message) throws Exception {
+    private MessageDTO shareVideo(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Register video upload
@@ -291,14 +287,14 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
             title.put("text", payload.get("title").asText());
         }
         
-        Message postMessage = new Message();
+        MessageDTO postMessageDTO = new MessageDTO();
         postMessage.setPayload(postPayload.toString());
         postMessage.setHeaders(Map.of("operation", "CREATE_POST"));
         
         return createPost(postMessage);
     }
     
-    private Message shareDocument(Message message) throws Exception {
+    private MessageDTO shareDocument(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Register document upload
@@ -328,14 +324,14 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         ObjectNode mediaItem = media.addObject();
         mediaItem.put("entity", documentUrn);
         
-        Message postMessage = new Message();
+        MessageDTO postMessageDTO = new MessageDTO();
         postMessage.setPayload(postPayload.toString());
         postMessage.setHeaders(Map.of("operation", "CREATE_POST"));
         
         return createPost(postMessage);
     }
     
-    private Message updatePost(Message message) throws Exception {
+    private MessageDTO updatePost(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String postUrn = payload.path("postUrn").asText();
         
@@ -357,7 +353,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "POST_UPDATED");
     }
     
-    private Message deletePost(Message message) throws Exception {
+    private MessageDTO deletePost(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String postUrn = payload.path("postUrn").asText();
         
@@ -368,7 +364,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     // Engagement Methods
-    private Message createComment(Message message) throws Exception {
+    private MessageDTO createComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/socialActions/" + 
@@ -387,7 +383,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "COMMENT_CREATED");
     }
     
-    private Message deleteComment(Message message) throws Exception {
+    private MessageDTO deleteComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentUrn = payload.path("commentUrn").asText();
         
@@ -397,7 +393,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "COMMENT_DELETED");
     }
     
-    private Message addReaction(Message message) throws Exception {
+    private MessageDTO addReaction(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/reactions";
@@ -411,7 +407,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "REACTION_ADDED");
     }
     
-    private Message removeReaction(Message message) throws Exception {
+    private MessageDTO removeReaction(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String entityUrn = payload.path("entityUrn").asText();
@@ -423,7 +419,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     // Profile & Company Methods
-    private Message getProfile(Message message) throws Exception {
+    private MessageDTO getProfile(MessageDTO message) throws Exception {
         String profileId = message.getHeaders()
             .getOrDefault("profileId", config.getMemberUrn()).toString();
         
@@ -436,7 +432,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "PROFILE_RETRIEVED");
     }
     
-    private Message updateProfile(Message message) throws Exception {
+    private MessageDTO updateProfile(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/people/" + config.getMemberUrn();
@@ -455,7 +451,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "PROFILE_UPDATED");
     }
     
-    private Message getCompanyInfo(Message message) throws Exception {
+    private MessageDTO getCompanyInfo(MessageDTO message) throws Exception {
         String organizationId = message.getHeaders()
             .getOrDefault("organizationId", config.getOrganizationId()).toString();
         
@@ -465,7 +461,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "COMPANY_INFO_RETRIEVED");
     }
     
-    private Message updateCompanyPage(Message message) throws Exception {
+    private MessageDTO updateCompanyPage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String organizationId = config.getOrganizationId();
         
@@ -486,7 +482,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     // Connection & Messaging Methods
-    private Message sendConnectionRequest(Message message) throws Exception {
+    private MessageDTO sendConnectionRequest(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/invitations";
@@ -496,7 +492,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         requestBody.put("invitationType", "CONNECTION");
         
         if (payload.has("message")) {
-            ObjectNode invitationMessage = requestBody.putObject("message");
+            ObjectNode invitationMessageDTO = requestBody.putObject("message");
             invitationMessage.put("text", payload.get("message").asText());
         }
         
@@ -504,7 +500,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "CONNECTION_REQUEST_SENT");
     }
     
-    private Message acceptConnection(Message message) throws Exception {
+    private MessageDTO acceptConnection(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String invitationUrn = payload.path("invitationUrn").asText();
         
@@ -514,7 +510,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "CONNECTION_ACCEPTED");
     }
     
-    private Message sendDirectMessage(Message message) throws Exception {
+    private MessageDTO sendDirectMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/messages";
@@ -547,7 +543,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     // Analytics Methods
-    private Message getPostAnalytics(Message message) throws Exception {
+    private MessageDTO getPostAnalytics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String postUrn = payload.path("postUrn").asText();
         
@@ -557,7 +553,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "POST_ANALYTICS_RETRIEVED");
     }
     
-    private Message getFollowerStatistics(Message message) throws Exception {
+    private MessageDTO getFollowerStatistics(MessageDTO message) throws Exception {
         String organizationId = config.getOrganizationId();
         
         String url = LINKEDIN_API_REST_BASE + "/organizationPageStatistics";
@@ -571,7 +567,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "FOLLOWER_STATISTICS_RETRIEVED");
     }
     
-    private Message getShareStatistics(Message message) throws Exception {
+    private MessageDTO getShareStatistics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/organizationShareStatistics";
@@ -597,7 +593,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     // Event Methods
-    private Message createEvent(Message message) throws Exception {
+    private MessageDTO createEvent(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = LINKEDIN_API_REST_BASE + "/events";
@@ -621,7 +617,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "EVENT_CREATED");
     }
     
-    private Message updateEvent(Message message) throws Exception {
+    private MessageDTO updateEvent(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String eventUrn = payload.path("eventUrn").asText();
         
@@ -641,7 +637,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     // Hashtag Methods
-    private Message followHashtag(Message message) throws Exception {
+    private MessageDTO followHashtag(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String hashtag = payload.path("hashtag").asText();
         
@@ -655,7 +651,7 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         return createResponseMessage(response, "HASHTAG_FOLLOWED");
     }
     
-    private Message unfollowHashtag(Message message) throws Exception {
+    private MessageDTO unfollowHashtag(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String hashtag = payload.path("hashtag").asText();
         
@@ -672,26 +668,27 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
     }
     
     private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(getAccessToken());
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("LinkedIn-Version", "202401");
-        headers.set("X-Restli-Protocol-Version", "2.0.0");
-        
-        StringBuilder urlBuilder = new StringBuilder(url);
-        if (params != null && !params.isEmpty()) {
-            urlBuilder.append("?");
-            params.forEach((key, value) -> 
-                urlBuilder.append(key).append("=").append(value).append("&"));
-            urlBuilder.setLength(urlBuilder.length() - 1);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(getAccessToken());
+            
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+            if (params != null) {
+                params.forEach(builder::queryParam);
+            }
+            
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+            
+            return restTemplate.exchange(builder.toUriString(), method, entity, String.class);
+        } catch (HttpClientErrorException e) {
+            log.error("LinkedIn API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AdapterException("LinkedIn API request failed", e);
+        } catch (Exception e) {
+            throw new AdapterException("Failed to make API call", e);
         }
-        
-        HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        
-        rateLimiterService.acquire("linkedin_api", 1);
-        
-        return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
     }
+    
     
     private void uploadMedia(String uploadUrl, byte[] mediaData, String contentType) {
         HttpHeaders headers = new HttpHeaders();
@@ -726,5 +723,46 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter<
         if (config.getMemberUrn() == null && config.getOrganizationId() == null) {
             throw new AdapterException("Neither member URN nor organization ID is configured");
         }
+    }
+    
+    public void setConfiguration(LinkedInApiConfig config) {
+        this.config = config;
+    }
+    
+    // LinkedIn API Enums
+    private enum Visibility {
+        CONNECTIONS,
+        PUBLIC,
+        LOGGED_IN
+    }
+    
+    private enum Distribution {
+        MAIN_FEED,
+        NONE
+    }
+    
+    private enum ReactionType {
+        LIKE,
+        CELEBRATE,
+        SUPPORT,
+        LOVE,
+        INSIGHTFUL,
+        CURIOUS
+    }
+    
+    private MessageDTO createResponseMessage(ResponseEntity<String> response, String operationType) {
+        MessageDTO responseMessage = new MessageDTO();
+        responseMessage.setCorrelationId(UUID.randomUUID().toString());
+        responseMessage.setMessageTimestamp(java.time.Instant.now());
+        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+        
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("operation", operationType);
+        headers.put("statusCode", response.getStatusCodeValue());
+        headers.put("source", "linkedin");
+        responseMessage.setHeaders(headers);
+        
+        responseMessage.setPayload(response.getBody());
+        return responseMessage;
     }
 }

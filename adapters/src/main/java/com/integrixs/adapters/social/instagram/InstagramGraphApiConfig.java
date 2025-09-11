@@ -1,87 +1,133 @@
 package com.integrixs.adapters.social.instagram;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@Data
-@Component
-@ConfigurationProperties(prefix = "integrixs.adapters.instagram.graph")
-@EqualsAndHashCode(callSuper = true)
+/**
+ * Configuration class for Instagram Graph API
+ */
 public class InstagramGraphApiConfig extends SocialMediaAdapterConfig {
+    public InstagramGraphApiConfig() {
+    }
+
     
+    // Instagram specific configuration
     private String instagramBusinessAccountId;
     private String facebookPageId;
-    private InstagramFeatures features = new InstagramFeatures();
+    private String facebookPageAccessToken;
     
-    @Data
-    public static class InstagramFeatures {
-        private boolean enablePostPublishing = true;
-        private boolean enableStories = true;
-        private boolean enableReels = true;
-        private boolean enableCommentManagement = true;
-        private boolean enableHashtagAnalytics = true;
-        private boolean enableUserInsights = true;
-        private boolean enableShoppingTags = true;
-        private boolean enableIGTV = true;
-        private boolean enableContentScheduling = true;
-        private boolean enableMentionMonitoring = true;
-        private boolean enableCarouselPosts = true;
-        private boolean enableProductTagging = true;
+    // Instagram API settings
+    private boolean enableInsights;
+    private boolean enableStories;
+    private boolean enableReels;
+    private boolean enableShopping;
+    private boolean enableCommentFiltering;
+    
+    // Content moderation
+    private boolean autoHideOffensiveComments;
+    private String[] blockedKeywords;
+    
+    // Default values
+    private static final String DEFAULT_API_VERSION = "v18.0";
+    private static final String DEFAULT_API_BASE_URL = "https://graph.facebook.com";
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return String.format("https://www.facebook.com/%s/dialog/oauth", 
+                            getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
     
-    // Content types
-    public enum ContentType {
-        IMAGE,
-        VIDEO,
-        CAROUSEL_ALBUM,
-        REELS,
-        STORIES,
-        IGTV
+    @Override
+    public String getTokenUrl() {
+        return String.format("%s/%s/oauth/access_token",
+                            getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
+                            getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
     
-    // Media types for upload
-    public enum MediaType {
-        IMAGE("image/jpeg", "image/png", "image/gif"),
-        VIDEO("video/mp4", "video/mpeg", "video/quicktime");
-        
-        private final String[] mimeTypes;
-        
-        MediaType(String... mimeTypes) {
-            this.mimeTypes = mimeTypes;
-        }
-        
-        public String[] getMimeTypes() {
-            return mimeTypes;
-        }
+    @Override
+    public String getPlatformName() {
+        return "instagram";
     }
     
-    // Insights metrics
-    public enum InsightMetric {
-        IMPRESSIONS,
-        REACH,
-        PROFILE_VIEWS,
-        WEBSITE_CLICKS,
-        EMAIL_CONTACTS,
-        GET_DIRECTIONS_CLICKS,
-        PHONE_CALL_CLICKS,
-        TEXT_MESSAGE_CLICKS,
-        FOLLOWER_COUNT,
-        ONLINE_FOLLOWERS,
-        AUDIENCE_CITY,
-        AUDIENCE_COUNTRY,
-        AUDIENCE_GENDER_AGE,
-        AUDIENCE_LOCALE
+    /**
+     * Get the base URL for API calls
+     */
+    public String getBaseUrl() {
+        String baseUrl = getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL;
+        String version = getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION;
+        return String.format("%s/%s", baseUrl, version);
     }
     
-    // Shopping product availability
-    public enum ProductAvailability {
-        IN_STOCK,
-        OUT_OF_STOCK,
-        PREORDER,
-        AVAILABLE_FOR_ORDER,
-        DISCONTINUED
+    /**
+     * Get the full API endpoint for media
+     */
+    public String getMediaEndpoint() {
+        return String.format("%s/%s/media", getBaseUrl(), instagramBusinessAccountId);
+    }
+    
+    /**
+     * Get the full API endpoint for insights
+     */
+    public String getInsightsEndpoint() {
+        return String.format("%s/%s/insights", getBaseUrl(), instagramBusinessAccountId);
+    }
+    // Getters and Setters
+    public String getInstagramBusinessAccountId() {
+        return instagramBusinessAccountId;
+    }
+    public void setInstagramBusinessAccountId(String instagramBusinessAccountId) {
+        this.instagramBusinessAccountId = instagramBusinessAccountId;
+    }
+    public String getFacebookPageId() {
+        return facebookPageId;
+    }
+    public void setFacebookPageId(String facebookPageId) {
+        this.facebookPageId = facebookPageId;
+    }
+    public String getFacebookPageAccessToken() {
+        return facebookPageAccessToken;
+    }
+    public void setFacebookPageAccessToken(String facebookPageAccessToken) {
+        this.facebookPageAccessToken = facebookPageAccessToken;
+    }
+    public boolean isEnableInsights() {
+        return enableInsights;
+    }
+    public void setEnableInsights(boolean enableInsights) {
+        this.enableInsights = enableInsights;
+    }
+    public boolean isEnableStories() {
+        return enableStories;
+    }
+    public void setEnableStories(boolean enableStories) {
+        this.enableStories = enableStories;
+    }
+    public boolean isEnableReels() {
+        return enableReels;
+    }
+    public void setEnableReels(boolean enableReels) {
+        this.enableReels = enableReels;
+    }
+    public boolean isEnableShopping() {
+        return enableShopping;
+    }
+    public void setEnableShopping(boolean enableShopping) {
+        this.enableShopping = enableShopping;
+    }
+    public boolean isEnableCommentFiltering() {
+        return enableCommentFiltering;
+    }
+    public void setEnableCommentFiltering(boolean enableCommentFiltering) {
+        this.enableCommentFiltering = enableCommentFiltering;
+    }
+    public boolean isAutoHideOffensiveComments() {
+        return autoHideOffensiveComments;
+    }
+    public void setAutoHideOffensiveComments(boolean autoHideOffensiveComments) {
+        this.autoHideOffensiveComments = autoHideOffensiveComments;
+    }
+    public String[] getBlockedKeywords() {
+        return blockedKeywords;
+    }
+    public void setBlockedKeywords(String[] blockedKeywords) {
+        this.blockedKeywords = blockedKeywords;
     }
 }

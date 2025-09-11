@@ -1,14 +1,11 @@
 package com.integrixs.adapters.api.dto;
 
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * DTO for fetch data requests
  */
-@Data
 public class FetchDataRequestDTO {
     private Map<String, Object> parameters = new HashMap<>();
     private Map<String, String> headers = new HashMap<>();
@@ -35,5 +32,70 @@ public class FetchDataRequestDTO {
      */
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
+    }
+
+    // Getters and Setters
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, Object> parameters) {
+        this.parameters = parameters;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public Integer getLimit() {
+        return limit;
+    }
+
+    public void setLimit(Integer limit) {
+        this.limit = limit;
+    }
+
+    public Integer getOffset() {
+        return offset;
+    }
+
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+    }
+
+    public String getLastFetchMarker() {
+        return lastFetchMarker;
+    }
+
+    public void setLastFetchMarker(String lastFetchMarker) {
+        this.lastFetchMarker = lastFetchMarker;
+    }
+
+    public boolean isDeltaFetch() {
+        return deltaFetch;
+    }
+
+    public void setDeltaFetch(boolean deltaFetch) {
+        this.deltaFetch = deltaFetch;
+    }
+
+    public Long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Long timeout) {
+        this.timeout = timeout;
     }
 }

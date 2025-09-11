@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -15,8 +18,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -26,8 +27,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Supports IMAP/POP3 protocols, email filtering, attachment handling, and S/MIME security.
  */
-@Slf4j
 public class MailInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(MailInboundAdapter.class);
+
     
     private final MailInboundAdapterConfig config;
     private final Map<String, String> processedMessages = new ConcurrentHashMap<>();
@@ -431,18 +433,12 @@ public class MailInboundAdapter extends AbstractAdapter implements InboundAdapte
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getMailServerHost() == null || config.getMailServerHost().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "Mail server host is required");
-        }
-        if (config.getMailUsername() == null || config.getMailUsername().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "Mail username is required");
+            throw new AdapterException("Mail server host is required", null);
         }
         if (config.getMailPassword() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "Mail password is required");
-        }
-        if (config.getFolderName() == null || config.getFolderName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, "Mail folder name is required");
+            throw new AdapterException("Mail password is required", null);
         }
     }
     

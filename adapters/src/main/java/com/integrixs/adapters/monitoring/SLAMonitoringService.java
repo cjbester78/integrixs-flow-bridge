@@ -453,9 +453,6 @@ public class SLAMonitoringService {
         }
         
         // Getters
-        public String getAdapterType() { return adapterType; }
-        public String getAdapterMode() { return adapterMode; }
-        public String getOperationName() { return operationName; }
         public List<String> getViolations() { return violations; }
         public SLAComplianceReport getReport() { return report; }
         public LocalDateTime getTimestamp() { return timestamp; }

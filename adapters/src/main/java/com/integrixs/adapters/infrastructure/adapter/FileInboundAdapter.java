@@ -1,11 +1,13 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.config.FileInboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -21,8 +23,9 @@ import java.util.stream.Collectors;
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Supports directory polling, file filtering, duplicate detection, and incremental processing.
  */
-@Slf4j
 public class FileInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(FileInboundAdapter.class);
+
     
     private final FileInboundAdapterConfig config;
     private final Map<String, String> processedFiles = new ConcurrentHashMap<>();
@@ -426,7 +429,7 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
                 return null;
                 
             case "error":
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                         "Empty file not allowed: " + file);
                 
             case "process":
@@ -531,9 +534,9 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getSourceDirectory() == null || config.getSourceDirectory().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, "Source directory is required");
+            throw new AdapterException("Source directory is required", null);
         }
     }
     
@@ -541,18 +544,17 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
         sourceDirectory = Paths.get(config.getSourceDirectory());
         
         if (!Files.exists(sourceDirectory)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "Source directory does not exist: " + sourceDirectory);
         }
         
         if (!Files.isDirectory(sourceDirectory)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE, 
                     "Source path is not a directory: " + sourceDirectory);
         }
         
         if (!Files.isReadable(sourceDirectory)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                    "Source directory is not readable: " + sourceDirectory);
+            throw new AdapterException("Source directory is not readable: " + sourceDirectory);
         }
     }
     
@@ -562,8 +564,7 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
             try {
                 filePattern = Pattern.compile(config.getFilePattern());
             } catch (Exception e) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                        "Invalid file pattern: " + config.getFilePattern(), e);
+                throw new AdapterException("Invalid file pattern: " + config.getFilePattern(), e);
             }
         }
         
@@ -572,11 +573,11 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
             try {
                 exclusionPattern = Pattern.compile(config.getExclusionMask());
             } catch (Exception e) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                        "Invalid exclusion pattern: " + config.getExclusionMask(), e);
+                throw new AdapterException("Invalid exclusion pattern: " + config.getExclusionMask(), e);
             }
         }
     }
+
     
     private void validateProcessingDirectories() throws Exception {
         String[] dirs = {
@@ -593,13 +594,11 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
                 Files.createDirectories(path); // Create if doesn't exist
                 
                 if (!Files.isDirectory(path)) {
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                            "Processing path is not a directory: " + path);
+                    throw new AdapterException("Processing path is not a directory: " + path);
                 }
                 
                 if (!Files.isWritable(path)) {
-                    throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                            "Processing directory is not writable: " + path);
+                    throw new AdapterException("Processing directory is not writable: " + path);
                 }
             }
         }
@@ -617,14 +616,14 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
     
     @Override
     public AdapterMetadata getMetadata() {
-        return AdapterMetadata.builder()
-                .adapterType(AdapterConfiguration.AdapterTypeEnum.FILE)
-                .adapterMode(AdapterConfiguration.AdapterModeEnum.INBOUND)
-                .description("File Sender Adapter - monitors and reads files from file system")
-                .version("1.0.0")
-                .supportsBatch(true)
-                .supportsAsync(true)
-                .build();
+        return new AdapterMetadata(
+                AdapterConfiguration.AdapterTypeEnum.FILE,
+                AdapterConfiguration.AdapterModeEnum.INBOUND,
+                "File Sender Adapter - monitors and reads files from file system",
+                "1.0.0",
+                true,  // supportsBatch
+                true   // supportsAsync
+        );
     }
     
     protected AdapterOperationResult performSend(Object payload, Map<String, Object> headers) throws Exception {
@@ -657,5 +656,4 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
     public boolean isListening() {
         return false;
     }
-
 }

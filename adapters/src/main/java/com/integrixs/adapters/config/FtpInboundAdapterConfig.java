@@ -81,11 +81,6 @@ public class FtpInboundAdapterConfig {
         
         public FileAccessAdvancedEntry() {}
         
-        public FileAccessAdvancedEntry(String pattern, String operation, String condition) {
-            this.pattern = pattern;
-            this.operation = operation;
-            this.condition = condition;
-        }
         
         // Getters and setters
         public String getPattern() { return pattern; }
@@ -101,11 +96,6 @@ public class FtpInboundAdapterConfig {
     // Constructors
     public FtpInboundAdapterConfig() {}
     
-    public FtpInboundAdapterConfig(String serverAddress, String userName, String password) {
-        this.serverAddress = serverAddress;
-        this.userName = userName;
-        this.password = password;
-    }
     
     // Getters and Setters
     public String getServerAddress() { return serverAddress; }

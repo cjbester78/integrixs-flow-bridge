@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +19,6 @@ import java.util.Properties;
 import java.util.Collection;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -27,8 +29,9 @@ import java.util.concurrent.TimeUnit;
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Supports SELECT operations with polling, pagination, and incremental data processing.
  */
-@Slf4j
 public class JdbcInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(JdbcInboundAdapter.class);
+
     
     private final JdbcInboundAdapterConfig config;
     private HikariDataSource dataSource;
@@ -140,7 +143,7 @@ public class JdbcInboundAdapter extends AbstractAdapter implements InboundAdapte
     
     private AdapterOperationResult pollForData() throws Exception {
         if (config.getSelectQuery() == null || config.getSelectQuery().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JDBC, "SELECT query not configured");
+            throw new AdapterException("SELECT query not configured", null);
         }
         
         List<Map<String, Object>> results = new ArrayList<>();
@@ -221,15 +224,12 @@ public class JdbcInboundAdapter extends AbstractAdapter implements InboundAdapte
         return query + " LIMIT " + limit;
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getJdbcUrl() == null || config.getJdbcUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JDBC, "JDBC URL is required");
-        }
-        if (config.getDriverClass() == null || config.getDriverClass().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JDBC, "JDBC driver class is required");
+            throw new AdapterException("JDBC URL is required", null);
         }
         if (config.getSelectQuery() == null || config.getSelectQuery().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JDBC, "SELECT query is required for JDBC inbound adapter");
+            throw new AdapterException("SELECT query is required for JDBC inbound adapter", null);
         }
     }
     

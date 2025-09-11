@@ -1,15 +1,17 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.List;import com.integrixs.adapters.domain.port.InboundAdapterPort;
+import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import java.util.Map;
-import java.util.List;import com.integrixs.adapters.config.RfcInboundAdapterConfig;
+import com.integrixs.adapters.config.RfcInboundAdapterConfig;
 import java.util.*;
-import java.util.List;import java.util.concurrent.ConcurrentHashMap;
-import java.util.List;import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.ConcurrentHashMap;
 /**
  * RFC Sender Adapter implementation for SAP RFC server functionality (INBOUND).
  * Follows middleware convention: Inbound = receives data FROM external systems.
@@ -17,8 +19,9 @@ import java.util.List;import lombok.extern.slf4j.Slf4j;
  * 
  * Note: This is a simulation. Real implementation would require SAP JCo libraries.
  */
-@Slf4j
 public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(RfcInboundAdapter.class);
+
     
     private final RfcInboundAdapterConfig config;
     private final Map<String, Object> receivedCalls = new ConcurrentHashMap<>();
@@ -102,15 +105,15 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
             if (functionName == null) {
                 functionName = "SIMULATED_RFC_FUNCTION";
             }
+            
             // Check if function is allowed
             if (config.getAllowedFunctions() != null && !config.getAllowedFunctions().isEmpty()) {
                 List<String> allowedFunctions = Arrays.asList(config.getAllowedFunctions().split(","));
                 if (!allowedFunctions.contains(functionName)) {
-                    throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.RFC, 
-                            "Function not allowed: " + functionName);
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.RFC, "Function not allowed: " + functionName);
                 }
             }
-            rfcData.put("functionName", functionName);
+            
             rfcData.put("callId", UUID.randomUUID().toString());
             rfcData.put("timestamp", new Date());
             rfcData.put("sourceSystem", headers != null ? headers.get("sourceSystem") : "SAP");
@@ -145,21 +148,19 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getProgramId() == null || config.getProgramId().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Program ID is required");
-        }
-        if (config.getGatewayHost() == null || config.getGatewayHost().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Gateway host is required");
+            throw new AdapterException("Program ID is required", null);
         }
         if (config.getGatewayService() == null || config.getGatewayService().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Gateway service is required");
+            throw new AdapterException("Gateway service is required", null);
         }
         // Set defaults
         if (config.getConnectionCount() <= 0) {
             config.setConnectionCount(config.getDefaultConnectionCount() != null ? config.getDefaultConnectionCount() : 1);
         }
     }
+    
     public long getPollingInterval() {
         return config.getPollingInterval() != null ? config.getPollingInterval() : 0;
     }
@@ -188,9 +189,11 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
     public void stopListening() {
     }
     
+    @Override
     public boolean isListening() {
         return false;
     }
+    
     public void startPolling(long intervalMillis) {
         // Implement if polling is supported
         throw new UnsupportedOperationException("Polling not implemented");
@@ -198,9 +201,12 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
     
     public void stopPolling() {
     }
+    
     public void setDataReceivedCallback(DataReceivedCallback callback) {
         // Implement if callbacks are supported
     }
+    
+    @Override
     public AdapterMetadata getMetadata() {
         return AdapterMetadata.builder()
                 .adapterType(AdapterConfiguration.AdapterTypeEnum.RFC)
@@ -233,6 +239,7 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
                 return AdapterOperationResult.failure(
                         "Gateway Connection", "Gateway host not configured", null);
             }
+            
             return AdapterOperationResult.success(
                     "Gateway Connection", "Gateway configuration valid: " + gatewayInfo);
         } catch (Exception e) {
@@ -247,6 +254,7 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
                 return AdapterOperationResult.failure(
                         "Program ID", "Program ID not configured", null);
             }
+            
             return AdapterOperationResult.success(
                     "Program ID", "Program ID configured: " + config.getProgramId());
         } catch (Exception e) {
@@ -261,6 +269,7 @@ public class RfcInboundAdapter extends AbstractAdapter implements InboundAdapter
             if (config.getAllowedFunctions() != null && !config.getAllowedFunctions().isEmpty()) {
                 info += ", Allowed functions: " + config.getAllowedFunctions();
             }
+            
             return AdapterOperationResult.success(
                     "Function Configuration", info);
         } catch (Exception e) {

@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.config.FtpInboundAdapterConfig;
 
@@ -18,7 +21,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import com.integrixs.adapters.domain.model.*;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -29,8 +31,9 @@ import java.util.concurrent.TimeUnit;
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Supports FTP connections, file polling, pattern matching, and post-processing.
  */
-@Slf4j
 public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.adapters.domain.port.InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(FtpInboundAdapter.class);
+
     
     private final FtpInboundAdapterConfig config;
     private final Map<String, String> processedFiles = new ConcurrentHashMap<>();
@@ -186,7 +189,7 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
             
             // Change to source directory
             if (!client.changeWorkingDirectory(config.getSourceDirectory())) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                         "Cannot access source directory: " + config.getSourceDirectory());
             }
             
@@ -416,7 +419,7 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
                 log.debug("Ignoring empty FTP file: {}", file.getName());
                 return null;
             case "error":
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                         "Empty file not allowed: " + file.getName());
             case "process":
             default:
@@ -490,7 +493,7 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
         int reply = client.getReplyCode();
         if (!FTPReply.isPositiveCompletion(reply)) {
             client.disconnect();
-            throw new AdapterException.ConnectionException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                     "FTP server refused connection: " + client.getReplyString());
         }
         
@@ -498,7 +501,7 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
         boolean loginSuccess = client.login(config.getUserName(), config.getPassword());
         if (!loginSuccess) {
             client.disconnect();
-            throw new AdapterException.AuthenticationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, 
                     "FTP login failed: " + client.getReplyString());
         }
         
@@ -534,18 +537,12 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
         }
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getServerAddress() == null || config.getServerAddress().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP server address is required");
-        }
-        if (config.getUserName() == null || config.getUserName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP username is required");
+            throw new AdapterException("FTP server address is required", null);
         }
         if (config.getPassword() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP password is required");
-        }
-        if (config.getSourceDirectory() == null || config.getSourceDirectory().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, "FTP source directory is required");
+            throw new AdapterException("FTP password is required", null);
         }
     }
     
@@ -555,8 +552,7 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
             try {
                 exclusionPattern = Pattern.compile(config.getExclusionMask());
             } catch (Exception e) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                        "Invalid exclusion pattern: " + config.getExclusionMask(), e);
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FTP, e);
             }
         }
     }
@@ -588,9 +584,6 @@ public class FtpInboundAdapter extends AbstractAdapter implements com.integrixs.
         return pollForFiles();
     }
     
-    protected AdapterOperationResult performReceive(Object criteria) throws Exception {
-        return pollForFiles();
-    }
     
     protected long getPollingIntervalMs() {
         return config.getPollingInterval() != null ? Long.parseLong(config.getPollingInterval()) : 30000L;

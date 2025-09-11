@@ -1,8 +1,6 @@
 package com.integrixs.adapters.social.facebook;
 
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +10,6 @@ import java.util.Map;
 /**
  * Configuration for Facebook Graph API adapter
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.facebook.graph")
 public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
@@ -45,8 +41,7 @@ public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
         "ads_management"  // For ads integration
     );
     
-    @Data
-    public static class FacebookFeatures {
+        public static class FacebookFeatures {
         private boolean enablePageManagement = true;
         private boolean enableInsights = true;
         private boolean enableComments = true;
@@ -58,8 +53,7 @@ public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAudienceTargeting = true;
     }
     
-    @Data
-    public static class ContentSettings {
+        public static class ContentSettings {
         private int maxTextLength = 63206;  // Facebook's max post length
         private int maxHashtags = 30;
         private int maxMentions = 50;
@@ -95,5 +89,174 @@ public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
             return requiredPermissions.toArray(new String[0]);
         }
         return super.getScopes();
+    }
+    // Getters and Setters
+    public String getPageId() {
+        return pageId;
+    }
+    public void setPageId(String pageId) {
+        this.pageId = pageId;
+    }
+    public String getPageAccessToken() {
+        return pageAccessToken;
+    }
+    public void setPageAccessToken(String pageAccessToken) {
+        this.pageAccessToken = pageAccessToken;
+    }
+    public String getAppId() {
+        return appId;
+    }
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+    public String getAppSecret() {
+        return appSecret;
+    }
+    public void setAppSecret(String appSecret) {
+        this.appSecret = appSecret;
+    }
+    public String getGraphApiVersion() {
+        return graphApiVersion;
+    }
+    public void setGraphApiVersion(String graphApiVersion) {
+        this.graphApiVersion = graphApiVersion;
+    }
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+    public FacebookFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(FacebookFeatures features) {
+        this.features = features;
+    }
+    public ContentSettings getContentSettings() {
+        return contentSettings;
+    }
+    public void setContentSettings(ContentSettings contentSettings) {
+        this.contentSettings = contentSettings;
+    }
+    public List<String> getRequiredPermissions() {
+        return requiredPermissions;
+    }
+    public void setRequiredPermissions(List<String> requiredPermissions) {
+        this.requiredPermissions = requiredPermissions;
+    }
+    public boolean isEnablePageManagement() {
+        return enablePageManagement;
+    }
+    public void setEnablePageManagement(boolean enablePageManagement) {
+        this.enablePageManagement = enablePageManagement;
+    }
+    public boolean isEnableInsights() {
+        return enableInsights;
+    }
+    public void setEnableInsights(boolean enableInsights) {
+        this.enableInsights = enableInsights;
+    }
+    public boolean isEnableComments() {
+        return enableComments;
+    }
+    public void setEnableComments(boolean enableComments) {
+        this.enableComments = enableComments;
+    }
+    public boolean isEnableMessaging() {
+        return enableMessaging;
+    }
+    public void setEnableMessaging(boolean enableMessaging) {
+        this.enableMessaging = enableMessaging;
+    }
+    public boolean isEnableLiveVideo() {
+        return enableLiveVideo;
+    }
+    public void setEnableLiveVideo(boolean enableLiveVideo) {
+        this.enableLiveVideo = enableLiveVideo;
+    }
+    public boolean isEnableStories() {
+        return enableStories;
+    }
+    public void setEnableStories(boolean enableStories) {
+        this.enableStories = enableStories;
+    }
+    public boolean isEnableReels() {
+        return enableReels;
+    }
+    public void setEnableReels(boolean enableReels) {
+        this.enableReels = enableReels;
+    }
+    public boolean isEnableScheduling() {
+        return enableScheduling;
+    }
+    public void setEnableScheduling(boolean enableScheduling) {
+        this.enableScheduling = enableScheduling;
+    }
+    public boolean isEnableAudienceTargeting() {
+        return enableAudienceTargeting;
+    }
+    public void setEnableAudienceTargeting(boolean enableAudienceTargeting) {
+        this.enableAudienceTargeting = enableAudienceTargeting;
+    }
+    public int getMaxTextLength() {
+        return maxTextLength;
+    }
+    public void setMaxTextLength(int maxTextLength) {
+        this.maxTextLength = maxTextLength;
+    }
+    public int getMaxHashtags() {
+        return maxHashtags;
+    }
+    public void setMaxHashtags(int maxHashtags) {
+        this.maxHashtags = maxHashtags;
+    }
+    public int getMaxMentions() {
+        return maxMentions;
+    }
+    public void setMaxMentions(int maxMentions) {
+        this.maxMentions = maxMentions;
+    }
+    public int getMaxMediaItems() {
+        return maxMediaItems;
+    }
+    public void setMaxMediaItems(int maxMediaItems) {
+        this.maxMediaItems = maxMediaItems;
+    }
+    public long getMaxVideoSizeMb() {
+        return maxVideoSizeMb;
+    }
+    public void setMaxVideoSizeMb(long maxVideoSizeMb) {
+        this.maxVideoSizeMb = maxVideoSizeMb;
+    }
+    public int getMaxVideoDurationMinutes() {
+        return maxVideoDurationMinutes;
+    }
+    public void setMaxVideoDurationMinutes(int maxVideoDurationMinutes) {
+        this.maxVideoDurationMinutes = maxVideoDurationMinutes;
+    }
+    public List<String> getSupportedImageFormats() {
+        return supportedImageFormats;
+    }
+    public void setSupportedImageFormats(List<String> supportedImageFormats) {
+        this.supportedImageFormats = supportedImageFormats;
+    }
+    public List<String> getSupportedVideoFormats() {
+        return supportedVideoFormats;
+    }
+    public void setSupportedVideoFormats(List<String> supportedVideoFormats) {
+        this.supportedVideoFormats = supportedVideoFormats;
+    }
+    public boolean isAutoHashtagGeneration() {
+        return autoHashtagGeneration;
+    }
+    public void setAutoHashtagGeneration(boolean autoHashtagGeneration) {
+        this.autoHashtagGeneration = autoHashtagGeneration;
+    }
+    public boolean isProfanityFilter() {
+        return profanityFilter;
+    }
+    public void setProfanityFilter(boolean profanityFilter) {
+        this.profanityFilter = profanityFilter;
     }
 }

@@ -1,12 +1,15 @@
 package com.integrixs.adapters.social.reddit;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.platform.models.Message;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.config.AdapterConfig;
-import com.integrixs.shared.service.RateLimiterService;
-import com.integrixs.shared.utils.CredentialEncryptionService;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.*;
@@ -23,10 +26,11 @@ import java.nio.charset.StandardCharsets;
  * Outbound adapter for Reddit API integration.
  * Handles post creation, commenting, voting, moderation, and user operations.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "integrixs.adapters.reddit.enabled", havingValue = "true", matchIfMissing = false)
 public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(RedditOutboundAdapter.class);
+
 
     private final RedditApiConfig config;
     private final RestTemplate restTemplate;
@@ -55,7 +59,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     @Override
-    public Message processMessage(Message message) {
+    public MessageDTO processMessage(MessageDTO message) {
         String action = message.getHeader("action");
         
         try {
@@ -233,7 +237,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         }
     }
 
-    private Message submitPost(Message message) throws Exception {
+    private MessageDTO submitPost(MessageDTO message) throws Exception {
         Map<String, Object> postData = message.getPayloadAsMap();
         
         String subreddit = (String) postData.get("subreddit");
@@ -265,7 +269,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message editPost(Message message) throws Exception {
+    private MessageDTO editPost(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         String text = message.getPayloadAsString();
         
@@ -280,7 +284,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message deletePost(Message message) throws Exception {
+    private MessageDTO deletePost(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -292,7 +296,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message crosspost(Message message) throws Exception {
+    private MessageDTO crosspost(MessageDTO message) throws Exception {
         Map<String, Object> crosspostData = message.getPayloadAsMap();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -311,7 +315,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message markNSFW(Message message) throws Exception {
+    private MessageDTO markNSFW(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         boolean nsfw = Boolean.parseBoolean(message.getHeader("nsfw", "true"));
         
@@ -324,7 +328,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message markSpoiler(Message message) throws Exception {
+    private MessageDTO markSpoiler(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         boolean spoiler = Boolean.parseBoolean(message.getHeader("spoiler", "true"));
         
@@ -337,7 +341,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message setPostFlair(Message message) throws Exception {
+    private MessageDTO setPostFlair(MessageDTO message) throws Exception {
         String link = message.getHeader("link");
         String flairId = message.getHeader("flairId");
         String flairText = message.getHeader("flairText");
@@ -359,7 +363,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message postComment(Message message) throws Exception {
+    private MessageDTO postComment(MessageDTO message) throws Exception {
         String parentId = message.getHeader("parentId");
         String text = message.getPayloadAsString();
         
@@ -374,15 +378,15 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message editComment(Message message) throws Exception {
+    private MessageDTO editComment(MessageDTO message) throws Exception {
         return editPost(message); // Same API endpoint
     }
 
-    private Message deleteComment(Message message) throws Exception {
+    private MessageDTO deleteComment(MessageDTO message) throws Exception {
         return deletePost(message); // Same API endpoint
     }
 
-    private Message vote(Message message) throws Exception {
+    private MessageDTO vote(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         int direction = Integer.parseInt(message.getHeader("direction", "0")); // 1=upvote, -1=downvote, 0=unvote
         
@@ -396,7 +400,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message saveItem(Message message) throws Exception {
+    private MessageDTO saveItem(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         String category = message.getHeader("category");
         
@@ -412,7 +416,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unsaveItem(Message message) throws Exception {
+    private MessageDTO unsaveItem(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -424,7 +428,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message hidePost(Message message) throws Exception {
+    private MessageDTO hidePost(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -436,7 +440,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unhidePost(Message message) throws Exception {
+    private MessageDTO unhidePost(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -448,7 +452,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message giveAward(Message message) throws Exception {
+    private MessageDTO giveAward(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         String awardId = message.getHeader("awardId");
         boolean isAnonymous = Boolean.parseBoolean(message.getHeader("anonymous", "false"));
@@ -462,7 +466,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message followUser(Message message) throws Exception {
+    private MessageDTO followUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         
         Map<String, Object> followData = new HashMap<>();
@@ -476,7 +480,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unfollowUser(Message message) throws Exception {
+    private MessageDTO unfollowUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         
         Map<String, Object> unfollowData = new HashMap<>();
@@ -489,7 +493,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message blockUser(Message message) throws Exception {
+    private MessageDTO blockUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -501,7 +505,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unblockUser(Message message) throws Exception {
+    private MessageDTO unblockUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         String userId = message.getHeader("userId");
         
@@ -516,7 +520,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message sendMessage(Message message) throws Exception {
+    private MessageDTO sendMessage(MessageDTO message) throws Exception {
         Map<String, Object> msgData = message.getPayloadAsMap();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -531,7 +535,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message subscribe(Message message) throws Exception {
+    private MessageDTO subscribe(MessageDTO message) throws Exception {
         String subreddit = message.getHeader("subreddit");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -544,7 +548,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unsubscribe(Message message) throws Exception {
+    private MessageDTO unsubscribe(MessageDTO message) throws Exception {
         String subreddit = message.getHeader("subreddit");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -557,7 +561,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message createMultireddit(Message message) throws Exception {
+    private MessageDTO createMultireddit(MessageDTO message) throws Exception {
         Map<String, Object> multiData = message.getPayloadAsMap();
         String multiName = (String) multiData.get("name");
         
@@ -575,11 +579,11 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message updateMultireddit(Message message) throws Exception {
+    private MessageDTO updateMultireddit(MessageDTO message) throws Exception {
         return createMultireddit(message); // Same endpoint with PUT
     }
 
-    private Message deleteMultireddit(Message message) throws Exception {
+    private MessageDTO deleteMultireddit(MessageDTO message) throws Exception {
         String multiName = message.getHeader("multiName");
         
         String url = config.getApiUrl() + "/api/multi/user/" + config.getUsername() + "/m/" + multiName;
@@ -589,7 +593,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     // Moderation actions
-    private Message approve(Message message) throws Exception {
+    private MessageDTO approve(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -601,7 +605,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message remove(Message message) throws Exception {
+    private MessageDTO remove(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         boolean spam = Boolean.parseBoolean(message.getHeader("spam", "false"));
         
@@ -615,12 +619,12 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message spam(Message message) throws Exception {
+    private MessageDTO spam(MessageDTO message) throws Exception {
         message.setHeader("spam", "true");
         return remove(message);
     }
 
-    private Message distinguish(Message message) throws Exception {
+    private MessageDTO distinguish(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         String how = message.getHeader("how", "yes"); // yes, no, admin, special
         boolean sticky = Boolean.parseBoolean(message.getHeader("sticky", "false"));
@@ -637,7 +641,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message sticky(Message message) throws Exception {
+    private MessageDTO sticky(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         boolean state = Boolean.parseBoolean(message.getHeader("state", "true"));
         int num = Integer.parseInt(message.getHeader("num", "1")); // 1 or 2 for slot
@@ -654,7 +658,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message lock(Message message) throws Exception {
+    private MessageDTO lock(MessageDTO message) throws Exception {
         String thingId = message.getHeader("thingId");
         boolean lock = Boolean.parseBoolean(message.getHeader("lock", "true"));
         
@@ -667,7 +671,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message banUser(Message message) throws Exception {
+    private MessageDTO banUser(MessageDTO message) throws Exception {
         Map<String, Object> banData = message.getPayloadAsMap();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -686,7 +690,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unbanUser(Message message) throws Exception {
+    private MessageDTO unbanUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         String subreddit = message.getHeader("subreddit");
         
@@ -701,7 +705,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message muteUser(Message message) throws Exception {
+    private MessageDTO muteUser(MessageDTO message) throws Exception {
         Map<String, Object> muteData = message.getPayloadAsMap();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -716,7 +720,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message unmuteUser(Message message) throws Exception {
+    private MessageDTO unmuteUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         String subreddit = message.getHeader("subreddit");
         
@@ -731,7 +735,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message inviteModerator(Message message) throws Exception {
+    private MessageDTO inviteModerator(MessageDTO message) throws Exception {
         Map<String, Object> inviteData = message.getPayloadAsMap();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -747,7 +751,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message removeModerator(Message message) throws Exception {
+    private MessageDTO removeModerator(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         String subreddit = message.getHeader("subreddit");
         
@@ -762,7 +766,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message createWikiPage(Message message) throws Exception {
+    private MessageDTO createWikiPage(MessageDTO message) throws Exception {
         Map<String, Object> wikiData = message.getPayloadAsMap();
         String subreddit = (String) wikiData.get("subreddit");
         String page = (String) wikiData.get("page");
@@ -779,11 +783,11 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message editWikiPage(Message message) throws Exception {
+    private MessageDTO editWikiPage(MessageDTO message) throws Exception {
         return createWikiPage(message); // Same endpoint
     }
 
-    private Message searchPosts(Message message) throws Exception {
+    private MessageDTO searchPosts(MessageDTO message) throws Exception {
         String query = message.getHeader("query");
         String subreddit = message.getHeader("subreddit");
         String sort = message.getHeader("sort", "relevance");
@@ -807,7 +811,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message searchSubreddits(Message message) throws Exception {
+    private MessageDTO searchSubreddits(MessageDTO message) throws Exception {
         String query = message.getHeader("query");
         
         Map<String, String> params = new HashMap<>();
@@ -821,7 +825,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message searchUsers(Message message) throws Exception {
+    private MessageDTO searchUsers(MessageDTO message) throws Exception {
         String query = message.getHeader("query");
         
         Map<String, String> params = new HashMap<>();
@@ -835,7 +839,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message setUserFlair(Message message) throws Exception {
+    private MessageDTO setUserFlair(MessageDTO message) throws Exception {
         Map<String, Object> flairData = message.getPayloadAsMap();
         
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -853,7 +857,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message createLinkFlair(Message message) throws Exception {
+    private MessageDTO createLinkFlair(MessageDTO message) throws Exception {
         Map<String, Object> flairData = message.getPayloadAsMap();
         String subreddit = (String) flairData.get("subreddit");
         
@@ -869,11 +873,11 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message updateLinkFlair(Message message) throws Exception {
+    private MessageDTO updateLinkFlair(MessageDTO message) throws Exception {
         return createLinkFlair(message); // Same endpoint
     }
 
-    private Message deleteLinkFlair(Message message) throws Exception {
+    private MessageDTO deleteLinkFlair(MessageDTO message) throws Exception {
         String subreddit = message.getHeader("subreddit");
         String flairId = message.getHeader("flairId");
         
@@ -887,14 +891,14 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message getUserKarma(Message message) throws Exception {
+    private MessageDTO getUserKarma(MessageDTO message) throws Exception {
         String url = config.getApiUrl() + "/api/v1/me/karma";
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
         
         return createSuccessResponse(message, response);
     }
 
-    private Message getPostInsights(Message message) throws Exception {
+    private MessageDTO getPostInsights(MessageDTO message) throws Exception {
         String postId = message.getHeader("postId");
         
         String url = config.getApiUrl() + "/api/info.json";
@@ -906,7 +910,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         return createSuccessResponse(message, response);
     }
 
-    private Message getSubredditStats(Message message) throws Exception {
+    private MessageDTO getSubredditStats(MessageDTO message) throws Exception {
         String subreddit = message.getHeader("subreddit");
         
         String url = config.getApiUrl() + "/r/" + subreddit + "/about.json";
@@ -920,14 +924,6 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         addOptionalParam(params, source, key, null);
     }
 
-    private void addOptionalParam(MultiValueMap<String, String> params, Map<String, Object> source, String key, String defaultValue) {
-        Object value = source.get(key);
-        if (value != null) {
-            params.add(key, value.toString());
-        } else if (defaultValue != null) {
-            params.add(key, defaultValue);
-        }
-    }
 
     private String makePostRequest(String url, MultiValueMap<String, String> params) throws Exception {
         HttpHeaders headers = createHeaders();
@@ -999,7 +995,8 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     @Override
-    protected String getAdapterType() {
-        return "REDDIT";
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REDDIT;
     }
 }

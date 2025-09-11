@@ -1,5 +1,8 @@
 package com.integrixs.adapters.messaging.rabbitmq;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractOutboundAdapter;
 import com.integrixs.adapters.messaging.rabbitmq.RabbitMQConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -10,10 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -23,8 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(RabbitMQOutboundAdapter.class);
+
     
     @Autowired
     private RabbitMQConfig config;
@@ -87,35 +89,36 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
         connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(config.getHost());
         connectionFactory.setPort(config.getPort());
-        connectionFactory.setVirtualHost(config.getVirtualHost());
+        connectionFactory.setUsername(config.getUsername());
+        connectionFactory.setPassword(config.getPassword());
         
-        if (config.getUsername() != null) {
-            connectionFactory.setUsername(config.getUsername());
-        }
-        if (config.getPassword() != null) {
-            connectionFactory.setPassword(config.getPassword());
-        }
-        
-        connectionFactory.setConnectionTimeout(config.getConnectionTimeout());
-        connectionFactory.setRequestedHeartbeat(config.getRequestedHeartbeat());
-        
-        // SSL/TLS configuration
-        if (config.isSslEnabled()) {
-            try {
-                connectionFactory.useSslProtocol(config.getSslProtocol());
-            } catch (Exception e) {
-                throw new AdapterException("Failed to setup SSL", e);
-            }
+        if (config.getVirtualHost() != null) {
+            connectionFactory.setVirtualHost(config.getVirtualHost());
         }
         
         // Connection recovery
         connectionFactory.setAutomaticRecoveryEnabled(true);
         connectionFactory.setNetworkRecoveryInterval(5000);
         
+        // Connection timeout
+        connectionFactory.setConnectionTimeout(config.getConnectionTimeout());
+        connectionFactory.setHandshakeTimeout(config.getHandshakeTimeout());
+        
         // Set connection name
         Map<String, Object> clientProperties = new HashMap<>();
         clientProperties.put("connection_name", "IntegrixsFlowBridge_Outbound_" + UUID.randomUUID());
         connectionFactory.setClientProperties(clientProperties);
+        
+        // SSL configuration
+        if (config.isUseSsl()) {
+            try {
+                connectionFactory.useSslProtocol();
+                log.info("SSL enabled for RabbitMQ connection");
+            } catch (Exception e) {
+                log.error("Failed to enable SSL", e);
+                throw new AdapterException("Failed to configure SSL", e);
+            }
+        }
     }
     
     private void establishConnection() throws IOException, TimeoutException {
@@ -141,12 +144,16 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
     }
     
     private Channel getChannel() throws IOException {
-        String threadName = Thread.currentThread().getName();
-        Channel channel = channelPool.get(threadName);
+        String channelKey = Thread.currentThread().getName();
+        Channel channel = channelPool.get(channelKey);
         
         if (channel == null || !channel.isOpen()) {
             channel = connection.createChannel();
-            channelPool.put(threadName, channel);
+            
+            // Configure channel
+            if (config.getPrefetchCount() > 0) {
+                channel.basicQos(config.getPrefetchCount());
+            }
             
             // Enable publisher confirms
             if (config.isPublisherConfirms()) {
@@ -157,6 +164,8 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
             if (config.isEnableTransactions()) {
                 channel.txSelect();
             }
+            
+            channelPool.put(channelKey, channel);
         }
         
         return channel;
@@ -174,7 +183,8 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
                 @Override
                 public void handleAck(long deliveryTag, boolean multiple) {
                     if (multiple) {
-                        pendingConfirms.headMap(deliveryTag + 1).clear();
+                        // Clear all confirms up to and including deliveryTag
+                    pendingConfirms.entrySet().removeIf(entry -> entry.getKey() <= deliveryTag);
                     } else {
                         pendingConfirms.remove(deliveryTag);
                     }
@@ -184,10 +194,14 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
                 @Override
                 public void handleNack(long deliveryTag, boolean multiple) {
                     if (multiple) {
-                        Map<Long, PendingConfirm> nacked = pendingConfirms.headMap(deliveryTag + 1);
-                        nacked.values().forEach(confirm -> confirm.future.completeExceptionally(
-                            new IOException("Message nacked by broker")));
-                        nacked.clear();
+                        // Handle multiple nacks
+                        pendingConfirms.entrySet().stream()
+                            .filter(entry -> entry.getKey() <= deliveryTag)
+                            .forEach(entry -> {
+                                entry.getValue().future.completeExceptionally(
+                                    new IOException("Message nacked by broker"));
+                            });
+                        pendingConfirms.entrySet().removeIf(entry -> entry.getKey() <= deliveryTag);
                     } else {
                         PendingConfirm confirm = pendingConfirms.remove(deliveryTag);
                         if (confirm != null) {

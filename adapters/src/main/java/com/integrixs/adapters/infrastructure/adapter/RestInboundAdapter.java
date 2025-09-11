@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -14,14 +17,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import java.util.*;
 import java.util.List;import java.util.concurrent.ConcurrentHashMap;
-import java.util.List;import lombok.extern.slf4j.Slf4j;
-/**
+import java.util.List;/**
  * REST Sender Adapter implementation for REST API consumption (INBOUND).
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Supports HTTP/HTTPS, various authentication methods, and JSON/XML processing.
  */
-@Slf4j
 public class RestInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(RestInboundAdapter.class);
+
     
     private final RestInboundAdapterConfig config;
     private final Map<String, String> processedMessages = new ConcurrentHashMap<>();
@@ -261,29 +264,26 @@ public class RestInboundAdapter extends AbstractAdapter implements InboundAdapte
         log.debug("REST template initialized with default configuration");
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getBaseUrl() == null || config.getBaseUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, "Base URL is required");
-        }
-        if (config.getPollingEndpoint() == null || config.getPollingEndpoint().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, "Polling endpoint is required");
+            throw new AdapterException("Base URL is required", null);
         }
         // Validate authentication configuration
         if ("basic".equals(config.getAuthenticationType())) {
             if (config.getUsername() == null || config.getPassword() == null) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                         "Username and password are required for basic authentication");
             }
         }
         if ("bearer".equals(config.getAuthenticationType())) {
             if (config.getBearerToken() == null) {
-                        throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+                        throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                         "Bearer token is required for bearer authentication");
             }
         }
         if ("apikey".equals(config.getAuthenticationType())) {
             if (config.getApiKey() == null) {
-                        throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+                        throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                         "API key is required for API key authentication");
             }
         }

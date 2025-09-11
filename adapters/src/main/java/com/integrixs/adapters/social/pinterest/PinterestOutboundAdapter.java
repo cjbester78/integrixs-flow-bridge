@@ -1,12 +1,15 @@
 package com.integrixs.adapters.social.pinterest;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.platform.models.Message;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.config.AdapterConfig;
-import com.integrixs.shared.service.RateLimiterService;
-import com.integrixs.shared.utils.CredentialEncryptionService;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.*;
@@ -23,10 +26,11 @@ import java.time.format.DateTimeFormatter;
  * Outbound adapter for Pinterest API integration.
  * Handles pin creation, board management, advertising, and analytics operations.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "integrixs.adapters.pinterest.enabled", havingValue = "true", matchIfMissing = false)
 public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(PinterestOutboundAdapter.class);
+
 
     private final PinterestApiConfig config;
     private final RestTemplate restTemplate;
@@ -53,7 +57,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     @Override
-    public Message processMessage(Message message) {
+    public MessageDTO processMessage(MessageDTO message) {
         String action = message.getHeader("action");
         
         try {
@@ -170,7 +174,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         }
     }
 
-    private Message createPin(Message message) throws Exception {
+    private MessageDTO createPin(MessageDTO message) throws Exception {
         Map<String, Object> pinData = message.getPayloadAsMap();
         
         // Validate required fields
@@ -194,7 +198,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updatePin(Message message) throws Exception {
+    private MessageDTO updatePin(MessageDTO message) throws Exception {
         String pinId = message.getHeader("pinId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -204,7 +208,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message deletePin(Message message) throws Exception {
+    private MessageDTO deletePin(MessageDTO message) throws Exception {
         String pinId = message.getHeader("pinId");
         
         String url = config.getApiUrl() + "/v5/pins/" + pinId;
@@ -213,7 +217,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getPin(Message message) throws Exception {
+    private MessageDTO getPin(MessageDTO message) throws Exception {
         String pinId = message.getHeader("pinId");
         
         String url = config.getApiUrl() + "/v5/pins/" + pinId;
@@ -226,7 +230,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message savePin(Message message) throws Exception {
+    private MessageDTO savePin(MessageDTO message) throws Exception {
         String pinId = message.getHeader("pinId");
         String boardId = message.getHeader("boardId");
         String boardSectionId = message.getHeader("boardSectionId");
@@ -243,7 +247,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createBoard(Message message) throws Exception {
+    private MessageDTO createBoard(MessageDTO message) throws Exception {
         Map<String, Object> boardData = message.getPayloadAsMap();
         
         validateRequiredFields(boardData, Arrays.asList("name"));
@@ -260,7 +264,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateBoard(Message message) throws Exception {
+    private MessageDTO updateBoard(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -270,7 +274,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message deleteBoard(Message message) throws Exception {
+    private MessageDTO deleteBoard(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         
         String url = config.getApiUrl() + "/v5/boards/" + boardId;
@@ -279,7 +283,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getBoard(Message message) throws Exception {
+    private MessageDTO getBoard(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         
         String url = config.getApiUrl() + "/v5/boards/" + boardId;
@@ -288,7 +292,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createBoardSection(Message message) throws Exception {
+    private MessageDTO createBoardSection(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         Map<String, Object> sectionData = message.getPayloadAsMap();
         
@@ -300,7 +304,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateBoardSection(Message message) throws Exception {
+    private MessageDTO updateBoardSection(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         String sectionId = message.getHeader("sectionId");
         Map<String, Object> updateData = message.getPayloadAsMap();
@@ -311,7 +315,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message deleteBoardSection(Message message) throws Exception {
+    private MessageDTO deleteBoardSection(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         String sectionId = message.getHeader("sectionId");
         
@@ -321,7 +325,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createProductPin(Message message) throws Exception {
+    private MessageDTO createProductPin(MessageDTO message) throws Exception {
         Map<String, Object> productPinData = message.getPayloadAsMap();
         
         validateRequiredFields(productPinData, Arrays.asList("board_id", "media_source", "product_tags"));
@@ -333,7 +337,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message tagProducts(Message message) throws Exception {
+    private MessageDTO tagProducts(MessageDTO message) throws Exception {
         String pinId = message.getHeader("pinId");
         List<Map<String, Object>> productTags = (List<Map<String, Object>>) message.getPayloadAsMap().get("product_tags");
         
@@ -345,7 +349,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createCatalog(Message message) throws Exception {
+    private MessageDTO createCatalog(MessageDTO message) throws Exception {
         Map<String, Object> catalogData = message.getPayloadAsMap();
         
         validateRequiredFields(catalogData, Arrays.asList("name", "format"));
@@ -356,7 +360,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateCatalog(Message message) throws Exception {
+    private MessageDTO updateCatalog(MessageDTO message) throws Exception {
         String catalogId = message.getHeader("catalogId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -366,7 +370,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message uploadProductFeed(Message message) throws Exception {
+    private MessageDTO uploadProductFeed(MessageDTO message) throws Exception {
         String catalogId = message.getHeader("catalogId");
         Map<String, Object> feedData = message.getPayloadAsMap();
         
@@ -378,7 +382,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getUserAnalytics(Message message) throws Exception {
+    private MessageDTO getUserAnalytics(MessageDTO message) throws Exception {
         Map<String, String> params = buildAnalyticsParams(message);
         
         String url = config.getApiUrl() + "/v5/user_account/analytics";
@@ -387,7 +391,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getPinAnalytics(Message message) throws Exception {
+    private MessageDTO getPinAnalytics(MessageDTO message) throws Exception {
         String pinId = message.getHeader("pinId");
         Map<String, String> params = buildAnalyticsParams(message);
         
@@ -397,7 +401,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getBoardAnalytics(Message message) throws Exception {
+    private MessageDTO getBoardAnalytics(MessageDTO message) throws Exception {
         String boardId = message.getHeader("boardId");
         Map<String, String> params = buildAnalyticsParams(message);
         
@@ -407,7 +411,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message generateReport(Message message) throws Exception {
+    private MessageDTO generateReport(MessageDTO message) throws Exception {
         String reportType = message.getHeader("reportType");
         Map<String, Object> reportParams = message.getPayloadAsMap();
         
@@ -417,7 +421,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createCampaign(Message message) throws Exception {
+    private MessageDTO createCampaign(MessageDTO message) throws Exception {
         Map<String, Object> campaignData = message.getPayloadAsMap();
         
         validateRequiredFields(campaignData, Arrays.asList("name", "objective_type", "daily_spend_cap"));
@@ -428,7 +432,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateCampaign(Message message) throws Exception {
+    private MessageDTO updateCampaign(MessageDTO message) throws Exception {
         String campaignId = message.getHeader("campaignId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -438,7 +442,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createAdGroup(Message message) throws Exception {
+    private MessageDTO createAdGroup(MessageDTO message) throws Exception {
         Map<String, Object> adGroupData = message.getPayloadAsMap();
         
         validateRequiredFields(adGroupData, Arrays.asList("campaign_id", "name", "budget_in_micro_currency", "bid_in_micro_currency"));
@@ -449,7 +453,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateAdGroup(Message message) throws Exception {
+    private MessageDTO updateAdGroup(MessageDTO message) throws Exception {
         String adGroupId = message.getHeader("adGroupId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -459,7 +463,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createAd(Message message) throws Exception {
+    private MessageDTO createAd(MessageDTO message) throws Exception {
         Map<String, Object> adData = message.getPayloadAsMap();
         
         validateRequiredFields(adData, Arrays.asList("ad_group_id", "creative_type", "pin_id"));
@@ -470,7 +474,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateAd(Message message) throws Exception {
+    private MessageDTO updateAd(MessageDTO message) throws Exception {
         String adId = message.getHeader("adId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -480,7 +484,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message createAudience(Message message) throws Exception {
+    private MessageDTO createAudience(MessageDTO message) throws Exception {
         Map<String, Object> audienceData = message.getPayloadAsMap();
         
         validateRequiredFields(audienceData, Arrays.asList("name", "rule"));
@@ -491,7 +495,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message updateAudience(Message message) throws Exception {
+    private MessageDTO updateAudience(MessageDTO message) throws Exception {
         String audienceId = message.getHeader("audienceId");
         Map<String, Object> updateData = message.getPayloadAsMap();
         
@@ -501,7 +505,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message bulkCreatePins(Message message) throws Exception {
+    private MessageDTO bulkCreatePins(MessageDTO message) throws Exception {
         List<Map<String, Object>> pins = (List<Map<String, Object>>) message.getPayloadAsMap().get("pins");
         
         if (pins.size() > config.getLimits().getMaxBulkPinsPerRequest()) {
@@ -516,7 +520,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message bulkDeletePins(Message message) throws Exception {
+    private MessageDTO bulkDeletePins(MessageDTO message) throws Exception {
         List<String> pinIds = (List<String>) message.getPayloadAsMap().get("pin_ids");
         
         Map<String, Object> request = Map.of("pin_ids", pinIds);
@@ -527,7 +531,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message searchPins(Message message) throws Exception {
+    private MessageDTO searchPins(MessageDTO message) throws Exception {
         String query = message.getHeader("query");
         Map<String, String> params = new HashMap<>();
         params.put("query", query);
@@ -541,7 +545,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message searchBoards(Message message) throws Exception {
+    private MessageDTO searchBoards(MessageDTO message) throws Exception {
         String query = message.getHeader("query");
         Map<String, String> params = new HashMap<>();
         params.put("query", query);
@@ -553,7 +557,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message searchUsers(Message message) throws Exception {
+    private MessageDTO searchUsers(MessageDTO message) throws Exception {
         String query = message.getHeader("query");
         Map<String, String> params = new HashMap<>();
         params.put("query", query);
@@ -564,7 +568,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getTrending(Message message) throws Exception {
+    private MessageDTO getTrending(MessageDTO message) throws Exception {
         String trendingType = message.getHeader("trendingType", "searches");
         String region = message.getHeader("region", "US");
         
@@ -574,14 +578,14 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getUserInfo(Message message) throws Exception {
+    private MessageDTO getUserInfo(MessageDTO message) throws Exception {
         String url = config.getApiUrl() + "/v5/user_account";
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
         
         return createSuccessResponse(message, response);
     }
 
-    private Message updateUserInfo(Message message) throws Exception {
+    private MessageDTO updateUserInfo(MessageDTO message) throws Exception {
         Map<String, Object> updateData = message.getPayloadAsMap();
         
         String url = config.getApiUrl() + "/v5/user_account";
@@ -590,7 +594,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message followUser(Message message) throws Exception {
+    private MessageDTO followUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         
         Map<String, Object> request = Map.of("auto_follow", false);
@@ -601,7 +605,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message unfollowUser(Message message) throws Exception {
+    private MessageDTO unfollowUser(MessageDTO message) throws Exception {
         String username = message.getHeader("username");
         
         String url = config.getApiUrl() + "/v5/user_account/following/" + username;
@@ -610,7 +614,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getFollowers(Message message) throws Exception {
+    private MessageDTO getFollowers(MessageDTO message) throws Exception {
         Map<String, String> params = new HashMap<>();
         params.put("page_size", message.getHeader("pageSize", "25"));
         addOptionalParam(params, message, "bookmark");
@@ -621,7 +625,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message getFollowing(Message message) throws Exception {
+    private MessageDTO getFollowing(MessageDTO message) throws Exception {
         String followingType = message.getHeader("followingType", "USERS");
         Map<String, String> params = new HashMap<>();
         params.put("feed_type", followingType);
@@ -634,7 +638,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, response);
     }
 
-    private Message uploadImage(Message message) throws Exception {
+    private MessageDTO uploadImage(MessageDTO message) throws Exception {
         byte[] imageData = message.getPayloadAsBytes();
         String mediaType = message.getHeader("mediaType", "image/jpeg");
         
@@ -666,7 +670,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         return createSuccessResponse(message, Map.of("media_id", uploadId));
     }
 
-    private Message uploadVideo(Message message) throws Exception {
+    private MessageDTO uploadVideo(MessageDTO message) throws Exception {
         byte[] videoData = message.getPayloadAsBytes();
         String mediaType = message.getHeader("mediaType", "video/mp4");
         
@@ -699,7 +703,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     // Helper methods
-    private Map<String, String> buildAnalyticsParams(Message message) {
+    private Map<String, String> buildAnalyticsParams(MessageDTO message) {
         Map<String, String> params = new HashMap<>();
         params.put("start_date", message.getHeader("startDate"));
         params.put("end_date", message.getHeader("endDate"));
@@ -731,7 +735,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         }
     }
 
-    private void addOptionalParam(Map<String, String> params, Message message, String param) {
+    private void addOptionalParam(Map<String, String> params, MessageDTO message, String param) {
         String value = message.getHeader(param);
         if (value != null) {
             params.put(param, value);
@@ -789,7 +793,8 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     @Override
-    protected String getAdapterType() {
-        return "PINTEREST";
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.PINTEREST;
     }
 }

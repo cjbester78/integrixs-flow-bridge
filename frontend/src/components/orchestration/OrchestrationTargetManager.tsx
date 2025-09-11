@@ -250,12 +250,7 @@ export function OrchestrationTargetManager({
   const [editingTarget, setEditingTarget] = useState<OrchestrationTargetDto | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  // Load targets on mount
-  useEffect(() => {
-    loadTargets();
-  }, [flowId]);
-
-  const loadTargets = async () => {
+  const loadTargets = useCallback(async () => {
     try {
       setLoading(true);
       const response = await OrchestrationTargetService.getTargets(flowId);
@@ -271,7 +266,12 @@ export function OrchestrationTargetManager({
     } finally {
       setLoading(false);
     }
-  };
+  }, [flowId, onTargetsChange, toast]);
+
+  // Load targets on mount
+  useEffect(() => {
+    loadTargets();
+  }, [loadTargets]);
 
   const moveTarget = useCallback(async (dragIndex: number, hoverIndex: number) => {
     const dragTarget = targets[dragIndex];
@@ -305,7 +305,7 @@ export function OrchestrationTargetManager({
       // Reload to get correct order
       loadTargets();
     }
-  }, [targets, flowId, toast, onTargetsChange]);
+  }, [targets, flowId, toast, onTargetsChange, loadTargets]);
 
   const handleAddTarget = async (adapterId: string) => {
     try {

@@ -107,12 +107,11 @@ public class RestInboundAdapterConfig {
     // Constructors
     public RestInboundAdapterConfig() {
         // Initialize with default JSON to XML wrapper config
-        this.jsonXmlWrapperConfig = JsonXmlWrapperConfig.builder()
-                .rootElementName("restApiResponse")
-                .includeXmlDeclaration(true)
-                .prettyPrint(true)
-                .convertPropertyNames(true)
-                .build();
+        this.jsonXmlWrapperConfig = new JsonXmlWrapperConfig();
+        jsonXmlWrapperConfig.rootElementName = "restApiResponse";
+        jsonXmlWrapperConfig.includeXmlDeclaration = true;
+        jsonXmlWrapperConfig.prettyPrint = true;
+        jsonXmlWrapperConfig.convertPropertyNames = true;
     }
     
     // Getters and Setters

@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.whatsapp;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.whatsapp.WhatsAppBusinessApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -29,28 +31,35 @@ import java.time.Instant;
 import java.net.URLEncoder;
 import java.io.IOException;
 
-@Slf4j
 @Component("whatsappBusinessOutboundAdapter")
-public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutboundAdapter<WhatsAppBusinessApiConfig> {
+public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(WhatsAppBusinessOutboundAdapter.class);
+
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private WhatsAppBusinessApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public WhatsAppBusinessOutboundAdapter(
-            WhatsAppBusinessApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    public Message processMessage(Message message) throws AdapterException {
+    public MessageDTO processMessage(MessageDTO message) throws AdapterException {
         validateConfiguration();
         
         String operation = (String) message.getHeaders().get("operation");
@@ -58,158 +67,9 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
             throw new AdapterException("Operation header is required");
         }
         
-        log.debug("Processing WhatsApp Business operation: {}", operation);
-        
-        try {
-            rateLimiterService.acquire("whatsapp_api", 1);
-            
-            Message response;
-            switch (operation.toUpperCase()) {
-                // Messaging operations
-                case "SEND_TEXT":
-                    response = sendTextMessage(message);
-                    break;
-                case "SEND_IMAGE":
-                    response = sendImageMessage(message);
-                    break;
-                case "SEND_VIDEO":
-                    response = sendVideoMessage(message);
-                    break;
-                case "SEND_AUDIO":
-                    response = sendAudioMessage(message);
-                    break;
-                case "SEND_DOCUMENT":
-                    response = sendDocumentMessage(message);
-                    break;
-                case "SEND_LOCATION":
-                    response = sendLocationMessage(message);
-                    break;
-                case "SEND_CONTACTS":
-                    response = sendContactsMessage(message);
-                    break;
-                case "SEND_STICKER":
-                    response = sendStickerMessage(message);
-                    break;
-                case "SEND_TEMPLATE":
-                    response = sendTemplateMessage(message);
-                    break;
-                case "SEND_INTERACTIVE":
-                    response = sendInteractiveMessage(message);
-                    break;
-                case "SEND_REACTION":
-                    response = sendReactionMessage(message);
-                    break;
-                    
-                // Template operations
-                case "CREATE_TEMPLATE":
-                    response = createTemplate(message);
-                    break;
-                case "UPDATE_TEMPLATE":
-                    response = updateTemplate(message);
-                    break;
-                case "DELETE_TEMPLATE":
-                    response = deleteTemplate(message);
-                    break;
-                case "GET_TEMPLATES":
-                    response = getTemplates(message);
-                    break;
-                    
-                // Media operations
-                case "UPLOAD_MEDIA":
-                    response = uploadMedia(message);
-                    break;
-                case "GET_MEDIA_URL":
-                    response = getMediaUrl(message);
-                    break;
-                case "DELETE_MEDIA":
-                    response = deleteMedia(message);
-                    break;
-                    
-                // Business operations
-                case "GET_BUSINESS_PROFILE":
-                    response = getBusinessProfile(message);
-                    break;
-                case "UPDATE_BUSINESS_PROFILE":
-                    response = updateBusinessProfile(message);
-                    break;
-                    
-                // Contact operations
-                case "GET_CONTACTS":
-                    response = getContacts(message);
-                    break;
-                case "CREATE_CONTACT":
-                    response = createContact(message);
-                    break;
-                case "UPDATE_CONTACT":
-                    response = updateContact(message);
-                    break;
-                    
-                // Group operations
-                case "CREATE_GROUP":
-                    response = createGroup(message);
-                    break;
-                case "UPDATE_GROUP":
-                    response = updateGroup(message);
-                    break;
-                case "ADD_GROUP_PARTICIPANTS":
-                    response = addGroupParticipants(message);
-                    break;
-                case "REMOVE_GROUP_PARTICIPANTS":
-                    response = removeGroupParticipants(message);
-                    break;
-                    
-                // Catalog operations
-                case "GET_CATALOG":
-                    response = getCatalog(message);
-                    break;
-                case "CREATE_PRODUCT":
-                    response = createProduct(message);
-                    break;
-                case "UPDATE_PRODUCT":
-                    response = updateProduct(message);
-                    break;
-                case "DELETE_PRODUCT":
-                    response = deleteProduct(message);
-                    break;
-                    
-                // QR code operations
-                case "CREATE_QR_CODE":
-                    response = createQRCode(message);
-                    break;
-                case "GET_QR_CODES":
-                    response = getQRCodes(message);
-                    break;
-                case "UPDATE_QR_CODE":
-                    response = updateQRCode(message);
-                    break;
-                case "DELETE_QR_CODE":
-                    response = deleteQRCode(message);
-                    break;
-                    
-                // Flow operations
-                case "CREATE_FLOW":
-                    response = createFlow(message);
-                    break;
-                case "UPDATE_FLOW":
-                    response = updateFlow(message);
-                    break;
-                case "DELETE_FLOW":
-                    response = deleteFlow(message);
-                    break;
-                case "PUBLISH_FLOW":
-                    response = publishFlow(message);
-                    break;
-                    
-                default:
-                    throw new AdapterException("Unknown operation: " + operation);
-            }
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("Error processing WhatsApp Business message", e);
-            Message errorResponse = new Message();
-            errorResponse.setMessageId(message.getMessageId());
+        log.debug("Processing WhatsApp Business operation: {}", e);
+            MessageDTO errorResponse = new MessageDTO();
+            errorResponse.setMessageId(message.getCorrelationId());
             errorResponse.setStatus(MessageStatus.ERROR);
             errorResponse.setHeaders(Map.of(
                 "error", e.getMessage(),
@@ -219,7 +79,7 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         }
     }
     
-    private Message sendTextMessage(Message message) throws Exception {
+    private MessageDTO sendTextMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -252,10 +112,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TEXT_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TEXT_SENT");
     }
     
-    private Message sendImageMessage(Message message) throws Exception {
+    private MessageDTO sendImageMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -287,10 +147,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "IMAGE_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "IMAGE_SENT");
     }
     
-    private Message sendVideoMessage(Message message) throws Exception {
+    private MessageDTO sendVideoMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -321,10 +181,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "VIDEO_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "VIDEO_SENT");
     }
     
-    private Message sendAudioMessage(Message message) throws Exception {
+    private MessageDTO sendAudioMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -352,10 +212,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "AUDIO_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "AUDIO_SENT");
     }
     
-    private Message sendDocumentMessage(Message message) throws Exception {
+    private MessageDTO sendDocumentMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -389,10 +249,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "DOCUMENT_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "DOCUMENT_SENT");
     }
     
-    private Message sendLocationMessage(Message message) throws Exception {
+    private MessageDTO sendLocationMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -423,10 +283,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "LOCATION_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "LOCATION_SENT");
     }
     
-    private Message sendContactsMessage(Message message) throws Exception {
+    private MessageDTO sendContactsMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -453,10 +313,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "CONTACTS_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "CONTACTS_SENT");
     }
     
-    private Message sendStickerMessage(Message message) throws Exception {
+    private MessageDTO sendStickerMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -484,10 +344,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "STICKER_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "STICKER_SENT");
     }
     
-    private Message sendTemplateMessage(Message message) throws Exception {
+    private MessageDTO sendTemplateMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -521,10 +381,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TEMPLATE_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TEMPLATE_SENT");
     }
     
-    private Message sendInteractiveMessage(Message message) throws Exception {
+    private MessageDTO sendInteractiveMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -609,10 +469,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "INTERACTIVE_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "INTERACTIVE_SENT");
     }
     
-    private Message sendReactionMessage(Message message) throws Exception {
+    private MessageDTO sendReactionMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/messages", 
@@ -637,10 +497,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "REACTION_SENT");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "REACTION_SENT");
     }
     
-    private Message uploadMedia(Message message) throws Exception {
+    private MessageDTO uploadMedia(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/media", 
@@ -671,10 +531,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_UPLOADED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "MEDIA_UPLOADED");
     }
     
-    private Message getMediaUrl(Message message) throws Exception {
+    private MessageDTO getMediaUrl(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -690,10 +550,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.GET, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_URL_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "MEDIA_URL_RETRIEVED");
     }
     
-    private Message deleteMedia(Message message) throws Exception {
+    private MessageDTO deleteMedia(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
         
@@ -709,10 +569,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "MEDIA_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "MEDIA_DELETED");
     }
     
-    private Message createTemplate(Message message) throws Exception {
+    private MessageDTO createTemplate(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = String.format("%s/%s/%s/message_templates", 
@@ -727,15 +587,15 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TEMPLATE_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TEMPLATE_CREATED");
     }
     
-    private Message updateTemplate(Message message) throws Exception {
+    private MessageDTO updateTemplate(MessageDTO message) throws Exception {
         // WhatsApp doesn't support direct template updates - need to create new version
         return createTemplate(message);
     }
     
-    private Message deleteTemplate(Message message) throws Exception {
+    private MessageDTO deleteTemplate(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String templateName = payload.path("template_name").asText();
         
@@ -752,10 +612,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TEMPLATE_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TEMPLATE_DELETED");
     }
     
-    private Message getTemplates(Message message) throws Exception {
+    private MessageDTO getTemplates(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/message_templates", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -768,10 +628,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.GET, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "TEMPLATES_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "TEMPLATES_RETRIEVED");
     }
     
-    private Message getBusinessProfile(Message message) throws Exception {
+    private MessageDTO getBusinessProfile(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/whatsapp_business_profile", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -787,10 +647,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.GET, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "BUSINESS_PROFILE_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "BUSINESS_PROFILE_RETRIEVED");
     }
     
-    private Message updateBusinessProfile(Message message) throws Exception {
+    private MessageDTO updateBusinessProfile(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/whatsapp_business_profile", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -803,15 +663,15 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "BUSINESS_PROFILE_UPDATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "BUSINESS_PROFILE_UPDATED");
     }
     
     // Additional helper methods for other operations
-    private Message getContacts(Message message) throws Exception {
+    private MessageDTO getContacts(MessageDTO message) throws Exception {
         // WhatsApp Business API doesn't provide direct contact listing
         // This would typically be managed by the business's own CRM
-        Message response = new Message();
-        response.setMessageId(message.getMessageId());
+        MessageDTO response = new MessageDTO();
+        response.setMessageId(message.getCorrelationId());
         response.setStatus(MessageStatus.SUCCESS);
         response.setHeaders(Map.of(
             "operation", "CONTACTS_NOT_AVAILABLE",
@@ -820,18 +680,18 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         return response;
     }
     
-    private Message createContact(Message message) throws Exception {
+    private MessageDTO createContact(MessageDTO message) throws Exception {
         return getContacts(message);
     }
     
-    private Message updateContact(Message message) throws Exception {
+    private MessageDTO updateContact(MessageDTO message) throws Exception {
         return getContacts(message);
     }
     
-    private Message createGroup(Message message) throws Exception {
+    private MessageDTO createGroup(MessageDTO message) throws Exception {
         // Groups are not directly manageable via Business API
-        Message response = new Message();
-        response.setMessageId(message.getMessageId());
+        MessageDTO response = new MessageDTO();
+        response.setMessageId(message.getCorrelationId());
         response.setStatus(MessageStatus.SUCCESS);
         response.setHeaders(Map.of(
             "operation", "GROUPS_NOT_SUPPORTED",
@@ -840,19 +700,19 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         return response;
     }
     
-    private Message updateGroup(Message message) throws Exception {
+    private MessageDTO updateGroup(MessageDTO message) throws Exception {
         return createGroup(message);
     }
     
-    private Message addGroupParticipants(Message message) throws Exception {
+    private MessageDTO addGroupParticipants(MessageDTO message) throws Exception {
         return createGroup(message);
     }
     
-    private Message removeGroupParticipants(Message message) throws Exception {
+    private MessageDTO removeGroupParticipants(MessageDTO message) throws Exception {
         return createGroup(message);
     }
     
-    private Message getCatalog(Message message) throws Exception {
+    private MessageDTO getCatalog(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String catalogId = payload.path("catalog_id").asText();
         
@@ -868,10 +728,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.GET, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "CATALOG_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "CATALOG_RETRIEVED");
     }
     
-    private Message createProduct(Message message) throws Exception {
+    private MessageDTO createProduct(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String catalogId = payload.path("catalog_id").asText();
         
@@ -887,10 +747,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "PRODUCT_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "PRODUCT_CREATED");
     }
     
-    private Message updateProduct(Message message) throws Exception {
+    private MessageDTO updateProduct(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String productId = payload.path("product_id").asText();
         
@@ -906,10 +766,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "PRODUCT_UPDATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "PRODUCT_UPDATED");
     }
     
-    private Message deleteProduct(Message message) throws Exception {
+    private MessageDTO deleteProduct(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String productId = payload.path("product_id").asText();
         
@@ -925,10 +785,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "PRODUCT_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "PRODUCT_DELETED");
     }
     
-    private Message createQRCode(Message message) throws Exception {
+    private MessageDTO createQRCode(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/message_qrdls", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -941,10 +801,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "QR_CODE_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "QR_CODE_CREATED");
     }
     
-    private Message getQRCodes(Message message) throws Exception {
+    private MessageDTO getQRCodes(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/message_qrdls", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -957,10 +817,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.GET, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "QR_CODES_RETRIEVED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "QR_CODES_RETRIEVED");
     }
     
-    private Message updateQRCode(Message message) throws Exception {
+    private MessageDTO updateQRCode(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String qrCodeId = payload.path("qr_code_id").asText();
         
@@ -976,10 +836,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "QR_CODE_UPDATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "QR_CODE_UPDATED");
     }
     
-    private Message deleteQRCode(Message message) throws Exception {
+    private MessageDTO deleteQRCode(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String qrCodeId = payload.path("qr_code_id").asText();
         
@@ -995,10 +855,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "QR_CODE_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "QR_CODE_DELETED");
     }
     
-    private Message createFlow(Message message) throws Exception {
+    private MessageDTO createFlow(MessageDTO message) throws Exception {
         String url = String.format("%s/%s/%s/flows", 
             config.getBaseUrl(), 
             config.getApiVersion(), 
@@ -1011,10 +871,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "FLOW_CREATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "FLOW_CREATED");
     }
     
-    private Message updateFlow(Message message) throws Exception {
+    private MessageDTO updateFlow(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String flowId = payload.path("flow_id").asText();
         
@@ -1030,10 +890,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(message.getPayload(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "FLOW_UPDATED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "FLOW_UPDATED");
     }
     
-    private Message deleteFlow(Message message) throws Exception {
+    private MessageDTO deleteFlow(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String flowId = payload.path("flow_id").asText();
         
@@ -1049,10 +909,10 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         ResponseEntity<String> response = restTemplate.exchange(
             url, HttpMethod.DELETE, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "FLOW_DELETED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "FLOW_DELETED");
     }
     
-    private Message publishFlow(Message message) throws Exception {
+    private MessageDTO publishFlow(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String flowId = payload.path("flow_id").asText();
         
@@ -1071,14 +931,14 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         HttpEntity<String> request = new HttpEntity<>(body.toString(), headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         
-        return createSuccessResponse(message.getMessageId(), response.getBody(), "FLOW_PUBLISHED");
+        return createSuccessResponse(message.getCorrelationId(), response.getBody(), "FLOW_PUBLISHED");
     }
     
-    private Message createSuccessResponse(String messageId, String responseBody, String operation) {
-        Message response = new Message();
-        response.setMessageId(messageId);
-        response.setStatus(MessageStatus.SUCCESS);
-        response.setTimestamp(Instant.now());
+    private MessageDTO createSuccessResponse(String messageId, String responseBody, String operation) {
+        MessageDTO response = new MessageDTO();
+        response.setCorrelationId(messageId);
+        response.setStatus(MessageStatus.PROCESSED);
+        response.setMessageTimestamp(Instant.now());
         response.setHeaders(Map.of(
             "operation", operation,
             "source", "whatsapp"
@@ -1103,5 +963,14 @@ public class WhatsAppBusinessOutboundAdapter extends AbstractSocialMediaOutbound
         if (config.getSystemUserAccessToken() == null && config.getAccessToken() == null) {
             throw new AdapterException("Access token is required");
         }
+    }
+    
+    @Override
+    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
+        return processMessage(message);
+    }
+    
+    public void setConfiguration(WhatsAppBusinessApiConfig config) {
+        this.config = config;
     }
 }

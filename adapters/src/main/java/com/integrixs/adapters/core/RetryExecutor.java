@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Retry execution utility for adapter operations.
@@ -47,8 +48,7 @@ public class RetryExecutor {
                 if (attemptCount > 1 && errorHandler.isCircuitOpen(adapterType, adapterMode, adapterId)) {
                     logger.warn("Circuit breaker is open for adapter {}-{}-{}, aborting retry", 
                                adapterType, adapterMode, adapterId);
-                    throw new AdapterException.CircuitBreakerException(adapterType, 
-                            "Circuit breaker is open, operation aborted");
+                    throw new AdapterException(adapterType);
                 }
                 
                 logger.debug("Executing operation attempt {} for adapter {}-{}-{}", 
@@ -87,7 +87,7 @@ public class RetryExecutor {
                     Thread.sleep(delayMs);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new AdapterException(adapterType, adapterMode, "Retry interrupted", ie);
+                    throw new AdapterException(adapterType, ie);
                 }
             }
         }
@@ -154,7 +154,7 @@ public class RetryExecutor {
                     Thread.sleep(delayMs);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new AdapterException(adapterType, adapterMode, "Custom retry interrupted", ie);
+                    throw new AdapterException(adapterType, ie);
                 }
             }
         }

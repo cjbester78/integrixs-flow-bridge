@@ -74,12 +74,11 @@ public class JdbcInboundAdapterConfig {
     // Constructors
     public JdbcInboundAdapterConfig() {
         // Initialize with default XML mapping config
-        this.xmlMappingConfig = XmlMappingConfig.builder()
-                .rootElementName("records")
-                .rowElementName("record")
-                .includeXmlDeclaration(true)
-                .prettyPrint(true)
-                .build();
+        this.xmlMappingConfig = new XmlMappingConfig();
+        xmlMappingConfig.rootElementName = "records";
+        xmlMappingConfig.rowElementName = "record";
+        xmlMappingConfig.includeXmlDeclaration = true;
+        xmlMappingConfig.prettyPrint = true;
     }
     
     // Getters and Setters

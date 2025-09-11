@@ -95,9 +95,6 @@ public class IbmmqInboundAdapterConfig {
     // Constructors
     public IbmmqInboundAdapterConfig() {}
     
-    public IbmmqInboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getConnectionFactoryClass() { return connectionFactoryClass; }

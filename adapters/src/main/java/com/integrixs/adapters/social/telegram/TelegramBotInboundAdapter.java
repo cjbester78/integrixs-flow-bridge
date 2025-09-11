@@ -1,5 +1,8 @@
 package com.integrixs.adapters.social.telegram;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.telegram.TelegramBotApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -13,8 +16,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -27,8 +28,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TelegramBotInboundAdapter.class);
+
     
     private static final String API_URL_FORMAT = "%s/bot%s/%s";
     
@@ -147,7 +149,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
         // Cache user and chat information
         cacheUserAndChatInfo(update);
         
-        MessageDTO message = MessageDTO.builder()
+        MessageDTO message = new MessageDTO()
             .type("telegram_update")
             .category(updateType)
             .source("telegram_bot")
@@ -322,7 +324,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
             botData.put("supports_inline_queries", 
                 botInfo.get("supports_inline_queries").asBoolean());
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("bot_info")
                 .category("bot_data")
                 .source("telegram_bot")
@@ -353,7 +355,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
             // Cache chat info
             chatCache.put(chatInfo.get("id").asLong(), chatInfo);
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("chat_info")
                 .category("chat_data")
                 .source("telegram_bot")
@@ -389,7 +391,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
                 adminList.add(adminData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("chat_administrators")
                 .category("chat_data")
                 .source("telegram_bot")
@@ -410,7 +412,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
             countData.put("chat_id", config.getDefaultChatId());
             countData.put("member_count", count);
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("chat_member_count")
                 .category("chat_data")
                 .source("telegram_bot")
@@ -436,7 +438,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
                 commandList.add(commandData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("bot_commands")
                 .category("bot_data")
                 .source("telegram_bot")
@@ -475,7 +477,7 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
                 stickerList.add(stickerData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("custom_emoji_stickers")
                 .category("sticker_data")
                 .source("telegram_bot")
@@ -617,17 +619,8 @@ public class TelegramBotInboundAdapter extends AbstractSocialMediaInboundAdapter
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AdapterException("Telegram API request failed", e);
         } catch (Exception e) {
-            log.error("Error making API request", e);
             throw new AdapterException("Failed to make API request", e);
         }
-    }
-    
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
-            result.append(String.format("%02x", b));
-        }
-        return result.toString();
     }
     
     @Override

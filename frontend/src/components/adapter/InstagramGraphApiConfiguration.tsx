@@ -105,7 +105,7 @@ export const InstagramGraphApiConfiguration: React.FC<InstagramGraphApiConfigura
       ...config,
       features
     });
-  }, [features]);
+  }, [features, config, onChange]);
 
   const isViewMode = mode === 'view';
 

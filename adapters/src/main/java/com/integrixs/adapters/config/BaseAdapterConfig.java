@@ -34,9 +34,6 @@ public abstract class BaseAdapterConfig {
         this.configuration = new HashMap<>();
     }
     
-    public BaseAdapterConfig(Map<String, Object> configuration) {
-        this.configuration = configuration != null ? new HashMap<>(configuration) : new HashMap<>();
-    }
     
     /**
      * Get configuration value with type safety and null handling.

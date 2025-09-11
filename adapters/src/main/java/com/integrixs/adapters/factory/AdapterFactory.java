@@ -4,6 +4,7 @@ import com.integrixs.adapters.core.*;
 import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Factory interface for creating adapter instances.

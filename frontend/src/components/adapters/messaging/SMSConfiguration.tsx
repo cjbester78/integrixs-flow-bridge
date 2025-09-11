@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -178,13 +178,13 @@ export const SMSConfiguration: React.FC<SMSConfigurationProps> = ({
         handleChange('webhookUrl', `${baseUrl}${defaults.webhookPath}`);
       }
     }
-  }, [localConfig.provider]);
+  }, [localConfig.provider, localConfig.webhookUrl, handleChange]);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = useCallback((field: string, value: any) => {
     const updatedConfig = { ...localConfig, [field]: value };
     setLocalConfig(updatedConfig);
     onConfigurationChange(updatedConfig);
-  };
+  }, [localConfig, onConfigurationChange]);
 
   const handleNumberChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;

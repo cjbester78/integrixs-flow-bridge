@@ -1,11 +1,11 @@
 package com.integrixs.adapters.social.base;
 
-import com.integrixs.adapters.base.BaseAdapter;
-import com.integrixs.adapters.social.model.SocialMediaContent;
-import com.integrixs.adapters.social.model.SocialMediaResponse;
-import com.integrixs.adapters.social.model.SocialMediaAnalytics;
+import com.integrixs.adapters.core.AbstractAdapter;
+import com.integrixs.adapters.social.base.SocialMediaContent;
+import com.integrixs.adapters.social.base.SocialMediaResponse;
+import com.integrixs.adapters.social.base.SocialMediaAnalytics;
 import com.integrixs.adapters.social.auth.OAuth2Token;
-import com.integrixs.shared.dto.FlowMessage;
+import com.integrixs.shared.dto.MessageDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Base interface for all social media adapters in Integrixs Flow Bridge
  */
-public abstract class SocialMediaAdapter<T extends SocialMediaAdapterConfig> extends BaseAdapter {
+public abstract class SocialMediaAdapter<T extends SocialMediaAdapterConfig> extends AbstractAdapter {
     
     // Authentication Methods
     /**
@@ -83,7 +83,7 @@ public abstract class SocialMediaAdapter<T extends SocialMediaAdapterConfig> ext
     /**
      * Processes incoming webhook events
      */
-    public abstract FlowMessage processWebhookEvent(Map<String, Object> event, T config);
+    public abstract MessageDTO processWebhookEvent(Map<String, Object> event, T config);
     
     /**
      * Verifies webhook challenge/subscription
@@ -97,12 +97,12 @@ public abstract class SocialMediaAdapter<T extends SocialMediaAdapterConfig> ext
     public abstract Map<String, Integer> getApiLimits();
     
     /**
-     * Converts FlowMessage to platform-specific content format
+     * Converts MessageDTO to platform-specific content format
      */
-    protected abstract SocialMediaContent convertToSocialContent(FlowMessage message, T config);
+    protected abstract SocialMediaContent convertToSocialContent(MessageDTO message, T config);
     
     /**
-     * Converts platform response to FlowMessage
+     * Converts platform response to MessageDTO
      */
-    protected abstract FlowMessage convertToFlowMessage(SocialMediaContent content, T config);
+    protected abstract MessageDTO convertToFlowMessage(SocialMediaContent content, T config);
 }

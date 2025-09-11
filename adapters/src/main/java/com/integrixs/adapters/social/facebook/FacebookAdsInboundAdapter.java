@@ -1,18 +1,16 @@
 package com.integrixs.adapters.social.facebook;
 
-import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.social.facebook.FacebookAdsApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
-import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
-import com.integrixs.shared.services.CredentialEncryptionService;
-import com.integrixs.shared.enums.MessageStatus;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -29,23 +27,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Component("facebookAdsInboundAdapter")
-public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<FacebookAdsApiConfig> {
+public class FacebookAdsInboundAdapter extends AbstractInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(FacebookAdsInboundAdapter.class);
+
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
+    private Map<String, Object> configuration;
     
     @Autowired
     public FacebookAdsInboundAdapter(
-            FacebookAdsApiConfig config,
-            RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
-            CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -56,15 +51,15 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
             throw new AdapterException("Facebook Ads configuration is invalid");
         }
         
-        log.info("Starting Facebook Ads inbound adapter for account: {}", config.getAdAccountId());
-        isListening = true;
+        log.info("Starting Facebook Ads inbound adapter for account: {}", (String) configuration.get("adAccountId"));
+        // Start listening
         
         // Initialize polling for different data types
-        if (config.getFeatures().isEnablePerformanceTracking()) {
+        if (Boolean.TRUE.equals(configuration.get("enablePerformanceTracking"))) {
             schedulePerformanceDataPolling();
         }
         
-        if (config.getFeatures().isEnableAutomatedRules()) {
+        if (Boolean.TRUE.equals(configuration.get("enableAutomatedRules"))) {
             scheduleRuleTriggersPolling();
         }
     }
@@ -72,16 +67,15 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     @Override
     public void stopListening() {
         log.info("Stopping Facebook Ads inbound adapter");
-        isListening = false;
+        // Stop listening
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            MessageDTO message = new MessageDTO();
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setTimestamp(LocalDateTime.now());
             
             JsonNode dataNode = objectMapper.readTree(data);
             
@@ -116,31 +110,10 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
     
-    @Scheduled(fixedDelayString = "${integrixs.adapters.facebook.ads.pollingInterval:300000}") // 5 minutes
-    private void pollPerformanceData() {
-        if (!isListening) return;
-        
-        try {
-            rateLimiterService.acquire("facebook_ads_api", 1);
-            
-            // Poll campaign performance
-            pollCampaignPerformance();
-            
-            // Poll ad set performance
-            pollAdSetPerformance();
-            
-            // Poll ad performance
-            pollAdPerformance();
-            
-        } catch (Exception e) {
-            log.error("Error polling Facebook Ads performance data", e);
-        }
-    }
-    
     private void pollCampaignPerformance() {
-        String accountId = config.getAdAccountId();
+        String accountId = (String) configuration.get("adAccountId");
         String url = String.format("%s/%s/act_%s/campaigns", 
-            config.getBaseUrl(), config.getApiVersion(), accountId);
+            (String) configuration.get("baseUrl"), (String) configuration.get("apiVersion"), accountId);
         
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -165,9 +138,9 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
     
     private void pollAdSetPerformance() {
-        String accountId = config.getAdAccountId();
+        String accountId = (String) configuration.get("adAccountId");
         String url = String.format("%s/%s/act_%s/adsets", 
-            config.getBaseUrl(), config.getApiVersion(), accountId);
+            (String) configuration.get("baseUrl"), (String) configuration.get("apiVersion"), accountId);
         
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -192,9 +165,9 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
     
     private void pollAdPerformance() {
-        String accountId = config.getAdAccountId();
+        String accountId = (String) configuration.get("adAccountId");
         String url = String.format("%s/%s/act_%s/ads", 
-            config.getBaseUrl(), config.getApiVersion(), accountId);
+            (String) configuration.get("baseUrl"), (String) configuration.get("apiVersion"), accountId);
         
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -226,16 +199,15 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         log.info("Scheduled rule triggers polling for Facebook Ads");
     }
     
-    private Message processCampaignPerformance(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processCampaignPerformance(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CAMPAIGN_PERFORMANCE");
         headers.put("source", "facebook_ads");
-        headers.put("account_id", config.getAdAccountId());
+        headers.put("account_id", (String) configuration.get("adAccountId"));
         
         if (data.has("data") && data.get("data").isArray()) {
             headers.put("campaign_count", data.get("data").size());
@@ -247,16 +219,15 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processAdSetPerformance(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processAdSetPerformance(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "AD_SET_PERFORMANCE");
         headers.put("source", "facebook_ads");
-        headers.put("account_id", config.getAdAccountId());
+        headers.put("account_id", (String) configuration.get("adAccountId"));
         
         if (data.has("data") && data.get("data").isArray()) {
             headers.put("adset_count", data.get("data").size());
@@ -268,16 +239,15 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processAdPerformance(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processAdPerformance(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "AD_PERFORMANCE");
         headers.put("source", "facebook_ads");
-        headers.put("account_id", config.getAdAccountId());
+        headers.put("account_id", (String) configuration.get("adAccountId"));
         
         if (data.has("data") && data.get("data").isArray()) {
             headers.put("ad_count", data.get("data").size());
@@ -289,11 +259,10 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processRuleTrigger(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processRuleTrigger(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "RULE_TRIGGER");
@@ -307,11 +276,10 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processLeadFormSubmission(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processLeadFormSubmission(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "LEAD_FORM_SUBMISSION");
@@ -325,11 +293,10 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         return message;
     }
     
-    private Message processBudgetAlert(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processBudgetAlert(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUDGET_ALERT");
@@ -361,15 +328,15 @@ public class FacebookAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
     
     private String getAccessToken() {
-        String encryptedToken = config.getAccessToken();
+        String encryptedToken = (String) configuration.get("accessToken");
         return credentialEncryptionService.decrypt(encryptedToken);
     }
     
     private boolean isConfigValid() {
-        return config != null 
-            && config.getAdAccountId() != null 
-            && config.getAccessToken() != null
-            && config.getAppId() != null
-            && config.getAppSecret() != null;
+        return configuration != null 
+            && (String) configuration.get("adAccountId") != null 
+            && (String) configuration.get("accessToken") != null
+            && (String) configuration.get("appId") != null
+            && (String) configuration.get("appSecret") != null;
     }
 }

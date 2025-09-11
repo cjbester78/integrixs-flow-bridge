@@ -86,9 +86,6 @@ public class RfcInboundAdapterConfig {
     // Constructors
     public RfcInboundAdapterConfig() {}
     
-    public RfcInboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getServerName() { return serverName; }

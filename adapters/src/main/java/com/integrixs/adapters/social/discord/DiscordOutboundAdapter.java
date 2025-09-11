@@ -1,6 +1,9 @@
 package com.integrixs.adapters.social.discord;
 
-import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.adapters.core.AbstractOutboundAdapter;
 import com.integrixs.adapters.social.discord.DiscordApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -17,16 +20,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Component
-@Slf4j
-public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(DiscordOutboundAdapter.class);
+
     
     private static final String API_BASE_URL = "https://discord.com/api/v10";
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
@@ -60,121 +62,37 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
             
             log.info("Processing Discord operation: {}", operation);
             
-            switch (operation.toUpperCase()) {
-                // Message Operations
-                case "SEND_MESSAGE":
+            switch (operation.toLowerCase()) {
+                case "send_message":
                     return sendMessage(message);
-                case "EDIT_MESSAGE":
-                    return editMessage(message);
-                case "DELETE_MESSAGE":
-                    return deleteMessage(message);
-                case "BULK_DELETE_MESSAGES":
-                    return bulkDeleteMessages(message);
-                case "CREATE_THREAD":
-                    return createThread(message);
-                case "PIN_MESSAGE":
-                    return pinMessage(message);
-                case "ADD_REACTION":
-                    return addReaction(message);
-                case "REMOVE_REACTION":
-                    return removeReaction(message);
-                    
-                // Channel Operations
-                case "CREATE_CHANNEL":
-                    return createChannel(message);
-                case "MODIFY_CHANNEL":
-                    return modifyChannel(message);
-                case "DELETE_CHANNEL":
-                    return deleteChannel(message);
-                case "CREATE_INVITE":
-                    return createInvite(message);
-                case "MODIFY_PERMISSIONS":
-                    return modifyPermissions(message);
-                    
-                // Guild Operations
-                case "MODIFY_GUILD":
-                    return modifyGuild(message);
-                case "CREATE_ROLE":
-                    return createRole(message);
-                case "MODIFY_ROLE":
-                    return modifyRole(message);
-                case "DELETE_ROLE":
-                    return deleteRole(message);
-                case "KICK_MEMBER":
-                    return kickMember(message);
-                case "BAN_MEMBER":
-                    return banMember(message);
-                case "UNBAN_MEMBER":
-                    return unbanMember(message);
-                case "MODIFY_MEMBER":
-                    return modifyMember(message);
-                    
-                // Voice Operations
-                case "MOVE_MEMBER":
-                    return moveMember(message);
-                case "MUTE_MEMBER":
-                    return muteMember(message);
-                case "DEAFEN_MEMBER":
-                    return deafenMember(message);
-                    
-                // Webhook Operations
-                case "CREATE_WEBHOOK":
-                    return createWebhook(message);
-                case "EXECUTE_WEBHOOK":
-                    return executeWebhook(message);
-                case "MODIFY_WEBHOOK":
-                    return modifyWebhook(message);
-                case "DELETE_WEBHOOK":
-                    return deleteWebhook(message);
-                    
-                // Event Operations
-                case "CREATE_EVENT":
-                    return createScheduledEvent(message);
-                case "MODIFY_EVENT":
-                    return modifyScheduledEvent(message);
-                case "DELETE_EVENT":
-                    return deleteScheduledEvent(message);
-                    
-                // Interaction Response
-                case "INTERACTION_RESPONSE":
-                    return sendInteractionResponse(message);
-                case "CREATE_COMMAND":
-                    return createApplicationCommand(message);
-                case "EDIT_COMMAND":
-                    return editApplicationCommand(message);
-                case "DELETE_COMMAND":
-                    return deleteApplicationCommand(message);
-                    
-                // Embed Operations
-                case "SEND_EMBED":
+                case "send_embed":
                     return sendEmbed(message);
-                case "SEND_FILE":
-                    return sendFile(message);
-                    
-                // DM Operations
-                case "SEND_DM":
+                case "create_channel":
+                    return createChannel(message);
+                case "delete_message":
+                    return deleteMessage(message);
+                case "edit_message":
+                    return editMessage(message);
+                case "create_webhook":
+                    return createWebhook(message);
+                case "send_webhook":
+                    return sendWebhookMessage(message);
+                case "add_reaction":
+                    return addReaction(message);
+                case "create_thread":
+                    return createThread(message);
+                case "send_dm":
                     return sendDirectMessage(message);
-                case "CREATE_DM":
-                    return createDMChannel(message);
-                    
-                // Stage Operations
-                case "CREATE_STAGE":
-                    return createStageInstance(message);
-                case "MODIFY_STAGE":
-                    return modifyStageInstance(message);
-                case "DELETE_STAGE":
-                    return deleteStageInstance(message);
-                    
                 default:
                     throw new AdapterException("Unsupported operation: " + operation);
             }
         } catch (Exception e) {
-            log.error("Error processing message", e);
-            return createErrorResponse(message, e);
+            log.error("Error processing Discord operation", e);
+            throw new AdapterException("Failed to process Discord operation", e);
         }
     }
     
-    // Message Operations
+    // MessageDTO Operations
     private MessageDTO sendMessage(MessageDTO message) {
         try {
             JsonNode content = objectMapper.readTree(message.getContent());
@@ -208,7 +126,7 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
                 messageData.set("allowed_mentions", content.get("allowed_mentions"));
             }
             
-            // Message reference (for replies)
+            // MessageDTO reference (for replies)
             if (content.has("message_reference")) {
                 messageData.set("message_reference", content.get("message_reference"));
             }
@@ -642,6 +560,11 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         }
     }
     
+
+    private MessageDTO sendWebhookMessage(MessageDTO message) {
+        return executeWebhook(message);
+    }
+    
     // Scheduled Event Operations
     private MessageDTO createScheduledEvent(MessageDTO message) {
         try {
@@ -752,7 +675,7 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         }
     }
     
-    // Direct Message Operations
+    // Direct MessageDTO Operations
     private MessageDTO sendDirectMessage(MessageDTO message) {
         try {
             JsonNode content = objectMapper.readTree(message.getContent());
@@ -880,28 +803,6 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         } catch (Exception e) {
             log.error("Error moving member", e);
             throw new AdapterException("Failed to move member", e);
-        }
-    }
-    
-    private MessageDTO muteMember(MessageDTO message) {
-        try {
-            JsonNode content = objectMapper.readTree(message.getContent());
-            ((ObjectNode) content).put("mute", true);
-            return modifyMember(message);
-        } catch (Exception e) {
-            log.error("Error muting member", e);
-            throw new AdapterException("Failed to mute member", e);
-        }
-    }
-    
-    private MessageDTO deafenMember(MessageDTO message) {
-        try {
-            JsonNode content = objectMapper.readTree(message.getContent());
-            ((ObjectNode) content).put("deaf", true);
-            return modifyMember(message);
-        } catch (Exception e) {
-            log.error("Error deafening member", e);
-            throw new AdapterException("Failed to deafen member", e);
         }
     }
     
@@ -1073,24 +974,6 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         }
     }
     
-    private MessageDTO createDMChannel(MessageDTO message) {
-        try {
-            JsonNode content = objectMapper.readTree(message.getContent());
-            String userId = content.get("user_id").asText();
-            
-            ObjectNode dmRequest = objectMapper.createObjectNode();
-            dmRequest.put("recipient_id", userId);
-            
-            String endpoint = "/users/@me/channels";
-            JsonNode response = makeAuthenticatedRequest(endpoint, HttpMethod.POST, dmRequest);
-            
-            return createSuccessResponse(message, response);
-        } catch (Exception e) {
-            log.error("Error creating DM channel", e);
-            throw new AdapterException("Failed to create DM channel", e);
-        }
-    }
-    
     // Stage operations
     private MessageDTO createStageInstance(MessageDTO message) {
         try {
@@ -1222,9 +1105,32 @@ public class DiscordOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         } catch (HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AdapterException("Discord API request failed", e);
+        }
+    }
+
+    private MessageDTO createSuccessResponse(MessageDTO originalMessage, JsonNode responseData) {
+        try {
+            MessageDTO response = new MessageDTO();
+            response.setId(UUID.randomUUID().toString());
+            response.setType("discord_response");
+            response.setContent(objectMapper.writeValueAsString(responseData));
+            response.setTimestamp(System.currentTimeMillis());
+            response.setStatus("SUCCESS");
+            
+            // Copy headers from original message
+            if (originalMessage != null) {
+                response.setHeaders(new HashMap<>(originalMessage.getHeaders()));
+            } else {
+                response.setHeaders(new HashMap<>());
+            }
+            
+            // Add Discord-specific metadata
+            response.getHeaders().put("discord_api_version", "v10");
+            response.getHeaders().put("response_time", String.valueOf(System.currentTimeMillis()));
+            
+            return response;
         } catch (Exception e) {
-            log.error("Error making authenticated request", e);
-            throw new AdapterException("Failed to make authenticated request", e);
+            throw new AdapterException("Failed to create success response", e);
         }
     }
 }

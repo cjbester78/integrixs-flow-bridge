@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -135,7 +135,7 @@ const MicrosoftTeamsApiConfiguration: React.FC<MicrosoftTeamsApiConfigurationPro
 
   useEffect(() => {
     generateAppManifest();
-  }, [configuration, selectedScopes]);
+  }, [configuration, selectedScopes, generateAppManifest]);
 
   const handleChange = (field: string, value: any) => {
     onConfigurationChange({
@@ -173,7 +173,7 @@ const MicrosoftTeamsApiConfiguration: React.FC<MicrosoftTeamsApiConfigurationPro
     handleChange('scopes', newScopes);
   };
 
-  const generateAppManifest = () => {
+  const generateAppManifest = useCallback(() => {
     const manifest = {
       "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.14/MicrosoftTeams.schema.json",
       "manifestVersion": "1.14",
@@ -236,7 +236,7 @@ const MicrosoftTeamsApiConfiguration: React.FC<MicrosoftTeamsApiConfigurationPro
     }
 
     setAppManifest(manifest);
-  };
+  }, [configuration]);
 
   const copyManifest = () => {
     if (appManifest) {

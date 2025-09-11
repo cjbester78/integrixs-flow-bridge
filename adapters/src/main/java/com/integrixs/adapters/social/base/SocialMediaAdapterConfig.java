@@ -1,77 +1,181 @@
 package com.integrixs.adapters.social.base;
 
-import com.integrixs.adapters.config.BaseAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
+import com.integrixs.shared.config.AdapterConfig;
 import java.util.Map;
 
 /**
- * Base configuration for all social media adapters
+ * Base configuration class for social media adapters
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public abstract class SocialMediaAdapterConfig extends BaseAdapterConfig {
+public abstract class SocialMediaAdapterConfig implements AdapterConfig {
+    public SocialMediaAdapterConfig() {
+    }
+
+    
+    // Base adapter configuration
+    private String type;
+    private String name;
+    private String description;
+    private boolean enabled;
+    private Map<String, Object> configuration;
     
     // OAuth2 Configuration
     private String clientId;
     private String clientSecret;
-    private String redirectUri;
     private String accessToken;
     private String refreshToken;
-    private Long tokenExpiresAt;
-    private String[] scopes;
+    private String redirectUri;
+    private String scope;
     
     // API Configuration
     private String apiVersion;
-    private String apiEndpoint;
+    private String apiBaseUrl;
+    private Integer requestTimeout;
+    private Integer maxRetries;
     
-    // Rate Limiting Configuration
-    private RateLimitConfig rateLimitConfig = new RateLimitConfig();
+    // Rate Limiting
+    private Integer rateLimitPerMinute;
+    private Integer rateLimitPerHour;
     
     // Webhook Configuration
-    private boolean webhookEnabled;
     private String webhookUrl;
     private String webhookVerifyToken;
-    private String webhookSecret;
     
-    // Platform-specific Configuration
+    // Platform-specific configuration
     private Map<String, Object> platformConfig;
     
-    // Retry Configuration
-    private RetryConfig retryConfig = new RetryConfig();
-    
-    @Data
-    public static class RateLimitConfig {
-        private int requestsPerHour = 200;
-        private int requestsPerMinute = 30;
-        private int burstSize = 100;
-        private boolean adaptiveRateLimiting = true;
-    }
-    
-    @Data
-    public static class RetryConfig {
-        private int maxRetries = 3;
-        private long initialDelayMs = 1000;
-        private double backoffMultiplier = 2.0;
-        private long maxDelayMs = 30000;
-        private boolean retryOnRateLimit = true;
-    }
+    /**
+     * Get the OAuth2 authorization URL for this platform
+     */
+    public abstract String getAuthorizationUrl();
     
     /**
-     * Validates if the configuration has valid OAuth tokens
+     * Get the OAuth2 token URL for this platform
      */
-    public boolean hasValidToken() {
-        return accessToken != null && 
-               (tokenExpiresAt == null || tokenExpiresAt > System.currentTimeMillis());
-    }
+    public abstract String getTokenUrl();
     
     /**
-     * Checks if token needs refresh
+     * Get the platform name (e.g., "facebook", "twitter", "linkedin")
      */
-    public boolean needsTokenRefresh() {
-        if (tokenExpiresAt == null) return false;
-        // Refresh if token expires in less than 5 minutes
-        return tokenExpiresAt - System.currentTimeMillis() < 300000;
+    public abstract String getPlatformName();
+    // Getters and Setters
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public boolean isEnabled() {
+        return enabled;
+    }
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+    public Map<String, Object> getConfiguration() {
+        return configuration;
+    }
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.configuration = configuration;
+    }
+    public String getClientId() {
+        return clientId;
+    }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+    public String getClientSecret() {
+        return clientSecret;
+    }
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+    public String getAccessToken() {
+        return accessToken;
+    }
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+    public String getRedirectUri() {
+        return redirectUri;
+    }
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
+    public String getScope() {
+        return scope;
+    }
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+    public String getApiVersion() {
+        return apiVersion;
+    }
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+    }
+    public Integer getRequestTimeout() {
+        return requestTimeout;
+    }
+    public void setRequestTimeout(Integer requestTimeout) {
+        this.requestTimeout = requestTimeout;
+    }
+    public Integer getMaxRetries() {
+        return maxRetries;
+    }
+    public void setMaxRetries(Integer maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+    public Integer getRateLimitPerMinute() {
+        return rateLimitPerMinute;
+    }
+    public void setRateLimitPerMinute(Integer rateLimitPerMinute) {
+        this.rateLimitPerMinute = rateLimitPerMinute;
+    }
+    public Integer getRateLimitPerHour() {
+        return rateLimitPerHour;
+    }
+    public void setRateLimitPerHour(Integer rateLimitPerHour) {
+        this.rateLimitPerHour = rateLimitPerHour;
+    }
+    public String getWebhookUrl() {
+        return webhookUrl;
+    }
+    public void setWebhookUrl(String webhookUrl) {
+        this.webhookUrl = webhookUrl;
+    }
+    public String getWebhookVerifyToken() {
+        return webhookVerifyToken;
+    }
+    public void setWebhookVerifyToken(String webhookVerifyToken) {
+        this.webhookVerifyToken = webhookVerifyToken;
+    }
+    public Map<String, Object> getPlatformConfig() {
+        return platformConfig;
+    }
+    public void setPlatformConfig(Map<String, Object> platformConfig) {
+        this.platformConfig = platformConfig;
     }
 }

@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.youtube;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.youtube.YouTubeAnalyticsApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -27,9 +29,10 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Component("youTubeAnalyticsInboundAdapter")
-public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAdapter<YouTubeAnalyticsApiConfig> {
+public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(YouTubeAnalyticsInboundAdapter.class);
+
     
     private static final String YOUTUBE_ANALYTICS_API_BASE = "https://youtubeanalytics.googleapis.com/v2";
     private static final String YOUTUBE_DATA_API_BASE = "https://www.googleapis.com/youtube/v3";
@@ -37,15 +40,22 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastReportTime = new ConcurrentHashMap<>();
     
+    private YouTubeAnalyticsApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    private volatile boolean isListening = false;
+    
     @Autowired
     public YouTubeAnalyticsInboundAdapter(
-            YouTubeAnalyticsApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -80,12 +90,12 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            MessageDTO message = new MessageDTO();
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setMessageTimestamp(Instant.now());
+            message.setStatus(MessageStatus.NEW);
             
             JsonNode dataNode = objectMapper.readTree(data);
             
@@ -130,7 +140,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // YouTube Analytics doesn't use webhooks - all data is pulled via API
         return null;
     }
@@ -373,11 +383,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     }
     
     // Process different report types
-    private Message processChannelReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processChannelReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CHANNEL_REPORT");
@@ -408,11 +418,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processVideoReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processVideoReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "VIDEO_REPORT");
@@ -429,11 +439,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processRevenueReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processRevenueReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "REVENUE_REPORT");
@@ -461,11 +471,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processEngagementReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processEngagementReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ENGAGEMENT_REPORT");
@@ -478,11 +488,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processAudienceReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processAudienceReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "AUDIENCE_REPORT");
@@ -495,11 +505,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processTrafficSourceReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processTrafficSourceReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "TRAFFIC_SOURCE_REPORT");
@@ -512,11 +522,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processRealtimeReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processRealtimeReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "REALTIME_REPORT");
@@ -529,11 +539,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processDeviceReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processDeviceReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "DEVICE_REPORT");
@@ -546,11 +556,11 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         return message;
     }
     
-    private Message processGeographyReport(JsonNode data) {
-        Message message = new Message();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+    private MessageDTO processGeographyReport(JsonNode data) {
+        MessageDTO message = new MessageDTO();
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setMessageTimestamp(Instant.now());
+        message.setStatus(MessageStatus.NEW);
         
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "GEOGRAPHY_REPORT");
@@ -695,5 +705,9 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
             && config.getClientId() != null
             && config.getClientSecret() != null
             && config.getAccessToken() != null;
+    }
+    
+    public void setConfiguration(YouTubeAnalyticsApiConfig config) {
+        this.config = config;
     }
 }

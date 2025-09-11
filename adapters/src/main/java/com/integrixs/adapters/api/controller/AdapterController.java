@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,14 +20,18 @@ import java.util.List;
 /**
  * REST controller for adapter management operations
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/adapters")
-@RequiredArgsConstructor
 @Tag(name = "Adapter Management", description = "APIs for managing communication adapters")
 public class AdapterController {
     
+    private static final Logger log = LoggerFactory.getLogger(AdapterController.class);
+    
     private final AdapterApplicationService adapterApplicationService;
+    
+    public AdapterController(AdapterApplicationService adapterApplicationService) {
+        this.adapterApplicationService = adapterApplicationService;
+    }
     
     /**
      * Create a new adapter

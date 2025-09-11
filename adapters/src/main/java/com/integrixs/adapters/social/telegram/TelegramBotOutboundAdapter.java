@@ -1,5 +1,8 @@
 package com.integrixs.adapters.social.telegram;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.telegram.TelegramBotApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -17,15 +20,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
 @Component
-@Slf4j
 public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TelegramBotOutboundAdapter.class);
+
     
     private static final String API_URL_FORMAT = "%s/bot%s/%s";
     
@@ -59,35 +61,17 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             log.info("Processing Telegram operation: {}", operation);
             
             switch (operation.toUpperCase()) {
-                // Message Operations
+                // Message operations
                 case "SEND_MESSAGE":
                     return sendMessage(message);
-                case "FORWARD_MESSAGE":
-                    return forwardMessage(message);
-                case "COPY_MESSAGE":
-                    return copyMessage(message);
-                case "EDIT_MESSAGE_TEXT":
-                    return editMessageText(message);
-                case "EDIT_MESSAGE_CAPTION":
-                    return editMessageCaption(message);
-                case "EDIT_MESSAGE_MEDIA":
-                    return editMessageMedia(message);
-                case "EDIT_MESSAGE_REPLY_MARKUP":
-                    return editMessageReplyMarkup(message);
-                case "DELETE_MESSAGE":
-                    return deleteMessage(message);
-                case "DELETE_MESSAGES":
-                    return deleteMessages(message);
-                    
-                // Media Operations
                 case "SEND_PHOTO":
                     return sendPhoto(message);
-                case "SEND_VIDEO":
-                    return sendVideo(message);
                 case "SEND_AUDIO":
                     return sendAudio(message);
                 case "SEND_DOCUMENT":
                     return sendDocument(message);
+                case "SEND_VIDEO":
+                    return sendVideo(message);
                 case "SEND_ANIMATION":
                     return sendAnimation(message);
                 case "SEND_VOICE":
@@ -96,28 +80,40 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                     return sendVideoNote(message);
                 case "SEND_MEDIA_GROUP":
                     return sendMediaGroup(message);
-                case "SEND_STICKER":
-                    return sendSticker(message);
-                    
-                // Location Operations
                 case "SEND_LOCATION":
                     return sendLocation(message);
-                case "EDIT_MESSAGE_LIVE_LOCATION":
-                    return editMessageLiveLocation(message);
-                case "STOP_MESSAGE_LIVE_LOCATION":
-                    return stopMessageLiveLocation(message);
                 case "SEND_VENUE":
                     return sendVenue(message);
-                    
-                // Contact & Poll Operations
                 case "SEND_CONTACT":
                     return sendContact(message);
                 case "SEND_POLL":
                     return sendPoll(message);
-                case "STOP_POLL":
-                    return stopPoll(message);
+                case "SEND_DICE":
+                    return sendDice(message);
+                case "SEND_STICKER":
+                    return sendSticker(message);
                     
-                // Chat Operations
+                // Chat actions
+                case "SEND_CHAT_ACTION":
+                    return sendChatAction(message);
+                    
+                // Message editing
+                case "EDIT_MESSAGE_TEXT":
+                    return editMessageText(message);
+                case "EDIT_MESSAGE_CAPTION":
+                    return editMessageCaption(message);
+                case "EDIT_MESSAGE_MEDIA":
+                    return editMessageMedia(message);
+                case "EDIT_MESSAGE_REPLY_MARKUP":
+                    return editMessageReplyMarkup(message);
+                    
+                // Message deletion
+                case "DELETE_MESSAGE":
+                    return deleteMessage(message);
+                case "DELETE_MESSAGES":
+                    return deleteMessages(message);
+                    
+                // Chat management
                 case "GET_CHAT":
                     return getChat(message);
                 case "GET_CHAT_ADMINISTRATORS":
@@ -126,6 +122,8 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                     return getChatMemberCount(message);
                 case "GET_CHAT_MEMBER":
                     return getChatMember(message);
+                case "SET_CHAT_PERMISSIONS":
+                    return setChatPermissions(message);
                 case "SET_CHAT_TITLE":
                     return setChatTitle(message);
                 case "SET_CHAT_DESCRIPTION":
@@ -134,111 +132,45 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                     return pinChatMessage(message);
                 case "UNPIN_CHAT_MESSAGE":
                     return unpinChatMessage(message);
-                case "LEAVE_CHAT":
-                    return leaveChat(message);
-                case "SET_CHAT_PHOTO":
-                    return setChatPhoto(message);
-                case "DELETE_CHAT_PHOTO":
-                    return deleteChatPhoto(message);
                     
-                // Member Management
-                case "BAN_CHAT_MEMBER":
-                    return banChatMember(message);
-                case "UNBAN_CHAT_MEMBER":
-                    return unbanChatMember(message);
-                case "RESTRICT_CHAT_MEMBER":
-                    return restrictChatMember(message);
-                case "PROMOTE_CHAT_MEMBER":
-                    return promoteChatMember(message);
-                case "SET_CHAT_ADMINISTRATOR_CUSTOM_TITLE":
-                    return setChatAdministratorCustomTitle(message);
+                // Callback query
+                case "ANSWER_CALLBACK_QUERY":
+                    return answerCallbackQuery(message);
                     
-                // Bot Commands
+                // Inline mode
+                case "ANSWER_INLINE_QUERY":
+                    return answerInlineQuery(message);
+                    
+                // User info
+                case "GET_USER_PROFILE_PHOTOS":
+                    return getUserProfilePhotos(message);
+                    
+                // File operations
+                case "GET_FILE":
+                    return getFile(message);
+                    
+                // Commands
                 case "SET_MY_COMMANDS":
                     return setMyCommands(message);
                 case "DELETE_MY_COMMANDS":
                     return deleteMyCommands(message);
-                case "GET_MY_COMMANDS":
-                    return getMyCommands(message);
                     
-                // Inline Operations
-                case "ANSWER_INLINE_QUERY":
-                    return answerInlineQuery(message);
-                case "ANSWER_WEB_APP_QUERY":
-                    return answerWebAppQuery(message);
-                    
-                // Callback Operations
-                case "ANSWER_CALLBACK_QUERY":
-                    return answerCallbackQuery(message);
-                    
-                // Game Operations
-                case "SEND_GAME":
-                    return sendGame(message);
-                case "SET_GAME_SCORE":
-                    return setGameScore(message);
-                case "GET_GAME_HIGH_SCORES":
-                    return getGameHighScores(message);
-                    
-                // Payment Operations
-                case "SEND_INVOICE":
-                    return sendInvoice(message);
-                case "ANSWER_SHIPPING_QUERY":
-                    return answerShippingQuery(message);
-                case "ANSWER_PRE_CHECKOUT_QUERY":
-                    return answerPreCheckoutQuery(message);
-                    
-                // Sticker Operations
-                case "CREATE_STICKER_SET":
-                    return createStickerSet(message);
-                case "ADD_STICKER_TO_SET":
-                    return addStickerToSet(message);
-                case "SET_STICKER_POSITION_IN_SET":
-                    return setStickerPositionInSet(message);
-                case "DELETE_STICKER_FROM_SET":
-                    return deleteStickerFromSet(message);
-                    
-                // Forum Operations
-                case "CREATE_FORUM_TOPIC":
-                    return createForumTopic(message);
-                case "EDIT_FORUM_TOPIC":
-                    return editForumTopic(message);
-                case "CLOSE_FORUM_TOPIC":
-                    return closeForumTopic(message);
-                case "REOPEN_FORUM_TOPIC":
-                    return reopenForumTopic(message);
-                case "DELETE_FORUM_TOPIC":
-                    return deleteForumTopic(message);
-                    
-                // Chat Actions
-                case "SEND_CHAT_ACTION":
-                    return sendChatAction(message);
-                    
-                // File Operations
-                case "GET_FILE":
-                    return getFile(message);
-                    
-                // Update Operations
-                case "EDIT_MESSAGE_TEXT_INLINE":
-                    return editMessageTextInline(message);
-                    
-                // Webhook Operations
+                // Webhook management
                 case "SET_WEBHOOK":
                     return setWebhook(message);
                 case "DELETE_WEBHOOK":
                     return deleteWebhook(message);
-                case "GET_WEBHOOK_INFO":
-                    return getWebhookInfo(message);
                     
                 default:
-                    throw new AdapterException("Unsupported operation: " + operation);
+                    throw new AdapterException("Unknown operation: " + operation);
             }
         } catch (Exception e) {
-            log.error("Error processing message", e);
-            return createErrorResponse(message, e);
+            log.error("Error processing Telegram operation", e);
+            throw new AdapterException("Failed to process operation", e);
         }
     }
     
-    // Message Operations
+    // MessageDTO Operations
     private MessageDTO sendMessage(MessageDTO message) {
         try {
             JsonNode content = objectMapper.readTree(message.getContent());
@@ -654,7 +586,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         }
     }
     
-    // Message Editing
+    // MessageDTO Editing
     private MessageDTO editMessageText(MessageDTO message) {
         try {
             JsonNode content = objectMapper.readTree(message.getContent());
@@ -1193,7 +1125,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             body.add("photo", new ByteArrayResource(photoBytes) {
                 @Override
                 public String getFilename() {
-                    return "chat_photo.jpg";
+                    return "photo.jpg";
                 }
             });
             
@@ -1345,9 +1277,6 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         } catch (HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AdapterException("Telegram API request failed", e);
-        } catch (Exception e) {
-            log.error("Error making API request", e);
-            throw new AdapterException("Failed to make API request", e);
         }
     }
     
@@ -1374,8 +1303,10 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
             
             return createSuccessResponse(null, responseJson);
+        } catch (HttpClientErrorException e) {
+            log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AdapterException("Telegram API request failed", e);
         } catch (Exception e) {
-            log.error("Error sending multipart request", e);
             throw new AdapterException("Failed to send multipart request", e);
         }
     }

@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.pinterest;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.pinterest")
-@EqualsAndHashCode(callSuper = true)
 public class PinterestApiConfig extends SocialMediaAdapterConfig {
     
     private String appId;
@@ -19,8 +15,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
     private PinterestFeatures features = new PinterestFeatures();
     private PinterestLimits limits = new PinterestLimits();
     
-    @Data
-    public static class PinterestFeatures {
+        public static class PinterestFeatures {
         private boolean enablePinManagement = true;
         private boolean enableBoardManagement = true;
         private boolean enableAnalytics = true;
@@ -39,8 +34,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         private boolean enableCreatorTools = true;
     }
     
-    @Data
-    public static class PinterestLimits {
+        public static class PinterestLimits {
         private int maxPinsPerBoard = 200000;
         private int maxBoardsPerUser = 2000;
         private int maxSectionsPerBoard = 500;
@@ -361,5 +355,210 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         COMMENT_DELETE,
         SAVE_PIN,
         UNSAVE_PIN
+    }
+    // Getters and Setters
+    public String getAppId() {
+        return appId;
+    }
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+    public String getAppSecret() {
+        return appSecret;
+    }
+    public void setAppSecret(String appSecret) {
+        this.appSecret = appSecret;
+    }
+    public String getAdvertiserId() {
+        return advertiserId;
+    }
+    public void setAdvertiserId(String advertiserId) {
+        this.advertiserId = advertiserId;
+    }
+    public PinterestFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(PinterestFeatures features) {
+        this.features = features;
+    }
+    public PinterestLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(PinterestLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnablePinManagement() {
+        return enablePinManagement;
+    }
+    public void setEnablePinManagement(boolean enablePinManagement) {
+        this.enablePinManagement = enablePinManagement;
+    }
+    public boolean isEnableBoardManagement() {
+        return enableBoardManagement;
+    }
+    public void setEnableBoardManagement(boolean enableBoardManagement) {
+        this.enableBoardManagement = enableBoardManagement;
+    }
+    public boolean isEnableAnalytics() {
+        return enableAnalytics;
+    }
+    public void setEnableAnalytics(boolean enableAnalytics) {
+        this.enableAnalytics = enableAnalytics;
+    }
+    public boolean isEnableShopping() {
+        return enableShopping;
+    }
+    public void setEnableShopping(boolean enableShopping) {
+        this.enableShopping = enableShopping;
+    }
+    public boolean isEnableAds() {
+        return enableAds;
+    }
+    public void setEnableAds(boolean enableAds) {
+        this.enableAds = enableAds;
+    }
+    public boolean isEnableCatalogs() {
+        return enableCatalogs;
+    }
+    public void setEnableCatalogs(boolean enableCatalogs) {
+        this.enableCatalogs = enableCatalogs;
+    }
+    public boolean isEnableAudiences() {
+        return enableAudiences;
+    }
+    public void setEnableAudiences(boolean enableAudiences) {
+        this.enableAudiences = enableAudiences;
+    }
+    public boolean isEnableConversionTracking() {
+        return enableConversionTracking;
+    }
+    public void setEnableConversionTracking(boolean enableConversionTracking) {
+        this.enableConversionTracking = enableConversionTracking;
+    }
+    public boolean isEnableBulkOperations() {
+        return enableBulkOperations;
+    }
+    public void setEnableBulkOperations(boolean enableBulkOperations) {
+        this.enableBulkOperations = enableBulkOperations;
+    }
+    public boolean isEnableVideoContent() {
+        return enableVideoContent;
+    }
+    public void setEnableVideoContent(boolean enableVideoContent) {
+        this.enableVideoContent = enableVideoContent;
+    }
+    public boolean isEnableStoryPins() {
+        return enableStoryPins;
+    }
+    public void setEnableStoryPins(boolean enableStoryPins) {
+        this.enableStoryPins = enableStoryPins;
+    }
+    public boolean isEnableIdeaPins() {
+        return enableIdeaPins;
+    }
+    public void setEnableIdeaPins(boolean enableIdeaPins) {
+        this.enableIdeaPins = enableIdeaPins;
+    }
+    public boolean isEnableTryOn() {
+        return enableTryOn;
+    }
+    public void setEnableTryOn(boolean enableTryOn) {
+        this.enableTryOn = enableTryOn;
+    }
+    public boolean isEnableCollections() {
+        return enableCollections;
+    }
+    public void setEnableCollections(boolean enableCollections) {
+        this.enableCollections = enableCollections;
+    }
+    public boolean isEnableMerchant() {
+        return enableMerchant;
+    }
+    public void setEnableMerchant(boolean enableMerchant) {
+        this.enableMerchant = enableMerchant;
+    }
+    public boolean isEnableCreatorTools() {
+        return enableCreatorTools;
+    }
+    public void setEnableCreatorTools(boolean enableCreatorTools) {
+        this.enableCreatorTools = enableCreatorTools;
+    }
+    public int getMaxPinsPerBoard() {
+        return maxPinsPerBoard;
+    }
+    public void setMaxPinsPerBoard(int maxPinsPerBoard) {
+        this.maxPinsPerBoard = maxPinsPerBoard;
+    }
+    public int getMaxBoardsPerUser() {
+        return maxBoardsPerUser;
+    }
+    public void setMaxBoardsPerUser(int maxBoardsPerUser) {
+        this.maxBoardsPerUser = maxBoardsPerUser;
+    }
+    public int getMaxSectionsPerBoard() {
+        return maxSectionsPerBoard;
+    }
+    public void setMaxSectionsPerBoard(int maxSectionsPerBoard) {
+        this.maxSectionsPerBoard = maxSectionsPerBoard;
+    }
+    public int getMaxPinDescriptionLength() {
+        return maxPinDescriptionLength;
+    }
+    public void setMaxPinDescriptionLength(int maxPinDescriptionLength) {
+        this.maxPinDescriptionLength = maxPinDescriptionLength;
+    }
+    public int getMaxBoardDescriptionLength() {
+        return maxBoardDescriptionLength;
+    }
+    public void setMaxBoardDescriptionLength(int maxBoardDescriptionLength) {
+        this.maxBoardDescriptionLength = maxBoardDescriptionLength;
+    }
+    public int getMaxImageSizeMB() {
+        return maxImageSizeMB;
+    }
+    public void setMaxImageSizeMB(int maxImageSizeMB) {
+        this.maxImageSizeMB = maxImageSizeMB;
+    }
+    public int getMaxVideoSizeMB() {
+        return maxVideoSizeMB;
+    }
+    public void setMaxVideoSizeMB(int maxVideoSizeMB) {
+        this.maxVideoSizeMB = maxVideoSizeMB;
+    }
+    public int getMaxVideoLengthSeconds() {
+        return maxVideoLengthSeconds;
+    }
+    public void setMaxVideoLengthSeconds(int maxVideoLengthSeconds) {
+        this.maxVideoLengthSeconds = maxVideoLengthSeconds;
+    }
+    public int getMaxBulkPinsPerRequest() {
+        return maxBulkPinsPerRequest;
+    }
+    public void setMaxBulkPinsPerRequest(int maxBulkPinsPerRequest) {
+        this.maxBulkPinsPerRequest = maxBulkPinsPerRequest;
+    }
+    public int getMaxAudienceSize() {
+        return maxAudienceSize;
+    }
+    public void setMaxAudienceSize(int maxAudienceSize) {
+        this.maxAudienceSize = maxAudienceSize;
+    }
+    public int getRateLimitPerHour() {
+        return rateLimitPerHour;
+    }
+    public void setRateLimitPerHour(int rateLimitPerHour) {
+        this.rateLimitPerHour = rateLimitPerHour;
+    }
+    public int getRateLimitPerMinute() {
+        return rateLimitPerMinute;
+    }
+    public void setRateLimitPerMinute(int rateLimitPerMinute) {
+        this.rateLimitPerMinute = rateLimitPerMinute;
+    }
+    public int getMaxProductsPerCatalog() {
+        return maxProductsPerCatalog;
+    }
+    public void setMaxProductsPerCatalog(int maxProductsPerCatalog) {
+        this.maxProductsPerCatalog = maxProductsPerCatalog;
     }
 }

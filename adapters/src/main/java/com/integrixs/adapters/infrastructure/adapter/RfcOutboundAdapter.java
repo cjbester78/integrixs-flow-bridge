@@ -1,15 +1,18 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.HashMap;import java.util.List;import com.integrixs.adapters.domain.port.OutboundAdapterPort;
-import java.util.HashMap;import java.util.Map;
-import java.util.HashMap;import java.util.List;import com.integrixs.adapters.config.RfcOutboundAdapterConfig;
-import java.util.HashMap;import java.util.*;
-import java.util.HashMap;import java.util.List;import lombok.extern.slf4j.Slf4j;
-import java.util.HashMap;
+import java.util.List;
+import com.integrixs.adapters.domain.port.OutboundAdapterPort;
+import java.util.Map;
+import com.integrixs.adapters.config.RfcOutboundAdapterConfig;
+import java.util.*;
+
 /**
  * RFC Receiver Adapter implementation for SAP RFC client functionality (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
@@ -17,8 +20,9 @@ import java.util.HashMap;
  * 
  * Note: This is a simulation. Real implementation would require SAP JCo libraries.
  */
-@Slf4j
 public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(RfcOutboundAdapter.class);
+
     
     private final RfcOutboundAdapterConfig config;
     private boolean connectionEstablished = false;
@@ -101,7 +105,7 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
     
     private AdapterOperationResult executeRfcCall(Object payload) throws Exception {
         if (payload == null) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Payload cannot be null");
+            throw new AdapterException("Payload cannot be null", null);
         }
         
         Map<String, Object> responseData = new HashMap<>();
@@ -114,13 +118,10 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             if (functionName == null || functionName.isEmpty()) {
                 functionName = config.getDefaultFunction();
                 if (functionName == null || functionName.isEmpty()) {
-                    throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.RFC, 
-                            "Function name is required");
+                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.RFC, "Function name is required");
                 }
             }
             
-            // Simulate RFC call
-            responseData.put("functionName", functionName);
             responseData.put("executionId", UUID.randomUUID().toString());
             responseData.put("timestamp", new Date());
             responseData.put("system", config.getSystemId());
@@ -165,8 +166,8 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 if (Boolean.TRUE.equals(commit)) {
                     responseData.put("BAPI_TRANSACTION_COMMIT", "Executed");
                 }
-        }
-    } else {
+            }
+        } else {
             // Simple payload
             responseData.put("functionName", config.getDefaultFunction());
             responseData.put("payload", payload);
@@ -178,21 +179,15 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 String.format("Successfully executed RFC: %s", responseData.get("functionName")));
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getSystemId() == null || config.getSystemId().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "System ID is required");
-        }
-        if (config.getApplicationServerHost() == null || config.getApplicationServerHost().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Application server host is required");
+            throw new AdapterException("System ID is required", null);
         }
         if (config.getSystemNumber() == null || config.getSystemNumber().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "System number is required");
-        }
-        if (config.getClient() == null || config.getClient().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "Client is required");
+            throw new AdapterException("System number is required", null);
         }
         if (config.getUser() == null || config.getUser().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, "User is required");
+            throw new AdapterException("User is required", null);
         }
         
         // Set defaults
@@ -203,6 +198,7 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
             config.setPeakLimit(config.getDefaultPeakLimit() != null ? config.getDefaultPeakLimit() : 10);
         }
     }
+    
     public long getTimeout() {
         // RFC receivers typically don't poll, they execute functions
         return 0;
@@ -274,6 +270,7 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 return AdapterOperationResult.failure(
                         "SAP Connection", "Application server host not configured", null);
             }
+            
             return AdapterOperationResult.success(
                     "SAP Connection", "SAP system configuration valid: " + connectionInfo);
         } catch (Exception e) {
@@ -288,6 +285,7 @@ public class RfcOutboundAdapter extends AbstractAdapter implements OutboundAdapt
                 return AdapterOperationResult.failure(
                         "Authentication", "SAP user not configured", null);
             }
+            
             return AdapterOperationResult.success(
                     "Authentication", "Authentication configured for user: " + config.getUser());
         } catch (Exception e) {

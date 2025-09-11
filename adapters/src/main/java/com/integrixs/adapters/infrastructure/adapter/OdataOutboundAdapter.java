@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -19,15 +22,14 @@ import org.apache.olingo.commons.api.http.HttpMethod;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
-import lombok.extern.slf4j.Slf4j;
-import java.util.Map;
 /**
  * OData Receiver Adapter implementation for OData service operations (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Performs CRUD operations on OData services in external systems.
  */
-@Slf4j
 public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(OdataOutboundAdapter.class);
+
     
     private final OdataOutboundAdapterConfig config;
     private ODataClient client;
@@ -94,7 +96,7 @@ public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAda
     
     private AdapterOperationResult performODataOperation(Object payload) throws Exception {
         if (payload == null) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.ODATA, "Payload cannot be null");
+            throw new AdapterException("Payload cannot be null", null);
         }
         try {
             Map<String, Object> responseData;
@@ -120,14 +122,14 @@ public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAda
                         responseData = performBatchOperation(dataMap);
                         break;
                     default:
-                        throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
+                        throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
                                 "Unsupported operation: " + operation);
                 }
             } else if (payload instanceof Collection) {
                 // Batch operation for collection
                 responseData = performBatchOperation((Collection<?>) payload);
             } else {
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
                         "Unsupported payload type: " + payload.getClass().getName());
             }
             log.info("OData outbound adapter successfully performed operation");
@@ -184,7 +186,7 @@ public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAda
         String entitySetName = getEntitySetName(dataMap);
         String entityKey = (String) dataMap.get("key");
         if (entityKey == null || entityKey.isEmpty()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
                     "Entity key is required for update operation");
         }
         // Create entity
@@ -229,7 +231,7 @@ public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAda
         String entitySetName = getEntitySetName(dataMap);
         String entityKey = (String) dataMap.get("key");
         if (entityKey == null || entityKey.isEmpty()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.ODATA,
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.ODATA,
                     "Entity key is required for delete operation");
         }
         // Build URI
@@ -324,19 +326,19 @@ public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAda
         return operation;
     }
     
-    private String getEntitySetName(Map<String, Object> dataMap) throws AdapterException.ValidationException {
+    private String getEntitySetName(Map<String, Object> dataMap) throws AdapterException {
         String entitySet = (String) dataMap.get("entitySet");
         if (entitySet == null || entitySet.isEmpty()) {
             entitySet = config.getEntitySetName();
         }
         if (entitySet == null || entitySet.isEmpty()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.ODATA,
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.ODATA,
                     "Entity set name is required");
         }
         return entitySet;
     }
     
-    private String getEntityType(Map<String, Object> dataMap) throws AdapterException.ValidationException {
+    private String getEntityType(Map<String, Object> dataMap) throws AdapterException {
         String entityType = (String) dataMap.get("entityType");
         if (entityType == null || entityType.isEmpty()) {
             entityType = config.getEntityTypeName();
@@ -348,9 +350,9 @@ public class OdataOutboundAdapter extends AbstractAdapter implements OutboundAda
         return entityType;
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getServiceUrl() == null || config.getServiceUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.ODATA, "Service URL is required");
+            throw new AdapterException("Service URL is required", null);
         }
         if (config.getNamespace() == null || config.getNamespace().trim().isEmpty()) {
             config.setNamespace("Default"); // Set default namespace

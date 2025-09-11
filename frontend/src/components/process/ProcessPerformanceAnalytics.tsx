@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -92,13 +92,7 @@ export const ProcessPerformanceAnalytics: React.FC<ProcessPerformanceAnalyticsPr
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState<'duration' | 'throughput' | 'success'>('duration');
 
-  useEffect(() => {
-    loadAnalytics();
-    const interval = setInterval(loadAnalytics, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, [processDefinitionId, selectedTimeRange]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     setIsLoading(true);
     try {
       // In a real implementation, these would be separate API calls
@@ -169,7 +163,13 @@ export const ProcessPerformanceAnalytics: React.FC<ProcessPerformanceAnalyticsPr
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [processDefinitionId, selectedTimeRange]);
+
+  useEffect(() => {
+    loadAnalytics();
+    const interval = setInterval(loadAnalytics, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, [loadAnalytics]);
 
   const calculateThroughput = (instances: any[], range: string): number => {
     const now = Date.now();

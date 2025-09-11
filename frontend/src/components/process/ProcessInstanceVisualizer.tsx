@@ -128,12 +128,131 @@ const ProcessInstanceVisualizerContent: React.FC<ProcessInstanceVisualizerProps>
       const instance = response.data;
       setProcessInstance(instance);
 
-      // Build nodes and edges from execution data
-      const newNodes = buildNodesFromInstance(instance);
-      const newEdges = buildEdgesFromInstance(instance);
+      // Build nodes from instance
+      const buildNodesFromInstance = (instance: any): Node[] => {
+        const nodes: Node[] = [];
+        const executionLog = instance.executionLog || [];
+        const currentStep = instance.currentStep;
 
-      setNodes(newNodes);
-      setEdges(newEdges);
+        // Parse execution log to build step status
+        const stepStatuses = new Map<string, ProcessStep>();
+        
+        // Start node
+        nodes.push({
+          id: 'start',
+          type: 'process',
+          position: { x: 100, y: 200 },
+          data: {
+            label: 'Start',
+            type: 'startEvent',
+            status: 'completed'
+          }
+        });
+
+        // Extract steps from log
+        let x = 300;
+        const y = 200;
+        const xGap = 250;
+
+        executionLog.forEach((log: string) => {
+          const stepMatch = log.match(/Executing step: (.+)/);
+          const completedMatch = log.match(/Step completed: (.+)/);
+          const failedMatch = log.match(/Step failed: (.+) - (.+)/);
+
+          if (stepMatch) {
+            const stepName = stepMatch[1];
+            const stepId = `step_${nodes.length}`;
+            
+            nodes.push({
+              id: stepId,
+              type: 'process',
+              position: { x, y },
+              data: {
+                label: stepName,
+                type: 'task',
+                status: currentStep === stepName ? 'running' : 'pending'
+              }
+            });
+            
+            stepStatuses.set(stepName, {
+              id: stepId,
+              name: stepName,
+              type: 'task',
+              status: 'running'
+            });
+            
+            x += xGap;
+          } else if (completedMatch) {
+            const stepName = completedMatch[1];
+            const step = stepStatuses.get(stepName);
+            if (step) {
+              step.status = 'completed';
+              const node = nodes.find(n => n.data.label === stepName);
+              if (node) {
+                node.data.status = 'completed';
+              }
+            }
+          } else if (failedMatch) {
+            const stepName = failedMatch[1];
+            const error = failedMatch[2];
+            const step = stepStatuses.get(stepName);
+            if (step) {
+              step.status = 'failed';
+              step.error = error;
+              const node = nodes.find(n => n.data.label === stepName);
+              if (node) {
+                node.data.status = 'failed';
+                node.data.error = error;
+              }
+            }
+          }
+        });
+
+        // End node
+        nodes.push({
+          id: 'end',
+          type: 'process',
+          position: { x, y },
+          data: {
+            label: 'End',
+            type: 'endEvent',
+            status: instance.status === 'COMPLETED' ? 'completed' : 
+                    instance.status === 'FAILED' ? 'failed' : 'pending'
+          }
+        });
+
+        return nodes;
+      };
+
+      // Build edges from instance
+      const buildEdgesFromInstance = (instance: any): Edge[] => {
+        const edges: Edge[] = [];
+        const nodes = buildNodesFromInstance(instance);
+
+        // Connect nodes sequentially
+        for (let i = 0; i < nodes.length - 1; i++) {
+          const animated = nodes[i].data.status === 'completed' && 
+                          nodes[i + 1].data.status === 'running';
+
+          edges.push({
+            id: `e${i}`,
+            source: nodes[i].id,
+            target: nodes[i + 1].id,
+            type: 'smoothstep',
+            animated,
+            style: {
+              stroke: nodes[i].data.status === 'completed' ? '#10b981' : '#e5e7eb',
+              strokeWidth: 2
+            }
+          });
+        }
+
+        return edges;
+      };
+
+      // Build nodes and edges from execution data
+      setNodes(buildNodesFromInstance(instance));
+      setEdges(buildEdgesFromInstance(instance));
       setLastUpdate(new Date());
     } catch (error) {
       logger.error('Failed to fetch process instance:', error);
@@ -149,126 +268,6 @@ const ProcessInstanceVisualizerContent: React.FC<ProcessInstanceVisualizerProps>
       return () => clearInterval(interval);
     }
   }, [fetchProcessInstance, autoRefresh, refreshInterval, processInstance?.status]);
-
-  const buildNodesFromInstance = (instance: any): Node[] => {
-    const nodes: Node[] = [];
-    const executionLog = instance.executionLog || [];
-    const currentStep = instance.currentStep;
-
-    // Parse execution log to build step status
-    const stepStatuses = new Map<string, ProcessStep>();
-    
-    // Start node
-    nodes.push({
-      id: 'start',
-      type: 'process',
-      position: { x: 100, y: 200 },
-      data: {
-        label: 'Start',
-        type: 'startEvent',
-        status: 'completed'
-      }
-    });
-
-    // Extract steps from log
-    let x = 300;
-    const y = 200;
-    const xGap = 250;
-
-    executionLog.forEach((log: string) => {
-      const stepMatch = log.match(/Executing step: (.+)/);
-      const completedMatch = log.match(/Step completed: (.+)/);
-      const failedMatch = log.match(/Step failed: (.+) - (.+)/);
-
-      if (stepMatch) {
-        const stepName = stepMatch[1];
-        const stepId = `step_${nodes.length}`;
-        
-        nodes.push({
-          id: stepId,
-          type: 'process',
-          position: { x, y },
-          data: {
-            label: stepName,
-            type: 'task',
-            status: currentStep === stepName ? 'running' : 'pending'
-          }
-        });
-        
-        stepStatuses.set(stepName, {
-          id: stepId,
-          name: stepName,
-          type: 'task',
-          status: 'running'
-        });
-        
-        x += xGap;
-      } else if (completedMatch) {
-        const stepName = completedMatch[1];
-        const step = stepStatuses.get(stepName);
-        if (step) {
-          step.status = 'completed';
-          const node = nodes.find(n => n.data.label === stepName);
-          if (node) {
-            node.data.status = 'completed';
-          }
-        }
-      } else if (failedMatch) {
-        const stepName = failedMatch[1];
-        const error = failedMatch[2];
-        const step = stepStatuses.get(stepName);
-        if (step) {
-          step.status = 'failed';
-          step.error = error;
-          const node = nodes.find(n => n.data.label === stepName);
-          if (node) {
-            node.data.status = 'failed';
-            node.data.error = error;
-          }
-        }
-      }
-    });
-
-    // End node
-    nodes.push({
-      id: 'end',
-      type: 'process',
-      position: { x, y },
-      data: {
-        label: 'End',
-        type: 'endEvent',
-        status: instance.status === 'COMPLETED' ? 'completed' : 
-                instance.status === 'FAILED' ? 'failed' : 'pending'
-      }
-    });
-
-    return nodes;
-  };
-
-  const buildEdgesFromInstance = (instance: any): Edge[] => {
-    const edges: Edge[] = [];
-    const nodes = buildNodesFromInstance(instance);
-
-    // Connect nodes sequentially
-    for (let i = 0; i < nodes.length - 1; i++) {
-      const animated = nodes[i].data.status === 'completed' && 
-                      nodes[i + 1].data.status === 'running';
-
-      edges.push({
-        id: `e${i}`,
-        source: nodes[i].id,
-        target: nodes[i + 1].id,
-        type: 'smoothstep',
-        animated,
-        style: {
-          stroke: nodes[i].data.status === 'completed' ? '#10b981' : '#e5e7eb',
-          strokeWidth: 2
-        }
-      });
-    }
-
-    return edges;
-  };
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);

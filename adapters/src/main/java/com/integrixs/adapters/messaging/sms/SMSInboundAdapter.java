@@ -1,5 +1,8 @@
 package com.integrixs.adapters.messaging.sms;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.messaging.sms.SMSConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -12,10 +15,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +31,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Component
-@Slf4j
 public class SMSInboundAdapter extends AbstractInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(SMSInboundAdapter.class);
+
     
     @Autowired
     private SMSConfig config;
@@ -263,7 +265,7 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
                 messageContent.put("mediaUrls", message.getMediaUrls());
                 messageContent.put("segments", message.getSegments());
                 
-                MessageDTO dto = MessageDTO.builder()
+                MessageDTO dto = new MessageDTO()
                     .id(messageId)
                     .type("sms_incoming")
                     .source(message.getFrom())
@@ -361,7 +363,7 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
             reportContent.put("timestamp", report.getTimestamp());
             reportContent.put("provider", config.getProvider().name());
             
-            MessageDTO dto = MessageDTO.builder()
+            MessageDTO dto = new MessageDTO()
                 .id(report.getMessageId() + "_dr")
                 .type("sms_delivery_report")
                 .source(config.getProvider().name())
@@ -565,16 +567,12 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
         private long timestamp;
         
         // Getters and setters
-        public String getMessageId() { return messageId; }
-        public void setMessageId(String messageId) { this.messageId = messageId; }
         public DeliveryStatus getStatus() { return status; }
         public void setStatus(DeliveryStatus status) { this.status = status; }
         public String getErrorCode() { return errorCode; }
         public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
         public String getErrorMessage() { return errorMessage; }
         public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-        public long getTimestamp() { return timestamp; }
-        public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
     }
     
     private enum DeliveryStatus {
@@ -685,7 +683,7 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
     private class InfobipWebhookValidator implements WebhookValidator {
         @Override
         public boolean validate(Map<String, Object> data, Map<String, String> headers) {
-            // Infobip doesn't use signature validation by default
+            // Infobip doesn't use webhook signatures by default
             return true;
         }
     }

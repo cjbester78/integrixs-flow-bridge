@@ -1,5 +1,8 @@
 package com.integrixs.adapters.collaboration.teams;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.collaboration.teams.MicrosoftTeamsApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -16,8 +19,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URI;
@@ -33,8 +34,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(MicrosoftTeamsInboundAdapter.class);
+
     
     private static final String LOGIN_URL = "https://login.microsoftonline.com/%s/oauth2/v2.0/token";
     private static final String SUBSCRIPTION_PATH = "/subscriptions";
@@ -278,7 +280,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
             eventData.put("resourceData", resourceData);
             eventData.put("timestamp", notification.get("subscriptionExpirationDateTime").asText());
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("teams_change_notification")
                 .category(getNotificationCategory(resource))
                 .source("microsoft_teams")
@@ -334,7 +336,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
                     activityData.put("rawActivity", activity);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("teams_bot_activity")
                 .category(activityType)
                 .source("microsoft_teams_bot")
@@ -520,7 +522,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
                 teamList.add(teamData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("teams_list")
                 .category("organization_data")
                 .source("microsoft_teams")
@@ -555,7 +557,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
                 channelList.add(channelData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("channels_list")
                 .category("organization_data")
                 .source("microsoft_teams")
@@ -591,7 +593,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
                 userList.add(userData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("users_list")
                 .category("organization_data")
                 .source("microsoft_teams")
@@ -625,7 +627,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
                 meetingList.add(meetingData);
             }
             
-            MessageDTO message = MessageDTO.builder()
+            MessageDTO message = new MessageDTO()
                 .type("meetings_list")
                 .category("meeting_data")
                 .source("microsoft_teams")
@@ -680,9 +682,6 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
             }
             
             throw new AdapterException("Graph API request failed", e);
-        } catch (Exception e) {
-            log.error("Error making Graph API request", e);
-            throw new AdapterException("Failed to make API request", e);
         }
     }
     

@@ -7,6 +7,7 @@ import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Default implementation of AdapterFactory that creates adapter instances
@@ -37,20 +38,14 @@ public class DefaultAdapterFactory implements AdapterFactory {
                 case IBMMQ -> createIbmmqSender(configuration);
                 case ODATA -> createOdataSender(configuration);
                 case KAFKA -> createKafkaSender(configuration);
-                default -> throw new AdapterException.ConfigurationException(adapterType, 
-                        "Unsupported inbound adapter type: " + adapterType);
+                default -> throw new AdapterException("Unsupported adapter type for inbound: " + adapterType);
             };
             
-            logger.debug("Successfully created inbound adapter for type: {}", adapterType);
+            logger.debug("Created inbound adapter of type: {}", adapterType);
             return adapter;
             
-        } catch (ClassCastException e) {
-            throw new AdapterException.ConfigurationException(adapterType, 
-                    "Invalid configuration type for " + adapterType + " sender", e);
         } catch (Exception e) {
-            logger.error("Failed to create inbound adapter for type: {}", adapterType, e);
-            throw new AdapterException(adapterType, AdapterConfiguration.AdapterModeEnum.INBOUND, 
-                    "Failed to create inbound adapter", e);
+            throw new AdapterException("Failed to create inbound adapter: " + e.getMessage(), e);
         }
     }
     
@@ -75,20 +70,14 @@ public class DefaultAdapterFactory implements AdapterFactory {
                 case IBMMQ -> createIbmmqReceiver(configuration);
                 case ODATA -> createOdataReceiver(configuration);
                 case KAFKA -> createKafkaReceiver(configuration);
-                default -> throw new AdapterException.ConfigurationException(adapterType, 
-                        "Unsupported outbound adapter type: " + adapterType);
+                default -> throw new AdapterException("Unsupported adapter type for outbound: " + adapterType);
             };
             
-            logger.debug("Successfully created outbound adapter for type: {}", adapterType);
+            logger.debug("Created outbound adapter of type: {}", adapterType);
             return adapter;
             
-        } catch (ClassCastException e) {
-            throw new AdapterException.ConfigurationException(adapterType, 
-                    "Invalid configuration type for " + adapterType + " receiver", e);
         } catch (Exception e) {
-            logger.error("Failed to create outbound adapter for type: {}", adapterType, e);
-            throw new AdapterException(adapterType, AdapterConfiguration.AdapterModeEnum.OUTBOUND, 
-                    "Failed to create outbound adapter", e);
+            throw new AdapterException("Failed to create outbound adapter: " + e.getMessage(), e);
         }
     }
     
@@ -105,10 +94,10 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private void validateConfiguration(AdapterConfiguration.AdapterTypeEnum adapterType, Object configuration) throws AdapterException {
         if (adapterType == null) {
-            throw new AdapterException.ConfigurationException(null, "Adapter type cannot be null");
+            throw new AdapterException("Adapter type cannot be null");
         }
         if (configuration == null) {
-            throw new AdapterException.ConfigurationException(adapterType, "Configuration cannot be null");
+            throw new AdapterException("Configuration cannot be null");
         }
     }
     
@@ -116,8 +105,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createHttpSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.HttpInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP, 
-                    "HTTP sender requires HttpInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("HTTP sender requires HttpInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.HttpInboundAdapter(
                 (com.integrixs.adapters.config.HttpInboundAdapterConfig) configuration);
@@ -125,8 +113,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createJdbcSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.JdbcInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JDBC, 
-                    "JDBC sender requires JdbcInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("JDBC sender requires JdbcInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.JdbcInboundAdapter(
                 (com.integrixs.adapters.config.JdbcInboundAdapterConfig) configuration);
@@ -134,8 +121,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createRestSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.RestInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
-                    "REST sender requires RestInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("REST sender requires RestInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.RestInboundAdapter(
                 (com.integrixs.adapters.config.RestInboundAdapterConfig) configuration);
@@ -143,8 +129,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createSoapSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.SoapInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SOAP, 
-                    "SOAP sender requires SoapInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("SOAP sender requires SoapInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.SoapInboundAdapter(
                 (com.integrixs.adapters.config.SoapInboundAdapterConfig) configuration);
@@ -152,8 +137,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createFileSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.FileInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                    "File sender requires FileInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("File sender requires FileInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.FileInboundAdapter(
                 (com.integrixs.adapters.config.FileInboundAdapterConfig) configuration);
@@ -161,8 +145,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createMailSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.MailInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, 
-                    "Mail sender requires MailInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("Mail sender requires MailInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.MailInboundAdapter(
                 (com.integrixs.adapters.config.MailInboundAdapterConfig) configuration);
@@ -170,8 +153,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createFtpSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.FtpInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                    "FTP sender requires FtpInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("FTP sender requires FtpInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.FtpInboundAdapter(
                 (com.integrixs.adapters.config.FtpInboundAdapterConfig) configuration);
@@ -179,8 +161,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createSftpSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.SftpInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                    "SFTP sender requires SftpInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("SFTP sender requires SftpInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.SftpInboundAdapter(
                 (com.integrixs.adapters.config.SftpInboundAdapterConfig) configuration);
@@ -188,8 +169,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createRfcSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.RfcInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, 
-                    "RFC sender requires RfcInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("RFC sender requires RfcInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.RfcInboundAdapter(
                 (com.integrixs.adapters.config.RfcInboundAdapterConfig) configuration);
@@ -197,8 +177,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createIdocSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.IdocInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
-                    "IDOC sender requires IdocInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("IDOC sender requires IdocInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.IdocInboundAdapter(
                 (com.integrixs.adapters.config.IdocInboundAdapterConfig) configuration);
@@ -206,8 +185,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createIbmmqSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.IbmmqInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
-                    "IBM MQ sender requires IbmmqInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("IBM MQ sender requires IbmmqInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.IbmmqInboundAdapter(
                 (com.integrixs.adapters.config.IbmmqInboundAdapterConfig) configuration);
@@ -215,8 +193,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createOdataSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.OdataInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
-                    "ODATA sender requires OdataInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("ODATA sender requires OdataInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.OdataInboundAdapter(
                 (com.integrixs.adapters.config.OdataInboundAdapterConfig) configuration);
@@ -224,8 +201,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private InboundAdapterPort createKafkaSender(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.KafkaInboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.KAFKA, 
-                    "KAFKA sender requires KafkaInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("KAFKA sender requires KafkaInboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.KafkaInboundAdapter(
                 (com.integrixs.adapters.config.KafkaInboundAdapterConfig) configuration);
@@ -235,8 +211,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createHttpReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.HttpOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.HTTP, 
-                    "HTTP receiver requires HttpOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("HTTP receiver requires HttpOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.HttpOutboundAdapter(
                 (com.integrixs.adapters.config.HttpOutboundAdapterConfig) configuration);
@@ -244,8 +219,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createJdbcReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.JdbcOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.JDBC, 
-                    "JDBC receiver requires JdbcOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("JDBC receiver requires JdbcOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.JdbcOutboundAdapter(
                 (com.integrixs.adapters.config.JdbcOutboundAdapterConfig) configuration);
@@ -253,8 +227,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createRestReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.RestOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
-                    "REST receiver requires RestOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("REST receiver requires RestOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.RestOutboundAdapter(
                 (com.integrixs.adapters.config.RestOutboundAdapterConfig) configuration);
@@ -262,8 +235,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createSoapReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.SoapOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SOAP, 
-                    "SOAP receiver requires SoapOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("SOAP receiver requires SoapOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.SoapOutboundAdapter(
                 (com.integrixs.adapters.config.SoapOutboundAdapterConfig) configuration);
@@ -271,8 +243,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createFileReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.FileOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FILE, 
-                    "File receiver requires FileOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("File receiver requires FileOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.FileOutboundAdapter(
                 (com.integrixs.adapters.config.FileOutboundAdapterConfig) configuration);
@@ -280,8 +251,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createMailReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.MailOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.MAIL, 
-                    "Mail receiver requires MailOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("Mail receiver requires MailOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.MailOutboundAdapter(
                 (com.integrixs.adapters.config.MailOutboundAdapterConfig) configuration);
@@ -289,8 +259,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createFtpReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.FtpOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.FTP, 
-                    "FTP receiver requires FtpOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("FTP receiver requires FtpOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.FtpOutboundAdapter(
                 (com.integrixs.adapters.config.FtpOutboundAdapterConfig) configuration);
@@ -298,8 +267,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createSftpReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.SftpOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.SFTP, 
-                    "SFTP receiver requires SftpOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("SFTP receiver requires SftpOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.SftpOutboundAdapter(
                 (com.integrixs.adapters.config.SftpOutboundAdapterConfig) configuration);
@@ -307,8 +275,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createRfcReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.RfcOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.RFC, 
-                    "RFC receiver requires RfcOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("RFC receiver requires RfcOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.RfcOutboundAdapter(
                 (com.integrixs.adapters.config.RfcOutboundAdapterConfig) configuration);
@@ -316,8 +283,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createIdocReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.IdocOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
-                    "IDOC receiver requires IdocOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("IDOC receiver requires IdocOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.IdocOutboundAdapter(
                 (com.integrixs.adapters.config.IdocOutboundAdapterConfig) configuration);
@@ -325,8 +291,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createIbmmqReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.IbmmqOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IBMMQ, 
-                    "IBM MQ receiver requires IbmmqOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("IBM MQ receiver requires IbmmqOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.IbmmqOutboundAdapter(
                 (com.integrixs.adapters.config.IbmmqOutboundAdapterConfig) configuration);
@@ -334,8 +299,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createOdataReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.OdataOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.ODATA, 
-                    "ODATA receiver requires OdataOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("ODATA receiver requires OdataOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.OdataOutboundAdapter(
                 (com.integrixs.adapters.config.OdataOutboundAdapterConfig) configuration);
@@ -343,8 +307,7 @@ public class DefaultAdapterFactory implements AdapterFactory {
     
     private OutboundAdapterPort createKafkaReceiver(Object configuration) throws AdapterException {
         if (!(configuration instanceof com.integrixs.adapters.config.KafkaOutboundAdapterConfig)) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.KAFKA, 
-                    "KAFKA receiver requires KafkaOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
+            throw new AdapterException("KAFKA receiver requires KafkaOutboundAdapterConfig, got: " + configuration.getClass().getSimpleName());
         }
         return new com.integrixs.adapters.infrastructure.adapter.KafkaOutboundAdapter(
                 (com.integrixs.adapters.config.KafkaOutboundAdapterConfig) configuration);

@@ -1,17 +1,20 @@
 package com.integrixs.adapters.social.youtube;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.youtube.YouTubeAnalyticsApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
+import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -25,9 +28,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import com.opencsv.CSVWriter;
 
-@Slf4j
 @Component("youTubeAnalyticsOutboundAdapter")
-public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutboundAdapter<YouTubeAnalyticsApiConfig> {
+public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(YouTubeAnalyticsOutboundAdapter.class);
+
     
     private static final String YOUTUBE_ANALYTICS_API_BASE = "https://youtubeanalytics.googleapis.com/v2";
     private static final String YOUTUBE_DATA_API_BASE = "https://www.googleapis.com/youtube/v3";
@@ -35,21 +39,27 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     
+    private YouTubeAnalyticsApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    
     @Autowired
     public YouTubeAnalyticsOutboundAdapter(
-            YouTubeAnalyticsApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
+            TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
     
     @Override
-    public Message sendMessage(Message message) throws AdapterException {
+    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         try {
             validateConfiguration();
             
@@ -148,12 +158,11 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
             }
         } catch (Exception e) {
             log.error("Error in YouTube Analytics outbound adapter", e);
-            throw new AdapterException("Failed to process outbound message", e);
         }
     }
     
     // Basic Reports Methods
-    private Message getChannelMetrics(Message message) throws Exception {
+    private MessageDTO getChannelMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -174,7 +183,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "CHANNEL_METRICS_RETRIEVED");
     }
     
-    private Message getVideoMetrics(Message message) throws Exception {
+    private MessageDTO getVideoMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String videoId = payload.path("videoId").asText();
@@ -195,7 +204,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "VIDEO_METRICS_RETRIEVED");
     }
     
-    private Message getPlaylistMetrics(Message message) throws Exception {
+    private MessageDTO getPlaylistMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String playlistId = payload.path("playlistId").asText();
@@ -221,7 +230,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Revenue Reports Methods
-    private Message getRevenueReport(Message message) throws Exception {
+    private MessageDTO getRevenueReport(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -254,7 +263,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "REVENUE_REPORT_RETRIEVED");
     }
     
-    private Message getAdPerformance(Message message) throws Exception {
+    private MessageDTO getAdPerformance(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -285,7 +294,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "AD_PERFORMANCE_RETRIEVED");
     }
     
-    private Message getEstimatedRevenue(Message message) throws Exception {
+    private MessageDTO getEstimatedRevenue(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         TimePeriod period = TimePeriod.valueOf(payload.path("period").asText("LAST_30_DAYS"));
@@ -327,13 +336,13 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         summary.put("revenuePerView", totalViews > 0 ? totalRevenue / totalViews : 0);
         summary.set("details", data);
         
-        Message result = createResponseMessage(response, "ESTIMATED_REVENUE_RETRIEVED");
+        MessageDTO result = createResponseMessage(response, "ESTIMATED_REVENUE_RETRIEVED");
         result.setPayload(summary.toString());
         return result;
     }
     
     // Engagement Reports Methods
-    private Message getEngagementMetrics(Message message) throws Exception {
+    private MessageDTO getEngagementMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -367,7 +376,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "ENGAGEMENT_METRICS_RETRIEVED");
     }
     
-    private Message getAudienceRetention(Message message) throws Exception {
+    private MessageDTO getAudienceRetention(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String videoId = payload.path("videoId").asText();
         
@@ -391,7 +400,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "AUDIENCE_RETENTION_RETRIEVED");
     }
     
-    private Message getCardPerformance(Message message) throws Exception {
+    private MessageDTO getCardPerformance(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -424,7 +433,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "CARD_PERFORMANCE_RETRIEVED");
     }
     
-    private Message getEndScreenPerformance(Message message) throws Exception {
+    private MessageDTO getEndScreenPerformance(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -455,7 +464,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Audience Reports Methods
-    private Message getDemographics(Message message) throws Exception {
+    private MessageDTO getDemographics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -490,7 +499,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "DEMOGRAPHICS_RETRIEVED");
     }
     
-    private Message getGeography(Message message) throws Exception {
+    private MessageDTO getGeography(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -525,7 +534,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "GEOGRAPHY_RETRIEVED");
     }
     
-    private Message getDeviceReports(Message message) throws Exception {
+    private MessageDTO getDeviceReports(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -556,7 +565,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "DEVICE_REPORTS_RETRIEVED");
     }
     
-    private Message getPlaybackLocation(Message message) throws Exception {
+    private MessageDTO getPlaybackLocation(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -594,7 +603,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Traffic Source Reports Methods
-    private Message getTrafficSources(Message message) throws Exception {
+    private MessageDTO getTrafficSources(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -631,7 +640,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "TRAFFIC_SOURCES_RETRIEVED");
     }
     
-    private Message getSearchTerms(Message message) throws Exception {
+    private MessageDTO getSearchTerms(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -658,7 +667,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "SEARCH_TERMS_RETRIEVED");
     }
     
-    private Message getExternalTraffic(Message message) throws Exception {
+    private MessageDTO getExternalTraffic(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         LocalDate startDate = LocalDate.parse(payload.path("startDate").asText());
@@ -680,7 +689,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "EXTERNAL_TRAFFIC_RETRIEVED");
     }
     
-    private Message getSuggestedVideos(Message message) throws Exception {
+    private MessageDTO getSuggestedVideos(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String videoId = payload.path("videoId").asText();
         
@@ -704,7 +713,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Custom Reports Methods
-    private Message createCustomReport(Message message) throws Exception {
+    private MessageDTO createCustomReport(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Build custom report based on user specifications
@@ -728,7 +737,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "CUSTOM_REPORT_CREATED");
     }
     
-    private Message getReportJobs(Message message) throws Exception {
+    private MessageDTO getReportJobs(MessageDTO message) throws Exception {
         // YouTube Reporting API for scheduled reports
         String url = YOUTUBE_REPORTING_API_BASE + "/jobs?onBehalfOfContentOwner=" + 
                     config.getChannelId();
@@ -737,7 +746,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "REPORT_JOBS_RETRIEVED");
     }
     
-    private Message downloadReport(Message message) throws Exception {
+    private MessageDTO downloadReport(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String reportUrl = payload.path("reportUrl").asText();
         
@@ -747,7 +756,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Comparison Reports Methods
-    private Message comparePeriods(Message message) throws Exception {
+    private MessageDTO comparePeriods(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Period 1
@@ -773,12 +782,12 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         comparison.set("period1", objectMapper.readTree(response1.getBody()));
         comparison.set("period2", objectMapper.readTree(response2.getBody()));
         
-        Message result = createResponseMessage(response1, "PERIODS_COMPARED");
+        MessageDTO result = createResponseMessage(response1, "PERIODS_COMPARED");
         result.setPayload(comparison.toString());
         return result;
     }
     
-    private Message compareVideos(Message message) throws Exception {
+    private MessageDTO compareVideos(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         List<String> videoIds = new ArrayList<>();
         
@@ -807,14 +816,14 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
             comparison.set(videoId, objectMapper.readTree(response.getBody()));
         }
         
-        Message result = new Message();
+        MessageDTO result = new MessageDTO();
         result.setPayload(comparison.toString());
         result.setHeaders(Map.of("operation", "VIDEOS_COMPARED"));
         
         return result;
     }
     
-    private Message benchmarkPerformance(Message message) throws Exception {
+    private MessageDTO benchmarkPerformance(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Get channel averages for benchmarking
@@ -843,13 +852,13 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         JsonNode data = objectMapper.readTree(response.getBody());
         ObjectNode benchmarks = calculateBenchmarks(data);
         
-        Message result = createResponseMessage(response, "PERFORMANCE_BENCHMARKED");
+        MessageDTO result = createResponseMessage(response, "PERFORMANCE_BENCHMARKED");
         result.setPayload(benchmarks.toString());
         return result;
     }
     
     // Real-time Reports Methods
-    private Message getRealtimeMetrics(Message message) throws Exception {
+    private MessageDTO getRealtimeMetrics(MessageDTO message) throws Exception {
         // Note: YouTube Analytics API has a 48-hour delay
         // This gets the most recent available data
         LocalDate today = LocalDate.now();
@@ -874,7 +883,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "REALTIME_METRICS_RETRIEVED");
     }
     
-    private Message getLiveStreamMetrics(Message message) throws Exception {
+    private MessageDTO getLiveStreamMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String broadcastId = payload.path("broadcastId").asText();
         
@@ -900,11 +909,11 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Export Reports Methods
-    private Message exportToCsv(Message message) throws Exception {
+    private MessageDTO exportToCsv(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Get the report data first
-        Message reportData = createCustomReport(message);
+        MessageDTO reportData = createCustomReport(message);
         JsonNode data = objectMapper.readTree(reportData.getPayload());
         
         // Convert to CSV
@@ -933,7 +942,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         
         csvWriter.close();
         
-        Message result = new Message();
+        MessageDTO result = new MessageDTO();
         result.setPayload(outputStream.toString());
         result.setHeaders(Map.of(
             "operation", "CSV_EXPORTED",
@@ -944,12 +953,12 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return result;
     }
     
-    private Message exportToJson(Message message) throws Exception {
+    private MessageDTO exportToJson(MessageDTO message) throws Exception {
         // Get the report data
-        Message reportData = createCustomReport(message);
+        MessageDTO reportData = createCustomReport(message);
         
         // Already in JSON format
-        Message result = new Message();
+        MessageDTO result = new MessageDTO();
         result.setPayload(reportData.getPayload());
         result.setHeaders(Map.of(
             "operation", "JSON_EXPORTED",
@@ -960,7 +969,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return result;
     }
     
-    private Message scheduleReport(Message message) throws Exception {
+    private MessageDTO scheduleReport(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         // Create a reporting job using YouTube Reporting API
@@ -981,7 +990,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     }
     
     // Group Reports Methods
-    private Message createGroup(Message message) throws Exception {
+    private MessageDTO createGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         
         String url = YOUTUBE_DATA_API_BASE + "/groups";
@@ -1001,7 +1010,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "GROUP_CREATED");
     }
     
-    private Message getGroupMetrics(Message message) throws Exception {
+    private MessageDTO getGroupMetrics(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String groupId = payload.path("groupId").asText();
         
@@ -1022,7 +1031,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "GROUP_METRICS_RETRIEVED");
     }
     
-    private Message updateGroup(Message message) throws Exception {
+    private MessageDTO updateGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String groupId = payload.path("groupId").asText();
         
@@ -1047,7 +1056,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         return createResponseMessage(response, "GROUP_UPDATED");
     }
     
-    private Message deleteGroup(Message message) throws Exception {
+    private MessageDTO deleteGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String groupId = payload.path("groupId").asText();
         
@@ -1195,5 +1204,23 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         if (config.getAccessToken() == null) {
             throw new AdapterException("YouTube Analytics access token is not configured");
         }
+    }
+    
+    private MessageDTO createResponseMessage(ResponseEntity<String> response, String operation) {
+        MessageDTO responseMessage = new MessageDTO();
+        responseMessage.setCorrelationId(UUID.randomUUID().toString());
+        responseMessage.setMessageTimestamp(java.time.Instant.now());
+        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+        responseMessage.setHeaders(Map.of(
+            "operation", operation,
+            "statusCode", response.getStatusCodeValue(),
+            "source", "youtube_analytics"
+        ));
+        responseMessage.setPayload(response.getBody());
+        return responseMessage;
+    }
+    
+    public void setConfiguration(YouTubeAnalyticsApiConfig config) {
+        this.config = config;
     }
 }

@@ -1,5 +1,9 @@
 package com.integrixs.adapters.collaboration.slack;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.collaboration.slack.SlackApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -16,8 +20,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URI;
@@ -26,6 +28,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,8 +37,103 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    
+    
+
+    
+    @Override
+
+    
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.SLACK;
+    }
+    
+    
+
+    
+    @Override
+
+    
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> adapterConfig = new HashMap<>();
+        adapterConfig.put("botToken", config.getBotToken());
+        adapterConfig.put("appToken", config.getAppToken());
+        adapterConfig.put("signingSecret", config.getSigningSecret());
+        adapterConfig.put("features", Map.of(
+            "enableMessaging", config.getFeatures().isEnableMessaging(),
+            "enableFiles", config.getFeatures().isEnableFiles(),
+            "enableChannels", config.getFeatures().isEnableChannels(),
+            "enableReactions", config.getFeatures().isEnableReactions(),
+            "enableSocketMode", config.getFeatures().isEnableSocketMode()
+        ));
+        adapterConfig.put("limits", Map.of(
+            "maxMessagesPerRequest", config.getLimits().getMaxMessagesPerRequest(),
+            "maxUsersPerRequest", config.getLimits().getMaxUsersPerRequest(),
+            "maxChannelsPerRequest", config.getLimits().getMaxChannelsPerRequest(),
+            "maxFileSizeMb", config.getLimits().getMaxFileSizeMb(),
+            "websocketReconnectMaxAttempts", config.getLimits().getWebsocketReconnectMaxAttempts()
+        ));
+        return adapterConfig;
+    }
+    
+    
+
+    
+    @Override
+
+    
+    protected Map<String, Object> getConfig() {
+        return getAdapterConfig();
+    }
+    
+    
+
+    
+    @Override
+
+    
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList(
+            SlackApiConfig.EventType.MESSAGE_CHANNELS.getEventName(),
+            SlackApiConfig.EventType.MESSAGE_GROUPS.getEventName(),
+            SlackApiConfig.EventType.MESSAGE_IM.getEventName(),
+            SlackApiConfig.EventType.MESSAGE_MPIM.getEventName(),
+            SlackApiConfig.EventType.APP_MENTION.getEventName(),
+            SlackApiConfig.EventType.APP_HOME_OPENED.getEventName(),
+            SlackApiConfig.EventType.APP_UNINSTALLED.getEventName(),
+            SlackApiConfig.EventType.CHANNEL_ARCHIVE.getEventName(),
+            SlackApiConfig.EventType.CHANNEL_CREATED.getEventName(),
+            SlackApiConfig.EventType.CHANNEL_DELETED.getEventName(),
+            SlackApiConfig.EventType.CHANNEL_RENAME.getEventName(),
+            SlackApiConfig.EventType.CHANNEL_UNARCHIVE.getEventName(),
+            SlackApiConfig.EventType.USER_CHANGE.getEventName(),
+            SlackApiConfig.EventType.TEAM_JOIN.getEventName(),
+            SlackApiConfig.EventType.FILE_CREATED.getEventName(),
+            SlackApiConfig.EventType.FILE_SHARED.getEventName(),
+            SlackApiConfig.EventType.FILE_DELETED.getEventName(),
+            SlackApiConfig.EventType.FILE_CHANGE.getEventName(),
+            SlackApiConfig.EventType.FILE_COMMENT_ADDED.getEventName(),
+            SlackApiConfig.EventType.FILE_COMMENT_DELETED.getEventName(),
+            SlackApiConfig.EventType.REACTION_ADDED.getEventName(),
+            SlackApiConfig.EventType.REACTION_REMOVED.getEventName()
+        );
+    }
+    
+    
+
+    
+    @Override
+
+    
+    protected void doSend(Object payload, Map<String, Object> headers) {
+        // Slack doesn't use traditional outbound sending from inbound adapter
+        // Messages are published through webhooks or Socket Mode
+        log.debug("doSend called with payload: {}", payload);
+    }
+
+    private static final Logger log = LoggerFactory.getLogger(SlackInboundAdapter.class);
+
     
     private static final String API_URL = "https://slack.com/api/";
     private static final int SOCKET_MODE_RECONNECT_DELAY = 5000; // 5 seconds
@@ -69,18 +168,13 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private final Map<String, JsonNode> channelCache = new ConcurrentHashMap<>();
     private final Map<String, JsonNode> teamCache = new ConcurrentHashMap<>();
     
-    @Override
-    public AdapterType getType() {
-        return AdapterType.SLACK;
-    }
+            
+
     
-    @Override
-    public String getName() {
-        return "Slack API Adapter";
-    }
+            @Override
+
     
-    @Override
-    public void initialize() {
+            public void initialize() {
         super.initialize();
         
         // Start Socket Mode if enabled
@@ -126,13 +220,21 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
     
     private class SlackWebSocketHandler implements WebSocketHandler {
+        
+
         @Override
+
         public void afterConnectionEstablished(WebSocketSession session) {
             log.info("Socket Mode connection established");
             socketConnected.set(true);
         }
         
+        
+
+        
         @Override
+
+        
         public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
             try {
                 String payload = message.getPayload().toString();
@@ -185,14 +287,24 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
             }
         }
         
+        
+
+        
         @Override
+
+        
         public void handleTransportError(WebSocketSession session, Throwable exception) {
             log.error("Socket Mode transport error", exception);
             socketConnected.set(false);
             scheduleReconnect();
         }
         
+        
+
+        
         @Override
+
+        
         public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
             log.info("Socket Mode connection closed: {}", status);
             socketConnected.set(false);
@@ -200,9 +312,20 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
             scheduleReconnect();
         }
         
+        
+
+        
         @Override
+
+        
         public boolean supportsPartialMessages() {
             return false;
+        }
+    
+        
+        private void handleSlashCommand(JsonNode payload) {
+            // Delegate to outer class method
+            SlackInboundAdapter.this.handleSlashCommand(payload);
         }
     }
     
@@ -260,7 +383,6 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
     
     // Event handling methods
-    @Override
     public void handleWebhookEvent(JsonNode event) {
         try {
             String type = event.path("type").asText();
@@ -286,6 +408,13 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
     
+    protected void publishMessage(String eventType, Object data) {
+        MessageDTO message = convertToMessage(Map.of("data", data), eventType);
+        // TODO: Implement actual message publishing logic
+        log.debug("Publishing message: type={}, data={}", eventType, data);
+    }
+
+    
     private void handleEventCallback(JsonNode eventWrapper) {
         try {
             JsonNode event = eventWrapper.path("event");
@@ -308,42 +437,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
             eventData.put("team_id", eventWrapper.path("team_id").asText());
             eventData.put("event", event);
             
-            MessageDTO message = MessageDTO.builder()
-                .type("slack_event")
-                .category(eventType)
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(eventData))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
-        } catch (Exception e) {
-            log.error("Error processing event callback", e);
-        }
-    }
-    
-    private void handleSlashCommand(JsonNode command) {
-        try {
-            Map<String, Object> commandData = new HashMap<>();
-            commandData.put("command", command.path("command").asText());
-            commandData.put("text", command.path("text").asText());
-            commandData.put("user_id", command.path("user_id").asText());
-            commandData.put("channel_id", command.path("channel_id").asText());
-            commandData.put("team_id", command.path("team_id").asText());
-            commandData.put("response_url", command.path("response_url").asText());
-            commandData.put("trigger_id", command.path("trigger_id").asText());
-            
-            MessageDTO message = MessageDTO.builder()
-                .type("slash_command")
-                .category("command")
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(commandData))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("slash_command");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(eventData));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error handling slash command", e);
         }
@@ -383,16 +485,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
                     break;
             }
             
-            MessageDTO message = MessageDTO.builder()
-                .type("interactive_component")
-                .category(type)
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(interactionData))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("interactive_component");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(interactionData));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error handling interactive event", e);
         }
@@ -407,16 +508,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
             shortcutData.put("user", shortcut.path("user"));
             shortcutData.put("team", shortcut.path("team"));
             
-            MessageDTO message = MessageDTO.builder()
-                .type("shortcut")
-                .category(shortcut.path("type").asText())
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(shortcutData))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("shortcut");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(shortcutData));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error handling shortcut", e);
         }
@@ -428,16 +528,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
             workflowData.put("workflow_step", workflow.path("workflow_step"));
             workflowData.put("event", workflow.path("event"));
             
-            MessageDTO message = MessageDTO.builder()
-                .type("workflow_step_execute")
-                .category("workflow")
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(workflowData))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("workflow_step_execute");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(workflowData));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error handling workflow step execute", e);
         }
@@ -545,16 +644,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 userList.add(userData);
             }
             
-            MessageDTO message = MessageDTO.builder()
-                .type("users_list")
-                .category("workspace_data")
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(userList))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("users_list");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(userList));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error processing users", e);
         }
@@ -588,16 +686,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 channelList.add(channelData);
             }
             
-            MessageDTO message = MessageDTO.builder()
-                .type("channels_list")
-                .category("workspace_data")
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(channelList))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("channels_list");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(channelList));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error processing channels", e);
         }
@@ -617,16 +714,15 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
             teamData.put("enterprise_id", team.path("enterprise_id").asText());
             teamData.put("enterprise_name", team.path("enterprise_name").asText());
             
-            MessageDTO message = MessageDTO.builder()
-                .type("team_info")
-                .category("workspace_data")
-                .source("slack")
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(teamData))
-                .timestamp(Instant.now().toEpochMilli())
-                .build();
-                
-            publishToQueue(message);
+            MessageDTO message = new MessageDTO();
+            message.setType("team_info");
+            message.setSource("slack");
+            message.setTarget("slack-inbound");
+            message.setPayload(objectMapper.writeValueAsString(teamData));
+            message.setMessageTimestamp(Instant.now());
+
+            // Use the base class publishMessage method
+            publishMessage(message.getType(), message);
         } catch (Exception e) {
             log.error("Error processing team info", e);
         }
@@ -682,36 +778,6 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
         return true;
     }
     
-    public static boolean verifySlackSignature(String signingSecret, String timestamp, String body, String signature) {
-        try {
-            // Check timestamp to prevent replay attacks (5 minute window)
-            long requestTime = Long.parseLong(timestamp);
-            long currentTime = Instant.now().getEpochSecond();
-            if (Math.abs(currentTime - requestTime) > 300) {
-                return false;
-            }
-            
-            // Create signature base string
-            String baseString = "v0:" + timestamp + ":" + body;
-            
-            // Calculate HMAC
-            Mac sha256Hmac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(
-                signingSecret.getBytes(StandardCharsets.UTF_8),
-                "HmacSHA256"
-            );
-            sha256Hmac.init(secretKey);
-            
-            byte[] hash = sha256Hmac.doFinal(baseString.getBytes(StandardCharsets.UTF_8));
-            String calculatedSignature = "v0=" + bytesToHex(hash);
-            
-            // Compare signatures
-            return calculatedSignature.equals(signature);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NumberFormatException e) {
-            log.error("Error verifying Slack signature", e);
-            return false;
-        }
-    }
     
     private static String bytesToHex(byte[] bytes) {
         StringBuilder result = new StringBuilder();
@@ -804,7 +870,12 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
     
+    
+
+    
     @Override
+
+    
     public void destroy() {
         super.destroy();
         

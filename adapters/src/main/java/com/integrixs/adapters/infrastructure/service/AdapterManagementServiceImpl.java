@@ -1,12 +1,13 @@
 package com.integrixs.adapters.infrastructure.service;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.AdapterPort;
 import com.integrixs.adapters.domain.repository.AdapterRepository;
 import com.integrixs.adapters.domain.service.AdapterManagementService;
 import com.integrixs.adapters.domain.service.AdapterRegistryService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +20,10 @@ import java.util.Optional;
 /**
  * Infrastructure implementation of adapter management service
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterManagementServiceImpl implements AdapterManagementService {
+    private static final Logger log = LoggerFactory.getLogger(AdapterManagementServiceImpl.class);
+
     
     private final AdapterRepository adapterRepository;
     private final AdapterRegistryService adapterRegistryService;

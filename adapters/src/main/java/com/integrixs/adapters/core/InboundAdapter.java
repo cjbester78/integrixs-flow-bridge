@@ -1,6 +1,7 @@
 package com.integrixs.adapters.core;
 
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Interface for inbound adapters.

@@ -69,12 +69,11 @@ public class HttpInboundAdapterConfig {
 	// Constructors
 	public HttpInboundAdapterConfig() {
 		// Initialize with default JSON to XML wrapper config
-		this.jsonXmlWrapperConfig = JsonXmlWrapperConfig.builder()
-				.rootElementName("httpMessage")
-				.includeXmlDeclaration(true)
-				.prettyPrint(true)
-				.convertPropertyNames(true)
-				.build();
+		this.jsonXmlWrapperConfig = new JsonXmlWrapperConfig();
+        jsonXmlWrapperConfig.rootElementName = "httpMessage";
+        jsonXmlWrapperConfig.includeXmlDeclaration = true;
+        jsonXmlWrapperConfig.prettyPrint = true;
+        jsonXmlWrapperConfig.convertPropertyNames = true;
 	}
 
 	// Getters and Setters

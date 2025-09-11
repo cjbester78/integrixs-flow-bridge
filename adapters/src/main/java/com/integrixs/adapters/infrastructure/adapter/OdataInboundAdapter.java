@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -19,15 +22,14 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.slf4j.Slf4j;
-import java.util.Map;
 /**
  * OData Sender Adapter implementation for OData service consumption (INBOUND).
  * Follows middleware convention: Inbound = receives data FROM external systems.
  * Polls OData services and retrieves entities from external systems.
  */
-@Slf4j
 public class OdataInboundAdapter extends AbstractAdapter implements InboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(OdataInboundAdapter.class);
+
     
     private final OdataInboundAdapterConfig config;
     private ODataClient client;
@@ -236,12 +238,9 @@ public class OdataInboundAdapter extends AbstractAdapter implements InboundAdapt
         return null;
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getServiceUrl() == null || config.getServiceUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.ODATA, "Service URL is required");
-        }
-        if (config.getEntitySetName() == null || config.getEntitySetName().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.ODATA, "Entity set name is required");
+            throw new AdapterException("Service URL is required", null);
         }
         // Set defaults
         if (config.getPollingInterval() <= 0) {

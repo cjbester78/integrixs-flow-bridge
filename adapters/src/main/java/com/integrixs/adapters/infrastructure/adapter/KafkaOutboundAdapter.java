@@ -1,10 +1,12 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.domain.model.*;
 import com.integrixs.adapters.domain.port.OutboundAdapterPort;
 import com.integrixs.adapters.config.KafkaOutboundAdapterConfig;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -18,8 +20,9 @@ import java.util.concurrent.Future;
  * Kafka Receiver Adapter - sends messages to Kafka topics
  * In middleware terminology: Outbound = sends data TO external systems
  */
-@Slf4j
 public class KafkaOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(KafkaOutboundAdapter.class);
+
     
     private final KafkaOutboundAdapterConfig config;
     private KafkaProducer<String, String> producer;
@@ -182,10 +185,9 @@ public class KafkaOutboundAdapter extends AbstractAdapter implements OutboundAda
     }
     
     protected AdapterOperationResult performSend(Object payload, Map<String, Object> headers) throws Exception {
-        SendRequest request = SendRequest.builder()
-                .payload(payload)
-                .parameters(headers)
-                .build();
+        SendRequest request = new SendRequest();
+        request.payload = payload;
+        request.parameters = headers;
         return send(request);
     }
 }

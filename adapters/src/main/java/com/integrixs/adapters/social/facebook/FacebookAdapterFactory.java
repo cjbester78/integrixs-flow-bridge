@@ -1,9 +1,11 @@
 package com.integrixs.adapters.social.facebook;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.factory.AdapterFactory;
-import com.integrixs.adapters.base.BaseAdapter;
+import com.integrixs.adapters.core.BaseAdapter;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -13,9 +15,10 @@ import jakarta.annotation.PostConstruct;
 /**
  * Factory for creating Facebook adapters
  */
-@Slf4j
 @Component
 public class FacebookAdapterFactory implements AdapterFactory {
+    private static final Logger log = LoggerFactory.getLogger(FacebookAdapterFactory.class);
+
     
     @Autowired
     private ApplicationContext applicationContext;

@@ -1,5 +1,8 @@
 package com.integrixs.adapters.social.snapchat;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.snapchat.SnapchatAdsApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -16,8 +19,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -25,8 +26,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Slf4j
 public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(SnapchatAdsOutboundAdapter.class);
+
     
     private static final String API_BASE_URL = "https://adsapi.snapchat.com/v1";
     private static final String MEDIA_UPLOAD_URL = "https://adsapi.snapchat.com/v1/media";
@@ -62,51 +64,53 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             log.info("Processing Snapchat Ads operation: {}", operation);
             
             switch (operation.toUpperCase()) {
-                // Campaign Operations
+                // Campaign operations
                 case "CREATE_CAMPAIGN":
                     return createCampaign(message);
                 case "UPDATE_CAMPAIGN":
                     return updateCampaign(message);
-                case "DELETE_CAMPAIGN":
-                    return deleteCampaign(message);
                 case "PAUSE_CAMPAIGN":
                     return pauseCampaign(message);
                 case "RESUME_CAMPAIGN":
                     return resumeCampaign(message);
+                case "DELETE_CAMPAIGN":
+                    return deleteCampaign(message);
                     
-                // Ad Squad Operations
+                // Ad Squad (Ad Set) operations
                 case "CREATE_AD_SQUAD":
                     return createAdSquad(message);
                 case "UPDATE_AD_SQUAD":
                     return updateAdSquad(message);
-                case "DELETE_AD_SQUAD":
-                    return deleteAdSquad(message);
                 case "PAUSE_AD_SQUAD":
                     return pauseAdSquad(message);
                 case "RESUME_AD_SQUAD":
                     return resumeAdSquad(message);
+                case "DELETE_AD_SQUAD":
+                    return deleteAdSquad(message);
                     
-                // Creative Operations
+                // Creative operations
                 case "CREATE_CREATIVE":
                     return createCreative(message);
                 case "UPDATE_CREATIVE":
                     return updateCreative(message);
                 case "DELETE_CREATIVE":
                     return deleteCreative(message);
+                    
+                // Media operations
                 case "UPLOAD_MEDIA":
                     return uploadMedia(message);
                     
-                // Audience Operations
+                // Audience operations
                 case "CREATE_AUDIENCE":
                     return createAudience(message);
+                case "CREATE_LOOKALIKE_AUDIENCE":
+                    return createLookalikeAudience(message);
                 case "UPDATE_AUDIENCE":
                     return updateAudience(message);
                 case "DELETE_AUDIENCE":
                     return deleteAudience(message);
-                case "CREATE_LOOKALIKE":
-                    return createLookalikeAudience(message);
                     
-                // Pixel Operations
+                // Pixel operations
                 case "CREATE_PIXEL":
                     return createPixel(message);
                 case "UPDATE_PIXEL":
@@ -114,15 +118,13 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 case "FIRE_PIXEL_EVENT":
                     return firePixelEvent(message);
                     
-                // Reporting Operations
+                // Reporting operations
                 case "GENERATE_REPORT":
                     return generateReport(message);
                 case "GET_STATS":
                     return getStats(message);
-                case "EXPORT_DATA":
-                    return exportData(message);
                     
-                // Bulk Operations
+                // Bulk operations
                 case "BULK_CREATE":
                     return bulkCreate(message);
                 case "BULK_UPDATE":
@@ -130,15 +132,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 case "BULK_DELETE":
                     return bulkDelete(message);
                     
-                // Catalog Operations
-                case "CREATE_CATALOG":
-                    return createCatalog(message);
-                case "UPDATE_CATALOG":
-                    return updateCatalog(message);
-                case "UPLOAD_PRODUCTS":
-                    return uploadProducts(message);
-                    
-                // Advanced Features
+                // Advanced features
                 case "CREATE_AR_LENS":
                     return createARLens(message);
                 case "CREATE_FILTER":
@@ -146,12 +140,24 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 case "CREATE_BRANDED_MOMENT":
                     return createBrandedMoment(message);
                     
+                // Catalog operations
+                case "CREATE_CATALOG":
+                    return createCatalog(message);
+                case "UPDATE_CATALOG":
+                    return updateCatalog(message);
+                case "UPLOAD_PRODUCTS":
+                    return uploadProducts(message);
+                    
+                // Data export
+                case "EXPORT_DATA":
+                    return exportData(message);
+                    
                 default:
-                    throw new AdapterException("Unsupported operation: " + operation);
+                    throw new AdapterException("Unknown operation: " + operation);
             }
         } catch (Exception e) {
-            log.error("Error processing message", e);
-            return createErrorResponse(message, e);
+            log.error("Error processing Snapchat Ads operation", e);
+            throw new AdapterException("Failed to process operation", e);
         }
     }
     
@@ -560,31 +566,21 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         }
     }
     
-    // Bulk Operations
     private MessageDTO bulkCreate(MessageDTO message) {
         try {
             JsonNode content = objectMapper.readTree(message.getContent());
-            String entityType = content.get("entity_type").asText();
-            JsonNode entities = content.get("entities");
-            
-            if (entities.size() > config.getLimits().getMaxBulkOperations()) {
-                throw new AdapterException("Bulk operation limit exceeded");
-            }
+            JsonNode items = content.get("items");
             
             List<JsonNode> results = new ArrayList<>();
-            
-            entities.forEach(entity -> {
+            items.forEach(item -> {
                 try {
-                    MessageDTO tempMessage = MessageDTO.builder()
-                        .content(entity.toString())
-                        .headers(message.getHeaders())
-                        .build();
-                    tempMessage.getHeaders().put("operation", "CREATE_" + entityType);
-                    
-                    MessageDTO result = processMessage(tempMessage);
+                    MessageDTO itemMessage = new MessageDTO();
+                    itemMessage.setHeaders(message.getHeaders());
+                    itemMessage.setContent(item.toString());
+                    MessageDTO result = createEntity(itemMessage, content.get("entity_type").asText());
                     results.add(objectMapper.readTree(result.getContent()));
                 } catch (Exception e) {
-                    log.error("Error in bulk create for entity", e);
+                    log.error("Error creating item", e);
                 }
             });
             
@@ -592,6 +588,21 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         } catch (Exception e) {
             log.error("Error in bulk create", e);
             throw new AdapterException("Failed to perform bulk create", e);
+        }
+    }
+    
+    private MessageDTO createEntity(MessageDTO message, String entityType) {
+        switch (entityType.toUpperCase()) {
+            case "CAMPAIGN":
+                return createCampaign(message);
+            case "AD_SQUAD":
+                return createAdSquad(message);
+            case "CREATIVE":
+                return createCreative(message);
+            case "AUDIENCE":
+                return createAudience(message);
+            default:
+                throw new AdapterException("Unknown entity type: " + entityType);
         }
     }
     
@@ -862,8 +873,22 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AdapterException("Snapchat API request failed", e);
         } catch (Exception e) {
-            log.error("Error making authenticated request", e);
             throw new AdapterException("Failed to make authenticated request", e);
         }
+    }
+    
+    private String getAccessToken() {
+        // In a real implementation, this would handle OAuth2 token refresh
+        return config.getAccessToken();
+    }
+    
+    private MessageDTO createSuccessResponse(MessageDTO originalMessage, JsonNode responseData) {
+        MessageDTO response = new MessageDTO();
+        response.setCorrelationId(originalMessage.getCorrelationId());
+        response.setHeaders(new HashMap<>(originalMessage.getHeaders()));
+        response.getHeaders().put("status", "success");
+        response.setContent(responseData.toString());
+        response.setTimestamp(Instant.now());
+        return response;
     }
 }

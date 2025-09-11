@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Abstract base implementation for outbound adapters.
@@ -50,6 +51,7 @@ public abstract class AbstractOutboundAdapter extends AbstractAdapter implements
                 if (!pollingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                     pollingExecutor.shutdownNow();
                 }
+                
             } catch (InterruptedException e) {
                 pollingExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
@@ -67,24 +69,27 @@ public abstract class AbstractOutboundAdapter extends AbstractAdapter implements
     @Override
     public AdapterResult receive(Object criteria) throws AdapterException {
         validateReady();
+        
         return executeTimedOperation("receive", () -> doReceive(criteria));
     }
+    
+    @Override
     
     @Override
     public void startPolling(AdapterCallback callback) throws AdapterException {
         validateReady();
         
         if (callback == null) {
-            throw new AdapterException.ValidationException(getAdapterType(), "Callback cannot be null");
+            throw new AdapterException("Callback cannot be null");
         }
         
         if (polling.get()) {
-            throw new AdapterException(getAdapterType(), getAdapterMode(), "Polling already active");
+            throw new AdapterException("Polling already active for " + getAdapterType().name() + " adapter");
         }
         
         long pollingIntervalMs = getPollingIntervalMs();
         if (pollingIntervalMs <= 0) {
-            throw new AdapterException.ConfigurationException(getAdapterType(), "Invalid polling interval: " + pollingIntervalMs);
+            throw new AdapterException("Invalid polling interval: " + pollingIntervalMs);
         }
         
         currentCallback.set(callback);
@@ -143,7 +148,7 @@ public abstract class AbstractOutboundAdapter extends AbstractAdapter implements
         validateReady();
         
         if (maxItems <= 0) {
-            throw new AdapterException.ValidationException(getAdapterType(), "maxItems must be positive");
+            throw new AdapterException("maxItems must be positive");
         }
         
         return executeTimedOperation("receiveBatch", () -> doReceiveBatch(maxItems));
@@ -153,16 +158,14 @@ public abstract class AbstractOutboundAdapter extends AbstractAdapter implements
     public void acknowledge(String messageId) throws AdapterException {
         validateReady();
         
-        if (messageId == null || messageId.trim().isEmpty()) {
-            throw new AdapterException.ValidationException(getAdapterType(), "messageId cannot be null or empty");
+        if (messageId == null || messageId.isEmpty()) {
+            throw new AdapterException("Message ID cannot be null or empty");
         }
         
         try {
             doAcknowledge(messageId);
-            updateLastActivity();
         } catch (Exception e) {
-            logger.error("Acknowledgment failed for {} adapter", getAdapterType(), e);
-            throw new AdapterException(getAdapterType(), getAdapterMode(), "Acknowledgment failed", e);
+            throw new AdapterException("Acknowledgment failed", e);
         }
     }
     

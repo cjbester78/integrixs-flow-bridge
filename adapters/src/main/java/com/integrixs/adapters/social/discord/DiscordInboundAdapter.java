@@ -1,5 +1,8 @@
 package com.integrixs.adapters.social.discord;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.discord.DiscordApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -16,8 +19,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -33,8 +34,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Slf4j
 public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(DiscordInboundAdapter.class);
+
     
     private static final String API_BASE_URL = "https://discord.com/api/v10";
     private static final String GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json";
@@ -118,7 +120,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
     
-    // Message polling for specific channels
+    // MessageDTO polling for specific channels
     @Scheduled(fixedDelayString = "${integrixs.adapters.discord.polling.messages:300000}")
     public void pollMessages() {
         if (!config.getFeatures().isEnableMessageManagement()) {
@@ -299,7 +301,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
         
         // Create message for queue
-        MessageDTO message = MessageDTO.builder()
+        MessageDTO message = new MessageDTO()
             .type("discord_event")
             .category(eventType)
             .source("discord_gateway")
@@ -431,7 +433,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 // Cache guild data
                 guildCache.put(guild.get("id").asText(), guild);
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("guild")
                     .category("guild_data")
                     .source("discord")
@@ -461,7 +463,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 // Cache channel data
                 channelCache.put(channel.get("id").asText(), channel);
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("channel")
                     .category("channel_data")
                     .source("discord")
@@ -496,7 +498,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 messageData.put("pinned", message.get("pinned").asBoolean());
                 messageData.put("type", message.get("type").asInt());
                 
-                MessageDTO msg = MessageDTO.builder()
+                MessageDTO msg = new MessageDTO()
                     .type("message")
                     .category("message_data")
                     .source("discord")
@@ -525,7 +527,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 memberData.put("deaf", member.get("deaf").asBoolean());
                 memberData.put("mute", member.get("mute").asBoolean());
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("member")
                     .category("member_data")
                     .source("discord")
@@ -561,7 +563,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 eventData.put("entity_metadata", event.has("entity_metadata") ? event.get("entity_metadata") : null);
                 eventData.put("user_count", event.has("user_count") ? event.get("user_count").asInt() : 0);
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("scheduled_event")
                     .category("event_data")
                     .source("discord")
@@ -594,7 +596,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 voiceData.put("self_video", state.get("self_video").asBoolean());
                 voiceData.put("suppress", state.get("suppress").asBoolean());
                 
-                MessageDTO message = MessageDTO.builder()
+                MessageDTO message = new MessageDTO()
                     .type("voice_state")
                     .category("voice_data")
                     .source("discord")
@@ -674,29 +676,6 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
         return makeAuthenticatedRequest(endpoint, method, null);
     }
     
-    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, Object body) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bot " + config.getBotToken());
-            headers.set("Content-Type", "application/json");
-            headers.set("User-Agent", "DiscordBot (https://integrixs.com, 1.0)");
-            
-            HttpEntity<?> entity = body != null ? 
-                new HttpEntity<>(body, headers) : new HttpEntity<>(headers);
-            
-            ResponseEntity<String> response = restTemplate.exchange(
-                API_BASE_URL + endpoint, method, entity, String.class
-            );
-            
-            return objectMapper.readTree(response.getBody());
-        } catch (HttpClientErrorException e) {
-            log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AdapterException("Discord API request failed", e);
-        } catch (Exception e) {
-            log.error("Error making authenticated request", e);
-            throw new AdapterException("Failed to make authenticated request", e);
-        }
-    }
     
     @Override
     public void destroy() {

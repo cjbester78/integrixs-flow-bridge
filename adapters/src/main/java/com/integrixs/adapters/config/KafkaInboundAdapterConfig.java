@@ -2,14 +2,9 @@ package com.integrixs.adapters.config;
 
 import java.io.Serializable;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 /**
  * Configuration for Kafka inbound adapter (consumer)
  */
-@Data
-
 public class KafkaInboundAdapterConfig implements Serializable {
     
     // Kafka connection properties
@@ -57,5 +52,120 @@ public class KafkaInboundAdapterConfig implements Serializable {
     public Long getPollingInterval() {
         // Use poll timeout as polling interval
         return pollTimeoutMs;
+    }
+    // Getters and Setters
+    public String getBootstrapServers() {
+        return bootstrapServers;
+    }
+    public void setBootstrapServers(String bootstrapServers) {
+        this.bootstrapServers = bootstrapServers;
+    }
+    public String getGroupId() {
+        return groupId;
+    }
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+    public String getTopics() {
+        return topics;
+    }
+    public void setTopics(String topics) {
+        this.topics = topics;
+    }
+    public String getKeyDeserializer() {
+        return keyDeserializer;
+    }
+    public void setKeyDeserializer(String keyDeserializer) {
+        this.keyDeserializer = keyDeserializer;
+    }
+    public String getValueDeserializer() {
+        return valueDeserializer;
+    }
+    public void setValueDeserializer(String valueDeserializer) {
+        this.valueDeserializer = valueDeserializer;
+    }
+    public String getAutoOffsetReset() {
+        return autoOffsetReset;
+    }
+    public void setAutoOffsetReset(String autoOffsetReset) {
+        this.autoOffsetReset = autoOffsetReset;
+    }
+    public boolean isEnableAutoCommit() {
+        return enableAutoCommit;
+    }
+    public void setEnableAutoCommit(boolean enableAutoCommit) {
+        this.enableAutoCommit = enableAutoCommit;
+    }
+    public int getAutoCommitIntervalMs() {
+        return autoCommitIntervalMs;
+    }
+    public void setAutoCommitIntervalMs(int autoCommitIntervalMs) {
+        this.autoCommitIntervalMs = autoCommitIntervalMs;
+    }
+    public int getSessionTimeoutMs() {
+        return sessionTimeoutMs;
+    }
+    public void setSessionTimeoutMs(int sessionTimeoutMs) {
+        this.sessionTimeoutMs = sessionTimeoutMs;
+    }
+    public int getMaxPollRecords() {
+        return maxPollRecords;
+    }
+    public void setMaxPollRecords(int maxPollRecords) {
+        this.maxPollRecords = maxPollRecords;
+    }
+    public long getPollTimeoutMs() {
+        return pollTimeoutMs;
+    }
+    public void setPollTimeoutMs(long pollTimeoutMs) {
+        this.pollTimeoutMs = pollTimeoutMs;
+    }
+    public String getSecurityProtocol() {
+        return securityProtocol;
+    }
+    public void setSecurityProtocol(String securityProtocol) {
+        this.securityProtocol = securityProtocol;
+    }
+    public String getSaslMechanism() {
+        return saslMechanism;
+    }
+    public void setSaslMechanism(String saslMechanism) {
+        this.saslMechanism = saslMechanism;
+    }
+    public String getSaslJaasConfig() {
+        return saslJaasConfig;
+    }
+    public void setSaslJaasConfig(String saslJaasConfig) {
+        this.saslJaasConfig = saslJaasConfig;
+    }
+    public String getSslTruststoreLocation() {
+        return sslTruststoreLocation;
+    }
+    public void setSslTruststoreLocation(String sslTruststoreLocation) {
+        this.sslTruststoreLocation = sslTruststoreLocation;
+    }
+    public String getSslTruststorePassword() {
+        return sslTruststorePassword;
+    }
+    public void setSslTruststorePassword(String sslTruststorePassword) {
+        this.sslTruststorePassword = sslTruststorePassword;
+    }
+    public String getSslKeystoreLocation() {
+        return sslKeystoreLocation;
+    }
+    public void setSslKeystoreLocation(String sslKeystoreLocation) {
+        this.sslKeystoreLocation = sslKeystoreLocation;
+    }
+    public String getSslKeystorePassword() {
+        return sslKeystorePassword;
+    }
+    public void setSslKeystorePassword(String sslKeystorePassword) {
+        this.sslKeystorePassword = sslKeystorePassword;
+    }
+    public String getSslKeyPassword() {
+        return sslKeyPassword;
+    }
+    public void setSslKeyPassword(String sslKeyPassword) {
+        this.sslKeyPassword = sslKeyPassword;
     }
 }

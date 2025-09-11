@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Bug, 
   Play, 
@@ -57,12 +57,7 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
   const [showLogs, setShowLogs] = useState(true);
   const [stepSpeed, setStepSpeed] = useState(1000); // ms between steps
 
-  // Load debug data
-  useEffect(() => {
-    loadDebugData();
-  }, [processInstanceId]);
-
-  const loadDebugData = async () => {
+  const loadDebugData = useCallback(async () => {
     try {
       const response = await apiClient.get(`/api/process-engine/instance/${processInstanceId}`);
       const instance = response.data;
@@ -81,9 +76,14 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
     } catch (error) {
       logger.error('Failed to load debug data:', error);
     }
-  };
+  }, [processInstanceId, parseExecutionLog]);
 
-  const parseExecutionLog = (logs: string[], variables: any): DebugStep[] => {
+  // Load debug data
+  useEffect(() => {
+    loadDebugData();
+  }, [loadDebugData]);
+
+  const parseExecutionLog = useCallback((logs: string[], variables: any): DebugStep[] => {
     const steps: DebugStep[] = [];
     let currentStep: DebugStep | null = null;
 
@@ -113,7 +113,9 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
         // Check for completion
         if (message.includes(`Step completed: ${currentStep.name}`)) {
           currentStep.status = 'completed';
-          currentStep.duration = calculateDuration(currentStep.timestamp, timestamp);
+          const startTime = new Date(currentStep.timestamp).getTime();
+          const endTime = new Date(timestamp).getTime();
+          currentStep.duration = endTime - startTime;
         }
 
         // Check for failure
@@ -143,7 +145,7 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
     }
 
     return steps;
-  };
+  }, []);
 
   const calculateDuration = (start: string, end: string): number => {
     const startTime = new Date(start).getTime();
@@ -160,7 +162,7 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
     }
   };
 
-  const stepForward = () => {
+  const stepForward = useCallback(() => {
     if (currentStepIndex < debugSteps.length - 1) {
       const nextIndex = currentStepIndex + 1;
       setCurrentStepIndex(nextIndex);
@@ -177,7 +179,7 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
         setIsPaused(true);
       }
     }
-  };
+  }, [currentStepIndex, debugSteps, onStepChange, breakpoints]);
 
   const restart = () => {
     setCurrentStepIndex(0);
@@ -212,7 +214,7 @@ export const ProcessDebugger: React.FC<ProcessDebuggerProps> = ({
       const timer = setTimeout(stepForward, stepSpeed);
       return () => clearTimeout(timer);
     }
-  }, [isPaused, currentStepIndex, stepSpeed]);
+  }, [isPaused, currentStepIndex, stepSpeed, debugSteps.length, stepForward]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">

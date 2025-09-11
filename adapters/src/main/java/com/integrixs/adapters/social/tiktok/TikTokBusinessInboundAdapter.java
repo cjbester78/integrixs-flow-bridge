@@ -1,9 +1,12 @@
 package com.integrixs.adapters.social.tiktok;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.tiktok.TikTokBusinessApiConfig.*;
 import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
@@ -12,7 +15,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -33,9 +35,10 @@ import java.security.MessageDigest;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-@Slf4j
 @Component("tikTokBusinessInboundAdapter")
 public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdapter<TikTokBusinessApiConfig> {
+    private static final Logger log = LoggerFactory.getLogger(TikTokBusinessInboundAdapter.class);
+
     
     private static final String TIKTOK_API_BASE = "https://business-api.tiktok.com/open_api/v1.3";
     private final RestTemplate restTemplate;
@@ -93,9 +96,9 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
+            MessageDTO message = new MessageDTO();
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
@@ -140,10 +143,10 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // TikTok Business API supports webhooks for conversion events
         try {
-            Message message = new Message();
+            MessageDTO message = new MessageDTO();
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
@@ -174,17 +177,7 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
             return message;
         } catch (Exception e) {
             log.error("Error processing TikTok Business webhook", e);
-            throw new AdapterException("Failed to process webhook data", e);
-        }
-    }
-    
-    // Scheduled polling methods
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.business.campaignPollInterval:3600000}") // 1 hour
-    private void pollCampaigns() {
-        if (!isListening || !config.getFeatures().isEnableCampaignManagement()) return;
-        
-        try {
-            rateLimiterService.acquire("tiktok_business_api", 1);
+            throw new AdapterException("Failed to process webhook data", 1);
             
             String url = TIKTOK_API_BASE + "/campaign/get/";
             
@@ -311,8 +304,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
     }
     
     // Process different data types
-    private Message processCampaignData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processCampaignData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -346,8 +339,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processAdGroupData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAdGroupData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -363,8 +356,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processAdData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAdData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -391,8 +384,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processCreativeData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processCreativeData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -407,8 +400,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processReportData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processReportData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -449,8 +442,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processConversionData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processConversionData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -469,8 +462,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processPixelEventData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processPixelEventData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -485,8 +478,8 @@ public class TikTokBusinessInboundAdapter extends AbstractSocialMediaInboundAdap
         return message;
     }
     
-    private Message processAudienceData(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAudienceData(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);

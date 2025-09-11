@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -14,14 +17,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import java.util.*;
 import java.util.HashMap;import java.util.List;import java.util.concurrent.atomic.AtomicInteger;
-import java.util.HashMap;import java.util.List;import lombok.extern.slf4j.Slf4j;
-import java.util.HashMap;/**
+import java.util.HashMap;import java.util.List;import java.util.HashMap;/**
  * REST Receiver Adapter implementation for REST API calls (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
  * Supports HTTP/HTTPS, various authentication methods, and JSON/XML processing.
  */
-@Slf4j
 public class RestOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(RestOutboundAdapter.class);
+
     
     private final RestOutboundAdapterConfig config;
     private RestTemplate restTemplate;
@@ -297,39 +300,36 @@ public class RestOutboundAdapter extends AbstractAdapter implements OutboundAdap
         log.debug("REST template initialized with default configuration");
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getBaseUrl() == null || config.getBaseUrl().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, "Base URL is required");
-        }
-        if (config.getTargetEndpoint() == null || config.getTargetEndpoint().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, "Target endpoint is required");
+            throw new AdapterException("Base URL is required", null);
         }
         if (config.getHttpMethod() == null) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, "HTTP method is required");
+            throw new AdapterException("HTTP method is required", null);
         }
         // Validate HTTP method
         try {
             org.springframework.http.HttpMethod.valueOf(config.getHttpMethod().name());
         } catch (Exception e) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                     "Invalid HTTP method: " + config.getHttpMethod());
         }
         // Validate authentication configuration
         if ("basic".equals(config.getAuthenticationType())) {
             if (config.getUsername() == null || config.getPassword() == null) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                         "Username and password are required for basic authentication");
             }
         }
         if ("bearer".equals(config.getAuthenticationType())) {
             if (config.getBearerToken() == null) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                         "Bearer token is required for bearer authentication");
             }
         }
         if ("apikey".equals(config.getAuthenticationType())) {
             if (config.getApiKey() == null) {
-                throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.REST, 
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.REST, 
                         "API key is required for API key authentication");
             }
         }

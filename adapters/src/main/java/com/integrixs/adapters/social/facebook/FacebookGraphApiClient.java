@@ -1,11 +1,14 @@
 package com.integrixs.adapters.social.facebook;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.integrixs.backend.ratelimit.RateLimiterService;
-import com.integrixs.backend.ratelimit.RateLimiterService.RateLimitConfig;
-import com.integrixs.backend.ratelimit.RateLimiterService.RateLimitResult;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.adapters.social.facebook.model.FacebookPost;
+import com.integrixs.adapters.social.facebook.model.FacebookPostResponse;
+import com.integrixs.adapters.social.facebook.model.FacebookInsights;
+import com.integrixs.shared.services.RateLimiterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -24,9 +27,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Facebook Graph API client with built-in rate limiting and retry logic
  */
-@Slf4j
 @Component
 public class FacebookGraphApiClient {
+    private static final Logger log = LoggerFactory.getLogger(FacebookGraphApiClient.class);
+
     
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
@@ -405,17 +409,12 @@ public class FacebookGraphApiClient {
      */
     private void checkRateLimit(String key, FacebookGraphApiConfig config) {
         String rateLimitKey = "facebook:" + config.getPageId() + ":" + key;
-        RateLimitConfig rateLimitConfig = RateLimitConfig.builder()
-            .capacity(config.getRateLimitConfig().getRequestsPerHour())
-            .refillTokens(config.getRateLimitConfig().getRequestsPerHour() / 60)
-            .refillPeriod(1)
-            .refillUnit(TimeUnit.MINUTES)
-            .build();
         
-        RateLimitResult result = rateLimiterService.checkRateLimit(rateLimitKey, rateLimitConfig);
+        // Use the shared-lib RateLimiterService
+        RateLimiterService.RateLimitResult result = rateLimiterService.getRateLimitStatus(rateLimitKey);
         
         if (!result.isAllowed()) {
-            long waitSeconds = result.getRetryAfter();
+            long waitSeconds = result.getWaitTimeMs() / 1000;
             throw new FacebookApiException(
                 String.format("Rate limit exceeded. Retry after %d seconds", waitSeconds)
             );

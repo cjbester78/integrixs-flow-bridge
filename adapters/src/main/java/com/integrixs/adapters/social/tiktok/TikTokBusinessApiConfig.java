@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.tiktok;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.tiktok.business")
-@EqualsAndHashCode(callSuper = true)
 public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
     
     private String appId;
@@ -20,8 +16,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
     private TikTokBusinessFeatures features = new TikTokBusinessFeatures();
     private TikTokBusinessLimits limits = new TikTokBusinessLimits();
     
-    @Data
-    public static class TikTokBusinessFeatures {
+        public static class TikTokBusinessFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAdGroupManagement = true;
         private boolean enableAdManagement = true;
@@ -44,8 +39,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAutomatedRules = true;
     }
     
-    @Data
-    public static class TikTokBusinessLimits {
+        public static class TikTokBusinessLimits {
         private int maxCampaignsPerAccount = 500;
         private int maxAdGroupsPerCampaign = 1000;
         private int maxAdsPerAdGroup = 20;
@@ -367,5 +361,234 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         REJECTED,
         CHANGES_REQUESTED,
         DELETED
+    }
+    // Getters and Setters
+    public String getAppId() {
+        return appId;
+    }
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+    public String getAppSecret() {
+        return appSecret;
+    }
+    public void setAppSecret(String appSecret) {
+        this.appSecret = appSecret;
+    }
+    public String getAdvertiserId() {
+        return advertiserId;
+    }
+    public void setAdvertiserId(String advertiserId) {
+        this.advertiserId = advertiserId;
+    }
+    public String getBusinessId() {
+        return businessId;
+    }
+    public void setBusinessId(String businessId) {
+        this.businessId = businessId;
+    }
+    public TikTokBusinessFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(TikTokBusinessFeatures features) {
+        this.features = features;
+    }
+    public TikTokBusinessLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(TikTokBusinessLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableCampaignManagement() {
+        return enableCampaignManagement;
+    }
+    public void setEnableCampaignManagement(boolean enableCampaignManagement) {
+        this.enableCampaignManagement = enableCampaignManagement;
+    }
+    public boolean isEnableAdGroupManagement() {
+        return enableAdGroupManagement;
+    }
+    public void setEnableAdGroupManagement(boolean enableAdGroupManagement) {
+        this.enableAdGroupManagement = enableAdGroupManagement;
+    }
+    public boolean isEnableAdManagement() {
+        return enableAdManagement;
+    }
+    public void setEnableAdManagement(boolean enableAdManagement) {
+        this.enableAdManagement = enableAdManagement;
+    }
+    public boolean isEnableCreativeManagement() {
+        return enableCreativeManagement;
+    }
+    public void setEnableCreativeManagement(boolean enableCreativeManagement) {
+        this.enableCreativeManagement = enableCreativeManagement;
+    }
+    public boolean isEnableAudienceTargeting() {
+        return enableAudienceTargeting;
+    }
+    public void setEnableAudienceTargeting(boolean enableAudienceTargeting) {
+        this.enableAudienceTargeting = enableAudienceTargeting;
+    }
+    public boolean isEnableCustomAudiences() {
+        return enableCustomAudiences;
+    }
+    public void setEnableCustomAudiences(boolean enableCustomAudiences) {
+        this.enableCustomAudiences = enableCustomAudiences;
+    }
+    public boolean isEnablePixelTracking() {
+        return enablePixelTracking;
+    }
+    public void setEnablePixelTracking(boolean enablePixelTracking) {
+        this.enablePixelTracking = enablePixelTracking;
+    }
+    public boolean isEnableConversionTracking() {
+        return enableConversionTracking;
+    }
+    public void setEnableConversionTracking(boolean enableConversionTracking) {
+        this.enableConversionTracking = enableConversionTracking;
+    }
+    public boolean isEnableReporting() {
+        return enableReporting;
+    }
+    public void setEnableReporting(boolean enableReporting) {
+        this.enableReporting = enableReporting;
+    }
+    public boolean isEnableBudgetManagement() {
+        return enableBudgetManagement;
+    }
+    public void setEnableBudgetManagement(boolean enableBudgetManagement) {
+        this.enableBudgetManagement = enableBudgetManagement;
+    }
+    public boolean isEnableBidStrategy() {
+        return enableBidStrategy;
+    }
+    public void setEnableBidStrategy(boolean enableBidStrategy) {
+        this.enableBidStrategy = enableBidStrategy;
+    }
+    public boolean isEnableCreativeOptimization() {
+        return enableCreativeOptimization;
+    }
+    public void setEnableCreativeOptimization(boolean enableCreativeOptimization) {
+        this.enableCreativeOptimization = enableCreativeOptimization;
+    }
+    public boolean isEnableVideoUpload() {
+        return enableVideoUpload;
+    }
+    public void setEnableVideoUpload(boolean enableVideoUpload) {
+        this.enableVideoUpload = enableVideoUpload;
+    }
+    public boolean isEnableImageUpload() {
+        return enableImageUpload;
+    }
+    public void setEnableImageUpload(boolean enableImageUpload) {
+        this.enableImageUpload = enableImageUpload;
+    }
+    public boolean isEnableCatalogManagement() {
+        return enableCatalogManagement;
+    }
+    public void setEnableCatalogManagement(boolean enableCatalogManagement) {
+        this.enableCatalogManagement = enableCatalogManagement;
+    }
+    public boolean isEnableDynamicAds() {
+        return enableDynamicAds;
+    }
+    public void setEnableDynamicAds(boolean enableDynamicAds) {
+        this.enableDynamicAds = enableDynamicAds;
+    }
+    public boolean isEnableSparkAds() {
+        return enableSparkAds;
+    }
+    public void setEnableSparkAds(boolean enableSparkAds) {
+        this.enableSparkAds = enableSparkAds;
+    }
+    public boolean isEnableBrandedContent() {
+        return enableBrandedContent;
+    }
+    public void setEnableBrandedContent(boolean enableBrandedContent) {
+        this.enableBrandedContent = enableBrandedContent;
+    }
+    public boolean isEnableAnalyticsExport() {
+        return enableAnalyticsExport;
+    }
+    public void setEnableAnalyticsExport(boolean enableAnalyticsExport) {
+        this.enableAnalyticsExport = enableAnalyticsExport;
+    }
+    public boolean isEnableAutomatedRules() {
+        return enableAutomatedRules;
+    }
+    public void setEnableAutomatedRules(boolean enableAutomatedRules) {
+        this.enableAutomatedRules = enableAutomatedRules;
+    }
+    public int getMaxCampaignsPerAccount() {
+        return maxCampaignsPerAccount;
+    }
+    public void setMaxCampaignsPerAccount(int maxCampaignsPerAccount) {
+        this.maxCampaignsPerAccount = maxCampaignsPerAccount;
+    }
+    public int getMaxAdGroupsPerCampaign() {
+        return maxAdGroupsPerCampaign;
+    }
+    public void setMaxAdGroupsPerCampaign(int maxAdGroupsPerCampaign) {
+        this.maxAdGroupsPerCampaign = maxAdGroupsPerCampaign;
+    }
+    public int getMaxAdsPerAdGroup() {
+        return maxAdsPerAdGroup;
+    }
+    public void setMaxAdsPerAdGroup(int maxAdsPerAdGroup) {
+        this.maxAdsPerAdGroup = maxAdsPerAdGroup;
+    }
+    public int getMaxCreativesPerAd() {
+        return maxCreativesPerAd;
+    }
+    public void setMaxCreativesPerAd(int maxCreativesPerAd) {
+        this.maxCreativesPerAd = maxCreativesPerAd;
+    }
+    public int getMaxCustomAudiences() {
+        return maxCustomAudiences;
+    }
+    public void setMaxCustomAudiences(int maxCustomAudiences) {
+        this.maxCustomAudiences = maxCustomAudiences;
+    }
+    public int getMaxPixelsPerAccount() {
+        return maxPixelsPerAccount;
+    }
+    public void setMaxPixelsPerAccount(int maxPixelsPerAccount) {
+        this.maxPixelsPerAccount = maxPixelsPerAccount;
+    }
+    public int getMaxVideoSizeMB() {
+        return maxVideoSizeMB;
+    }
+    public void setMaxVideoSizeMB(int maxVideoSizeMB) {
+        this.maxVideoSizeMB = maxVideoSizeMB;
+    }
+    public int getMaxVideoDurationSeconds() {
+        return maxVideoDurationSeconds;
+    }
+    public void setMaxVideoDurationSeconds(int maxVideoDurationSeconds) {
+        this.maxVideoDurationSeconds = maxVideoDurationSeconds;
+    }
+    public int getMaxImageSizeMB() {
+        return maxImageSizeMB;
+    }
+    public void setMaxImageSizeMB(int maxImageSizeMB) {
+        this.maxImageSizeMB = maxImageSizeMB;
+    }
+    public int getMinBudgetUSD() {
+        return minBudgetUSD;
+    }
+    public void setMinBudgetUSD(int minBudgetUSD) {
+        this.minBudgetUSD = minBudgetUSD;
+    }
+    public int getMaxBulkOperations() {
+        return maxBulkOperations;
+    }
+    public void setMaxBulkOperations(int maxBulkOperations) {
+        this.maxBulkOperations = maxBulkOperations;
+    }
+    public int getReportingDelayHours() {
+        return reportingDelayHours;
+    }
+    public void setReportingDelayHours(int reportingDelayHours) {
+        this.reportingDelayHours = reportingDelayHours;
     }
 }

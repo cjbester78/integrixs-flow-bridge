@@ -1,5 +1,8 @@
 package com.integrixs.adapters.messaging.rabbitmq;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.messaging.rabbitmq.RabbitMQConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
@@ -9,10 +12,8 @@ import com.rabbitmq.client.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -23,8 +24,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Slf4j
 public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(RabbitMQInboundAdapter.class);
+
     
     @Autowired
     private RabbitMQConfig config;
@@ -78,36 +80,36 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
         connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(config.getHost());
         connectionFactory.setPort(config.getPort());
-        connectionFactory.setVirtualHost(config.getVirtualHost());
+        connectionFactory.setUsername(config.getUsername());
+        connectionFactory.setPassword(config.getPassword());
         
-        if (config.getUsername() != null) {
-            connectionFactory.setUsername(config.getUsername());
-        }
-        if (config.getPassword() != null) {
-            connectionFactory.setPassword(config.getPassword());
-        }
-        
-        connectionFactory.setConnectionTimeout(config.getConnectionTimeout());
-        connectionFactory.setRequestedHeartbeat(config.getRequestedHeartbeat());
-        
-        // SSL/TLS configuration
-        if (config.isSslEnabled()) {
-            try {
-                connectionFactory.useSslProtocol(config.getSslProtocol());
-                // Additional SSL configuration would go here
-            } catch (Exception e) {
-                throw new AdapterException("Failed to setup SSL", e);
-            }
+        if (config.getVirtualHost() != null) {
+            connectionFactory.setVirtualHost(config.getVirtualHost());
         }
         
         // Connection recovery
         connectionFactory.setAutomaticRecoveryEnabled(true);
         connectionFactory.setNetworkRecoveryInterval(5000);
         
+        // Connection timeout
+        connectionFactory.setConnectionTimeout(config.getConnectionTimeout());
+        connectionFactory.setHandshakeTimeout(config.getHandshakeTimeout());
+        
         // Set connection name for monitoring
         Map<String, Object> clientProperties = new HashMap<>();
         clientProperties.put("connection_name", "IntegrixsFlowBridge_Inbound_" + UUID.randomUUID());
         connectionFactory.setClientProperties(clientProperties);
+        
+        // SSL configuration
+        if (config.isUseSsl()) {
+            try {
+                connectionFactory.useSslProtocol();
+                log.info("SSL enabled for RabbitMQ connection");
+            } catch (Exception e) {
+                log.error("Failed to enable SSL", e);
+                throw new AdapterException("Failed to configure SSL", e);
+            }
+        }
     }
     
     private void establishConnection() throws IOException, TimeoutException {
@@ -150,14 +152,10 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
         }
     }
     
-    private Channel getChannel() throws IOException {
-        String threadName = Thread.currentThread().getName();
-        Channel channel = channelPool.get(threadName);
+    private Channel createChannel() throws IOException {
+        Channel channel = connection.createChannel();
         
-        if (channel == null || !channel.isOpen()) {
-            channel = connection.createChannel();
-            channelPool.put(threadName, channel);
-            
+        try {
             // Configure channel
             if (config.getPrefetchCount() > 0) {
                 channel.basicQos(config.getPrefetchCount());
@@ -182,6 +180,21 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
                     log.warn("Message not confirmed: deliveryTag={}, multiple={}", deliveryTag, multiple);
                 }
             });
+            
+            return channel;
+        } catch (Exception e) {
+            log.error("Failed to create channel", e);
+            throw new IOException("Failed to create channel", e);
+        }
+    }
+    
+    private Channel getChannel() throws IOException {
+        String channelKey = "default";
+        Channel channel = channelPool.get(channelKey);
+        
+        if (channel == null || !channel.isOpen()) {
+            channel = createChannel();
+            channelPool.put(channelKey, channel);
         }
         
         return channel;
@@ -346,20 +359,20 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
             messageContent.put("properties", props);
             
             // Create MessageDTO
-            MessageDTO message = MessageDTO.builder()
-                .id(messageId)
-                .type("rabbitmq_message")
-                .source(String.format("rabbitmq://%s:%d%s/%s", 
-                    config.getHost(), config.getPort(), config.getVirtualHost(), config.getQueueName()))
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(messageContent))
-                .timestamp(Instant.now().toEpochMilli())
-                .metadata(new HashMap<String, String>() {{
-                    put("exchange", envelope.getExchange());
-                    put("routingKey", envelope.getRoutingKey());
-                    put("queueName", config.getQueueName());
-                }})
-                .build();
+            MessageDTO message = new MessageDTO();
+            message.setId(messageId);
+            message.setType("rabbitmq_message");
+            message.setSource(String.format("rabbitmq://%s:%d%s/%s", 
+                config.getHost(), config.getPort(), config.getVirtualHost(), config.getQueueName()));
+            message.setDestination(config.getQueueName());
+            message.setContent(objectMapper.writeValueAsString(messageContent));
+            message.setTimestamp(Instant.now().toEpochMilli());
+            
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("exchange", envelope.getExchange());
+            metadata.put("routingKey", envelope.getRoutingKey());
+            metadata.put("queueName", config.getQueueName());
+            message.setMetadata(metadata);
             
             // Publish to internal queue
             publishToQueue(message);

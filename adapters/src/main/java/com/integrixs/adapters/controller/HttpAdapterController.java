@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * REST Controller to handle inbound HTTP requests routed to the HTTP Sender Adapter.
@@ -67,10 +68,9 @@ public class HttpAdapterController {
             Map<String, String> stringHeaders = new HashMap<>();
             headers.forEach((k, v) -> stringHeaders.put(k, v != null ? v.toString() : ""));
             
-            FetchRequest fetchRequest = FetchRequest.builder()
-                    .adapterId("http-controller")
-                    .headers(stringHeaders)
-                    .build();
+            FetchRequest fetchRequest = new FetchRequest();
+        fetchRequest.adapterId = "http-controller";
+        fetchRequest.headers = stringHeaders;
             
             // Add the payload as a parameter
             fetchRequest.addParameter("payload", payload);

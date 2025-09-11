@@ -90,19 +90,13 @@ public class FileInboundAdapterConfig {
     // Constructors
     public FileInboundAdapterConfig() {
         // Initialize with default XML mapping config for CSV/text files
-        this.xmlMappingConfig = XmlMappingConfig.builder()
-                .rootElementName("fileContent")
-                .rowElementName("row")
-                .includeXmlDeclaration(true)
-                .prettyPrint(true)
-                .build();
+        this.xmlMappingConfig = new XmlMappingConfig();
+        xmlMappingConfig.rootElementName = "fileContent";
+        xmlMappingConfig.rowElementName = "row";
+        xmlMappingConfig.includeXmlDeclaration = true;
+        xmlMappingConfig.prettyPrint = true;
     }
     
-    public FileInboundAdapterConfig(String sourceDirectory, String fileName) {
-        this();  // Call default constructor to initialize xmlMappingConfig
-        this.sourceDirectory = sourceDirectory;
-        this.fileName = fileName;
-    }
     
     // Essential getters and setters
     public String getSourceDirectory() { return sourceDirectory; }
@@ -270,19 +264,10 @@ public class FileInboundAdapterConfig {
 
         public FileAccessAdvancedEntry() {}
 
-        public FileAccessAdvancedEntry(String directory, String fileName, String exclusionMask) {
-            this.directory = directory;
-            this.fileName = fileName;
-            this.exclusionMask = exclusionMask;
-        }
 
         public String getDirectory() { return directory; }
         public void setDirectory(String directory) { this.directory = directory; }
         
-        public String getFileName() { return fileName; }
-        public void setFileName(String fileName) { this.fileName = fileName; }
         
-        public String getExclusionMask() { return exclusionMask; }
-        public void setExclusionMask(String exclusionMask) { this.exclusionMask = exclusionMask; }
     }
 }

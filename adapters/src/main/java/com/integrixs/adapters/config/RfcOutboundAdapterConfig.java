@@ -109,9 +109,6 @@ public class RfcOutboundAdapterConfig {
     // Constructors
     public RfcOutboundAdapterConfig() {}
     
-    public RfcOutboundAdapterConfig(String configParam) {
-        this.configParam = configParam;
-    }
     
     // Essential getters and setters
     public String getTargetSapSystemId() { return targetSapSystemId; }

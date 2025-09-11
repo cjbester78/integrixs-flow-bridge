@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.tiktok;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.tiktok.content")
-@EqualsAndHashCode(callSuper = true)
 public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
     
     private String clientKey;
@@ -20,8 +16,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
     private TikTokContentFeatures features = new TikTokContentFeatures();
     private TikTokContentLimits limits = new TikTokContentLimits();
     
-    @Data
-    public static class TikTokContentFeatures {
+        public static class TikTokContentFeatures {
         private boolean enableVideoPublishing = true;
         private boolean enableVideoRetrieval = true;
         private boolean enableCommentManagement = true;
@@ -44,8 +39,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAnalyticsExport = true;
     }
     
-    @Data
-    public static class TikTokContentLimits {
+        public static class TikTokContentLimits {
         private int maxVideoDurationSeconds = 180; // 3 minutes for most accounts
         private int maxVideoSizeMB = 287; // TikTok limit
         private int maxDescriptionLength = 2200;
@@ -293,5 +287,240 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         ENDED,
         PARTICIPATING,
         COMPLETED
+    }
+    // Getters and Setters
+    public String getClientKey() {
+        return clientKey;
+    }
+    public void setClientKey(String clientKey) {
+        this.clientKey = clientKey;
+    }
+    public String getClientSecret() {
+        return clientSecret;
+    }
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+    public String getUserId() {
+        return userId;
+    }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public TikTokContentFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(TikTokContentFeatures features) {
+        this.features = features;
+    }
+    public TikTokContentLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(TikTokContentLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableVideoPublishing() {
+        return enableVideoPublishing;
+    }
+    public void setEnableVideoPublishing(boolean enableVideoPublishing) {
+        this.enableVideoPublishing = enableVideoPublishing;
+    }
+    public boolean isEnableVideoRetrieval() {
+        return enableVideoRetrieval;
+    }
+    public void setEnableVideoRetrieval(boolean enableVideoRetrieval) {
+        this.enableVideoRetrieval = enableVideoRetrieval;
+    }
+    public boolean isEnableCommentManagement() {
+        return enableCommentManagement;
+    }
+    public void setEnableCommentManagement(boolean enableCommentManagement) {
+        this.enableCommentManagement = enableCommentManagement;
+    }
+    public boolean isEnableHashtagAnalytics() {
+        return enableHashtagAnalytics;
+    }
+    public void setEnableHashtagAnalytics(boolean enableHashtagAnalytics) {
+        this.enableHashtagAnalytics = enableHashtagAnalytics;
+    }
+    public boolean isEnableTrendingContent() {
+        return enableTrendingContent;
+    }
+    public void setEnableTrendingContent(boolean enableTrendingContent) {
+        this.enableTrendingContent = enableTrendingContent;
+    }
+    public boolean isEnableUserProfile() {
+        return enableUserProfile;
+    }
+    public void setEnableUserProfile(boolean enableUserProfile) {
+        this.enableUserProfile = enableUserProfile;
+    }
+    public boolean isEnableFollowerAnalytics() {
+        return enableFollowerAnalytics;
+    }
+    public void setEnableFollowerAnalytics(boolean enableFollowerAnalytics) {
+        this.enableFollowerAnalytics = enableFollowerAnalytics;
+    }
+    public boolean isEnableEngagementMetrics() {
+        return enableEngagementMetrics;
+    }
+    public void setEnableEngagementMetrics(boolean enableEngagementMetrics) {
+        this.enableEngagementMetrics = enableEngagementMetrics;
+    }
+    public boolean isEnableMusicIntegration() {
+        return enableMusicIntegration;
+    }
+    public void setEnableMusicIntegration(boolean enableMusicIntegration) {
+        this.enableMusicIntegration = enableMusicIntegration;
+    }
+    public boolean isEnableEffectsManagement() {
+        return enableEffectsManagement;
+    }
+    public void setEnableEffectsManagement(boolean enableEffectsManagement) {
+        this.enableEffectsManagement = enableEffectsManagement;
+    }
+    public boolean isEnableDuetStitch() {
+        return enableDuetStitch;
+    }
+    public void setEnableDuetStitch(boolean enableDuetStitch) {
+        this.enableDuetStitch = enableDuetStitch;
+    }
+    public boolean isEnableLiveStreaming() {
+        return enableLiveStreaming;
+    }
+    public void setEnableLiveStreaming(boolean enableLiveStreaming) {
+        this.enableLiveStreaming = enableLiveStreaming;
+    }
+    public boolean isEnableCreatorSearch() {
+        return enableCreatorSearch;
+    }
+    public void setEnableCreatorSearch(boolean enableCreatorSearch) {
+        this.enableCreatorSearch = enableCreatorSearch;
+    }
+    public boolean isEnableContentDiscovery() {
+        return enableContentDiscovery;
+    }
+    public void setEnableContentDiscovery(boolean enableContentDiscovery) {
+        this.enableContentDiscovery = enableContentDiscovery;
+    }
+    public boolean isEnableSoundLibrary() {
+        return enableSoundLibrary;
+    }
+    public void setEnableSoundLibrary(boolean enableSoundLibrary) {
+        this.enableSoundLibrary = enableSoundLibrary;
+    }
+    public boolean isEnableContentInsights() {
+        return enableContentInsights;
+    }
+    public void setEnableContentInsights(boolean enableContentInsights) {
+        this.enableContentInsights = enableContentInsights;
+    }
+    public boolean isEnableViralTrends() {
+        return enableViralTrends;
+    }
+    public void setEnableViralTrends(boolean enableViralTrends) {
+        this.enableViralTrends = enableViralTrends;
+    }
+    public boolean isEnableChallengeParticipation() {
+        return enableChallengeParticipation;
+    }
+    public void setEnableChallengeParticipation(boolean enableChallengeParticipation) {
+        this.enableChallengeParticipation = enableChallengeParticipation;
+    }
+    public boolean isEnableCollaboration() {
+        return enableCollaboration;
+    }
+    public void setEnableCollaboration(boolean enableCollaboration) {
+        this.enableCollaboration = enableCollaboration;
+    }
+    public boolean isEnableAnalyticsExport() {
+        return enableAnalyticsExport;
+    }
+    public void setEnableAnalyticsExport(boolean enableAnalyticsExport) {
+        this.enableAnalyticsExport = enableAnalyticsExport;
+    }
+    public int getMaxVideoDurationSeconds() {
+        return maxVideoDurationSeconds;
+    }
+    public void setMaxVideoDurationSeconds(int maxVideoDurationSeconds) {
+        this.maxVideoDurationSeconds = maxVideoDurationSeconds;
+    }
+    public int getMaxVideoSizeMB() {
+        return maxVideoSizeMB;
+    }
+    public void setMaxVideoSizeMB(int maxVideoSizeMB) {
+        this.maxVideoSizeMB = maxVideoSizeMB;
+    }
+    public int getMaxDescriptionLength() {
+        return maxDescriptionLength;
+    }
+    public void setMaxDescriptionLength(int maxDescriptionLength) {
+        this.maxDescriptionLength = maxDescriptionLength;
+    }
+    public int getMaxHashtagsPerPost() {
+        return maxHashtagsPerPost;
+    }
+    public void setMaxHashtagsPerPost(int maxHashtagsPerPost) {
+        this.maxHashtagsPerPost = maxHashtagsPerPost;
+    }
+    public int getMaxMentionsPerPost() {
+        return maxMentionsPerPost;
+    }
+    public void setMaxMentionsPerPost(int maxMentionsPerPost) {
+        this.maxMentionsPerPost = maxMentionsPerPost;
+    }
+    public int getMaxVideosPerDay() {
+        return maxVideosPerDay;
+    }
+    public void setMaxVideosPerDay(int maxVideosPerDay) {
+        this.maxVideosPerDay = maxVideosPerDay;
+    }
+    public int getMaxCommentsToRetrieve() {
+        return maxCommentsToRetrieve;
+    }
+    public void setMaxCommentsToRetrieve(int maxCommentsToRetrieve) {
+        this.maxCommentsToRetrieve = maxCommentsToRetrieve;
+    }
+    public int getMaxFollowersToRetrieve() {
+        return maxFollowersToRetrieve;
+    }
+    public void setMaxFollowersToRetrieve(int maxFollowersToRetrieve) {
+        this.maxFollowersToRetrieve = maxFollowersToRetrieve;
+    }
+    public int getMaxTrendingVideos() {
+        return maxTrendingVideos;
+    }
+    public void setMaxTrendingVideos(int maxTrendingVideos) {
+        this.maxTrendingVideos = maxTrendingVideos;
+    }
+    public int getMaxSearchResults() {
+        return maxSearchResults;
+    }
+    public void setMaxSearchResults(int maxSearchResults) {
+        this.maxSearchResults = maxSearchResults;
+    }
+    public int getMinVideoDurationSeconds() {
+        return minVideoDurationSeconds;
+    }
+    public void setMinVideoDurationSeconds(int minVideoDurationSeconds) {
+        this.minVideoDurationSeconds = minVideoDurationSeconds;
+    }
+    public int getMaxCaptionLength() {
+        return maxCaptionLength;
+    }
+    public void setMaxCaptionLength(int maxCaptionLength) {
+        this.maxCaptionLength = maxCaptionLength;
+    }
+    public int getAnalyticsRetentionDays() {
+        return analyticsRetentionDays;
+    }
+    public void setAnalyticsRetentionDays(int analyticsRetentionDays) {
+        this.analyticsRetentionDays = analyticsRetentionDays;
     }
 }

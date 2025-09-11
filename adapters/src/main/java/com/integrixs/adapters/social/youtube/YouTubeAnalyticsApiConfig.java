@@ -3,14 +3,10 @@ package com.integrixs.adapters.social.youtube;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import java.util.List;
 
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.youtube.analytics")
-@EqualsAndHashCode(callSuper = true)
 public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
     
     private String clientId;
@@ -19,8 +15,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
     private YouTubeAnalyticsFeatures features = new YouTubeAnalyticsFeatures();
     private YouTubeAnalyticsLimits limits = new YouTubeAnalyticsLimits();
     
-    @Data
-    public static class YouTubeAnalyticsFeatures {
+        public static class YouTubeAnalyticsFeatures {
         private boolean enableChannelReports = true;
         private boolean enableVideoReports = true;
         private boolean enablePlaylistReports = true;
@@ -43,8 +38,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         private boolean enablePlaybackLocationReports = true;
     }
     
-    @Data
-    public static class YouTubeAnalyticsLimits {
+        public static class YouTubeAnalyticsLimits {
         private int maxReportDimensions = 3;
         private int maxReportMetrics = 10;
         private int maxReportRows = 10000;
@@ -373,5 +367,204 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         MUSIC,        // YouTube Music
         TV,           // YouTube TV
         UNKNOWN
+    }
+    // Getters and Setters
+    public String getClientId() {
+        return clientId;
+    }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+    public String getClientSecret() {
+        return clientSecret;
+    }
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+    public String getChannelId() {
+        return channelId;
+    }
+    public void setChannelId(String channelId) {
+        this.channelId = channelId;
+    }
+    public YouTubeAnalyticsFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(YouTubeAnalyticsFeatures features) {
+        this.features = features;
+    }
+    public YouTubeAnalyticsLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(YouTubeAnalyticsLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableChannelReports() {
+        return enableChannelReports;
+    }
+    public void setEnableChannelReports(boolean enableChannelReports) {
+        this.enableChannelReports = enableChannelReports;
+    }
+    public boolean isEnableVideoReports() {
+        return enableVideoReports;
+    }
+    public void setEnableVideoReports(boolean enableVideoReports) {
+        this.enableVideoReports = enableVideoReports;
+    }
+    public boolean isEnablePlaylistReports() {
+        return enablePlaylistReports;
+    }
+    public void setEnablePlaylistReports(boolean enablePlaylistReports) {
+        this.enablePlaylistReports = enablePlaylistReports;
+    }
+    public boolean isEnableRevenueReports() {
+        return enableRevenueReports;
+    }
+    public void setEnableRevenueReports(boolean enableRevenueReports) {
+        this.enableRevenueReports = enableRevenueReports;
+    }
+    public boolean isEnableEngagementReports() {
+        return enableEngagementReports;
+    }
+    public void setEnableEngagementReports(boolean enableEngagementReports) {
+        this.enableEngagementReports = enableEngagementReports;
+    }
+    public boolean isEnableAudienceReports() {
+        return enableAudienceReports;
+    }
+    public void setEnableAudienceReports(boolean enableAudienceReports) {
+        this.enableAudienceReports = enableAudienceReports;
+    }
+    public boolean isEnableDeviceReports() {
+        return enableDeviceReports;
+    }
+    public void setEnableDeviceReports(boolean enableDeviceReports) {
+        this.enableDeviceReports = enableDeviceReports;
+    }
+    public boolean isEnableGeographyReports() {
+        return enableGeographyReports;
+    }
+    public void setEnableGeographyReports(boolean enableGeographyReports) {
+        this.enableGeographyReports = enableGeographyReports;
+    }
+    public boolean isEnableTrafficSourceReports() {
+        return enableTrafficSourceReports;
+    }
+    public void setEnableTrafficSourceReports(boolean enableTrafficSourceReports) {
+        this.enableTrafficSourceReports = enableTrafficSourceReports;
+    }
+    public boolean isEnableSearchTermReports() {
+        return enableSearchTermReports;
+    }
+    public void setEnableSearchTermReports(boolean enableSearchTermReports) {
+        this.enableSearchTermReports = enableSearchTermReports;
+    }
+    public boolean isEnableSharingServiceReports() {
+        return enableSharingServiceReports;
+    }
+    public void setEnableSharingServiceReports(boolean enableSharingServiceReports) {
+        this.enableSharingServiceReports = enableSharingServiceReports;
+    }
+    public boolean isEnableAnnotationsReports() {
+        return enableAnnotationsReports;
+    }
+    public void setEnableAnnotationsReports(boolean enableAnnotationsReports) {
+        this.enableAnnotationsReports = enableAnnotationsReports;
+    }
+    public boolean isEnableCardsReports() {
+        return enableCardsReports;
+    }
+    public void setEnableCardsReports(boolean enableCardsReports) {
+        this.enableCardsReports = enableCardsReports;
+    }
+    public boolean isEnableEndScreenReports() {
+        return enableEndScreenReports;
+    }
+    public void setEnableEndScreenReports(boolean enableEndScreenReports) {
+        this.enableEndScreenReports = enableEndScreenReports;
+    }
+    public boolean isEnableSubtitlesReports() {
+        return enableSubtitlesReports;
+    }
+    public void setEnableSubtitlesReports(boolean enableSubtitlesReports) {
+        this.enableSubtitlesReports = enableSubtitlesReports;
+    }
+    public boolean isEnableRealtimeReports() {
+        return enableRealtimeReports;
+    }
+    public void setEnableRealtimeReports(boolean enableRealtimeReports) {
+        this.enableRealtimeReports = enableRealtimeReports;
+    }
+    public boolean isEnableContentOwnerReports() {
+        return enableContentOwnerReports;
+    }
+    public void setEnableContentOwnerReports(boolean enableContentOwnerReports) {
+        this.enableContentOwnerReports = enableContentOwnerReports;
+    }
+    public boolean isEnableAdPerformanceReports() {
+        return enableAdPerformanceReports;
+    }
+    public void setEnableAdPerformanceReports(boolean enableAdPerformanceReports) {
+        this.enableAdPerformanceReports = enableAdPerformanceReports;
+    }
+    public boolean isEnableDemographicsReports() {
+        return enableDemographicsReports;
+    }
+    public void setEnableDemographicsReports(boolean enableDemographicsReports) {
+        this.enableDemographicsReports = enableDemographicsReports;
+    }
+    public boolean isEnablePlaybackLocationReports() {
+        return enablePlaybackLocationReports;
+    }
+    public void setEnablePlaybackLocationReports(boolean enablePlaybackLocationReports) {
+        this.enablePlaybackLocationReports = enablePlaybackLocationReports;
+    }
+    public int getMaxReportDimensions() {
+        return maxReportDimensions;
+    }
+    public void setMaxReportDimensions(int maxReportDimensions) {
+        this.maxReportDimensions = maxReportDimensions;
+    }
+    public int getMaxReportMetrics() {
+        return maxReportMetrics;
+    }
+    public void setMaxReportMetrics(int maxReportMetrics) {
+        this.maxReportMetrics = maxReportMetrics;
+    }
+    public int getMaxReportRows() {
+        return maxReportRows;
+    }
+    public void setMaxReportRows(int maxReportRows) {
+        this.maxReportRows = maxReportRows;
+    }
+    public int getMaxDateRange() {
+        return maxDateRange;
+    }
+    public void setMaxDateRange(int maxDateRange) {
+        this.maxDateRange = maxDateRange;
+    }
+    public int getMaxGroupItems() {
+        return maxGroupItems;
+    }
+    public void setMaxGroupItems(int maxGroupItems) {
+        this.maxGroupItems = maxGroupItems;
+    }
+    public int getMaxFilters() {
+        return maxFilters;
+    }
+    public void setMaxFilters(int maxFilters) {
+        this.maxFilters = maxFilters;
+    }
+    public int getRealtimeDelayMinutes() {
+        return realtimeDelayMinutes;
+    }
+    public void setRealtimeDelayMinutes(int realtimeDelayMinutes) {
+        this.realtimeDelayMinutes = realtimeDelayMinutes;
+    }
+    public int getDataAvailabilityDelayHours() {
+        return dataAvailabilityDelayHours;
+    }
+    public void setDataAvailabilityDelayHours(int dataAvailabilityDelayHours) {
+        this.dataAvailabilityDelayHours = dataAvailabilityDelayHours;
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Package, 
   Upload, 
@@ -47,12 +47,7 @@ export const BpmnDeploymentManager: React.FC<BpmnDeploymentManagerProps> = ({
   const [showBpmnPreview, setShowBpmnPreview] = useState(false);
   const [isGeneratingBpmn, setIsGeneratingBpmn] = useState(false);
 
-  // Check deployment status
-  useEffect(() => {
-    checkDeploymentStatus();
-  }, [flowId]);
-
-  const checkDeploymentStatus = async () => {
+  const checkDeploymentStatus = useCallback(async () => {
     try {
       // In a real implementation, this would check if the flow is already deployed
       const processDefId = `Process_${flowId}`;
@@ -61,7 +56,12 @@ export const BpmnDeploymentManager: React.FC<BpmnDeploymentManagerProps> = ({
     } catch (error) {
       logger.error('Failed to check deployment status:', error);
     }
-  };
+  }, [flowId]);
+
+  // Check deployment status
+  useEffect(() => {
+    checkDeploymentStatus();
+  }, [checkDeploymentStatus]);
 
   const generateBpmn = async () => {
     setIsGeneratingBpmn(true);

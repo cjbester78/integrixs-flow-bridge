@@ -1,18 +1,20 @@
 package com.integrixs.adapters.social.twitter;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.twitter.TwitterAdsApiConfig.*;
-import com.integrixs.core.api.channel.Message;
-import com.integrixs.core.exception.AdapterException;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.OAuth2TokenRefreshService;
+import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -25,24 +27,30 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Component("twitterAdsInboundAdapter")
-public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<TwitterAdsApiConfig> {
+public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TwitterAdsInboundAdapter.class);
+
     
     private static final String TWITTER_ADS_API_BASE = "https://ads-api.twitter.com/12";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
+    private final TwitterAdsApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final CredentialEncryptionService credentialEncryptionService;
     
     @Autowired
     public TwitterAdsInboundAdapter(
             TwitterAdsApiConfig config,
             RateLimiterService rateLimiterService,
-            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        super();
+        this.config = config;
+        this.rateLimiterService = rateLimiterService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -72,9 +80,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
     }
     
     @Override
-    protected Message processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) {
         try {
-            Message message = new Message();
+            MessageDTO message = new MessageDTO();
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
@@ -116,7 +124,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
     }
     
     @Override
-    public Message processWebhookData(Map<String, Object> webhookData) {
+    public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // Twitter Ads API doesn't typically use webhooks, mostly polling
         // This is here for future extensibility
         return null;
@@ -265,8 +273,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
     }
     
     // Process different types of data
-    private Message processCampaignPerformance(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processCampaignPerformance(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -305,8 +313,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return message;
     }
     
-    private Message processAdGroupPerformance(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAdGroupPerformance(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -322,8 +330,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return message;
     }
     
-    private Message processCreativePerformance(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processCreativePerformance(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -338,8 +346,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return message;
     }
     
-    private Message processAudienceInsights(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processAudienceInsights(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -358,8 +366,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return message;
     }
     
-    private Message processConversionEvent(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processConversionEvent(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -374,8 +382,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return message;
     }
     
-    private Message processBudgetAlert(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processBudgetAlert(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -391,8 +399,8 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return message;
     }
     
-    private Message processApprovalStatus(JsonNode data) {
-        Message message = new Message();
+    private MessageDTO processApprovalStatus(JsonNode data) {
+        MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
@@ -412,25 +420,6 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter<
         return makeApiCall(url, method, body, null);
     }
     
-    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        
-        // OAuth 1.0a authentication for Twitter Ads API
-        String authHeader = generateOAuth1Header(url, method.name());
-        headers.set("Authorization", authHeader);
-        
-        StringBuilder urlBuilder = new StringBuilder(url);
-        if (params != null && !params.isEmpty()) {
-            urlBuilder.append("?");
-            params.forEach((key, value) -> 
-                urlBuilder.append(key).append("=").append(value).append("&"));
-            urlBuilder.setLength(urlBuilder.length() - 1);
-        }
-        
-        HttpEntity<String> entity = new HttpEntity<>(body, headers);
-        return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
-    }
     
     private String generateOAuth1Header(String url, String method) {
         // Simplified OAuth 1.0a header generation

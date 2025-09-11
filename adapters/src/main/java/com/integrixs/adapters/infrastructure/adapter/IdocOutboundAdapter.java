@@ -1,6 +1,9 @@
 package com.integrixs.adapters.infrastructure.adapter;
 
-import com.integrixs.adapters.core.AdapterException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.shared.exceptions.AdapterException;
 
 import com.integrixs.adapters.domain.model.*;
 import java.util.concurrent.CompletableFuture;
@@ -9,9 +12,6 @@ import java.util.Map;
 import com.integrixs.adapters.config.IdocOutboundAdapterConfig;
 import java.util.*;
 import java.text.SimpleDateFormat;
-import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * IDoc Receiver Adapter implementation for SAP IDoc sending (OUTBOUND).
  * Follows middleware convention: Outbound = sends data TO external systems.
@@ -19,8 +19,9 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * Note: This is a simulation. Real implementation would require SAP JCo IDoc libraries.
  */
-@Slf4j
 public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdapterPort {
+    private static final Logger log = LoggerFactory.getLogger(IdocOutboundAdapter.class);
+
     
     private final IdocOutboundAdapterConfig config;
     private boolean connectionEstablished = false;
@@ -117,7 +118,7 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
     
     private AdapterOperationResult sendIdoc(Object payload) throws Exception {
         if (payload == null) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Payload cannot be null");
+            throw new AdapterException("Payload cannot be null", null);
         }
         
         try {
@@ -149,11 +150,9 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
                 responseData.put("results", results);
                 responseData.put("totalSent", results.size());
             } else {
-                throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
-                        "Unsupported payload type: " + payload.getClass().getName());
+                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Unsupported payload type: " + payload.getClass().getName());
             }
             
-            responseData.put("sentIdocNumbers", sentIdocNumbers);
             responseData.put("timestamp", new Date());
             responseData.put("system", config.getSystemId());
             
@@ -161,9 +160,8 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
             return AdapterOperationResult.success(responseData, 
                     String.format("Successfully sent %d IDoc(s) to SAP", sentIdocNumbers.size()));
         } catch (Exception e) {
-            log.error("Error sending IDoc", e);
-            throw new AdapterException.OperationException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
-                    "Failed to send IDoc: " + e.getMessage(), e);
+            log.error("Error sending IDoc to SAP", e);
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Failed to send IDoc: " + e.getMessage());
         }
     }
     
@@ -182,7 +180,7 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
         // Extract data records
         List<Map<String, Object>> dataRecords = (List<Map<String, Object>>) idocData.get("dataRecords");
         if (dataRecords == null || dataRecords.isEmpty()) {
-            throw new AdapterException.ValidationException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
+            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC, 
                     "IDoc must contain at least one data record");
         }
         
@@ -248,24 +246,15 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
         return String.format("%016d", System.currentTimeMillis() % 10000000000000000L);
     }
     
-    private void validateConfiguration() throws AdapterException.ConfigurationException {
+    private void validateConfiguration() throws AdapterException {
         if (config.getSystemId() == null || config.getSystemId().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "System ID is required");
-        }
-        if (config.getApplicationServerHost() == null || config.getApplicationServerHost().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Application server host is required");
+            throw new AdapterException("System ID is required", null);
         }
         if (config.getSystemNumber() == null || config.getSystemNumber().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "System number is required");
-        }
-        if (config.getClient() == null || config.getClient().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Client is required");
+            throw new AdapterException("System number is required", null);
         }
         if (config.getUser() == null || config.getUser().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "User is required");
-        }
-        if (config.getIdocPort() == null || config.getIdocPort().trim().isEmpty()) {
-            throw new AdapterException.ConfigurationException(AdapterConfiguration.AdapterTypeEnum.IDOC, "IDoc port is required");
+            throw new AdapterException("User is required", null);
         }
         
         // Set defaults

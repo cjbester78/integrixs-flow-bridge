@@ -1,14 +1,16 @@
 package com.integrixs.adapters.social.reddit;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
-import com.integrixs.platform.events.EventType;
-import com.integrixs.platform.models.Message;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.adapters.social.base.EventType;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.config.AdapterConfig;
-import com.integrixs.shared.service.RateLimiterService;
-import com.integrixs.shared.utils.CredentialEncryptionService;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,10 +31,11 @@ import java.util.stream.Collectors;
  * Inbound adapter for Reddit API integration.
  * Handles polling for posts, comments, messages, and subreddit activities.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "integrixs.adapters.reddit.enabled", havingValue = "true", matchIfMissing = false)
 public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(RedditInboundAdapter.class);
+
 
     private final RedditApiConfig config;
     private final Set<String> processedPosts = ConcurrentHashMap.newKeySet();
@@ -384,35 +387,33 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return; // Already processed
         }
         
-        RedditPost redditPost = RedditPost.builder()
-                .id(postId)
-                .name((String) postData.get("name"))
-                .title((String) postData.get("title"))
-                .author((String) postData.get("author"))
-                .subreddit((String) postData.get("subreddit"))
-                .selftext((String) postData.get("selftext"))
-                .url((String) postData.get("url"))
-                .permalink((String) postData.get("permalink"))
-                .created(convertTimestamp(postData.get("created_utc")))
-                .score(((Number) postData.get("score")).intValue())
-                .upvoteRatio(((Number) postData.get("upvote_ratio")).doubleValue())
-                .numComments(((Number) postData.get("num_comments")).intValue())
-                .over18((Boolean) postData.get("over_18"))
-                .spoiler((Boolean) postData.get("spoiler"))
-                .locked((Boolean) postData.get("locked"))
-                .stickied((Boolean) postData.get("stickied"))
-                .distinguished((String) postData.get("distinguished"))
-                .linkFlairText((String) postData.get("link_flair_text"))
-                .postHint((String) postData.get("post_hint"))
-                .preview(postData.get("preview"))
-                .media(postData.get("media"))
-                .mediaEmbed(postData.get("media_embed"))
-                .gallery(postData.get("gallery_data"))
-                .poll(postData.get("poll_data"))
-                .crosspostParent((List<String>) postData.get("crosspost_parent_list"))
-                .awards(extractAwards(postData))
-                .build();
-        
+        RedditPost redditPost = new RedditInboundAdapter.RedditPost();
+        redditPost.id = postId;
+        redditPost.name = (String) postData.get("name");
+        redditPost.title = (String) postData.get("title");
+        redditPost.author = (String) postData.get("author");
+        redditPost.subreddit = (String) postData.get("subreddit");
+        redditPost.selftext = (String) postData.get("selftext");
+        redditPost.url = (String) postData.get("url");
+        redditPost.permalink = (String) postData.get("permalink");
+        redditPost.created = convertTimestamp(postData.get("created_utc"));
+        redditPost.score = ((Number) postData.get("score")).intValue();
+        redditPost.upvoteRatio = ((Number) postData.get("upvote_ratio")).doubleValue();
+        redditPost.numComments = ((Number) postData.get("num_comments")).intValue();
+        redditPost.over18 = (Boolean) postData.get("over_18");
+        redditPost.spoiler = (Boolean) postData.get("spoiler");
+        redditPost.locked = (Boolean) postData.get("locked");
+        redditPost.stickied = (Boolean) postData.get("stickied");
+        redditPost.distinguished = (String) postData.get("distinguished");
+        redditPost.linkFlairText = (String) postData.get("link_flair_text");
+        redditPost.postHint = (String) postData.get("post_hint");
+        redditPost.preview = postData.get("preview");
+        redditPost.media = postData.get("media");
+        redditPost.mediaEmbed = postData.get("media_embed");
+        redditPost.gallery = postData.get("gallery_data");
+        redditPost.poll = postData.get("poll_data");
+        redditPost.crosspostParent = (List<String>) postData.get("crosspost_parent_list");
+        redditPost.awards = extractAwards(postData);
         publishMessage("reddit.post.created", redditPost);
     }
 
@@ -424,78 +425,70 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return; // Already processed
         }
         
-        RedditComment redditComment = RedditComment.builder()
-                .id(commentId)
-                .name((String) commentData.get("name"))
-                .parentId(parentId)
-                .linkId((String) commentData.get("link_id"))
-                .author((String) commentData.get("author"))
-                .body((String) commentData.get("body"))
-                .created(convertTimestamp(commentData.get("created_utc")))
-                .score(((Number) commentData.get("score")).intValue())
-                .edited(commentData.get("edited"))
-                .distinguished((String) commentData.get("distinguished"))
-                .stickied((Boolean) commentData.get("stickied"))
-                .scoreHidden((Boolean) commentData.get("score_hidden"))
-                .locked((Boolean) commentData.get("locked"))
-                .subreddit((String) commentData.get("subreddit"))
-                .authorFlairText((String) commentData.get("author_flair_text"))
-                .awards(extractAwards(commentData))
-                .build();
-        
+        RedditComment redditComment = new RedditInboundAdapter.RedditComment();
+        redditComment.id = commentId;
+        redditComment.name = (String) commentData.get("name");
+        redditComment.parentId = parentId;
+        redditComment.linkId = (String) commentData.get("link_id");
+        redditComment.author = (String) commentData.get("author");
+        redditComment.body = (String) commentData.get("body");
+        redditComment.created = convertTimestamp(commentData.get("created_utc"));
+        redditComment.score = ((Number) commentData.get("score")).intValue();
+        redditComment.edited = commentData.get("edited");
+        redditComment.distinguished = (String) commentData.get("distinguished");
+        redditComment.stickied = (Boolean) commentData.get("stickied");
+        redditComment.scoreHidden = (Boolean) commentData.get("score_hidden");
+        redditComment.locked = (Boolean) commentData.get("locked");
+        redditComment.subreddit = (String) commentData.get("subreddit");
+        redditComment.authorFlairText = (String) commentData.get("author_flair_text");
+        redditComment.awards = extractAwards(commentData);
         publishMessage("reddit.comment.created", redditComment);
     }
 
     private void processCommentReply(Map<String, Object> message) {
         Map<String, Object> messageData = (Map<String, Object>) message.get("data");
         
-        RedditMessage reply = RedditMessage.builder()
-                .id((String) messageData.get("id"))
-                .type("comment_reply")
-                .author((String) messageData.get("author"))
-                .subject((String) messageData.get("subject"))
-                .body((String) messageData.get("body"))
-                .created(convertTimestamp(messageData.get("created_utc")))
-                .context((String) messageData.get("context"))
-                .subreddit((String) messageData.get("subreddit"))
-                .wasComment((Boolean) messageData.get("was_comment"))
-                .new_((Boolean) messageData.get("new"))
-                .build();
-        
+        RedditMessageDTO reply = new RedditInboundAdapter.RedditMessageDTO();
+        reply.id = (String) messageData.get("id");
+        reply.type = "comment_reply";
+        reply.author = (String) messageData.get("author");
+        reply.subject = (String) messageData.get("subject");
+        reply.body = (String) messageData.get("body");
+        reply.created = convertTimestamp(messageData.get("created_utc"));
+        reply.context = (String) messageData.get("context");
+        reply.subreddit = (String) messageData.get("subreddit");
+        reply.wasComment = (Boolean) messageData.get("was_comment");
+        reply.new_ = (Boolean) messageData.get("new");
         publishMessage("reddit.comment.reply", reply);
     }
 
     private void processPrivateMessage(Map<String, Object> message) {
         Map<String, Object> messageData = (Map<String, Object>) message.get("data");
         
-        RedditMessage pm = RedditMessage.builder()
-                .id((String) messageData.get("id"))
-                .type("private_message")
-                .author((String) messageData.get("author"))
-                .dest((String) messageData.get("dest"))
-                .subject((String) messageData.get("subject"))
-                .body((String) messageData.get("body"))
-                .created(convertTimestamp(messageData.get("created_utc")))
-                .new_((Boolean) messageData.get("new"))
-                .build();
-        
+        RedditMessageDTO pm = new RedditInboundAdapter.RedditMessageDTO();
+        pm.id = (String) messageData.get("id");
+        pm.type = "private_message";
+        pm.author = (String) messageData.get("author");
+        pm.dest = (String) messageData.get("dest");
+        pm.subject = (String) messageData.get("subject");
+        pm.body = (String) messageData.get("body");
+        pm.created = convertTimestamp(messageData.get("created_utc"));
+        pm.new_ = (Boolean) messageData.get("new");
         publishMessage("reddit.message.received", pm);
     }
 
     private void processMention(Map<String, Object> mention) {
         Map<String, Object> mentionData = (Map<String, Object>) mention.get("data");
         
-        RedditMessage mentionMsg = RedditMessage.builder()
-                .id((String) mentionData.get("id"))
-                .type("username_mention")
-                .author((String) mentionData.get("author"))
-                .body((String) mentionData.get("body"))
-                .context((String) mentionData.get("context"))
-                .subreddit((String) mentionData.get("subreddit"))
-                .created(convertTimestamp(mentionData.get("created_utc")))
-                .new_((Boolean) mentionData.get("new"))
-                .build();
-        
+        RedditMessageDTO mentionMsg = new RedditInboundAdapter.RedditMessageDTO();
+        mentionMsg.id = (String) mentionData.get("id");
+        mentionMsg.type = "username_mention";
+        mentionMsg.author = (String) mentionData.get("author");
+        mentionMsg.body = (String) mentionData.get("body");
+        mentionMsg.context = (String) mentionData.get("context");
+        mentionMsg.subreddit = (String) mentionData.get("subreddit");
+        mentionMsg.created = convertTimestamp(mentionData.get("created_utc"));
+        mentionMsg.new_ = (Boolean) mentionData.get("new");
         publishMessage("reddit.mention.received", mentionMsg);
     }
 
@@ -503,21 +496,19 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
         Map<String, Object> itemData = (Map<String, Object>) item.get("data");
         String kind = (String) item.get("kind");
         
-        RedditModItem modItem = RedditModItem.builder()
-                .id((String) itemData.get("id"))
-                .kind(kind)
-                .author((String) itemData.get("author"))
-                .subreddit((String) itemData.get("subreddit"))
-                .title(kind.equals("t3") ? (String) itemData.get("title") : null)
-                .body(kind.equals("t1") ? (String) itemData.get("body") : null)
-                .reports((List<List<Object>>) itemData.get("mod_reports"))
-                .userReports((List<List<Object>>) itemData.get("user_reports"))
-                .numReports(((Number) itemData.get("num_reports")).intValue())
-                .approved((Boolean) itemData.get("approved"))
-                .removed((Boolean) itemData.get("removed"))
-                .spam((Boolean) itemData.get("spam"))
-                .build();
-        
+        RedditModItem modItem = new RedditInboundAdapter.RedditModItem();
+        modItem.id = (String) itemData.get("id");
+        modItem.kind = kind;
+        modItem.author = (String) itemData.get("author");
+        modItem.subreddit = (String) itemData.get("subreddit");
+        modItem.title = kind.equals("t3") ? (String) itemData.get("title") : null;
+        modItem.body = kind.equals("t1") ? (String) itemData.get("body") : null;
+        modItem.reports = (List<List<Object>>) itemData.get("mod_reports");
+        modItem.userReports = (List<List<Object>>) itemData.get("user_reports");
+        modItem.numReports = ((Number) itemData.get("num_reports")).intValue();
+        modItem.approved = (Boolean) itemData.get("approved");
+        modItem.removed = (Boolean) itemData.get("removed");
+        modItem.spam = (Boolean) itemData.get("spam");
         publishMessage("reddit.modqueue.item", modItem);
     }
 
@@ -568,8 +559,8 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     @Override
-    protected String getAdapterType() {
-        return "REDDIT";
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REDDIT;
     }
 
     @Override
@@ -603,9 +594,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     // Data classes for Reddit entities
-    @Data
-    @lombok.Builder
-    public static class RedditPost {
+        public static class RedditPost {
         private String id;
         private String name;
         private String title;
@@ -634,9 +623,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
         private List<String> awards;
     }
 
-    @Data
-    @lombok.Builder
-    public static class RedditComment {
+        public static class RedditComment {
         private String id;
         private String name;
         private String parentId;
@@ -655,9 +642,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
         private List<String> awards;
     }
 
-    @Data
-    @lombok.Builder
-    public static class RedditMessage {
+        public static class RedditMessageDTO {
         private String id;
         private String type;
         private String author;
@@ -671,9 +656,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
         private Boolean new_;
     }
 
-    @Data
-    @lombok.Builder
-    public static class RedditModItem {
+        public static class RedditModItem {
         private String id;
         private String kind;
         private String author;
@@ -686,5 +669,339 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
         private boolean approved;
         private boolean removed;
         private boolean spam;
+    }
+    // Getters and Setters
+    public RedditApiConfig getConfig() {
+        return config;
+    }
+    public Set<String> getProcessedPosts() {
+        return processedPosts;
+    }
+    public Set<String> getProcessedComments() {
+        return processedComments;
+    }
+    public Set<String> getMonitoredSubreddits() {
+        return monitoredSubreddits;
+    }
+    public Map<String, String> getLastSeenItems() {
+        return lastSeenItems;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public String getSubreddit() {
+        return subreddit;
+    }
+    public void setSubreddit(String subreddit) {
+        this.subreddit = subreddit;
+    }
+    public String getSelftext() {
+        return selftext;
+    }
+    public void setSelftext(String selftext) {
+        this.selftext = selftext;
+    }
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    public String getPermalink() {
+        return permalink;
+    }
+    public void setPermalink(String permalink) {
+        this.permalink = permalink;
+    }
+    public LocalDateTime getCreated() {
+        return created;
+    }
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+    public int getScore() {
+        return score;
+    }
+    public void setScore(int score) {
+        this.score = score;
+    }
+    public double getUpvoteRatio() {
+        return upvoteRatio;
+    }
+    public void setUpvoteRatio(double upvoteRatio) {
+        this.upvoteRatio = upvoteRatio;
+    }
+    public int getNumComments() {
+        return numComments;
+    }
+    public void setNumComments(int numComments) {
+        this.numComments = numComments;
+    }
+    public boolean isOver18() {
+        return over18;
+    }
+    public void setOver18(boolean over18) {
+        this.over18 = over18;
+    }
+    public boolean isSpoiler() {
+        return spoiler;
+    }
+    public void setSpoiler(boolean spoiler) {
+        this.spoiler = spoiler;
+    }
+    public boolean isLocked() {
+        return locked;
+    }
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+    public boolean isStickied() {
+        return stickied;
+    }
+    public void setStickied(boolean stickied) {
+        this.stickied = stickied;
+    }
+    public String getDistinguished() {
+        return distinguished;
+    }
+    public void setDistinguished(String distinguished) {
+        this.distinguished = distinguished;
+    }
+    public String getLinkFlairText() {
+        return linkFlairText;
+    }
+    public void setLinkFlairText(String linkFlairText) {
+        this.linkFlairText = linkFlairText;
+    }
+    public String getPostHint() {
+        return postHint;
+    }
+    public void setPostHint(String postHint) {
+        this.postHint = postHint;
+    }
+    public Object getPreview() {
+        return preview;
+    }
+    public void setPreview(Object preview) {
+        this.preview = preview;
+    }
+    public Object getMedia() {
+        return media;
+    }
+    public void setMedia(Object media) {
+        this.media = media;
+    }
+    public Object getMediaEmbed() {
+        return mediaEmbed;
+    }
+    public void setMediaEmbed(Object mediaEmbed) {
+        this.mediaEmbed = mediaEmbed;
+    }
+    public Object getGallery() {
+        return gallery;
+    }
+    public void setGallery(Object gallery) {
+        this.gallery = gallery;
+    }
+    public Object getPoll() {
+        return poll;
+    }
+    public void setPoll(Object poll) {
+        this.poll = poll;
+    }
+    public List<String> getCrosspostParent() {
+        return crosspostParent;
+    }
+    public void setCrosspostParent(List<String> crosspostParent) {
+        this.crosspostParent = crosspostParent;
+    }
+    public List<String> getAwards() {
+        return awards;
+    }
+    public void setAwards(List<String> awards) {
+        this.awards = awards;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getParentId() {
+        return parentId;
+    }
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+    public String getLinkId() {
+        return linkId;
+    }
+    public void setLinkId(String linkId) {
+        this.linkId = linkId;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public String getBody() {
+        return body;
+    }
+    public void setBody(String body) {
+        this.body = body;
+    }
+    public LocalDateTime getCreated() {
+        return created;
+    }
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+    public Object getEdited() {
+        return edited;
+    }
+    public void setEdited(Object edited) {
+        this.edited = edited;
+    }
+    public boolean isScoreHidden() {
+        return scoreHidden;
+    }
+    public void setScoreHidden(boolean scoreHidden) {
+        this.scoreHidden = scoreHidden;
+    }
+    public String getSubreddit() {
+        return subreddit;
+    }
+    public void setSubreddit(String subreddit) {
+        this.subreddit = subreddit;
+    }
+    public String getAuthorFlairText() {
+        return authorFlairText;
+    }
+    public void setAuthorFlairText(String authorFlairText) {
+        this.authorFlairText = authorFlairText;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public String getDest() {
+        return dest;
+    }
+    public void setDest(String dest) {
+        this.dest = dest;
+    }
+    public String getSubject() {
+        return subject;
+    }
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+    public String getBody() {
+        return body;
+    }
+    public void setBody(String body) {
+        this.body = body;
+    }
+    public String getContext() {
+        return context;
+    }
+    public void setContext(String context) {
+        this.context = context;
+    }
+    public String getSubreddit() {
+        return subreddit;
+    }
+    public void setSubreddit(String subreddit) {
+        this.subreddit = subreddit;
+    }
+    public Boolean isWasComment() {
+        return wasComment;
+    }
+    public void setWasComment(Boolean wasComment) {
+        this.wasComment = wasComment;
+    }
+    public Boolean isNew_() {
+        return new_;
+    }
+    public void setNew_(Boolean new_) {
+        this.new_ = new_;
+    }
+    public String getKind() {
+        return kind;
+    }
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+    public List<List<Object>> getReports() {
+        return reports;
+    }
+    public void setReports(List<List<Object>> reports) {
+        this.reports = reports;
+    }
+    public List<List<Object>> getUserReports() {
+        return userReports;
+    }
+    public void setUserReports(List<List<Object>> userReports) {
+        this.userReports = userReports;
+    }
+    public int getNumReports() {
+        return numReports;
+    }
+    public void setNumReports(int numReports) {
+        this.numReports = numReports;
+    }
+    public boolean isApproved() {
+        return approved;
+    }
+    public void setApproved(boolean approved) {
+        this.approved = approved;
+    }
+    public boolean isRemoved() {
+        return removed;
+    }
+    public void setRemoved(boolean removed) {
+        this.removed = removed;
+    }
+    public boolean isSpam() {
+        return spam;
+    }
+    public void setSpam(boolean spam) {
+        this.spam = spam;
     }
 }

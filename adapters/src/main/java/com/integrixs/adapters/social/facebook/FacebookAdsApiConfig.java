@@ -3,13 +3,8 @@ package com.integrixs.adapters.social.facebook;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@Data
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.facebook.ads")
-@EqualsAndHashCode(callSuper = true)
 public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
     
     private String adAccountId;
@@ -17,8 +12,7 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
     private FacebookAdsFeatures features = new FacebookAdsFeatures();
     private FacebookAdsLimits limits = new FacebookAdsLimits();
     
-    @Data
-    public static class FacebookAdsFeatures {
+        public static class FacebookAdsFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAudienceTargeting = true;
         private boolean enableBudgetOptimization = true;
@@ -31,8 +25,7 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
         private boolean enableLeadForms = true;
     }
     
-    @Data
-    public static class FacebookAdsLimits {
+        public static class FacebookAdsLimits {
         private int maxCampaignsPerAccount = 5000;
         private int maxAdSetsPerCampaign = 5000;
         private int maxAdsPerAdSet = 5000;
@@ -91,5 +84,132 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
         VALUE,
         THRUPLAY,
         DERIVED_EVENTS
+    }
+    // Getters and Setters
+    public String getAdAccountId() {
+        return adAccountId;
+    }
+    public void setAdAccountId(String adAccountId) {
+        this.adAccountId = adAccountId;
+    }
+    public String getBusinessId() {
+        return businessId;
+    }
+    public void setBusinessId(String businessId) {
+        this.businessId = businessId;
+    }
+    public FacebookAdsFeatures getFeatures() {
+        return features;
+    }
+    public void setFeatures(FacebookAdsFeatures features) {
+        this.features = features;
+    }
+    public FacebookAdsLimits getLimits() {
+        return limits;
+    }
+    public void setLimits(FacebookAdsLimits limits) {
+        this.limits = limits;
+    }
+    public boolean isEnableCampaignManagement() {
+        return enableCampaignManagement;
+    }
+    public void setEnableCampaignManagement(boolean enableCampaignManagement) {
+        this.enableCampaignManagement = enableCampaignManagement;
+    }
+    public boolean isEnableAudienceTargeting() {
+        return enableAudienceTargeting;
+    }
+    public void setEnableAudienceTargeting(boolean enableAudienceTargeting) {
+        this.enableAudienceTargeting = enableAudienceTargeting;
+    }
+    public boolean isEnableBudgetOptimization() {
+        return enableBudgetOptimization;
+    }
+    public void setEnableBudgetOptimization(boolean enableBudgetOptimization) {
+        this.enableBudgetOptimization = enableBudgetOptimization;
+    }
+    public boolean isEnableCreativeAssets() {
+        return enableCreativeAssets;
+    }
+    public void setEnableCreativeAssets(boolean enableCreativeAssets) {
+        this.enableCreativeAssets = enableCreativeAssets;
+    }
+    public boolean isEnablePerformanceTracking() {
+        return enablePerformanceTracking;
+    }
+    public void setEnablePerformanceTracking(boolean enablePerformanceTracking) {
+        this.enablePerformanceTracking = enablePerformanceTracking;
+    }
+    public boolean isEnableAutomatedRules() {
+        return enableAutomatedRules;
+    }
+    public void setEnableAutomatedRules(boolean enableAutomatedRules) {
+        this.enableAutomatedRules = enableAutomatedRules;
+    }
+    public boolean isEnableA_BTesting() {
+        return enableA_BTesting;
+    }
+    public void setEnableA_BTesting(boolean enableA_BTesting) {
+        this.enableA_BTesting = enableA_BTesting;
+    }
+    public boolean isEnableCustomConversions() {
+        return enableCustomConversions;
+    }
+    public void setEnableCustomConversions(boolean enableCustomConversions) {
+        this.enableCustomConversions = enableCustomConversions;
+    }
+    public boolean isEnablePixelTracking() {
+        return enablePixelTracking;
+    }
+    public void setEnablePixelTracking(boolean enablePixelTracking) {
+        this.enablePixelTracking = enablePixelTracking;
+    }
+    public boolean isEnableLeadForms() {
+        return enableLeadForms;
+    }
+    public void setEnableLeadForms(boolean enableLeadForms) {
+        this.enableLeadForms = enableLeadForms;
+    }
+    public int getMaxCampaignsPerAccount() {
+        return maxCampaignsPerAccount;
+    }
+    public void setMaxCampaignsPerAccount(int maxCampaignsPerAccount) {
+        this.maxCampaignsPerAccount = maxCampaignsPerAccount;
+    }
+    public int getMaxAdSetsPerCampaign() {
+        return maxAdSetsPerCampaign;
+    }
+    public void setMaxAdSetsPerCampaign(int maxAdSetsPerCampaign) {
+        this.maxAdSetsPerCampaign = maxAdSetsPerCampaign;
+    }
+    public int getMaxAdsPerAdSet() {
+        return maxAdsPerAdSet;
+    }
+    public void setMaxAdsPerAdSet(int maxAdsPerAdSet) {
+        this.maxAdsPerAdSet = maxAdsPerAdSet;
+    }
+    public int getMaxCustomAudiences() {
+        return maxCustomAudiences;
+    }
+    public void setMaxCustomAudiences(int maxCustomAudiences) {
+        this.maxCustomAudiences = maxCustomAudiences;
+    }
+    public long getMinDailyBudgetCents() {
+        return minDailyBudgetCents;
+    }
+    public void setMinDailyBudgetCents(long minDailyBudgetCents) {
+        this.minDailyBudgetCents = minDailyBudgetCents;
+    }
+    public long getMaxDailyBudgetCents() {
+        return maxDailyBudgetCents;
+    }
+    public void setMaxDailyBudgetCents(long maxDailyBudgetCents) {
+        this.maxDailyBudgetCents = maxDailyBudgetCents;
+    }
+    public int getMaxBatchSize() {
+        return maxBatchSize;
+    }
+    public void setMaxBatchSize(int maxBatchSize) {
+        this.maxBatchSize = maxBatchSize;
     }
 }

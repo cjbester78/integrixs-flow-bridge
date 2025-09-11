@@ -1,14 +1,16 @@
 package com.integrixs.adapters.social.pinterest;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
-import com.integrixs.platform.events.EventType;
-import com.integrixs.platform.models.Message;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.adapters.social.base.EventType;
+import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.config.AdapterConfig;
-import com.integrixs.shared.service.RateLimiterService;
-import com.integrixs.shared.utils.CredentialEncryptionService;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,10 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Inbound adapter for Pinterest API integration.
  * Handles polling for pins, boards, analytics, and webhook events.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "integrixs.adapters.pinterest.enabled", havingValue = "true", matchIfMissing = false)
 public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(PinterestInboundAdapter.class);
+
 
     private final PinterestApiConfig config;
     private final Set<String> processedPins = ConcurrentHashMap.newKeySet();
@@ -335,22 +338,20 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return; // Already processed
         }
         
-        PinterestPin pin = PinterestPin.builder()
-                .id(pinId)
-                .createdAt((String) pinData.get("created_at"))
-                .title((String) pinData.get("title"))
-                .description((String) pinData.get("description"))
-                .link((String) pinData.get("link"))
-                .altText((String) pinData.get("alt_text"))
-                .boardId((String) pinData.get("board_id"))
-                .boardSectionId((String) pinData.get("board_section_id"))
-                .mediaType(extractMediaType(pinData))
-                .media(pinData.get("media"))
-                .pinMetrics(pinData.get("pin_metrics"))
-                .dominantColor((String) pinData.get("dominant_color"))
-                .productTags((List<Map<String, Object>>) pinData.get("product_tags"))
-                .build();
-        
+        PinterestPin pin = new PinterestInboundAdapter.PinterestPin();
+        pin.id = pinId;
+        pin.createdAt = (String) pinData.get("created_at");
+        pin.title = (String) pinData.get("title");
+        pin.description = (String) pinData.get("description");
+        pin.link = (String) pinData.get("link");
+        pin.altText = (String) pinData.get("alt_text");
+        pin.boardId = (String) pinData.get("board_id");
+        pin.boardSectionId = (String) pinData.get("board_section_id");
+        pin.mediaType = extractMediaType(pinData);
+        pin.media = pinData.get("media");
+        pin.pinMetrics = pinData.get("pin_metrics");
+        pin.dominantColor = (String) pinData.get("dominant_color");
+        pin.productTags = (List<Map<String, Object>>) pinData.get("product_tags");
         publishMessage("pinterest.pin.created", pin);
     }
 
@@ -361,28 +362,24 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return; // Already processed
         }
         
-        PinterestBoard board = PinterestBoard.builder()
-                .id(boardId)
-                .name((String) boardData.get("name"))
-                .description((String) boardData.get("description"))
-                .privacy((String) boardData.get("privacy"))
-                .createdAt((String) boardData.get("created_at"))
-                .boardPinsModifiedAt((String) boardData.get("board_pins_modified_at"))
-                .followerCount(((Number) boardData.get("follower_count")).intValue())
-                .collaboratorCount(((Number) boardData.get("collaborator_count")).intValue())
-                .pinCount(((Number) boardData.get("pin_count")).intValue())
-                .build();
-        
+        PinterestBoard board = new PinterestInboundAdapter.PinterestBoard();
+        board.id = boardId;
+        board.name = (String) boardData.get("name");
+        board.description = (String) boardData.get("description");
+        board.privacy = (String) boardData.get("privacy");
+        board.createdAt = (String) boardData.get("created_at");
+        board.boardPinsModifiedAt = (String) boardData.get("board_pins_modified_at");
+        board.followerCount = ((Number) boardData.get("follower_count")).intValue();
+        board.collaboratorCount = ((Number) boardData.get("collaborator_count")).intValue();
+        board.pinCount = ((Number) boardData.get("pin_count")).intValue();
         publishMessage("pinterest.board.created", board);
     }
 
     private void processAnalyticsData(String type, Map<String, Object> analytics) {
-        PinterestAnalytics analyticsData = PinterestAnalytics.builder()
-                .type(type)
-                .data(analytics)
-                .timestamp(LocalDateTime.now().toString())
-                .build();
-        
+        PinterestAnalytics analyticsData = new PinterestInboundAdapter.PinterestAnalytics();
+        analyticsData.type = type;
+        analyticsData.data = analytics;
+        analyticsData.timestamp = LocalDateTime.now().toString();
         publishMessage("pinterest.analytics." + type, analyticsData);
     }
 
@@ -498,8 +495,9 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     @Override
-    protected String getAdapterType() {
-        return "PINTEREST";
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.PINTEREST;
     }
 
     @Override
@@ -523,9 +521,7 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     // Data classes for Pinterest entities
-    @Data
-    @lombok.Builder
-    public static class PinterestPin {
+        public static class PinterestPin {
         private String id;
         private String createdAt;
         private String title;
@@ -541,9 +537,7 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
         private List<Map<String, Object>> productTags;
     }
 
-    @Data
-    @lombok.Builder
-    public static class PinterestBoard {
+        public static class PinterestBoard {
         private String id;
         private String name;
         private String description;
@@ -555,11 +549,148 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
         private int pinCount;
     }
 
-    @Data
-    @lombok.Builder
-    public static class PinterestAnalytics {
+        public static class PinterestAnalytics {
         private String type;
         private Map<String, Object> data;
         private String timestamp;
+    }
+    // Getters and Setters
+    public PinterestApiConfig getConfig() {
+        return config;
+    }
+    public Set<String> getProcessedPins() {
+        return processedPins;
+    }
+    public Set<String> getProcessedBoards() {
+        return processedBoards;
+    }
+    public Map<String, LocalDateTime> getLastPolledTimes() {
+        return lastPolledTimes;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public String getLink() {
+        return link;
+    }
+    public void setLink(String link) {
+        this.link = link;
+    }
+    public String getAltText() {
+        return altText;
+    }
+    public void setAltText(String altText) {
+        this.altText = altText;
+    }
+    public String getBoardId() {
+        return boardId;
+    }
+    public void setBoardId(String boardId) {
+        this.boardId = boardId;
+    }
+    public String getBoardSectionId() {
+        return boardSectionId;
+    }
+    public void setBoardSectionId(String boardSectionId) {
+        this.boardSectionId = boardSectionId;
+    }
+    public String getMediaType() {
+        return mediaType;
+    }
+    public void setMediaType(String mediaType) {
+        this.mediaType = mediaType;
+    }
+    public Object getMedia() {
+        return media;
+    }
+    public void setMedia(Object media) {
+        this.media = media;
+    }
+    public Object getPinMetrics() {
+        return pinMetrics;
+    }
+    public void setPinMetrics(Object pinMetrics) {
+        this.pinMetrics = pinMetrics;
+    }
+    public String getDominantColor() {
+        return dominantColor;
+    }
+    public void setDominantColor(String dominantColor) {
+        this.dominantColor = dominantColor;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getPrivacy() {
+        return privacy;
+    }
+    public void setPrivacy(String privacy) {
+        this.privacy = privacy;
+    }
+    public String getBoardPinsModifiedAt() {
+        return boardPinsModifiedAt;
+    }
+    public void setBoardPinsModifiedAt(String boardPinsModifiedAt) {
+        this.boardPinsModifiedAt = boardPinsModifiedAt;
+    }
+    public int getFollowerCount() {
+        return followerCount;
+    }
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
+    }
+    public int getCollaboratorCount() {
+        return collaboratorCount;
+    }
+    public void setCollaboratorCount(int collaboratorCount) {
+        this.collaboratorCount = collaboratorCount;
+    }
+    public int getPinCount() {
+        return pinCount;
+    }
+    public void setPinCount(int pinCount) {
+        this.pinCount = pinCount;
+    }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+    public Map<String, Object> getData() {
+        return data;
+    }
+    public void setData(Map<String, Object> data) {
+        this.data = data;
+    }
+    public String getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 }

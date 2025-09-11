@@ -86,12 +86,6 @@ public class FtpOutboundAdapterConfig {
     // Constructors
     public FtpOutboundAdapterConfig() {}
     
-    public FtpOutboundAdapterConfig(String serverAddress, String userName, String password, String targetDirectory) {
-        this.serverAddress = serverAddress;
-        this.userName = userName;
-        this.password = password;
-        this.targetDirectory = targetDirectory;
-    }
     
     // Getters and Setters
     public String getServerAddress() { return serverAddress; }

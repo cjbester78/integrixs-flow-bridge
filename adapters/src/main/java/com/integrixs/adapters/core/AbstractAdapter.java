@@ -3,8 +3,8 @@ package com.integrixs.adapters.core;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.monitoring.PerformanceMetricsCollector;
 import com.integrixs.adapters.monitoring.CustomMetricsRegistry;
-import com.integrixs.backend.resilience.CircuitBreakerService;
-import com.integrixs.backend.resilience.BulkheadService;
+import com.integrixs.adapters.resilience.CircuitBreakerService;
+import com.integrixs.adapters.resilience.BulkheadService;
 import io.micrometer.core.instrument.Timer;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.integrixs.shared.exceptions.AdapterException;
 
 /**
  * Abstract base implementation providing common adapter functionality.

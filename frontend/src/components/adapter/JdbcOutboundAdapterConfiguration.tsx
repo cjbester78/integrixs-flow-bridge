@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,20 +29,20 @@ export const JdbcOutboundAdapterConfiguration: React.FC<JdbcOutboundAdapterConfi
 
  const availableVendors = getAvailableVendors();
 
- const updateConfiguration = (updates: Partial<AdapterConfiguration>) => {
+ const updateConfiguration = useCallback((updates: Partial<AdapterConfiguration>) => {
  onChange({ ...configuration, ...updates });
- };
+ }, [configuration, onChange]);
 
- const updateProperties = (key: string, value: string) => {
+ const updateProperties = useCallback((key: string, value: string) => {
  const properties = configuration.properties || {};
  updateConfiguration({
  properties: { ...properties, [key]: value }
  });
- };
+ }, [configuration.properties, updateConfiguration]);
 
- const getProperty = (key: string) => {
+ const getProperty = useCallback((key: string) => {
  return configuration.properties?.[key] || '';
- };
+ }, [configuration.properties]);
 
  // Auto-populate driver info when vendor changes
  useEffect(() => {
@@ -66,7 +66,7 @@ export const JdbcOutboundAdapterConfiguration: React.FC<JdbcOutboundAdapterConfi
        }
      }
    }
- }, [selectedVendor]);
+ }, [selectedVendor, getDriverInfo, getProperty, updateProperties]);
 
  // Update JDBC URL when host, port, or database changes
  useEffect(() => {
@@ -82,7 +82,7 @@ export const JdbcOutboundAdapterConfiguration: React.FC<JdbcOutboundAdapterConfi
        .replace('{database}', database);
      updateProperties('jdbcUrl', url);
    }
- }, [configuration.properties?.databaseHost, configuration.properties?.databasePort, configuration.properties?.databaseName]);
+ }, [configuration.properties?.databaseHost, configuration.properties?.databasePort, configuration.properties?.databaseName, getProperty, updateProperties]);
 
  return (
  <div className="space-y-6">

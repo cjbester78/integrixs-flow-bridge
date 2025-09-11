@@ -1,16 +1,12 @@
 package com.integrixs.adapters.messaging.amqp;
 
 import com.integrixs.adapters.config.BaseAdapterConfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 import java.util.HashMap;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
 @Configuration
 @ConfigurationProperties(prefix = "integrixs.adapters.amqp")
 public class AMQPConfig extends BaseAdapterConfig {
@@ -224,8 +220,7 @@ public class AMQPConfig extends BaseAdapterConfig {
     // Features configuration
     private Features features = new Features();
     
-    @Data
-    public static class Features {
+        public static class Features {
         private boolean enableAutoReconnect = true;
         private boolean enableHeartbeat = true;
         private boolean enableCompression = false;
@@ -254,8 +249,7 @@ public class AMQPConfig extends BaseAdapterConfig {
     // Artemis-specific settings
     private ArtemisSettings artemisSettings = new ArtemisSettings();
     
-    @Data
-    public static class ArtemisSettings {
+        public static class ArtemisSettings {
         private boolean enableLargeMessages = true;
         private String addressPrefix = "";
         private String queuePrefix = "";
@@ -267,8 +261,7 @@ public class AMQPConfig extends BaseAdapterConfig {
     // Azure Service Bus specific settings
     private AzureServiceBusSettings azureSettings = new AzureServiceBusSettings();
     
-    @Data
-    public static class AzureServiceBusSettings {
+        public static class AzureServiceBusSettings {
         private String namespace;
         private String sharedAccessKeyName;
         private String sharedAccessKey;
@@ -277,5 +270,528 @@ public class AMQPConfig extends BaseAdapterConfig {
         private boolean requiresDuplicateDetection = false;
         private boolean requiresSession = false;
         private long lockDuration = 60000; // milliseconds
+    }
+    // Getters and Setters
+    public AMQPVersion getVersion() {
+        return version;
+    }
+    public void setVersion(AMQPVersion version) {
+        this.version = version;
+    }
+    public String getHost() {
+        return host;
+    }
+    public void setHost(String host) {
+        this.host = host;
+    }
+    public int getPort() {
+        return port;
+    }
+    public void setPort(int port) {
+        this.port = port;
+    }
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public String getConnectionUrl() {
+        return connectionUrl;
+    }
+    public void setConnectionUrl(String connectionUrl) {
+        this.connectionUrl = connectionUrl;
+    }
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+    public void setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
+    public String getContainerId() {
+        return containerId;
+    }
+    public void setContainerId(String containerId) {
+        this.containerId = containerId;
+    }
+    public String getContainerName() {
+        return containerName;
+    }
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
+    }
+    public int getMaxFrameSize() {
+        return maxFrameSize;
+    }
+    public void setMaxFrameSize(int maxFrameSize) {
+        this.maxFrameSize = maxFrameSize;
+    }
+    public int getChannelMax() {
+        return channelMax;
+    }
+    public void setChannelMax(int channelMax) {
+        this.channelMax = channelMax;
+    }
+    public String getLinkName() {
+        return linkName;
+    }
+    public void setLinkName(String linkName) {
+        this.linkName = linkName;
+    }
+    public LinkRole getLinkRole() {
+        return linkRole;
+    }
+    public void setLinkRole(LinkRole linkRole) {
+        this.linkRole = linkRole;
+    }
+    public int getLinkCredit() {
+        return linkCredit;
+    }
+    public void setLinkCredit(int linkCredit) {
+        this.linkCredit = linkCredit;
+    }
+    public TerminusDurability getDurability() {
+        return durability;
+    }
+    public void setDurability(TerminusDurability durability) {
+        this.durability = durability;
+    }
+    public TerminusExpiryPolicy getExpiryPolicy() {
+        return expiryPolicy;
+    }
+    public void setExpiryPolicy(TerminusExpiryPolicy expiryPolicy) {
+        this.expiryPolicy = expiryPolicy;
+    }
+    public boolean isDurable() {
+        return durable;
+    }
+    public void setDurable(boolean durable) {
+        this.durable = durable;
+    }
+    public int getPriority() {
+        return priority;
+    }
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+    public long getTtl() {
+        return ttl;
+    }
+    public void setTtl(long ttl) {
+        this.ttl = ttl;
+    }
+    public boolean isFirstAcquirer() {
+        return firstAcquirer;
+    }
+    public void setFirstAcquirer(boolean firstAcquirer) {
+        this.firstAcquirer = firstAcquirer;
+    }
+    public int getDeliveryCount() {
+        return deliveryCount;
+    }
+    public void setDeliveryCount(int deliveryCount) {
+        this.deliveryCount = deliveryCount;
+    }
+    public String getSourceAddress() {
+        return sourceAddress;
+    }
+    public void setSourceAddress(String sourceAddress) {
+        this.sourceAddress = sourceAddress;
+    }
+    public String getTargetAddress() {
+        return targetAddress;
+    }
+    public void setTargetAddress(String targetAddress) {
+        this.targetAddress = targetAddress;
+    }
+    public DistributionMode getDistributionMode() {
+        return distributionMode;
+    }
+    public void setDistributionMode(DistributionMode distributionMode) {
+        this.distributionMode = distributionMode;
+    }
+    public Map<String, Object> getSourceFilters() {
+        return sourceFilters;
+    }
+    public void setSourceFilters(Map<String, Object> sourceFilters) {
+        this.sourceFilters = sourceFilters;
+    }
+    public Map<String, Object> getTargetProperties() {
+        return targetProperties;
+    }
+    public void setTargetProperties(Map<String, Object> targetProperties) {
+        this.targetProperties = targetProperties;
+    }
+    public int getSessionWindowSize() {
+        return sessionWindowSize;
+    }
+    public void setSessionWindowSize(int sessionWindowSize) {
+        this.sessionWindowSize = sessionWindowSize;
+    }
+    public long getSessionTimeout() {
+        return sessionTimeout;
+    }
+    public void setSessionTimeout(long sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
+    }
+    public boolean isEnableTransactions() {
+        return enableTransactions;
+    }
+    public void setEnableTransactions(boolean enableTransactions) {
+        this.enableTransactions = enableTransactions;
+    }
+    public TransactionMode getTransactionMode() {
+        return transactionMode;
+    }
+    public void setTransactionMode(TransactionMode transactionMode) {
+        this.transactionMode = transactionMode;
+    }
+    public long getTransactionTimeout() {
+        return transactionTimeout;
+    }
+    public void setTransactionTimeout(long transactionTimeout) {
+        this.transactionTimeout = transactionTimeout;
+    }
+    public SaslMechanism getSaslMechanism() {
+        return saslMechanism;
+    }
+    public void setSaslMechanism(SaslMechanism saslMechanism) {
+        this.saslMechanism = saslMechanism;
+    }
+    public boolean isUseSsl() {
+        return useSsl;
+    }
+    public void setUseSsl(boolean useSsl) {
+        this.useSsl = useSsl;
+    }
+    public String getTrustStore() {
+        return trustStore;
+    }
+    public void setTrustStore(String trustStore) {
+        this.trustStore = trustStore;
+    }
+    public String getTrustStorePassword() {
+        return trustStorePassword;
+    }
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword;
+    }
+    public String getKeyStore() {
+        return keyStore;
+    }
+    public void setKeyStore(String keyStore) {
+        this.keyStore = keyStore;
+    }
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
+    }
+    public String getSslProtocol() {
+        return sslProtocol;
+    }
+    public void setSslProtocol(String sslProtocol) {
+        this.sslProtocol = sslProtocol;
+    }
+    public boolean isVerifyHost() {
+        return verifyHost;
+    }
+    public void setVerifyHost(boolean verifyHost) {
+        this.verifyHost = verifyHost;
+    }
+    public boolean isEnableFlowControl() {
+        return enableFlowControl;
+    }
+    public void setEnableFlowControl(boolean enableFlowControl) {
+        this.enableFlowControl = enableFlowControl;
+    }
+    public int getIncomingWindow() {
+        return incomingWindow;
+    }
+    public void setIncomingWindow(int incomingWindow) {
+        this.incomingWindow = incomingWindow;
+    }
+    public int getOutgoingWindow() {
+        return outgoingWindow;
+    }
+    public void setOutgoingWindow(int outgoingWindow) {
+        this.outgoingWindow = outgoingWindow;
+    }
+    public String getRoutingType() {
+        return routingType;
+    }
+    public void setRoutingType(String routingType) {
+        this.routingType = routingType;
+    }
+    public String getRoutingKey() {
+        return routingKey;
+    }
+    public void setRoutingKey(String routingKey) {
+        this.routingKey = routingKey;
+    }
+    public Map<String, Object> getMessageAnnotations() {
+        return messageAnnotations;
+    }
+    public void setMessageAnnotations(Map<String, Object> messageAnnotations) {
+        this.messageAnnotations = messageAnnotations;
+    }
+    public Map<String, Object> getDeliveryAnnotations() {
+        return deliveryAnnotations;
+    }
+    public void setDeliveryAnnotations(Map<String, Object> deliveryAnnotations) {
+        this.deliveryAnnotations = deliveryAnnotations;
+    }
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+    public long getRetryDelay() {
+        return retryDelay;
+    }
+    public void setRetryDelay(long retryDelay) {
+        this.retryDelay = retryDelay;
+    }
+    public boolean isEnableDeadLettering() {
+        return enableDeadLettering;
+    }
+    public void setEnableDeadLettering(boolean enableDeadLettering) {
+        this.enableDeadLettering = enableDeadLettering;
+    }
+    public String getDeadLetterAddress() {
+        return deadLetterAddress;
+    }
+    public void setDeadLetterAddress(String deadLetterAddress) {
+        this.deadLetterAddress = deadLetterAddress;
+    }
+    public int getPrefetchSize() {
+        return prefetchSize;
+    }
+    public void setPrefetchSize(int prefetchSize) {
+        this.prefetchSize = prefetchSize;
+    }
+    public boolean isEnableBatching() {
+        return enableBatching;
+    }
+    public void setEnableBatching(boolean enableBatching) {
+        this.enableBatching = enableBatching;
+    }
+    public int getBatchSize() {
+        return batchSize;
+    }
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+    public long getBatchTimeout() {
+        return batchTimeout;
+    }
+    public void setBatchTimeout(long batchTimeout) {
+        this.batchTimeout = batchTimeout;
+    }
+    public boolean isEnableMessageGrouping() {
+        return enableMessageGrouping;
+    }
+    public void setEnableMessageGrouping(boolean enableMessageGrouping) {
+        this.enableMessageGrouping = enableMessageGrouping;
+    }
+    public String getGroupId() {
+        return groupId;
+    }
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+    public int getGroupSequence() {
+        return groupSequence;
+    }
+    public void setGroupSequence(int groupSequence) {
+        this.groupSequence = groupSequence;
+    }
+    public boolean isEnableLargeMessages() {
+        return enableLargeMessages;
+    }
+    public void setEnableLargeMessages(boolean enableLargeMessages) {
+        this.enableLargeMessages = enableLargeMessages;
+    }
+    public long getMaxMessageSize() {
+        return maxMessageSize;
+    }
+    public void setMaxMessageSize(long maxMessageSize) {
+        this.maxMessageSize = maxMessageSize;
+    }
+    public Features getFeatures() {
+        return features;
+    }
+    public void setFeatures(Features features) {
+        this.features = features;
+    }
+    public boolean isEnableAutoReconnect() {
+        return enableAutoReconnect;
+    }
+    public void setEnableAutoReconnect(boolean enableAutoReconnect) {
+        this.enableAutoReconnect = enableAutoReconnect;
+    }
+    public boolean isEnableHeartbeat() {
+        return enableHeartbeat;
+    }
+    public void setEnableHeartbeat(boolean enableHeartbeat) {
+        this.enableHeartbeat = enableHeartbeat;
+    }
+    public boolean isEnableCompression() {
+        return enableCompression;
+    }
+    public void setEnableCompression(boolean enableCompression) {
+        this.enableCompression = enableCompression;
+    }
+    public boolean isEnableTracing() {
+        return enableTracing;
+    }
+    public void setEnableTracing(boolean enableTracing) {
+        this.enableTracing = enableTracing;
+    }
+    public boolean isEnableMetrics() {
+        return enableMetrics;
+    }
+    public void setEnableMetrics(boolean enableMetrics) {
+        this.enableMetrics = enableMetrics;
+    }
+    public boolean isEnableMessageValidation() {
+        return enableMessageValidation;
+    }
+    public void setEnableMessageValidation(boolean enableMessageValidation) {
+        this.enableMessageValidation = enableMessageValidation;
+    }
+    public boolean isEnableDuplicateDetection() {
+        return enableDuplicateDetection;
+    }
+    public void setEnableDuplicateDetection(boolean enableDuplicateDetection) {
+        this.enableDuplicateDetection = enableDuplicateDetection;
+    }
+    public boolean isEnableOrderingGuarantee() {
+        return enableOrderingGuarantee;
+    }
+    public void setEnableOrderingGuarantee(boolean enableOrderingGuarantee) {
+        this.enableOrderingGuarantee = enableOrderingGuarantee;
+    }
+    public boolean isEnableExactlyOnceDelivery() {
+        return enableExactlyOnceDelivery;
+    }
+    public void setEnableExactlyOnceDelivery(boolean enableExactlyOnceDelivery) {
+        this.enableExactlyOnceDelivery = enableExactlyOnceDelivery;
+    }
+    public boolean isEnableEndToEndEncryption() {
+        return enableEndToEndEncryption;
+    }
+    public void setEnableEndToEndEncryption(boolean enableEndToEndEncryption) {
+        this.enableEndToEndEncryption = enableEndToEndEncryption;
+    }
+    public BrokerType getBrokerType() {
+        return brokerType;
+    }
+    public void setBrokerType(BrokerType brokerType) {
+        this.brokerType = brokerType;
+    }
+    public ArtemisSettings getArtemisSettings() {
+        return artemisSettings;
+    }
+    public void setArtemisSettings(ArtemisSettings artemisSettings) {
+        this.artemisSettings = artemisSettings;
+    }
+    public String getAddressPrefix() {
+        return addressPrefix;
+    }
+    public void setAddressPrefix(String addressPrefix) {
+        this.addressPrefix = addressPrefix;
+    }
+    public String getQueuePrefix() {
+        return queuePrefix;
+    }
+    public void setQueuePrefix(String queuePrefix) {
+        this.queuePrefix = queuePrefix;
+    }
+    public boolean isAutoCreateQueues() {
+        return autoCreateQueues;
+    }
+    public void setAutoCreateQueues(boolean autoCreateQueues) {
+        this.autoCreateQueues = autoCreateQueues;
+    }
+    public boolean isAutoCreateAddresses() {
+        return autoCreateAddresses;
+    }
+    public void setAutoCreateAddresses(boolean autoCreateAddresses) {
+        this.autoCreateAddresses = autoCreateAddresses;
+    }
+    public String getAddressFullPolicy() {
+        return addressFullPolicy;
+    }
+    public void setAddressFullPolicy(String addressFullPolicy) {
+        this.addressFullPolicy = addressFullPolicy;
+    }
+    public AzureServiceBusSettings getAzureSettings() {
+        return azureSettings;
+    }
+    public void setAzureSettings(AzureServiceBusSettings azureSettings) {
+        this.azureSettings = azureSettings;
+    }
+    public String getNamespace() {
+        return namespace;
+    }
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+    public String getSharedAccessKeyName() {
+        return sharedAccessKeyName;
+    }
+    public void setSharedAccessKeyName(String sharedAccessKeyName) {
+        this.sharedAccessKeyName = sharedAccessKeyName;
+    }
+    public String getSharedAccessKey() {
+        return sharedAccessKey;
+    }
+    public void setSharedAccessKey(String sharedAccessKey) {
+        this.sharedAccessKey = sharedAccessKey;
+    }
+    public String getEntityPath() {
+        return entityPath;
+    }
+    public void setEntityPath(String entityPath) {
+        this.entityPath = entityPath;
+    }
+    public boolean isEnablePartitioning() {
+        return enablePartitioning;
+    }
+    public void setEnablePartitioning(boolean enablePartitioning) {
+        this.enablePartitioning = enablePartitioning;
+    }
+    public boolean isRequiresDuplicateDetection() {
+        return requiresDuplicateDetection;
+    }
+    public void setRequiresDuplicateDetection(boolean requiresDuplicateDetection) {
+        this.requiresDuplicateDetection = requiresDuplicateDetection;
+    }
+    public boolean isRequiresSession() {
+        return requiresSession;
+    }
+    public void setRequiresSession(boolean requiresSession) {
+        this.requiresSession = requiresSession;
+    }
+    public long getLockDuration() {
+        return lockDuration;
+    }
+    public void setLockDuration(long lockDuration) {
+        this.lockDuration = lockDuration;
     }
 }
