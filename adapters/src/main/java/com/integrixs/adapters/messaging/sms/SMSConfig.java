@@ -137,6 +137,48 @@ public class SMSConfig extends BaseAdapterConfig {
     private boolean enableKeywordProcessing = false;
     private boolean enableAutoResponse = false;
     private boolean enableBulkMessaging = false;
+    
+    // Additional missing fields
+    private String accessKey;
+    private String accessKeyId;
+    private String clientRef;
+    private String dataEncoding = "text";
+    private boolean enableA2PCompliance = false;
+    private boolean enableArchiving = false;
+    private boolean enableCampaignManagement = false;
+    private boolean enableEncryption = false;
+    private boolean enableFailover = false;
+    private boolean enableFlashMessage = false;
+    private boolean enableGDPR = false;
+    private boolean enableGeofencing = false;
+    private boolean enableLoadBalancing = false;
+    private boolean enableNumberPooling = false;
+    private boolean enablePersonalization = false;
+    private boolean enableSigning = false;
+    private boolean enableTCPA = false;
+    private String gateway;
+    private Map<String, String> messageAttributes = new HashMap<>();
+    private String originationNumber;
+    private int protocolId = 0;
+    private String registeredKeyword;
+    private String roleArn;
+    private String secretAccessKey;
+    private String senderIdPoolName;
+    private String signingKey;
+    private String snsTopicArn;
+    private boolean useTopic = false;
+    
+    // Compliance fields (duplicated from inner class for getter/setter access)
+    private boolean enablePECR = true;
+    private boolean enableCANSPAM = true;
+    private boolean enableCASL = true;
+    private boolean requireExplicitConsent = true;
+    private boolean honorQuietHours = true;
+    private String quietHoursStart = "21:00";
+    private String quietHoursEnd = "09:00";
+    private String quietHoursTimezone = "recipient";
+    private int consentExpiryDays = 365;
+    private boolean enableConsentTracking = true;
 
     public enum SMSProvider {
         TWILIO("Twilio", "api.twilio.com"),
@@ -251,7 +293,6 @@ public class SMSConfig extends BaseAdapterConfig {
         private int dlrMask = 7;
         private String clientRef;
         private boolean enableFlashMessage = false;
-        private String protocolId;
     }
 
         public static class AwsSnsConfig {
@@ -274,7 +315,6 @@ public class SMSConfig extends BaseAdapterConfig {
         private boolean enableSigning = false;
         private String dataEncoding = "auto";
         private String gateway;
-        private Map<String, Integer> gatewayMapping = new HashMap<>();
         private String reportUrl;
         private int validity;
         private String reference;
@@ -812,10 +852,10 @@ public class SMSConfig extends BaseAdapterConfig {
     public void setEnableFlashMessage(boolean enableFlashMessage) {
         this.enableFlashMessage = enableFlashMessage;
     }
-    public String getProtocolId() {
+    public int getProtocolId() {
         return protocolId;
     }
-    public void setProtocolId(String protocolId) {
+    public void setProtocolId(int protocolId) {
         this.protocolId = protocolId;
     }
     public String getAccessKeyId() {
@@ -908,10 +948,10 @@ public class SMSConfig extends BaseAdapterConfig {
     public void setGateway(String gateway) {
         this.gateway = gateway;
     }
-    public Map<String, Integer> getGatewayMapping() {
+    public Map<String, String> getGatewayMapping() {
         return gatewayMapping;
     }
-    public void setGatewayMapping(Map<String, Integer> gatewayMapping) {
+    public void setGatewayMapping(Map<String, String> gatewayMapping) {
         this.gatewayMapping = gatewayMapping;
     }
     public String getReportUrl() {

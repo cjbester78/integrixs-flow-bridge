@@ -143,8 +143,7 @@ public class IdocInboundAdapter extends AbstractAdapter implements InboundAdapte
             if(config.getAllowedIdocTypes() != null && !config.getAllowedIdocTypes().isEmpty()) {
                 List<String> allowedTypes = Arrays.asList(config.getAllowedIdocTypes().split(","));
                 if(!allowedTypes.contains(idocType)) {
-                    throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC,
-                            "IDoc type not allowed: " + idocType);
+                    throw new AdapterException("IDoc type not allowed: " + idocType);
                 }
             }
 

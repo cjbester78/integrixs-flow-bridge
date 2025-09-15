@@ -144,8 +144,7 @@ public class MailInboundAdapter extends AbstractAdapter implements InboundAdapte
                     log.error("Error processing email message: {}", getMessageId(message), e);
 
                     if(!config.isContinueOnError()) {
-                        throw new AdapterException.ProcessingException(AdapterConfiguration.AdapterTypeEnum.MAIL,
-                                "Email processing failed for message " + getMessageId(message) + ": " + e.getMessage(), e);
+                        throw new AdapterException("Email processing failed for message " + getMessageId(message) + ": " + e.getMessage(), e);
                     }
                 }
             }
@@ -592,11 +591,11 @@ public class MailInboundAdapter extends AbstractAdapter implements InboundAdapte
                         "Mail Connection", "Successfully connected to mail server");
             } else {
                 return AdapterOperationResult.failure(
-                        "Mail Connection", "Mail server connection failed", null);
+                        "Mail Connection", "Mail server connection failed");
             }
         } catch(Exception e) {
             return AdapterOperationResult.failure(
-                    "Mail Connection", "Failed to connect to mail server: " + e.getMessage(), e);
+                    "Mail Connection", "Failed to connect to mail server: " + e.getMessage());
         } finally {
             if(testStore != null && testStore.isConnected()) {
                 try {
@@ -621,7 +620,7 @@ public class MailInboundAdapter extends AbstractAdapter implements InboundAdapte
                     "Folder Access", "Successfully accessed folder with " + messageCount + " messages");
         } catch(Exception e) {
             return AdapterOperationResult.failure(
-                    "Folder Access", "Failed to access mail folder: " + e.getMessage(), e);
+                    "Folder Access", "Failed to access mail folder: " + e.getMessage());
         } finally {
             if(testFolder != null && testFolder.isOpen()) {
                 try {
@@ -646,7 +645,7 @@ public class MailInboundAdapter extends AbstractAdapter implements InboundAdapte
                     "Message Filtering", filterInfo);
         } catch(Exception e) {
             return AdapterOperationResult.failure(
-                    "Message Filtering", "Failed to build message filters: " + e.getMessage(), e);
+                    "Message Filtering", "Failed to build message filters: " + e.getMessage());
         }
     }
     public long getPollingInterval() {

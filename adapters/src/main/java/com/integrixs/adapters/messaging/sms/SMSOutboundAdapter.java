@@ -4,6 +4,8 @@ package com.integrixs.adapters.messaging.sms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractOutboundAdapter;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.messaging.sms.SMSConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -64,12 +66,10 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
     // Templates
     private final Map<String, MessageTemplate> templates = new ConcurrentHashMap<>();
 
-    @Override
     public AdapterType getType() {
         return AdapterType.SMS;
     }
 
-    @Override
     public String getName() {
         return "SMS Outbound Adapter";
     }
@@ -129,7 +129,6 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    @Override
     public CompletableFuture<MessageDTO> send(MessageDTO message) {
         CompletableFuture<MessageDTO> future = new CompletableFuture<>();
 
@@ -409,7 +408,6 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         scheduler.schedule(() -> sendMessage(request), delay, TimeUnit.MILLISECONDS);
     }
 
-    @Override
     public boolean testConnection() {
         try {
             return providerClient.testConnection();
@@ -419,9 +417,8 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    @Override
     public Map<String, Object> getMetrics() {
-        Map<String, Object> metrics = super.getMetrics();
+        Map<String, Object> metrics = new HashMap<>();
         metrics.put("messagesSent", messagesSent.get());
         metrics.put("messagesFailed", messagesFailed.get());
         metrics.put("messagesQueued", messagesQueued.get());
@@ -429,6 +426,12 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         metrics.put("numberCacheSize", numberCache.size());
         metrics.put("rateLimitRemaining", rateLimiter.getAvailable());
         return metrics;
+    }
+
+    @Override
+    protected AdapterResult doReceive(Object request) throws Exception {
+        // SMS Outbound adapter doesn't receive - it sends messages
+        throw new UnsupportedOperationException("SMS Outbound adapter only sends messages");
     }
 
     @PreDestroy

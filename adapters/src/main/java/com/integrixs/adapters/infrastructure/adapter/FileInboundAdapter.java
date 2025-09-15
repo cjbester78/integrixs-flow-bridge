@@ -200,8 +200,7 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
                     handleFileError(file, e);
 
                     if(!config.isContinueOnError()) {
-                        throw new AdapterException.ProcessingException(AdapterConfiguration.AdapterTypeEnum.FILE,
-                                "File processing failed: " + e.getMessage(), e);
+                        throw new AdapterException("File processing failed: " + e.getMessage(), e);
                     }
                 }
             }
@@ -429,8 +428,7 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
                 return null;
 
             case "error":
-                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE,
-                        "Empty file not allowed: " + file);
+                throw new AdapterException("Empty file not allowed: " + file);
 
             case "process":
             default:
@@ -544,13 +542,11 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
         sourceDirectory = Paths.get(config.getSourceDirectory());
 
         if(!Files.exists(sourceDirectory)) {
-            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE,
-                    "Source directory does not exist: " + sourceDirectory);
+            throw new AdapterException("Source directory does not exist: " + sourceDirectory);
         }
 
         if(!Files.isDirectory(sourceDirectory)) {
-            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.FILE,
-                    "Source path is not a directory: " + sourceDirectory);
+            throw new AdapterException("Source path is not a directory: " + sourceDirectory);
         }
 
         if(!Files.isReadable(sourceDirectory)) {
@@ -616,14 +612,14 @@ public class FileInboundAdapter extends AbstractAdapter implements InboundAdapte
 
     @Override
     public AdapterMetadata getMetadata() {
-        return new AdapterMetadata(
-                AdapterConfiguration.AdapterTypeEnum.FILE,
-                AdapterConfiguration.AdapterModeEnum.INBOUND,
-                "File Sender Adapter - monitors and reads files from file system",
-                "1.0.0",
-                true, // supportsBatch
-                true   // supportsAsync
-       );
+        return AdapterMetadata.builder()
+                .adapterType(AdapterConfiguration.AdapterTypeEnum.FILE)
+                .adapterMode(AdapterConfiguration.AdapterModeEnum.INBOUND)
+                .description("File Sender Adapter - monitors and reads files from file system")
+                .version("1.0.0")
+                .supportsBatch(true)
+                .supportsAsync(true)
+                .build();
     }
 
     protected AdapterOperationResult performSend(Object payload, Map<String, Object> headers) throws Exception {

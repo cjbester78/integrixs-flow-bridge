@@ -10,6 +10,7 @@ import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import java.time.LocalDateTime;
 import com.rabbitmq.client.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -546,5 +547,11 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
         // Implementation to process incoming messages
         // This would typically publish to an internal queue or process directly
         log.debug("Processing incoming RabbitMQ message: {}", message.getId());
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        // RabbitMQ Inbound adapter doesn't send - it receives messages
+        throw new UnsupportedOperationException("RabbitMQ Inbound adapter only receives messages");
     }
 }

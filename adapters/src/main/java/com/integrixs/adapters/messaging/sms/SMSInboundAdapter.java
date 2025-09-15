@@ -4,6 +4,8 @@ package com.integrixs.adapters.messaging.sms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.messaging.sms.SMSConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -61,12 +63,10 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
     // Provider - specific webhook validators
     private final Map<SMSProvider, WebhookValidator> webhookValidators = new HashMap<>();
 
-    @Override
     public AdapterType getType() {
         return AdapterType.SMS;
     }
 
-    @Override
     public String getName() {
         return "SMS Inbound Adapter";
     }
@@ -498,9 +498,8 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
         }
     }
 
-    @Override
     public Map<String, Object> getMetrics() {
-        Map<String, Object> metrics = super.getMetrics();
+        Map<String, Object> metrics = new HashMap<>();
         metrics.put("messagesReceived", messagesReceived.get());
         metrics.put("deliveryReportsReceived", deliveryReportsReceived.get());
         metrics.put("optOutsReceived", optOutsReceived.get());
@@ -508,6 +507,12 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
         metrics.put("optedOutNumbers", optedOutNumbers.size());
         metrics.put("keywordHandlers", keywordHandlers.size());
         return metrics;
+    }
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // SMS Inbound adapter doesn't send - it receives messages via webhook
+        throw new UnsupportedOperationException("SMS Inbound adapter only receives messages via webhook");
     }
 
     @PreDestroy

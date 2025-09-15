@@ -18,7 +18,7 @@ public abstract class AbstractMessagingOutboundAdapter extends AbstractOutboundA
 
 
     protected AbstractMessagingOutboundAdapter() {
-        super(AdapterConfiguration.AdapterTypeEnum.JMS);
+        super(AdapterConfiguration.AdapterTypeEnum.IBMMQ); // Default to IBMMQ, subclasses should override
     }
 
     /**

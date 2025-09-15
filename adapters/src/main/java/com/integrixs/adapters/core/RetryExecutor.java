@@ -87,7 +87,7 @@ public class RetryExecutor {
                     Thread.sleep(delayMs);
                 } catch(InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new AdapterException(adapterType, ie);
+                    throw new AdapterException("Retry interrupted", ie);
                 }
             }
         }
@@ -154,7 +154,7 @@ public class RetryExecutor {
                     Thread.sleep(delayMs);
                 } catch(InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new AdapterException(adapterType, ie);
+                    throw new AdapterException("Retry interrupted", ie);
                 }
             }
         }

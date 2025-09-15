@@ -299,8 +299,7 @@ public class SftpInboundAdapter extends AbstractAdapter implements InboundAdapte
                     log.error("Error processing SFTP file: {}", entry.getFilename(), e);
 
                     if(!config.isContinueOnError()) {
-                        throw new AdapterException.ProcessingException(AdapterConfiguration.AdapterTypeEnum.SFTP,
-                                "SFTP file processing failed for " + entry.getFilename() + ": " + e.getMessage(), e);
+                        throw new AdapterException("SFTP file processing failed for " + entry.getFilename() + ": " + e.getMessage(), e);
                     }
                 }
             }
@@ -481,8 +480,7 @@ public class SftpInboundAdapter extends AbstractAdapter implements InboundAdapte
                 log.debug("Ignoring empty SFTP file: {}", entry.getFilename());
                 return null;
             case "error":
-                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SFTP,
-                        "Empty file not allowed: " + entry.getFilename());
+                throw new AdapterException("Empty file not allowed: " + entry.getFilename());
             case "process":
             default:
                 Map<String, Object> fileData = new HashMap<>();
@@ -643,9 +641,10 @@ public class SftpInboundAdapter extends AbstractAdapter implements InboundAdapte
         }
 
         // Initialize exclusion patterns if configured
-        if(config.getExclusionPattern() != null && !config.getExclusionPattern().isEmpty()) {
-            exclusionPattern = Pattern.compile(config.getExclusionPattern());
-        }
+        // TODO: Add getExclusionPattern() to SftpInboundAdapterConfig if needed
+        // if(config.getExclusionPattern() != null && !config.getExclusionPattern().isEmpty()) {
+        //     exclusionPattern = Pattern.compile(config.getExclusionPattern());
+        // }
     }
 
     private void validateConfiguration() throws AdapterException {

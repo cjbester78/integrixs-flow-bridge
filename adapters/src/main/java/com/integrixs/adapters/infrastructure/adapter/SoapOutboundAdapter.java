@@ -169,12 +169,10 @@ public class SoapOutboundAdapter extends AbstractAdapter implements OutboundAdap
             if(soapEx.getCause() instanceof SOAPFault) {
                 SOAPFault fault = (SOAPFault) soapEx.getCause();
                 log.error("SOAP fault received: {}", fault.getFaultString());
-                throw new AdapterException.OperationException(AdapterConfiguration.AdapterTypeEnum.SOAP,
-                        "SOAP fault: " + fault.getFaultString(), soapEx);
+                throw new AdapterException("SOAP fault: " + fault.getFaultString(), soapEx);
             } else {
                 log.error("SOAP exception: {}", soapEx.getMessage());
-                throw new AdapterException.OperationException(AdapterConfiguration.AdapterTypeEnum.SOAP,
-                        "SOAP exception: " + soapEx.getMessage(), soapEx);
+                throw new AdapterException("SOAP exception: " + soapEx.getMessage(), soapEx);
             }
         } finally {
             if(soapConnection != null) {
@@ -203,8 +201,7 @@ public class SoapOutboundAdapter extends AbstractAdapter implements OutboundAdap
             Map<String, Object> dataMap = (Map<String, Object>) payload;
             createSoapBodyFromMap(soapBody, dataMap);
         } else {
-            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.SOAP,
-                    "Unsupported payload type: " + payload.getClass().getName());
+            throw new AdapterException("Unsupported payload type: " + payload.getClass().getName());
         }
         soapMessage.saveChanges();
         return soapMessage;

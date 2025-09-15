@@ -318,15 +318,15 @@ public class KafkaInboundAdapter extends AbstractAdapter implements InboundAdapt
 
     private void validateConfiguration() throws AdapterException {
         if(config.getBootstrapServers() == null || config.getBootstrapServers().trim().isEmpty()) {
-            throw new AdapterException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Bootstrap servers are required");
+            throw new AdapterException("Bootstrap servers are required");
         }
 
         if(config.getTopics() == null || config.getTopics().trim().isEmpty()) {
-            throw new AdapterException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Topics are required");
+            throw new AdapterException("Topics are required");
         }
 
         if(config.getGroupId() == null || config.getGroupId().trim().isEmpty()) {
-            throw new AdapterException(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.KAFKA, "Group ID is required");
+            throw new AdapterException("Group ID is required");
         }
     }
     public long getPollingInterval() {

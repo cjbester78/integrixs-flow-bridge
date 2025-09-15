@@ -150,7 +150,7 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
                 responseData.put("results", results);
                 responseData.put("totalSent", results.size());
             } else {
-                throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Unsupported payload type: " + payload.getClass().getName());
+                throw new AdapterException("Unsupported payload type: " + payload.getClass().getName());
             }
 
             responseData.put("timestamp", new Date());
@@ -161,7 +161,7 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
                     String.format("Successfully sent %d IDoc(s) to SAP", sentIdocNumbers.size()));
         } catch(Exception e) {
             log.error("Error sending IDoc to SAP", e);
-            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC, "Failed to send IDoc: " + e.getMessage());
+            throw new AdapterException("Failed to send IDoc: " + e.getMessage(), e);
         }
     }
 
@@ -180,8 +180,7 @@ public class IdocOutboundAdapter extends AbstractAdapter implements OutboundAdap
         // Extract data records
         List<Map<String, Object>> dataRecords = (List<Map<String, Object>>) idocData.get("dataRecords");
         if(dataRecords == null || dataRecords.isEmpty()) {
-            throw new AdapterException(AdapterConfiguration.AdapterTypeEnum.IDOC,
-                    "IDoc must contain at least one data record");
+            throw new AdapterException("IDoc must contain at least one data record");
         }
 
         // In real implementation, would:

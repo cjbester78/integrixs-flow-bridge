@@ -142,8 +142,7 @@ public class OdataInboundAdapter extends AbstractAdapter implements InboundAdapt
                     String.format("Successfully retrieved %d entities from OData service", entities.size()));
         } catch(Exception e) {
             log.error("Error polling OData service", e);
-            throw new AdapterException.OperationException(AdapterConfiguration.AdapterTypeEnum.ODATA,
-                    "Failed to poll OData service: " + e.getMessage(), e);
+            throw new AdapterException("Failed to poll OData service: " + e.getMessage(), e);
         }
     }
 
@@ -325,7 +324,7 @@ public class OdataInboundAdapter extends AbstractAdapter implements InboundAdapt
             String serviceInfo = String.format("Service URL: %s", url.toString());
             return AdapterOperationResult.success("Service URL Test", serviceInfo);
         } catch(Exception e) {
-            return AdapterOperationResult.failure("Service URL Test", "Invalid service URL: " + e.getMessage(), e);
+            return AdapterOperationResult.failure("Service URL Test", "Invalid service URL: " + e.getMessage());
         }
     }
 
@@ -338,7 +337,7 @@ public class OdataInboundAdapter extends AbstractAdapter implements InboundAdapt
             String metadataInfo = String.format("Metadata URL: %s", metadataUri.toString());
             return AdapterOperationResult.success("Metadata Access Test", metadataInfo);
         } catch(Exception e) {
-            return AdapterOperationResult.failure("Metadata Access Test", "Cannot access metadata: " + e.getMessage(), e);
+            return AdapterOperationResult.failure("Metadata Access Test", "Cannot access metadata: " + e.getMessage());
         }
     }
 
@@ -348,7 +347,7 @@ public class OdataInboundAdapter extends AbstractAdapter implements InboundAdapt
             String entitySetInfo = String.format("Entity Set: %s", entitySetName);
             return AdapterOperationResult.success("Entity Set Validation", entitySetInfo);
         } catch(Exception e) {
-            return AdapterOperationResult.failure("Entity Set Validation", "Entity set validation failed: " + e.getMessage(), e);
+            return AdapterOperationResult.failure("Entity Set Validation", "Entity set validation failed: " + e.getMessage());
         }
     }
 

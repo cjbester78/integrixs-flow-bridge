@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.messaging.amqp.AMQPConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -601,5 +602,11 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         messageDeduplication.clear();
 
         log.info("AMQP Inbound Adapter shut down successfully");
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        // AMQP Inbound adapter doesn't send - it receives messages
+        throw new UnsupportedOperationException("AMQP Inbound adapter only receives messages");
     }
 }

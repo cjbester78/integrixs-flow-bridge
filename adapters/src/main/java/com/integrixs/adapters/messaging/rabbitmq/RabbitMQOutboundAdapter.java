@@ -519,9 +519,8 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
 
     // Remove duplicate testConnection - it's now in doTestConnection()
 
-    @Override
     public Map<String, Object> getMetrics() {
-        Map<String, Object> metrics = super.getMetrics();
+        Map<String, Object> metrics = new HashMap<>();
         metrics.put("messagesSent", messagesSent.get());
         metrics.put("messagesConfirmed", messagesConfirmed.get());
         metrics.put("messagesReturned", messagesReturned.get());

@@ -186,8 +186,8 @@ public class KafkaOutboundAdapter extends AbstractAdapter implements OutboundAda
 
     protected AdapterOperationResult performSend(Object payload, Map<String, Object> headers) throws Exception {
         SendRequest request = new SendRequest();
-        request.payload = payload;
-        request.parameters = headers;
+        request.setPayload(payload);
+        request.setParameters(headers);
         return send(request);
     }
 }
