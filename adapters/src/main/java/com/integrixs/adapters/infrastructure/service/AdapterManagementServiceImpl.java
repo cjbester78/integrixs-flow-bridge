@@ -28,6 +28,12 @@ public class AdapterManagementServiceImpl implements AdapterManagementService {
     private final AdapterRepository adapterRepository;
     private final AdapterRegistryService adapterRegistryService;
     private final Map<String, AdapterOperationResult> adapterStatuses = new ConcurrentHashMap<>();
+    
+    public AdapterManagementServiceImpl(AdapterRepository adapterRepository, 
+                                       AdapterRegistryService adapterRegistryService) {
+        this.adapterRepository = adapterRepository;
+        this.adapterRegistryService = adapterRegistryService;
+    }
 
     @Override
     @Transactional

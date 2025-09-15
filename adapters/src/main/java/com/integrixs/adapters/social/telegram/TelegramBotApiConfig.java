@@ -11,13 +11,29 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
 
     private String botToken;
     private String botUsername;
-    private String webhookUrl;
     private String webhookPath;
     private String webhookSecret; // For webhook signature verification
     private Long defaultChatId; // Optional: default chat/channel to monitor
     private String apiUrl = "https://api.telegram.org"; // Allow custom API URL for local bot API server
     private TelegramFeatures features = new TelegramFeatures();
     private TelegramLimits limits = new TelegramLimits();
+    
+    @Override
+    public String getPlatformName() {
+        return "telegram";
+    }
+    
+    @Override
+    public String getAuthorizationUrl() {
+        // Telegram uses bot tokens, not OAuth2
+        return null;
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        // Telegram uses bot tokens, not OAuth2
+        return null;
+    }
 
         public static class TelegramFeatures {
         private boolean enableMessages = true;
@@ -43,6 +59,54 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         private boolean enableTopics = true;
         private boolean enableBotAPI60 = true; // Features from Bot API 6.0+
         private boolean enableBotAPI70 = true; // Features from Bot API 7.0+
+        
+        // Getters and setters
+        public boolean isEnableMessages() { return enableMessages; }
+        public void setEnableMessages(boolean enableMessages) { this.enableMessages = enableMessages; }
+        public boolean isEnableInlineQueries() { return enableInlineQueries; }
+        public void setEnableInlineQueries(boolean enableInlineQueries) { this.enableInlineQueries = enableInlineQueries; }
+        public boolean isEnableCallbackQueries() { return enableCallbackQueries; }
+        public void setEnableCallbackQueries(boolean enableCallbackQueries) { this.enableCallbackQueries = enableCallbackQueries; }
+        public boolean isEnableChannelPosts() { return enableChannelPosts; }
+        public void setEnableChannelPosts(boolean enableChannelPosts) { this.enableChannelPosts = enableChannelPosts; }
+        public boolean isEnableGroupManagement() { return enableGroupManagement; }
+        public void setEnableGroupManagement(boolean enableGroupManagement) { this.enableGroupManagement = enableGroupManagement; }
+        public boolean isEnableFileHandling() { return enableFileHandling; }
+        public void setEnableFileHandling(boolean enableFileHandling) { this.enableFileHandling = enableFileHandling; }
+        public boolean isEnablePayments() { return enablePayments; }
+        public void setEnablePayments(boolean enablePayments) { this.enablePayments = enablePayments; }
+        public boolean isEnableWebhooks() { return enableWebhooks; }
+        public void setEnableWebhooks(boolean enableWebhooks) { this.enableWebhooks = enableWebhooks; }
+        public boolean isEnablePolling() { return enablePolling; }
+        public void setEnablePolling(boolean enablePolling) { this.enablePolling = enablePolling; }
+        public boolean isEnableKeyboards() { return enableKeyboards; }
+        public void setEnableKeyboards(boolean enableKeyboards) { this.enableKeyboards = enableKeyboards; }
+        public boolean isEnableCommands() { return enableCommands; }
+        public void setEnableCommands(boolean enableCommands) { this.enableCommands = enableCommands; }
+        public boolean isEnableStickers() { return enableStickers; }
+        public void setEnableStickers(boolean enableStickers) { this.enableStickers = enableStickers; }
+        public boolean isEnableGames() { return enableGames; }
+        public void setEnableGames(boolean enableGames) { this.enableGames = enableGames; }
+        public boolean isEnablePolls() { return enablePolls; }
+        public void setEnablePolls(boolean enablePolls) { this.enablePolls = enablePolls; }
+        public boolean isEnablePassport() { return enablePassport; }
+        public void setEnablePassport(boolean enablePassport) { this.enablePassport = enablePassport; }
+        public boolean isEnableBusinessConnection() { return enableBusinessConnection; }
+        public void setEnableBusinessConnection(boolean enableBusinessConnection) { this.enableBusinessConnection = enableBusinessConnection; }
+        public boolean isEnableWebApps() { return enableWebApps; }
+        public void setEnableWebApps(boolean enableWebApps) { this.enableWebApps = enableWebApps; }
+        public boolean isEnableInlineMode() { return enableInlineMode; }
+        public void setEnableInlineMode(boolean enableInlineMode) { this.enableInlineMode = enableInlineMode; }
+        public boolean isEnableForumSupport() { return enableForumSupport; }
+        public void setEnableForumSupport(boolean enableForumSupport) { this.enableForumSupport = enableForumSupport; }
+        public boolean isEnableReactions() { return enableReactions; }
+        public void setEnableReactions(boolean enableReactions) { this.enableReactions = enableReactions; }
+        public boolean isEnableTopics() { return enableTopics; }
+        public void setEnableTopics(boolean enableTopics) { this.enableTopics = enableTopics; }
+        public boolean isEnableBotAPI60() { return enableBotAPI60; }
+        public void setEnableBotAPI60(boolean enableBotAPI60) { this.enableBotAPI60 = enableBotAPI60; }
+        public boolean isEnableBotAPI70() { return enableBotAPI70; }
+        public void setEnableBotAPI70(boolean enableBotAPI70) { this.enableBotAPI70 = enableBotAPI70; }
     }
 
         public static class TelegramLimits {
@@ -65,6 +129,46 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         private int rateLimitPerMinute = 20; // Different chats per minute
         private int maxKeyboardButtons = 100;
         private int maxInlineKeyboardButtons = 100;
+        
+        // Getters and setters
+        public int getMaxMessageLength() { return maxMessageLength; }
+        public void setMaxMessageLength(int maxMessageLength) { this.maxMessageLength = maxMessageLength; }
+        public int getMaxCaptionLength() { return maxCaptionLength; }
+        public void setMaxCaptionLength(int maxCaptionLength) { this.maxCaptionLength = maxCaptionLength; }
+        public int getMaxInlineResultsPerQuery() { return maxInlineResultsPerQuery; }
+        public void setMaxInlineResultsPerQuery(int maxInlineResultsPerQuery) { this.maxInlineResultsPerQuery = maxInlineResultsPerQuery; }
+        public int getMaxCallbackDataLength() { return maxCallbackDataLength; }
+        public void setMaxCallbackDataLength(int maxCallbackDataLength) { this.maxCallbackDataLength = maxCallbackDataLength; }
+        public int getMaxInlineQueryLength() { return maxInlineQueryLength; }
+        public void setMaxInlineQueryLength(int maxInlineQueryLength) { this.maxInlineQueryLength = maxInlineQueryLength; }
+        public int getMaxFileSizeMB() { return maxFileSizeMB; }
+        public void setMaxFileSizeMB(int maxFileSizeMB) { this.maxFileSizeMB = maxFileSizeMB; }
+        public int getMaxPhotoSizeMB() { return maxPhotoSizeMB; }
+        public void setMaxPhotoSizeMB(int maxPhotoSizeMB) { this.maxPhotoSizeMB = maxPhotoSizeMB; }
+        public int getMaxVideoSizeMB() { return maxVideoSizeMB; }
+        public void setMaxVideoSizeMB(int maxVideoSizeMB) { this.maxVideoSizeMB = maxVideoSizeMB; }
+        public int getMaxAnimationSizeMB() { return maxAnimationSizeMB; }
+        public void setMaxAnimationSizeMB(int maxAnimationSizeMB) { this.maxAnimationSizeMB = maxAnimationSizeMB; }
+        public int getMaxAudioSizeMB() { return maxAudioSizeMB; }
+        public void setMaxAudioSizeMB(int maxAudioSizeMB) { this.maxAudioSizeMB = maxAudioSizeMB; }
+        public int getMaxDocumentSizeMB() { return maxDocumentSizeMB; }
+        public void setMaxDocumentSizeMB(int maxDocumentSizeMB) { this.maxDocumentSizeMB = maxDocumentSizeMB; }
+        public int getMaxStickerSizeKB() { return maxStickerSizeKB; }
+        public void setMaxStickerSizeKB(int maxStickerSizeKB) { this.maxStickerSizeKB = maxStickerSizeKB; }
+        public int getMaxAnimatedStickerSizeKB() { return maxAnimatedStickerSizeKB; }
+        public void setMaxAnimatedStickerSizeKB(int maxAnimatedStickerSizeKB) { this.maxAnimatedStickerSizeKB = maxAnimatedStickerSizeKB; }
+        public int getMaxVideoStickerSizeKB() { return maxVideoStickerSizeKB; }
+        public void setMaxVideoStickerSizeKB(int maxVideoStickerSizeKB) { this.maxVideoStickerSizeKB = maxVideoStickerSizeKB; }
+        public int getWebhookMaxConnections() { return webhookMaxConnections; }
+        public void setWebhookMaxConnections(int webhookMaxConnections) { this.webhookMaxConnections = webhookMaxConnections; }
+        public int getRateLimitPerSecond() { return rateLimitPerSecond; }
+        public void setRateLimitPerSecond(int rateLimitPerSecond) { this.rateLimitPerSecond = rateLimitPerSecond; }
+        public int getRateLimitPerMinute() { return rateLimitPerMinute; }
+        public void setRateLimitPerMinute(int rateLimitPerMinute) { this.rateLimitPerMinute = rateLimitPerMinute; }
+        public int getMaxKeyboardButtons() { return maxKeyboardButtons; }
+        public void setMaxKeyboardButtons(int maxKeyboardButtons) { this.maxKeyboardButtons = maxKeyboardButtons; }
+        public int getMaxInlineKeyboardButtons() { return maxInlineKeyboardButtons; }
+        public void setMaxInlineKeyboardButtons(int maxInlineKeyboardButtons) { this.maxInlineKeyboardButtons = maxInlineKeyboardButtons; }
     }
 
     // Update types
@@ -444,12 +548,6 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
     public void setBotUsername(String botUsername) {
         this.botUsername = botUsername;
     }
-    public String getWebhookUrl() {
-        return webhookUrl;
-    }
-    public void setWebhookUrl(String webhookUrl) {
-        this.webhookUrl = webhookUrl;
-    }
     public String getWebhookPath() {
         return webhookPath;
     }
@@ -487,255 +585,260 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         this.limits = limits;
     }
     public boolean isEnableMessages() {
-        return enableMessages;
+        return features.isEnableMessages();
     }
     public void setEnableMessages(boolean enableMessages) {
-        this.enableMessages = enableMessages;
+        features.setEnableMessages(enableMessages);
     }
     public boolean isEnableInlineQueries() {
-        return enableInlineQueries;
+        return features.isEnableInlineQueries();
     }
     public void setEnableInlineQueries(boolean enableInlineQueries) {
-        this.enableInlineQueries = enableInlineQueries;
+        features.setEnableInlineQueries(enableInlineQueries);
     }
     public boolean isEnableCallbackQueries() {
-        return enableCallbackQueries;
+        return features.isEnableCallbackQueries();
     }
     public void setEnableCallbackQueries(boolean enableCallbackQueries) {
-        this.enableCallbackQueries = enableCallbackQueries;
+        features.setEnableCallbackQueries(enableCallbackQueries);
     }
     public boolean isEnableChannelPosts() {
-        return enableChannelPosts;
+        return features.isEnableChannelPosts();
     }
     public void setEnableChannelPosts(boolean enableChannelPosts) {
-        this.enableChannelPosts = enableChannelPosts;
+        features.setEnableChannelPosts(enableChannelPosts);
     }
     public boolean isEnableGroupManagement() {
-        return enableGroupManagement;
+        return features.isEnableGroupManagement();
     }
     public void setEnableGroupManagement(boolean enableGroupManagement) {
-        this.enableGroupManagement = enableGroupManagement;
+        features.setEnableGroupManagement(enableGroupManagement);
     }
     public boolean isEnableFileHandling() {
-        return enableFileHandling;
+        return features.isEnableFileHandling();
     }
     public void setEnableFileHandling(boolean enableFileHandling) {
-        this.enableFileHandling = enableFileHandling;
+        features.setEnableFileHandling(enableFileHandling);
     }
     public boolean isEnablePayments() {
-        return enablePayments;
+        return features.isEnablePayments();
     }
     public void setEnablePayments(boolean enablePayments) {
-        this.enablePayments = enablePayments;
+        features.setEnablePayments(enablePayments);
     }
     public boolean isEnableWebhooks() {
-        return enableWebhooks;
+        return features.isEnableWebhooks();
     }
     public void setEnableWebhooks(boolean enableWebhooks) {
-        this.enableWebhooks = enableWebhooks;
+        features.setEnableWebhooks(enableWebhooks);
     }
     public boolean isEnablePolling() {
-        return enablePolling;
+        return features.isEnablePolling();
     }
     public void setEnablePolling(boolean enablePolling) {
-        this.enablePolling = enablePolling;
+        features.setEnablePolling(enablePolling);
     }
     public boolean isEnableKeyboards() {
-        return enableKeyboards;
+        return features.isEnableKeyboards();
     }
     public void setEnableKeyboards(boolean enableKeyboards) {
-        this.enableKeyboards = enableKeyboards;
+        features.setEnableKeyboards(enableKeyboards);
     }
     public boolean isEnableCommands() {
-        return enableCommands;
+        return features.isEnableCommands();
     }
     public void setEnableCommands(boolean enableCommands) {
-        this.enableCommands = enableCommands;
+        features.setEnableCommands(enableCommands);
     }
     public boolean isEnableStickers() {
-        return enableStickers;
+        return features.isEnableStickers();
     }
     public void setEnableStickers(boolean enableStickers) {
-        this.enableStickers = enableStickers;
+        features.setEnableStickers(enableStickers);
     }
     public boolean isEnableGames() {
-        return enableGames;
+        return features.isEnableGames();
     }
     public void setEnableGames(boolean enableGames) {
-        this.enableGames = enableGames;
+        features.setEnableGames(enableGames);
     }
     public boolean isEnablePolls() {
-        return enablePolls;
+        return features.isEnablePolls();
     }
     public void setEnablePolls(boolean enablePolls) {
-        this.enablePolls = enablePolls;
+        features.setEnablePolls(enablePolls);
     }
     public boolean isEnablePassport() {
-        return enablePassport;
+        return features.isEnablePassport();
     }
     public void setEnablePassport(boolean enablePassport) {
-        this.enablePassport = enablePassport;
+        features.setEnablePassport(enablePassport);
     }
     public boolean isEnableBusinessConnection() {
-        return enableBusinessConnection;
+        return features.isEnableBusinessConnection();
     }
     public void setEnableBusinessConnection(boolean enableBusinessConnection) {
-        this.enableBusinessConnection = enableBusinessConnection;
+        features.setEnableBusinessConnection(enableBusinessConnection);
     }
     public boolean isEnableWebApps() {
-        return enableWebApps;
+        return features.isEnableWebApps();
     }
     public void setEnableWebApps(boolean enableWebApps) {
-        this.enableWebApps = enableWebApps;
+        features.setEnableWebApps(enableWebApps);
     }
     public boolean isEnableInlineMode() {
-        return enableInlineMode;
+        return features.isEnableInlineMode();
     }
     public void setEnableInlineMode(boolean enableInlineMode) {
-        this.enableInlineMode = enableInlineMode;
+        features.setEnableInlineMode(enableInlineMode);
     }
     public boolean isEnableForumSupport() {
-        return enableForumSupport;
+        return features.isEnableForumSupport();
     }
     public void setEnableForumSupport(boolean enableForumSupport) {
-        this.enableForumSupport = enableForumSupport;
+        features.setEnableForumSupport(enableForumSupport);
     }
     public boolean isEnableReactions() {
-        return enableReactions;
+        return features.isEnableReactions();
     }
     public void setEnableReactions(boolean enableReactions) {
-        this.enableReactions = enableReactions;
+        features.setEnableReactions(enableReactions);
     }
     public boolean isEnableTopics() {
-        return enableTopics;
+        return features.isEnableTopics();
     }
     public void setEnableTopics(boolean enableTopics) {
-        this.enableTopics = enableTopics;
+        features.setEnableTopics(enableTopics);
     }
     public boolean isEnableBotAPI60() {
-        return enableBotAPI60;
+        return features.isEnableBotAPI60();
     }
     public void setEnableBotAPI60(boolean enableBotAPI60) {
-        this.enableBotAPI60 = enableBotAPI60;
+        features.setEnableBotAPI60(enableBotAPI60);
     }
     public boolean isEnableBotAPI70() {
-        return enableBotAPI70;
+        return features.isEnableBotAPI70();
     }
     public void setEnableBotAPI70(boolean enableBotAPI70) {
-        this.enableBotAPI70 = enableBotAPI70;
+        features.setEnableBotAPI70(enableBotAPI70);
     }
     public int getMaxMessageLength() {
-        return maxMessageLength;
+        return limits.getMaxMessageLength();
     }
     public void setMaxMessageLength(int maxMessageLength) {
-        this.maxMessageLength = maxMessageLength;
+        limits.setMaxMessageLength(maxMessageLength);
     }
     public int getMaxCaptionLength() {
-        return maxCaptionLength;
+        return limits.getMaxCaptionLength();
     }
     public void setMaxCaptionLength(int maxCaptionLength) {
-        this.maxCaptionLength = maxCaptionLength;
+        limits.setMaxCaptionLength(maxCaptionLength);
     }
     public int getMaxInlineResultsPerQuery() {
-        return maxInlineResultsPerQuery;
+        return limits.getMaxInlineResultsPerQuery();
     }
     public void setMaxInlineResultsPerQuery(int maxInlineResultsPerQuery) {
-        this.maxInlineResultsPerQuery = maxInlineResultsPerQuery;
+        limits.setMaxInlineResultsPerQuery(maxInlineResultsPerQuery);
     }
     public int getMaxCallbackDataLength() {
-        return maxCallbackDataLength;
+        return limits.getMaxCallbackDataLength();
     }
     public void setMaxCallbackDataLength(int maxCallbackDataLength) {
-        this.maxCallbackDataLength = maxCallbackDataLength;
+        limits.setMaxCallbackDataLength(maxCallbackDataLength);
     }
     public int getMaxInlineQueryLength() {
-        return maxInlineQueryLength;
+        return limits.getMaxInlineQueryLength();
     }
     public void setMaxInlineQueryLength(int maxInlineQueryLength) {
-        this.maxInlineQueryLength = maxInlineQueryLength;
+        limits.setMaxInlineQueryLength(maxInlineQueryLength);
     }
     public int getMaxFileSizeMB() {
-        return maxFileSizeMB;
+        return limits.getMaxFileSizeMB();
     }
     public void setMaxFileSizeMB(int maxFileSizeMB) {
-        this.maxFileSizeMB = maxFileSizeMB;
+        limits.setMaxFileSizeMB(maxFileSizeMB);
     }
     public int getMaxPhotoSizeMB() {
-        return maxPhotoSizeMB;
+        return limits.getMaxPhotoSizeMB();
     }
     public void setMaxPhotoSizeMB(int maxPhotoSizeMB) {
-        this.maxPhotoSizeMB = maxPhotoSizeMB;
+        limits.setMaxPhotoSizeMB(maxPhotoSizeMB);
     }
     public int getMaxVideoSizeMB() {
-        return maxVideoSizeMB;
+        return limits.getMaxVideoSizeMB();
     }
     public void setMaxVideoSizeMB(int maxVideoSizeMB) {
-        this.maxVideoSizeMB = maxVideoSizeMB;
+        limits.setMaxVideoSizeMB(maxVideoSizeMB);
     }
     public int getMaxAnimationSizeMB() {
-        return maxAnimationSizeMB;
+        return limits.getMaxAnimationSizeMB();
     }
     public void setMaxAnimationSizeMB(int maxAnimationSizeMB) {
-        this.maxAnimationSizeMB = maxAnimationSizeMB;
+        limits.setMaxAnimationSizeMB(maxAnimationSizeMB);
     }
     public int getMaxAudioSizeMB() {
-        return maxAudioSizeMB;
+        return limits.getMaxAudioSizeMB();
     }
     public void setMaxAudioSizeMB(int maxAudioSizeMB) {
-        this.maxAudioSizeMB = maxAudioSizeMB;
+        limits.setMaxAudioSizeMB(maxAudioSizeMB);
     }
     public int getMaxDocumentSizeMB() {
-        return maxDocumentSizeMB;
+        return limits.getMaxDocumentSizeMB();
     }
     public void setMaxDocumentSizeMB(int maxDocumentSizeMB) {
-        this.maxDocumentSizeMB = maxDocumentSizeMB;
+        limits.setMaxDocumentSizeMB(maxDocumentSizeMB);
     }
     public int getMaxStickerSizeKB() {
-        return maxStickerSizeKB;
+        return limits.getMaxStickerSizeKB();
     }
     public void setMaxStickerSizeKB(int maxStickerSizeKB) {
-        this.maxStickerSizeKB = maxStickerSizeKB;
+        limits.setMaxStickerSizeKB(maxStickerSizeKB);
     }
     public int getMaxAnimatedStickerSizeKB() {
-        return maxAnimatedStickerSizeKB;
+        return limits.getMaxAnimatedStickerSizeKB();
     }
     public void setMaxAnimatedStickerSizeKB(int maxAnimatedStickerSizeKB) {
-        this.maxAnimatedStickerSizeKB = maxAnimatedStickerSizeKB;
+        limits.setMaxAnimatedStickerSizeKB(maxAnimatedStickerSizeKB);
     }
     public int getMaxVideoStickerSizeKB() {
-        return maxVideoStickerSizeKB;
+        return limits.getMaxVideoStickerSizeKB();
     }
     public void setMaxVideoStickerSizeKB(int maxVideoStickerSizeKB) {
-        this.maxVideoStickerSizeKB = maxVideoStickerSizeKB;
+        limits.setMaxVideoStickerSizeKB(maxVideoStickerSizeKB);
     }
     public int getWebhookMaxConnections() {
-        return webhookMaxConnections;
+        return limits.getWebhookMaxConnections();
     }
     public void setWebhookMaxConnections(int webhookMaxConnections) {
-        this.webhookMaxConnections = webhookMaxConnections;
+        limits.setWebhookMaxConnections(webhookMaxConnections);
     }
     public int getRateLimitPerSecond() {
-        return rateLimitPerSecond;
+        return limits.getRateLimitPerSecond();
     }
     public void setRateLimitPerSecond(int rateLimitPerSecond) {
-        this.rateLimitPerSecond = rateLimitPerSecond;
+        limits.setRateLimitPerSecond(rateLimitPerSecond);
     }
-    public int getRateLimitPerMinute() {
-        return rateLimitPerMinute;
+    // Override parent class method to return Integer instead of int
+    @Override
+    public Integer getRateLimitPerMinute() {
+        return Integer.valueOf(limits.getRateLimitPerMinute());
     }
-    public void setRateLimitPerMinute(int rateLimitPerMinute) {
-        this.rateLimitPerMinute = rateLimitPerMinute;
+    @Override
+    public void setRateLimitPerMinute(Integer rateLimitPerMinute) {
+        if (rateLimitPerMinute != null) {
+            limits.setRateLimitPerMinute(rateLimitPerMinute.intValue());
+        }
     }
     public int getMaxKeyboardButtons() {
-        return maxKeyboardButtons;
+        return limits.getMaxKeyboardButtons();
     }
     public void setMaxKeyboardButtons(int maxKeyboardButtons) {
-        this.maxKeyboardButtons = maxKeyboardButtons;
+        limits.setMaxKeyboardButtons(maxKeyboardButtons);
     }
     public int getMaxInlineKeyboardButtons() {
-        return maxInlineKeyboardButtons;
+        return limits.getMaxInlineKeyboardButtons();
     }
     public void setMaxInlineKeyboardButtons(int maxInlineKeyboardButtons) {
-        this.maxInlineKeyboardButtons = maxInlineKeyboardButtons;
+        limits.setMaxInlineKeyboardButtons(maxInlineKeyboardButtons);
     }
 }

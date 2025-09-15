@@ -9,13 +9,26 @@ import java.util.List;
 @ConfigurationProperties(prefix = "integrixs.adapters.snapchat.ads")
 public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
 
-    private String clientId;
-    private String clientSecret;
     private String adAccountId;
     private String organizationId;
     private String pixelId;
     private SnapchatAdsFeatures features = new SnapchatAdsFeatures();
     private SnapchatAdsLimits limits = new SnapchatAdsLimits();
+    
+    @Override
+    public String getPlatformName() {
+        return "snapchat";
+    }
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://accounts.snapchat.com/accounts/oauth2/auth";
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return "https://accounts.snapchat.com/accounts/oauth2/token";
+    }
 
         public static class SnapchatAdsFeatures {
         private boolean enableCampaignManagement = true;
@@ -38,6 +51,48 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         private boolean enableMeasurement = true;
         private boolean enableAutoOptimization = true;
         private boolean enableCreativeLibrary = true;
+        
+        // Getters and setters
+        public boolean isEnableCampaignManagement() { return enableCampaignManagement; }
+        public void setEnableCampaignManagement(boolean enableCampaignManagement) { this.enableCampaignManagement = enableCampaignManagement; }
+        public boolean isEnableAdManagement() { return enableAdManagement; }
+        public void setEnableAdManagement(boolean enableAdManagement) { this.enableAdManagement = enableAdManagement; }
+        public boolean isEnableCreativeManagement() { return enableCreativeManagement; }
+        public void setEnableCreativeManagement(boolean enableCreativeManagement) { this.enableCreativeManagement = enableCreativeManagement; }
+        public boolean isEnableAudienceManagement() { return enableAudienceManagement; }
+        public void setEnableAudienceManagement(boolean enableAudienceManagement) { this.enableAudienceManagement = enableAudienceManagement; }
+        public boolean isEnablePixelTracking() { return enablePixelTracking; }
+        public void setEnablePixelTracking(boolean enablePixelTracking) { this.enablePixelTracking = enablePixelTracking; }
+        public boolean isEnableReporting() { return enableReporting; }
+        public void setEnableReporting(boolean enableReporting) { this.enableReporting = enableReporting; }
+        public boolean isEnableBulkOperations() { return enableBulkOperations; }
+        public void setEnableBulkOperations(boolean enableBulkOperations) { this.enableBulkOperations = enableBulkOperations; }
+        public boolean isEnableDynamicAds() { return enableDynamicAds; }
+        public void setEnableDynamicAds(boolean enableDynamicAds) { this.enableDynamicAds = enableDynamicAds; }
+        public boolean isEnableCatalogManagement() { return enableCatalogManagement; }
+        public void setEnableCatalogManagement(boolean enableCatalogManagement) { this.enableCatalogManagement = enableCatalogManagement; }
+        public boolean isEnableAppInstallAds() { return enableAppInstallAds; }
+        public void setEnableAppInstallAds(boolean enableAppInstallAds) { this.enableAppInstallAds = enableAppInstallAds; }
+        public boolean isEnableWebConversions() { return enableWebConversions; }
+        public void setEnableWebConversions(boolean enableWebConversions) { this.enableWebConversions = enableWebConversions; }
+        public boolean isEnableStoryAds() { return enableStoryAds; }
+        public void setEnableStoryAds(boolean enableStoryAds) { this.enableStoryAds = enableStoryAds; }
+        public boolean isEnableCollectionAds() { return enableCollectionAds; }
+        public void setEnableCollectionAds(boolean enableCollectionAds) { this.enableCollectionAds = enableCollectionAds; }
+        public boolean isEnableARLenses() { return enableARLenses; }
+        public void setEnableARLenses(boolean enableARLenses) { this.enableARLenses = enableARLenses; }
+        public boolean isEnableFilters() { return enableFilters; }
+        public void setEnableFilters(boolean enableFilters) { this.enableFilters = enableFilters; }
+        public boolean isEnableBrandedMoments() { return enableBrandedMoments; }
+        public void setEnableBrandedMoments(boolean enableBrandedMoments) { this.enableBrandedMoments = enableBrandedMoments; }
+        public boolean isEnableCommercializedLenses() { return enableCommercializedLenses; }
+        public void setEnableCommercializedLenses(boolean enableCommercializedLenses) { this.enableCommercializedLenses = enableCommercializedLenses; }
+        public boolean isEnableMeasurement() { return enableMeasurement; }
+        public void setEnableMeasurement(boolean enableMeasurement) { this.enableMeasurement = enableMeasurement; }
+        public boolean isEnableAutoOptimization() { return enableAutoOptimization; }
+        public void setEnableAutoOptimization(boolean enableAutoOptimization) { this.enableAutoOptimization = enableAutoOptimization; }
+        public boolean isEnableCreativeLibrary() { return enableCreativeLibrary; }
+        public void setEnableCreativeLibrary(boolean enableCreativeLibrary) { this.enableCreativeLibrary = enableCreativeLibrary; }
     }
 
         public static class SnapchatAdsLimits {
@@ -57,6 +112,40 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         private int rateLimitPerHour = 10000;
         private int maxBulkOperations = 100;
         private int maxReportRows = 100000;
+        
+        // Getters and setters
+        public int getMaxCampaignsPerAccount() { return maxCampaignsPerAccount; }
+        public void setMaxCampaignsPerAccount(int maxCampaignsPerAccount) { this.maxCampaignsPerAccount = maxCampaignsPerAccount; }
+        public int getMaxAdSquadsPerCampaign() { return maxAdSquadsPerCampaign; }
+        public void setMaxAdSquadsPerCampaign(int maxAdSquadsPerCampaign) { this.maxAdSquadsPerCampaign = maxAdSquadsPerCampaign; }
+        public int getMaxAdsPerAdSquad() { return maxAdsPerAdSquad; }
+        public void setMaxAdsPerAdSquad(int maxAdsPerAdSquad) { this.maxAdsPerAdSquad = maxAdsPerAdSquad; }
+        public int getMaxCreativesPerAccount() { return maxCreativesPerAccount; }
+        public void setMaxCreativesPerAccount(int maxCreativesPerAccount) { this.maxCreativesPerAccount = maxCreativesPerAccount; }
+        public int getMaxAudiencesPerAccount() { return maxAudiencesPerAccount; }
+        public void setMaxAudiencesPerAccount(int maxAudiencesPerAccount) { this.maxAudiencesPerAccount = maxAudiencesPerAccount; }
+        public int getMaxAudienceSize() { return maxAudienceSize; }
+        public void setMaxAudienceSize(int maxAudienceSize) { this.maxAudienceSize = maxAudienceSize; }
+        public int getMinAudienceSize() { return minAudienceSize; }
+        public void setMinAudienceSize(int minAudienceSize) { this.minAudienceSize = minAudienceSize; }
+        public int getMaxVideoSizeMB() { return maxVideoSizeMB; }
+        public void setMaxVideoSizeMB(int maxVideoSizeMB) { this.maxVideoSizeMB = maxVideoSizeMB; }
+        public int getMaxVideoLengthSeconds() { return maxVideoLengthSeconds; }
+        public void setMaxVideoLengthSeconds(int maxVideoLengthSeconds) { this.maxVideoLengthSeconds = maxVideoLengthSeconds; }
+        public int getMaxImageSizeMB() { return maxImageSizeMB; }
+        public void setMaxImageSizeMB(int maxImageSizeMB) { this.maxImageSizeMB = maxImageSizeMB; }
+        public int getMaxCatalogItems() { return maxCatalogItems; }
+        public void setMaxCatalogItems(int maxCatalogItems) { this.maxCatalogItems = maxCatalogItems; }
+        public int getRateLimitPerSecond() { return rateLimitPerSecond; }
+        public void setRateLimitPerSecond(int rateLimitPerSecond) { this.rateLimitPerSecond = rateLimitPerSecond; }
+        public int getRateLimitPerMinute() { return rateLimitPerMinute; }
+        public void setRateLimitPerMinute(int rateLimitPerMinute) { this.rateLimitPerMinute = rateLimitPerMinute; }
+        public int getRateLimitPerHour() { return rateLimitPerHour; }
+        public void setRateLimitPerHour(int rateLimitPerHour) { this.rateLimitPerHour = rateLimitPerHour; }
+        public int getMaxBulkOperations() { return maxBulkOperations; }
+        public void setMaxBulkOperations(int maxBulkOperations) { this.maxBulkOperations = maxBulkOperations; }
+        public int getMaxReportRows() { return maxReportRows; }
+        public void setMaxReportRows(int maxReportRows) { this.maxReportRows = maxReportRows; }
     }
 
     // Campaign objectives
@@ -420,18 +509,6 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         REPORT_READY
     }
     // Getters and Setters
-    public String getClientId() {
-        return clientId;
-    }
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-    public String getClientSecret() {
-        return clientSecret;
-    }
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
     public String getAdAccountId() {
         return adAccountId;
     }
@@ -463,219 +540,228 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         this.limits = limits;
     }
     public boolean isEnableCampaignManagement() {
-        return enableCampaignManagement;
+        return features.isEnableCampaignManagement();
     }
     public void setEnableCampaignManagement(boolean enableCampaignManagement) {
-        this.enableCampaignManagement = enableCampaignManagement;
+        features.setEnableCampaignManagement(enableCampaignManagement);
     }
     public boolean isEnableAdManagement() {
-        return enableAdManagement;
+        return features.isEnableAdManagement();
     }
     public void setEnableAdManagement(boolean enableAdManagement) {
-        this.enableAdManagement = enableAdManagement;
+        features.setEnableAdManagement(enableAdManagement);
     }
     public boolean isEnableCreativeManagement() {
-        return enableCreativeManagement;
+        return features.isEnableCreativeManagement();
     }
     public void setEnableCreativeManagement(boolean enableCreativeManagement) {
-        this.enableCreativeManagement = enableCreativeManagement;
+        features.setEnableCreativeManagement(enableCreativeManagement);
     }
     public boolean isEnableAudienceManagement() {
-        return enableAudienceManagement;
+        return features.isEnableAudienceManagement();
     }
     public void setEnableAudienceManagement(boolean enableAudienceManagement) {
-        this.enableAudienceManagement = enableAudienceManagement;
+        features.setEnableAudienceManagement(enableAudienceManagement);
     }
     public boolean isEnablePixelTracking() {
-        return enablePixelTracking;
+        return features.isEnablePixelTracking();
     }
     public void setEnablePixelTracking(boolean enablePixelTracking) {
-        this.enablePixelTracking = enablePixelTracking;
+        features.setEnablePixelTracking(enablePixelTracking);
     }
     public boolean isEnableReporting() {
-        return enableReporting;
+        return features.isEnableReporting();
     }
     public void setEnableReporting(boolean enableReporting) {
-        this.enableReporting = enableReporting;
+        features.setEnableReporting(enableReporting);
     }
     public boolean isEnableBulkOperations() {
-        return enableBulkOperations;
+        return features.isEnableBulkOperations();
     }
     public void setEnableBulkOperations(boolean enableBulkOperations) {
-        this.enableBulkOperations = enableBulkOperations;
+        features.setEnableBulkOperations(enableBulkOperations);
     }
     public boolean isEnableDynamicAds() {
-        return enableDynamicAds;
+        return features.isEnableDynamicAds();
     }
     public void setEnableDynamicAds(boolean enableDynamicAds) {
-        this.enableDynamicAds = enableDynamicAds;
+        features.setEnableDynamicAds(enableDynamicAds);
     }
     public boolean isEnableCatalogManagement() {
-        return enableCatalogManagement;
+        return features.isEnableCatalogManagement();
     }
     public void setEnableCatalogManagement(boolean enableCatalogManagement) {
-        this.enableCatalogManagement = enableCatalogManagement;
+        features.setEnableCatalogManagement(enableCatalogManagement);
     }
     public boolean isEnableAppInstallAds() {
-        return enableAppInstallAds;
+        return features.isEnableAppInstallAds();
     }
     public void setEnableAppInstallAds(boolean enableAppInstallAds) {
-        this.enableAppInstallAds = enableAppInstallAds;
+        features.setEnableAppInstallAds(enableAppInstallAds);
     }
     public boolean isEnableWebConversions() {
-        return enableWebConversions;
+        return features.isEnableWebConversions();
     }
     public void setEnableWebConversions(boolean enableWebConversions) {
-        this.enableWebConversions = enableWebConversions;
+        features.setEnableWebConversions(enableWebConversions);
     }
     public boolean isEnableStoryAds() {
-        return enableStoryAds;
+        return features.isEnableStoryAds();
     }
     public void setEnableStoryAds(boolean enableStoryAds) {
-        this.enableStoryAds = enableStoryAds;
+        features.setEnableStoryAds(enableStoryAds);
     }
     public boolean isEnableCollectionAds() {
-        return enableCollectionAds;
+        return features.isEnableCollectionAds();
     }
     public void setEnableCollectionAds(boolean enableCollectionAds) {
-        this.enableCollectionAds = enableCollectionAds;
+        features.setEnableCollectionAds(enableCollectionAds);
     }
     public boolean isEnableARLenses() {
-        return enableARLenses;
+        return features.isEnableARLenses();
     }
     public void setEnableARLenses(boolean enableARLenses) {
-        this.enableARLenses = enableARLenses;
+        features.setEnableARLenses(enableARLenses);
     }
     public boolean isEnableFilters() {
-        return enableFilters;
+        return features.isEnableFilters();
     }
     public void setEnableFilters(boolean enableFilters) {
-        this.enableFilters = enableFilters;
+        features.setEnableFilters(enableFilters);
     }
     public boolean isEnableBrandedMoments() {
-        return enableBrandedMoments;
+        return features.isEnableBrandedMoments();
     }
     public void setEnableBrandedMoments(boolean enableBrandedMoments) {
-        this.enableBrandedMoments = enableBrandedMoments;
+        features.setEnableBrandedMoments(enableBrandedMoments);
     }
     public boolean isEnableCommercializedLenses() {
-        return enableCommercializedLenses;
+        return features.isEnableCommercializedLenses();
     }
     public void setEnableCommercializedLenses(boolean enableCommercializedLenses) {
-        this.enableCommercializedLenses = enableCommercializedLenses;
+        features.setEnableCommercializedLenses(enableCommercializedLenses);
     }
     public boolean isEnableMeasurement() {
-        return enableMeasurement;
+        return features.isEnableMeasurement();
     }
     public void setEnableMeasurement(boolean enableMeasurement) {
-        this.enableMeasurement = enableMeasurement;
+        features.setEnableMeasurement(enableMeasurement);
     }
     public boolean isEnableAutoOptimization() {
-        return enableAutoOptimization;
+        return features.isEnableAutoOptimization();
     }
     public void setEnableAutoOptimization(boolean enableAutoOptimization) {
-        this.enableAutoOptimization = enableAutoOptimization;
+        features.setEnableAutoOptimization(enableAutoOptimization);
     }
     public boolean isEnableCreativeLibrary() {
-        return enableCreativeLibrary;
+        return features.isEnableCreativeLibrary();
     }
     public void setEnableCreativeLibrary(boolean enableCreativeLibrary) {
-        this.enableCreativeLibrary = enableCreativeLibrary;
+        features.setEnableCreativeLibrary(enableCreativeLibrary);
     }
     public int getMaxCampaignsPerAccount() {
-        return maxCampaignsPerAccount;
+        return limits.getMaxCampaignsPerAccount();
     }
     public void setMaxCampaignsPerAccount(int maxCampaignsPerAccount) {
-        this.maxCampaignsPerAccount = maxCampaignsPerAccount;
+        limits.setMaxCampaignsPerAccount(maxCampaignsPerAccount);
     }
     public int getMaxAdSquadsPerCampaign() {
-        return maxAdSquadsPerCampaign;
+        return limits.getMaxAdSquadsPerCampaign();
     }
     public void setMaxAdSquadsPerCampaign(int maxAdSquadsPerCampaign) {
-        this.maxAdSquadsPerCampaign = maxAdSquadsPerCampaign;
+        limits.setMaxAdSquadsPerCampaign(maxAdSquadsPerCampaign);
     }
     public int getMaxAdsPerAdSquad() {
-        return maxAdsPerAdSquad;
+        return limits.getMaxAdsPerAdSquad();
     }
     public void setMaxAdsPerAdSquad(int maxAdsPerAdSquad) {
-        this.maxAdsPerAdSquad = maxAdsPerAdSquad;
+        limits.setMaxAdsPerAdSquad(maxAdsPerAdSquad);
     }
     public int getMaxCreativesPerAccount() {
-        return maxCreativesPerAccount;
+        return limits.getMaxCreativesPerAccount();
     }
     public void setMaxCreativesPerAccount(int maxCreativesPerAccount) {
-        this.maxCreativesPerAccount = maxCreativesPerAccount;
+        limits.setMaxCreativesPerAccount(maxCreativesPerAccount);
     }
     public int getMaxAudiencesPerAccount() {
-        return maxAudiencesPerAccount;
+        return limits.getMaxAudiencesPerAccount();
     }
     public void setMaxAudiencesPerAccount(int maxAudiencesPerAccount) {
-        this.maxAudiencesPerAccount = maxAudiencesPerAccount;
+        limits.setMaxAudiencesPerAccount(maxAudiencesPerAccount);
     }
     public int getMaxAudienceSize() {
-        return maxAudienceSize;
+        return limits.getMaxAudienceSize();
     }
     public void setMaxAudienceSize(int maxAudienceSize) {
-        this.maxAudienceSize = maxAudienceSize;
+        limits.setMaxAudienceSize(maxAudienceSize);
     }
     public int getMinAudienceSize() {
-        return minAudienceSize;
+        return limits.getMinAudienceSize();
     }
     public void setMinAudienceSize(int minAudienceSize) {
-        this.minAudienceSize = minAudienceSize;
+        limits.setMinAudienceSize(minAudienceSize);
     }
     public int getMaxVideoSizeMB() {
-        return maxVideoSizeMB;
+        return limits.getMaxVideoSizeMB();
     }
     public void setMaxVideoSizeMB(int maxVideoSizeMB) {
-        this.maxVideoSizeMB = maxVideoSizeMB;
+        limits.setMaxVideoSizeMB(maxVideoSizeMB);
     }
     public int getMaxVideoLengthSeconds() {
-        return maxVideoLengthSeconds;
+        return limits.getMaxVideoLengthSeconds();
     }
     public void setMaxVideoLengthSeconds(int maxVideoLengthSeconds) {
-        this.maxVideoLengthSeconds = maxVideoLengthSeconds;
+        limits.setMaxVideoLengthSeconds(maxVideoLengthSeconds);
     }
     public int getMaxImageSizeMB() {
-        return maxImageSizeMB;
+        return limits.getMaxImageSizeMB();
     }
     public void setMaxImageSizeMB(int maxImageSizeMB) {
-        this.maxImageSizeMB = maxImageSizeMB;
+        limits.setMaxImageSizeMB(maxImageSizeMB);
     }
     public int getMaxCatalogItems() {
-        return maxCatalogItems;
+        return limits.getMaxCatalogItems();
     }
     public void setMaxCatalogItems(int maxCatalogItems) {
-        this.maxCatalogItems = maxCatalogItems;
+        limits.setMaxCatalogItems(maxCatalogItems);
     }
     public int getRateLimitPerSecond() {
-        return rateLimitPerSecond;
+        return limits.getRateLimitPerSecond();
     }
     public void setRateLimitPerSecond(int rateLimitPerSecond) {
-        this.rateLimitPerSecond = rateLimitPerSecond;
+        limits.setRateLimitPerSecond(rateLimitPerSecond);
     }
-    public int getRateLimitPerMinute() {
-        return rateLimitPerMinute;
+    // Override parent class methods to return Integer instead of int
+    @Override
+    public Integer getRateLimitPerMinute() {
+        return Integer.valueOf(limits.getRateLimitPerMinute());
     }
-    public void setRateLimitPerMinute(int rateLimitPerMinute) {
-        this.rateLimitPerMinute = rateLimitPerMinute;
+    @Override
+    public void setRateLimitPerMinute(Integer rateLimitPerMinute) {
+        if (rateLimitPerMinute != null) {
+            limits.setRateLimitPerMinute(rateLimitPerMinute.intValue());
+        }
     }
-    public int getRateLimitPerHour() {
-        return rateLimitPerHour;
+    @Override
+    public Integer getRateLimitPerHour() {
+        return Integer.valueOf(limits.getRateLimitPerHour());
     }
-    public void setRateLimitPerHour(int rateLimitPerHour) {
-        this.rateLimitPerHour = rateLimitPerHour;
+    @Override
+    public void setRateLimitPerHour(Integer rateLimitPerHour) {
+        if (rateLimitPerHour != null) {
+            limits.setRateLimitPerHour(rateLimitPerHour.intValue());
+        }
     }
     public int getMaxBulkOperations() {
-        return maxBulkOperations;
+        return limits.getMaxBulkOperations();
     }
     public void setMaxBulkOperations(int maxBulkOperations) {
-        this.maxBulkOperations = maxBulkOperations;
+        limits.setMaxBulkOperations(maxBulkOperations);
     }
     public int getMaxReportRows() {
-        return maxReportRows;
+        return limits.getMaxReportRows();
     }
     public void setMaxReportRows(int maxReportRows) {
-        this.maxReportRows = maxReportRows;
+        limits.setMaxReportRows(maxReportRows);
     }
 }

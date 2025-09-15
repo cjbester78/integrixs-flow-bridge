@@ -10,13 +10,16 @@ import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.config.AdapterConfig;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.CredentialEncryptionService;
+import com.integrixs.adapters.core.AdapterResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.net.URLEncoder;
@@ -54,13 +57,23 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     @Override
-    public AdapterConfig getAdapterConfig() {
-        return config;
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("userAgent", config.getUserAgent());
+            configMap.put("username", config.getUsername());
+            configMap.put("password", config.getPassword());
+            configMap.put("enabled", config.isEnabled());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+        }
+        return configMap;
     }
 
     @Override
     public MessageDTO processMessage(MessageDTO message) {
-        String action = message.getHeader("action");
+        String action = getHeader(message, "action");
 
         try {
             // Ensure we have a valid access token
@@ -213,7 +226,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
 
-        if(StringUtils.hasText(config.getOauth2Config().getRefreshToken())) {
+        if(StringUtils.hasText(config.getRefreshToken())) {
             // Use refresh token if available
             body.add("grant_type", "refresh_token");
             body.add("refresh_token", getDecryptedCredential("refreshToken"));
@@ -238,7 +251,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO submitPost(MessageDTO message) throws Exception {
-        Map<String, Object> postData = message.getPayloadAsMap();
+        Map<String, Object> postData = getPayloadAsMap(message);
 
         String subreddit = (String) postData.get("subreddit");
         String kind = (String) postData.get("kind"); // self or link
@@ -256,48 +269,48 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         }
 
         // Optional parameters
-        addOptionalParam(params, postData, "flair_id");
-        addOptionalParam(params, postData, "flair_text");
+        addOptionalParam(params, postData, "flair_id", null);
+        addOptionalParam(params, postData, "flair_text", null);
         addOptionalParam(params, postData, "nsfw", "false");
         addOptionalParam(params, postData, "spoiler", "false");
         addOptionalParam(params, postData, "sendreplies", "true");
         addOptionalParam(params, postData, "resubmit", "false");
 
-        String url = config.getApiUrl() + "/api/submit";
+        String url = getApiUrl() + "/api/submit";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO editPost(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        String text = message.getPayloadAsString();
+        String thingId = getHeader(message, "thingId");
+        String text = getPayloadAsString(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
         params.add("thing_id", thingId);
         params.add("text", text);
 
-        String url = config.getApiUrl() + "/api/editusertext";
+        String url = getApiUrl() + "/api/editusertext";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO deletePost(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
+        String thingId = getHeader(message, "thingId");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + "/api/del";
+        String url = getApiUrl() + "/api/del";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO crosspost(MessageDTO message) throws Exception {
-        Map<String, Object> crosspostData = message.getPayloadAsMap();
+        Map<String, Object> crosspostData = getPayloadAsMap(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -309,42 +322,42 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         addOptionalParam(params, crosspostData, "nsfw", "false");
         addOptionalParam(params, crosspostData, "spoiler", "false");
 
-        String url = config.getApiUrl() + "/api/submit";
+        String url = getApiUrl() + "/api/submit";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO markNSFW(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        boolean nsfw = Boolean.parseBoolean(message.getHeader("nsfw", "true"));
+        String thingId = getHeader(message, "thingId");
+        boolean nsfw = Boolean.parseBoolean(getHeader(message, "nsfw", "true"));
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + (nsfw ? "/api/marknsfw" : "/api/unmarknsfw");
+        String url = getApiUrl() + (nsfw ? "/api/marknsfw" : "/api/unmarknsfw");
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO markSpoiler(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        boolean spoiler = Boolean.parseBoolean(message.getHeader("spoiler", "true"));
+        String thingId = getHeader(message, "thingId");
+        boolean spoiler = Boolean.parseBoolean(getHeader(message, "spoiler", "true"));
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + (spoiler ? "/api/spoiler" : "/api/unspoiler");
+        String url = getApiUrl() + (spoiler ? "/api/spoiler" : "/api/unspoiler");
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO setPostFlair(MessageDTO message) throws Exception {
-        String link = message.getHeader("link");
-        String flairId = message.getHeader("flairId");
-        String flairText = message.getHeader("flairText");
+        String link = getHeader(message, "link");
+        String flairId = getHeader(message, "flairId");
+        String flairText = getHeader(message, "flairText");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -357,22 +370,22 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
             params.add("text", flairText);
         }
 
-        String url = config.getApiUrl() + "/api/selectflair";
+        String url = getApiUrl() + "/api/selectflair";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO postComment(MessageDTO message) throws Exception {
-        String parentId = message.getHeader("parentId");
-        String text = message.getPayloadAsString();
+        String parentId = getHeader(message, "parentId");
+        String text = getPayloadAsString(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
         params.add("thing_id", parentId);
         params.add("text", text);
 
-        String url = config.getApiUrl() + "/api/comment";
+        String url = getApiUrl() + "/api/comment";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
@@ -387,22 +400,22 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO vote(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        int direction = Integer.parseInt(message.getHeader("direction", "0")); // 1 = upvote, -1 = downvote, 0 = unvote
+        String thingId = getHeader(message, "thingId");
+        int direction = Integer.parseInt(getHeader(message, "direction", "0")); // 1 = upvote, -1 = downvote, 0 = unvote
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
         params.add("dir", String.valueOf(direction));
 
-        String url = config.getApiUrl() + "/api/vote";
+        String url = getApiUrl() + "/api/vote";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO saveItem(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        String category = message.getHeader("category");
+        String thingId = getHeader(message, "thingId");
+        String category = getHeader(message, "category");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
@@ -410,118 +423,118 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
             params.add("category", category);
         }
 
-        String url = config.getApiUrl() + "/api/save";
+        String url = getApiUrl() + "/api/save";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unsaveItem(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
+        String thingId = getHeader(message, "thingId");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + "/api/unsave";
+        String url = getApiUrl() + "/api/unsave";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO hidePost(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
+        String thingId = getHeader(message, "thingId");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + "/api/hide";
+        String url = getApiUrl() + "/api/hide";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unhidePost(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
+        String thingId = getHeader(message, "thingId");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + "/api/unhide";
+        String url = getApiUrl() + "/api/unhide";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO giveAward(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        String awardId = message.getHeader("awardId");
-        boolean isAnonymous = Boolean.parseBoolean(message.getHeader("anonymous", "false"));
+        String thingId = getHeader(message, "thingId");
+        String awardId = getHeader(message, "awardId");
+        boolean isAnonymous = Boolean.parseBoolean(getHeader(message, "anonymous", "false"));
 
         Map<String, Object> awardData = new HashMap<>();
         awardData.put("is_anonymous", isAnonymous);
 
-        String url = config.getApiUrl() + "/api/v2/gold/gild/" + thingId + "/" + awardId;
+        String url = getApiUrl() + "/api/v2/gold/gild/" + thingId + "/" + awardId;
         String response = executeApiCall(() -> makePostJsonRequest(url, awardData));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO followUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
+        String username = getHeader(message, "username");
 
         Map<String, Object> followData = new HashMap<>();
         followData.put("action", "sub");
         followData.put("sr_name", "u_" + username);
         followData.put("skip_initial_defaults", true);
 
-        String url = config.getApiUrl() + "/api/subscribe";
+        String url = getApiUrl() + "/api/subscribe";
         String response = executeApiCall(() -> makePostJsonRequest(url, followData));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unfollowUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
+        String username = getHeader(message, "username");
 
         Map<String, Object> unfollowData = new HashMap<>();
         unfollowData.put("action", "unsub");
         unfollowData.put("sr_name", "u_" + username);
 
-        String url = config.getApiUrl() + "/api/subscribe";
+        String url = getApiUrl() + "/api/subscribe";
         String response = executeApiCall(() -> makePostJsonRequest(url, unfollowData));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO blockUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
+        String username = getHeader(message, "username");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("name", username);
 
-        String url = config.getApiUrl() + "/api/block_user";
+        String url = getApiUrl() + "/api/block_user";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unblockUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
-        String userId = message.getHeader("userId");
+        String username = getHeader(message, "username");
+        String userId = getHeader(message, "userId");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("name", username);
         params.add("id", userId);
         params.add("type", "enemy");
 
-        String url = config.getApiUrl() + "/api/unfriend";
+        String url = getApiUrl() + "/api/unfriend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO sendMessage(MessageDTO message) throws Exception {
-        Map<String, Object> msgData = message.getPayloadAsMap();
+        Map<String, Object> msgData = getPayloadAsMap(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -529,40 +542,40 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.add("subject", (String) msgData.get("subject"));
         params.add("text", (String) msgData.get("text"));
 
-        String url = config.getApiUrl() + "/api/compose";
+        String url = getApiUrl() + "/api/compose";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO subscribe(MessageDTO message) throws Exception {
-        String subreddit = message.getHeader("subreddit");
+        String subreddit = getHeader(message, "subreddit");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("action", "sub");
         params.add("sr_name", subreddit);
 
-        String url = config.getApiUrl() + "/api/subscribe";
+        String url = getApiUrl() + "/api/subscribe";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unsubscribe(MessageDTO message) throws Exception {
-        String subreddit = message.getHeader("subreddit");
+        String subreddit = getHeader(message, "subreddit");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("action", "unsub");
         params.add("sr_name", subreddit);
 
-        String url = config.getApiUrl() + "/api/subscribe";
+        String url = getApiUrl() + "/api/subscribe";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO createMultireddit(MessageDTO message) throws Exception {
-        Map<String, Object> multiData = message.getPayloadAsMap();
+        Map<String, Object> multiData = getPayloadAsMap(message);
         String multiName = (String) multiData.get("name");
 
         Map<String, Object> model = new HashMap<>();
@@ -573,7 +586,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
 
         Map<String, Object> request = Map.of("model", model);
 
-        String url = config.getApiUrl() + "/api/multi/user/" + config.getUsername() + "/m/" + multiName;
+        String url = getApiUrl() + "/api/multi/user/" + config.getUsername() + "/m/" + multiName;
         String response = executeApiCall(() -> makePutJsonRequest(url, request));
 
         return createSuccessResponse(message, response);
@@ -584,9 +597,9 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO deleteMultireddit(MessageDTO message) throws Exception {
-        String multiName = message.getHeader("multiName");
+        String multiName = getHeader(message, "multiName");
 
-        String url = config.getApiUrl() + "/api/multi/user/" + config.getUsername() + "/m/" + multiName;
+        String url = getApiUrl() + "/api/multi/user/" + config.getUsername() + "/m/" + multiName;
         String response = executeApiCall(() -> makeDeleteRequest(url));
 
         return createSuccessResponse(message, response);
@@ -594,40 +607,42 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
 
     // Moderation actions
     private MessageDTO approve(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
+        String thingId = getHeader(message, "thingId");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + "/api/approve";
+        String url = getApiUrl() + "/api/approve";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO remove(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        boolean spam = Boolean.parseBoolean(message.getHeader("spam", "false"));
+        String thingId = getHeader(message, "thingId");
+        boolean spam = Boolean.parseBoolean(getHeader(message, "spam", "false"));
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
         params.add("spam", String.valueOf(spam));
 
-        String url = config.getApiUrl() + "/api/remove";
+        String url = getApiUrl() + "/api/remove";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO spam(MessageDTO message) throws Exception {
-        message.setHeader("spam", "true");
+        Map<String, Object> headers = message.getHeaders() != null ? new HashMap<>(message.getHeaders()) : new HashMap<>();
+        headers.put("spam", "true");
+        message.setHeaders(headers);
         return remove(message);
     }
 
     private MessageDTO distinguish(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        String how = message.getHeader("how", "yes"); // yes, no, admin, special
-        boolean sticky = Boolean.parseBoolean(message.getHeader("sticky", "false"));
+        String thingId = getHeader(message, "thingId");
+        String how = getHeader(message, "how", "yes"); // yes, no, admin, special
+        boolean sticky = Boolean.parseBoolean(getHeader(message, "sticky", "false"));
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -635,16 +650,16 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.add("how", how);
         params.add("sticky", String.valueOf(sticky));
 
-        String url = config.getApiUrl() + "/api/distinguish";
+        String url = getApiUrl() + "/api/distinguish";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO sticky(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        boolean state = Boolean.parseBoolean(message.getHeader("state", "true"));
-        int num = Integer.parseInt(message.getHeader("num", "1")); // 1 or 2 for slot
+        String thingId = getHeader(message, "thingId");
+        boolean state = Boolean.parseBoolean(getHeader(message, "state", "true"));
+        int num = Integer.parseInt(getHeader(message, "num", "1")); // 1 or 2 for slot
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -652,61 +667,61 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.add("num", String.valueOf(num));
         params.add("state", String.valueOf(state));
 
-        String url = config.getApiUrl() + "/api/set_subreddit_sticky";
+        String url = getApiUrl() + "/api/set_subreddit_sticky";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO lock(MessageDTO message) throws Exception {
-        String thingId = message.getHeader("thingId");
-        boolean lock = Boolean.parseBoolean(message.getHeader("lock", "true"));
+        String thingId = getHeader(message, "thingId");
+        boolean lock = Boolean.parseBoolean(getHeader(message, "lock", "true"));
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("id", thingId);
 
-        String url = config.getApiUrl() + (lock ? "/api/lock" : "/api/unlock");
+        String url = getApiUrl() + (lock ? "/api/lock" : "/api/unlock");
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO banUser(MessageDTO message) throws Exception {
-        Map<String, Object> banData = message.getPayloadAsMap();
+        Map<String, Object> banData = getPayloadAsMap(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
         params.add("name", (String) banData.get("username"));
         params.add("r", (String) banData.get("subreddit"));
 
-        addOptionalParam(params, banData, "ban_reason");
-        addOptionalParam(params, banData, "ban_message");
-        addOptionalParam(params, banData, "duration");
-        addOptionalParam(params, banData, "note");
+        addOptionalParam(params, banData, "ban_reason", null);
+        addOptionalParam(params, banData, "ban_message", null);
+        addOptionalParam(params, banData, "duration", null);
+        addOptionalParam(params, banData, "note", null);
 
-        String url = config.getApiUrl() + "/api/friend";
+        String url = getApiUrl() + "/api/friend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unbanUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
-        String subreddit = message.getHeader("subreddit");
+        String username = getHeader(message, "username");
+        String subreddit = getHeader(message, "subreddit");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("name", username);
         params.add("r", subreddit);
         params.add("type", "banned");
 
-        String url = config.getApiUrl() + "/api/unfriend";
+        String url = getApiUrl() + "/api/unfriend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO muteUser(MessageDTO message) throws Exception {
-        Map<String, Object> muteData = message.getPayloadAsMap();
+        Map<String, Object> muteData = getPayloadAsMap(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -714,29 +729,29 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.add("r", (String) muteData.get("subreddit"));
         params.add("type", "muted");
 
-        String url = config.getApiUrl() + "/api/friend";
+        String url = getApiUrl() + "/api/friend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO unmuteUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
-        String subreddit = message.getHeader("subreddit");
+        String username = getHeader(message, "username");
+        String subreddit = getHeader(message, "subreddit");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("name", username);
         params.add("r", subreddit);
         params.add("type", "muted");
 
-        String url = config.getApiUrl() + "/api/unfriend";
+        String url = getApiUrl() + "/api/unfriend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO inviteModerator(MessageDTO message) throws Exception {
-        Map<String, Object> inviteData = message.getPayloadAsMap();
+        Map<String, Object> inviteData = getPayloadAsMap(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
@@ -745,29 +760,29 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.add("type", "moderator_invite");
         params.add("permissions", (String) inviteData.getOrDefault("permissions", " + all"));
 
-        String url = config.getApiUrl() + "/api/friend";
+        String url = getApiUrl() + "/api/friend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO removeModerator(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
-        String subreddit = message.getHeader("subreddit");
+        String username = getHeader(message, "username");
+        String subreddit = getHeader(message, "subreddit");
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("name", username);
         params.add("r", subreddit);
         params.add("type", "moderator");
 
-        String url = config.getApiUrl() + "/api/unfriend";
+        String url = getApiUrl() + "/api/unfriend";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO createWikiPage(MessageDTO message) throws Exception {
-        Map<String, Object> wikiData = message.getPayloadAsMap();
+        Map<String, Object> wikiData = getPayloadAsMap(message);
         String subreddit = (String) wikiData.get("subreddit");
         String page = (String) wikiData.get("page");
 
@@ -775,7 +790,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.add("content", (String) wikiData.get("content"));
         params.add("reason", (String) wikiData.getOrDefault("reason", "Created via API"));
 
-        String url = config.getApiUrl() + "/r/" + subreddit + "/api/wiki/edit";
+        String url = getApiUrl() + "/r/" + subreddit + "/api/wiki/edit";
         params.add("page", page);
 
         String response = executeApiCall(() -> makePostRequest(url, params));
@@ -788,19 +803,19 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO searchPosts(MessageDTO message) throws Exception {
-        String query = message.getHeader("query");
-        String subreddit = message.getHeader("subreddit");
-        String sort = message.getHeader("sort", "relevance");
-        String timeFilter = message.getHeader("time", "all");
+        String query = getHeader(message, "query");
+        String subreddit = getHeader(message, "subreddit");
+        String sort = getHeader(message, "sort", "relevance");
+        String timeFilter = getHeader(message, "time", "all");
 
         Map<String, String> params = new HashMap<>();
         params.put("q", query);
         params.put("sort", sort);
         params.put("t", timeFilter);
         params.put("type", "link");
-        params.put("limit", message.getHeader("limit", "25"));
+        params.put("limit", getHeader(message, "limit", "25"));
 
-        String url = config.getApiUrl();
+        String url = getApiUrl();
         if(subreddit != null) {
             url += "/r/" + subreddit;
         }
@@ -812,53 +827,53 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO searchSubreddits(MessageDTO message) throws Exception {
-        String query = message.getHeader("query");
+        String query = getHeader(message, "query");
 
         Map<String, String> params = new HashMap<>();
         params.put("q", query);
         params.put("type", "sr");
-        params.put("limit", message.getHeader("limit", "25"));
+        params.put("limit", getHeader(message, "limit", "25"));
 
-        String url = config.getApiUrl() + "/search.json";
+        String url = getApiUrl() + "/search.json";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO searchUsers(MessageDTO message) throws Exception {
-        String query = message.getHeader("query");
+        String query = getHeader(message, "query");
 
         Map<String, String> params = new HashMap<>();
         params.put("q", query);
         params.put("type", "user");
-        params.put("limit", message.getHeader("limit", "25"));
+        params.put("limit", getHeader(message, "limit", "25"));
 
-        String url = config.getApiUrl() + "/search.json";
+        String url = getApiUrl() + "/search.json";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO setUserFlair(MessageDTO message) throws Exception {
-        Map<String, Object> flairData = message.getPayloadAsMap();
+        Map<String, Object> flairData = getPayloadAsMap(message);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("api_type", "json");
         params.add("name", (String) flairData.get("username"));
         params.add("r", (String) flairData.get("subreddit"));
 
-        addOptionalParam(params, flairData, "flair_template_id");
-        addOptionalParam(params, flairData, "text");
-        addOptionalParam(params, flairData, "css_class");
+        addOptionalParam(params, flairData, "flair_template_id", null);
+        addOptionalParam(params, flairData, "text", null);
+        addOptionalParam(params, flairData, "css_class", null);
 
-        String url = config.getApiUrl() + "/api/flair";
+        String url = getApiUrl() + "/api/flair";
         String response = executeApiCall(() -> makePostRequest(url, params));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO createLinkFlair(MessageDTO message) throws Exception {
-        Map<String, Object> flairData = message.getPayloadAsMap();
+        Map<String, Object> flairData = getPayloadAsMap(message);
         String subreddit = (String) flairData.get("subreddit");
 
         Map<String, Object> request = new HashMap<>();
@@ -867,7 +882,7 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         request.put("background_color", flairData.get("background_color"));
         request.put("text_color", flairData.get("text_color"));
 
-        String url = config.getApiUrl() + "/r/" + subreddit + "/api/flairtemplate_v2";
+        String url = getApiUrl() + "/r/" + subreddit + "/api/flairtemplate_v2";
         String response = executeApiCall(() -> makePostJsonRequest(url, request));
 
         return createSuccessResponse(message, response);
@@ -878,10 +893,10 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO deleteLinkFlair(MessageDTO message) throws Exception {
-        String subreddit = message.getHeader("subreddit");
-        String flairId = message.getHeader("flairId");
+        String subreddit = getHeader(message, "subreddit");
+        String flairId = getHeader(message, "flairId");
 
-        String url = config.getApiUrl() + "/r/" + subreddit + "/api/deleteflairtemplate";
+        String url = getApiUrl() + "/r/" + subreddit + "/api/deleteflairtemplate";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("flair_template_id", flairId);
@@ -892,16 +907,16 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO getUserKarma(MessageDTO message) throws Exception {
-        String url = config.getApiUrl() + "/api/v1/me/karma";
+        String url = getApiUrl() + "/api/v1/me/karma";
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
 
         return createSuccessResponse(message, response);
     }
 
     private MessageDTO getPostInsights(MessageDTO message) throws Exception {
-        String postId = message.getHeader("postId");
+        String postId = getHeader(message, "postId");
 
-        String url = config.getApiUrl() + "/api/info.json";
+        String url = getApiUrl() + "/api/info.json";
         Map<String, String> params = new HashMap<>();
         params.put("id", "t3_" + postId);
 
@@ -911,17 +926,22 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     }
 
     private MessageDTO getSubredditStats(MessageDTO message) throws Exception {
-        String subreddit = message.getHeader("subreddit");
+        String subreddit = getHeader(message, "subreddit");
 
-        String url = config.getApiUrl() + "/r/" + subreddit + "/about.json";
+        String url = getApiUrl() + "/r/" + subreddit + "/about.json";
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
 
         return createSuccessResponse(message, response);
     }
 
     // Helper methods
-    private void addOptionalParam(MultiValueMap<String, String> params, Map<String, Object> source, String key) {
-        addOptionalParam(params, source, key, null);
+    private void addOptionalParam(MultiValueMap<String, String> params, Map<String, Object> source, String key, String defaultValue) {
+        Object value = source.get(key);
+        if (value != null) {
+            params.add(key, value.toString());
+        } else if (defaultValue != null) {
+            params.add(key, defaultValue);
+        }
     }
 
 
@@ -996,6 +1016,83 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
 
     @Override
     public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
-        return AdapterConfiguration.AdapterTypeEnum.REDDIT;
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    // Helper methods for MessageDTO access
+    private String getHeader(MessageDTO message, String key) {
+        return message.getHeaders() != null ? 
+            (String) message.getHeaders().get(key) : null;
+    }
+    
+    private String getHeader(MessageDTO message, String key, String defaultValue) {
+        String value = getHeader(message, key);
+        return value != null ? value : defaultValue;
+    }
+    
+    private Map<String, Object> getPayloadAsMap(MessageDTO message) {
+        try {
+            if (message.getPayload() != null) {
+                return new ObjectMapper().readValue(message.getPayload(), Map.class);
+            }
+        } catch (Exception e) {
+            log.error("Error parsing payload as map", e);
+        }
+        return new HashMap<>();
+    }
+    
+    private String getPayloadAsString(MessageDTO message) {
+        return message.getPayload();
+    }
+    
+    private String getApiUrl() {
+        return config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://oauth.reddit.com";
+    }
+    
+    
+    // Override createSuccessResponse to match expected signature
+    private MessageDTO createSuccessResponse(MessageDTO originalMessage, String responseData) {
+        return createSuccessResponse(originalMessage.getCorrelationId(), responseData, "SUCCESS");
+    }
+    
+    // Required abstract methods from AbstractOutboundAdapter
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.debug("Initializing Reddit outbound adapter receiver");
+    }
+    
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.debug("Destroying Reddit outbound adapter receiver");
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Reddit outbound adapter doesn't support receiving
+        return AdapterResult.failure("Reddit outbound adapter does not support receiving messages");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test by getting user info
+            ensureAccessToken();
+            String url = getApiUrl() + "/api/v1/me";
+            String response = makeGetRequest(url, new HashMap<>());
+            
+            if (response != null) {
+                return AdapterResult.success(null, "Reddit API connection successful");
+            } else {
+                return AdapterResult.failure("Reddit API connection failed");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test Reddit connection: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    protected long getPollingIntervalMs() {
+        // Reddit outbound adapter doesn't support polling
+        return 0;
     }
 }

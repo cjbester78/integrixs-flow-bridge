@@ -4,8 +4,11 @@ package com.integrixs.adapters.social.facebook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.core.OutboundAdapter;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 import com.integrixs.adapters.social.facebook.model.FacebookPost;
 import com.integrixs.adapters.social.facebook.model.FacebookPostResponse;
 import com.integrixs.shared.dto.MessageDTO;
@@ -25,6 +28,10 @@ import java.util.*;
 @Component
 public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(FacebookGraphOutboundAdapter.class);
+    
+    public FacebookGraphOutboundAdapter() {
+        super(null, null); // These will be injected
+    }
 
 
     @Autowired
@@ -38,20 +45,107 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
 
     @Autowired
     private ObjectMapper objectMapper;
+    
+    @Autowired
+    private FacebookGraphApiConfig config;
 
     @Override
-    public AdapterType getType() {
-        return AdapterType.REST; // Using REST as base type for social media
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("pageId", config.getPageId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("features", config.getFeatures());
+        }
+        return configMap;
+    }
+    
+    @Override
+    public MessageDTO processMessage(MessageDTO message) {
+        try {
+            send(message, message.getCorrelationId(), config);
+            return createSuccessResponse(message.getCorrelationId(), 
+                "Message processed successfully", "send");
+        } catch (Exception e) {
+            return createErrorResponse(message, e.getMessage());
+        }
+    }
+    
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Delegate to send method
+        MessageDTO message = new MessageDTO();
+        message.setPayload(payload.toString());
+        message.setHeaders(headers);
+        send(message, (String) headers.get("flowId"), config);
+        return AdapterResult.success("Message sent successfully");
+    }
+    
+    protected void doSenderInitialize() throws Exception {
+        // No specific initialization needed
+        log.debug("Facebook Graph outbound adapter initialized");
+    }
+    
+    protected void doSenderDestroy() throws Exception {
+        // No specific cleanup needed
+        log.debug("Facebook Graph outbound adapter destroyed");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        // Test connection by validating access token
+        try {
+            if (config != null && config.getPageId() != null && (config.getAccessToken() != null || config.getPageAccessToken() != null)) {
+                return AdapterResult.success("Configuration is valid");
+            } else {
+                return AdapterResult.failure("Invalid configuration");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Outbound adapter does not support receiving
+        return AdapterResult.success(null, "Outbound adapter does not support receiving");
+    }
+    
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        // No receiver initialization needed for outbound adapter
+        log.debug("Facebook Graph outbound adapter receiver initialized");
+    }
+    
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        // No receiver cleanup needed for outbound adapter
+        log.debug("Facebook Graph outbound adapter receiver destroyed");
+    }
+    
+    @Override
+    protected long getPollingIntervalMs() {
+        // Not used for outbound adapter
+        return 0;
     }
 
-    @Override
+    
     public void send(MessageDTO message, String flowId, FacebookGraphApiConfig config) {
         try {
             // Ensure we have valid access token
             String accessToken = ensureValidAccessToken(config);
 
             // Determine the type of operation from message headers
-            String operationType = message.getHeaders().getOrDefault("operationType", "post");
+            String operationType = (String) message.getHeaders().getOrDefault("operationType", "post");
 
             switch(operationType.toLowerCase()) {
                 case "post":
@@ -113,9 +207,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
 
             // Add Facebook post ID to message headers for tracking
             message.getHeaders().put("facebook_post_id", response.getId());
-            if(response.getPermalinkUrl() != null) {
-                message.getHeaders().put("facebook_permalink", response.getPermalinkUrl());
-            }
+            // Store response ID only - permalink URL not available in basic response
 
             log.info("Created Facebook post with ID: {}", response.getId());
 
@@ -130,7 +222,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
      */
     private void postComment(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
-            String parentId = message.getHeaders().get("parent_id");
+            String parentId = (String) message.getHeaders().get("parent_id");
             if(parentId == null) {
                 throw new IllegalArgumentException("Parent ID is required for comments");
             }
@@ -152,7 +244,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
      */
     private void deleteContent(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
-            String contentId = message.getHeaders().get("content_id");
+            String contentId = (String) message.getHeaders().get("content_id");
             if(contentId == null) {
                 throw new IllegalArgumentException("Content ID is required for deletion");
             }
@@ -185,7 +277,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
      */
     private void createStory(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
-            if(!config.getFeatures().isEnableStories()) {
+            if(config.getFeatures() == null || !config.getFeatures().isStoriesEnabled()) {
                 throw new IllegalStateException("Stories feature is not enabled");
             }
 
@@ -212,7 +304,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
      */
     private void createReel(MessageDTO message, FacebookGraphApiConfig config, String accessToken) {
         try {
-            if(!config.getFeatures().isEnableReels()) {
+            if(config.getFeatures() == null || !config.getFeatures().isReelsEnabled()) {
                 throw new IllegalStateException("Reels feature is not enabled");
             }
 
@@ -244,7 +336,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
         try {
             Map<String, Object> payload = parsePayload(message);
 
-            FacebookPost.FacebookPostBuilder builder = FacebookPost.builder();
+            FacebookPost.Builder builder = FacebookPost.builder();
 
             // Basic content
             builder.message(extractTextContent(message));
@@ -300,7 +392,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
      * Build Facebook targeting from data
      */
     private FacebookPost.FacebookTargeting buildTargeting(Map<String, Object> targetingData) {
-        FacebookPost.FacebookTargeting.FacebookTargetingBuilder builder =
+        FacebookPost.FacebookTargeting.Builder builder =
             FacebookPost.FacebookTargeting.builder();
 
         if(targetingData.containsKey("countries")) {
@@ -380,7 +472,7 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
             token = config.getAccessToken();
         }
 
-        if(token != null && config.isEncrypted(token)) {
+        if(token != null && token.startsWith("enc:")) {
             token = encryptionService.decrypt(token);
         }
 
@@ -391,13 +483,13 @@ public class FacebookGraphOutboundAdapter extends AbstractSocialMediaOutboundAda
         return token;
     }
 
-    @Override
     protected void validateConfiguration(FacebookGraphApiConfig config) {
         if(config.getPageId() == null || config.getPageId().isEmpty()) {
             throw new IllegalArgumentException("Facebook Page ID is required");
         }
 
-        if(!config.hasValidToken() && !config.hasValidPageToken()) {
+        if((config.getAccessToken() == null || config.getAccessToken().isEmpty()) && 
+           (config.getPageAccessToken() == null || config.getPageAccessToken().isEmpty())) {
             throw new IllegalArgumentException("Valid access token is required");
         }
 
