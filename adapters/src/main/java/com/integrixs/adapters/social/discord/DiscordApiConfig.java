@@ -17,6 +17,45 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     private String applicationId;
     private DiscordFeatures features = new DiscordFeatures();
     private DiscordLimits limits = new DiscordLimits();
+    
+    // Missing fields from DiscordFeatures (referenced by getters/setters)
+    private boolean enableGuildManagement;
+    private boolean enableChannelOperations;
+    private boolean enableMessageManagement;
+    private boolean enableVoiceSupport;
+    private boolean enableSlashCommands;
+    private boolean enableWebhooks;
+    private boolean enableRoleManagement;
+    private boolean enableMemberManagement;
+    private boolean enableEmojiManagement;
+    private boolean enableEventManagement;
+    private boolean enableThreadSupport;
+    private boolean enableStageChannels;
+    private boolean enableAutoModeration;
+    private boolean enableInteractions;
+    private boolean enableEmbeds;
+    private boolean enableReactions;
+    private boolean enableDirectMessages;
+    private boolean enableFileUploads;
+    private boolean enableVoiceRecording;
+    private boolean enableStreamNotifications;
+    
+    // Missing fields from DiscordLimits (referenced by getters/setters)
+    private int maxMessageLength;
+    private int maxEmbedLength;
+    private int maxEmbedFields;
+    private int maxFileSize;
+    private int maxReactionsPerMessageDTO;
+    private int maxChannelsPerGuild;
+    private int maxRolesPerGuild;
+    private int maxEmojisPerGuild;
+    private int maxWebhooksPerChannel;
+    private int maxInvitesPerGuild;
+    private int maxBansPerGuild;
+    private int rateLimitPerMinute;
+    private int bulkDeleteLimit;
+    private int messageHistoryLimit;
+    private int guildMemberLimit;
 
         public static class DiscordFeatures {
         private boolean enableGuildManagement = true;
@@ -556,6 +595,11 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
             return code;
         }
     }
+    @Override
+    public String getPlatformName() {
+        return "discord";
+    }
+
     // Getters and Setters
     public String getClientId() {
         return clientId;
@@ -791,7 +835,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     public void setMaxBansPerGuild(int maxBansPerGuild) {
         this.maxBansPerGuild = maxBansPerGuild;
     }
-    public int getRateLimitPerMinute() {
+    public Integer getRateLimitPerMinute() {
         return rateLimitPerMinute;
     }
     public void setRateLimitPerMinute(int rateLimitPerMinute) {

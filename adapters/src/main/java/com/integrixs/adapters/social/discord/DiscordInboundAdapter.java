@@ -67,6 +67,8 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private final Map<String, JsonNode> guildCache = new ConcurrentHashMap<>();
     private final Map<String, JsonNode> channelCache = new ConcurrentHashMap<>();
     private final Map<String, JsonNode> userCache = new ConcurrentHashMap<>();
+    
+    private String channelId;
 
     @Override
     public com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum getAdapterType() {
@@ -77,9 +79,13 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
         return AdapterType.REST; // Using REST as Discord is not yet in AdapterType enum
     }
 
-    @Override
     public String getName() {
         return "Discord API Adapter";
+    }
+    
+    @Override
+    public DiscordApiConfig getConfig() {
+        return config;
     }
     
     @Override
@@ -325,7 +331,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
         // Create message for queue
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setPayload(objectMapper.writeValueAsString(eventData));
+        try {
+            message.setPayload(objectMapper.writeValueAsString(eventData));
+        } catch (Exception e) {
+            log.error("Error serializing event data", e);
+            return;
+        }
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "discord_event");
         headers.put("source", "discord_gateway");
@@ -459,7 +470,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
                 MessageDTO message = new MessageDTO();
                 message.setCorrelationId(UUID.randomUUID().toString());
-                message.setPayload(objectMapper.writeValueAsString(guildData));
+                try {
+                    message.setPayload(objectMapper.writeValueAsString(guildData));
+                } catch (Exception ex) {
+                    log.error("Error serializing guild data", ex);
+                    return;
+                }
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("type", "guild");
                 headers.put("source", "discord");
@@ -489,7 +505,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
                 MessageDTO message = new MessageDTO();
                 message.setCorrelationId(UUID.randomUUID().toString());
-                message.setPayload(objectMapper.writeValueAsString(channelData));
+                try {
+                    message.setPayload(objectMapper.writeValueAsString(channelData));
+                } catch (Exception ex) {
+                    log.error("Error serializing channel data", ex);
+                    return;
+                }
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("type", "channel");
                 headers.put("source", "discord");
@@ -524,7 +545,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
                 MessageDTO msg = new MessageDTO();
                 msg.setCorrelationId(UUID.randomUUID().toString());
-                msg.setPayload(objectMapper.writeValueAsString(messageData));
+                try {
+                    msg.setPayload(objectMapper.writeValueAsString(messageData));
+                } catch (Exception ex) {
+                    log.error("Error serializing message data", ex);
+                    return;
+                }
                 Map<String, Object> msgHeaders = new HashMap<>();
                 msgHeaders.put("type", "message");
                 msgHeaders.put("source", "discord");
@@ -553,7 +579,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
                 MessageDTO message = new MessageDTO();
                 message.setCorrelationId(UUID.randomUUID().toString());
-                message.setPayload(objectMapper.writeValueAsString(memberData));
+                try {
+                    message.setPayload(objectMapper.writeValueAsString(memberData));
+                } catch (Exception ex) {
+                    log.error("Error serializing member data", ex);
+                    return;
+                }
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("type", "member");
                 headers.put("source", "discord");
@@ -589,7 +620,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
                 MessageDTO message = new MessageDTO();
                 message.setCorrelationId(UUID.randomUUID().toString());
-                message.setPayload(objectMapper.writeValueAsString(eventData));
+                try {
+                    message.setPayload(objectMapper.writeValueAsString(eventData));
+                } catch (Exception ex) {
+                    log.error("Error serializing scheduled event data", ex);
+                    return;
+                }
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("type", "scheduled_event");
                 headers.put("source", "discord");
@@ -622,7 +658,12 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
                 MessageDTO message = new MessageDTO();
                 message.setCorrelationId(UUID.randomUUID().toString());
-                message.setPayload(objectMapper.writeValueAsString(voiceData));
+                try {
+                    message.setPayload(objectMapper.writeValueAsString(voiceData));
+                } catch (Exception ex) {
+                    log.error("Error serializing voice state data", ex);
+                    return;
+                }
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("type", "voice_state");
                 headers.put("source", "discord");
@@ -698,6 +739,28 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     // Helper methods
     private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method) {
         return makeAuthenticatedRequest(endpoint, method, null);
+    }
+    
+    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, Object body) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bot " + config.getBotToken());
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<Object> entity = new HttpEntity<>(body, headers);
+            
+            ResponseEntity<JsonNode> response = restTemplate.exchange(
+                API_BASE_URL + endpoint,
+                method,
+                entity,
+                JsonNode.class
+            );
+            
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            log.error("Error making authenticated request to Discord API: {} {}", method, endpoint, e);
+            return null;
+        }
     }
 
 
