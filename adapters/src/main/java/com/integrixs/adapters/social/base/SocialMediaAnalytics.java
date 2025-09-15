@@ -19,6 +19,18 @@ public class SocialMediaAnalytics {
     private ReachMetrics reach;
     private AudienceMetrics audience;
     private Map<String, Object> customMetrics;
+    
+    // Direct fields for backward compatibility
+    private long likes;
+    private long comments;
+    private long shares;
+    private long saves;
+    private long clicks;
+    private double engagementRate;
+    private Map<String, Long> reactions;
+    private long impressions;
+    private long uniqueViews;
+    private long videoViews;
 
                     public static class EngagementMetrics {
         private long likes;

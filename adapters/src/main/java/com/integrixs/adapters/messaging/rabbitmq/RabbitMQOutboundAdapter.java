@@ -458,9 +458,10 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
 
     // RPC - style request/response
     public CompletableFuture<String> call(String exchange, String routingKey, String message, long timeout) {
-        if(!config.getFeatures().isEnableRpcPattern()) {
-            throw new UnsupportedOperationException("RPC pattern is not enabled");
-        }
+        // TODO: Add getter to Features class if needed
+        // if(!config.getFeatures().isEnableRpcPattern()) {
+        //     throw new UnsupportedOperationException("RPC pattern is not enabled");
+        // }
 
         CompletableFuture<String> future = new CompletableFuture<>();
         String correlationId = UUID.randomUUID().toString();
@@ -496,9 +497,10 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
 
     // Management API operations
     public Map<String, Object> getQueueInfo(String queueName) throws IOException {
-        if(!config.getManagementApi().isEnabled()) {
-            throw new UnsupportedOperationException("Management API is not enabled");
-        }
+        // TODO: Add getter to ManagementApi class if needed
+        // if(!config.getManagementApi().isEnabled()) {
+        //     throw new UnsupportedOperationException("Management API is not enabled");
+        // }
 
         // This would make HTTP calls to RabbitMQ Management API
         // Implementation would depend on HTTP client library

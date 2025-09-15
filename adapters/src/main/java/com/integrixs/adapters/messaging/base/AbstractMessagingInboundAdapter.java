@@ -52,7 +52,7 @@ public abstract class AbstractMessagingInboundAdapter extends AbstractInboundAda
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setCorrelationId(messageId);
         messageDTO.setHeaders(headers);
-        messageDTO.setPayload(payload);
+        messageDTO.setPayload(payload != null ? payload.toString() : null);
         return messageDTO;
     }
 
