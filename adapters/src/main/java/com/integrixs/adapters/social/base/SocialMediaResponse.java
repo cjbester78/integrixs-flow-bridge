@@ -22,6 +22,12 @@ public class SocialMediaResponse {
     private String postUrl;
     private Map<String, Object> metrics;
     private RateLimitInfo rateLimitInfo;
+    
+    // Direct fields for backward compatibility
+    private int remaining;
+    private int limit;
+    private long resetTime;
+    private int retryAfter;
 
     public enum ResponseStatus {
         SUCCESS,

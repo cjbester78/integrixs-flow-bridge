@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.messaging.sms.SMSConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -34,6 +35,10 @@ import java.util.stream.Collectors;
 
 @Component
 public class SMSInboundAdapter extends AbstractInboundAdapter {
+    
+    public SMSInboundAdapter() {
+        super(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.SMS);
+    }
     private static final Logger log = LoggerFactory.getLogger(SMSInboundAdapter.class);
 
 
@@ -543,6 +548,12 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
             return AdapterResult.failure("No SMS provider configured", new AdapterException("No SMS provider configured"));
         }
         return AdapterResult.success(null, "SMS Inbound adapter configured for provider: " + config.getProvider());
+    }
+    
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) {
+        // SMS Inbound adapter doesn't send - it receives messages via webhook
+        throw new UnsupportedOperationException("SMS Inbound adapter only receives messages via webhook");
     }
 
     @PreDestroy

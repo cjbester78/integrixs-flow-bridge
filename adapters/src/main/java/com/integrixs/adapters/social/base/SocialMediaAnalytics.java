@@ -31,6 +31,14 @@ public class SocialMediaAnalytics {
     private long impressions;
     private long uniqueViews;
     private long videoViews;
+    private long reachCount;
+    private long videoCompletionRate;
+    private Map<String, Long> reachBySource;
+    private Map<String, Long> ageGroups;
+    private Map<String, Long> genders;
+    private Map<String, Long> locations;
+    private Map<String, Long> devices;
+    private Map<String, Long> interests;
 
                     public static class EngagementMetrics {
         private long likes;
@@ -150,7 +158,10 @@ public class SocialMediaAnalytics {
         this.impressions = impressions;
     }
     public long getReachCount() {
-        return reach;
+        return reachCount;
+    }
+    public void setReachCount(long reachCount) {
+        this.reachCount = reachCount;
     }
     public long getUniqueViews() {
         return uniqueViews;
@@ -376,7 +387,7 @@ public class SocialMediaAnalytics {
             obj.engagementRate = this.engagementRate;
             obj.reactions = this.reactions;
             obj.impressions = this.impressions;
-            obj.reach = this.reach;
+            obj.reachCount = this.reachCount;
             obj.uniqueViews = this.uniqueViews;
             obj.videoViews = this.videoViews;
             obj.videoCompletionRate = this.videoCompletionRate;

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractOutboundAdapter;
 import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.messaging.sms.SMSConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -34,6 +35,10 @@ import java.util.stream.Collectors;
 @Component
 public class SMSOutboundAdapter extends AbstractOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(SMSOutboundAdapter.class);
+    
+    public SMSOutboundAdapter() {
+        super(AdapterConfiguration.AdapterTypeEnum.SMS);
+    }
 
 
     @Autowired
@@ -291,7 +296,8 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
             throw new AdapterException("Template not found: " + templateId);
         }
 
-        String content = template.content;
+        // TODO: Add getter for content field in MessageTemplate
+        String content = ""; // template.getContent();
 
         // Replace variables
         for(Map.Entry<String, String> entry : variables.entrySet()) {

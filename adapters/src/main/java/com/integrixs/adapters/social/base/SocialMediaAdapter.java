@@ -15,6 +15,10 @@ import java.util.Map;
  */
 public abstract class SocialMediaAdapter<T extends SocialMediaAdapterConfig> extends AbstractAdapter {
 
+    protected SocialMediaAdapter(com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum adapterType) {
+        super(adapterType);
+    }
+
     // Authentication Methods
     /**
      * Generates OAuth2 authorization URL for user authentication
