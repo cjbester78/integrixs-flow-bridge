@@ -14,7 +14,7 @@ import java.util.*;
  * Builder for creating test data
  */
 public class TestDataBuilder {
-    
+
     /**
      * Create a test integration flow request
      */
@@ -29,7 +29,7 @@ public class TestDataBuilder {
         request.setActive(true);
         return request;
     }
-    
+
     /**
      * Create a test HTTP inbound adapter request
      */
@@ -40,24 +40,24 @@ public class TestDataBuilder {
         request.setMode("INBOUND");
         request.setDirection("OUTBOUND");
         request.setDescription("HTTP adapter for receiving data");
-        
+
         Map<String, Object> config = new HashMap<>();
-        config.put("url", "http://localhost:8081/test-endpoint");
+        config.put("url", "http://localhost:8081/test - endpoint");
         config.put("method", "GET");
-        config.put("headers", Map.of("Content-Type", "application/json"));
-        
+        config.put("headers", Map.of("Content - Type", "application/json"));
+
         // Convert configuration to JSON string
         try {
             request.setConfiguration(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(config));
-        } catch (Exception e) {
-            request.setConfiguration("{}");
+        } catch(Exception e) {
+            request.setConfiguration(" {}");
         }
-        
+
         request.setActive(true);
         request.setBusinessComponentId(UUID.randomUUID().toString());
         return request;
     }
-    
+
     /**
      * Create a test JDBC outbound adapter request
      */
@@ -68,32 +68,32 @@ public class TestDataBuilder {
         request.setMode("OUTBOUND");
         request.setDirection("INBOUND");
         request.setDescription("JDBC adapter for sending data");
-        
+
         Map<String, Object> config = new HashMap<>();
         config.put("driverClassName", "org.postgresql.Driver");
         config.put("url", "jdbc:postgresql://localhost:5432/testdb");
         config.put("username", "testuser");
         config.put("password", "testpass");
-        config.put("query", "INSERT INTO test_table (data) VALUES (:data)");
-        
+        config.put("query", "INSERT INTO test_table(data) VALUES(:data)");
+
         // Convert configuration to JSON string
         try {
             request.setConfiguration(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(config));
-        } catch (Exception e) {
-            request.setConfiguration("{}");
+        } catch(Exception e) {
+            request.setConfiguration(" {}");
         }
-        
+
         request.setActive(true);
         request.setBusinessComponentId(UUID.randomUUID().toString());
         return request;
     }
-    
+
     /**
      * Create test field mappings
      */
     public static List<Map<String, Object>> createTestFieldMappings() {
         List<Map<String, Object>> mappings = new ArrayList<>();
-        
+
         Map<String, Object> mapping1 = new HashMap<>();
         mapping1.put("sourceFields", Arrays.asList("input.id"));
         mapping1.put("targetField", "output.recordId");
@@ -101,7 +101,7 @@ public class TestDataBuilder {
         mapping1.put("mappingOrder", 1);
         mapping1.put("isActive", true);
         mappings.add(mapping1);
-        
+
         Map<String, Object> mapping2 = new HashMap<>();
         mapping2.put("sourceFields", Arrays.asList("input.name"));
         mapping2.put("targetField", "output.fullName");
@@ -110,10 +110,10 @@ public class TestDataBuilder {
         mapping2.put("mappingOrder", 2);
         mapping2.put("isActive", true);
         mappings.add(mapping2);
-        
+
         return mappings;
     }
-    
+
     /**
      * Create test adapter context
      */
@@ -122,13 +122,13 @@ public class TestDataBuilder {
                 .executionId(UUID.randomUUID().toString())
                 .flowId(UUID.randomUUID().toString())
                 .inputData(Map.of("test", "data"))
-                .headers(Map.of("Content-Type", "application/json"))
+                .headers(Map.of("Content - Type", "application/json"))
                 .properties(new HashMap<>())
                 .correlationId(UUID.randomUUID().toString())
                 .timeout(30000L)
                 .build();
     }
-    
+
     /**
      * Create test adapter metadata
      */
@@ -146,7 +146,7 @@ public class TestDataBuilder {
                 .iconUrl("/icons/" + type.toLowerCase() + ".png")
                 .build();
     }
-    
+
     /**
      * Create test payload
      */
@@ -159,10 +159,10 @@ public class TestDataBuilder {
                 "field1", "value1",
                 "field2", 123,
                 "field3", true
-        ));
+       ));
         return payload;
     }
-    
+
     /**
      * Create complex test payload
      */
@@ -175,17 +175,17 @@ public class TestDataBuilder {
                 "items", Arrays.asList(
                         Map.of("sku", "ITEM-001", "quantity", 2, "price", 29.99),
                         Map.of("sku", "ITEM-002", "quantity", 1, "price", 49.99)
-                ),
+               ),
                 "shipping", Map.of(
                         "address", "123 Main St",
                         "city", "New York",
                         "state", "NY",
                         "zip", "10001"
-                )
-        ));
+               )
+       ));
         return payload;
     }
-    
+
     /**
      * Create test user
      */
@@ -199,14 +199,14 @@ public class TestDataBuilder {
         user.put("createdAt", LocalDateTime.now());
         return user;
     }
-    
+
     /**
      * Create test system configuration
      */
     public static Map<String, String> createTestSystemConfig() {
         Map<String, String> config = new HashMap<>();
         config.put("environment.type", "DEVELOPMENT");
-        config.put("jwt.secret", "test-secret-key");
+        config.put("jwt.secret", "test - secret - key");
         config.put("jwt.expiration", "3600000");
         config.put("monitoring.enabled", "true");
         config.put("monitoring.retention.days", "7");

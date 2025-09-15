@@ -18,14 +18,14 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class DatabaseQueryLogger implements StatementInspector {
-    
+
     private static final long SLOW_QUERY_THRESHOLD_MS = 1000;
-    private static final Pattern TABLE_PATTERN = Pattern.compile("(?:FROM|JOIN|INTO|UPDATE|DELETE FROM)\\s+([a-zA-Z_][a-zA-Z0-9_]*)", Pattern.CASE_INSENSITIVE);
-    
+    private static final Pattern TABLE_PATTERN = Pattern.compile("(?:FROM|JOIN|INTO|UPDATE|DELETE FROM)\\s + ([a - zA - Z_][a - zA - Z0-9_]*)", Pattern.CASE_INSENSITIVE);
+
     // Query statistics
     private final ConcurrentHashMap<String, QueryStats> queryStats = new ConcurrentHashMap<>();
     private final ThreadLocal<QueryContext> queryContext = new ThreadLocal<>();
-    
+
     /**
      * Inspect and potentially modify SQL before execution
      */
@@ -38,89 +38,89 @@ public class DatabaseQueryLogger implements StatementInspector {
         context.correlationId = MDC.get("correlationId");
         context.userId = MDC.get("userId");
         context.operationId = MDC.get("operationId");
-        
+
         queryContext.set(context);
-        
+
         // Log query start
         String queryType = extractQueryType(sql);
         String tables = extractTables(sql);
-        
-        log.debug("#DB.QUERY.START#{}#{}#{}#{}#{}",
+
+        log.debug("#DB.QUERY.START# {}# {}# {}# {}# {}",
             queryType,
             tables,
             context.correlationId,
             context.userId,
             sql.length() > 200 ? sql.substring(0, 200) + "..." : sql
-        );
-        
+       );
+
         return sql;
     }
-    
+
     /**
-     * Log query completion (call this from a JPA event listener)
+     * Log query completion(call this from a JPA event listener)
      */
     public void logQueryCompletion() {
         QueryContext context = queryContext.get();
-        if (context == null) {
+        if(context == null) {
             return;
         }
-        
+
         try {
             long duration = System.currentTimeMillis() - context.startTime;
             String queryType = extractQueryType(context.sql);
             String tables = extractTables(context.sql);
-            
+
             // Update statistics
             String statsKey = queryType + ":" + tables;
             queryStats.computeIfAbsent(statsKey, k -> new QueryStats(queryType, tables))
                 .recordExecution(duration);
-            
+
             // Log based on duration
-            if (duration >= SLOW_QUERY_THRESHOLD_MS) {
-                log.warn("#DB.QUERY.SLOW#{}#{}#{}ms#{}#{}#{}",
+            if(duration >= SLOW_QUERY_THRESHOLD_MS) {
+                log.warn("#DB.QUERY.SLOW# {}# {}# {}ms# {}# {}# {}",
                     queryType,
                     tables,
                     duration,
                     context.correlationId,
                     context.userId,
                     context.sql
-                );
+               );
             } else {
-                log.debug("#DB.QUERY.COMPLETE#{}#{}#{}ms#{}#{}",
+                log.debug("#DB.QUERY.COMPLETE# {}# {}# {}ms# {}# {}",
                     queryType,
                     tables,
                     duration,
                     context.correlationId,
                     context.userId
-                );
+               );
             }
-            
+
             // Log query details for analysis
-            if (log.isTraceEnabled()) {
+            if(log.isTraceEnabled()) {
                 log.trace("SQL Query Details - Type: {}, Tables: {}, Duration: {}ms, SQL: {}",
                     queryType, tables, duration, context.sql);
             }
-            
+
         } finally {
             queryContext.remove();
         }
     }
-    
+
     /**
      * Log query error
      */
     public void logQueryError(Exception error) {
         QueryContext context = queryContext.get();
-        if (context == null) {
+        if(context == null) {
             return;
         }
-        
+
         try {
             long duration = System.currentTimeMillis() - context.startTime;
             String queryType = extractQueryType(context.sql);
             String tables = extractTables(context.sql);
-            
-            log.error("#DB.QUERY.ERROR#{}#{}#{}ms#{}#{}#{}#{}",
+
+            log.error("#DB.QUERY.ERROR# {}# {}# {}ms# {}# {}# {}# {}",
                 queryType,
                 tables,
                 duration,
@@ -128,58 +128,58 @@ public class DatabaseQueryLogger implements StatementInspector {
                 error.getMessage(),
                 context.correlationId,
                 context.sql
-            );
-            
+           );
+
         } finally {
             queryContext.remove();
         }
     }
-    
+
     /**
      * Extract query type from SQL
      */
     private String extractQueryType(String sql) {
-        if (sql == null) return "UNKNOWN";
-        
+        if(sql == null) return "UNKNOWN";
+
         String trimmed = sql.trim().toUpperCase();
-        if (trimmed.startsWith("SELECT")) return "SELECT";
-        if (trimmed.startsWith("INSERT")) return "INSERT";
-        if (trimmed.startsWith("UPDATE")) return "UPDATE";
-        if (trimmed.startsWith("DELETE")) return "DELETE";
-        if (trimmed.startsWith("CREATE")) return "DDL";
-        if (trimmed.startsWith("ALTER")) return "DDL";
-        if (trimmed.startsWith("DROP")) return "DDL";
-        if (trimmed.startsWith("CALL")) return "PROCEDURE";
-        
+        if(trimmed.startsWith("SELECT")) return "SELECT";
+        if(trimmed.startsWith("INSERT")) return "INSERT";
+        if(trimmed.startsWith("UPDATE")) return "UPDATE";
+        if(trimmed.startsWith("DELETE")) return "DELETE";
+        if(trimmed.startsWith("CREATE")) return "DDL";
+        if(trimmed.startsWith("ALTER")) return "DDL";
+        if(trimmed.startsWith("DROP")) return "DDL";
+        if(trimmed.startsWith("CALL")) return "PROCEDURE";
+
         return "OTHER";
     }
-    
+
     /**
      * Extract table names from SQL
      */
     private String extractTables(String sql) {
-        if (sql == null) return "UNKNOWN";
-        
+        if(sql == null) return "UNKNOWN";
+
         StringBuilder tables = new StringBuilder();
         Matcher matcher = TABLE_PATTERN.matcher(sql);
-        
-        while (matcher.find()) {
-            if (tables.length() > 0) {
+
+        while(matcher.find()) {
+            if(tables.length() > 0) {
                 tables.append(",");
             }
             tables.append(matcher.group(1));
         }
-        
+
         return tables.length() > 0 ? tables.toString() : "UNKNOWN";
     }
-    
+
     /**
      * Get query statistics
      */
     public ConcurrentHashMap<String, QueryStats> getQueryStats() {
         return new ConcurrentHashMap<>(queryStats);
     }
-    
+
     /**
      * Reset query statistics
      */
@@ -187,27 +187,27 @@ public class DatabaseQueryLogger implements StatementInspector {
         queryStats.clear();
         log.info("Database query statistics reset");
     }
-    
+
     /**
      * Log current statistics
      */
     public void logStatistics() {
         log.info("#DB.STATS.START# Database Query Statistics Report");
-        
+
         queryStats.forEach((key, stats) -> {
-            log.info("#DB.STATS#{}#{}#count={}#avgTime={}ms#maxTime={}ms#totalTime={}ms",
+            log.info("#DB.STATS# {}# {}#count = {}#avgTime = {}ms#maxTime = {}ms#totalTime = {}ms",
                 stats.getQueryType(),
                 stats.getTables(),
                 stats.getExecutionCount(),
                 stats.getAverageTime(),
                 stats.getMaxTime(),
                 stats.getTotalTime()
-            );
+           );
         });
-        
+
         log.info("#DB.STATS.END# Total query types: {}", queryStats.size());
     }
-    
+
     /**
      * Query context for tracking
      */
@@ -218,7 +218,7 @@ public class DatabaseQueryLogger implements StatementInspector {
         String userId;
         String operationId;
     }
-    
+
     /**
      * Query statistics
      */
@@ -229,32 +229,32 @@ public class DatabaseQueryLogger implements StatementInspector {
         private final AtomicLong totalTime = new AtomicLong(0);
         private final AtomicLong maxTime = new AtomicLong(0);
         private volatile LocalDateTime lastExecuted;
-        
+
         public QueryStats(String queryType, String tables) {
             this.queryType = queryType;
             this.tables = tables;
         }
-        
+
         public void recordExecution(long duration) {
             executionCount.incrementAndGet();
             totalTime.addAndGet(duration);
-            
+
             // Update max time
             long currentMax;
             do {
                 currentMax = maxTime.get();
-            } while (duration > currentMax && !maxTime.compareAndSet(currentMax, duration));
-            
+            } while(duration > currentMax && !maxTime.compareAndSet(currentMax, duration));
+
             lastExecuted = LocalDateTime.now();
         }
-        
+
         public String getQueryType() { return queryType; }
         public String getTables() { return tables; }
         public long getExecutionCount() { return executionCount.get(); }
         public long getTotalTime() { return totalTime.get(); }
         public long getMaxTime() { return maxTime.get(); }
         public LocalDateTime getLastExecuted() { return lastExecuted; }
-        
+
         public double getAverageTime() {
             long count = executionCount.get();
             return count > 0 ? (double) totalTime.get() / count : 0;

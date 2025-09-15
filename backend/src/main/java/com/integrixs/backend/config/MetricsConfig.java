@@ -28,16 +28,16 @@ import jakarta.servlet.http.HttpServletResponse;
 @Slf4j
 @Configuration
 public class MetricsConfig implements WebMvcConfigurer {
-    
-    @Value("${spring.application.name:integrixs-flow-bridge}")
+
+    @Value("$ {spring.application.name:integrixs - flow - bridge}")
     private String applicationName;
-    
-    @Value("${integrix.metrics.tags.environment:development}")
+
+    @Value("$ {integrix.metrics.tags.environment:development}")
     private String environment;
-    
-    @Value("${integrix.metrics.tags.region:default}")
+
+    @Value("$ {integrix.metrics.tags.region:default}")
     private String region;
-    
+
     /**
      * Customize the meter registry with common tags
      */
@@ -48,9 +48,9 @@ public class MetricsConfig implements WebMvcConfigurer {
                 "application", applicationName,
                 "environment", environment,
                 "region", region
-            );
+           );
     }
-    
+
     /**
      * Enable @Timed annotation support
      */
@@ -58,7 +58,7 @@ public class MetricsConfig implements WebMvcConfigurer {
     public TimedAspect timedAspect(MeterRegistry registry) {
         return new TimedAspect(registry);
     }
-    
+
     /**
      * JVM metrics
      */
@@ -66,22 +66,22 @@ public class MetricsConfig implements WebMvcConfigurer {
     public JvmMemoryMetrics jvmMemoryMetrics() {
         return new JvmMemoryMetrics();
     }
-    
+
     @Bean
     public JvmGcMetrics jvmGcMetrics() {
         return new JvmGcMetrics();
     }
-    
+
     @Bean
     public JvmThreadMetrics jvmThreadMetrics() {
         return new JvmThreadMetrics();
     }
-    
+
     @Bean
     public ClassLoaderMetrics classLoaderMetrics() {
         return new ClassLoaderMetrics();
     }
-    
+
     /**
      * System metrics
      */
@@ -89,12 +89,12 @@ public class MetricsConfig implements WebMvcConfigurer {
     public ProcessorMetrics processorMetrics() {
         return new ProcessorMetrics();
     }
-    
+
     @Bean
     public UptimeMetrics uptimeMetrics() {
         return new UptimeMetrics();
     }
-    
+
     /**
      * Custom business metrics helper
      */
@@ -102,7 +102,7 @@ public class MetricsConfig implements WebMvcConfigurer {
     public BusinessMetrics businessMetrics(MeterRegistry meterRegistry) {
         return new BusinessMetrics(meterRegistry);
     }
-    
+
     /**
      * HTTP request metrics interceptor
      */
@@ -110,105 +110,105 @@ public class MetricsConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new HttpMetricsInterceptor());
     }
-    
+
     /**
      * Business metrics helper class
      */
     public static class BusinessMetrics {
         private final MeterRegistry meterRegistry;
-        
+
         public BusinessMetrics(MeterRegistry meterRegistry) {
             this.meterRegistry = meterRegistry;
             log.info("Initialized business metrics collector");
         }
-        
+
         public void recordFlowExecution(String flowName, String status, long duration) {
             meterRegistry.counter("integrix.flow.executions",
                 "flow", flowName,
                 "status", status
-            ).increment();
-            
+           ).increment();
+
             meterRegistry.timer("integrix.flow.duration",
                 "flow", flowName,
                 "status", status
-            ).record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
+           ).record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
         }
-        
+
         public void recordAdapterCall(String adapterType, String operation, boolean success, long duration) {
             meterRegistry.counter("integrix.adapter.calls",
                 "type", adapterType,
                 "operation", operation,
                 "success", String.valueOf(success)
-            ).increment();
-            
+           ).increment();
+
             meterRegistry.timer("integrix.adapter.duration",
                 "type", adapterType,
                 "operation", operation
-            ).record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
+           ).record(duration, java.util.concurrent.TimeUnit.MILLISECONDS);
         }
-        
+
         public void recordTransformation(String type, boolean success, long processingTime) {
             meterRegistry.counter("integrix.transformation.count",
                 "type", type,
                 "success", String.valueOf(success)
-            ).increment();
-            
+           ).increment();
+
             meterRegistry.timer("integrix.transformation.duration",
                 "type", type
-            ).record(processingTime, java.util.concurrent.TimeUnit.MILLISECONDS);
+           ).record(processingTime, java.util.concurrent.TimeUnit.MILLISECONDS);
         }
-        
+
         public void recordAuthenticationAttempt(String method, boolean success) {
             meterRegistry.counter("integrix.auth.attempts",
                 "method", method,
                 "success", String.valueOf(success)
-            ).increment();
+           ).increment();
         }
-        
+
         public void recordMessageSize(String direction, String protocol, long sizeBytes) {
             meterRegistry.summary("integrix.message.size",
                 "direction", direction,
                 "protocol", protocol
-            ).record(sizeBytes);
+           ).record(sizeBytes);
         }
-        
+
         public void updateActiveFlows(int count) {
             meterRegistry.gauge("integrix.flows.active", Tags.empty(), count);
         }
-        
+
         public void updateQueueSize(String queueName, int size) {
             meterRegistry.gauge("integrix.queue.size",
                 Tags.of("queue", queueName),
                 size
-            );
+           );
         }
     }
-    
+
     /**
      * HTTP metrics interceptor
      */
     private static class HttpMetricsInterceptor implements HandlerInterceptor {
-        
-        private static final String START_TIME_ATTR = "http-request-start-time";
-        
+
+        private static final String START_TIME_ATTR = "http - request - start - time";
+
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
             request.setAttribute(START_TIME_ATTR, System.currentTimeMillis());
             return true;
         }
-        
+
         @Override
         public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                    Object handler, Exception ex) {
             Long startTime = (Long) request.getAttribute(START_TIME_ATTR);
-            if (startTime != null) {
+            if(startTime != null) {
                 long duration = System.currentTimeMillis() - startTime;
                 log.trace("HTTP {} {} - {} in {}ms",
                     request.getMethod(),
                     request.getRequestURI(),
                     response.getStatus(),
                     duration
-                );
+               );
             }
         }
     }

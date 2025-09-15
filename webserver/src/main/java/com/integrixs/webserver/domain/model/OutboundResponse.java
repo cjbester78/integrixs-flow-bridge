@@ -26,7 +26,7 @@ public class OutboundResponse {
     private String errorMessage;
     private String errorCode;
     private RetryInfo retryInfo;
-    
+
     /**
      * Retry information
      */
@@ -38,7 +38,7 @@ public class OutboundResponse {
         private String lastRetryReason;
         private LocalDateTime lastRetryTime;
     }
-    
+
     /**
      * Create success response
      * @param requestId Request ID
@@ -56,7 +56,7 @@ public class OutboundResponse {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Create failure response
      * @param requestId Request ID
@@ -74,7 +74,7 @@ public class OutboundResponse {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Create timeout response
      * @param requestId Request ID
@@ -92,7 +92,7 @@ public class OutboundResponse {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Add response time
      * @param startTime Start time in milliseconds
@@ -102,7 +102,7 @@ public class OutboundResponse {
         this.responseTimeMillis = System.currentTimeMillis() - startTime;
         return this;
     }
-    
+
     /**
      * Add retry info
      * @param retryInfo Retry information
@@ -112,9 +112,9 @@ public class OutboundResponse {
         this.retryInfo = retryInfo;
         return this;
     }
-    
+
     /**
-     * Check if response is successful (2xx status)
+     * Check if response is successful(2xx status)
      * @return true if successful
      */
     public boolean isSuccessful() {

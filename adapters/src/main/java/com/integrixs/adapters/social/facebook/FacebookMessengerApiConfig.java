@@ -8,42 +8,42 @@ public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
     public FacebookMessengerApiConfig() {
     }
 
-    
+
     // Facebook Messenger specific configuration
     private String pageId;
     private String pageAccessToken;
     private String appId;
     private String appSecret;
     private String verifyToken;
-    
+
     // Messenger API settings
     private boolean enableTypingIndicator;
     private boolean enableReadReceipts;
     private boolean enableQuickReplies;
     private Integer messageTimeout;
-    
+
     // Default values
     private static final String DEFAULT_API_VERSION = "v18.0";
     private static final String DEFAULT_API_BASE_URL = "https://graph.facebook.com";
-    
+
     @Override
     public String getAuthorizationUrl() {
-        return String.format("https://www.facebook.com/%s/dialog/oauth", 
+        return String.format("https://www.facebook.com/%s/dialog/oauth",
                             getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
-    
+
     @Override
     public String getTokenUrl() {
         return String.format("%s/%s/oauth/access_token",
                             getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
                             getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
-    
+
     @Override
     public String getPlatformName() {
         return "facebook_messenger";
     }
-    
+
     /**
      * Get the full API endpoint for sending messages
      */
@@ -52,7 +52,7 @@ public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
                             getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
                             getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
-    
+
     /**
      * Get the full API endpoint for user profile
      */

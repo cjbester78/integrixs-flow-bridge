@@ -30,13 +30,13 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Tag(name = "Orchestration", description = "Orchestration flow execution endpoints")
 public class OrchestrationController {
-    
+
     private final OrchestrationApplicationService orchestrationApplicationService;
-    
+
     /**
      * Execute an orchestration flow synchronously
      */
-    @PostMapping("/execute/{flowId}")
+    @PostMapping("/execute/ {flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Execute orchestration flow", description = "Execute an orchestration flow synchronously")
     public ResponseEntity<OrchestrationDTO> executeFlow(
@@ -44,21 +44,21 @@ public class OrchestrationController {
             @PathVariable @NotBlank String flowId,
             @Parameter(description = "Input data for the flow")
             @RequestBody(required = false) Map<String, Object> inputData) {
-        
+
         log.info("Executing orchestration flow: {}", flowId);
         OrchestrationDTO result = orchestrationApplicationService.executeOrchestrationFlow(flowId, inputData);
-        
-        if (result.isSuccess()) {
+
+        if(result.isSuccess()) {
             return ResponseEntity.ok(result);
         } else {
             return ResponseEntity.internalServerError().body(result);
         }
     }
-    
+
     /**
      * Execute an orchestration flow asynchronously
      */
-    @PostMapping("/execute-async/{flowId}")
+    @PostMapping("/execute - async/ {flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Execute orchestration flow async", description = "Execute an orchestration flow asynchronously")
     public ResponseEntity<Map<String, String>> executeFlowAsync(
@@ -66,78 +66,78 @@ public class OrchestrationController {
             @PathVariable @NotBlank String flowId,
             @Parameter(description = "Input data for the flow")
             @RequestBody(required = false) Map<String, Object> inputData) {
-        
+
         log.info("Executing orchestration flow asynchronously: {}", flowId);
         CompletableFuture<OrchestrationDTO> future = orchestrationApplicationService.executeOrchestrationFlowAsync(flowId, inputData);
-        
+
         // Return immediately with execution ID
         String executionId = "async-" + System.currentTimeMillis();
         return ResponseEntity.accepted().body(Map.of(
             "message", "Orchestration flow execution started",
             "executionId", executionId
-        ));
+       ));
     }
-    
+
     /**
      * Get execution status
      */
-    @GetMapping("/execution/{executionId}")
+    @GetMapping("/execution/ {executionId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Get execution status", description = "Get the status of an orchestration execution")
     public ResponseEntity<OrchestrationExecutionDTO> getExecutionStatus(
             @Parameter(description = "Execution ID", required = true)
             @PathVariable @NotBlank String executionId) {
-        
+
         return orchestrationApplicationService.getExecutionStatus(executionId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Cancel an execution
      */
-    @PostMapping("/execution/{executionId}/cancel")
+    @PostMapping("/execution/ {executionId}/cancel")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Cancel execution", description = "Cancel an active orchestration execution")
     public ResponseEntity<Map<String, Object>> cancelExecution(
             @Parameter(description = "Execution ID", required = true)
             @PathVariable @NotBlank String executionId) {
-        
+
         log.info("Cancelling orchestration execution: {}", executionId);
         boolean cancelled = orchestrationApplicationService.cancelExecution(executionId);
-        
-        if (cancelled) {
+
+        if(cancelled) {
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Execution cancelled successfully"
-            ));
+           ));
         } else {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
                 "message", "Unable to cancel execution - it may have already completed or does not exist"
-            ));
+           ));
         }
     }
-    
+
     /**
      * Validate orchestration flow
      */
-    @GetMapping("/validate/{flowId}")
+    @GetMapping("/validate/ {flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Validate flow", description = "Validate an orchestration flow configuration")
     public ResponseEntity<ValidationResultDTO> validateFlow(
             @Parameter(description = "Flow ID", required = true)
             @PathVariable @NotBlank String flowId) {
-        
+
         log.info("Validating orchestration flow: {}", flowId);
         ValidationResultDTO result = orchestrationApplicationService.validateOrchestrationFlow(flowId);
         return ResponseEntity.ok(result);
     }
-    
+
     /**
      * Get execution history for a flow
      */
-    @GetMapping("/history/{flowId}")
+    @GetMapping("/history/ {flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Get execution history", description = "Get execution history for a specific flow")
     public ResponseEntity<List<OrchestrationExecutionDTO>> getExecutionHistory(
@@ -145,11 +145,11 @@ public class OrchestrationController {
             @PathVariable @NotBlank String flowId,
             @Parameter(description = "Number of records to return")
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit) {
-        
+
         List<OrchestrationExecutionDTO> history = orchestrationApplicationService.getExecutionHistory(flowId, limit);
         return ResponseEntity.ok(history);
     }
-    
+
     /**
      * Get all active executions
      */
@@ -157,11 +157,11 @@ public class OrchestrationController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Get active executions", description = "Get all currently active orchestration executions")
     public ResponseEntity<List<OrchestrationExecutionDTO>> getActiveExecutions() {
-        
+
         List<OrchestrationExecutionDTO> executions = orchestrationApplicationService.getActiveExecutions();
         return ResponseEntity.ok(executions);
     }
-    
+
     /**
      * Test endpoint for orchestration health check
      */
@@ -172,6 +172,6 @@ public class OrchestrationController {
             "status", "UP",
             "service", "Orchestration Service",
             "timestamp", String.valueOf(System.currentTimeMillis())
-        ));
+       ));
     }
 }

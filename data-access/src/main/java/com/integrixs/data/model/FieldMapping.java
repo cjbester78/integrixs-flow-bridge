@@ -15,9 +15,9 @@ import java.util.UUID;
 
 /**
  * Entity representing a field mapping within a transformation.
- * 
+ *
  * <p>Field mappings define how source fields are transformed to target fields.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class FieldMapping {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -62,20 +62,20 @@ public class FieldMapping {
     private String sourceFields;
 
     /**
-     * Target field name (deprecated - use targetFields for 1-to-many support)
+     * Target field name(deprecated - use targetFields for 1 - to - many support)
      */
     @Column(name = "target_field", length = 500)
     @Size(max = 500, message = "Target field cannot exceed 500 characters")
     private String targetField;
-    
+
     /**
-     * Target fields in JSON format (supports 1-to-many mappings)
+     * Target fields in JSON format(supports 1 - to - many mappings)
      */
     @Column(name = "target_fields", columnDefinition = "json")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Size(max = 5000, message = "Target fields cannot exceed 5000 characters")
     private String targetFields;
-    
+
     /**
      * Mapping type indicating how source maps to target
      */
@@ -83,7 +83,7 @@ public class FieldMapping {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private MappingType mappingType = MappingType.DIRECT;
-    
+
     /**
      * For SPLIT type: defines how to split source into multiple targets
      */
@@ -187,7 +187,7 @@ public class FieldMapping {
     private boolean isActive = true;
 
     /**
-     * Visual flow data (nodes and edges) in JSON format
+     * Visual flow data(nodes and edges) in JSON format
      */
     @Column(name = "visual_flow_data", columnDefinition = "json")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
@@ -240,7 +240,7 @@ public class FieldMapping {
      */
     @Transient
     private List<String> parsedSourceFields;
-    
+
     /**
      * Transient field for parsed target fields list
      */
@@ -249,15 +249,15 @@ public class FieldMapping {
 
     /**
      * Gets the source fields as a list
-     * 
+     *
      * @return list of source field names
      */
     public List<String> getSourceFieldsList() {
-        if (parsedSourceFields == null && sourceFields != null) {
+        if(parsedSourceFields == null && sourceFields != null) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 parsedSourceFields = mapper.readValue(sourceFields, new TypeReference<List<String>>() {});
-            } catch (Exception e) {
+            } catch(Exception e) {
                 parsedSourceFields = Collections.emptyList();
             }
         }
@@ -266,7 +266,7 @@ public class FieldMapping {
 
     /**
      * Sets the source fields from a list
-     * 
+     *
      * @param fields list of field names
      */
     public void setSourceFieldsList(List<String> fields) {
@@ -274,39 +274,39 @@ public class FieldMapping {
             ObjectMapper mapper = new ObjectMapper();
             this.sourceFields = mapper.writeValueAsString(fields);
             this.parsedSourceFields = fields;
-        } catch (Exception e) {
+        } catch(Exception e) {
             this.sourceFields = "[]";
         }
     }
 
     /**
      * Gets the target fields as a list
-     * 
+     *
      * @return list of target field names
      */
     public List<String> getTargetFieldsList() {
-        // If targetFields is set, use it (new multi-target support)
-        if (targetFields != null && !targetFields.isEmpty()) {
-            if (parsedTargetFields == null) {
+        // If targetFields is set, use it(new multi - target support)
+        if(targetFields != null && !targetFields.isEmpty()) {
+            if(parsedTargetFields == null) {
                 try {
                     ObjectMapper mapper = new ObjectMapper();
                     parsedTargetFields = mapper.readValue(targetFields, new TypeReference<List<String>>() {});
-                } catch (Exception e) {
+                } catch(Exception e) {
                     parsedTargetFields = Collections.emptyList();
                 }
             }
             return parsedTargetFields != null ? parsedTargetFields : Collections.emptyList();
         }
         // Fall back to single targetField for backward compatibility
-        else if (targetField != null && !targetField.isEmpty()) {
+        else if(targetField != null && !targetField.isEmpty()) {
             return Collections.singletonList(targetField);
         }
         return Collections.emptyList();
     }
-    
+
     /**
      * Sets the target fields from a list
-     * 
+     *
      * @param fields list of target field names
      */
     public void setTargetFieldsList(List<String> fields) {
@@ -315,62 +315,62 @@ public class FieldMapping {
             this.targetFields = mapper.writeValueAsString(fields);
             this.parsedTargetFields = fields;
             // Clear single targetField when using multiple
-            if (fields != null && fields.size() > 1) {
+            if(fields != null && fields.size() > 1) {
                 this.targetField = null;
-            } else if (fields != null && fields.size() == 1) {
+            } else if(fields != null && fields.size() == 1) {
                 // Set single field for backward compatibility
                 this.targetField = fields.get(0);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             this.targetFields = "[]";
         }
     }
-    
+
     /**
-     * Checks if this is a 1-to-many mapping
+     * Checks if this is a 1 - to - many mapping
      */
     public boolean isOneToManyMapping() {
         return getTargetFieldsList().size() > 1;
     }
-    
+
     /**
      * Mapping type enum
      */
     public enum MappingType {
-        DIRECT,       // Direct field to field(s) mapping
-        SPLIT,        // Split single value to multiple fields
-        AGGREGATE,    // Aggregate multiple sources to multiple targets
-        CONDITIONAL,  // Conditional mapping based on rules
+        DIRECT,      // Direct field to field(s) mapping
+        SPLIT,       // Split single value to multiple fields
+        AGGREGATE,   // Aggregate multiple sources to multiple targets
+        CONDITIONAL, // Conditional mapping based on rules
         ITERATE       // Iterate over arrays/collections
     }
-    
+
     /**
      * Convenience method to parse inputTypes JSON into List<String>
-     * 
+     *
      * @return list of input types
      */
     @Transient
     public List<String> getParsedInputTypes() {
-        if (inputTypes == null || inputTypes.isEmpty()) {
+        if(inputTypes == null || inputTypes.isEmpty()) {
             return Collections.emptyList();
         }
         try {
             return new ObjectMapper().readValue(inputTypes, new TypeReference<List<String>>() {});
-        } catch (Exception e) {
+        } catch(Exception e) {
             return Collections.emptyList();
         }
     }
 
     /**
      * Convenience setter to set inputTypes from List<String>
-     * 
+     *
      * @param types list of input types
      */
     @Transient
     public void setParsedInputTypes(List<String> types) {
         try {
             this.inputTypes = new ObjectMapper().writeValueAsString(types);
-        } catch (Exception e) {
+        } catch(Exception e) {
             this.inputTypes = "[]";
         }
     }

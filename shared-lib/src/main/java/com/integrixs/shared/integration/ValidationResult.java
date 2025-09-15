@@ -21,20 +21,20 @@ public class ValidationResult {
     private List<String> errors = new ArrayList<>();
     @Builder.Default
     private List<String> warnings = new ArrayList<>();
-    
+
     public static ValidationResult success() {
         return ValidationResult.builder()
                 .valid(true)
                 .build();
     }
-    
+
     public static ValidationResult failure(List<String> errors) {
         return ValidationResult.builder()
                 .valid(false)
                 .errors(errors)
                 .build();
     }
-    
+
     public static ValidationResult failure(String error) {
         return ValidationResult.builder()
                 .valid(false)

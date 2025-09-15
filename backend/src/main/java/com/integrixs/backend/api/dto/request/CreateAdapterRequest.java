@@ -17,30 +17,30 @@ import jakarta.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateAdapterRequest {
-    
+
     @NotBlank(message = "Adapter name is required")
     @Size(max = 255, message = "Name must not exceed 255 characters")
     private String name;
-    
+
     @NotBlank(message = "Adapter type is required")
     private String type;
-    
+
     @NotBlank(message = "Adapter mode is required")
     private String mode;
-    
+
     private String direction;
-    
+
     @NotNull(message = "Configuration is required")
     private String configuration;
-    
+
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
-    
+
     @NotBlank(message = "Business component ID is required")
     private String businessComponentId;
-    
+
     private String externalAuthId;
-    
+
     @Builder.Default
     private boolean active = true;
 }

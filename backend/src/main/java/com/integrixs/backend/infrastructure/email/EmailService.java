@@ -20,14 +20,14 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Service
 public class EmailService {
-    
+
     private final EmailConfiguration emailConfig;
     private Session mailSession;
-    
+
     public EmailService(EmailConfiguration emailConfig) {
         this.emailConfig = emailConfig;
     }
-    
+
     /**
      * Initialize email session
      */
@@ -41,15 +41,15 @@ public class EmailService {
         props.put("mail.smtp.connectiontimeout", emailConfig.getConnectionTimeout());
         props.put("mail.smtp.timeout", emailConfig.getTimeout());
         props.put("mail.smtp.writetimeout", emailConfig.getWriteTimeout());
-        
+
         // SSL/TLS configuration
-        if (emailConfig.getPort() == 465) {
+        if(emailConfig.getPort() == 465) {
             props.put("mail.smtp.ssl.enable", "true");
             props.put("mail.smtp.ssl.trust", emailConfig.getHost());
         }
-        
+
         // Create session with authentication if required
-        if (emailConfig.isAuth()) {
+        if(emailConfig.isAuth()) {
             mailSession = Session.getInstance(props, new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -59,10 +59,10 @@ public class EmailService {
         } else {
             mailSession = Session.getInstance(props);
         }
-        
-        log.info("Email service initialized with SMTP server: {}:{}", emailConfig.getHost(), emailConfig.getPort());
+
+        log.info("Email service initialized with SMTP server: {}: {}", emailConfig.getHost(), emailConfig.getPort());
     }
-    
+
     /**
      * Send a simple text email
      */
@@ -70,7 +70,7 @@ public class EmailService {
     public CompletableFuture<Boolean> sendEmail(String to, String subject, String body) {
         return sendEmail(Collections.singletonList(to), subject, body, false);
     }
-    
+
     /**
      * Send an HTML email
      */
@@ -78,7 +78,7 @@ public class EmailService {
     public CompletableFuture<Boolean> sendHtmlEmail(String to, String subject, String htmlBody) {
         return sendEmail(Collections.singletonList(to), subject, htmlBody, true);
     }
-    
+
     /**
      * Send email to multiple recipients
      */
@@ -86,60 +86,60 @@ public class EmailService {
     public CompletableFuture<Boolean> sendEmail(List<String> recipients, String subject, String body, boolean isHtml) {
         try {
             log.debug("Sending email to {} recipients with subject: {}", recipients.size(), subject);
-            
+
             // Create message
             MimeMessage message = new MimeMessage(mailSession);
-            
+
             // Set From
             message.setFrom(new InternetAddress(emailConfig.getFrom()));
-            
+
             // Set Recipients
             InternetAddress[] toAddresses = recipients.stream()
                     .map(email -> {
                         try {
                             return new InternetAddress(email);
-                        } catch (AddressException e) {
+                        } catch(AddressException e) {
                             log.error("Invalid email address: {}", email, e);
                             return null;
                         }
                     })
                     .filter(Objects::nonNull)
                     .toArray(InternetAddress[]::new);
-            
-            if (toAddresses.length == 0) {
+
+            if(toAddresses.length == 0) {
                 log.error("No valid recipients for email");
                 return CompletableFuture.completedFuture(false);
             }
-            
+
             message.setRecipients(Message.RecipientType.TO, toAddresses);
-            
+
             // Set Subject
             message.setSubject(subject);
-            
+
             // Set Content
-            if (isHtml) {
-                message.setContent(body, "text/html; charset=utf-8");
+            if(isHtml) {
+                message.setContent(body, "text/html; charset = utf-8");
             } else {
                 message.setText(body, "UTF-8");
             }
-            
+
             // Set headers
-            message.setHeader("X-Mailer", "Integrix Flow Bridge");
+            message.setHeader("X - Mailer", "Integrix Flow Bridge");
             message.setSentDate(new Date());
-            
+
             // Send message
             Transport.send(message);
-            
+
             log.info("Email sent successfully to {} recipients", recipients.size());
-            
+
             return CompletableFuture.completedFuture(true);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to send email", e);
             return CompletableFuture.completedFuture(false);
         }
     }
-    
+
     /**
      * Test email configuration
      */
@@ -149,11 +149,11 @@ public class EmailService {
             String body = "This is a test email from Integrix Flow Bridge.\n\n" +
                          "If you are receiving this email, your email configuration is working correctly.\n\n" +
                          "Timestamp: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            
+
             CompletableFuture<Boolean> result = sendEmail(testRecipient, subject, body);
             return result.get();
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Email configuration test failed", e);
             return false;
         }

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * In-memory implementation of inbound message repository
+ * In - memory implementation of inbound message repository
  */
 @Repository
 public class InMemoryInboundMessageRepository implements InboundMessageRepository {
@@ -19,7 +19,7 @@ public class InMemoryInboundMessageRepository implements InboundMessageRepositor
 
     @Override
     public InboundMessage save(InboundMessage message) {
-        if (message.getMessageId() == null) {
+        if(message.getMessageId() == null) {
             message.setMessageId(UUID.randomUUID().toString());
         }
         messages.put(message.getMessageId(), message);
@@ -60,7 +60,7 @@ public class InMemoryInboundMessageRepository implements InboundMessageRepositor
         return messages.values().stream()
                 .filter(message -> {
                     LocalDateTime receivedAt = message.getReceivedAt();
-                    return receivedAt != null && 
+                    return receivedAt != null &&
                            (receivedAt.isEqual(start) || receivedAt.isAfter(start)) &&
                            (receivedAt.isEqual(end) || receivedAt.isBefore(end));
                 })
@@ -71,7 +71,7 @@ public class InMemoryInboundMessageRepository implements InboundMessageRepositor
     @Override
     public void updateStatus(String messageId, InboundMessage.MessageStatus status) {
         InboundMessage message = messages.get(messageId);
-        if (message != null) {
+        if(message != null) {
             message.setStatus(status);
         }
     }
@@ -90,7 +90,7 @@ public class InMemoryInboundMessageRepository implements InboundMessageRepositor
                 })
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        
+
         toDelete.forEach(messages::remove);
         return toDelete.size();
     }
@@ -98,18 +98,18 @@ public class InMemoryInboundMessageRepository implements InboundMessageRepositor
     @Override
     public boolean existsDuplicate(InboundMessage message) {
         // Check for duplicates based on correlation ID and payload hash
-        if (message.getCorrelationId() != null) {
+        if(message.getCorrelationId() != null) {
             return messages.values().stream()
-                    .anyMatch(existing -> 
+                    .anyMatch(existing ->
                         message.getCorrelationId().equals(existing.getCorrelationId()) &&
                         !message.getMessageId().equals(existing.getMessageId())
-                    );
+                   );
         }
-        
+
         // Simple duplicate check based on payload and source
         return messages.values().stream()
                 .anyMatch(existing -> {
-                    if (!message.getMessageId().equals(existing.getMessageId())) {
+                    if(!message.getMessageId().equals(existing.getMessageId())) {
                         return Objects.equals(message.getPayload(), existing.getPayload()) &&
                                Objects.equals(message.getSource(), existing.getSource()) &&
                                existing.getReceivedAt() != null &&

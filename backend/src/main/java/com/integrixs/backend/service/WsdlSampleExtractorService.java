@@ -34,27 +34,27 @@ public class WsdlSampleExtractorService {
         try {
             // Parse WSDL
             Definition definition = parseWsdl(wsdlContent);
-            if (definition == null) {
+            if(definition == null) {
                 log.error("Failed to parse WSDL");
                 return null;
             }
 
             // Find the operation
             Operation operation = findOperation(definition, operationName);
-            if (operation == null) {
+            if(operation == null) {
                 log.error("Operation {} not found in WSDL", operationName);
                 return null;
             }
 
-            // Get the message based on type (input/output)
+            // Get the message based on type(input/output)
             Message message = null;
-            if ("input".equalsIgnoreCase(messageType) && operation.getInput() != null) {
+            if("input".equalsIgnoreCase(messageType) && operation.getInput() != null) {
                 message = operation.getInput().getMessage();
-            } else if ("output".equalsIgnoreCase(messageType) && operation.getOutput() != null) {
+            } else if("output".equalsIgnoreCase(messageType) && operation.getOutput() != null) {
                 message = operation.getOutput().getMessage();
             }
 
-            if (message == null) {
+            if(message == null) {
                 log.error("No {} message found for operation {}", messageType, operationName);
                 return null;
             }
@@ -62,7 +62,7 @@ public class WsdlSampleExtractorService {
             // Generate sample XML from message
             return generateSampleXmlFromMessage(definition, message);
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error extracting sample XML from WSDL", e);
             return null;
         }
@@ -91,9 +91,9 @@ public class WsdlSampleExtractorService {
             WSDLReader reader = factory.newWSDLReader();
             reader.setFeature("javax.wsdl.verbose", false);
             reader.setFeature("javax.wsdl.importDocuments", true);
-            
+
             return reader.readWSDL(null, new InputSource(new StringReader(wsdlContent)));
-        } catch (WSDLException e) {
+        } catch(WSDLException e) {
             log.error("Error parsing WSDL", e);
             return null;
         }
@@ -104,12 +104,12 @@ public class WsdlSampleExtractorService {
      */
     private Operation findOperation(Definition definition, String operationName) {
         Map<?, ?> portTypes = definition.getPortTypes();
-        for (Object portTypeObj : portTypes.values()) {
+        for(Object portTypeObj : portTypes.values()) {
             PortType portType = (PortType) portTypeObj;
             List<?> operations = portType.getOperations();
-            for (Object opObj : operations) {
+            for(Object opObj : operations) {
                 Operation op = (Operation) opObj;
-                if (op.getName().equals(operationName)) {
+                if(op.getName().equals(operationName)) {
                     return op;
                 }
             }
@@ -129,35 +129,35 @@ public class WsdlSampleExtractorService {
 
             // Get message parts
             Map<?, ?> parts = message.getParts();
-            if (parts.isEmpty()) {
+            if(parts.isEmpty()) {
                 return null;
             }
 
             Element rootElement = null;
 
             // Process each part
-            for (Object partObj : parts.values()) {
+            for(Object partObj : parts.values()) {
                 Part part = (Part) partObj;
-                
-                if (part.getElementName() != null) {
-                    // Element-based message part
+
+                if(part.getElementName() != null) {
+                    // Element - based message part
                     QName elementQName = part.getElementName();
                     Element element = createElementFromSchema(doc, definition, elementQName);
-                    if (element != null) {
-                        if (rootElement == null) {
+                    if(element != null) {
+                        if(rootElement == null) {
                             rootElement = element;
                             doc.appendChild(element);
                         } else {
                             rootElement.appendChild(element);
                         }
                     }
-                } else if (part.getTypeName() != null) {
-                    // Type-based message part
+                } else if(part.getTypeName() != null) {
+                    // Type - based message part
                     QName typeQName = part.getTypeName();
                     String partName = part.getName();
                     Element element = createElementForType(doc, definition, partName, typeQName);
-                    if (element != null) {
-                        if (rootElement == null) {
+                    if(element != null) {
+                        if(rootElement == null) {
                             rootElement = element;
                             doc.appendChild(element);
                         } else {
@@ -168,13 +168,13 @@ public class WsdlSampleExtractorService {
             }
 
             // Convert document to string
-            if (rootElement != null) {
+            if(rootElement != null) {
                 return documentToString(doc);
             }
 
             return null;
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error generating sample XML", e);
             return null;
         }
@@ -187,24 +187,24 @@ public class WsdlSampleExtractorService {
         try {
             // Get schemas from WSDL
             Types types = definition.getTypes();
-            if (types == null) {
+            if(types == null) {
                 return null;
             }
 
             // Look for the element in schemas
             List<?> extensibilityElements = types.getExtensibilityElements();
-            for (Object extElement : extensibilityElements) {
-                if (extElement instanceof Schema) {
+            for(Object extElement : extensibilityElements) {
+                if(extElement instanceof Schema) {
                     Schema schema = (Schema) extElement;
                     Element schemaElement = schema.getElement();
-                    
+
                     // Find element definition
                     NodeList elements = schemaElement.getElementsByTagNameNS(XMLConstants.W3C_XML_SCHEMA_NS_URI, "element");
-                    for (int i = 0; i < elements.getLength(); i++) {
+                    for(int i = 0; i < elements.getLength(); i++) {
                         Element elem = (Element) elements.item(i);
                         String name = elem.getAttribute("name");
-                        
-                        if (name.equals(elementQName.getLocalPart())) {
+
+                        if(name.equals(elementQName.getLocalPart())) {
                             // Create sample element
                             return createSampleElement(doc, elem, elementQName.getNamespaceURI(), schemaElement);
                         }
@@ -212,7 +212,7 @@ public class WsdlSampleExtractorService {
                 }
             }
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error creating element from schema", e);
         }
 
@@ -228,16 +228,16 @@ public class WsdlSampleExtractorService {
     private Element createElementForType(Document doc, Definition definition, String elementName, QName typeQName) {
         String namespace = typeQName.getNamespaceURI();
         Element element = doc.createElementNS(namespace, elementName);
-        
+
         // Add sample content based on type
         String localPart = typeQName.getLocalPart();
-        if (isSimpleType(localPart)) {
+        if(isSimpleType(localPart)) {
             element.setTextContent(getSampleValueForType(localPart));
         } else {
             // Complex type - try to find definition
             element.setTextContent("?");
         }
-        
+
         return element;
     }
 
@@ -247,22 +247,22 @@ public class WsdlSampleExtractorService {
     private Element createSampleElement(Document doc, Element schemaElement, String namespace, Element schemaRoot) {
         String name = schemaElement.getAttribute("name");
         Element element = doc.createElementNS(namespace, name);
-        
+
         // Check if it's a complex type
         NodeList complexTypes = schemaElement.getElementsByTagNameNS(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
-        if (complexTypes.getLength() > 0) {
+        if(complexTypes.getLength() > 0) {
             Element complexType = (Element) complexTypes.item(0);
             processComplexType(doc, element, complexType, namespace, schemaRoot);
         } else {
             // Simple type or reference
             String type = schemaElement.getAttribute("type");
-            if (type != null && !type.isEmpty()) {
+            if(type != null && !type.isEmpty()) {
                 element.setTextContent(getSampleValueForType(type));
             } else {
                 element.setTextContent("?");
             }
         }
-        
+
         return element;
     }
 
@@ -272,22 +272,22 @@ public class WsdlSampleExtractorService {
     private void processComplexType(Document doc, Element parent, Element complexType, String namespace, Element schemaRoot) {
         // Look for sequence/all/choice
         NodeList sequences = complexType.getElementsByTagNameNS(XMLConstants.W3C_XML_SCHEMA_NS_URI, "sequence");
-        if (sequences.getLength() > 0) {
+        if(sequences.getLength() > 0) {
             processSequence(doc, parent, (Element) sequences.item(0), namespace, schemaRoot);
         }
-        
+
         NodeList alls = complexType.getElementsByTagNameNS(XMLConstants.W3C_XML_SCHEMA_NS_URI, "all");
-        if (alls.getLength() > 0) {
+        if(alls.getLength() > 0) {
             processSequence(doc, parent, (Element) alls.item(0), namespace, schemaRoot);
         }
-        
+
         // Process attributes
         NodeList attributes = complexType.getElementsByTagNameNS(XMLConstants.W3C_XML_SCHEMA_NS_URI, "attribute");
-        for (int i = 0; i < attributes.getLength(); i++) {
+        for(int i = 0; i < attributes.getLength(); i++) {
             Element attr = (Element) attributes.item(i);
             String attrName = attr.getAttribute("name");
             String attrType = attr.getAttribute("type");
-            if (attrName != null && !attrName.isEmpty()) {
+            if(attrName != null && !attrName.isEmpty()) {
                 parent.setAttribute(attrName, getSampleValueForType(attrType));
             }
         }
@@ -298,29 +298,29 @@ public class WsdlSampleExtractorService {
      */
     private void processSequence(Document doc, Element parent, Element sequence, String namespace, Element schemaRoot) {
         NodeList children = sequence.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
+        for(int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
+            if(child.getNodeType() == Node.ELEMENT_NODE) {
                 Element childElement = (Element) child;
                 String tagName = childElement.getLocalName();
-                
-                if ("element".equals(tagName)) {
+
+                if("element".equals(tagName)) {
                     String name = childElement.getAttribute("name");
                     String type = childElement.getAttribute("type");
                     String minOccurs = childElement.getAttribute("minOccurs");
-                    
-                    // Skip optional elements (minOccurs="0")
-                    if ("0".equals(minOccurs)) {
+
+                    // Skip optional elements(minOccurs = "0")
+                    if("0".equals(minOccurs)) {
                         continue;
                     }
-                    
+
                     Element newElement = doc.createElementNS(namespace, name);
-                    if (type != null && !type.isEmpty()) {
+                    if(type != null && !type.isEmpty()) {
                         newElement.setTextContent(getSampleValueForType(type));
                     } else {
                         // Check for inline complex type
                         NodeList complexTypes = childElement.getElementsByTagNameNS(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
-                        if (complexTypes.getLength() > 0) {
+                        if(complexTypes.getLength() > 0) {
                             processComplexType(doc, newElement, (Element) complexTypes.item(0), namespace, schemaRoot);
                         } else {
                             newElement.setTextContent("?");
@@ -336,7 +336,7 @@ public class WsdlSampleExtractorService {
      * Checks if a type is a simple XSD type
      */
     private boolean isSimpleType(String type) {
-        return type.startsWith("xsd:") || type.startsWith("xs:") || 
+        return type.startsWith("xsd:") || type.startsWith("xs:") ||
                Arrays.asList("string", "int", "integer", "decimal", "boolean", "date", "dateTime").contains(type);
     }
 
@@ -344,16 +344,16 @@ public class WsdlSampleExtractorService {
      * Gets sample value for a type
      */
     private String getSampleValueForType(String type) {
-        if (type == null || type.isEmpty()) {
+        if(type == null || type.isEmpty()) {
             return "?";
         }
-        
+
         // Remove namespace prefix
-        if (type.contains(":")) {
+        if(type.contains(":")) {
             type = type.substring(type.indexOf(":") + 1);
         }
-        
-        switch (type.toLowerCase()) {
+
+        switch(type.toLowerCase()) {
             case "string":
                 return "string";
             case "int":
@@ -386,14 +386,14 @@ public class WsdlSampleExtractorService {
             javax.xml.transform.Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "no");
             transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            
+            transformer.setOutputProperty(" {http://xml.apache.org/xslt}indent - amount", "2");
+
             StringWriter writer = new StringWriter();
-            transformer.transform(new javax.xml.transform.dom.DOMSource(doc), 
+            transformer.transform(new javax.xml.transform.dom.DOMSource(doc),
                 new javax.xml.transform.stream.StreamResult(writer));
-            
+
             return writer.toString();
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error converting document to string", e);
             return null;
         }

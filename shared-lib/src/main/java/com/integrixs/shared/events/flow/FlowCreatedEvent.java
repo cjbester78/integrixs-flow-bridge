@@ -8,7 +8,7 @@ import lombok.experimental.SuperBuilder;
 
 /**
  * Event raised when a new integration flow is created.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -17,14 +17,14 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class FlowCreatedEvent extends AbstractDomainEvent {
-    
+
     private String flowId;
     private String flowName;
     private String inboundAdapterId;
     private String outboundAdapterId;
     private String createdBy;
-    
-    public FlowCreatedEvent(String flowId, String flowName, String inboundAdapterId, 
+
+    public FlowCreatedEvent(String flowId, String flowName, String inboundAdapterId,
                            String outboundAdapterId, String createdBy) {
         super(flowId, createdBy);
         this.flowId = flowId;

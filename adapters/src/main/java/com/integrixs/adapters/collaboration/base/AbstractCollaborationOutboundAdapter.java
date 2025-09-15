@@ -16,36 +16,36 @@ import java.util.Map;
 public abstract class AbstractCollaborationOutboundAdapter extends AbstractOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(AbstractCollaborationOutboundAdapter.class);
 
-    
+
     protected AbstractCollaborationOutboundAdapter() {
         super(AdapterConfiguration.AdapterTypeEnum.REST);
     }
-    
+
     /**
      * Send a message to the collaboration platform
      */
     public abstract MessageDTO sendMessage(String channelId, String text, Map<String, Object> options);
-    
+
     /**
      * Send a file to the collaboration platform
      */
     public abstract MessageDTO sendFile(String channelId, byte[] fileContent, String fileName, String comment);
-    
+
     /**
      * Update an existing message
      */
     public abstract MessageDTO updateMessage(String channelId, String messageId, String newText);
-    
+
     /**
      * Delete a message
      */
     public abstract MessageDTO deleteMessage(String channelId, String messageId);
-    
+
     /**
      * React to a message
      */
     public abstract MessageDTO addReaction(String channelId, String messageId, String reaction);
-    
+
     /**
      * Create a success response
      */
@@ -56,17 +56,17 @@ public abstract class AbstractCollaborationOutboundAdapter extends AbstractOutbo
         response.setHeaders(Map.of(
             "adapterType", getAdapterType().name(),
             "timestamp", System.currentTimeMillis()
-        ));
-        if (data != null) {
+       ));
+        if(data != null) {
             try {
                 response.setPayload(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(data));
-            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            } catch(com.fasterxml.jackson.core.JsonProcessingException e) {
                 response.setPayload(data.toString());
             }
         }
         return response;
     }
-    
+
     /**
      * Create an error response
      */
@@ -78,15 +78,15 @@ public abstract class AbstractCollaborationOutboundAdapter extends AbstractOutbo
             "adapterType", getAdapterType().name(),
             "error", error,
             "timestamp", System.currentTimeMillis()
-        ));
+       ));
         return response;
     }
-    
+
     /**
      * Get the adapter type identifier
      */
     public abstract AdapterConfiguration.AdapterTypeEnum getAdapterType();
-    
+
     /**
      * Format message for the specific platform
      */

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExecutionAlertResponse {
-    
+
     private String type;
     private String severity;
     private String executionId;

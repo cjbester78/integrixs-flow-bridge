@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowExecutionStatisticsResponse {
-    
+
     private int activeExecutions;
     private int runningExecutions;
     private int completedExecutions;

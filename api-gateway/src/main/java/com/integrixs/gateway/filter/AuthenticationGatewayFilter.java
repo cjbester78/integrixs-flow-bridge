@@ -107,7 +107,7 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
             "/api/auth/register",
             "/health",
             "/actuator/health"
-        );
+       );
         
         public List<String> getExcludedPaths() {
             return excludedPaths;

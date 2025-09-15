@@ -21,10 +21,10 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class AdapterExecutionApplicationService {
-    
+
     private final AdapterExecutionService adapterExecutionService;
     private final AdapterRegistry adapterRegistry;
-    
+
     /**
      * Execute adapter to fetch data
      * @param request Execution request
@@ -32,29 +32,29 @@ public class AdapterExecutionApplicationService {
      */
     public AdapterExecutionResponseDTO fetchData(AdapterExecutionRequestDTO request) {
         log.info("Fetching data from adapter: {}", request.getAdapterId());
-        
+
         try {
             // Validate adapter
             validateAdapter(request.getAdapterId());
-            
+
             // Build context
             AdapterExecutionContext context = buildContext(request);
-            
+
             // Execute
             AdapterExecutionResult result = adapterExecutionService.fetchData(
-                request.getAdapterId(), 
+                request.getAdapterId(),
                 context
-            );
-            
+           );
+
             // Convert to DTO
             return convertToResponseDTO(result);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error fetching data from adapter: {}", request.getAdapterId(), e);
             return createErrorResponse(e);
         }
     }
-    
+
     /**
      * Execute adapter to send data
      * @param request Execution request
@@ -62,30 +62,30 @@ public class AdapterExecutionApplicationService {
      */
     public AdapterExecutionResponseDTO sendData(AdapterExecutionRequestDTO request) {
         log.info("Sending data to adapter: {}", request.getAdapterId());
-        
+
         try {
             // Validate adapter
             validateAdapter(request.getAdapterId());
-            
+
             // Build context
             AdapterExecutionContext context = buildContext(request);
-            
+
             // Execute
             AdapterExecutionResult result = adapterExecutionService.sendData(
                 request.getAdapterId(),
                 request.getData(),
                 context
-            );
-            
+           );
+
             // Convert to DTO
             return convertToResponseDTO(result);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error sending data to adapter: {}", request.getAdapterId(), e);
             return createErrorResponse(e);
         }
     }
-    
+
     /**
      * Execute adapter asynchronously to fetch data
      * @param request Execution request
@@ -94,7 +94,7 @@ public class AdapterExecutionApplicationService {
     public CompletableFuture<AdapterExecutionResponseDTO> fetchDataAsync(AdapterExecutionRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> fetchData(request));
     }
-    
+
     /**
      * Execute adapter asynchronously to send data
      * @param request Execution request
@@ -103,7 +103,7 @@ public class AdapterExecutionApplicationService {
     public CompletableFuture<AdapterExecutionResponseDTO> sendDataAsync(AdapterExecutionRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> sendData(request));
     }
-    
+
     /**
      * Get adapter capabilities
      * @param adapterId Adapter ID
@@ -112,7 +112,7 @@ public class AdapterExecutionApplicationService {
     public Map<String, Object> getAdapterCapabilities(String adapterId) {
         return adapterExecutionService.getAdapterCapabilities(adapterId);
     }
-    
+
     /**
      * Check adapter health
      * @param adapterId Adapter ID
@@ -121,13 +121,13 @@ public class AdapterExecutionApplicationService {
     public boolean isAdapterHealthy(String adapterId) {
         return adapterExecutionService.isAdapterReady(adapterId);
     }
-    
+
     private void validateAdapter(String adapterId) {
-        if (!adapterRegistry.isAdapterRegistered(adapterId)) {
+        if(!adapterRegistry.isAdapterRegistered(adapterId)) {
             throw new IllegalArgumentException("Adapter not found: " + adapterId);
         }
     }
-    
+
     private AdapterExecutionContext buildContext(AdapterExecutionRequestDTO request) {
         return AdapterExecutionContext.builder()
                 .executionId(UUID.randomUUID().toString())
@@ -141,7 +141,7 @@ public class AdapterExecutionApplicationService {
                 .correlationId(request.getCorrelationId())
                 .build();
     }
-    
+
     private AdapterExecutionResponseDTO convertToResponseDTO(AdapterExecutionResult result) {
         AdapterExecutionResponseDTO dto = new AdapterExecutionResponseDTO();
         dto.setExecutionId(result.getExecutionId());
@@ -157,7 +157,7 @@ public class AdapterExecutionApplicationService {
         dto.setAdapterId(result.getAdapterId());
         return dto;
     }
-    
+
     private AdapterExecutionResponseDTO createErrorResponse(Exception e) {
         AdapterExecutionResponseDTO dto = new AdapterExecutionResponseDTO();
         dto.setSuccess(false);

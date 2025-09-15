@@ -26,30 +26,30 @@ import java.util.concurrent.ScheduledExecutorService;
 @EnableScheduling
 @RequiredArgsConstructor
 public class SchedulingConfig implements SchedulingConfigurer {
-    
+
     private final MDCTaskDecorator mdcTaskDecorator;
-    
+
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
         taskRegistrar.setScheduler(taskScheduler());
     }
-    
+
     @Bean
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler() {
             @Override
-            protected ScheduledExecutorService createExecutor(int poolSize, 
-                    java.util.concurrent.ThreadFactory threadFactory, 
+            protected ScheduledExecutorService createExecutor(int poolSize,
+                    java.util.concurrent.ThreadFactory threadFactory,
                     java.util.concurrent.RejectedExecutionHandler rejectedExecutionHandler) {
-                
+
                 // Create a scheduled executor that preserves MDC context
                 return Executors.newScheduledThreadPool(poolSize, runnable -> {
                     // Capture current MDC context
                     Map<String, String> mdcContext = MDC.getCopyOfContextMap();
-                    
+
                     Thread thread = threadFactory.newThread(() -> {
                         // Set MDC context in the new thread
-                        if (mdcContext != null) {
+                        if(mdcContext != null) {
                             MDC.setContextMap(mdcContext);
                         }
                         try {
@@ -58,25 +58,25 @@ public class SchedulingConfig implements SchedulingConfigurer {
                             MDC.clear();
                         }
                     });
-                    
+
                     return thread;
                 });
             }
         };
-        
+
         scheduler.setPoolSize(10);
         scheduler.setThreadNamePrefix("IntegrixScheduled-");
         scheduler.setWaitForTasksToCompleteOnShutdown(true);
         scheduler.setAwaitTerminationSeconds(30);
         scheduler.setRejectedExecutionHandler(
             (r, executor) -> log.error("Scheduled task rejected: {}", r.toString())
-        );
+       );
         scheduler.initialize();
-        
+
         log.info("Configured scheduled task executor with MDC context propagation");
         return scheduler;
     }
-    
+
     /**
      * Bean for custom scheduled thread pool executor with MDC support
      * This can be used by services that need custom scheduling
@@ -85,9 +85,9 @@ public class SchedulingConfig implements SchedulingConfigurer {
     public ScheduledExecutorService mdcScheduledExecutorService() {
         return Executors.newScheduledThreadPool(5, runnable -> {
             Map<String, String> mdcContext = MDC.getCopyOfContextMap();
-            
+
             Thread thread = new Thread(() -> {
-                if (mdcContext != null) {
+                if(mdcContext != null) {
                     MDC.setContextMap(mdcContext);
                 }
                 try {
@@ -96,12 +96,12 @@ public class SchedulingConfig implements SchedulingConfigurer {
                     MDC.clear();
                 }
             });
-            
+
             thread.setName("IntegrixCustomScheduled-" + thread.getId());
             return thread;
         });
     }
-    
+
     /**
      * Bean for CompletableFuture executor with MDC support
      * Used for async operations that return CompletableFuture
@@ -112,22 +112,22 @@ public class SchedulingConfig implements SchedulingConfigurer {
             Runtime.getRuntime().availableProcessors(),
             pool -> {
                 Map<String, String> mdcContext = MDC.getCopyOfContextMap();
-                
-                java.util.concurrent.ForkJoinWorkerThread thread = 
+
+                java.util.concurrent.ForkJoinWorkerThread thread =
                     java.util.concurrent.ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
-                
+
                 thread.setName("IntegrixForkJoin-" + thread.getId());
-                
+
                 // Wrap the thread to set MDC context
                 return new java.util.concurrent.ForkJoinWorkerThread(pool) {
                     @Override
                     protected void onStart() {
                         super.onStart();
-                        if (mdcContext != null) {
+                        if(mdcContext != null) {
                             MDC.setContextMap(mdcContext);
                         }
                     }
-                    
+
                     @Override
                     protected void onTermination(Throwable exception) {
                         MDC.clear();
@@ -137,6 +137,6 @@ public class SchedulingConfig implements SchedulingConfigurer {
             },
             null,
             false
-        );
+       );
     }
 }

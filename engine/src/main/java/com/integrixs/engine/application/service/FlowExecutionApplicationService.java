@@ -31,15 +31,15 @@ import java.util.concurrent.CompletableFuture;
 @Service("engineFlowExecutionApplicationService")
 @RequiredArgsConstructor
 public class FlowExecutionApplicationService {
-    
+
     private final FlowExecutionService flowExecutionService;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final FieldMappingRepository fieldMappingRepository;
     private final FlowExecutionRepository flowExecutionRepository;
-    
+
     @Autowired(required = false)
     private AlertingService alertingService;
-    
+
     /**
      * Execute a flow
      * @param request Execution request
@@ -49,66 +49,66 @@ public class FlowExecutionApplicationService {
     public FlowExecutionResponseDTO executeFlow(FlowExecutionRequestDTO request) {
         LocalDateTime startTime = LocalDateTime.now();
         log.info("Executing flow: {}", request.getFlowId());
-        
+
         // Create flow execution record
         FlowExecution flowExecution = new FlowExecution();
         flowExecution.setStartTime(startTime);
         flowExecution.setStatus(FlowExecution.ExecutionStatus.IN_PROGRESS);
-        
+
         try {
             // Load flow
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(request.getFlowId()))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + request.getFlowId()));
-            
+
             flowExecution.setIntegrationFlow(flow);
             flowExecution = flowExecutionRepository.save(flowExecution);
-            
+
             // Validate flow
             flowExecutionService.validateFlow(flow);
-            
+
             // Build context
             FlowExecutionContext context = buildContext(request, flow);
-            
+
             // Execute flow
             FlowExecutionResult result = flowExecutionService.executeFlow(flow, request.getMessage(), context);
-            
+
             // Calculate execution time
             long executionTime = Duration.between(startTime, LocalDateTime.now()).toMillis();
             result.setExecutionTimeMs(executionTime);
-            
+
             // Update flow execution record
             flowExecution.setEndTime(LocalDateTime.now());
             flowExecution.setStatus(FlowExecution.ExecutionStatus.COMPLETED);
             flowExecution.setSuccessCount(1);
             flowExecution = flowExecutionRepository.save(flowExecution);
-            
+
             // Evaluate alerts for successful execution
-            if (alertingService != null) {
+            if(alertingService != null) {
                 alertingService.evaluateFlowAlerts(flowExecution);
             }
-            
+
             // Convert to DTO
             return convertToResponseDTO(result);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error executing flow {}: {}", request.getFlowId(), e.getMessage(), e);
-            
+
             long executionTime = Duration.between(startTime, LocalDateTime.now()).toMillis();
-            
+
             // Update flow execution record for failure
-            if (flowExecution != null && flowExecution.getId() != null) {
+            if(flowExecution != null && flowExecution.getId() != null) {
                 flowExecution.setEndTime(LocalDateTime.now());
                 flowExecution.setStatus(FlowExecution.ExecutionStatus.FAILED);
                 flowExecution.setErrorMessage(e.getMessage());
                 flowExecution.setErrorCount(1);
                 flowExecution = flowExecutionRepository.save(flowExecution);
-                
+
                 // Evaluate alerts for failed execution
-                if (alertingService != null) {
+                if(alertingService != null) {
                     alertingService.evaluateFlowAlerts(flowExecution);
                 }
             }
-            
+
             return FlowExecutionResponseDTO.builder()
                     .executionId(request.getExecutionId())
                     .flowId(request.getFlowId())
@@ -119,7 +119,7 @@ public class FlowExecutionApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Execute a flow asynchronously
      * @param request Execution request
@@ -128,7 +128,7 @@ public class FlowExecutionApplicationService {
     public CompletableFuture<FlowExecutionResponseDTO> executeFlowAsync(FlowExecutionRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> executeFlow(request));
     }
-    
+
     /**
      * Process a message through a flow
      * @param flowId Flow ID
@@ -140,10 +140,10 @@ public class FlowExecutionApplicationService {
         request.setFlowId(flowId);
         request.setMessage(message);
         request.setExecutionId(UUID.randomUUID().toString());
-        
+
         return executeFlow(request);
     }
-    
+
     /**
      * Check if a flow is ready for execution
      * @param flowId Flow ID
@@ -152,7 +152,7 @@ public class FlowExecutionApplicationService {
     public boolean isFlowReady(String flowId) {
         return flowExecutionService.isFlowReady(flowId);
     }
-    
+
     /**
      * Get field mappings for a flow
      * @param flowId Flow ID
@@ -162,7 +162,7 @@ public class FlowExecutionApplicationService {
         return fieldMappingRepository.findByTransformationFlowIdAndIsActiveTrueOrderByTransformationExecutionOrder(
                 UUID.fromString(flowId));
     }
-    
+
     private FlowExecutionContext buildContext(FlowExecutionRequestDTO request, IntegrationFlow flow) {
         return FlowExecutionContext.builder()
                 .executionId(request.getExecutionId() != null ? request.getExecutionId() : UUID.randomUUID().toString())
@@ -178,7 +178,7 @@ public class FlowExecutionApplicationService {
                 .timeout(request.getTimeout())
                 .build();
     }
-    
+
     private FlowExecutionResponseDTO convertToResponseDTO(FlowExecutionResult result) {
         return FlowExecutionResponseDTO.builder()
                 .executionId(result.getExecutionId())

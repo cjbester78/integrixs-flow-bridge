@@ -24,7 +24,7 @@ public class AdapterOperationResult {
     private Integer recordsFailed;
     private String adapterId;
     private String adapterType;
-    
+
     /**
      * Create a successful result
      * @param data Result data
@@ -37,7 +37,7 @@ public class AdapterOperationResult {
                 .message("Operation completed successfully")
                 .build();
     }
-    
+
     /**
      * Create an error result
      * @param errorMessage Error message
@@ -51,7 +51,7 @@ public class AdapterOperationResult {
                 .errorCode(errorCode)
                 .build();
     }
-    
+
     /**
      * Add metadata
      * @param key Metadata key
@@ -60,7 +60,7 @@ public class AdapterOperationResult {
     public void addMetadata(String key, Object value) {
         this.metadata.put(key, value);
     }
-    
+
     /**
      * Add warning
      * @param warning Warning message
@@ -68,7 +68,7 @@ public class AdapterOperationResult {
     public void addWarning(String warning) {
         this.warnings.add(warning);
     }
-    
+
     /**
      * Create a successful result with message only
      * @param message Success message
@@ -80,7 +80,7 @@ public class AdapterOperationResult {
                 .message(message)
                 .build();
     }
-    
+
     /**
      * Create a successful result with data and message
      * @param data Result data
@@ -94,23 +94,23 @@ public class AdapterOperationResult {
                 .message(message)
                 .build();
     }
-    
+
     /**
      * Create a successful result for test operations
      * @param testName Name of the test
      * @param message Test result message
      * @return Success result
      */
-    
+
     /**
-     * Create a failure result (alias for error)
+     * Create a failure result(alias for error)
      * @param errorMessage Error message
      * @return Error result
      */
     public static AdapterOperationResult failure(String errorMessage) {
         return error(errorMessage, "OPERATION_FAILED");
     }
-    
+
     /**
      * Create a failure result with test name
      * @param testName Name of the test
@@ -128,7 +128,7 @@ public class AdapterOperationResult {
                 .errorCode("TEST_FAILED")
                 .build();
     }
-    
+
     /**
      * Create a failure result with test name and exception
      * @param testName Name of the test
@@ -136,7 +136,7 @@ public class AdapterOperationResult {
      * @param exception The exception that caused the failure
      * @return Error result
      */
-    
+
     /**
      * Add metadata to result
      * @param metadata Metadata map
@@ -146,7 +146,7 @@ public class AdapterOperationResult {
         this.metadata.putAll(metadata);
         return this;
     }
-    
+
     /**
      * Check if operation was successful
      * @return true if successful
@@ -154,7 +154,7 @@ public class AdapterOperationResult {
     public boolean isSuccess() {
         return success;
     }
-    
+
     /**
      * Set records processed count
      * @param count Number of records processed
@@ -250,7 +250,7 @@ public class AdapterOperationResult {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String operationId;
         private boolean success;
@@ -266,77 +266,77 @@ public class AdapterOperationResult {
         private Integer recordsFailed;
         private String adapterId;
         private String adapterType;
-        
+
         public Builder operationId(String operationId) {
             this.operationId = operationId;
             return this;
         }
-        
+
         public Builder success(boolean success) {
             this.success = success;
             return this;
         }
-        
+
         public Builder data(Object data) {
             this.data = data;
             return this;
         }
-        
+
         public Builder message(String message) {
             this.message = message;
             return this;
         }
-        
+
         public Builder errorCode(String errorCode) {
             this.errorCode = errorCode;
             return this;
         }
-        
+
         public Builder errorDetails(String errorDetails) {
             this.errorDetails = errorDetails;
             return this;
         }
-        
+
         public Builder timestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
             return this;
         }
-        
+
         public Builder executionTimeMs(Long executionTimeMs) {
             this.executionTimeMs = executionTimeMs;
             return this;
         }
-        
+
         public Builder metadata(Map<String, Object> metadata) {
             this.metadata = metadata;
             return this;
         }
-        
+
         public Builder warnings(List<String> warnings) {
             this.warnings = warnings;
             return this;
         }
-        
+
         public Builder recordsProcessed(Integer recordsProcessed) {
             this.recordsProcessed = recordsProcessed;
             return this;
         }
-        
+
         public Builder recordsFailed(Integer recordsFailed) {
             this.recordsFailed = recordsFailed;
             return this;
         }
-        
+
         public Builder adapterId(String adapterId) {
             this.adapterId = adapterId;
             return this;
         }
-        
+
         public Builder adapterType(String adapterType) {
             this.adapterType = adapterType;
             return this;
         }
-        
+
         public AdapterOperationResult build() {
             AdapterOperationResult obj = new AdapterOperationResult();
             obj.operationId = this.operationId;

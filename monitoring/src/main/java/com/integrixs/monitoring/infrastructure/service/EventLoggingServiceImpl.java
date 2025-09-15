@@ -20,31 +20,31 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class EventLoggingServiceImpl implements EventLoggingService {
-    
+
     private final MonitoringEventRepository eventRepository;
-    
+
     @Override
     @Transactional
     public void logEvent(MonitoringEvent event) {
         try {
             eventRepository.save(event);
             log.debug("Event logged: {} - {}", event.getEventType(), event.getMessage());
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error logging event: {}", e.getMessage(), e);
         }
     }
-    
+
     @Override
     @Transactional
     public void logEventsBatch(List<MonitoringEvent> events) {
         try {
             eventRepository.saveAll(events);
             log.debug("Batch logged {} events", events.size());
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error batch logging events: {}", e.getMessage(), e);
         }
     }
-    
+
     @Override
     @Transactional
     public void logSystemEvent(MonitoringEvent.EventLevel level, String source, String message, Object metadata) {
@@ -55,14 +55,14 @@ public class EventLoggingServiceImpl implements EventLoggingService {
                 .message(message)
                 .timestamp(LocalDateTime.now())
                 .build();
-        
-        if (metadata != null) {
+
+        if(metadata != null) {
             event.addMetadata("details", metadata);
         }
-        
+
         logEvent(event);
     }
-    
+
     @Override
     @Transactional
     public void logFlowExecution(String flowId, String flowName, String status, long executionTime, String correlationId) {
@@ -75,14 +75,14 @@ public class EventLoggingServiceImpl implements EventLoggingService {
                 .domainType("Flow")
                 .domainReferenceId(flowId)
                 .build();
-        
+
         event.addMetadata("flowName", flowName);
         event.addMetadata("status", status);
         event.addMetadata("executionTime", executionTime);
-        
+
         logEvent(event);
     }
-    
+
     @Override
     @Transactional
     public void logAdapterOperation(String adapterId, String operation, boolean success, long duration, int recordsProcessed) {
@@ -94,15 +94,15 @@ public class EventLoggingServiceImpl implements EventLoggingService {
                 .domainType("Adapter")
                 .domainReferenceId(adapterId)
                 .build();
-        
+
         event.addMetadata("operation", operation);
         event.addMetadata("success", success);
         event.addMetadata("duration", duration);
         event.addMetadata("recordsProcessed", recordsProcessed);
-        
+
         logEvent(event);
     }
-    
+
     @Override
     @Transactional
     public void logUserActivity(String userId, String activity, String resource, String result) {
@@ -115,14 +115,14 @@ public class EventLoggingServiceImpl implements EventLoggingService {
                 .domainType("User")
                 .domainReferenceId(userId)
                 .build();
-        
+
         event.addMetadata("activity", activity);
         event.addMetadata("resource", resource);
         event.addMetadata("result", result);
-        
+
         logEvent(event);
     }
-    
+
     @Override
     @Transactional
     public void logError(String source, String message, Throwable exception, String domainType, String domainReferenceId) {
@@ -134,16 +134,16 @@ public class EventLoggingServiceImpl implements EventLoggingService {
                 .domainType(domainType)
                 .domainReferenceId(domainReferenceId)
                 .build();
-        
-        if (exception != null) {
+
+        if(exception != null) {
             event.setStackTrace(getStackTraceAsString(exception));
             event.addMetadata("exceptionType", exception.getClass().getName());
             event.addMetadata("exceptionMessage", exception.getMessage());
         }
-        
+
         logEvent(event);
     }
-    
+
     @Override
     @Transactional
     public void logSecurityEvent(String eventType, String userId, String resource, String outcome, Object details) {
@@ -154,44 +154,44 @@ public class EventLoggingServiceImpl implements EventLoggingService {
                 .message("Security event: " + eventType)
                 .userId(userId)
                 .build();
-        
+
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("securityEventType", eventType);
         metadata.put("resource", resource);
         metadata.put("outcome", outcome);
-        if (details != null) {
+        if(details != null) {
             metadata.put("details", details);
         }
         event.setMetadata(metadata);
-        
+
         logEvent(event);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<MonitoringEvent> queryEvents(EventQueryCriteria criteria) {
         return eventRepository.query(criteria);
     }
-    
+
     private String getStackTraceAsString(Throwable throwable) {
         StringBuilder sb = new StringBuilder();
         sb.append(throwable.getClass().getName()).append(": ").append(throwable.getMessage()).append("\n");
-        
+
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         int maxLines = Math.min(stackTrace.length, 50); // Limit stack trace length
-        
-        for (int i = 0; i < maxLines; i++) {
+
+        for(int i = 0; i < maxLines; i++) {
             sb.append("\tat ").append(stackTrace[i]).append("\n");
         }
-        
-        if (stackTrace.length > maxLines) {
+
+        if(stackTrace.length > maxLines) {
             sb.append("\t... ").append(stackTrace.length - maxLines).append(" more\n");
         }
-        
-        if (throwable.getCause() != null) {
+
+        if(throwable.getCause() != null) {
             sb.append("Caused by: ").append(getStackTraceAsString(throwable.getCause()));
         }
-        
+
         return sb.toString();
     }
 }

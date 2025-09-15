@@ -26,7 +26,7 @@ public class WorkflowStep {
     private String errorMessage;
     private Integer retryCount;
     private String nextStepId;
-    
+
     /**
      * Step types
      */
@@ -41,7 +41,7 @@ public class WorkflowStep {
         AGGREGATE,
         CUSTOM
     }
-    
+
     /**
      * Step execution status
      */
@@ -53,7 +53,7 @@ public class WorkflowStep {
         SKIPPED,
         RETRY
     }
-    
+
     /**
      * Add a step variable
      * @param key Variable key
@@ -62,13 +62,13 @@ public class WorkflowStep {
     public void addStepVariable(String key, Object value) {
         this.stepVariables.put(key, value);
     }
-    
+
     /**
      * Get step duration in milliseconds
      * @return Duration or null if not completed
      */
     public Long getDuration() {
-        if (startTime != null && endTime != null) {
+        if(startTime != null && endTime != null) {
             return java.time.Duration.between(startTime, endTime).toMillis();
         }
         return null;

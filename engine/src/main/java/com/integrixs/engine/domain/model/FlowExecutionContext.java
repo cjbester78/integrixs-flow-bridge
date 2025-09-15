@@ -27,7 +27,7 @@ public class FlowExecutionContext {
     private String correlationId;
     private boolean async;
     private Integer timeout;
-    
+
     /**
      * Add a parameter to the context
      * @param key Parameter key
@@ -36,7 +36,7 @@ public class FlowExecutionContext {
     public void addParameter(String key, Object value) {
         this.parameters.put(key, value);
     }
-    
+
     /**
      * Add a header to the context
      * @param key Header key
@@ -45,7 +45,7 @@ public class FlowExecutionContext {
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
-    
+
     /**
      * Add metadata to the context
      * @param key Metadata key

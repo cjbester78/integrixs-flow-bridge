@@ -12,25 +12,25 @@ import java.util.UUID;
 
 @Repository
 public interface JarFileRepository extends JpaRepository<JarFile, UUID> {
-    
+
     Optional<JarFile> findByFileName(String fileName);
-    
+
     Optional<JarFile> findByChecksum(String checksum);
-    
+
     List<JarFile> findByIsActiveTrue();
-    
+
     List<JarFile> findByUploadedBy(String uploadedBy);
-    
+
     @Query("SELECT j FROM JarFile j WHERE j.isActive = true ORDER BY j.uploadedAt DESC")
     List<JarFile> findAllActive();
-    
+
     @Query("SELECT j FROM JarFile j WHERE LOWER(j.fileName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(j.displayName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(j.description) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<JarFile> searchByQuery(@Param("query") String query);
-    
+
     boolean existsByChecksum(String checksum);
-    
+
     @Query("SELECT SUM(j.fileSize) FROM JarFile j WHERE j.isActive = true")
     Long getTotalActiveFileSize();
 }

@@ -25,7 +25,7 @@ public class WsdlDefinition {
     private Map<String, String> namespaces = new HashMap<>();
     private String version;
     private boolean validated;
-    
+
     /**
      * WSDL types
      */
@@ -35,7 +35,7 @@ public class WsdlDefinition {
         DOCUMENT_WRAPPED,
         RPC_ENCODED
     }
-    
+
     /**
      * Service definition within WSDL
      */
@@ -48,7 +48,7 @@ public class WsdlDefinition {
         private Map<String, PortDefinition> ports = new HashMap<>();
         private String documentation;
     }
-    
+
     /**
      * Port definition within service
      */
@@ -61,7 +61,7 @@ public class WsdlDefinition {
         @Builder.Default
         private Map<String, OperationDefinition> operations = new HashMap<>();
     }
-    
+
     /**
      * Operation definition within port
      */
@@ -74,7 +74,7 @@ public class WsdlDefinition {
         private MessageDefinition outputMessage;
         private Set<FaultDefinition> faults;
         private OperationStyle style;
-        
+
         public enum OperationStyle {
             ONE_WAY,
             REQUEST_RESPONSE,
@@ -82,7 +82,7 @@ public class WsdlDefinition {
             NOTIFICATION
         }
     }
-    
+
     /**
      * Message definition
      */
@@ -94,7 +94,7 @@ public class WsdlDefinition {
         private String elementName;
         private String typeName;
     }
-    
+
     /**
      * Fault definition
      */
@@ -104,7 +104,7 @@ public class WsdlDefinition {
         private String faultName;
         private String messageName;
     }
-    
+
     /**
      * Add service definition
      * @param service Service definition
@@ -112,7 +112,7 @@ public class WsdlDefinition {
     public void addService(ServiceDefinition service) {
         this.services.put(service.getServiceName(), service);
     }
-    
+
     /**
      * Get all service names
      * @return Set of service names
@@ -120,7 +120,7 @@ public class WsdlDefinition {
     public Set<String> getServiceNames() {
         return services.keySet();
     }
-    
+
     /**
      * Get service by name
      * @param serviceName Service name

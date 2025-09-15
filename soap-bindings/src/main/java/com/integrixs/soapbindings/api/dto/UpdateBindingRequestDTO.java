@@ -15,7 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateBindingRequestDTO {
-    
+
     private String endpointUrl;
     private Map<String, String> soapHeaders;
     private SecurityConfigurationDTO security;

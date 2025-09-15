@@ -10,18 +10,18 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Slf4j
 @Component
 public class SimpleWebSocketHandler extends TextWebSocketHandler {
-    
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("Simple WebSocket connection established: {}", session.getId());
         session.sendMessage(new TextMessage("Connected!"));
     }
-    
+
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         log.info("Simple WebSocket connection closed: {}", session.getId());
     }
-    
+
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         log.info("Received message: {}", message.getPayload());

@@ -14,11 +14,11 @@ import java.util.Map;
 
 /**
  * Data Transfer Object for User information.
- * 
+ *
  * <p>This DTO is used to transfer user data between different layers of the application,
  * particularly between the REST API and service layers. It includes all user attributes
  * including authentication status, permissions, and timestamps.</p>
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  * @see com.integrixs.model.User
@@ -32,7 +32,7 @@ import java.util.Map;
 public class UserDTO {
 
     /**
-     * Unique identifier for the user (UUID format).
+     * Unique identifier for the user(UUID format).
      */
     private String id;
 
@@ -42,7 +42,7 @@ public class UserDTO {
      */
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers, and underscores")
+    @Pattern(regexp = "^[a - zA - Z0-9_] + $", message = "Username can only contain letters, numbers, and underscores")
     private String username;
 
     /**
@@ -98,8 +98,8 @@ public class UserDTO {
 
     /**
      * Map of user permissions organized by resource.
-     * Key: resource name (e.g., "flows", "adapters")
-     * Value: array of allowed actions (e.g., ["read", "write", "delete"])
+     * Key: resource name(e.g., "flows", "adapters")
+     * Value: array of allowed actions(e.g., ["read", "write", "delete"])
      */
     private Map<String, String[]> permissions;
-} 
+}

@@ -32,7 +32,7 @@ public class JdbcInboundAdapterTest {
         config.setPollingInterval(5000L);
         config.setMaxResults(100);
         config.setQueryTimeoutSeconds(30);
-        
+
         adapter = new JdbcInboundAdapter(config);
     }
 
@@ -49,11 +49,11 @@ public class JdbcInboundAdapterTest {
     void testPollingState() {
         // Test initial state
         assertFalse(adapter.isPolling());
-        
+
         // Start polling
         adapter.startPolling(1000);
         assertTrue(adapter.isPolling());
-        
+
         // Stop polling
         adapter.stopPolling();
         assertFalse(adapter.isPolling());
@@ -63,7 +63,7 @@ public class JdbcInboundAdapterTest {
     @DisplayName("Should generate configuration summary")
     void testConfigurationSummary() {
         String summary = adapter.getConfigurationSummary();
-        
+
         assertNotNull(summary);
         assertTrue(summary.contains("JDBC"));
         assertTrue(summary.contains("5000"));
@@ -73,8 +73,8 @@ public class JdbcInboundAdapterTest {
     @DisplayName("Should not support listening mode")
     void testListeningNotSupported() {
         assertFalse(adapter.isListening());
-        
-        // JDBC adapter doesn't support push-based listening
+
+        // JDBC adapter doesn't support push - based listening
         assertThrows(UnsupportedOperationException.class, () -> {
             adapter.startListening(null);
         });
@@ -85,13 +85,13 @@ public class JdbcInboundAdapterTest {
     void testShutdown() {
         adapter.startPolling(1000);
         assertTrue(adapter.isPolling());
-        
+
         adapter.shutdown();
         assertFalse(adapter.isPolling());
     }
 
     // Disabled tests for methods that need verification
-    
+
     @Test
     @Disabled("Pending AdapterConfiguration builder implementation")
     @DisplayName("Should initialize adapter")

@@ -12,10 +12,10 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StructureMetadata {
-    
+
     private List<Field> fields;
     private Map<String, String> namespaces;
-    
+
     @Data
     @Builder
     @NoArgsConstructor

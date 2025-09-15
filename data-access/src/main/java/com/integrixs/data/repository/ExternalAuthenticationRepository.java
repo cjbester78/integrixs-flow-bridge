@@ -18,28 +18,28 @@ import java.util.UUID;
  */
 @Repository
 public interface ExternalAuthenticationRepository extends JpaRepository<ExternalAuthentication, UUID> {
-    
+
     /**
      * Find all authentications for a business component
      */
     List<ExternalAuthentication> findByBusinessComponentAndIsActiveTrue(BusinessComponent businessComponent);
-    
+
     /**
      * Find all authentications by type for a business component
      */
     List<ExternalAuthentication> findByBusinessComponentAndAuthTypeAndIsActiveTrue(
             BusinessComponent businessComponent, AuthType authType);
-    
+
     /**
      * Find by name and business component
      */
     Optional<ExternalAuthentication> findByNameAndBusinessComponent(String name, BusinessComponent businessComponent);
-    
+
     /**
      * Check if authentication with name exists for business component
      */
     boolean existsByNameAndBusinessComponent(String name, BusinessComponent businessComponent);
-    
+
     /**
      * Find OAuth2 authentications that need token refresh
      */
@@ -50,7 +50,7 @@ public interface ExternalAuthenticationRepository extends JpaRepository<External
            "AND e.tokenExpiresAt <= :expiryTime " +
            "AND e.refreshToken IS NOT NULL")
     List<ExternalAuthentication> findOAuth2TokensNeedingRefresh(@Param("expiryTime") LocalDateTime expiryTime);
-    
+
     /**
      * Find authentications not used recently
      */
@@ -58,7 +58,7 @@ public interface ExternalAuthenticationRepository extends JpaRepository<External
            "WHERE e.lastUsedAt IS NULL " +
            "OR e.lastUsedAt < :cutoffTime")
     List<ExternalAuthentication> findUnusedAuthentications(@Param("cutoffTime") LocalDateTime cutoffTime);
-    
+
     /**
      * Update usage statistics
      */
@@ -67,7 +67,7 @@ public interface ExternalAuthenticationRepository extends JpaRepository<External
            "e.lastUsedAt = CURRENT_TIMESTAMP " +
            "WHERE e.id = :id")
     void incrementUsageCount(@Param("id") UUID id);
-    
+
     /**
      * Update error statistics
      */

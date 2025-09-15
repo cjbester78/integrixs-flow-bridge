@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class MarketplaceService {
-    
+
     private final FlowTemplateRepository templateRepository;
     private final TemplateVersionRepository versionRepository;
     private final TemplateRatingRepository ratingRepository;
@@ -42,78 +42,78 @@ public class MarketplaceService {
     private final FileStorageService fileStorageService;
     private final TemplateValidationService validationService;
     private final ObjectMapper objectMapper;
-    
+
     /**
      * Search templates with filters
      */
     public Page<TemplateDto> searchTemplates(TemplateSearchRequest request, Pageable pageable) {
         Specification<FlowTemplate> spec = Specification.where(TemplateSpecifications.isActive())
             .and(TemplateSpecifications.isPublic());
-        
-        if (request.getQuery() != null && !request.getQuery().isEmpty()) {
+
+        if(request.getQuery() != null && !request.getQuery().isEmpty()) {
             spec = spec.and(TemplateSpecifications.searchByQuery(request.getQuery()));
         }
-        
-        if (request.getCategory() != null) {
+
+        if(request.getCategory() != null) {
             spec = spec.and(TemplateSpecifications.hasCategory(request.getCategory()));
         }
-        
-        if (request.getType() != null) {
+
+        if(request.getType() != null) {
             spec = spec.and(TemplateSpecifications.hasType(request.getType()));
         }
-        
-        if (request.getTags() != null && !request.getTags().isEmpty()) {
+
+        if(request.getTags() != null && !request.getTags().isEmpty()) {
             spec = spec.and(TemplateSpecifications.hasTags(request.getTags()));
         }
-        
-        if (request.getMinRating() != null) {
+
+        if(request.getMinRating() != null) {
             spec = spec.and(TemplateSpecifications.hasMinRating(request.getMinRating()));
         }
-        
-        if (request.isCertifiedOnly()) {
+
+        if(request.isCertifiedOnly()) {
             spec = spec.and(TemplateSpecifications.isCertified());
         }
-        
-        if (request.getAuthorId() != null) {
+
+        if(request.getAuthorId() != null) {
             spec = spec.and(TemplateSpecifications.hasAuthor(request.getAuthorId()));
         }
-        
-        if (request.getOrganizationId() != null) {
+
+        if(request.getOrganizationId() != null) {
             spec = spec.and(TemplateSpecifications.hasOrganization(request.getOrganizationId()));
         }
-        
+
         Page<FlowTemplate> templates = templateRepository.findAll(spec, pageable);
         return templates.map(this::toDto);
     }
-    
+
     /**
      * Get template details
      */
     public TemplateDetailDto getTemplateDetails(String slug) {
         FlowTemplate template = templateRepository.findBySlugWithDetails(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         // Check visibility
         User currentUser = authService.getCurrentUser();
-        if (!isTemplateVisibleToUser(template, currentUser)) {
+        if(!isTemplateVisibleToUser(template, currentUser)) {
             throw new UnauthorizedAccessException("Template not accessible");
         }
-        
+
         // Increment view count
         templateRepository.incrementDownloadCount(template.getId());
-        
+
         return toDetailDto(template);
     }
-    
+
     /**
      * Create a new template
      */
     public TemplateDto createTemplate(CreateTemplateRequest request) {
         User author = authService.getCurrentUser();
-        
+
         // Validate template
         validationService.validateTemplate(request);
-        
+
         // Create template
         FlowTemplate template = new FlowTemplate();
         template.setName(request.getName());
@@ -129,19 +129,19 @@ public class MarketplaceService {
         template.setRequirements(new HashSet<>(request.getRequirements()));
         template.setMinPlatformVersion(request.getMinPlatformVersion());
         template.setMaxPlatformVersion(request.getMaxPlatformVersion());
-        
+
         // Set organization if provided
-        if (request.getOrganizationId() != null) {
+        if(request.getOrganizationId() != null) {
             Organization org = organizationRepository.findById(request.getOrganizationId())
                 .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
-            if (!org.getMembers().contains(author) && !org.getOwner().equals(author)) {
+            if(!org.getMembers().contains(author) && !org.getOwner().equals(author)) {
                 throw new UnauthorizedAccessException("Not a member of the organization");
             }
             template.setOrganization(org);
         }
-        
+
         template = templateRepository.save(template);
-        
+
         // Create initial version
         TemplateVersion version = new TemplateVersion();
         version.setTemplate(template);
@@ -150,121 +150,121 @@ public class MarketplaceService {
         version.setReleaseNotes("Initial release");
         version.setLatest(true);
         versionRepository.save(version);
-        
+
         log.info("Created template: {} by user: {}", template.getSlug(), author.getUsername());
-        
+
         return toDto(template);
     }
-    
+
     /**
      * Update template
      */
     public TemplateDto updateTemplate(String slug, UpdateTemplateRequest request) {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         // Check permissions
         User currentUser = authService.getCurrentUser();
-        if (!canEditTemplate(template, currentUser)) {
+        if(!canEditTemplate(template, currentUser)) {
             throw new UnauthorizedAccessException("Cannot edit this template");
         }
-        
+
         // Update fields
-        if (request.getName() != null) {
+        if(request.getName() != null) {
             template.setName(request.getName());
         }
-        if (request.getDescription() != null) {
+        if(request.getDescription() != null) {
             template.setDescription(request.getDescription());
         }
-        if (request.getDetailedDescription() != null) {
+        if(request.getDetailedDescription() != null) {
             template.setDetailedDescription(request.getDetailedDescription());
         }
-        if (request.getCategory() != null) {
+        if(request.getCategory() != null) {
             template.setCategory(request.getCategory());
         }
-        if (request.getTags() != null) {
+        if(request.getTags() != null) {
             template.setTags(new HashSet<>(request.getTags()));
         }
-        if (request.getRequirements() != null) {
+        if(request.getRequirements() != null) {
             template.setRequirements(new HashSet<>(request.getRequirements()));
         }
-        if (request.getVisibility() != null) {
+        if(request.getVisibility() != null) {
             template.setVisibility(request.getVisibility());
         }
-        if (request.getDocumentationUrl() != null) {
+        if(request.getDocumentationUrl() != null) {
             template.setDocumentationUrl(request.getDocumentationUrl());
         }
-        if (request.getSourceRepositoryUrl() != null) {
+        if(request.getSourceRepositoryUrl() != null) {
             template.setSourceRepositoryUrl(request.getSourceRepositoryUrl());
         }
-        
+
         template = templateRepository.save(template);
-        
+
         log.info("Updated template: {} by user: {}", template.getSlug(), currentUser.getUsername());
-        
+
         return toDto(template);
     }
-    
+
     /**
      * Upload template icon
      */
     public void uploadIcon(String slug, MultipartFile file) throws IOException {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         // Check permissions
         User currentUser = authService.getCurrentUser();
-        if (!canEditTemplate(template, currentUser)) {
+        if(!canEditTemplate(template, currentUser)) {
             throw new UnauthorizedAccessException("Cannot edit this template");
         }
-        
+
         // Upload file
-        String iconUrl = fileStorageService.uploadFile(file, "template-icons/" + template.getId());
+        String iconUrl = fileStorageService.uploadFile(file, "template - icons/" + template.getId());
         template.setIconUrl(iconUrl);
         templateRepository.save(template);
     }
-    
+
     /**
      * Add template screenshot
      */
     public void addScreenshot(String slug, MultipartFile file) throws IOException {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         // Check permissions
         User currentUser = authService.getCurrentUser();
-        if (!canEditTemplate(template, currentUser)) {
+        if(!canEditTemplate(template, currentUser)) {
             throw new UnauthorizedAccessException("Cannot edit this template");
         }
-        
+
         // Upload file
         String screenshotUrl = fileStorageService.uploadFile(
-            file, 
-            "template-screenshots/" + template.getId() + "/" + UUID.randomUUID()
-        );
+            file,
+            "template - screenshots/" + template.getId() + "/" + UUID.randomUUID()
+       );
         template.getScreenshots().add(screenshotUrl);
         templateRepository.save(template);
     }
-    
+
     /**
      * Publish new version
      */
     public TemplateVersionDto publishVersion(String slug, PublishVersionRequest request) {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         // Check permissions
         User currentUser = authService.getCurrentUser();
-        if (!canEditTemplate(template, currentUser)) {
+        if(!canEditTemplate(template, currentUser)) {
             throw new UnauthorizedAccessException("Cannot edit this template");
         }
-        
+
         // Validate version
         validationService.validateVersion(template, request);
-        
+
         // Mark current latest as not latest
         versionRepository.unmarkLatestVersions(template.getId());
-        
+
         // Create new version
         TemplateVersion version = new TemplateVersion();
         version.setTemplate(template);
@@ -275,19 +275,19 @@ public class MarketplaceService {
         version.setLatest(true);
         version.setMinPlatformVersion(request.getMinPlatformVersion());
         version.setMaxPlatformVersion(request.getMaxPlatformVersion());
-        
+
         version = versionRepository.save(version);
-        
+
         // Update template flow definition
         template.setFlowDefinition(request.getFlowDefinition());
         template.setVersion(request.getVersion());
         templateRepository.save(template);
-        
+
         log.info("Published version {} for template: {}", version.getVersion(), template.getSlug());
-        
+
         return toVersionDto(version);
     }
-    
+
     /**
      * Install template
      */
@@ -295,45 +295,45 @@ public class MarketplaceService {
     public InstallationResultDto installTemplate(String slug, InstallTemplateRequest request) {
         FlowTemplate template = templateRepository.findBySlugWithDetails(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         User currentUser = authService.getCurrentUser();
-        
+
         // Check visibility
-        if (!isTemplateVisibleToUser(template, currentUser)) {
+        if(!isTemplateVisibleToUser(template, currentUser)) {
             throw new UnauthorizedAccessException("Template not accessible");
         }
-        
+
         // Get version to install
         TemplateVersion version;
-        if (request.getVersion() != null) {
+        if(request.getVersion() != null) {
             version = versionRepository.findByTemplateIdAndVersion(
-                template.getId(), 
+                template.getId(),
                 request.getVersion()
-            ).orElseThrow(() -> new IllegalArgumentException("Version not found"));
+           ).orElseThrow(() -> new IllegalArgumentException("Version not found"));
         } else {
             version = versionRepository.findLatestByTemplateId(template.getId())
                 .orElseThrow(() -> new IllegalArgumentException("No version available"));
         }
-        
+
         try {
             // Parse flow definition
             IntegrationFlow flowDefinition = objectMapper.readValue(
-                version.getFlowDefinition(), 
+                version.getFlowDefinition(),
                 IntegrationFlow.class
-            );
-            
+           );
+
             // Apply configuration
-            if (request.getConfiguration() != null) {
+            if(request.getConfiguration() != null) {
                 applyConfiguration(flowDefinition, request.getConfiguration());
             }
-            
+
             // Set metadata
             flowDefinition.setName(request.getName() != null ? request.getName() : template.getName());
             flowDefinition.setDescription("Installed from template: " + template.getName());
-            
+
             // Create flow
             IntegrationFlow createdFlow = flowService.createIntegrationFlow(flowDefinition);
-            
+
             // Record installation
             TemplateInstallation installation = new TemplateInstallation();
             installation.setTemplate(template);
@@ -342,29 +342,29 @@ public class MarketplaceService {
             installation.setFlowId(createdFlow.getId());
             installation.setConfiguration(request.getConfiguration());
             installation.setAutoUpdateEnabled(request.isEnableAutoUpdate());
-            
-            if (request.getOrganizationId() != null) {
+
+            if(request.getOrganizationId() != null) {
                 Organization org = organizationRepository.findById(request.getOrganizationId())
                     .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
                 installation.setOrganization(org);
             }
-            
+
             installationRepository.save(installation);
-            
+
             // Update counters
             templateRepository.incrementInstallCount(template.getId());
-            
-            log.info("Installed template {} version {} for user {}", 
+
+            log.info("Installed template {} version {} for user {}",
                 template.getSlug(), version.getVersion(), currentUser.getUsername());
-            
+
             return InstallationResultDto.builder()
                 .success(true)
                 .flowId(createdFlow.getId())
                 .installationId(installation.getId())
                 .message("Template installed successfully")
                 .build();
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to install template: " + slug, e);
             return InstallationResultDto.builder()
                 .success(false)
@@ -372,24 +372,24 @@ public class MarketplaceService {
                 .build();
         }
     }
-    
+
     /**
      * Rate template
      */
     public void rateTemplate(String slug, RateTemplateRequest request) {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         User currentUser = authService.getCurrentUser();
-        
+
         // Check if already rated
         Optional<TemplateRating> existingRating = ratingRepository.findByTemplateIdAndUserId(
-            template.getId(), 
+            template.getId(),
             currentUser.getId()
-        );
-        
+       );
+
         TemplateRating rating;
-        if (existingRating.isPresent()) {
+        if(existingRating.isPresent()) {
             // Update existing rating
             rating = existingRating.get();
             rating.setRating(request.getRating());
@@ -401,57 +401,57 @@ public class MarketplaceService {
             rating.setUser(currentUser);
             rating.setRating(request.getRating());
             rating.setReview(request.getReview());
-            
+
             // Check if user has installed this template
             boolean hasInstalled = installationRepository.existsByTemplateIdAndUserId(
-                template.getId(), 
+                template.getId(),
                 currentUser.getId()
-            );
+           );
             rating.setVerifiedPurchase(hasInstalled);
         }
-        
+
         ratingRepository.save(rating);
-        
+
         // Update template rating stats
         updateTemplateRatingStats(template);
-        
-        log.info("User {} rated template {} with {} stars", 
+
+        log.info("User {} rated template {} with {} stars",
             currentUser.getUsername(), template.getSlug(), request.getRating());
     }
-    
+
     /**
      * Add comment to template
      */
     public CommentDto addComment(String slug, AddCommentRequest request) {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         User currentUser = authService.getCurrentUser();
-        
+
         TemplateComment comment = new TemplateComment();
         comment.setTemplate(template);
         comment.setUser(currentUser);
         comment.setContent(request.getContent());
-        
+
         // Check if this is author response
-        if (template.getAuthor().equals(currentUser)) {
+        if(template.getAuthor().equals(currentUser)) {
             comment.setAuthorResponse(true);
         }
-        
+
         // Set parent comment if replying
-        if (request.getParentCommentId() != null) {
+        if(request.getParentCommentId() != null) {
             TemplateComment parent = commentRepository.findById(request.getParentCommentId())
                 .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
             comment.setParentComment(parent);
         }
-        
+
         comment = commentRepository.save(comment);
-        
+
         log.info("User {} added comment to template {}", currentUser.getUsername(), template.getSlug());
-        
+
         return toCommentDto(comment);
     }
-    
+
     /**
      * Get featured templates
      */
@@ -461,30 +461,30 @@ public class MarketplaceService {
             .map(this::toDto)
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Get trending templates
      */
     public List<TemplateDto> getTrendingTemplates(String period) {
         LocalDateTime since = calculatePeriodStart(period);
-        
+
         Page<FlowTemplate> templates = templateRepository.findRecentlyPublished(
-            since, 
+            since,
             Pageable.ofSize(10)
-        );
-        
+       );
+
         return templates.stream()
             .map(this::toDto)
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Get template statistics
      */
     public TemplateStatsDto getTemplateStats(String slug) {
         FlowTemplate template = templateRepository.findBySlug(slug)
             .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
-        
+
         return TemplateStatsDto.builder()
             .downloadCount(template.getDownloadCount())
             .installCount(template.getInstallCount())
@@ -495,66 +495,66 @@ public class MarketplaceService {
             .lastUpdated(template.getUpdatedAt())
             .build();
     }
-    
+
     // Helper methods
-    
+
     private boolean isTemplateVisibleToUser(FlowTemplate template, User user) {
-        if (template.getVisibility() == FlowTemplate.TemplateVisibility.PUBLIC) {
+        if(template.getVisibility() == FlowTemplate.TemplateVisibility.PUBLIC) {
             return true;
         }
-        if (user == null) {
+        if(user == null) {
             return false;
         }
-        if (template.getAuthor().equals(user)) {
+        if(template.getAuthor().equals(user)) {
             return true;
         }
-        if (template.getVisibility() == FlowTemplate.TemplateVisibility.ORGANIZATION && 
+        if(template.getVisibility() == FlowTemplate.TemplateVisibility.ORGANIZATION &&
             template.getOrganization() != null &&
             template.getOrganization().getMembers().contains(user)) {
             return true;
         }
         return false;
     }
-    
+
     private boolean canEditTemplate(FlowTemplate template, User user) {
-        if (template.getAuthor().equals(user)) {
+        if(template.getAuthor().equals(user)) {
             return true;
         }
-        if (template.getOrganization() != null && 
+        if(template.getOrganization() != null &&
             (template.getOrganization().getOwner().equals(user) ||
              template.getOrganization().getMembers().contains(user))) {
             return true;
         }
         return authService.isAdmin(user);
     }
-    
+
     private void updateTemplateRatingStats(FlowTemplate template) {
         List<TemplateRating> ratings = ratingRepository.findByTemplateId(template.getId());
-        
-        if (ratings.isEmpty()) {
+
+        if(ratings.isEmpty()) {
             templateRepository.updateRatingStats(template.getId(), 0.0, 0L);
             return;
         }
-        
+
         double averageRating = ratings.stream()
             .mapToInt(TemplateRating::getRating)
             .average()
             .orElse(0.0);
-        
+
         long ratingCount = ratings.size();
-        
+
         templateRepository.updateRatingStats(template.getId(), averageRating, ratingCount);
     }
-    
+
     private void applyConfiguration(IntegrationFlow flow, Map<String, String> configuration) {
         // Apply configuration values to flow
         // This would replace placeholder values in the flow definition
         // Implementation depends on how configuration is structured
     }
-    
+
     private LocalDateTime calculatePeriodStart(String period) {
         LocalDateTime now = LocalDateTime.now();
-        return switch (period.toLowerCase()) {
+        return switch(period.toLowerCase()) {
             case "day" -> now.minusDays(1);
             case "week" -> now.minusWeeks(1);
             case "month" -> now.minusMonths(1);
@@ -562,9 +562,9 @@ public class MarketplaceService {
             default -> now.minusWeeks(1);
         };
     }
-    
+
     // DTO conversion methods
-    
+
     private TemplateDto toDto(FlowTemplate template) {
         return TemplateDto.builder()
             .id(template.getId())
@@ -574,7 +574,7 @@ public class MarketplaceService {
             .category(template.getCategory())
             .type(template.getType())
             .author(toAuthorDto(template.getAuthor()))
-            .organization(template.getOrganization() != null ? 
+            .organization(template.getOrganization() != null ?
                 toOrganizationDto(template.getOrganization()) : null)
             .version(template.getVersion())
             .iconUrl(template.getIconUrl())
@@ -588,7 +588,7 @@ public class MarketplaceService {
             .publishedAt(template.getPublishedAt())
             .build();
     }
-    
+
     private TemplateDetailDto toDetailDto(FlowTemplate template) {
         TemplateDetailDto dto = new TemplateDetailDto();
         // Copy basic fields from toDto
@@ -600,7 +600,7 @@ public class MarketplaceService {
         dto.setCategory(template.getCategory());
         dto.setType(template.getType());
         dto.setAuthor(toAuthorDto(template.getAuthor()));
-        dto.setOrganization(template.getOrganization() != null ? 
+        dto.setOrganization(template.getOrganization() != null ?
             toOrganizationDto(template.getOrganization()) : null);
         dto.setVersion(template.getVersion());
         dto.setIconUrl(template.getIconUrl());
@@ -619,20 +619,20 @@ public class MarketplaceService {
         dto.setFeatured(template.isFeatured());
         dto.setPublishedAt(template.getPublishedAt());
         dto.setUpdatedAt(template.getUpdatedAt());
-        
+
         // Add versions
         dto.setVersions(template.getVersions().stream()
             .map(this::toVersionDto)
             .collect(Collectors.toList()));
-        
+
         // Add dependencies
         dto.setDependencies(template.getDependencies().stream()
             .map(this::toDto)
             .collect(Collectors.toList()));
-        
+
         return dto;
     }
-    
+
     private AuthorDto toAuthorDto(User user) {
         return AuthorDto.builder()
             .id(user.getId())
@@ -641,7 +641,7 @@ public class MarketplaceService {
             .avatarUrl(user.getAvatarUrl())
             .build();
     }
-    
+
     private OrganizationDto toOrganizationDto(Organization org) {
         return OrganizationDto.builder()
             .id(org.getId())
@@ -651,7 +651,7 @@ public class MarketplaceService {
             .verified(org.isVerified())
             .build();
     }
-    
+
     private TemplateVersionDto toVersionDto(TemplateVersion version) {
         return TemplateVersionDto.builder()
             .id(version.getId())
@@ -664,7 +664,7 @@ public class MarketplaceService {
             .deprecationMessage(version.getDeprecationMessage())
             .build();
     }
-    
+
     private CommentDto toCommentDto(TemplateComment comment) {
         return CommentDto.builder()
             .id(comment.getId())

@@ -30,7 +30,7 @@ public class InboundSoapEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(InboundSoapEndpoint.class);
     private static final String NAMESPACE_URI = "http://integrationlab.com/inbound";
-    
+
     private final AdapterFactoryManager adapterFactory;
 
     public InboundSoapEndpoint() {
@@ -43,16 +43,16 @@ public class InboundSoapEndpoint {
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "InboundSoapRequest")
     @ResponsePayload
     public Source handleInboundSoapRequest(@RequestPayload Source request) {
-        
+
         logger.info("Received inbound SOAP request");
-        
+
         try {
             // Create SOAP outbound adapter configuration
             SoapOutboundAdapterConfig config = createSoapConfig();
-            
+
             // Create and initialize adapter
             OutboundAdapterPort adapter = adapterFactory.createReceiver(AdapterConfiguration.AdapterTypeEnum.SOAP, config);
-            
+
             // Create AdapterConfiguration for initialization
             AdapterConfiguration adapterConfig = AdapterConfiguration.builder()
                     .adapterId(UUID.randomUUID().toString())
@@ -62,17 +62,17 @@ public class InboundSoapEndpoint {
                     .connectionProperties(new java.util.HashMap<>())
                     .operationProperties(new java.util.HashMap<>())
                     .build();
-            
+
             adapter.initialize(adapterConfig);
-            
+
             try {
                 // Process the inbound SOAP message
                 SendRequest sendRequest = SendRequest.builder()
                         .payload(request)
                         .build();
                 AdapterOperationResult result = adapter.send(sendRequest);
-                
-                if (result.isSuccess()) {
+
+                if(result.isSuccess()) {
                     logger.info("Successfully processed inbound SOAP message");
                     return createSuccessResponse("Message processed successfully");
                 } else {
@@ -82,8 +82,8 @@ public class InboundSoapEndpoint {
             } finally {
                 adapter.shutdown();
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error processing inbound SOAP request", e);
             return createErrorResponse("Internal server error: " + e.getMessage());
         }
@@ -95,11 +95,11 @@ public class InboundSoapEndpoint {
      */
     private SoapOutboundAdapterConfig createSoapConfig() {
         SoapOutboundAdapterConfig config = new SoapOutboundAdapterConfig();
-        
+
         // Set basic SOAP configuration
         config.setServiceEndpointUrl("http://localhost:8080/ws/inbound");
         config.setSoapAction("process");
-        
+
         return config;
     }
 
@@ -112,19 +112,19 @@ public class InboundSoapEndpoint {
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.newDocument();
-            
+
             Element responseElement = document.createElementNS(NAMESPACE_URI, "InboundSoapResponse");
             Element statusElement = document.createElement("status");
             statusElement.setTextContent("SUCCESS");
             Element messageElement = document.createElement("message");
             messageElement.setTextContent(message);
-            
+
             responseElement.appendChild(statusElement);
             responseElement.appendChild(messageElement);
             document.appendChild(responseElement);
-            
+
             return new DOMSource(document);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error creating success response", e);
             return createErrorResponse("Error creating response");
         }
@@ -139,19 +139,19 @@ public class InboundSoapEndpoint {
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.newDocument();
-            
+
             Element responseElement = document.createElementNS(NAMESPACE_URI, "InboundSoapResponse");
             Element statusElement = document.createElement("status");
             statusElement.setTextContent("ERROR");
             Element messageElement = document.createElement("message");
             messageElement.setTextContent(errorMessage);
-            
+
             responseElement.appendChild(statusElement);
             responseElement.appendChild(messageElement);
             document.appendChild(responseElement);
-            
+
             return new DOMSource(document);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error creating error response", e);
             // Return a simple fallback response
             return null;

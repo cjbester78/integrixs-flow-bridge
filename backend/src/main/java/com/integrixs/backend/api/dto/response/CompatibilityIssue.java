@@ -10,20 +10,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompatibilityIssue {
-    
+
     public enum Severity {
         ERROR, WARNING, INFO
     }
-    
+
     public enum Category {
-        TYPE_MISMATCH, 
-        MISSING_FIELD, 
-        FORMAT_DIFFERENCE, 
-        CONSTRAINT_CONFLICT, 
+        TYPE_MISMATCH,
+        MISSING_FIELD,
+        FORMAT_DIFFERENCE,
+        CONSTRAINT_CONFLICT,
         NAMESPACE_ISSUE,
         OTHER
     }
-    
+
     private Severity severity;
     private Category category;
     private String sourcePath;

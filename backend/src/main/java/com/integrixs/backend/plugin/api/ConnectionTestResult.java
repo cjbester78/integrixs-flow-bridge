@@ -11,37 +11,37 @@ import java.util.Map;
 @Data
 @Builder
 public class ConnectionTestResult {
-    
+
     /**
      * Whether the connection test was successful
      */
     private boolean successful;
-    
+
     /**
-     * Human-readable status message
+     * Human - readable status message
      */
     private String message;
-    
+
     /**
      * Error details if test failed
      */
     private String errorDetails;
-    
+
     /**
      * Response time for the test
      */
     private Duration responseTime;
-    
+
     /**
      * Additional diagnostic information
      */
     private Map<String, Object> diagnostics;
-    
+
     /**
      * Server/system information if available
      */
     private SystemInfo systemInfo;
-    
+
     /**
      * Static factory for successful result
      */
@@ -51,7 +51,7 @@ public class ConnectionTestResult {
                 .message(message)
                 .build();
     }
-    
+
     /**
      * Static factory for failed result
      */
@@ -62,7 +62,7 @@ public class ConnectionTestResult {
                 .errorDetails(errorDetails)
                 .build();
     }
-    
+
     /**
      * System information
      */

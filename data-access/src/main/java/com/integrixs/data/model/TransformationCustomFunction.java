@@ -34,7 +34,7 @@ public class TransformationCustomFunction {
 
     @Column(name = "description", length = 500)
     private String description;
-    
+
     @Column(name = "category", length = 50)
     private String category;
 
@@ -44,7 +44,7 @@ public class TransformationCustomFunction {
 
     @Column(name = "function_signature", nullable = false, length = 500)
     private String functionSignature;
-    
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "parameters", columnDefinition = "json")
     private String parameters; // JSON representation of function parameters
@@ -66,14 +66,14 @@ public class TransformationCustomFunction {
 
     @Column(name = "is_public", nullable = false)
     private boolean isPublic = true;
-    
+
     @Column(name = "is_built_in", nullable = false)
     private boolean builtIn = false;
-    
+
     public boolean isBuiltIn() {
         return builtIn;
     }
-    
+
     public void setBuiltIn(boolean builtIn) {
         this.builtIn = builtIn;
     }

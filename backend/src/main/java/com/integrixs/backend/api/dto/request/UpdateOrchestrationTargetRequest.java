@@ -17,35 +17,35 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateOrchestrationTargetRequest {
-    
-    @Min(value = 0, message = "Execution order must be non-negative")
+
+    @Min(value = 0, message = "Execution order must be non - negative")
     private Integer executionOrder;
-    
+
     private Boolean parallel;
-    
+
     private String routingCondition;
-    
+
     private OrchestrationTarget.ConditionType conditionType;
-    
+
     private String structureId;
-    
+
     private String responseStructureId;
-    
+
     private Boolean awaitResponse;
-    
-    @Min(value = 0, message = "Timeout must be non-negative")
+
+    @Min(value = 0, message = "Timeout must be non - negative")
     @Max(value = 3600000, message = "Timeout cannot exceed 1 hour")
     private Long timeoutMs;
-    
+
     private RetryPolicyDto retryPolicy;
-    
+
     private OrchestrationTarget.ErrorStrategy errorStrategy;
-    
+
     private Map<String, Object> configuration;
-    
+
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
-    
+
     /**
      * Retry policy DTO
      */
@@ -54,23 +54,23 @@ public class UpdateOrchestrationTargetRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RetryPolicyDto {
-        
+
         @Min(0)
         @Max(10)
         private Integer maxAttempts;
-        
+
         @Min(0)
         @Max(300000)
         private Long retryDelayMs;
-        
+
         @Min(1)
         @Max(10)
         private Double backoffMultiplier;
-        
+
         @Min(0)
         @Max(3600000)
         private Long maxRetryDelayMs;
-        
+
         private String retryOnErrors;
     }
 }

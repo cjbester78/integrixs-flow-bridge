@@ -20,10 +20,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MetricsAggregatorService {
-    
+
     private final IntegrationFlowRepository flowRepository;
     private final CommunicationAdapterRepository adapterRepository;
-    
+
     /**
      * Count active integration flows
      */
@@ -31,27 +31,27 @@ public class MetricsAggregatorService {
         List<IntegrationFlow> activeFlows = flowRepository.findByIsActive(true);
         return activeFlows.size();
     }
-    
+
     /**
      * Count active flows for a specific business component
      */
     public int countActiveFlowsByBusinessComponent(UUID businessComponentId) {
         List<IntegrationFlow> activeFlows = flowRepository.findByIsActive(true);
-        
-        return (int) activeFlows.stream()
+
+        return(int) activeFlows.stream()
             .filter(flow -> isFlowAssociatedWithBusinessComponent(flow, businessComponentId))
             .count();
     }
-    
+
     /**
      * Count total flows including inactive ones
      */
     public int countTotalFlows() {
         return flowRepository.findAll().size();
     }
-    
+
     /**
-     * Count flows with errors (based on error threshold)
+     * Count flows with errors(based on error threshold)
      */
     public int countFlowsWithErrors(long errorThreshold) {
         // In a real implementation, this would query flow execution statistics
@@ -59,7 +59,7 @@ public class MetricsAggregatorService {
         log.debug("Counting flows with error count > {}", errorThreshold);
         return 0;
     }
-    
+
     /**
      * Check if a flow is associated with a specific business component
      */
@@ -67,26 +67,26 @@ public class MetricsAggregatorService {
         // Check source adapter
         boolean sourceMatch = adapterRepository.findById(flow.getInboundAdapterId())
             .map(adapter -> {
-                if (adapter.getBusinessComponent() != null) {
+                if(adapter.getBusinessComponent() != null) {
                     return businessComponentId.equals(adapter.getBusinessComponent().getId());
                 }
                 return false;
             })
             .orElse(false);
-        
+
         // Check target adapter
         boolean targetMatch = adapterRepository.findById(flow.getOutboundAdapterId())
             .map(adapter -> {
-                if (adapter.getBusinessComponent() != null) {
+                if(adapter.getBusinessComponent() != null) {
                     return businessComponentId.equals(adapter.getBusinessComponent().getId());
                 }
                 return false;
             })
             .orElse(false);
-        
+
         return sourceMatch || targetMatch;
     }
-    
+
     /**
      * Calculate average processing time across all flows
      * This would typically query execution metrics
@@ -95,7 +95,7 @@ public class MetricsAggregatorService {
         // Mock implementation - in reality would query execution metrics
         return 250L; // milliseconds
     }
-    
+
     /**
      * Calculate average processing time for a business component
      */

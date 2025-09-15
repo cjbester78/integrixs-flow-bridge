@@ -14,6 +14,6 @@ import org.springframework.context.annotation.Configuration;
     "com.integrixs.webclient.infrastructure"
 })
 public class WebClientConfiguration {
-    
+
     // Additional bean configurations can be added here if needed
 }

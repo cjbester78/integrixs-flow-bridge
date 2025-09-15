@@ -25,7 +25,7 @@ public class ServiceEndpoint {
     private String version;
     @Builder.Default
     private Map<String, String> metadata = new HashMap<>();
-    
+
     /**
      * Endpoint types
      */
@@ -36,7 +36,7 @@ public class ServiceEndpoint {
         WEBHOOK,
         CUSTOM
     }
-    
+
     /**
      * Authentication configuration
      */
@@ -48,7 +48,7 @@ public class ServiceEndpoint {
         private Map<String, String> credentials = new HashMap<>();
         private String tokenUrl; // For OAuth2
         private long tokenExpirySeconds;
-        
+
         public enum AuthType {
             NONE,
             BASIC,
@@ -59,7 +59,7 @@ public class ServiceEndpoint {
             CUSTOM
         }
     }
-    
+
     /**
      * Connection configuration
      */
@@ -80,7 +80,7 @@ public class ServiceEndpoint {
         private boolean followRedirects = true;
         private ProxyConfig proxyConfig;
     }
-    
+
     /**
      * Proxy configuration
      */
@@ -92,29 +92,29 @@ public class ServiceEndpoint {
         private String proxyUsername;
         private String proxyPassword;
         private ProxyType proxyType;
-        
+
         public enum ProxyType {
             HTTP,
             SOCKS
         }
     }
-    
+
     /**
      * Build full URL from base URL and path
      * @param path Request path
      * @return Full URL
      */
     public String buildUrl(String path) {
-        if (path == null || path.isEmpty()) {
+        if(path == null || path.isEmpty()) {
             return baseUrl;
         }
-        
+
         String cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         String cleanPath = path.startsWith("/") ? path : "/" + path;
-        
+
         return cleanBaseUrl + cleanPath;
     }
-    
+
     /**
      * Check if endpoint requires authentication
      * @return true if authentication is required
@@ -122,15 +122,15 @@ public class ServiceEndpoint {
     public boolean requiresAuth() {
         return defaultAuth != null && defaultAuth.getAuthType() != AuthenticationConfig.AuthType.NONE;
     }
-    
+
     /**
-     * Get merged headers (default + request headers)
-     * @param requestHeaders Request-specific headers
+     * Get merged headers(default + request headers)
+     * @param requestHeaders Request - specific headers
      * @return Merged headers
      */
     public Map<String, String> getMergedHeaders(Map<String, String> requestHeaders) {
         Map<String, String> merged = new HashMap<>(defaultHeaders);
-        if (requestHeaders != null) {
+        if(requestHeaders != null) {
             merged.putAll(requestHeaders);
         }
         return merged;

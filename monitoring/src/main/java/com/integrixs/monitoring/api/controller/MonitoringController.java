@@ -26,9 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Monitoring", description = "APIs for system monitoring, metrics, and alerts")
 public class MonitoringController {
-    
+
     private final MonitoringApplicationService monitoringApplicationService;
-    
+
     /**
      * Log a monitoring event
      * @param request Log event request
@@ -36,24 +36,24 @@ public class MonitoringController {
      */
     @PostMapping("/events")
     @Operation(summary = "Log a monitoring event", description = "Records a monitoring event in the system")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Event logged successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     public ResponseEntity<LogEventResponseDTO> logEvent(
             @Valid @RequestBody LogEventRequestDTO request) {
-        
+
         log.debug("Logging event: {} - {}", request.getEventType(), request.getMessage());
-        
+
         LogEventResponseDTO response = monitoringApplicationService.logEvent(request);
-        
-        if (response.isSuccess()) {
+
+        if(response.isSuccess()) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     /**
      * Record a metric
      * @param request Record metric request
@@ -61,24 +61,24 @@ public class MonitoringController {
      */
     @PostMapping("/metrics")
     @Operation(summary = "Record a metric", description = "Records a metric value in the monitoring system")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Metric recorded successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     public ResponseEntity<RecordMetricResponseDTO> recordMetric(
             @Valid @RequestBody RecordMetricRequestDTO request) {
-        
+
         log.debug("Recording metric: {} = {}", request.getMetricName(), request.getValue());
-        
+
         RecordMetricResponseDTO response = monitoringApplicationService.recordMetric(request);
-        
-        if (response.isSuccess()) {
+
+        if(response.isSuccess()) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     /**
      * Query monitoring events
      * @param request Query request
@@ -86,19 +86,19 @@ public class MonitoringController {
      */
     @PostMapping("/events/query")
     @Operation(summary = "Query monitoring events", description = "Query historical monitoring events")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Query executed successfully")
     })
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<List<MonitoringEventDTO>> queryEvents(
             @Valid @RequestBody EventQueryRequestDTO request) {
-        
+
         log.debug("Querying events with criteria: {}", request);
-        
+
         List<MonitoringEventDTO> events = monitoringApplicationService.queryEvents(request);
         return ResponseEntity.ok(events);
     }
-    
+
     /**
      * Query metrics
      * @param request Query request
@@ -106,19 +106,19 @@ public class MonitoringController {
      */
     @PostMapping("/metrics/query")
     @Operation(summary = "Query metrics", description = "Query historical metric data")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Query executed successfully")
     })
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<List<MetricSnapshotDTO>> queryMetrics(
             @Valid @RequestBody MetricQueryRequestDTO request) {
-        
+
         log.debug("Querying metrics with criteria: {}", request);
-        
+
         List<MetricSnapshotDTO> metrics = monitoringApplicationService.queryMetrics(request);
         return ResponseEntity.ok(metrics);
     }
-    
+
     /**
      * Calculate metric aggregation
      * @param request Aggregation request
@@ -126,25 +126,25 @@ public class MonitoringController {
      */
     @PostMapping("/metrics/aggregate")
     @Operation(summary = "Calculate metric aggregation", description = "Calculate aggregated metric values")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Aggregation calculated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<MetricAggregationResponseDTO> calculateAggregation(
             @Valid @RequestBody MetricAggregationRequestDTO request) {
-        
+
         log.debug("Calculating aggregation for metric: {}", request.getMetricName());
-        
+
         MetricAggregationResponseDTO response = monitoringApplicationService.calculateAggregation(request);
-        
-        if (response.isSuccess()) {
+
+        if(response.isSuccess()) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     /**
      * Get active alerts
      * @return List of active alerts
@@ -155,20 +155,20 @@ public class MonitoringController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<List<AlertDTO>> getActiveAlerts() {
         log.debug("Getting active alerts");
-        
+
         List<AlertDTO> alerts = monitoringApplicationService.getActiveAlerts();
         return ResponseEntity.ok(alerts);
     }
-    
+
     /**
      * Acknowledge an alert
      * @param alertId Alert ID
      * @param request Acknowledge request
      * @return Alert operation response
      */
-    @PostMapping("/alerts/{alertId}/acknowledge")
+    @PostMapping("/alerts/ {alertId}/acknowledge")
     @Operation(summary = "Acknowledge an alert", description = "Acknowledge that an alert has been seen")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Alert acknowledged successfully"),
             @ApiResponse(responseCode = "404", description = "Alert not found")
     })
@@ -177,27 +177,27 @@ public class MonitoringController {
             @Parameter(description = "Alert ID", required = true)
             @PathVariable String alertId,
             @Valid @RequestBody AcknowledgeAlertRequestDTO request) {
-        
+
         log.info("Acknowledging alert: {} by user: {}", alertId, request.getUserId());
-        
+
         AlertOperationResponseDTO response = monitoringApplicationService.acknowledgeAlert(alertId, request);
-        
-        if (response.isSuccess()) {
+
+        if(response.isSuccess()) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-    
+
     /**
      * Resolve an alert
      * @param alertId Alert ID
      * @param request Resolve request
      * @return Alert operation response
      */
-    @PostMapping("/alerts/{alertId}/resolve")
+    @PostMapping("/alerts/ {alertId}/resolve")
     @Operation(summary = "Resolve an alert", description = "Mark an alert as resolved")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "200", description = "Alert resolved successfully"),
             @ApiResponse(responseCode = "404", description = "Alert not found")
     })
@@ -206,18 +206,18 @@ public class MonitoringController {
             @Parameter(description = "Alert ID", required = true)
             @PathVariable String alertId,
             @Valid @RequestBody ResolveAlertRequestDTO request) {
-        
+
         log.info("Resolving alert: {} with resolution: {}", alertId, request.getResolution());
-        
+
         AlertOperationResponseDTO response = monitoringApplicationService.resolveAlert(alertId, request);
-        
-        if (response.isSuccess()) {
+
+        if(response.isSuccess()) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-    
+
     /**
      * Create alert rule
      * @param request Create rule request
@@ -225,25 +225,25 @@ public class MonitoringController {
      */
     @PostMapping("/alerts/rules")
     @Operation(summary = "Create alert rule", description = "Create a new alert rule")
-    @ApiResponses({
+    @ApiResponses( {
             @ApiResponse(responseCode = "201", description = "Alert rule created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<AlertRuleOperationResponseDTO> createAlertRule(
             @Valid @RequestBody CreateAlertRuleRequestDTO request) {
-        
+
         log.info("Creating alert rule: {}", request.getRuleName());
-        
+
         AlertRuleOperationResponseDTO response = monitoringApplicationService.createAlertRule(request);
-        
-        if (response.isSuccess()) {
+
+        if(response.isSuccess()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } else {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     /**
      * Health check endpoint
      * @return Health status

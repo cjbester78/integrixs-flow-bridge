@@ -26,22 +26,22 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 class AlertingServiceImplTest {
-    
+
     @Mock
     private AlertRepository alertRepository;
-    
+
     @Mock
     private JavaMailSender mailSender;
-    
+
     @Mock
     private RestTemplate restTemplate;
-    
+
     @Mock
     private MimeMessage mimeMessage;
-    
+
     @InjectMocks
     private AlertingServiceImpl alertingService;
-    
+
     @BeforeEach
     void setUp() {
         // Set up test configuration values
@@ -49,30 +49,30 @@ class AlertingServiceImplTest {
         ReflectionTestUtils.setField(alertingService, "fromEmail", "test@integrix.com");
         ReflectionTestUtils.setField(alertingService, "webhookEnabled", true);
         ReflectionTestUtils.setField(alertingService, "smsEnabled", true);
-        ReflectionTestUtils.setField(alertingService, "twilioAccountSid", "test-account");
-        ReflectionTestUtils.setField(alertingService, "twilioAuthToken", "test-token");
-        ReflectionTestUtils.setField(alertingService, "twilioFromNumber", "+1234567890");
+        ReflectionTestUtils.setField(alertingService, "twilioAccountSid", "test - account");
+        ReflectionTestUtils.setField(alertingService, "twilioAuthToken", "test - token");
+        ReflectionTestUtils.setField(alertingService, "twilioFromNumber", " + 1234567890");
     }
-    
+
     @Test
     void testEmailNotification() throws Exception {
         // Given
         Map<String, String> emailParams = new HashMap<>();
         emailParams.put("to", "admin@test.com,ops@test.com");
-        
+
         Alert alert = createTestAlert(Alert.AlertAction.ActionType.EMAIL, emailParams);
-        
+
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(alertRepository.save(any())).thenReturn(alert);
-        
+
         // When
         alertingService.triggerAlert(alert);
-        
+
         // Then
         verify(mailSender, times(1)).createMimeMessage();
         verify(mailSender, times(1)).send(any(MimeMessage.class));
     }
-    
+
     @Test
     void testWebhookNotification() {
         // Given
@@ -80,78 +80,78 @@ class AlertingServiceImplTest {
         webhookParams.put("url", "https://api.test.com/alerts");
         webhookParams.put("method", "POST");
         webhookParams.put("auth_type", "bearer");
-        webhookParams.put("auth_token", "test-bearer-token");
-        
+        webhookParams.put("auth_token", "test - bearer - token");
+
         Alert alert = createTestAlert(Alert.AlertAction.ActionType.WEBHOOK, webhookParams);
-        
+
         ResponseEntity<String> mockResponse = new ResponseEntity<>("OK", HttpStatus.OK);
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
             .thenReturn(mockResponse);
         when(alertRepository.save(any())).thenReturn(alert);
-        
+
         // When
         alertingService.triggerAlert(alert);
-        
+
         // Then
         verify(restTemplate, times(1)).exchange(
             eq("https://api.test.com/alerts"),
             eq(HttpMethod.POST),
             any(HttpEntity.class),
             eq(String.class)
-        );
+       );
     }
-    
+
     @Test
     void testWebhookWithApiKeyAuth() {
         // Given
         Map<String, String> webhookParams = new HashMap<>();
         webhookParams.put("url", "https://api.test.com/alerts");
         webhookParams.put("auth_type", "api_key");
-        webhookParams.put("api_key_header", "X-API-Key");
-        webhookParams.put("api_key_value", "secret-key");
-        
+        webhookParams.put("api_key_header", "X - API - Key");
+        webhookParams.put("api_key_value", "secret - key");
+
         Alert alert = createTestAlert(Alert.AlertAction.ActionType.WEBHOOK, webhookParams);
-        
+
         ResponseEntity<String> mockResponse = new ResponseEntity<>("OK", HttpStatus.OK);
         when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
             .thenReturn(mockResponse);
         when(alertRepository.save(any())).thenReturn(alert);
-        
+
         // When
         alertingService.triggerAlert(alert);
-        
+
         // Then
         verify(restTemplate, times(1)).exchange(
             anyString(),
             any(HttpMethod.class),
             argThat(entity -> {
                 HttpEntity<?> httpEntity = (HttpEntity<?>) entity;
-                return httpEntity.getHeaders().containsKey("X-API-Key") &&
-                       httpEntity.getHeaders().get("X-API-Key").contains("secret-key");
+                return httpEntity.getHeaders().containsKey("X - API - Key") &&
+                       httpEntity.getHeaders().get("X - API - Key").contains("secret - key");
             }),
             eq(String.class)
-        );
+       );
     }
-    
+
     @Test
     void testDisabledEmailNotification() {
         // Given
         ReflectionTestUtils.setField(alertingService, "emailEnabled", false);
-        
+
         Map<String, String> emailParams = new HashMap<>();
         emailParams.put("to", "admin@test.com");
-        
+
         Alert alert = createTestAlert(Alert.AlertAction.ActionType.EMAIL, emailParams);
         when(alertRepository.save(any())).thenReturn(alert);
-        
+
         // When
         alertingService.triggerAlert(alert);
-        
+
         // Then
         verify(mailSender, never()).createMimeMessage();
         verify(mailSender, never()).send(any(MimeMessage.class));
     }
-    
+
     @Test
     void testNotificationWithoutParameters() {
         // Given
@@ -167,16 +167,16 @@ class AlertingServiceImplTest {
                         .type(Alert.AlertAction.ActionType.EMAIL)
                         .build())
                 .build();
-        
+
         when(alertRepository.save(any())).thenReturn(alert);
-        
+
         // When
         alertingService.triggerAlert(alert);
-        
+
         // Then
         verify(mailSender, never()).createMimeMessage();
     }
-    
+
     private Alert createTestAlert(Alert.AlertAction.ActionType actionType, Map<String, String> parameters) {
         return Alert.builder()
                 .alertId("test-123")

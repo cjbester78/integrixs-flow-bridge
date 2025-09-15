@@ -17,9 +17,9 @@ import java.util.UUID;
 
 /**
  * Entity representing a flow transformation.
- * 
+ *
  * <p>Transformations are applied to data as it flows from source to target.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -40,7 +40,7 @@ import java.util.UUID;
 public class FlowTransformation {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -158,7 +158,7 @@ public class FlowTransformation {
 
     /**
      * Adds a field mapping to this transformation
-     * 
+     *
      * @param fieldMapping the field mapping to add
      */
     public void addFieldMapping(FieldMapping fieldMapping) {
@@ -168,7 +168,7 @@ public class FlowTransformation {
 
     /**
      * Removes a field mapping from this transformation
-     * 
+     *
      * @param fieldMapping the field mapping to remove
      */
     public void removeFieldMapping(FieldMapping fieldMapping) {

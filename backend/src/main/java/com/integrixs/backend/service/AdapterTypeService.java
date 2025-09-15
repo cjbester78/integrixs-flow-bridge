@@ -22,86 +22,86 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class AdapterTypeService {
-    
+
     private final AdapterTypeRepository adapterTypeRepository;
     private final AdapterCategoryRepository adapterCategoryRepository;
-    
+
     /**
      * Get paginated list of adapter types with optional filters
      */
     public Page<AdapterType> getAdapterTypes(Pageable pageable, String category, String search) {
         log.debug("Fetching adapter types with category: {}, search: {}", category, search);
-        
+
         UUID categoryId = null;
-        if (category != null && !category.isEmpty()) {
+        if(category != null && !category.isEmpty()) {
             // Resolve category code to ID
             categoryId = adapterCategoryRepository.findByCode(category)
                 .map(AdapterCategory::getId)
                 .orElse(null);
         }
-        
+
         return adapterTypeRepository.findWithFilters(categoryId, "active", search, pageable);
     }
-    
+
     /**
      * Register a new adapter type
      */
     public AdapterType registerAdapterType(AdapterTypeDTO dto) {
         log.info("Registering new adapter type with code: {}", dto.getCode());
-        
+
         // Check if adapter type already exists
-        if (adapterTypeRepository.existsByCode(dto.getCode())) {
+        if(adapterTypeRepository.existsByCode(dto.getCode())) {
             throw new IllegalArgumentException("Adapter type with code " + dto.getCode() + " already exists");
         }
-        
+
         AdapterType adapterType = new AdapterType();
         mapDtoToEntity(dto, adapterType);
-        
+
         return adapterTypeRepository.save(adapterType);
     }
-    
+
     /**
      * Update an existing adapter type
      */
     public void updateAdapterType(UUID id, AdapterTypeDTO dto) {
         log.info("Updating adapter type with id: {}", id);
-        
+
         AdapterType adapterType = adapterTypeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Adapter type not found with id: " + id));
-        
+
         mapDtoToEntity(dto, adapterType);
         adapterTypeRepository.save(adapterType);
     }
-    
+
     /**
      * Get configuration schema for specific adapter type and direction
      */
     public ConfigurationSchemaDTO getConfigurationSchema(UUID typeId, String direction) {
         log.debug("Fetching configuration schema for adapter type: {}, direction: {}", typeId, direction);
-        
+
         AdapterType adapterType = adapterTypeRepository.findById(typeId)
             .orElseThrow(() -> new IllegalArgumentException("Adapter type not found with id: " + typeId));
-        
+
         ConfigurationSchemaDTO schemaDTO = new ConfigurationSchemaDTO();
         schemaDTO.setDirection(direction);
-        
+
         // Get the appropriate schema based on direction
         Map<String, Object> schema = null;
-        switch (direction.toLowerCase()) {
+        switch(direction.toLowerCase()) {
             case "inbound":
-                if (!adapterType.isSupportsInbound()) {
+                if(!adapterType.isSupportsInbound()) {
                     throw new IllegalArgumentException("Adapter type does not support inbound direction");
                 }
                 schema = adapterType.getInboundConfigSchema();
                 break;
             case "outbound":
-                if (!adapterType.isSupportsOutbound()) {
+                if(!adapterType.isSupportsOutbound()) {
                     throw new IllegalArgumentException("Adapter type does not support outbound direction");
                 }
                 schema = adapterType.getOutboundConfigSchema();
                 break;
             case "bidirectional":
-                if (!adapterType.isSupportsBidirectional()) {
+                if(!adapterType.isSupportsBidirectional()) {
                     throw new IllegalArgumentException("Adapter type does not support bidirectional direction");
                 }
                 // Merge common, inbound, and outbound schemas
@@ -110,13 +110,13 @@ public class AdapterTypeService {
             default:
                 throw new IllegalArgumentException("Invalid direction: " + direction);
         }
-        
+
         schemaDTO.setSchema(schema);
         schemaDTO.setSupportedAuthMethods(adapterType.getAuthenticationMethods());
-        
+
         return schemaDTO;
     }
-    
+
     /**
      * Get adapter type by ID
      */
@@ -124,7 +124,7 @@ public class AdapterTypeService {
         return adapterTypeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Adapter type not found with id: " + id));
     }
-    
+
     /**
      * Get adapter type by code
      */
@@ -132,14 +132,14 @@ public class AdapterTypeService {
         return adapterTypeRepository.findByCode(code)
             .orElseThrow(() -> new IllegalArgumentException("Adapter type not found with code: " + code));
     }
-    
+
     /**
      * Get all adapter categories
      */
     public List<AdapterCategory> getAdapterCategories() {
         return adapterCategoryRepository.findAll();
     }
-    
+
     /**
      * Map DTO to entity
      */

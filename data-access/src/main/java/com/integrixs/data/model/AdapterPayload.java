@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Entity for storing adapter payloads (requests and responses)
+ * Entity for storing adapter payloads(requests and responses)
  */
 @Entity
 @Table(name = "adapter_payloads", indexes = {

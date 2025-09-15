@@ -19,24 +19,24 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueueMessageRequest {
-    
+
     @NotBlank(message = "Flow ID is required")
     private String flowId;
-    
+
     @NotNull(message = "Payload is required")
     private String payload;
-    
+
     private Map<String, String> headers;
-    
+
     @Min(0)
     @Max(10)
     @Builder.Default
     private int priority = 5;
-    
+
     private String correlationId;
-    
+
     private Map<String, Object> metadata;
-    
+
     @Builder.Default
     private boolean async = true;
 }

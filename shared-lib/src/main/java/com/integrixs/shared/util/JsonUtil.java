@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Class JsonUtil - auto-generated documentation.
+ * Class JsonUtil - auto - generated documentation.
  */
 public class JsonUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -15,7 +15,7 @@ public class JsonUtil {
     public static String toJson(Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             throw new RuntimeException("Failed to convert object to JSON", e);
         }
     }
@@ -26,7 +26,7 @@ public class JsonUtil {
     public static <T> T fromJson(String json, Class<T> clazz) {
         try {
             return objectMapper.readValue(json, clazz);
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new RuntimeException("Failed to parse JSON", e);
         }
     }

@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * Repository interface for XmlFieldMapping entities.
- * 
+ *
  * @author Integration Team
  * @since 2.0.0
  */
@@ -18,7 +18,7 @@ public interface XmlFieldMappingRepository extends JpaRepository<XmlFieldMapping
 
     /**
      * Find all mappings for a transformation ordered by mapping order
-     * 
+     *
      * @param transformationId the transformation ID
      * @return list of mappings ordered by mapping_order
      */
@@ -26,7 +26,7 @@ public interface XmlFieldMappingRepository extends JpaRepository<XmlFieldMapping
 
     /**
      * Find mappings by source XPath pattern
-     * 
+     *
      * @param xpathPattern the XPath pattern to search
      * @return list of matching mappings
      */
@@ -34,7 +34,7 @@ public interface XmlFieldMappingRepository extends JpaRepository<XmlFieldMapping
 
     /**
      * Count mappings for a transformation
-     * 
+     *
      * @param transformationId the transformation ID
      * @return count of mappings
      */
@@ -42,7 +42,7 @@ public interface XmlFieldMappingRepository extends JpaRepository<XmlFieldMapping
 
     /**
      * Delete all mappings for a transformation
-     * 
+     *
      * @param transformationId the transformation ID
      */
     void deleteByTransformationId(UUID transformationId);

@@ -12,79 +12,132 @@ import java.util.ArrayList;
 @Configuration
 @ConfigurationProperties(prefix = "integrixs.adapters.sms")
 public class SMSConfig extends BaseAdapterConfig {
-    
+
     // Provider configuration
     private SMSProvider provider = SMSProvider.TWILIO;
-    
+
     // Common authentication
     private String accountId;
     private String authToken;
     private String apiKey;
     private String apiSecret;
-    
+
     // Sender configuration
     private String defaultSenderNumber;
     private String senderName;
     private List<String> senderNumbers = new ArrayList<>();
-    
+
     // Message settings
     private MessageType defaultMessageType = MessageType.SMS;
     private int maxMessageLength = 160;
     private boolean enableUnicode = true;
     private boolean enableConcatenation = true;
     private int maxConcatenatedParts = 10;
-    
+
     // Delivery settings
     private boolean requestDeliveryReceipt = true;
     private String callbackUrl;
     private int messageValidityPeriod = 48; // hours
     private DeliveryPriority priority = DeliveryPriority.NORMAL;
-    
+
     // Rate limiting
     private int messagesPerSecond = 10;
     private int messagesPerMinute = 100;
     private int messagesPerHour = 1000;
     private int messagesPerDay = 10000;
-    
+
     // Retry configuration
     private int maxRetries = 3;
     private long retryDelay = 5000; // milliseconds
     private boolean exponentialBackoff = true;
-    
-    // Provider-specific endpoints
+
+    // Provider - specific endpoints
     private String apiEndpoint;
     private String apiVersion;
-    
+
     // Regional settings
-    private String defaultCountryCode = "+1";
+    private String defaultCountryCode = " + 1";
     private String preferredRoute = "standard";
     private List<String> blockedCountries = new ArrayList<>();
     private List<String> allowedCountries = new ArrayList<>();
-    
+
     // Content filtering
     private boolean enableContentFiltering = true;
     private List<String> blockedKeywords = new ArrayList<>();
     private boolean enableSpamDetection = true;
-    
+
     // Number validation
     private boolean validateNumbers = true;
     private boolean enableNumberLookup = false;
     private boolean rejectLandlines = false;
     private boolean rejectVoip = false;
-    
+
     // Templates
     private Map<String, MessageTemplate> messageTemplates = new HashMap<>();
-    
-    // Opt-out management
+
+    // Opt - out management
     private boolean enableOptOutManagement = true;
     private List<String> optOutKeywords = List.of("STOP", "UNSUBSCRIBE", "CANCEL", "END", "QUIT");
     private String optOutConfirmationMessage = "You have been unsubscribed. Reply START to resubscribe.";
-    
+
     // Analytics
     private boolean enableAnalytics = true;
     private boolean trackLinks = false;
     private String linkTrackingDomain;
     
+    // Template fields - these seem to be misplaced getters/setters
+    private String id;
+    private String name;
+    private String content;
+    private Map<String, String> variables = new HashMap<>();
+    private boolean approved = false;
+    private String language = "en";
+    private MessageType type = MessageType.SMS;
+    
+    // Twilio specific fields
+    private String accountSid;
+    private String messagingServiceSid;
+    private boolean useMessagingService = false;
+    private String region = "us1";
+    private boolean enableStickySender = false;
+    private boolean enableSmartEncoding = true;
+    private boolean enableValidityPeriod = false;
+    private boolean enableShortenUrls = false;
+    private String statusCallbackUrl;
+    private String signatureSecret;
+    private String privateKey;
+    private boolean enableSignatureValidation = false;
+    private String defaultType = "text";
+    private boolean enableDlr = false;
+    private String dlrUrl;
+    private int dlrMask = 1;
+    private boolean enableEdgeLocations = false;
+    private List<String> edgeLocations = new ArrayList<>();
+    private String notifyUrl;
+    private String notifyContentType = "application/json";
+    private boolean intermediateReport = false;
+    private Map<String, String> gatewayMapping = new HashMap<>();
+    private String reportUrl;
+    private int validity = 48; // hours
+    private String reference;
+    private boolean enableHlrLookup = false;
+    private String apiKeyPrefix = "Bearer";
+    private String baseUrl;
+    private boolean enableDeliveryReports = true;
+    private String callbackData;
+    private boolean flash = false;
+    private String transliteration = "false";
+    private boolean enableScheduling = false;
+    private String languageCode = "en";
+    private boolean enableUrlShortening = false;
+    private boolean trackClicks = false;
+    private String trackingUrl;
+    private boolean includeSmsCountInResponse = false;
+    private boolean enable2WayMessaging = false;
+    private boolean enableKeywordProcessing = false;
+    private boolean enableAutoResponse = false;
+    private boolean enableBulkMessaging = false;
+
     public enum SMSProvider {
         TWILIO("Twilio", "api.twilio.com"),
         VONAGE("Vonage/Nexmo", "api.nexmo.com"),
@@ -100,59 +153,59 @@ public class SMSConfig extends BaseAdapterConfig {
         TELNYX("Telnyx", "api.telnyx.com"),
         SIGNALWIRE("SignalWire", "api.signalwire.com"),
         CUSTOM("Custom Provider", null);
-        
+
         private final String displayName;
         private final String defaultEndpoint;
-        
+
         SMSProvider(String displayName, String defaultEndpoint) {
             this.displayName = displayName;
             this.defaultEndpoint = defaultEndpoint;
         }
-        
+
         public String getDisplayName() {
             return displayName;
         }
-        
+
         public String getDefaultEndpoint() {
             return defaultEndpoint;
         }
     }
-    
+
     public enum MessageType {
         SMS("sms"),
         MMS("mms"),
         RCS("rcs"),
         WHATSAPP("whatsapp"),
         FLASH("flash");
-        
+
         private final String type;
-        
+
         MessageType(String type) {
             this.type = type;
         }
-        
+
         public String getType() {
             return type;
         }
     }
-    
+
     public enum DeliveryPriority {
         LOW(0),
         NORMAL(1),
         HIGH(2),
         URGENT(3);
-        
+
         private final int level;
-        
+
         DeliveryPriority(int level) {
             this.level = level;
         }
-        
+
         public int getLevel() {
             return level;
         }
     }
-    
+
     // Message template
         public static class MessageTemplate {
         private String id;
@@ -163,14 +216,14 @@ public class SMSConfig extends BaseAdapterConfig {
         private String language = "en";
         private MessageType type = MessageType.SMS;
     }
-    
-    // Provider-specific configurations
+
+    // Provider - specific configurations
     private TwilioConfig twilioConfig = new TwilioConfig();
     private VonageConfig vonageConfig = new VonageConfig();
     private AwsSnsConfig awsSnsConfig = new AwsSnsConfig();
     private MessageBirdConfig messageBirdConfig = new MessageBirdConfig();
     private InfobipConfig infobipConfig = new InfobipConfig();
-    
+
         public static class TwilioConfig {
         private String accountSid;
         private String authToken;
@@ -185,7 +238,7 @@ public class SMSConfig extends BaseAdapterConfig {
         private boolean enableShortenUrls = false;
         private String statusCallbackUrl;
     }
-    
+
         public static class VonageConfig {
         private String apiKey;
         private String apiSecret;
@@ -200,9 +253,9 @@ public class SMSConfig extends BaseAdapterConfig {
         private boolean enableFlashMessage = false;
         private String protocolId;
     }
-    
+
         public static class AwsSnsConfig {
-        private String region = "us-east-1";
+        private String region = "us - east-1";
         private String accessKeyId;
         private String secretAccessKey;
         private String roleArn;
@@ -214,7 +267,7 @@ public class SMSConfig extends BaseAdapterConfig {
         private String originationNumber;
         private String registeredKeyword;
     }
-    
+
         public static class MessageBirdConfig {
         private String accessKey;
         private String signingKey;
@@ -227,7 +280,7 @@ public class SMSConfig extends BaseAdapterConfig {
         private String reference;
         private boolean enableHlrLookup = false;
     }
-    
+
         public static class InfobipConfig {
         private String apiKey;
         private String apiKeyPrefix = "App";
@@ -245,10 +298,10 @@ public class SMSConfig extends BaseAdapterConfig {
         private String trackingUrl;
         private boolean includeSmsCountInResponse = true;
     }
-    
+
     // Features configuration
     private Features features = new Features();
-    
+
         public static class Features {
         private boolean enable2WayMessaging = false;
         private boolean enableKeywordProcessing = false;
@@ -265,10 +318,10 @@ public class SMSConfig extends BaseAdapterConfig {
         private boolean enableArchiving = true;
         private boolean enableCampaignManagement = false;
     }
-    
+
     // Compliance settings
     private ComplianceSettings compliance = new ComplianceSettings();
-    
+
         public static class ComplianceSettings {
         private boolean enableTCPA = true; // US
         private boolean enableGDPR = true; // EU
@@ -283,7 +336,7 @@ public class SMSConfig extends BaseAdapterConfig {
         private int consentExpiryDays = 365;
         private boolean enableConsentTracking = true;
     }
-    
+
     // Error codes mapping
     public static class ErrorCodes {
         public static final Map<String, String> TWILIO_ERRORS = Map.of(
@@ -292,15 +345,15 @@ public class SMSConfig extends BaseAdapterConfig {
             "30003", "Unreachable destination handset",
             "30004", "Message blocked",
             "30005", "Unknown destination handset"
-        );
-        
+       );
+
         public static final Map<String, String> VONAGE_ERRORS = Map.of(
             "1", "Throttled",
             "2", "Missing parameters",
             "3", "Invalid parameters",
             "4", "Invalid credentials",
             "5", "Internal error"
-        );
+       );
     }
     // Getters and Setters
     public SMSProvider getProvider() {
@@ -704,12 +757,6 @@ public class SMSConfig extends BaseAdapterConfig {
     }
     public void setStatusCallbackUrl(String statusCallbackUrl) {
         this.statusCallbackUrl = statusCallbackUrl;
-    }
-    public String getApiKey() {
-        return apiKey;
-    }
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
     }
     public String getSignatureSecret() {
         return signatureSecret;

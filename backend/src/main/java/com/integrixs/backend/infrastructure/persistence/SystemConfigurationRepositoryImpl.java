@@ -15,34 +15,34 @@ import java.util.UUID;
 @Repository("domainSystemConfigurationRepository")
 @RequiredArgsConstructor
 public class SystemConfigurationRepositoryImpl implements SystemConfigurationRepository {
-    
+
     private final com.integrixs.data.repository.SystemConfigurationRepository jpaRepository;
-    
+
     @Override
     public Optional<SystemConfiguration> findById(UUID id) {
         return jpaRepository.findById(id);
     }
-    
+
     @Override
     public Optional<SystemConfiguration> findByConfigKey(String configKey) {
         return jpaRepository.findByConfigKey(configKey);
     }
-    
+
     @Override
     public List<SystemConfiguration> findAll() {
         return jpaRepository.findAll();
     }
-    
+
     @Override
     public SystemConfiguration save(SystemConfiguration configuration) {
         return jpaRepository.save(configuration);
     }
-    
+
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
-    
+
     @Override
     public boolean existsByConfigKey(String configKey) {
         return jpaRepository.existsByConfigKey(configKey);

@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Dashboard metrics and statistics")
 public class DashboardController {
-    
+
     private final DashboardApplicationService dashboardService;
-    
+
     /**
      * Get dashboard statistics
      */
@@ -34,14 +34,14 @@ public class DashboardController {
             @Parameter(description = "Filter by business component ID")
             @RequestParam(required = false) String businessComponentId) {
         log.debug("Getting dashboard stats for component: {}", businessComponentId);
-        
+
         DashboardStatsDTO stats = dashboardService.getDashboardStats(businessComponentId);
-        
+
         return ResponseEntity.ok(stats);
     }
-    
+
     /**
-     * Get dashboard metrics (alias for stats)
+     * Get dashboard metrics(alias for stats)
      */
     @GetMapping("/metrics")
     @Operation(summary = "Get dashboard metrics")
@@ -50,9 +50,9 @@ public class DashboardController {
             @Parameter(description = "Filter by business component ID")
             @RequestParam(required = false) String businessComponentId) {
         log.debug("Getting dashboard metrics for component: {}", businessComponentId);
-        
+
         DashboardStatsDTO metrics = dashboardService.getDashboardMetrics(businessComponentId);
-        
+
         return ResponseEntity.ok(metrics);
     }
 }

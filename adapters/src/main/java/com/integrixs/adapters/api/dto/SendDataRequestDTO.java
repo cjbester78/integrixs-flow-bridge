@@ -15,7 +15,7 @@ public class SendDataRequestDTO {
     private boolean synchronous = true;
     private Long timeout;
     private Integer priority;
-    
+
     /**
      * Add parameter
      * @param key Parameter key
@@ -24,7 +24,7 @@ public class SendDataRequestDTO {
     public void addParameter(String key, Object value) {
         this.parameters.put(key, value);
     }
-    
+
     /**
      * Add header
      * @param key Header key
@@ -33,7 +33,7 @@ public class SendDataRequestDTO {
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
-    
+
     /**
      * Set payload with type safety
      * @param payload Payload data
@@ -41,7 +41,7 @@ public class SendDataRequestDTO {
     public <T> void setTypedPayload(T payload) {
         this.payload = payload;
     }
-    
+
     /**
      * Get payload as specific type
      * @param type Target type

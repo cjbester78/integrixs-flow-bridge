@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestHistoryCriteriaDTO {
-    
+
     private String flowId;
     private String adapterId;
     private String endpointId;

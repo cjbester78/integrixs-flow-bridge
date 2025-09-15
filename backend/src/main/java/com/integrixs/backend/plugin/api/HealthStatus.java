@@ -12,38 +12,38 @@ import java.util.Map;
 @Data
 @Builder
 public class HealthStatus {
-    
+
     /**
      * Overall health state
      */
     private HealthState state;
-    
+
     /**
-     * Human-readable status message
+     * Human - readable status message
      */
     private String message;
-    
+
     /**
      * Timestamp of health check
      */
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-    
+
     /**
      * Individual component health checks
      */
     private List<ComponentHealth> components;
-    
+
     /**
      * Performance metrics
      */
     private PerformanceMetrics metrics;
-    
+
     /**
      * Additional details
      */
     private Map<String, Object> details;
-    
+
     /**
      * Health states
      */
@@ -53,7 +53,7 @@ public class HealthStatus {
         UNHEALTHY,
         UNKNOWN
     }
-    
+
     /**
      * Component health information
      */
@@ -65,7 +65,7 @@ public class HealthStatus {
         private String message;
         private Map<String, Object> details;
     }
-    
+
     /**
      * Performance metrics
      */
@@ -79,7 +79,7 @@ public class HealthStatus {
         private Long activeConnections;
         private Map<String, Number> customMetrics;
     }
-    
+
     /**
      * Static factory methods
      */
@@ -89,7 +89,7 @@ public class HealthStatus {
                 .message("Adapter is healthy")
                 .build();
     }
-    
+
     public static HealthStatus unhealthy(String message) {
         return HealthStatus.builder()
                 .state(HealthState.UNHEALTHY)

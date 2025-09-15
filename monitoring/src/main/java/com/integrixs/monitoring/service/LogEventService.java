@@ -5,7 +5,7 @@ import com.integrixs.monitoring.model.LogSource;
 import com.integrixs.monitoring.model.LogDetailsType;
 
 /**
- * Interface LogEventService - auto-generated documentation.
+ * Interface LogEventService - auto - generated documentation.
  */
 public interface LogEventService {
     void logEvent(
@@ -16,14 +16,14 @@ public interface LogEventService {
         String domainType,
         String domainReferenceId,
         String userId
-    );
+   );
 
     void logEvent(
         LogLevel level,
         LogSource source,
         String message,
         Object detailsJson
-    );
+   );
 
     void logError(
         String message,
@@ -31,5 +31,5 @@ public interface LogEventService {
         String domainType,
         String domainReferenceId,
         String userId
-    );
+   );
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BindingTestResultDTO {
-    
+
     private String bindingId;
     private boolean reachable;
     private LocalDateTime timestamp;

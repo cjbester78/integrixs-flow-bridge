@@ -14,6 +14,6 @@ import org.springframework.context.annotation.Configuration;
     "com.integrixs.webserver.infrastructure"
 })
 public class WebServerConfiguration {
-    
+
     // Additional bean configurations can be added here if needed
 }

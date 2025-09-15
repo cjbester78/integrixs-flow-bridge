@@ -13,22 +13,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FunctionParameterDTO {
-    
+
     /**
-     * Parameter name (e.g., "amount", "rate")
+     * Parameter name(e.g., "amount", "rate")
      */
     private String name;
-    
+
     /**
-     * Java type of the parameter (e.g., "String", "int", "Double")
+     * Java type of the parameter(e.g., "String", "int", "Double")
      */
     private String type;
-    
+
     /**
      * Whether this parameter is required
      */
     private boolean required;
-    
+
     /**
      * Optional description of the parameter
      */

@@ -15,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WsdlDetailsDTO {
-    
+
     private String wsdlId;
     private String name;
     private String namespace;

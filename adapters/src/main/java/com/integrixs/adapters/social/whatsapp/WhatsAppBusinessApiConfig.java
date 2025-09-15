@@ -6,19 +6,19 @@ import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.whatsapp.business")
 public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String phoneNumberId;
     private String businessAccountId;
     private String verifyToken;
     private String systemUserAccessToken;
     private WhatsAppFeatures features = new WhatsAppFeatures();
     private WhatsAppSettings settings = new WhatsAppSettings();
-    
+
     @Override
     public String getPlatformName() {
         return "whatsapp";
     }
-    
+
         public static class WhatsAppFeatures {
         private boolean enableTextMessaging = true;
         private boolean enableMediaMessaging = true;
@@ -33,7 +33,7 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         private boolean enableLabels = true;
         private boolean enableFlows = true;
     }
-    
+
         public static class WhatsAppSettings {
         private int maxTextLength = 4096;
         private int maxCaptionLength = 1024;
@@ -43,9 +43,9 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         private int sessionTimeoutMinutes = 24 * 60; // 24 hours
         private boolean autoDownloadMedia = true;
         private boolean saveMediaLocally = false;
-        private String mediaStoragePath = "/tmp/whatsapp-media";
+        private String mediaStoragePath = "/tmp/whatsapp - media";
     }
-    
+
     // MessageDTO types
     public enum MessageType {
         TEXT,
@@ -60,7 +60,7 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         INTERACTIVE,
         REACTION
     }
-    
+
     // Interactive message types
     public enum InteractiveType {
         BUTTON,
@@ -69,14 +69,14 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         PRODUCT_LIST,
         FLOW
     }
-    
+
     // Template categories
     public enum TemplateCategory {
         MARKETING,
         UTILITY,
         AUTHENTICATION
     }
-    
+
     // MessageDTO status
     public enum MessageDeliveryStatus {
         SENT,
@@ -84,7 +84,7 @@ public class WhatsAppBusinessApiConfig extends SocialMediaAdapterConfig {
         READ,
         FAILED
     }
-    
+
     // Business profile fields
     public enum BusinessProfileField {
         ABOUT,

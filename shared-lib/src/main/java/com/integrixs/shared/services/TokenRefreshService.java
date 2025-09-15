@@ -4,7 +4,7 @@ package com.integrixs.shared.services;
  * Service interface for handling OAuth token refresh operations
  */
 public interface TokenRefreshService {
-    
+
     /**
      * Refresh an OAuth access token using a refresh token
      * @param clientId The OAuth client ID
@@ -15,14 +15,14 @@ public interface TokenRefreshService {
      * @throws Exception if token refresh fails
      */
     String refreshToken(String clientId, String clientSecret, String refreshToken, String tokenEndpointUrl) throws Exception;
-    
+
     /**
      * Check if a token needs to be refreshed
      * @param tokenExpiryTime The token expiry time in milliseconds
      * @return true if the token should be refreshed
      */
     boolean shouldRefreshToken(long tokenExpiryTime);
-    
+
     /**
      * Store a refreshed token
      * @param adapterId The adapter ID

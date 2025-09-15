@@ -17,14 +17,14 @@ class OrchestrationResult {
     private boolean success;
     private String message;
     private Object data;
-    
+
     public static OrchestrationResult error(String message) {
         OrchestrationResult result = new OrchestrationResult();
         result.success = false;
         result.message = message;
         return result;
     }
-    
+
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
     public String getMessage() { return message; }
@@ -42,7 +42,7 @@ class OrchestrationExecution {
     private List<String> logs = new ArrayList<>();
     private java.time.LocalDateTime startTime;
     private java.time.LocalDateTime endTime;
-    
+
     // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -69,12 +69,12 @@ enum ExecutionStatus {
 class ValidationResult {
     private boolean valid = true;
     private List<String> errors = new ArrayList<>();
-    
+
     public void addError(String error) {
         this.errors.add(error);
         this.valid = false;
     }
-    
+
     public boolean isValid() { return valid; }
     public void setValid(boolean valid) { this.valid = valid; }
     public List<String> getErrors() { return errors; }
@@ -90,41 +90,41 @@ public class OrchestrationEngineController {
         OrchestrationResult executeOrchestrationFlow(String flowId, Object inputData) {
             return OrchestrationResult.error("Orchestration service not implemented");
         }
-        
+
         CompletableFuture<OrchestrationResult> executeOrchestrationFlowAsync(String flowId, Object inputData) {
             return CompletableFuture.completedFuture(OrchestrationResult.error("Orchestration service not implemented"));
         }
-        
+
         Optional<OrchestrationExecution> getExecutionStatus(String executionId) {
             return Optional.empty();
         }
-        
+
         boolean cancelExecution(String executionId) {
             return false;
         }
-        
+
         ValidationResult validateOrchestrationFlow(String flowId) {
             return new ValidationResult();
         }
-        
+
         List<OrchestrationExecution> getExecutionHistory(String flowId, int limit) {
             return new ArrayList<>();
         }
     }
-    
+
     private final StubOrchestrationService orchestrationService = new StubOrchestrationService();
 
     /**
      * Execute an orchestration flow synchronously
      */
-    @PostMapping("/{flowId}/execute")
+    @PostMapping("/ {flowId}/execute")
     public ResponseEntity<OrchestrationResult> executeOrchestrationFlow(
             @PathVariable String flowId,
             @RequestBody Object inputData) {
         try {
             OrchestrationResult result = orchestrationService.executeOrchestrationFlow(flowId, inputData);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             OrchestrationResult errorResult = OrchestrationResult.error("Execution failed: " + e.getMessage());
             return ResponseEntity.internalServerError().body(errorResult);
         }
@@ -133,21 +133,21 @@ public class OrchestrationEngineController {
     /**
      * Execute an orchestration flow asynchronously
      */
-    @PostMapping("/{flowId}/execute-async")
+    @PostMapping("/ {flowId}/execute - async")
     public ResponseEntity<AsyncExecutionResponse> executeOrchestrationFlowAsync(
             @PathVariable String flowId,
             @RequestBody Object inputData) {
         try {
-            CompletableFuture<OrchestrationResult> futureResult = 
+            CompletableFuture<OrchestrationResult> futureResult =
                 orchestrationService.executeOrchestrationFlowAsync(flowId, inputData);
-            
+
             AsyncExecutionResponse response = new AsyncExecutionResponse();
             response.setExecutionId("async-" + System.currentTimeMillis());
             response.setMessage("Orchestration flow execution started asynchronously");
             response.setFlowId(flowId);
-            
+
             return ResponseEntity.accepted().body(response);
-        } catch (Exception e) {
+        } catch(Exception e) {
             AsyncExecutionResponse errorResponse = new AsyncExecutionResponse();
             errorResponse.setError("Failed to start async execution: " + e.getMessage());
             return ResponseEntity.internalServerError().body(errorResponse);
@@ -157,7 +157,7 @@ public class OrchestrationEngineController {
     /**
      * Get execution status for a running orchestration
      */
-    @GetMapping("/execution/{executionId}/status")
+    @GetMapping("/execution/ {executionId}/status")
     public ResponseEntity<OrchestrationExecution> getExecutionStatus(@PathVariable String executionId) {
         return orchestrationService.getExecutionStatus(executionId)
                 .map(ResponseEntity::ok)
@@ -166,29 +166,29 @@ public class OrchestrationEngineController {
 
     /**
      * Cancel a running orchestration execution
-     * @deprecated Use /api/orchestration/execution/{executionId}/cancel from OrchestrationController instead
+     * @deprecated Use /api/orchestration/execution/ {executionId}/cancel from OrchestrationController instead
      */
-    @PostMapping("/engine/execution/{executionId}/cancel")
+    @PostMapping("/engine/execution/ {executionId}/cancel")
     public ResponseEntity<CancelExecutionResponse> cancelExecution(@PathVariable String executionId) {
         boolean cancelled = orchestrationService.cancelExecution(executionId);
-        
+
         CancelExecutionResponse response = new CancelExecutionResponse();
         response.setExecutionId(executionId);
         response.setCancelled(cancelled);
         response.setMessage(cancelled ? "Execution cancelled successfully" : "Execution not found or already completed");
-        
+
         return cancelled ? ResponseEntity.ok(response) : ResponseEntity.notFound().build();
     }
 
     /**
      * Validate an orchestration flow configuration
      */
-    @PostMapping("/{flowId}/validate")
+    @PostMapping("/ {flowId}/validate")
     public ResponseEntity<ValidationResult> validateOrchestrationFlow(@PathVariable String flowId) {
         try {
             ValidationResult result = orchestrationService.validateOrchestrationFlow(flowId);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             ValidationResult errorResult = new ValidationResult();
             errorResult.addError("Validation failed: " + e.getMessage());
             return ResponseEntity.ok(errorResult);
@@ -198,14 +198,14 @@ public class OrchestrationEngineController {
     /**
      * Get execution history for a specific flow
      */
-    @GetMapping("/{flowId}/history")
+    @GetMapping("/ {flowId}/history")
     public ResponseEntity<List<OrchestrationExecution>> getExecutionHistory(
             @PathVariable String flowId,
             @RequestParam(defaultValue = "10") int limit) {
         try {
             List<OrchestrationExecution> history = orchestrationService.getExecutionHistory(flowId, limit);
             return ResponseEntity.ok(history);
-        } catch (Exception e) {
+        } catch(Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -213,7 +213,7 @@ public class OrchestrationEngineController {
     /**
      * Get detailed execution logs for a specific execution
      */
-    @GetMapping("/execution/{executionId}/logs")
+    @GetMapping("/execution/ {executionId}/logs")
     public ResponseEntity<ExecutionLogsResponse> getExecutionLogs(@PathVariable String executionId) {
         return orchestrationService.getExecutionStatus(executionId)
                 .map(execution -> {
@@ -234,7 +234,7 @@ public class OrchestrationEngineController {
     /**
      * Pause a running orchestration execution
      */
-    @PostMapping("/execution/{executionId}/pause")
+    @PostMapping("/execution/ {executionId}/pause")
     public ResponseEntity<ExecutionControlResponse> pauseExecution(@PathVariable String executionId) {
         // This would pause the execution - for now returning a placeholder response
         ExecutionControlResponse response = new ExecutionControlResponse();
@@ -242,14 +242,14 @@ public class OrchestrationEngineController {
         response.setAction("pause");
         response.setSuccess(false);
         response.setMessage("Pause functionality not yet implemented");
-        
+
         return ResponseEntity.ok(response);
     }
 
     /**
      * Resume a paused orchestration execution
      */
-    @PostMapping("/execution/{executionId}/resume")
+    @PostMapping("/execution/ {executionId}/resume")
     public ResponseEntity<ExecutionControlResponse> resumeExecution(@PathVariable String executionId) {
         // This would resume the execution - for now returning a placeholder response
         ExecutionControlResponse response = new ExecutionControlResponse();
@@ -257,19 +257,19 @@ public class OrchestrationEngineController {
         response.setAction("resume");
         response.setSuccess(false);
         response.setMessage("Resume functionality not yet implemented");
-        
+
         return ResponseEntity.ok(response);
     }
 
     /**
      * Get orchestration flow metrics and statistics
      */
-    @GetMapping("/{flowId}/metrics")
+    @GetMapping("/ {flowId}/metrics")
     public ResponseEntity<OrchestrationMetrics> getFlowMetrics(@PathVariable String flowId) {
         try {
             OrchestrationMetrics metrics = buildMetricsForFlow(flowId);
             return ResponseEntity.ok(metrics);
-        } catch (Exception e) {
+        } catch(Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -277,7 +277,7 @@ public class OrchestrationEngineController {
     /**
      * Test orchestration flow configuration with sample data
      */
-    @PostMapping("/{flowId}/test")
+    @PostMapping("/ {flowId}/test")
     public ResponseEntity<OrchestrationTestResult> testOrchestrationFlow(
             @PathVariable String flowId,
             @RequestBody OrchestrationTestRequest request) {
@@ -288,9 +288,9 @@ public class OrchestrationEngineController {
             result.setTestSuccessful(true);
             result.setMessage("Test execution completed successfully");
             result.setExecutionTimeMs(System.currentTimeMillis() % 1000);
-            
+
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             OrchestrationTestResult errorResult = new OrchestrationTestResult();
             errorResult.setFlowId(flowId);
             errorResult.setTestSuccessful(false);

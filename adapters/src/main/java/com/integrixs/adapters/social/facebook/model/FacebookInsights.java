@@ -15,7 +15,7 @@ public class FacebookInsights {
     private List<InsightValue> values;
     private String title;
     private String description;
-    
+
                     public static class InsightValue {
         private Object value;
         private String endTime;
@@ -67,7 +67,7 @@ public class FacebookInsights {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String name;
         private String period;
@@ -76,42 +76,42 @@ public class FacebookInsights {
         private String description;
         private Object value;
         private String endTime;
-        
+
         public Builder name(String name) {
             this.name = name;
             return this;
         }
-        
+
         public Builder period(String period) {
             this.period = period;
             return this;
         }
-        
+
         public Builder values(List<InsightValue> values) {
             this.values = values;
             return this;
         }
-        
+
         public Builder title(String title) {
             this.title = title;
             return this;
         }
-        
+
         public Builder description(String description) {
             this.description = description;
             return this;
         }
-        
+
         public Builder value(Object value) {
             this.value = value;
             return this;
         }
-        
+
         public Builder endTime(String endTime) {
             this.endTime = endTime;
             return this;
         }
-        
+
         public FacebookInsights build() {
             FacebookInsights obj = new FacebookInsights();
             obj.name = this.name;

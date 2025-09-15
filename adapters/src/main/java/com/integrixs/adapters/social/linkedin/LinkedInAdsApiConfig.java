@@ -6,7 +6,7 @@ public class LinkedInAdsApiConfig extends SocialMediaAdapterConfig {
     private String organizationId;
     private String baseUrl = "https://api.linkedin.com";
     private String apiVersion = "v2";
-    
+
     // Feature flags
     private boolean enableAnalytics = true;
     private boolean enableAudienceTargeting = false;
@@ -14,13 +14,13 @@ public class LinkedInAdsApiConfig extends SocialMediaAdapterConfig {
     private boolean enableBudgetManagement = true;
     private boolean enableLeadGenForms = false;
     private boolean enableVideoAnalytics = false;
-    
+
     // API limits
     private int maxCampaignsPerRequest = 100;
     private int maxCreativesPerRequest = 100;
     private int maxAudiencesPerRequest = 50;
-    
-    // Polling intervals (in milliseconds)
+
+    // Polling intervals(in milliseconds)
     private long campaignPollingInterval = 300000; // 5 minutes
     private long adGroupPollingInterval = 600000; // 10 minutes
     private long creativePollingInterval = 900000; // 15 minutes

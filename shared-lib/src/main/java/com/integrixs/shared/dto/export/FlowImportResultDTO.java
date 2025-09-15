@@ -18,52 +18,52 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowImportResultDTO {
-    
+
     /**
      * Whether the import was successful
      */
     private boolean success;
-    
+
     /**
-     * Imported flow ID (if successful)
+     * Imported flow ID(if successful)
      */
     private String importedFlowId;
-    
+
     /**
      * Imported flow name
      */
     private String importedFlowName;
-    
+
     /**
      * Summary of what was imported
      */
     @Builder.Default
     private ImportSummary summary = new ImportSummary();
-    
+
     /**
      * Mapping of old IDs to new IDs
      */
     @Builder.Default
     private Map<String, String> idMappings = new HashMap<>();
-    
+
     /**
      * List of warnings encountered
      */
     @Builder.Default
     private List<ImportMessage> warnings = new ArrayList<>();
-    
+
     /**
      * List of errors encountered
      */
     @Builder.Default
     private List<ImportMessage> errors = new ArrayList<>();
-    
+
     /**
      * List of conflicts that were resolved
      */
     @Builder.Default
     private List<ConflictResolution> conflictResolutions = new ArrayList<>();
-    
+
     /**
      * Summary of imported objects
      */
@@ -81,9 +81,9 @@ public class FlowImportResultDTO {
         private int totalObjectsImported;
         private long importDurationMs;
     }
-    
+
     /**
-     * Import message (warning or error)
+     * Import message(warning or error)
      */
     @Data
     @Builder
@@ -97,7 +97,7 @@ public class FlowImportResultDTO {
         private String objectName;
         private Map<String, Object> details;
     }
-    
+
     /**
      * Conflict resolution information
      */

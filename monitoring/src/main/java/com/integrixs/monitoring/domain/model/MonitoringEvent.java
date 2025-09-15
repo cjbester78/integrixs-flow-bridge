@@ -27,7 +27,7 @@ public class MonitoringEvent {
     @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
     private String stackTrace;
-    
+
     /**
      * Event types
      */
@@ -41,7 +41,7 @@ public class MonitoringEvent {
         SECURITY,
         AUDIT
     }
-    
+
     /**
      * Event levels
      */
@@ -52,22 +52,22 @@ public class MonitoringEvent {
         ERROR,
         CRITICAL
     }
-    
-    
+
+
     /**
      * Add metadata entry
      */
     public void addMetadata(String key, Object value) {
         this.metadata.put(key, value);
     }
-    
+
     /**
      * Check if event is error level or higher
      */
     public boolean isError() {
         return level == EventLevel.ERROR || level == EventLevel.CRITICAL;
     }
-    
+
     /**
      * Check if event requires immediate attention
      */

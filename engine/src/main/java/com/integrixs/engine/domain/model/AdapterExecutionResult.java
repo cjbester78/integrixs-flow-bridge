@@ -29,7 +29,7 @@ public class AdapterExecutionResult {
     private List<String> warnings = new ArrayList<>();
     private String adapterType;
     private String adapterId;
-    
+
     /**
      * Create a successful result
      * @param data The result data
@@ -41,7 +41,7 @@ public class AdapterExecutionResult {
                 .data(data)
                 .build();
     }
-    
+
     /**
      * Create an error result
      * @param errorMessage The error message
@@ -55,7 +55,7 @@ public class AdapterExecutionResult {
                 .errorCode(errorCode)
                 .build();
     }
-    
+
     /**
      * Add a warning to the result
      * @param warning Warning message
@@ -63,7 +63,7 @@ public class AdapterExecutionResult {
     public void addWarning(String warning) {
         this.warnings.add(warning);
     }
-    
+
     /**
      * Add metadata to the result
      * @param key Metadata key

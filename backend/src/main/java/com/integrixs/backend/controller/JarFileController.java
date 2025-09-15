@@ -19,15 +19,15 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/jar-files")
+@RequestMapping("/api/jar - files")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class JarFileController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(JarFileController.class);
-    
+
     private final JarFileService jarFileService;
-    
+
     /**
      * Get all JAR files
      */
@@ -37,17 +37,17 @@ public class JarFileController {
         List<JarFileDTO> jarFiles = jarFileService.getAllJarFiles();
         return ResponseEntity.ok(jarFiles);
     }
-    
+
     /**
      * Get JAR file by ID
      */
-    @GetMapping("/{id}")
+    @GetMapping("/ {id}")
     public ResponseEntity<JarFileDTO> getJarFileById(@PathVariable String id) {
         logger.debug("Getting JAR file by id: {}", id);
         JarFileDTO jarFile = jarFileService.getJarFileById(id);
         return ResponseEntity.ok(jarFile);
     }
-    
+
     /**
      * Upload a new JAR file
      */
@@ -56,56 +56,56 @@ public class JarFileController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "description", required = false) String description,
             Authentication authentication) throws IOException {
-        
-        logger.info("Uploading JAR file: {} by {}", file.getOriginalFilename(), 
+
+        logger.info("Uploading JAR file: {} by {}", file.getOriginalFilename(),
                 authentication != null ? authentication.getName() : "anonymous");
-        
+
         String uploadedBy = authentication != null ? authentication.getName() : "anonymous";
         JarFileDTO uploaded = jarFileService.uploadJarFile(file, uploadedBy, description);
-        
+
         return ResponseEntity.ok(uploaded);
     }
-    
+
     /**
      * Download JAR file
      */
-    @GetMapping("/{id}/download")
+    @GetMapping("/ {id}/download")
     public ResponseEntity<Resource> downloadJarFile(@PathVariable String id) throws IOException {
         logger.debug("Downloading JAR file: {}", id);
-        
+
         JarFileDTO jarFile = jarFileService.getJarFileById(id);
         byte[] content = jarFileService.getJarFileContent(id);
-        
+
         ByteArrayResource resource = new ByteArrayResource(content);
-        
+
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, 
-                        "attachment; filename=\"" + jarFile.getName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename = \"" + jarFile.getName() + "\"")
                 .contentLength(content.length)
                 .body(resource);
     }
-    
+
     /**
-     * Delete JAR file (soft delete)
+     * Delete JAR file(soft delete)
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/ {id}")
     public ResponseEntity<Void> deleteJarFile(@PathVariable String id) {
         logger.info("Deleting JAR file: {}", id);
         jarFileService.deleteJarFile(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     /**
      * Permanently delete JAR file
      */
-    @DeleteMapping("/{id}/permanent")
+    @DeleteMapping("/ {id}/permanent")
     public ResponseEntity<Void> permanentlyDeleteJarFile(@PathVariable String id) throws IOException {
         logger.warn("Permanently deleting JAR file: {}", id);
         jarFileService.permanentlyDeleteJarFile(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     /**
      * Search JAR files
      */
@@ -116,23 +116,23 @@ public class JarFileController {
         List<JarFileDTO> results = jarFileService.searchJarFiles(query);
         return ResponseEntity.ok(results);
     }
-    
+
     /**
      * Get storage statistics
      */
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStorageStats() {
         logger.debug("Getting JAR storage statistics");
-        
+
         long totalSize = jarFileService.getTotalStorageSize();
         List<JarFileDTO> allFiles = jarFileService.getAllJarFiles();
-        
+
         Map<String, Object> stats = Map.of(
                 "totalFiles", allFiles.size(),
                 "totalSizeBytes", totalSize,
                 "totalSizeMB", totalSize / 1024.0 / 1024.0
-        );
-        
+       );
+
         return ResponseEntity.ok(stats);
     }
 }

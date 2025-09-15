@@ -22,15 +22,15 @@ public class TestMappingController {
     /**
      * Test field mappings with sample XML
      */
-    @PostMapping("/field-mappings")
+    @PostMapping("/field - mappings")
     public ResponseEntity<TestFieldMappingsResponseDTO> testFieldMappings(
             @RequestBody TestFieldMappingsRequestDTO request) {
         log.info("Testing field mappings for type: {}", request.getMappingType());
-        
+
         try {
             TestFieldMappingsResponseDTO response = testMappingService.testFieldMappings(request);
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error testing field mappings", e);
             return ResponseEntity.ok(TestFieldMappingsResponseDTO.builder()
                     .success(false)

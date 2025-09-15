@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ValidationErrorDTO {
-    
+
     private String field;
     private String message;
     private String type;

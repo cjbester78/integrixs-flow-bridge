@@ -13,10 +13,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
-    
+
     @Autowired
     private RateLimitInterceptor rateLimitInterceptor;
-    
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Add rate limit interceptor
@@ -26,9 +26,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                     "/api/auth/login",
                     "/api/auth/refresh",
                     "/api/health/**"
-                );
+               );
     }
-    
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -38,13 +38,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .maxAge(3600);
     }
-    
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Serve static resources
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
-        
+
         // Serve uploaded files
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/");

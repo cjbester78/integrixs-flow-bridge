@@ -34,7 +34,7 @@ public class IntegrationFlowDTO {
     private Integer successCount;
     private Integer errorCount;
     private String businessComponentId;
-    
+
     // Adapter details
     private String inboundAdapterName;
     private String inboundAdapterType;

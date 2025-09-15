@@ -9,7 +9,7 @@ import java.util.Map;
 @Data
 @Builder
 public class TestConditionResponse {
-    
+
     private String id;
     private Instant timestamp;
     private String condition;
@@ -18,7 +18,7 @@ public class TestConditionResponse {
     private Long executionTimeMs;
     private String error;
     private TestDetails details;
-    
+
     @Data
     @Builder
     public static class TestDetails {
@@ -26,7 +26,7 @@ public class TestConditionResponse {
         private Map<String, Object> variables;
         private List<ExecutionStep> steps;
     }
-    
+
     @Data
     @Builder
     public static class ExecutionStep {

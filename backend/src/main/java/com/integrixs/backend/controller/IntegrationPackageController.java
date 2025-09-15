@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/integration-packages")
+@RequestMapping("/api/integration - packages")
 @CrossOrigin(origins = "*")
 public class IntegrationPackageController {
 
@@ -32,32 +32,32 @@ public class IntegrationPackageController {
     public ResponseEntity<Page<Map<String, Object>>> getAllPackages(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         log.info("Getting integration packages - page: {}, size: {}", page, size);
-        
+
         // Return empty page for now
         List<Map<String, Object>> packages = new ArrayList<>();
         Pageable pageable = PageRequest.of(page, size);
         Page<Map<String, Object>> packagePage = new PageImpl<>(packages, pageable, 0);
-        
+
         return ResponseEntity.ok(packagePage);
     }
 
     /**
      * Get a specific integration package by ID
      */
-    @GetMapping("/{id}")
+    @GetMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<Map<String, Object>> getPackageById(@PathVariable String id) {
         log.info("Getting integration package by id: {}", id);
-        
+
         // Return empty package for now
         Map<String, Object> packageData = new HashMap<>();
         packageData.put("id", id);
         packageData.put("name", "Package " + id);
         packageData.put("version", "1.0.0");
         packageData.put("status", "ACTIVE");
-        
+
         return ResponseEntity.ok(packageData);
     }
 
@@ -69,38 +69,38 @@ public class IntegrationPackageController {
     public ResponseEntity<Map<String, Object>> createPackage(
             @RequestBody Map<String, Object> packageData) {
         log.info("Creating integration package");
-        
+
         // Return created package for now
-        packageData.put("id", "new-package-id");
+        packageData.put("id", "new - package - id");
         packageData.put("status", "ACTIVE");
-        
+
         return ResponseEntity.ok(packageData);
     }
 
     /**
      * Update an existing integration package
      */
-    @PutMapping("/{id}")
+    @PutMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<Map<String, Object>> updatePackage(
             @PathVariable String id,
             @RequestBody Map<String, Object> packageData) {
         log.info("Updating integration package: {}", id);
-        
+
         // Return updated package for now
         packageData.put("id", id);
-        
+
         return ResponseEntity.ok(packageData);
     }
 
     /**
      * Delete an integration package
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public ResponseEntity<Void> deletePackage(@PathVariable String id) {
         log.info("Deleting integration package: {}", id);
-        
+
         return ResponseEntity.noContent().build();
     }
 }

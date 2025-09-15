@@ -12,10 +12,10 @@ import java.util.UUID;
 
 /**
  * Entity representing a system user.
- * 
+ *
  * <p>This entity maps to the 'users' table and contains all user
  * authentication and profile information.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -35,7 +35,7 @@ import java.util.UUID;
 public class User {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -48,7 +48,7 @@ public class User {
     @Column(unique = true, nullable = false, length = 50)
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers, and underscores")
+    @Pattern(regexp = "^[a - zA - Z0-9_] + $", message = "Username can only contain letters, numbers, and underscores")
     private String username;
 
     /**
@@ -61,7 +61,7 @@ public class User {
     private String email;
 
     /**
-     * Hashed password (BCrypt)
+     * Hashed password(BCrypt)
      */
     @Column(name = "password_hash", nullable = false, length = 255)
     @NotBlank(message = "Password is required")
@@ -88,20 +88,20 @@ public class User {
     private UUID roleId;
 
     /**
-     * User role (ADMINISTRATOR, DEVELOPER, INTEGRATOR, VIEWER)
+     * User role(ADMINISTRATOR, DEVELOPER, INTEGRATOR, VIEWER)
      */
     @Column(length = 50)
     @NotBlank(message = "Role is required")
-    @Pattern(regexp = "^(ADMINISTRATOR|DEVELOPER|INTEGRATOR|VIEWER|administrator|developer|integrator|viewer)$", 
+    @Pattern(regexp = "^(ADMINISTRATOR|DEVELOPER|INTEGRATOR|VIEWER|administrator|developer|integrator|viewer)$",
              message = "Role must be ADMINISTRATOR, DEVELOPER, INTEGRATOR, or VIEWER")
     private String role;
 
     /**
-     * User account status (active, inactive, locked)
+     * User account status(active, inactive, locked)
      */
     @Column(length = 50)
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "^(active|inactive|locked)$", 
+    @Pattern(regexp = "^(active|inactive|locked)$",
              message = "Status must be active, inactive, or locked")
     @Builder.Default
     private String status = "active";
@@ -149,10 +149,10 @@ public class User {
      */
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
+        if(createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-        if (updatedAt == null) {
+        if(updatedAt == null) {
             updatedAt = LocalDateTime.now();
         }
     }
@@ -164,7 +164,7 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-    
+
     /**
      * Check if user account is active
      */

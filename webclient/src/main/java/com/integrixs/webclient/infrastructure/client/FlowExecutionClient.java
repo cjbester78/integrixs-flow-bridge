@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 public class FlowExecutionClient {
 
     private static final Logger logger = LoggerFactory.getLogger(FlowExecutionClient.class);
-    
+
     // In production, this would integrate with the engine module
-    
+
     /**
      * Execute flow with message
      * @param flowId Flow ID
@@ -23,16 +23,16 @@ public class FlowExecutionClient {
      */
     public String executeFlow(String flowId, InboundMessage message) {
         logger.info("Executing flow {} with message {}", flowId, message.getMessageId());
-        
+
         // Simulate flow execution
         // In production, this would call the engine module
         String executionId = "exec-" + System.currentTimeMillis();
-        
+
         logger.info("Started flow execution {} for flow {}", executionId, flowId);
-        
+
         return executionId;
     }
-    
+
     /**
      * Get execution status
      * @param executionId Execution ID
@@ -42,7 +42,7 @@ public class FlowExecutionClient {
         // Simplified implementation
         return "COMPLETED";
     }
-    
+
     /**
      * Get execution result
      * @param executionId Execution ID

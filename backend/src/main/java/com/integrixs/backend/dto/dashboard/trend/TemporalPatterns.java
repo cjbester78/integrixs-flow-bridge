@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Temporal patterns analysis (hourly, daily, weekly).
+ * Temporal patterns analysis(hourly, daily, weekly).
  */
 @Data
 public class TemporalPatterns {

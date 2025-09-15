@@ -15,16 +15,16 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StructureValidationResponse {
-    
+
     private boolean valid;
     private String message;
-    
+
     @Builder.Default
     private List<Issue> issues = new ArrayList<>();
-    
+
     private WsdlMetadata wsdlMetadata;
     private JsonSchemaMetadata jsonSchemaMetadata;
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -36,11 +36,11 @@ public class StructureValidationResponse {
         private Integer column;
         private String path;
     }
-    
+
     public enum IssueType {
         ERROR, WARNING, INFO
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -52,7 +52,7 @@ public class StructureValidationResponse {
         private List<PortTypeInfo> portTypes = new ArrayList<>();
         private List<MessageInfo> messages = new ArrayList<>();
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -60,7 +60,7 @@ public class StructureValidationResponse {
         private String name;
         private List<PortInfo> ports = new ArrayList<>();
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -69,7 +69,7 @@ public class StructureValidationResponse {
         private String binding;
         private String address;
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -77,7 +77,7 @@ public class StructureValidationResponse {
         private String name;
         private List<OperationInfo> operations = new ArrayList<>();
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -87,7 +87,7 @@ public class StructureValidationResponse {
         private String outputMessage;
         private List<String> faultMessages = new ArrayList<>();
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -95,7 +95,7 @@ public class StructureValidationResponse {
         private String name;
         private List<PartInfo> parts = new ArrayList<>();
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -104,7 +104,7 @@ public class StructureValidationResponse {
         private String type;
         private String element;
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

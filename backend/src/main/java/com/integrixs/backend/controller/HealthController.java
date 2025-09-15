@@ -27,12 +27,12 @@ public class HealthController {
         health.put("status", "UP");
         health.put("timestamp", System.currentTimeMillis());
         health.put("service", "Integrix Flow Bridge Backend");
-        
+
         log.debug("Health check requested - Status: UP");
-        
+
         return ResponseEntity.ok(health);
     }
-    
+
     /**
      * Liveness probe endpoint
      * Used for container orchestration platforms
@@ -43,7 +43,7 @@ public class HealthController {
         response.put("status", "alive");
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Readiness probe endpoint
      * Can be extended to check database connectivity, etc.
@@ -51,12 +51,12 @@ public class HealthController {
     @GetMapping("/ready")
     public ResponseEntity<Map<String, String>> readiness() {
         Map<String, String> response = new HashMap<>();
-        
+
         // In the future, we can add checks for:
         // - Database connectivity
         // - Cache availability
         // - External service dependencies
-        
+
         response.put("status", "ready");
         return ResponseEntity.ok(response);
     }

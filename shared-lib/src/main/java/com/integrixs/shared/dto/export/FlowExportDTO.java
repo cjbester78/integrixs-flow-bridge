@@ -24,57 +24,57 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowExportDTO {
-    
+
     /**
      * Export metadata
      */
     private ExportMetadata metadata;
-    
+
     /**
      * The main integration flow
      */
     private FlowDTO flow;
-    
+
     /**
      * Business component that owns this flow
      */
     private BusinessComponentDTO businessComponent;
-    
+
     /**
-     * Source adapter (sender - receives data FROM external systems)
+     * Source adapter(sender - receives data FROM external systems)
      */
     private CommunicationAdapterDTO inboundAdapter;
-    
+
     /**
-     * Target adapter (receiver - sends data TO external systems)
+     * Target adapter(receiver - sends data TO external systems)
      */
     private CommunicationAdapterDTO outboundAdapter;
-    
+
     /**
      * All transformations associated with this flow
      */
     private List<FlowTransformationDTO> transformations;
-    
+
     /**
-     * All field mappings (nested within transformations but flattened for easy access)
+     * All field mappings(nested within transformations but flattened for easy access)
      */
     private List<FieldMappingDTO> fieldMappings;
-    
+
     /**
-     * Certificates referenced by adapters (without content for security)
+     * Certificates referenced by adapters(without content for security)
      */
     private List<CertificateReferenceDTO> certificateReferences;
-    
+
     /**
      * Data structure definitions if any
      */
     private Map<String, Object> dataStructures;
-    
+
     /**
      * Additional configuration that might be needed
      */
     private Map<String, Object> additionalConfig;
-    
+
     /**
      * Export metadata information
      */
@@ -86,17 +86,17 @@ public class FlowExportDTO {
         private String exportId;
         private String exportVersion;
         private String applicationVersion;
-        
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+
+        @JsonFormat(pattern = "yyyy - MM - dd'T'HH:mm:ss")
         private LocalDateTime exportDate;
-        
+
         private String exportedBy;
         private String exportedByUsername;
         private String environment;
         private String description;
         private Map<String, String> tags;
     }
-    
+
     /**
      * Certificate reference without sensitive content
      */

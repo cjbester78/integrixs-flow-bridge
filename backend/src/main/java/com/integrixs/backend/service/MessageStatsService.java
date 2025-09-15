@@ -23,48 +23,48 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MessageStatsService {
-    
+
     private final MessageRepository messageRepository;
-    
+
     public MessageStatsDTO getMessageStats(Map<String, String> filters) {
         MessageStatsDTO stats = new MessageStatsDTO();
-        
+
         // Count messages by status
         long total = messageRepository.count();
         long processing = countByStatus(Message.MessageStatus.PROCESSING);
         long successful = countByStatuses(Arrays.asList(
             Message.MessageStatus.PROCESSED,
             Message.MessageStatus.COMPLETED
-        ));
+       ));
         long failed = countByStatuses(Arrays.asList(
             Message.MessageStatus.FAILED,
             Message.MessageStatus.DEAD_LETTER
-        ));
-        
+       ));
+
         // Calculate success rate
         long totalCompleted = successful + failed;
         double successRate = totalCompleted > 0 ? (successful * 100.0 / totalCompleted) : 0;
-        
+
         // Calculate average processing time
         double avgProcessingTime = calculateAverageProcessingTime(filters);
-        
+
         stats.setTotal(total);
         stats.setProcessing(processing);
         stats.setSuccessful(successful);
         stats.setFailed(failed);
         stats.setSuccessRate(successRate);
         stats.setAvgProcessingTime(avgProcessingTime);
-        
+
         return stats;
     }
-    
+
     /**
      * Count messages by specific status
      */
     private long countByStatus(Message.MessageStatus status) {
         return messageRepository.findByStatus(status).size();
     }
-    
+
     /**
      * Count messages by multiple statuses
      */
@@ -73,22 +73,22 @@ public class MessageStatsService {
             .mapToLong(this::countByStatus)
             .sum();
     }
-    
+
     /**
      * Calculate average processing time for completed messages
      */
     private double calculateAverageProcessingTime(Map<String, String> filters) {
         List<Message> completedMessages;
-        
+
         // Apply filters if provided
-        if (filters != null && filters.containsKey("flowId")) {
+        if(filters != null && filters.containsKey("flowId")) {
             UUID flowId = UUID.fromString(filters.get("flowId"));
             completedMessages = messageRepository.findByStatusInOrderByPriorityDescCreatedAtAsc(
                 Arrays.asList(
                     Message.MessageStatus.PROCESSED,
                     Message.MessageStatus.COMPLETED
-                )
-            ).stream()
+               )
+           ).stream()
             .filter(m -> m.getFlow() != null && m.getFlow().getId().equals(flowId))
             .toList();
         } else {
@@ -96,39 +96,39 @@ public class MessageStatsService {
                 Arrays.asList(
                     Message.MessageStatus.PROCESSED,
                     Message.MessageStatus.COMPLETED
-                )
-            );
+               )
+           );
         }
-        
-        if (completedMessages.isEmpty()) {
+
+        if(completedMessages.isEmpty()) {
             return 0;
         }
-        
+
         // Calculate processing times
         double totalProcessingTime = completedMessages.stream()
-            .filter(m -> m.getReceivedAt() != null && 
+            .filter(m -> m.getReceivedAt() != null &&
                        (m.getCompletedAt() != null || m.getProcessedAt() != null))
             .mapToDouble(m -> {
                 LocalDateTime startTime = m.getReceivedAt();
-                LocalDateTime endTime = m.getCompletedAt() != null ? 
+                LocalDateTime endTime = m.getCompletedAt() != null ?
                     m.getCompletedAt() : m.getProcessedAt();
-                
-                if (endTime != null) {
+
+                if(endTime != null) {
                     Duration duration = Duration.between(startTime, endTime);
                     return duration.toMillis();
                 }
                 return 0;
             })
             .sum();
-        
+
         long countWithTimes = completedMessages.stream()
-            .filter(m -> m.getReceivedAt() != null && 
+            .filter(m -> m.getReceivedAt() != null &&
                        (m.getCompletedAt() != null || m.getProcessedAt() != null))
             .count();
-        
+
         return countWithTimes > 0 ? totalProcessingTime / countWithTimes : 0;
     }
-    
+
     /**
      * Get statistics for a specific flow
      */
@@ -136,55 +136,55 @@ public class MessageStatsService {
         Map<String, String> filters = Map.of("flowId", flowId.toString());
         return getMessageStats(filters);
     }
-    
+
     /**
      * Get statistics for a specific time period
      */
     public MessageStatsDTO getStatsForPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         MessageStatsDTO stats = new MessageStatsDTO();
-        
+
         Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
         List<Message> messages = messageRepository.findByReceivedAtBetween(
             startDate, endDate, pageable).getContent();
-        
+
         long total = messages.size();
         long processing = messages.stream()
             .filter(m -> m.getStatus() == Message.MessageStatus.PROCESSING)
             .count();
         long successful = messages.stream()
-            .filter(m -> m.getStatus() == Message.MessageStatus.PROCESSED || 
+            .filter(m -> m.getStatus() == Message.MessageStatus.PROCESSED ||
                         m.getStatus() == Message.MessageStatus.COMPLETED)
             .count();
         long failed = messages.stream()
-            .filter(m -> m.getStatus() == Message.MessageStatus.FAILED || 
+            .filter(m -> m.getStatus() == Message.MessageStatus.FAILED ||
                         m.getStatus() == Message.MessageStatus.DEAD_LETTER)
             .count();
-        
+
         long totalCompleted = successful + failed;
         double successRate = totalCompleted > 0 ? (successful * 100.0 / totalCompleted) : 0;
-        
+
         // Calculate average processing time for messages in period
         double avgProcessingTime = messages.stream()
-            .filter(m -> (m.getStatus() == Message.MessageStatus.PROCESSED || 
+            .filter(m ->(m.getStatus() == Message.MessageStatus.PROCESSED ||
                          m.getStatus() == Message.MessageStatus.COMPLETED) &&
                         m.getReceivedAt() != null &&
                         (m.getCompletedAt() != null || m.getProcessedAt() != null))
             .mapToDouble(m -> {
-                LocalDateTime endTime = m.getCompletedAt() != null ? 
+                LocalDateTime endTime = m.getCompletedAt() != null ?
                     m.getCompletedAt() : m.getProcessedAt();
                 Duration duration = Duration.between(m.getReceivedAt(), endTime);
                 return duration.toMillis();
             })
             .average()
             .orElse(0);
-        
+
         stats.setTotal(total);
         stats.setProcessing(processing);
         stats.setSuccessful(successful);
         stats.setFailed(failed);
         stats.setSuccessRate(successRate);
         stats.setAvgProcessingTime(avgProcessingTime);
-        
+
         return stats;
     }
 }

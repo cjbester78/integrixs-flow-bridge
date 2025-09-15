@@ -14,40 +14,40 @@ import java.util.UUID;
 
 /**
  * Repository for AuditTrail entities.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
 @Repository
 public interface AuditTrailRepository extends JpaRepository<AuditTrail, UUID> {
-    
+
     /**
      * Find audit entries by entity type and ID
      */
     List<AuditTrail> findByEntityTypeAndEntityIdOrderByCreatedAtDesc(String entityType, String entityId);
-    
+
     /**
      * Find audit entries by user ID
      */
     Page<AuditTrail> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
-    
+
     /**
      * Find audit entries by action
      */
     Page<AuditTrail> findByActionOrderByCreatedAtDesc(AuditTrail.AuditAction action, Pageable pageable);
-    
+
     /**
      * Find audit entries within a date range
      */
-    Page<AuditTrail> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, 
-                                                                LocalDateTime endDate, 
+    Page<AuditTrail> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate,
+                                                                LocalDateTime endDate,
                                                                 Pageable pageable);
-    
+
     /**
      * Find audit entries by business component
      */
     Page<AuditTrail> findByBusinessComponentIdOrderByCreatedAtDesc(UUID businessComponentId, Pageable pageable);
-    
+
     /**
      * Search audit entries by multiple criteria
      */

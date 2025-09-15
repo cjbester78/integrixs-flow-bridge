@@ -17,22 +17,22 @@ public class OAuth2Token {
     private LocalDateTime expiresAt;
     private String scope;
     private String idToken;
-    
+
     /**
      * Check if the token is expired
      */
     public boolean isExpired() {
-        if (expiresAt == null) {
+        if(expiresAt == null) {
             return false;
         }
         return LocalDateTime.now().isAfter(expiresAt);
     }
-    
+
     /**
      * Calculate and set expiration time based on expiresIn
      */
     public void calculateExpirationTime() {
-        if (expiresIn != null && expiresIn > 0) {
+        if(expiresIn != null && expiresIn > 0) {
             this.expiresAt = LocalDateTime.now().plusSeconds(expiresIn);
         }
     }
@@ -83,7 +83,7 @@ public class OAuth2Token {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String accessToken;
         private String refreshToken;
@@ -92,42 +92,42 @@ public class OAuth2Token {
         private LocalDateTime expiresAt;
         private String scope;
         private String idToken;
-        
+
         public Builder accessToken(String accessToken) {
             this.accessToken = accessToken;
             return this;
         }
-        
+
         public Builder refreshToken(String refreshToken) {
             this.refreshToken = refreshToken;
             return this;
         }
-        
+
         public Builder tokenType(String tokenType) {
             this.tokenType = tokenType;
             return this;
         }
-        
+
         public Builder expiresIn(Long expiresIn) {
             this.expiresIn = expiresIn;
             return this;
         }
-        
+
         public Builder expiresAt(LocalDateTime expiresAt) {
             this.expiresAt = expiresAt;
             return this;
         }
-        
+
         public Builder scope(String scope) {
             this.scope = scope;
             return this;
         }
-        
+
         public Builder idToken(String idToken) {
             this.idToken = idToken;
             return this;
         }
-        
+
         public OAuth2Token build() {
             OAuth2Token obj = new OAuth2Token();
             obj.accessToken = this.accessToken;

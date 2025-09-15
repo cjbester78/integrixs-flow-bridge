@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 /**
  * IBM MQ Adapter Service implementation.
- * Provides operations for sending and receiving messages via IBM MQ (formerly WebSphere MQ).
+ * Provides operations for sending and receiving messages via IBM MQ(formerly WebSphere MQ).
  */
 public class IbmmqAdapterServiceImpl implements IbmmqAdapterService {
     @Override

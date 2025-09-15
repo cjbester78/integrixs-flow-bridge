@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class MessageProcessingService {
-    
+
     /**
      * Creates a new message for processing
      */
@@ -29,15 +29,15 @@ public class MessageProcessingService {
         message.setStatus(Message.MessageStatus.PENDING);
         message.setCreatedAt(LocalDateTime.now());
         message.setRetryCount(0);
-        
+
         return message;
     }
-    
+
     /**
      * Updates message status based on processing result
      */
     public void updateMessageStatus(Message message, boolean success, String errorMessage) {
-        if (success) {
+        if(success) {
             message.setStatus(Message.MessageStatus.COMPLETED);
             message.setCompletedAt(LocalDateTime.now());
         } else {
@@ -46,15 +46,15 @@ public class MessageProcessingService {
             message.setRetryCount(message.getRetryCount() + 1);
         }
     }
-    
+
     /**
      * Checks if message should be retried
      */
     public boolean shouldRetry(Message message, int maxRetries) {
-        return message.getStatus() == Message.MessageStatus.FAILED && 
+        return message.getStatus() == Message.MessageStatus.FAILED &&
                message.getRetryCount() < maxRetries;
     }
-    
+
     /**
      * Marks message as processing
      */
@@ -62,34 +62,34 @@ public class MessageProcessingService {
         message.setStatus(Message.MessageStatus.PROCESSING);
         message.setProcessedAt(LocalDateTime.now());
     }
-    
+
     /**
      * Calculates message execution time
      */
     public Long calculateExecutionTime(Message message) {
-        if (message.getProcessedAt() == null || message.getCompletedAt() == null) {
+        if(message.getProcessedAt() == null || message.getCompletedAt() == null) {
             return null;
         }
-        
+
         return java.time.Duration.between(
-            message.getProcessedAt(), 
+            message.getProcessedAt(),
             message.getCompletedAt()
-        ).toMillis();
+       ).toMillis();
     }
-    
+
     /**
      * Validates message for processing
      */
     public void validateMessage(Message message) {
-        if (message.getFlow() == null) {
+        if(message.getFlow() == null) {
             throw new IllegalArgumentException("Message must have an associated flow");
         }
-        
-        if (message.getPayload() == null || message.getPayload().trim().isEmpty()) {
+
+        if(message.getPayload() == null || message.getPayload().trim().isEmpty()) {
             throw new IllegalArgumentException("Message payload cannot be empty");
         }
-        
-        if (message.getStatus() != Message.MessageStatus.PENDING && 
+
+        if(message.getStatus() != Message.MessageStatus.PENDING &&
             message.getStatus() != Message.MessageStatus.FAILED) {
             throw new IllegalStateException("Message is not in a processable state: " + message.getStatus());
         }

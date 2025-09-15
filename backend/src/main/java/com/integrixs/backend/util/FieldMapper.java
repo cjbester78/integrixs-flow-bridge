@@ -28,32 +28,32 @@ public class FieldMapper {
             Map<String, Object> inputMap = objectMapper.readValue(inputJson, new TypeReference<>() {});
             Map<String, Object> outputMap = new LinkedHashMap<>();
 
-            for (FieldMapping mapping : mappings) {
-                if (!mapping.isActive()) continue;
+            for(FieldMapping mapping : mappings) {
+                if(!mapping.isActive()) continue;
 
                 // Parse sourceFields JSON array
                 List<String> sourceFields = objectMapper.readValue(
                         mapping.getSourceFields(), new TypeReference<List<String>>() {}
-                );
+               );
 
                 // Extract values for source fields
                 Map<String, Object> sourceData = new HashMap<>();
-                for (String field : sourceFields) {
+                for(String field : sourceFields) {
                     sourceData.put(field, inputMap.get(field));
                 }
 
                 Object value;
                 String functionName = mapping.getJavaFunction();
-                
-                // Check if this is a function-based mapping
-                if (functionName != null && !functionName.isBlank() && javaTransformationEngine != null) {
+
+                // Check if this is a function - based mapping
+                if(functionName != null && !functionName.isBlank() && javaTransformationEngine != null) {
                     // Execute Java function
                     Object[] args = sourceFields.stream()
                             .map(sourceData::get)
                             .toArray();
                     value = javaTransformationEngine.executeFunction(functionName, args);
-                } else if (mapping.getMappingRule() != null && !mapping.getMappingRule().isBlank()) {
-                    // Simple mapping rule fallback: concatenate all non-null values with a space
+                } else if(mapping.getMappingRule() != null && !mapping.getMappingRule().isBlank()) {
+                    // Simple mapping rule fallback: concatenate all non - null values with a space
                     value = sourceFields.stream()
                             .map(sourceData::get)
                             .filter(Objects::nonNull)
@@ -69,7 +69,7 @@ public class FieldMapper {
 
             return objectMapper.writeValueAsString(outputMap);
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new RuntimeException("Failed to apply field mappings", e);
         }
     }

@@ -17,12 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 public class AdapterRegistry {
-    
+
     private final CommunicationAdapterRepository communicationAdapterRepository;
-    
+
     // Cache of registered adapters
     private final Map<String, CommunicationAdapter> adapterCache = new ConcurrentHashMap<>();
-    
+
     /**
      * Check if an adapter is registered
      * @param adapterId Adapter ID
@@ -31,37 +31,37 @@ public class AdapterRegistry {
     public boolean isAdapterRegistered(String adapterId) {
         try {
             // Check cache first
-            if (adapterCache.containsKey(adapterId)) {
+            if(adapterCache.containsKey(adapterId)) {
                 return true;
             }
-            
+
             // Check database
             boolean exists = communicationAdapterRepository.existsById(UUID.fromString(adapterId));
-            
+
             // If found in database, cache it
-            if (exists) {
+            if(exists) {
                 communicationAdapterRepository.findById(UUID.fromString(adapterId))
                         .ifPresent(adapter -> adapterCache.put(adapterId, adapter));
             }
-            
+
             return exists;
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error checking adapter registration for {}: {}", adapterId, e.getMessage());
             return false;
         }
     }
-    
+
     /**
      * Register an adapter
      * @param adapter Communication adapter
      */
     public void registerAdapter(CommunicationAdapter adapter) {
-        if (adapter != null && adapter.getId() != null) {
+        if(adapter != null && adapter.getId() != null) {
             adapterCache.put(adapter.getId().toString(), adapter);
             log.info("Registered adapter: {} of type {}", adapter.getId(), adapter.getType());
         }
     }
-    
+
     /**
      * Unregister an adapter
      * @param adapterId Adapter ID
@@ -70,7 +70,7 @@ public class AdapterRegistry {
         adapterCache.remove(adapterId);
         log.info("Unregistered adapter: {}", adapterId);
     }
-    
+
     /**
      * Get adapter from registry
      * @param adapterId Adapter ID
@@ -79,10 +79,10 @@ public class AdapterRegistry {
     public CommunicationAdapter getAdapter(String adapterId) {
         // Check cache first
         CommunicationAdapter cached = adapterCache.get(adapterId);
-        if (cached != null) {
+        if(cached != null) {
             return cached;
         }
-        
+
         // Load from database and cache
         try {
             return communicationAdapterRepository.findById(UUID.fromString(adapterId))
@@ -91,12 +91,12 @@ public class AdapterRegistry {
                         return adapter;
                     })
                     .orElse(null);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error getting adapter {}: {}", adapterId, e.getMessage());
             return null;
         }
     }
-    
+
     /**
      * Clear the adapter cache
      */
@@ -104,7 +104,7 @@ public class AdapterRegistry {
         adapterCache.clear();
         log.info("Cleared adapter cache");
     }
-    
+
     /**
      * Refresh adapter from database
      * @param adapterId Adapter ID

@@ -15,14 +15,14 @@ import jakarta.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UploadWsdlRequestDTO {
-    
+
     @NotNull(message = "WSDL name is required")
     private String name;
-    
+
     @NotNull(message = "WSDL content is required")
     private String wsdlContent;
-    
+
     private String location;
-    
+
     private String description;
 }

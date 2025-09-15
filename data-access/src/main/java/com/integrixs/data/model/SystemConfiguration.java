@@ -41,11 +41,11 @@ public class SystemConfiguration {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
-    
+
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;

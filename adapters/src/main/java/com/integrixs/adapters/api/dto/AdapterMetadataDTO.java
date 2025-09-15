@@ -114,7 +114,7 @@ public class AdapterMetadataDTO {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String adapterName;
         private String adapterType;
@@ -130,77 +130,77 @@ public class AdapterMetadataDTO {
         private boolean supportsStreaming;
         private Map<String, String> propertyDescriptions;
         private Map<String, Object> defaultPropertyValues;
-        
+
         public Builder adapterName(String adapterName) {
             this.adapterName = adapterName;
             return this;
         }
-        
+
         public Builder adapterType(String adapterType) {
             this.adapterType = adapterType;
             return this;
         }
-        
+
         public Builder adapterMode(String adapterMode) {
             this.adapterMode = adapterMode;
             return this;
         }
-        
+
         public Builder version(String version) {
             this.version = version;
             return this;
         }
-        
+
         public Builder description(String description) {
             this.description = description;
             return this;
         }
-        
+
         public Builder supportedOperations(List<String> supportedOperations) {
             this.supportedOperations = supportedOperations;
             return this;
         }
-        
+
         public Builder requiredProperties(List<String> requiredProperties) {
             this.requiredProperties = requiredProperties;
             return this;
         }
-        
+
         public Builder optionalProperties(List<String> optionalProperties) {
             this.optionalProperties = optionalProperties;
             return this;
         }
-        
+
         public Builder capabilities(Map<String, String> capabilities) {
             this.capabilities = capabilities;
             return this;
         }
-        
+
         public Builder supportsAsync(boolean supportsAsync) {
             this.supportsAsync = supportsAsync;
             return this;
         }
-        
+
         public Builder supportsBatch(boolean supportsBatch) {
             this.supportsBatch = supportsBatch;
             return this;
         }
-        
+
         public Builder supportsStreaming(boolean supportsStreaming) {
             this.supportsStreaming = supportsStreaming;
             return this;
         }
-        
+
         public Builder propertyDescriptions(Map<String, String> propertyDescriptions) {
             this.propertyDescriptions = propertyDescriptions;
             return this;
         }
-        
+
         public Builder defaultPropertyValues(Map<String, Object> defaultPropertyValues) {
             this.defaultPropertyValues = defaultPropertyValues;
             return this;
         }
-        
+
         public AdapterMetadataDTO build() {
             AdapterMetadataDTO obj = new AdapterMetadataDTO();
             obj.adapterName = this.adapterName;

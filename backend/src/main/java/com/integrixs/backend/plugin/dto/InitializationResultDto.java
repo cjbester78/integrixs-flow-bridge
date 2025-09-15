@@ -13,7 +13,7 @@ public class InitializationResultDto {
     private String pluginId;
     private String message;
     private String error;
-    
+
     public static InitializationResultDto success(String pluginId) {
         return InitializationResultDto.builder()
                 .successful(true)
@@ -21,7 +21,7 @@ public class InitializationResultDto {
                 .message("Plugin initialized successfully")
                 .build();
     }
-    
+
     public static InitializationResultDto failure(String pluginId, String error) {
         return InitializationResultDto.builder()
                 .successful(false)

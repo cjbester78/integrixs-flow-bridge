@@ -40,9 +40,9 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private final ApplicationEventPublisher eventPublisher;
     private final Set<String> processedMessages = ConcurrentHashMap.newKeySet();
     private final Set<String> processedPostbacks = ConcurrentHashMap.newKeySet();
-    
+
     @Autowired
-    public FacebookMessengerInboundAdapter(RestTemplate restTemplate, ObjectMapper objectMapper, 
+    public FacebookMessengerInboundAdapter(RestTemplate restTemplate, ObjectMapper objectMapper,
                                          ApplicationEventPublisher eventPublisher) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
@@ -62,16 +62,16 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     /**
      * Polls for recent conversations and messages
      */
-    @Scheduled(fixedDelayString = "${integrixs.adapters.facebook.messenger.polling.interval:60000}")
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.facebook.messenger.polling.interval:60000}")
     public void pollMessages() {
-        if (!Boolean.TRUE.equals(configuration.get("pollingEnabled"))) {
+        if(!Boolean.TRUE.equals(configuration.get("pollingEnabled"))) {
             return;
         }
 
         try {
             log.debug("Polling Facebook Messenger messages");
             pollConversations();
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling Facebook Messenger messages", e);
         }
     }
@@ -79,16 +79,16 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     /**
      * Polls for message insights and analytics
      */
-    @Scheduled(fixedDelayString = "${integrixs.adapters.facebook.messenger.polling.insights-interval:3600000}")
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.facebook.messenger.polling.insights - interval:3600000}")
     public void pollInsights() {
-        if (!Boolean.TRUE.equals(configuration.get("enableMessageInsights"))) {
+        if(!Boolean.TRUE.equals(configuration.get("enableMessageInsights"))) {
             return;
         }
 
         try {
             log.debug("Polling Facebook Messenger insights");
             fetchInsights();
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling Facebook Messenger insights", e);
         }
     }
@@ -97,15 +97,15 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
         String url = (String) configuration.get("apiUrl") + "/" + (String) configuration.get("pageId") + "/conversations";
         Map<String, String> params = new HashMap<>();
         params.put("access_token", (String) configuration.get("pageAccessToken"));
-        params.put("fields", "id,participants,updated_time,messages{id,from,to,message,attachments,created_time}");
+        params.put("fields", "id,participants,updated_time,messages {id,from,to,message,attachments,created_time}");
         params.put("limit", "25");
 
         String response = makeGetRequest(url, params);
         Map<String, Object> responseData = parseJsonResponse(response);
 
-        if (responseData.containsKey("data")) {
+        if(responseData.containsKey("data")) {
             List<Map<String, Object>> conversations = (List<Map<String, Object>>) responseData.get("data");
-            for (Map<String, Object> conversation : conversations) {
+            for(Map<String, Object> conversation : conversations) {
                 processConversation(conversation);
             }
         }
@@ -116,12 +116,12 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
 
     private void processConversation(Map<String, Object> conversation) {
         String conversationId = (String) conversation.get("id");
-        
-        if (conversation.containsKey("messages")) {
+
+        if(conversation.containsKey("messages")) {
             Map<String, Object> messagesData = (Map<String, Object>) conversation.get("messages");
-            if (messagesData.containsKey("data")) {
+            if(messagesData.containsKey("data")) {
                 List<Map<String, Object>> messages = (List<Map<String, Object>>) messagesData.get("data");
-                for (Map<String, Object> message : messages) {
+                for(Map<String, Object> message : messages) {
                     processMessage(message, conversationId);
                 }
             }
@@ -130,8 +130,8 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
 
     private void processMessage(Map<String, Object> messageData, String conversationId) {
         String messageId = (String) messageData.get("id");
-        
-        if (!processedMessages.add(messageId)) {
+
+        if(!processedMessages.add(messageId)) {
             return; // Already processed
         }
 
@@ -156,24 +156,24 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
                 "page_messages_new_conversations_unique",
                 "page_messages_blocked_conversations_unique",
                 "page_messages_reported_conversations_unique"
-        )));
+       )));
         params.put("period", "day");
 
         String response = makeGetRequest(url, params);
         Map<String, Object> responseData = parseJsonResponse(response);
 
-        if (responseData.containsKey("data")) {
+        if(responseData.containsKey("data")) {
             List<Map<String, Object>> insights = (List<Map<String, Object>>) responseData.get("data");
             processInsights(insights);
         }
     }
 
     private void processInsights(List<Map<String, Object>> insights) {
-        for (Map<String, Object> insight : insights) {
+        for(Map<String, Object> insight : insights) {
             String metricName = (String) insight.get("name");
             List<Map<String, Object>> values = (List<Map<String, Object>>) insight.get("values");
-            
-            for (Map<String, Object> value : values) {
+
+            for(Map<String, Object> value : values) {
                 FacebookMessengerInsight insightData = new FacebookMessengerInboundAdapter.FacebookMessengerInsight();
         insightData.metric = metricName;
         insightData.value = value.get("value");
@@ -186,10 +186,10 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     @Override
     public void processWebhookEvent(Map<String, Object> event) {
         String object = (String) event.get("object");
-        
-        if ("page".equals(object)) {
+
+        if("page".equals(object)) {
             List<Map<String, Object>> entries = (List<Map<String, Object>>) event.get("entry");
-            for (Map<String, Object> entry : entries) {
+            for(Map<String, Object> entry : entries) {
                 processPageEntry(entry);
             }
         }
@@ -198,10 +198,10 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processPageEntry(Map<String, Object> entry) {
         String pageId = String.valueOf(entry.get("id"));
         Long timestamp = ((Number) entry.get("time")).longValue();
-        
-        if (entry.containsKey("messaging")) {
+
+        if(entry.containsKey("messaging")) {
             List<Map<String, Object>> messagingEvents = (List<Map<String, Object>>) entry.get("messaging");
-            for (Map<String, Object> messagingEvent : messagingEvents) {
+            for(Map<String, Object> messagingEvent : messagingEvents) {
                 processMessagingEvent(messagingEvent, pageId, timestamp);
             }
         }
@@ -210,30 +210,30 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processMessagingEvent(Map<String, Object> event, String pageId, Long timestamp) {
         Map<String, Object> sender = (Map<String, Object>) event.get("sender");
         Map<String, Object> recipient = (Map<String, Object>) event.get("recipient");
-        
-        if (event.containsKey("message")) {
+
+        if(event.containsKey("message")) {
             processWebhookMessage(event, sender, recipient, timestamp);
-        } else if (event.containsKey("postback")) {
+        } else if(event.containsKey("postback")) {
             processWebhookPostback(event, sender, recipient, timestamp);
-        } else if (event.containsKey("referral")) {
+        } else if(event.containsKey("referral")) {
             processWebhookReferral(event, sender, recipient, timestamp);
-        } else if (event.containsKey("optin")) {
+        } else if(event.containsKey("optin")) {
             processWebhookOptin(event, sender, recipient, timestamp);
-        } else if (event.containsKey("delivery")) {
+        } else if(event.containsKey("delivery")) {
             processWebhookDelivery(event, sender, recipient, timestamp);
-        } else if (event.containsKey("read")) {
+        } else if(event.containsKey("read")) {
             processWebhookRead(event, sender, recipient, timestamp);
-        } else if (event.containsKey("reaction")) {
+        } else if(event.containsKey("reaction")) {
             processWebhookReaction(event, sender, recipient, timestamp);
         }
     }
 
-    private void processWebhookMessage(Map<String, Object> event, Map<String, Object> sender, 
+    private void processWebhookMessage(Map<String, Object> event, Map<String, Object> sender,
                                        Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> messageData = (Map<String, Object>) event.get("message");
         String messageId = (String) messageData.get("mid");
-        
-        if (!processedMessages.add(messageId)) {
+
+        if(!processedMessages.add(messageId)) {
             return; // Already processed
         }
 
@@ -255,8 +255,8 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
         Map<String, Object> postbackData = (Map<String, Object>) event.get("postback");
         String payload = (String) postbackData.get("payload");
         String postbackId = sender.get("id") + "_" + payload + "_" + timestamp;
-        
-        if (!processedPostbacks.add(postbackId)) {
+
+        if(!processedPostbacks.add(postbackId)) {
             return; // Already processed
         }
 
@@ -273,7 +273,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processWebhookReferral(Map<String, Object> event, Map<String, Object> sender,
                                         Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> referralData = (Map<String, Object>) event.get("referral");
-        
+
         FacebookMessengerReferral referral = extractReferral(referralData);
         referral.setSenderId((String) sender.get("id"));
         referral.setRecipientId((String) recipient.get("id"));
@@ -285,7 +285,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processWebhookOptin(Map<String, Object> event, Map<String, Object> sender,
                                      Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> optinData = (Map<String, Object>) event.get("optin");
-        
+
         FacebookMessengerOptin optin = new FacebookMessengerInboundAdapter.FacebookMessengerOptin();
         optin.senderId = (String) sender.get("id");
         optin.recipientId = (String) recipient.get("id");
@@ -298,7 +298,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processWebhookDelivery(Map<String, Object> event, Map<String, Object> sender,
                                         Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> deliveryData = (Map<String, Object>) event.get("delivery");
-        
+
         FacebookMessengerDelivery delivery = new FacebookMessengerInboundAdapter.FacebookMessengerDelivery();
         delivery.senderId = (String) sender.get("id");
         delivery.recipientId = (String) recipient.get("id");
@@ -311,7 +311,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processWebhookRead(Map<String, Object> event, Map<String, Object> sender,
                                     Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> readData = (Map<String, Object>) event.get("read");
-        
+
         FacebookMessengerRead read = new FacebookMessengerInboundAdapter.FacebookMessengerRead();
         read.senderId = (String) sender.get("id");
         read.recipientId = (String) recipient.get("id");
@@ -323,7 +323,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     private void processWebhookReaction(Map<String, Object> event, Map<String, Object> sender,
                                         Map<String, Object> recipient, Long timestamp) {
         Map<String, Object> reactionData = (Map<String, Object>) event.get("reaction");
-        
+
         FacebookMessengerReaction reaction = new FacebookMessengerInboundAdapter.FacebookMessengerReaction();
         reaction.senderId = (String) sender.get("id");
         reaction.recipientId = (String) recipient.get("id");
@@ -337,21 +337,21 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
 
     @Override
     public boolean verifyWebhookSignature(String signature, String payload) {
-        if (!StringUtils.hasText(signature) || !signature.startsWith("sha256=")) {
+        if(!StringUtils.hasText(signature) || !signature.startsWith("sha256 = ")) {
             return false;
         }
 
         try {
-            String expectedSignature = signature.substring(7); // Remove "sha256=" prefix
+            String expectedSignature = signature.substring(7); // Remove "sha256 = " prefix
             String appSecret = (String) configuration.get("appSecret");
-            
+
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-            
+
             String calculatedSignature = bytesToHex(hash);
             return expectedSignature.equals(calculatedSignature);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error verifying webhook signature", e);
             return false;
         }
@@ -373,11 +373,11 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
                 "SOCIAL_MEDIA_READ",
                 "SOCIAL_MEDIA_REACTION",
                 "SOCIAL_MEDIA_INSIGHTS"
-        );
+       );
     }
 
     private FacebookMessengerUser extractUserInfo(Map<String, Object> user) {
-        if (user == null) {
+        if(user == null) {
             return null;
         }
         return FacebookMessengerUser.builder()
@@ -386,12 +386,12 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     }
 
     private List<FacebookMessengerAttachment> extractAttachments(List<Map<String, Object>> attachmentsList) {
-        if (attachmentsList == null || attachmentsList.isEmpty()) {
+        if(attachmentsList == null || attachmentsList.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<FacebookMessengerAttachment> attachments = new ArrayList<>();
-        for (Map<String, Object> attachmentData : attachmentsList) {
+        for(Map<String, Object> attachmentData : attachmentsList) {
             FacebookMessengerAttachment attachment = new FacebookMessengerInboundAdapter.FacebookMessengerAttachment();
         attachment.type = (String) attachmentData.get("type");
         attachment.payload = attachmentData.get("payload");
@@ -401,14 +401,14 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     }
 
     private List<String> extractQuickReplies(List<Map<String, Object>> quickRepliesList) {
-        if (quickRepliesList == null || quickRepliesList.isEmpty()) {
+        if(quickRepliesList == null || quickRepliesList.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<String> quickReplies = new ArrayList<>();
-        for (Map<String, Object> quickReply : quickRepliesList) {
+        for(Map<String, Object> quickReply : quickRepliesList) {
             String payload = (String) quickReply.get("payload");
-            if (payload != null) {
+            if(payload != null) {
                 quickReplies.add(payload);
             }
         }
@@ -416,7 +416,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     }
 
     private FacebookMessengerReferral extractReferral(Map<String, Object> referralData) {
-        if (referralData == null) {
+        if(referralData == null) {
             return null;
         }
 
@@ -429,59 +429,59 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
 
     private String bytesToHex(byte[] bytes) {
         StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
+        for(byte b : bytes) {
             result.append(String.format("%02x", b));
         }
         return result.toString();
     }
-    
+
     private String makeGetRequest(String url, Map<String, String> params) {
         try {
             StringBuilder urlBuilder = new StringBuilder(url);
-            if (!params.isEmpty()) {
+            if(!params.isEmpty()) {
                 urlBuilder.append("?");
-                params.forEach((key, value) -> 
-                    urlBuilder.append(key).append("=").append(value).append("&"));
+                params.forEach((key, value) ->
+                    urlBuilder.append(key).append(" = ").append(value).append("&"));
                 urlBuilder.setLength(urlBuilder.length() - 1); // Remove trailing &
             }
-            
+
             ResponseEntity<String> response = restTemplate.getForEntity(
                 urlBuilder.toString(), String.class);
             return response.getBody();
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error making GET request to: {}", url, e);
-            return "{}";
+            return " {}";
         }
     }
-    
+
     private Map<String, Object> parseJsonResponse(String json) {
         try {
             return objectMapper.readValue(json, Map.class);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error parsing JSON response", e);
             return new HashMap<>();
         }
     }
-    
+
     private void handlePagination(Map<String, Object> responseData) {
-        if (responseData.containsKey("paging") && responseData.get("paging") instanceof Map) {
+        if(responseData.containsKey("paging") && responseData.get("paging") instanceof Map) {
             Map<String, Object> paging = (Map<String, Object>) responseData.get("paging");
-            if (paging.containsKey("next")) {
+            if(paging.containsKey("next")) {
                 log.debug("More pages available: {}", paging.get("next"));
                 // Could process next page if needed
             }
         }
     }
-    
+
     private void publishMessage(String eventType, Object message) {
         Map<String, Object> event = new HashMap<>();
         event.put("type", eventType);
         event.put("data", message);
         event.put("timestamp", System.currentTimeMillis());
-        
+
         // In a real implementation, this would publish to an event bus or message queue
         log.debug("Publishing event: {} with data: {}", eventType, message);
-        
+
         // Could use Spring's ApplicationEventPublisher
         // eventPublisher.publishEvent(new CustomEvent(eventType, message));
     }
@@ -685,9 +685,7 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     public void setRecipientId(String recipientId) {
         this.recipientId = recipientId;
     }
-    public String getPayload() {
-        return payload;
-    }
+    // REMOVED DUPLICATE: getPayload() - already defined with Object return type
     public String getTitle() {
         return title;
     }
@@ -700,12 +698,12 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     public void setReferral(FacebookMessengerReferral referral) {
         this.referral = referral;
     }
-    public String getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
+// DUPLICATE:     public String getTimestamp() {
+    //         return timestamp;
+//     }
+// DUPLICATE:     public void setTimestamp(String timestamp) {
+    //         this.timestamp = timestamp;
+//     }
     public String getRef() {
         return ref;
     }
@@ -724,60 +722,60 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     public void setAdId(String adId) {
         this.adId = adId;
     }
-    public String getSenderId() {
-        return senderId;
-    }
-    public void setSenderId(String senderId) {
-        this.senderId = senderId;
-    }
-    public String getRecipientId() {
-        return recipientId;
-    }
-    public void setRecipientId(String recipientId) {
-        this.recipientId = recipientId;
-    }
-    public String getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-    public String getSenderId() {
-        return senderId;
-    }
-    public void setSenderId(String senderId) {
-        this.senderId = senderId;
-    }
-    public String getRecipientId() {
-        return recipientId;
-    }
-    public void setRecipientId(String recipientId) {
-        this.recipientId = recipientId;
-    }
+// DUPLICATE:     public String getSenderId() {
+    //         return senderId;
+//     }
+// DUPLICATE:     public void setSenderId(String senderId) {
+    //         this.senderId = senderId;
+//     }
+// DUPLICATE:     public String getRecipientId() {
+    //         return recipientId;
+//     }
+// DUPLICATE:     public void setRecipientId(String recipientId) {
+    //         this.recipientId = recipientId;
+//     }
+// DUPLICATE:     public String getTimestamp() {
+    //         return timestamp;
+//     }
+// DUPLICATE:     public void setTimestamp(String timestamp) {
+    //         this.timestamp = timestamp;
+//     }
+// DUPLICATE:     public String getSenderId() {
+    //         return senderId;
+//     }
+// DUPLICATE:     public void setSenderId(String senderId) {
+    //         this.senderId = senderId;
+//     }
+// DUPLICATE:     public String getRecipientId() {
+    //         return recipientId;
+//     }
+// DUPLICATE:     public void setRecipientId(String recipientId) {
+    //         this.recipientId = recipientId;
+//     }
     public String getUserRef() {
         return userRef;
     }
     public void setUserRef(String userRef) {
         this.userRef = userRef;
     }
-    public String getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-    public String getSenderId() {
-        return senderId;
-    }
-    public void setSenderId(String senderId) {
-        this.senderId = senderId;
-    }
-    public String getRecipientId() {
-        return recipientId;
-    }
-    public void setRecipientId(String recipientId) {
-        this.recipientId = recipientId;
-    }
+// DUPLICATE:     public String getTimestamp() {
+    //         return timestamp;
+//     }
+// DUPLICATE:     public void setTimestamp(String timestamp) {
+    //         this.timestamp = timestamp;
+//     }
+// DUPLICATE:     public String getSenderId() {
+    //         return senderId;
+//     }
+// DUPLICATE:     public void setSenderId(String senderId) {
+    //         this.senderId = senderId;
+//     }
+// DUPLICATE:     public String getRecipientId() {
+    //         return recipientId;
+//     }
+// DUPLICATE:     public void setRecipientId(String recipientId) {
+    //         this.recipientId = recipientId;
+//     }
     public List<String> getMessageIds() {
         return messageIds;
     }
@@ -790,30 +788,30 @@ public class FacebookMessengerInboundAdapter extends AbstractInboundAdapter {
     public void setWatermark(Long watermark) {
         this.watermark = watermark;
     }
-    public String getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-    public String getSenderId() {
-        return senderId;
-    }
-    public void setSenderId(String senderId) {
-        this.senderId = senderId;
-    }
-    public String getRecipientId() {
-        return recipientId;
-    }
-    public void setRecipientId(String recipientId) {
-        this.recipientId = recipientId;
-    }
-    public String getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
+// DUPLICATE:     public String getTimestamp() {
+    //         return timestamp;
+//     }
+// DUPLICATE:     public void setTimestamp(String timestamp) {
+    //         this.timestamp = timestamp;
+//     }
+// DUPLICATE:     public String getSenderId() {
+    //         return senderId;
+//     }
+// DUPLICATE:     public void setSenderId(String senderId) {
+    //         this.senderId = senderId;
+//     }
+// DUPLICATE:     public String getRecipientId() {
+    //         return recipientId;
+//     }
+// DUPLICATE:     public void setRecipientId(String recipientId) {
+    //         this.recipientId = recipientId;
+//     }
+// DUPLICATE:     public String getTimestamp() {
+    //         return timestamp;
+//     }
+// DUPLICATE:     public void setTimestamp(String timestamp) {
+    //         this.timestamp = timestamp;
+//     }
     public String getAction() {
         return action;
     }

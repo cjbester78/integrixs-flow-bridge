@@ -11,9 +11,9 @@ import java.util.UUID;
 
 /**
  * Entity representing XML field mappings using XPath expressions.
- * 
- * <p>This replaces the JSON-based field mappings with proper XML/XPath support.
- * 
+ *
+ * <p>This replaces the JSON - based field mappings with proper XML/XPath support.
+ *
  * @author Integration Team
  * @since 2.0.0
  */
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class XmlFieldMapping {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -85,7 +85,7 @@ public class XmlFieldMapping {
     private String repeatContextXPath;
 
     /**
-     * Optional transformation function (JavaScript or Java)
+     * Optional transformation function(JavaScript or Java)
      */
     @Column(name = "transform_function", columnDefinition = "TEXT")
     private String transformFunction;
@@ -140,17 +140,17 @@ public class XmlFieldMapping {
          * Map entire element including child elements
          */
         ELEMENT,
-        
+
         /**
          * Map attribute value only
          */
         ATTRIBUTE,
-        
+
         /**
-         * Map text content only (default)
+         * Map text content only(default)
          */
         TEXT,
-        
+
         /**
          * Define structure without value mapping
          */

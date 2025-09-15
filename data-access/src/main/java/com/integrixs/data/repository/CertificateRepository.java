@@ -13,10 +13,10 @@ import java.util.UUID;
  * Provides CRUD operations and query methods for the corresponding entity.
  */
 public interface CertificateRepository extends JpaRepository<Certificate, UUID> {
-    
+
     Optional<Certificate> findByName(String name);
-    
+
     List<Certificate> findByUploadedBy(String uploadedBy);
-    
+
     boolean existsByName(String name);
 }

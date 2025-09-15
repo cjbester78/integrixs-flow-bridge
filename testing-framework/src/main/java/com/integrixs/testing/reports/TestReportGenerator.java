@@ -124,7 +124,7 @@ public class TestReportGenerator {
         // Add step details
         test.info("Steps executed: " + execution.getExecutedSteps().size());
         for (String step : execution.getExecutedSteps()) {
-            test.info("  - " + step);
+            test.info(" - " + step);
         }
         
         // Add input/output
@@ -278,7 +278,7 @@ public class TestReportGenerator {
                 perfReport.info(String.format(
                     "Test: %s - Avg: %.2fms, Min: %.0fms, Max: %.0fms",
                     testName, avgTime, minTime, maxTime
-                ));
+               ));
             }
         });
     }

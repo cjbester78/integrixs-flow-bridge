@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * In-memory implementation of service endpoint repository
+ * In - memory implementation of service endpoint repository
  */
 @Repository
 public class InMemoryServiceEndpointRepository implements ServiceEndpointRepository {
@@ -18,7 +18,7 @@ public class InMemoryServiceEndpointRepository implements ServiceEndpointReposit
 
     @Override
     public ServiceEndpoint save(ServiceEndpoint endpoint) {
-        if (endpoint.getEndpointId() == null) {
+        if(endpoint.getEndpointId() == null) {
             endpoint.setEndpointId(UUID.randomUUID().toString());
         }
         endpoints.put(endpoint.getEndpointId(), endpoint);
@@ -58,7 +58,7 @@ public class InMemoryServiceEndpointRepository implements ServiceEndpointReposit
 
     @Override
     public ServiceEndpoint update(ServiceEndpoint endpoint) {
-        if (endpoint.getEndpointId() == null || !endpoints.containsKey(endpoint.getEndpointId())) {
+        if(endpoint.getEndpointId() == null || !endpoints.containsKey(endpoint.getEndpointId())) {
             throw new RuntimeException("Endpoint not found for update: " + endpoint.getEndpointId());
         }
         endpoints.put(endpoint.getEndpointId(), endpoint);

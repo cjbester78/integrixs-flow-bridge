@@ -47,7 +47,7 @@ public class SecurityConfig {
             "X-RateLimit-Limit",
             "X-RateLimit-Remaining",
             "X-RateLimit-Reset"
-        ));
+       ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         

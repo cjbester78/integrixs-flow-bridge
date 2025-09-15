@@ -40,7 +40,7 @@ public class FlowImportService {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
 
-    @Value("${app.version:1.0.0}")
+    @Value("$ {app.version:1.0.0}")
     private String applicationVersion;
 
     /**
@@ -52,90 +52,90 @@ public class FlowImportService {
     @Transactional(readOnly = true)
     public FlowImportValidationDTO validateImport(FlowImportRequestDTO request) {
         log.info("Validating flow import: {}", request.getFlowExport().getFlow().getName());
-        
+
         FlowImportValidationDTO validation = FlowImportValidationDTO.builder()
                 .canImport(true)
                 .isValid(true)
                 .build();
-        
+
         FlowExportDTO export = request.getFlowExport();
         FlowImportRequestDTO.ImportOptions options = request.getOptions();
-        
+
         // Build preview
         validation.setPreview(buildImportPreview(export));
-        
+
         // Check version compatibility
         validation.setVersionCompatibility(checkVersionCompatibility(export));
-        if (!validation.getVersionCompatibility().isCompatible()) {
+        if(!validation.getVersionCompatibility().isCompatible()) {
             validation.setCanImport(false);
             validation.setValid(false);
         }
-        
+
         // Check for conflicts
         List<FlowImportValidationDTO.Conflict> conflicts = new ArrayList<>();
-        
+
         // Check flow name conflict
-        if (integrationFlowRepository.existsByName(export.getFlow().getName())) {
-            conflicts.add(createNameConflict("IntegrationFlow", export.getFlow().getId(), 
+        if(integrationFlowRepository.existsByName(export.getFlow().getName())) {
+            conflicts.add(createNameConflict("IntegrationFlow", export.getFlow().getId(),
                     export.getFlow().getName()));
         }
-        
+
         // Check business component conflicts
-        if (options.isImportBusinessComponent() && export.getBusinessComponent() != null) {
-            if (businessComponentRepository.existsByName(export.getBusinessComponent().getName())) {
-                conflicts.add(createNameConflict("BusinessComponent", 
-                        export.getBusinessComponent().getId(), 
+        if(options.isImportBusinessComponent() && export.getBusinessComponent() != null) {
+            if(businessComponentRepository.existsByName(export.getBusinessComponent().getName())) {
+                conflicts.add(createNameConflict("BusinessComponent",
+                        export.getBusinessComponent().getId(),
                         export.getBusinessComponent().getName()));
             }
         }
-        
+
         // Check adapter conflicts
-        if (options.isImportAdapters()) {
-            if (export.getInboundAdapter() != null && 
+        if(options.isImportAdapters()) {
+            if(export.getInboundAdapter() != null &&
                 communicationAdapterRepository.existsByName(export.getInboundAdapter().getName())) {
-                conflicts.add(createNameConflict("CommunicationAdapter", 
-                        export.getInboundAdapter().getId(), 
+                conflicts.add(createNameConflict("CommunicationAdapter",
+                        export.getInboundAdapter().getId(),
                         export.getInboundAdapter().getName()));
             }
-            
-            if (export.getOutboundAdapter() != null && 
+
+            if(export.getOutboundAdapter() != null &&
                 communicationAdapterRepository.existsByName(export.getOutboundAdapter().getName())) {
-                conflicts.add(createNameConflict("CommunicationAdapter", 
-                        export.getOutboundAdapter().getId(), 
+                conflicts.add(createNameConflict("CommunicationAdapter",
+                        export.getOutboundAdapter().getId(),
                         export.getOutboundAdapter().getName()));
             }
         }
-        
+
         // Check certificate references
-        if (options.isImportCertificateReferences() && export.getCertificateReferences() != null) {
-            for (FlowExportDTO.CertificateReferenceDTO certRef : export.getCertificateReferences()) {
-                if (!certificateRepository.existsById(UUID.fromString(certRef.getId()))) {
-                    conflicts.add(createMissingReferenceConflict("Certificate", 
+        if(options.isImportCertificateReferences() && export.getCertificateReferences() != null) {
+            for(FlowExportDTO.CertificateReferenceDTO certRef : export.getCertificateReferences()) {
+                if(!certificateRepository.existsById(UUID.fromString(certRef.getId()))) {
+                    conflicts.add(createMissingReferenceConflict("Certificate",
                             certRef.getId(), certRef.getName()));
                 }
             }
         }
-        
+
         validation.setConflicts(conflicts);
-        
+
         // Handle conflicts based on strategy
-        if (!conflicts.isEmpty()) {
-            if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.FAIL) {
+        if(!conflicts.isEmpty()) {
+            if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.FAIL) {
                 validation.setCanImport(false);
-                validation.getErrors().add(createValidationError("CONFLICTS_DETECTED", 
+                validation.getErrors().add(createValidationError("CONFLICTS_DETECTED",
                         "Import conflicts detected and strategy is FAIL"));
             }
         }
-        
+
         // Add required permissions
         validation.getRequiredPermissions().add("FLOW_IMPORT");
-        if (options.isImportBusinessComponent()) {
+        if(options.isImportBusinessComponent()) {
             validation.getRequiredPermissions().add("BUSINESS_COMPONENT_CREATE");
         }
-        if (options.isImportAdapters()) {
+        if(options.isImportAdapters()) {
             validation.getRequiredPermissions().add("ADAPTER_CREATE");
         }
-        
+
         return validation;
     }
 
@@ -147,59 +147,59 @@ public class FlowImportService {
      */
     public FlowImportResultDTO importFlow(FlowImportRequestDTO request) {
         long startTime = System.currentTimeMillis();
-        
+
         log.info("Importing flow: {}", request.getFlowExport().getFlow().getName());
-        
+
         FlowImportResultDTO result = FlowImportResultDTO.builder()
                 .success(false)
                 .build();
-        
+
         try {
             // Validate first
             FlowImportValidationDTO validation = validateImport(request);
-            if (!validation.isCanImport()) {
+            if(!validation.isCanImport()) {
                 result.getErrors().add(FlowImportResultDTO.ImportMessage.builder()
                         .code("VALIDATION_FAILED")
                         .message("Import validation failed")
                         .build());
                 return result;
             }
-            
+
             FlowExportDTO export = request.getFlowExport();
             FlowImportRequestDTO.ImportOptions options = request.getOptions();
             Map<String, String> idMappings = new HashMap<>();
-            
+
             // Import business component if needed
             String businessComponentId = null;
-            if (options.isImportBusinessComponent() && export.getBusinessComponent() != null) {
+            if(options.isImportBusinessComponent() && export.getBusinessComponent() != null) {
                 BusinessComponent importedComponent = importBusinessComponent(
                         export.getBusinessComponent(), options, idMappings, result);
-                if (importedComponent != null) {
+                if(importedComponent != null) {
                     businessComponentId = importedComponent.getId().toString();
                     result.getSummary().setBusinessComponentImported(true);
                 }
-            } else if (options.getTargetBusinessComponentId() != null) {
+            } else if(options.getTargetBusinessComponentId() != null) {
                 businessComponentId = options.getTargetBusinessComponentId();
             }
-            
+
             // Import adapters
             String inboundAdapterId = null;
             String outboundAdapterId = null;
-            
-            if (options.isImportAdapters()) {
-                if (export.getInboundAdapter() != null) {
+
+            if(options.isImportAdapters()) {
+                if(export.getInboundAdapter() != null) {
                     CommunicationAdapter inboundAdapter = importAdapter(
                             export.getInboundAdapter(), businessComponentId, options, idMappings, result);
-                    if (inboundAdapter != null) {
+                    if(inboundAdapter != null) {
                         inboundAdapterId = inboundAdapter.getId().toString();
                         result.getSummary().setAdaptersImported(result.getSummary().getAdaptersImported() + 1);
                     }
                 }
-                
-                if (export.getOutboundAdapter() != null) {
+
+                if(export.getOutboundAdapter() != null) {
                     CommunicationAdapter outboundAdapter = importAdapter(
                             export.getOutboundAdapter(), businessComponentId, options, idMappings, result);
-                    if (outboundAdapter != null) {
+                    if(outboundAdapter != null) {
                         outboundAdapterId = outboundAdapter.getId().toString();
                         result.getSummary().setAdaptersImported(result.getSummary().getAdaptersImported() + 1);
                     }
@@ -209,29 +209,29 @@ public class FlowImportService {
                 inboundAdapterId = export.getFlow().getInboundAdapterId();
                 outboundAdapterId = export.getFlow().getOutboundAdapterId();
             }
-            
+
             // Import the flow
             IntegrationFlow importedFlow = importIntegrationFlow(
-                    export.getFlow(), businessComponentId, inboundAdapterId, outboundAdapterId, 
+                    export.getFlow(), businessComponentId, inboundAdapterId, outboundAdapterId,
                     options, idMappings, result);
-            
-            if (importedFlow != null) {
+
+            if(importedFlow != null) {
                 result.setImportedFlowId(importedFlow.getId().toString());
                 result.setImportedFlowName(importedFlow.getName());
                 result.getSummary().setFlowImported(true);
-                
+
                 // Import transformations and field mappings
                 importTransformationsAndMappings(export, importedFlow, idMappings, result);
-                
+
                 // Activate flow if requested
-                if (options.isActivateAfterImport()) {
+                if(options.isActivateAfterImport()) {
                     importedFlow.setActive(true);
                     integrationFlowRepository.save(importedFlow);
                 }
-                
+
                 result.setSuccess(true);
             }
-            
+
             // Set final statistics
             result.getSummary().setImportDurationMs(System.currentTimeMillis() - startTime);
             result.getSummary().setTotalObjectsImported(
@@ -240,40 +240,40 @@ public class FlowImportService {
                     result.getSummary().getAdaptersImported() +
                     result.getSummary().getTransformationsImported() +
                     result.getSummary().getFieldMappingsImported()
-            );
-            
+           );
+
             result.setIdMappings(idMappings);
-            
+
             // Log the import
             logImportActivity(importedFlow, request, result);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to import flow", e);
             result.getErrors().add(FlowImportResultDTO.ImportMessage.builder()
                     .code("IMPORT_ERROR")
                     .message(e.getMessage())
                     .build());
         }
-        
+
         return result;
     }
 
-    private BusinessComponent importBusinessComponent(BusinessComponentDTO dto, 
+    private BusinessComponent importBusinessComponent(BusinessComponentDTO dto,
                                                     FlowImportRequestDTO.ImportOptions options,
                                                     Map<String, String> idMappings,
                                                     FlowImportResultDTO result) {
         try {
             // Check for existing
-            if (businessComponentRepository.existsByName(dto.getName())) {
-                if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.SKIP) {
+            if(businessComponentRepository.existsByName(dto.getName())) {
+                if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.SKIP) {
                     result.getConflictResolutions().add(createSkippedResolution(
                             "BusinessComponent", dto.getId(), dto.getName()));
                     return null;
-                } else if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.CREATE_NEW) {
+                } else if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.CREATE_NEW) {
                     dto.setName(generateUniqueName(dto.getName(), options));
                 }
             }
-            
+
             BusinessComponent component = new BusinessComponent();
             component.setName(dto.getName());
             component.setDescription(dto.getDescription());
@@ -282,15 +282,15 @@ public class FlowImportService {
             // Status, department not available in DTO - using defaults
             component.setStatus("ACTIVE");
             component.setDepartment(null);
-            
+
             component = businessComponentRepository.save(component);
             idMappings.put(dto.getId(), component.getId().toString());
-            
+
             return component;
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to import business component", e);
-            result.getErrors().add(createImportError("BusinessComponent", dto.getId(), 
+            result.getErrors().add(createImportError("BusinessComponent", dto.getId(),
                     dto.getName(), e.getMessage()));
             return null;
         }
@@ -303,16 +303,16 @@ public class FlowImportService {
                                              FlowImportResultDTO result) {
         try {
             // Check for existing
-            if (communicationAdapterRepository.existsByName(dto.getName())) {
-                if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.SKIP) {
+            if(communicationAdapterRepository.existsByName(dto.getName())) {
+                if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.SKIP) {
                     result.getConflictResolutions().add(createSkippedResolution(
                             "CommunicationAdapter", dto.getId(), dto.getName()));
                     return null;
-                } else if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.CREATE_NEW) {
+                } else if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.CREATE_NEW) {
                     dto.setName(generateUniqueName(dto.getName(), options));
                 }
             }
-            
+
             CommunicationAdapter adapter = new CommunicationAdapter();
             adapter.setName(dto.getName());
             adapter.setType(com.integrixs.shared.enums.AdapterType.valueOf(dto.getType()));
@@ -320,19 +320,19 @@ public class FlowImportService {
             adapter.setConfiguration(objectMapper.writeValueAsString(dto.getConfiguration()));
             adapter.setActive(dto.isActive());
             adapter.setDescription(dto.getDescription());
-            if (businessComponentId != null) {
+            if(businessComponentId != null) {
                 adapter.setBusinessComponent(businessComponentRepository.findById(UUID.fromString(businessComponentId))
                     .orElseThrow(() -> new RuntimeException("Business component not found: " + businessComponentId)));
             }
-            
+
             adapter = communicationAdapterRepository.save(adapter);
             idMappings.put(dto.getId(), adapter.getId().toString());
-            
+
             return adapter;
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to import adapter", e);
-            result.getErrors().add(createImportError("CommunicationAdapter", dto.getId(), 
+            result.getErrors().add(createImportError("CommunicationAdapter", dto.getId(),
                     dto.getName(), e.getMessage()));
             return null;
         }
@@ -347,16 +347,16 @@ public class FlowImportService {
                                                 FlowImportResultDTO result) {
         try {
             // Check for existing
-            if (integrationFlowRepository.existsByName(dto.getName())) {
-                if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.SKIP) {
+            if(integrationFlowRepository.existsByName(dto.getName())) {
+                if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.SKIP) {
                     result.getConflictResolutions().add(createSkippedResolution(
                             "IntegrationFlow", dto.getId(), dto.getName()));
                     return null;
-                } else if (options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.CREATE_NEW) {
+                } else if(options.getConflictStrategy() == FlowImportRequestDTO.ConflictStrategy.CREATE_NEW) {
                     dto.setName(generateUniqueName(dto.getName(), options));
                 }
             }
-            
+
             IntegrationFlow flow = IntegrationFlow.builder()
                     .name(dto.getName())
                     .description(dto.getDescription())
@@ -370,37 +370,37 @@ public class FlowImportService {
                     .mappingMode(com.integrixs.data.model.MappingMode.valueOf(dto.getMappingMode()))
                     .createdBy(userRepository.findByUsername(SecurityUtils.getCurrentUsernameStatic()))
                     .build();
-            
-            if (businessComponentId != null) {
+
+            if(businessComponentId != null) {
                 BusinessComponent bc = businessComponentRepository.findById(UUID.fromString(businessComponentId)).orElse(null);
                 flow.setBusinessComponent(bc);
             }
-            
+
             flow = integrationFlowRepository.save(flow);
             idMappings.put(dto.getId(), flow.getId().toString());
-            
+
             return flow;
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to import flow", e);
-            result.getErrors().add(createImportError("IntegrationFlow", dto.getId(), 
+            result.getErrors().add(createImportError("IntegrationFlow", dto.getId(),
                     dto.getName(), e.getMessage()));
             return null;
         }
     }
 
-    private void importTransformationsAndMappings(FlowExportDTO export, 
+    private void importTransformationsAndMappings(FlowExportDTO export,
                                                 IntegrationFlow importedFlow,
                                                 Map<String, String> idMappings,
                                                 FlowImportResultDTO result) {
-        if (export.getTransformations() == null) {
+        if(export.getTransformations() == null) {
             return;
         }
-        
+
         Map<String, FlowTransformation> transformationMap = new HashMap<>();
-        
+
         // Import transformations
-        for (FlowTransformationDTO transDto : export.getTransformations()) {
+        for(FlowTransformationDTO transDto : export.getTransformations()) {
             try {
                 FlowTransformation transformation = FlowTransformation.builder()
                         .flow(importedFlow)
@@ -411,29 +411,29 @@ public class FlowImportService {
                         .executionOrder(transDto.getSequence())
                         .isActive(transDto.isActive())
                         .build();
-                
+
                 transformation = flowTransformationRepository.save(transformation);
                 transformationMap.put(transDto.getId(), transformation);
                 idMappings.put(transDto.getId(), transformation.getId().toString());
                 result.getSummary().setTransformationsImported(
                         result.getSummary().getTransformationsImported() + 1);
-                
-            } catch (Exception e) {
+
+            } catch(Exception e) {
                 log.error("Failed to import transformation", e);
-                result.getWarnings().add(createImportWarning("FlowTransformation", 
+                result.getWarnings().add(createImportWarning("FlowTransformation",
                         transDto.getId(), transDto.getName(), e.getMessage()));
             }
         }
-        
+
         // Import field mappings
-        if (export.getFieldMappings() != null) {
-            for (FieldMappingDTO mappingDto : export.getFieldMappings()) {
+        if(export.getFieldMappings() != null) {
+            for(FieldMappingDTO mappingDto : export.getFieldMappings()) {
                 try {
                     FlowTransformation transformation = transformationMap.get(mappingDto.getTransformationId());
-                    if (transformation == null) {
+                    if(transformation == null) {
                         continue;
                     }
-                    
+
                     FieldMapping mapping = FieldMapping.builder()
                             .transformation(transformation)
                             .targetField(mappingDto.getTargetField())
@@ -451,18 +451,18 @@ public class FlowImportService {
                             .functionName(mappingDto.getFunctionName())
                             .isActive(mappingDto.isActive())
                             .build();
-                    
+
                     // Set sourceFields from List<String>
                     mapping.setSourceFieldsList(mappingDto.getSourceFields());
-                    
+
                     mapping = fieldMappingRepository.save(mapping);
                     idMappings.put(mappingDto.getId(), mapping.getId().toString());
                     result.getSummary().setFieldMappingsImported(
                             result.getSummary().getFieldMappingsImported() + 1);
-                    
-                } catch (Exception e) {
+
+                } catch(Exception e) {
                     log.error("Failed to import field mapping", e);
-                    result.getWarnings().add(createImportWarning("FieldMapping", 
+                    result.getWarnings().add(createImportWarning("FieldMapping",
                             mappingDto.getId(), mappingDto.getTargetField(), e.getMessage()));
                 }
             }
@@ -471,14 +471,14 @@ public class FlowImportService {
 
     private String generateUniqueName(String originalName, FlowImportRequestDTO.ImportOptions options) {
         String baseName = originalName;
-        
-        if (options.getNamePrefix() != null) {
+
+        if(options.getNamePrefix() != null) {
             baseName = options.getNamePrefix() + baseName;
         }
-        if (options.getNameSuffix() != null) {
+        if(options.getNameSuffix() != null) {
             baseName = baseName + options.getNameSuffix();
         }
-        
+
         // Add timestamp to ensure uniqueness
         return baseName + "_" + System.currentTimeMillis();
     }
@@ -487,24 +487,24 @@ public class FlowImportService {
         Map<String, Integer> objectCounts = new HashMap<>();
         objectCounts.put("flows", 1);
         objectCounts.put("businessComponents", export.getBusinessComponent() != null ? 1 : 0);
-        objectCounts.put("adapters", 
-                (export.getInboundAdapter() != null ? 1 : 0) + 
+        objectCounts.put("adapters",
+                (export.getInboundAdapter() != null ? 1 : 0) +
                 (export.getOutboundAdapter() != null ? 1 : 0));
-        objectCounts.put("transformations", 
+        objectCounts.put("transformations",
                 export.getTransformations() != null ? export.getTransformations().size() : 0);
-        objectCounts.put("fieldMappings", 
+        objectCounts.put("fieldMappings",
                 export.getFieldMappings() != null ? export.getFieldMappings().size() : 0);
-        objectCounts.put("certificateReferences", 
+        objectCounts.put("certificateReferences",
                 export.getCertificateReferences() != null ? export.getCertificateReferences().size() : 0);
-        
+
         return FlowImportValidationDTO.ImportPreview.builder()
                 .flowName(export.getFlow().getName())
                 .flowDescription(export.getFlow().getDescription())
-                .businessComponentName(export.getBusinessComponent() != null ? 
+                .businessComponentName(export.getBusinessComponent() != null ?
                         export.getBusinessComponent().getName() : null)
-                .inboundAdapterName(export.getInboundAdapter() != null ? 
+                .inboundAdapterName(export.getInboundAdapter() != null ?
                         export.getInboundAdapter().getName() : null)
-                .outboundAdapterName(export.getOutboundAdapter() != null ? 
+                .outboundAdapterName(export.getOutboundAdapter() != null ?
                         export.getOutboundAdapter().getName() : null)
                 .transformationCount(objectCounts.get("transformations"))
                 .fieldMappingCount(objectCounts.get("fieldMappings"))
@@ -517,19 +517,19 @@ public class FlowImportService {
         String exportVersion = export.getMetadata().getApplicationVersion();
         boolean isCompatible = true;
         List<String> breakingChanges = new ArrayList<>();
-        
+
         // Simple version check - could be enhanced
-        if (!exportVersion.equals(applicationVersion)) {
+        if(!exportVersion.equals(applicationVersion)) {
             // Check major version
             String[] exportParts = exportVersion.split("\\.");
             String[] currentParts = applicationVersion.split("\\.");
-            
-            if (!exportParts[0].equals(currentParts[0])) {
+
+            if(!exportParts[0].equals(currentParts[0])) {
                 isCompatible = false;
                 breakingChanges.add("Major version mismatch");
             }
         }
-        
+
         return FlowImportValidationDTO.VersionCompatibility.builder()
                 .exportVersion(exportVersion)
                 .currentVersion(applicationVersion)
@@ -539,7 +539,7 @@ public class FlowImportService {
                 .build();
     }
 
-    private void logImportActivity(IntegrationFlow flow, FlowImportRequestDTO request, 
+    private void logImportActivity(IntegrationFlow flow, FlowImportRequestDTO request,
                                  FlowImportResultDTO result) {
         try {
             Map<String, Object> details = new HashMap<>();
@@ -547,7 +547,7 @@ public class FlowImportService {
             details.put("flowName", flow != null ? flow.getName() : null);
             details.put("importOptions", request.getOptions());
             details.put("result", result);
-            
+
             SystemLog log = SystemLog.builder()
                     .timestamp(LocalDateTime.now())
                     .level(result.isSuccess() ? SystemLog.LogLevel.INFO : SystemLog.LogLevel.ERROR)
@@ -560,18 +560,18 @@ public class FlowImportService {
                     .domainType("INTEGRATION_FLOW")
                     .domainReferenceId(flow != null ? flow.getId().toString() : null)
                     .build();
-            
+
             systemLogRepository.save(log);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to log import activity", e);
         }
     }
 
     // Helper methods for creating DTOs
 
-    private FlowImportValidationDTO.Conflict createNameConflict(String objectType, 
-                                                               String importId, 
+    private FlowImportValidationDTO.Conflict createNameConflict(String objectType,
+                                                               String importId,
                                                                String importName) {
         return FlowImportValidationDTO.Conflict.builder()
                 .objectType(objectType)
@@ -594,7 +594,7 @@ public class FlowImportService {
                 .build();
     }
 
-    private FlowImportValidationDTO.ValidationIssue createValidationError(String code, 
+    private FlowImportValidationDTO.ValidationIssue createValidationError(String code,
                                                                         String message) {
         return FlowImportValidationDTO.ValidationIssue.builder()
                 .code(code)

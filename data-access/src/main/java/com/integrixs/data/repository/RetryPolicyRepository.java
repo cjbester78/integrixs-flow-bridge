@@ -14,20 +14,20 @@ import java.util.UUID;
 
 @Repository
 public interface RetryPolicyRepository extends JpaRepository<RetryPolicy, UUID> {
-    
+
     Optional<RetryPolicy> findByPolicyName(String policyName);
-    
+
     List<RetryPolicy> findByFlow(IntegrationFlow flow);
-    
+
     List<RetryPolicy> findByActiveTrue();
-    
+
     @Query("SELECT rp FROM RetryPolicy rp WHERE rp.flow.id = :flowId AND rp.errorType = :errorType AND rp.active = true")
-    Optional<RetryPolicy> findActiveByFlowIdAndErrorType(@Param("flowId") UUID flowId, 
+    Optional<RetryPolicy> findActiveByFlowIdAndErrorType(@Param("flowId") UUID flowId,
                                                          @Param("errorType") ErrorRecord.ErrorType errorType);
-    
+
     @Query("SELECT rp FROM RetryPolicy rp WHERE rp.flow IS NULL AND rp.errorType = :errorType AND rp.active = true")
     Optional<RetryPolicy> findGlobalPolicyByErrorType(@Param("errorType") ErrorRecord.ErrorType errorType);
-    
+
     @Query("SELECT rp FROM RetryPolicy rp WHERE rp.flow.id = :flowId AND rp.active = true")
     Optional<RetryPolicy> findByFlowId(@Param("flowId") UUID flowId);
 }

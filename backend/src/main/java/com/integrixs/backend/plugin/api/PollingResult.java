@@ -10,29 +10,29 @@ import java.util.List;
 @Data
 @Builder
 public class PollingResult {
-    
+
     /**
      * Messages retrieved during polling
      */
     private List<PluginMessage> messages;
-    
+
     /**
      * Whether more messages are available
      */
     private boolean hasMore;
-    
+
     /**
-     * Token/marker for next poll (for pagination)
+     * Token/marker for next poll(for pagination)
      */
     private String nextToken;
-    
+
     /**
      * Number of messages retrieved
      */
     public int getMessageCount() {
         return messages != null ? messages.size() : 0;
     }
-    
+
     /**
      * Create empty result
      */

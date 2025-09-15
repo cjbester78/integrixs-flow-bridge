@@ -17,48 +17,48 @@ import java.util.Optional;
  */
 @Repository
 public interface NotificationChannelRepository extends JpaRepository<NotificationChannel, Long> {
-    
+
     /**
      * Find notification channel by name
      */
     Optional<NotificationChannel> findByChannelName(String channelName);
-    
+
     /**
      * Find all enabled channels
      */
     List<NotificationChannel> findByEnabledTrue();
-    
+
     /**
      * Find all enabled channels with pagination
      */
     Page<NotificationChannel> findByEnabledTrue(Pageable pageable);
-    
+
     /**
      * Find enabled channels by type
      */
     List<NotificationChannel> findByChannelTypeAndEnabledTrue(NotificationChannel.ChannelType channelType);
-    
+
     /**
      * Find enabled channels by type with pagination
      */
     Page<NotificationChannel> findByChannelTypeAndEnabledTrue(NotificationChannel.ChannelType channelType, Pageable pageable);
-    
+
     /**
      * Find channels by IDs
      */
     @Query("SELECT nc FROM NotificationChannel nc WHERE nc.id IN :ids AND nc.enabled = true")
     List<NotificationChannel> findEnabledChannelsByIds(@Param("ids") List<Long> ids);
-    
+
     /**
      * Check if channel name exists
      */
     boolean existsByChannelName(String channelName);
-    
+
     /**
      * Count enabled channels by type
      */
     long countByChannelTypeAndEnabledTrue(NotificationChannel.ChannelType channelType);
-    
+
     /**
      * Find channels that need rate limit reset
      */

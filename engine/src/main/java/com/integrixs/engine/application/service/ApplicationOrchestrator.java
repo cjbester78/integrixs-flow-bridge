@@ -19,23 +19,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Application-level orchestrator that coordinates complex workflows
+ * Application - level orchestrator that coordinates complex workflows
  * Bridges between API layer and domain services
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ApplicationOrchestrator {
-    
+
     private final WorkflowOrchestrationService workflowOrchestrationService;
     private final FlowExecutionService flowExecutionService;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final AdapterExecutionApplicationService adapterExecutionApplicationService;
     private final FlowExecutionApplicationService flowExecutionApplicationService;
-    
+
     // Track active workflows
     private final Map<String, WorkflowContext> activeWorkflows = new ConcurrentHashMap<>();
-    
+
     /**
      * Execute a complete workflow
      * @param request Workflow execution request
@@ -44,25 +44,25 @@ public class ApplicationOrchestrator {
     @Transactional(readOnly = true)
     public WorkflowExecutionResponseDTO executeWorkflow(WorkflowExecutionRequestDTO request) {
         log.info("Executing workflow for flow: {}", request.getFlowId());
-        
+
         try {
             // Load flow
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(request.getFlowId()))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + request.getFlowId()));
-            
+
             // Validate workflow
             workflowOrchestrationService.validateWorkflow(flow);
-            
+
             // Execute workflow
             WorkflowContext context = workflowOrchestrationService.executeWorkflow(flow, request.getInputData());
-            
+
             // Track active workflow
             activeWorkflows.put(context.getWorkflowId(), context);
-            
+
             // Convert to response DTO
             return convertToResponseDTO(context);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error executing workflow for flow {}: {}", request.getFlowId(), e.getMessage(), e);
             return createErrorResponse(request, e);
         } finally {
@@ -70,7 +70,7 @@ public class ApplicationOrchestrator {
             cleanupCompletedWorkflows();
         }
     }
-    
+
     /**
      * Execute a workflow asynchronously
      * @param request Workflow execution request
@@ -79,20 +79,20 @@ public class ApplicationOrchestrator {
     public CompletableFuture<WorkflowExecutionResponseDTO> executeWorkflowAsync(WorkflowExecutionRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> executeWorkflow(request));
     }
-    
+
     /**
-     * Execute a simple flow (adapter to adapter)
+     * Execute a simple flow(adapter to adapter)
      * @param flowId Flow ID
      * @param inputData Input data
      * @return Workflow response
      */
     public WorkflowExecutionResponseDTO executeSimpleFlow(String flowId, Object inputData) {
         log.info("Executing simple flow: {}", flowId);
-        
+
         try {
             // Use flow execution service directly for simple flows
             var flowResponse = flowExecutionApplicationService.processMessage(flowId, inputData);
-            
+
             // Convert to workflow response
             return WorkflowExecutionResponseDTO.builder()
                     .workflowId(flowResponse.getExecutionId())
@@ -101,19 +101,19 @@ public class ApplicationOrchestrator {
                     .outputData(flowResponse.getProcessedData())
                     .errorMessage(flowResponse.getErrorMessage())
                     .executionTimeMs(flowResponse.getExecutionTimeMs())
-                    .state(flowResponse.isSuccess() ? 
-                        WorkflowContext.WorkflowState.COMPLETED.name() : 
+                    .state(flowResponse.isSuccess() ?
+                        WorkflowContext.WorkflowState.COMPLETED.name() :
                         WorkflowContext.WorkflowState.FAILED.name())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error executing simple flow {}: {}", flowId, e.getMessage(), e);
             var request = new WorkflowExecutionRequestDTO();
             request.setFlowId(flowId);
             return createErrorResponse(request, e);
         }
     }
-    
+
     /**
      * Get workflow status
      * @param workflowId Workflow ID
@@ -121,19 +121,19 @@ public class ApplicationOrchestrator {
      */
     public WorkflowExecutionResponseDTO getWorkflowStatus(String workflowId) {
         log.debug("Getting status for workflow: {}", workflowId);
-        
+
         WorkflowContext context = activeWorkflows.get(workflowId);
-        if (context == null) {
+        if(context == null) {
             context = workflowOrchestrationService.getWorkflowStatus(workflowId);
         }
-        
-        if (context == null) {
+
+        if(context == null) {
             throw new IllegalArgumentException("Workflow not found: " + workflowId);
         }
-        
+
         return convertToResponseDTO(context);
     }
-    
+
     /**
      * Cancel a workflow
      * @param workflowId Workflow ID
@@ -141,15 +141,15 @@ public class ApplicationOrchestrator {
      */
     public boolean cancelWorkflow(String workflowId) {
         log.info("Cancelling workflow: {}", workflowId);
-        
+
         boolean cancelled = workflowOrchestrationService.cancelWorkflow(workflowId);
-        if (cancelled) {
+        if(cancelled) {
             activeWorkflows.remove(workflowId);
         }
-        
+
         return cancelled;
     }
-    
+
     /**
      * Suspend a workflow
      * @param workflowId Workflow ID
@@ -159,7 +159,7 @@ public class ApplicationOrchestrator {
         log.info("Suspending workflow: {}", workflowId);
         return workflowOrchestrationService.suspendWorkflow(workflowId);
     }
-    
+
     /**
      * Resume a workflow
      * @param workflowId Workflow ID
@@ -169,7 +169,7 @@ public class ApplicationOrchestrator {
         log.info("Resuming workflow: {}", workflowId);
         return workflowOrchestrationService.resumeWorkflow(workflowId);
     }
-    
+
     /**
      * Check adapter health before workflow execution
      * @param flowId Flow ID
@@ -179,30 +179,30 @@ public class ApplicationOrchestrator {
         try {
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(flowId))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-            
+
             boolean sourceHealthy = adapterExecutionApplicationService.isAdapterHealthy(
                     flow.getInboundAdapterId().toString());
             boolean targetHealthy = adapterExecutionApplicationService.isAdapterHealthy(
                     flow.getOutboundAdapterId().toString());
-            
+
             return Map.of(
                 "flowId", flowId,
                 "inboundAdapterHealthy", sourceHealthy,
                 "outboundAdapterHealthy", targetHealthy,
                 "overallHealth", sourceHealthy && targetHealthy,
                 "timestamp", System.currentTimeMillis()
-            );
-            
-        } catch (Exception e) {
+           );
+
+        } catch(Exception e) {
             return Map.of(
                 "flowId", flowId,
                 "error", e.getMessage(),
                 "overallHealth", false,
                 "timestamp", System.currentTimeMillis()
-            );
+           );
         }
     }
-    
+
     private WorkflowExecutionResponseDTO convertToResponseDTO(WorkflowContext context) {
         return WorkflowExecutionResponseDTO.builder()
                 .workflowId(context.getWorkflowId())
@@ -221,7 +221,7 @@ public class ApplicationOrchestrator {
                 .initiatedBy(context.getInitiatedBy())
                 .build();
     }
-    
+
     private WorkflowExecutionResponseDTO createErrorResponse(WorkflowExecutionRequestDTO request, Exception e) {
         return WorkflowExecutionResponseDTO.builder()
                 .workflowId(UUID.randomUUID().toString())
@@ -231,7 +231,7 @@ public class ApplicationOrchestrator {
                 .errorMessage(e.getMessage())
                 .build();
     }
-    
+
     private void cleanupCompletedWorkflows() {
         activeWorkflows.entrySet().removeIf(entry -> {
             WorkflowContext context = entry.getValue();

@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestFieldMappingsResponseDTO {
-    
+
     private boolean success;
     private String outputXml;
     private String error;

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Data
 public class UpdateTimezoneRequest {
-    
+
     @NotBlank(message = "Timezone is required")
     private String timezone;
 }

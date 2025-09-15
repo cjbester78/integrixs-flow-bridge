@@ -12,19 +12,19 @@ import java.util.Map;
  */
 @Data
 public class ComponentPerformance {
-    
+
     private String componentId;
     private LocalDateTime timestamp;
-    
-    // Operation-level metrics
+
+    // Operation - level metrics
     private List<OperationMetrics> operationMetrics = new ArrayList<>();
-    
+
     // Resource usage
     private Map<String, Object> resourceUsage;
-    
+
     // Error statistics
     private Map<String, Object> errorStatistics;
-    
+
     /**
      * Metrics for a specific operation.
      */

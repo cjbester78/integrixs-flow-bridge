@@ -26,7 +26,7 @@ public class EnrichmentTransformationService {
         try {
             JsonNode inputNode = objectMapper.readTree(inputJson);
 
-            if (!inputNode.isObject()) {
+            if(!inputNode.isObject()) {
                 throw new IllegalArgumentException("Input JSON must be an object for enrichment.");
             }
 
@@ -35,28 +35,28 @@ public class EnrichmentTransformationService {
 
             // Add static enrichment fields if present
             Map<String, Object> enrichmentFields = config.getEnrichmentFields();
-            if (enrichmentFields != null) {
+            if(enrichmentFields != null) {
                 map.putAll(enrichmentFields);
             }
 
             // Execute enrichment function if provided
             String enrichmentFunction = config.getEnrichmentFunction();
-            if (enrichmentFunction != null && !enrichmentFunction.isBlank()) {
+            if(enrichmentFunction != null && !enrichmentFunction.isBlank()) {
                 Object result = JavaFunctionRunner.run(
                     enrichmentFunction,
                     java.util.List.of("record"),
                     Map.of("record", map)
-                );
+               );
 
-                if (result instanceof Map<?, ?>) {
+                if(result instanceof Map<?, ?>) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> resultMap = (Map<String, Object>) result;
                     map.putAll(resultMap);
-                } else if (result instanceof String) {
+                } else if(result instanceof String) {
                     JsonNode resultNode = objectMapper.readTree((String) result);
-                    if (resultNode.isObject()) {
+                    if(resultNode.isObject()) {
                         Iterator<Map.Entry<String, JsonNode>> fields = resultNode.fields();
-                        while (fields.hasNext()) {
+                        while(fields.hasNext()) {
                             Map.Entry<String, JsonNode> entry = fields.next();
                             map.put(entry.getKey(), objectMapper.treeToValue(entry.getValue(), Object.class));
                         }
@@ -66,7 +66,7 @@ public class EnrichmentTransformationService {
 
             return objectMapper.writeValueAsString(map);
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new RuntimeException("Failed to apply enrichment transformation", e);
         }
     }

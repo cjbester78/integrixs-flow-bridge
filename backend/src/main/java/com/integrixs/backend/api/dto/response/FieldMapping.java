@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FieldMapping {
-    
+
     private String sourcePath;
     private String targetPath;
     private String sourceType;

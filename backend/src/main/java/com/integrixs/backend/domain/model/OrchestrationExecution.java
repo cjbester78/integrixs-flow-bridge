@@ -28,7 +28,7 @@ public class OrchestrationExecution {
     private Map<String, Object> executionContext = new HashMap<>();
     private List<String> logs = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
-    
+
     /**
      * Add a log entry
      * @param message The log message
@@ -36,21 +36,21 @@ public class OrchestrationExecution {
     public void addLog(String message) {
         this.logs.add(message);
     }
-    
+
     /**
      * Update execution status
      * @param status New status
      */
     public void updateStatus(String status) {
         this.status = status;
-        if ("RUNNING".equals(status) && startTime == null) {
+        if("RUNNING".equals(status) && startTime == null) {
             this.startTime = LocalDateTime.now();
-        } else if (("COMPLETED".equals(status) || "FAILED".equals(status) || "CANCELLED".equals(status)) 
+        } else if(("COMPLETED".equals(status) || "FAILED".equals(status) || "CANCELLED".equals(status))
                    && endTime == null) {
             this.endTime = LocalDateTime.now();
         }
     }
-    
+
     /**
      * Add context data
      * @param key Context key
@@ -59,7 +59,7 @@ public class OrchestrationExecution {
     public void addContext(String key, Object value) {
         this.executionContext.put(key, value);
     }
-    
+
     /**
      * Add metadata
      * @param key Metadata key
@@ -68,7 +68,7 @@ public class OrchestrationExecution {
     public void addMetadata(String key, Object value) {
         this.metadata.put(key, value);
     }
-    
+
     /**
      * Check if execution is in progress
      * @return true if in progress
@@ -76,7 +76,7 @@ public class OrchestrationExecution {
     public boolean isInProgress() {
         return "RUNNING".equals(status) || "PENDING".equals(status);
     }
-    
+
     /**
      * Check if execution is complete
      * @return true if complete

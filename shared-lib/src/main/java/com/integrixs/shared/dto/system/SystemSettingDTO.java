@@ -22,7 +22,7 @@ public class SystemSettingDTO {
     private String updatedBy;
 
     public SystemSettingDTO() {
-        // No-args constructor
+        // No - args constructor
     }
 
     public SystemSettingDTO(String settingKey, String settingValue, String description, String category) {
@@ -135,15 +135,15 @@ public class SystemSettingDTO {
 
     @Override
     public String toString() {
-        return "SystemSettingDTO{" +
-                "id='" + id + '\'' +
-                ", settingKey='" + settingKey + '\'' +
-                ", settingValue='" + (isEncrypted ? "[ENCRYPTED]" : settingValue) + '\'' +
-                ", description='" + description + '\'' +
-                ", category='" + category + '\'' +
-                ", dataType='" + dataType + '\'' +
-                ", isEncrypted=" + isEncrypted +
-                ", isReadonly=" + isReadonly +
+        return "SystemSettingDTO {" +
+                "id = '" + id + '\'' +
+                ", settingKey = '" + settingKey + '\'' +
+                ", settingValue = '" + (isEncrypted ? "[ENCRYPTED]" : settingValue) + '\'' +
+                ", description = '" + description + '\'' +
+                ", category = '" + category + '\'' +
+                ", dataType = '" + dataType + '\'' +
+                ", isEncrypted = " + isEncrypted +
+                ", isReadonly = " + isReadonly +
                 '}';
     }
 }

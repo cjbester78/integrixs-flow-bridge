@@ -20,49 +20,49 @@ import java.util.UUID;
  */
 @Component
 public class PackageCreationJobExecutor implements JobExecutor {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(PackageCreationJobExecutor.class);
-    
+
     public static final String JOB_TYPE = "PACKAGE_CREATION";
-    
+
     @Autowired
     private TransactionalPackageCreationService packageCreationService;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @Override
     public String getJobType() {
         return JOB_TYPE;
     }
-    
+
     @Override
     public Map<String, String> execute(BackgroundJob job, ProgressCallback progressCallback) throws Exception {
         logger.info("Starting package creation job: {}", job.getId());
-        
+
         // Extract parameters
         String requestJson = job.getParameters().get("request");
-        if (requestJson == null) {
+        if(requestJson == null) {
             throw new IllegalArgumentException("Missing request parameter");
         }
-        
+
         // Deserialize request
         PackageCreationRequest request = objectMapper.readValue(requestJson, PackageCreationRequest.class);
-        
+
         // Set user and tenant from job
-        if (request.getUserId() == null && job.getCreatedBy() != null) {
+        if(request.getUserId() == null && job.getCreatedBy() != null) {
             request.setUserId(job.getCreatedBy());
         }
-        if (request.getTenantId() == null && job.getTenantId() != null) {
+        if(request.getTenantId() == null && job.getTenantId() != null) {
             request.setTenantId(job.getTenantId());
         }
-        
+
         // Report initial progress
         progressCallback.updateProgress(5, "Starting package creation");
-        
+
         // Create custom progress wrapper that updates job progress
         PackageCreationResult result = packageCreationService.createPackage(request);
-        
+
         // Build result map
         Map<String, String> results = new HashMap<>();
         results.put("success", String.valueOf(result.isSuccess()));
@@ -70,45 +70,45 @@ public class PackageCreationJobExecutor implements JobExecutor {
         results.put("flowName", result.getFlowName());
         results.put("correlationId", result.getCorrelationId().toString());
         results.put("message", result.getMessage());
-        
-        if (!result.isSuccess()) {
+
+        if(!result.isSuccess()) {
             results.put("error", result.getErrorMessage());
         }
-        
+
         // Store detailed result as JSON
         results.put("details", objectMapper.writeValueAsString(result));
-        
+
         progressCallback.updateProgress(100, "Package creation completed");
-        
+
         return results;
     }
-    
+
     @Override
     public void validateParameters(Map<String, String> parameters) throws IllegalArgumentException {
-        if (!parameters.containsKey("request")) {
+        if(!parameters.containsKey("request")) {
             throw new IllegalArgumentException("Missing required parameter: request");
         }
-        
+
         // Try to parse the request to validate JSON
         try {
             objectMapper.readValue(parameters.get("request"), PackageCreationRequest.class);
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new IllegalArgumentException("Invalid request JSON: " + e.getMessage());
         }
     }
-    
+
     @Override
     public Long getEstimatedDuration() {
         // Estimate 30 seconds to 2 minutes for package creation
         return 60000L; // 1 minute
     }
-    
+
     @Override
     public boolean isRetryable() {
         // Package creation can be retried on failure
         return true;
     }
-    
+
     /**
      * Helper method to create job parameters for package creation
      */

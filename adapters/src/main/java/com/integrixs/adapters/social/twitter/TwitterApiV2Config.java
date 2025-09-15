@@ -6,7 +6,7 @@ import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.twitter.api")
 public class TwitterApiV2Config extends SocialMediaAdapterConfig {
-    
+
     private String apiKey;
     private String apiKeySecret;
     private String bearerToken;
@@ -14,7 +14,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
     private String clientSecret;
     private TwitterFeatures features = new TwitterFeatures();
     private TwitterLimits limits = new TwitterLimits();
-    
+
         public static class TwitterFeatures {
         private boolean enableTweetComposition = true;
         private boolean enableThreading = true;
@@ -32,7 +32,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         private boolean enableRetweets = true;
         private boolean enableLikes = true;
     }
-    
+
         public static class TwitterLimits {
         private int maxTweetLength = 280;
         private int maxThreadLength = 25;
@@ -45,7 +45,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         private int maxListsPerAccount = 1000;
         private int maxAccountsPerList = 5000;
     }
-    
+
     // Tweet types
     public enum TweetType {
         STANDARD,
@@ -55,7 +55,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         POLL,
         SCHEDULED
     }
-    
+
     // Media types
     public enum MediaType {
         PHOTO,
@@ -63,7 +63,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         VIDEO,
         ANIMATED_GIF
     }
-    
+
     // Timeline types
     public enum TimelineType {
         HOME,
@@ -72,7 +72,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         SEARCH,
         LIST
     }
-    
+
     // Expansions available in API v2
     public enum Expansion {
         ATTACHMENTS_POLL_IDS,
@@ -85,7 +85,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         REFERENCED_TWEETS_ID,
         REFERENCED_TWEETS_ID_AUTHOR_ID
     }
-    
+
     // Tweet fields available in API v2
     public enum TweetField {
         ATTACHMENTS,
@@ -107,7 +107,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         TEXT,
         WITHHELD
     }
-    
+
     // User fields
     public enum UserField {
         CREATED_AT,
@@ -126,7 +126,7 @@ public class TwitterApiV2Config extends SocialMediaAdapterConfig {
         VERIFIED_TYPE,
         WITHHELD
     }
-    
+
     // Media fields
     public enum MediaField {
         DURATION_MS,

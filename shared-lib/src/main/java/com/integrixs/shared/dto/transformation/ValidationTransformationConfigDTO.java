@@ -10,7 +10,7 @@ public class ValidationTransformationConfigDTO {
 
     /**
      * List of validation rules as JavaScript function bodies or expressions.
-     * Each rule should return boolean (true if valid, false otherwise).
+     * Each rule should return boolean(true if valid, false otherwise).
      */
     private List<String> validationRules;
 
@@ -26,7 +26,7 @@ public class ValidationTransformationConfigDTO {
     private boolean failFast = true;
 
     public ValidationTransformationConfigDTO() {
-        // no-arg constructor
+        // no - arg constructor
     }
 
     public List<String> getValidationRules() {
@@ -55,10 +55,10 @@ public class ValidationTransformationConfigDTO {
 
     @Override
     public String toString() {
-        return "ValidationTransformationConfigDTO{" +
-                "validationRules=" + validationRules +
-                ", errorMessages=" + errorMessages +
-                ", failFast=" + failFast +
+        return "ValidationTransformationConfigDTO {" +
+                "validationRules = " + validationRules +
+                ", errorMessages = " + errorMessages +
+                ", failFast = " + failFast +
                 '}';
     }
 }

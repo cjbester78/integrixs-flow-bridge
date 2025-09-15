@@ -20,27 +20,27 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ResourceAccessService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ResourceAccessService.class);
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private UserRoleRepository userRoleRepository;
-    
+
     /**
      * Check if current user has permission
      */
     public boolean hasPermission(ResourcePermission permission) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if(auth == null || !auth.isAuthenticated()) {
             return false;
         }
-        
+
         return hasPermission(auth.getName(), permission);
     }
-    
+
     /**
      * Check if user has permission
      */
@@ -49,190 +49,190 @@ public class ResourceAccessService {
         try {
             // Get user
             Optional<User> userOpt = userRepository.findByUsername(username);
-            if (!userOpt.isPresent()) {
+            if(!userOpt.isPresent()) {
                 return false;
             }
-            
+
             User user = userOpt.get();
-            
+
             // Check if user is active
-            if (!user.isActive()) {
+            if(!user.isActive()) {
                 return false;
             }
-            
+
             // Get user roles
             List<UserRole> userRoles = userRoleRepository.findByUserId(user.getId());
-            
+
             // Check each role for permission
-            for (UserRole userRole : userRoles) {
+            for(UserRole userRole : userRoles) {
                 RoleDefinitions.Role role = RoleDefinitions.getRole(userRole.getRole());
-                if (role != null && role.hasPermission(permission)) {
+                if(role != null && role.hasPermission(permission)) {
                     // Additional tenant check if needed
-                    if (requiresTenantCheck(permission)) {
+                    if(requiresTenantCheck(permission)) {
                         return checkTenantAccess(user, userRole);
                     }
                     return true;
                 }
             }
-            
+
             return false;
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error checking permission", e);
             return false;
         }
     }
-    
+
     /**
      * Check if current user has any of the permissions
      */
     public boolean hasAnyPermission(ResourcePermission... permissions) {
-        for (ResourcePermission permission : permissions) {
-            if (hasPermission(permission)) {
+        for(ResourcePermission permission : permissions) {
+            if(hasPermission(permission)) {
                 return true;
             }
         }
         return false;
     }
-    
+
     /**
      * Check if current user has all permissions
      */
     public boolean hasAllPermissions(ResourcePermission... permissions) {
-        for (ResourcePermission permission : permissions) {
-            if (!hasPermission(permission)) {
+        for(ResourcePermission permission : permissions) {
+            if(!hasPermission(permission)) {
                 return false;
             }
         }
         return true;
     }
-    
+
     /**
      * Get all permissions for current user
      */
     public Set<ResourcePermission> getCurrentUserPermissions() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if(auth == null || !auth.isAuthenticated()) {
             return Collections.emptySet();
         }
-        
+
         return getUserPermissions(auth.getName());
     }
-    
+
     /**
      * Get all permissions for a user
      */
     @Cacheable(value = "allUserPermissions", key = "#username")
     public Set<ResourcePermission> getUserPermissions(String username) {
         Set<ResourcePermission> permissions = new HashSet<>();
-        
+
         try {
             // Get user
             Optional<User> userOpt = userRepository.findByUsername(username);
-            if (!userOpt.isPresent()) {
+            if(!userOpt.isPresent()) {
                 return permissions;
             }
-            
+
             User user = userOpt.get();
-            
+
             // Get user roles
             List<UserRole> userRoles = userRoleRepository.findByUserId(user.getId());
-            
+
             // Collect all permissions from roles
-            for (UserRole userRole : userRoles) {
+            for(UserRole userRole : userRoles) {
                 RoleDefinitions.Role role = RoleDefinitions.getRole(userRole.getRole());
-                if (role != null) {
+                if(role != null) {
                     permissions.addAll(role.getPermissions());
                 }
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error getting user permissions", e);
         }
-        
+
         return permissions;
     }
-    
+
     /**
      * Check if user can access resource in specific tenant
      */
     public boolean canAccessResourceInTenant(UUID resourceId, UUID tenantId, ResourcePermission permission) {
-        if (!hasPermission(permission)) {
+        if(!hasPermission(permission)) {
             return false;
         }
-        
+
         // System admins can access all tenants
-        if (hasPermission(ResourcePermission.ADMIN_SYSTEM)) {
+        if(hasPermission(ResourcePermission.ADMIN_SYSTEM)) {
             return true;
         }
-        
+
         // Check if user belongs to the tenant
         return isUserInTenant(tenantId);
     }
-    
+
     /**
      * Check if current user belongs to tenant
      */
     public boolean isUserInTenant(UUID tenantId) {
-        if (tenantId == null) {
+        if(tenantId == null) {
             return true; // No tenant restriction
         }
-        
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if(auth == null || !auth.isAuthenticated()) {
             return false;
         }
-        
+
         Optional<User> userOpt = userRepository.findByUsername(auth.getName());
-        if (!userOpt.isPresent()) {
+        if(!userOpt.isPresent()) {
             return false;
         }
-        
+
         User user = userOpt.get();
-        
+
         // Check if user's tenant matches
-        if (user.getTenantId() != null && user.getTenantId().equals(tenantId)) {
+        if(user.getTenantId() != null && user.getTenantId().equals(tenantId)) {
             return true;
         }
-        
-        // Check if user has cross-tenant access (system admin)
+
+        // Check if user has cross - tenant access(system admin)
         return hasPermission(ResourcePermission.ADMIN_SYSTEM);
     }
-    
+
     /**
      * Get accessible tenants for current user
      */
     public Set<UUID> getAccessibleTenants() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if(auth == null || !auth.isAuthenticated()) {
             return Collections.emptySet();
         }
-        
+
         // System admins can access all tenants
-        if (hasPermission(ResourcePermission.ADMIN_SYSTEM)) {
+        if(hasPermission(ResourcePermission.ADMIN_SYSTEM)) {
             return null; // Null means all tenants
         }
-        
+
         // Regular users can only access their own tenant
         Optional<User> userOpt = userRepository.findByUsername(auth.getName());
-        if (userOpt.isPresent() && userOpt.get().getTenantId() != null) {
+        if(userOpt.isPresent() && userOpt.get().getTenantId() != null) {
             return Collections.singleton(userOpt.get().getTenantId());
         }
-        
+
         return Collections.emptySet();
     }
-    
+
     /**
      * Filter resources by tenant access
      */
     public <T> List<T> filterByTenantAccess(List<T> resources, java.util.function.Function<T, UUID> tenantIdExtractor) {
         Set<UUID> accessibleTenants = getAccessibleTenants();
-        
+
         // Null means all tenants are accessible
-        if (accessibleTenants == null) {
+        if(accessibleTenants == null) {
             return resources;
         }
-        
+
         // Filter by accessible tenants
         return resources.stream()
             .filter(resource -> {
@@ -241,7 +241,7 @@ public class ResourceAccessService {
             })
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Check if permission requires tenant check
      */
@@ -249,24 +249,24 @@ public class ResourceAccessService {
         // Admin permissions don't require tenant check
         return !permission.getPermission().startsWith("admin:");
     }
-    
+
     /**
      * Check tenant access for user
      */
     private boolean checkTenantAccess(User user, UserRole userRole) {
         UUID currentTenant = TenantContext.getCurrentTenant();
-        
+
         // No tenant context means no restriction
-        if (currentTenant == null) {
+        if(currentTenant == null) {
             return true;
         }
-        
+
         // Check if user belongs to current tenant
-        if (user.getTenantId() != null && user.getTenantId().equals(currentTenant)) {
+        if(user.getTenantId() != null && user.getTenantId().equals(currentTenant)) {
             return true;
         }
-        
-        // System admins have cross-tenant access
+
+        // System admins have cross - tenant access
         return "SYSTEM_ADMIN".equals(userRole.getRole());
     }
 }

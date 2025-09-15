@@ -17,7 +17,7 @@ public class ValidationResult {
     private List<ValidationError> errors = new ArrayList<>();
     @Builder.Default
     private List<String> warnings = new ArrayList<>();
-    
+
     /**
      * Validation error
      */
@@ -27,7 +27,7 @@ public class ValidationResult {
         private String field;
         private String message;
         private ErrorType type;
-        
+
         public enum ErrorType {
             MISSING_FIELD,
             INVALID_FORMAT,
@@ -37,7 +37,7 @@ public class ValidationResult {
             SCHEMA_VALIDATION_FAILED
         }
     }
-    
+
     /**
      * Create valid result
      * @return Valid result
@@ -47,7 +47,7 @@ public class ValidationResult {
                 .valid(true)
                 .build();
     }
-    
+
     /**
      * Create invalid result with single error
      * @param error Error message
@@ -62,7 +62,7 @@ public class ValidationResult {
                         .build()))
                 .build();
     }
-    
+
     /**
      * Create invalid result with field error
      * @param field Field name
@@ -80,7 +80,7 @@ public class ValidationResult {
                         .build()))
                 .build();
     }
-    
+
     /**
      * Add error
      * @param field Field name
@@ -95,7 +95,7 @@ public class ValidationResult {
                 .type(type)
                 .build());
     }
-    
+
     /**
      * Add warning
      * @param warning Warning message
@@ -103,20 +103,20 @@ public class ValidationResult {
     public void addWarning(String warning) {
         this.warnings.add(warning);
     }
-    
+
     /**
      * Get all error messages
      * @return Error messages
      */
     public String getErrorMessage() {
-        if (errors.isEmpty()) {
+        if(errors.isEmpty()) {
             return "";
         }
-        
+
         StringBuilder sb = new StringBuilder();
-        for (ValidationError error : errors) {
-            if (sb.length() > 0) sb.append("; ");
-            if (error.getField() != null) {
+        for(ValidationError error : errors) {
+            if(sb.length() > 0) sb.append("; ");
+            if(error.getField() != null) {
                 sb.append(error.getField()).append(": ");
             }
             sb.append(error.getMessage());

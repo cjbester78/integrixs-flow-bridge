@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("test")
 public class IntegrationTestsSuite {
-    
+
     @Test
     void contextLoads() {
         // This test verifies that the Spring context loads successfully

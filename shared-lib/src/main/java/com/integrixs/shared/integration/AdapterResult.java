@@ -21,14 +21,14 @@ public class AdapterResult {
     private String errorCode;
     private Long processingTime;
     private Map<String, Object> metadata;
-    
+
     public static AdapterResult success(Map<String, Object> outputData) {
         return AdapterResult.builder()
                 .success(true)
                 .outputData(outputData)
                 .build();
     }
-    
+
     public static AdapterResult failure(String errorMessage, String errorCode) {
         return AdapterResult.builder()
                 .success(false)

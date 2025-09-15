@@ -26,7 +26,7 @@ import java.io.IOException;
 @Configuration
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class WebConfig implements WebMvcConfigurer {
-    
+
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         // Don't handle WebSocket paths
@@ -39,11 +39,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/assets/**")
                 .addResourceLocations("classpath:/public/assets/")
                 .setCachePeriod(3600);
-                
+
         registry.addResourceHandler("/*.js", "/*.css", "/*.ico", "/*.png", "/*.jpg", "/*.json")
                 .addResourceLocations("classpath:/public/")
                 .setCachePeriod(3600);
-        
+
         // Handle React routes - but NOT WebSocket paths
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/public/")
@@ -52,38 +52,38 @@ public class WebConfig implements WebMvcConfigurer {
                     @Override
                     protected Resource getResource(String resourcePath, Resource location) throws IOException {
                         // NEVER handle WebSocket paths
-                        if (resourcePath.startsWith("ws/") || 
-                            resourcePath.equals("wstest") || 
-                            resourcePath.equals("echo") || 
-                            resourcePath.equals("test-ws") ||
-                            resourcePath.equals("direct-ws") ||
-                            resourcePath.equals("minimal-echo") ||
+                        if(resourcePath.startsWith("ws/") ||
+                            resourcePath.equals("wstest") ||
+                            resourcePath.equals("echo") ||
+                            resourcePath.equals("test - ws") ||
+                            resourcePath.equals("direct - ws") ||
+                            resourcePath.equals("minimal - echo") ||
                             resourcePath.equals("basic")) {
                             return null;
                         }
-                        
+
                         Resource requestedResource = location.createRelative(resourcePath);
-                        
+
                         // If the resource exists and is readable, serve it
-                        if (requestedResource.exists() && requestedResource.isReadable()) {
+                        if(requestedResource.exists() && requestedResource.isReadable()) {
                             return requestedResource;
                         }
-                        
+
                         // Skip API routes, actuator, and other backend routes
-                        if (resourcePath.startsWith("api/") || 
+                        if(resourcePath.startsWith("api/") ||
                             resourcePath.startsWith("actuator/") ||
-                            resourcePath.startsWith("swagger-ui/") ||
-                            resourcePath.startsWith("v3/api-docs") ||
+                            resourcePath.startsWith("swagger - ui/") ||
+                            resourcePath.startsWith("v3/api - docs") ||
                             resourcePath.startsWith("webjars/")) {
                             return null;
                         }
-                        
-                        // For all other routes, return index.html (React app)
+
+                        // For all other routes, return index.html(React app)
                         return new ClassPathResource("/public/index.html");
                     }
                 });
     }
-    
+
     /**
      * Register MDC filter with highest priority
      */
@@ -97,7 +97,7 @@ public class WebConfig implements WebMvcConfigurer {
         log.info("Registered MDC filter with highest priority");
         return registration;
     }
-    
+
     /**
      * Authentication event publisher for Spring Security events
      */
@@ -107,9 +107,9 @@ public class WebConfig implements WebMvcConfigurer {
         log.info("Configured authentication event publisher");
         return new DefaultAuthenticationEventPublisher();
     }
-    
+
     /**
-     * Request logging filter for debugging (optional)
+     * Request logging filter for debugging(optional)
      */
     @Bean
     @ConditionalOnMissingBean
@@ -124,7 +124,7 @@ public class WebConfig implements WebMvcConfigurer {
         filter.setAfterMessagePrefix("REQUEST COMPLETE: ");
         return filter;
     }
-    
+
     /**
      * Ensure enhanced authentication logger is available
      */
@@ -134,7 +134,7 @@ public class WebConfig implements WebMvcConfigurer {
         log.info("Created enhanced authentication logger");
         return new EnhancedAuthenticationLogger();
     }
-    
+
     /**
      * Ensure enhanced flow execution logger is available
      */

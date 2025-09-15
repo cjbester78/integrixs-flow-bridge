@@ -21,16 +21,16 @@ public class DeploymentInfoDTO {
     private LocalDateTime deployedAt;
     private String deployedBy;
     private Map<String, Object> metadata;
-    
+
     // Convenience methods for common metadata
     public String getWsdlUrl() {
         return metadata != null ? (String) metadata.get("wsdlUrl") : null;
     }
-    
+
     public String getApiDocsUrl() {
         return metadata != null ? (String) metadata.get("apiDocsUrl") : null;
     }
-    
+
     public String getAdapterType() {
         return metadata != null ? (String) metadata.get("adapterType") : null;
     }

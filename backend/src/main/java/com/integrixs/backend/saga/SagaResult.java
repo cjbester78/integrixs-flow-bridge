@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Result of saga execution.
- * 
+ *
  * @param <T> the type of result data
  * @author Integration Team
  * @since 1.0.0
@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 @Builder
 public class SagaResult<T> {
-    
+
     private String sagaId;
     private boolean success;
     private T data;
@@ -26,10 +26,10 @@ public class SagaResult<T> {
     private LocalDateTime endTime;
     @Builder.Default
     private List<StepResult<T>> stepResults = new ArrayList<>();
-    
+
     /**
      * Creates a successful saga result.
-     * 
+     *
      * @param sagaId the saga ID
      * @param data the result data
      * @param <T> the data type
@@ -44,10 +44,10 @@ public class SagaResult<T> {
                 .endTime(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Creates a failed saga result.
-     * 
+     *
      * @param sagaId the saga ID
      * @param errorMessage the error message
      * @param <T> the data type
@@ -62,10 +62,10 @@ public class SagaResult<T> {
                 .endTime(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Adds a step result.
-     * 
+     *
      * @param stepResult the step result
      */
     public void addStepResult(StepResult<T> stepResult) {

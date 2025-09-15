@@ -9,7 +9,7 @@ import java.util.Set;
  * Predefined role definitions for RBAC
  */
 public class RoleDefinitions {
-    
+
     /**
      * System administrator - full access
      */
@@ -17,8 +17,8 @@ public class RoleDefinitions {
         "SYSTEM_ADMIN",
         "System Administrator",
         new HashSet<>(Arrays.asList(ResourcePermission.values()))
-    );
-    
+   );
+
     /**
      * Tenant administrator - full access within tenant
      */
@@ -55,9 +55,9 @@ public class RoleDefinitions {
             ResourcePermission.MONITOR_LOGS,
             ResourcePermission.MONITOR_HEALTH,
             ResourcePermission.TENANT_MANAGE_USERS
-        ))
-    );
-    
+       ))
+   );
+
     /**
      * Developer - can create and modify flows
      */
@@ -86,9 +86,9 @@ public class RoleDefinitions {
             ResourcePermission.PACKAGE_UPDATE,
             ResourcePermission.MONITOR_FLOWS,
             ResourcePermission.MONITOR_METRICS
-        ))
-    );
-    
+       ))
+   );
+
     /**
      * Operator - can execute and monitor flows
      */
@@ -105,11 +105,11 @@ public class RoleDefinitions {
             ResourcePermission.MONITOR_FLOWS,
             ResourcePermission.MONITOR_METRICS,
             ResourcePermission.MONITOR_HEALTH
-        ))
-    );
-    
+       ))
+   );
+
     /**
-     * Viewer - read-only access
+     * Viewer - read - only access
      */
     public static final Role VIEWER = new Role(
         "VIEWER",
@@ -121,9 +121,9 @@ public class RoleDefinitions {
             ResourcePermission.TRANSFORMATION_READ,
             ResourcePermission.PACKAGE_READ,
             ResourcePermission.MONITOR_HEALTH
-        ))
-    );
-    
+       ))
+   );
+
     /**
      * Guest - minimal access
      */
@@ -132,9 +132,9 @@ public class RoleDefinitions {
         "Guest",
         new HashSet<>(Arrays.asList(
             ResourcePermission.MONITOR_HEALTH
-        ))
-    );
-    
+       ))
+   );
+
     /**
      * Role definition class
      */
@@ -142,40 +142,40 @@ public class RoleDefinitions {
         private final String name;
         private final String description;
         private final Set<ResourcePermission> permissions;
-        
+
         public Role(String name, String description, Set<ResourcePermission> permissions) {
             this.name = name;
             this.description = description;
             this.permissions = Collections.unmodifiableSet(permissions);
         }
-        
+
         public String getName() {
             return name;
         }
-        
+
         public String getDescription() {
             return description;
         }
-        
+
         public Set<ResourcePermission> getPermissions() {
             return permissions;
         }
-        
+
         public boolean hasPermission(ResourcePermission permission) {
             return permissions.contains(permission);
         }
-        
+
         public boolean hasPermission(String permission) {
             return permissions.stream()
                 .anyMatch(p -> p.getPermission().equals(permission));
         }
     }
-    
+
     /**
      * Get role by name
      */
     public static Role getRole(String roleName) {
-        switch (roleName) {
+        switch(roleName) {
             case "SYSTEM_ADMIN":
                 return SYSTEM_ADMIN;
             case "TENANT_ADMIN":
@@ -192,7 +192,7 @@ public class RoleDefinitions {
                 return null;
         }
     }
-    
+
     /**
      * Get all predefined roles
      */
@@ -204,6 +204,6 @@ public class RoleDefinitions {
             OPERATOR,
             VIEWER,
             GUEST
-        ));
+       ));
     }
 }

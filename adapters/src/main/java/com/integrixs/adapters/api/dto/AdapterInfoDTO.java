@@ -76,7 +76,7 @@ public class AdapterInfoDTO {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String adapterId;
         private String name;
@@ -87,52 +87,52 @@ public class AdapterInfoDTO {
         private String status;
         private Long createdAt;
         private Long updatedAt;
-        
+
         public Builder adapterId(String adapterId) {
             this.adapterId = adapterId;
             return this;
         }
-        
+
         public Builder name(String name) {
             this.name = name;
             return this;
         }
-        
+
         public Builder description(String description) {
             this.description = description;
             return this;
         }
-        
+
         public Builder adapterType(String adapterType) {
             this.adapterType = adapterType;
             return this;
         }
-        
+
         public Builder adapterMode(String adapterMode) {
             this.adapterMode = adapterMode;
             return this;
         }
-        
+
         public Builder isActive(boolean isActive) {
             this.isActive = isActive;
             return this;
         }
-        
+
         public Builder status(String status) {
             this.status = status;
             return this;
         }
-        
+
         public Builder createdAt(Long createdAt) {
             this.createdAt = createdAt;
             return this;
         }
-        
+
         public Builder updatedAt(Long updatedAt) {
             this.updatedAt = updatedAt;
             return this;
         }
-        
+
         public AdapterInfoDTO build() {
             AdapterInfoDTO obj = new AdapterInfoDTO();
             obj.adapterId = this.adapterId;

@@ -16,15 +16,15 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SecurityConfigurationDTO {
-    
+
     private String securityType;
-    
+
     @Builder.Default
     private Map<String, String> credentials = new HashMap<>();
-    
+
     private String certificatePath;
     private String keystorePath;
     private String truststorePath;
-    
+
     private WsSecurityConfigDTO wsSecurityConfig;
 }

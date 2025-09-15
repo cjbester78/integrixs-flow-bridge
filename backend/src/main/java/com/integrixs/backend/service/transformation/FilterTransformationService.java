@@ -19,14 +19,14 @@ public class FilterTransformationService {
     /**
      * Applies a filter transformation on input JSON array string.
      *
-     * @param inputJson Input JSON string (expected to be an array of JSON objects)
+     * @param inputJson Input JSON string(expected to be an array of JSON objects)
      * @param config    Filter configuration DTO containing the filter expression
      * @return Filtered JSON string with only elements passing the filter
      */
     public String applyFilter(String inputJson, FilterTransformationConfigDTO config) {
         try {
             JsonNode arrayNode = objectMapper.readTree(inputJson);
-            if (!arrayNode.isArray()) {
+            if(!arrayNode.isArray()) {
                 throw new IllegalArgumentException("Input JSON must be an array");
             }
 
@@ -37,17 +37,17 @@ public class FilterTransformationService {
 
             var filteredArray = objectMapper.createArrayNode();
 
-            for (JsonNode item : arrayNode) {
+            for(JsonNode item : arrayNode) {
                 Map<String, Object> itemMap = objectMapper.convertValue(item, Map.class);
                 Object result = invocable.invokeFunction("filterFunc", itemMap);
-                if (result instanceof Boolean && (Boolean) result) {
+                if(result instanceof Boolean && (Boolean) result) {
                     filteredArray.add(item);
                 }
             }
 
             return objectMapper.writeValueAsString(filteredArray);
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new RuntimeException("Failed to apply filter transformation", e);
         }
     }

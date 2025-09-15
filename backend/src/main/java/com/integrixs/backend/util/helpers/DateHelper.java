@@ -9,7 +9,7 @@ public class DateHelper {
      * Format a LocalDateTime to ISO string.
      */
     public String formatISO(LocalDateTime dateTime) {
-        if (dateTime == null) return null;
+        if(dateTime == null) return null;
         return dateTime.format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
@@ -17,7 +17,7 @@ public class DateHelper {
      * Parse ISO date string to LocalDateTime.
      */
     public LocalDateTime parseISO(String isoDateString) {
-        if (isoDateString == null || isoDateString.isEmpty()) return null;
+        if(isoDateString == null || isoDateString.isEmpty()) return null;
         return LocalDateTime.parse(isoDateString, DateTimeFormatter.ISO_DATE_TIME);
     }
 

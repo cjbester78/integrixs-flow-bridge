@@ -24,7 +24,7 @@ public class IntegrixsTestExtension implements
     public void beforeAll(ExtensionContext context) throws Exception {
         Optional<FlowTest> annotation = AnnotationUtils.findAnnotation(
             context.getRequiredTestClass(), FlowTest.class
-        );
+       );
         
         if (annotation.isPresent()) {
             FlowTest flowTest = annotation.get();

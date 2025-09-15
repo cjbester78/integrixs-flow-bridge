@@ -16,10 +16,10 @@ import java.util.UUID;
 
 /**
  * Entity representing a business component.
- * 
+ *
  * <p>A business component represents an organizational unit or department
  * that owns and manages integration flows and adapters.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -37,7 +37,7 @@ import java.util.UUID;
 public class BusinessComponent {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -71,7 +71,7 @@ public class BusinessComponent {
      * Contact phone number
      */
     @Column(name = "contact_phone", length = 20)
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format")
+    @Pattern(regexp = "^\\ + ?[1-9]\\d {1,14}$", message = "Invalid phone number format")
     private String contactPhone;
 
     /**
@@ -89,7 +89,7 @@ public class BusinessComponent {
     private LocalDateTime updatedAt;
 
     /**
-     * Status of the business component (ACTIVE, INACTIVE)
+     * Status of the business component(ACTIVE, INACTIVE)
      */
     @Column(length = 20)
     @Pattern(regexp = "^(ACTIVE|INACTIVE)$", message = "Status must be ACTIVE or INACTIVE")
@@ -122,10 +122,10 @@ public class BusinessComponent {
      */
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
+        if(createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-        if (updatedAt == null) {
+        if(updatedAt == null) {
             updatedAt = LocalDateTime.now();
         }
     }

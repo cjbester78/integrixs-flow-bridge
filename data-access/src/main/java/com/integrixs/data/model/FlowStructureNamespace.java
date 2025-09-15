@@ -10,14 +10,14 @@ import java.util.UUID;
 
 /**
  * Entity representing XML namespaces for flow structures.
- * 
+ *
  * <p>Stores namespace prefix and URI mappings for WSDL definitions.
- * 
+ *
  * @author Integration Team
  * @since 2.0.0
  */
 @Entity
-@Table(name = "flow_structure_namespaces", 
+@Table(name = "flow_structure_namespaces",
        uniqueConstraints = @UniqueConstraint(columnNames = {"flow_structure_id", "prefix"}),
        indexes = @Index(name = "idx_flow_struct_ns", columnList = "flow_structure_id"))
 @Data
@@ -29,7 +29,7 @@ import java.util.UUID;
 public class FlowStructureNamespace {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -45,7 +45,7 @@ public class FlowStructureNamespace {
     private FlowStructure flowStructure;
 
     /**
-     * Namespace prefix (can be null for default namespace)
+     * Namespace prefix(can be null for default namespace)
      */
     @Column(length = 50)
     @Size(max = 50, message = "Prefix cannot exceed 50 characters")

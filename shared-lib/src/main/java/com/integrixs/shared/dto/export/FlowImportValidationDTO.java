@@ -18,51 +18,51 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowImportValidationDTO {
-    
+
     /**
      * Whether the import can proceed
      */
     private boolean canImport;
-    
+
     /**
      * Whether all validations passed
      */
     private boolean isValid;
-    
+
     /**
      * Summary of what will be imported
      */
     private ImportPreview preview;
-    
+
     /**
      * List of validation errors
      */
     @Builder.Default
     private List<ValidationIssue> errors = new ArrayList<>();
-    
+
     /**
      * List of validation warnings
      */
     @Builder.Default
     private List<ValidationIssue> warnings = new ArrayList<>();
-    
+
     /**
      * List of detected conflicts
      */
     @Builder.Default
     private List<Conflict> conflicts = new ArrayList<>();
-    
+
     /**
      * Required permissions for import
      */
     @Builder.Default
     private List<String> requiredPermissions = new ArrayList<>();
-    
+
     /**
      * Version compatibility information
      */
     private VersionCompatibility versionCompatibility;
-    
+
     /**
      * Preview of what will be imported
      */
@@ -81,9 +81,9 @@ public class FlowImportValidationDTO {
         private int certificateReferenceCount;
         private Map<String, Integer> objectCounts;
     }
-    
+
     /**
-     * Validation issue (error or warning)
+     * Validation issue(error or warning)
      */
     @Data
     @Builder
@@ -97,14 +97,14 @@ public class FlowImportValidationDTO {
         private String objectId;
         private Severity severity;
         private Map<String, Object> context;
-        
+
         public enum Severity {
             ERROR,
             WARNING,
             INFO
         }
     }
-    
+
     /**
      * Conflict information
      */
@@ -120,7 +120,7 @@ public class FlowImportValidationDTO {
         private String existingName;
         private ConflictType type;
         private List<String> resolutionOptions;
-        
+
         public enum ConflictType {
             NAME_EXISTS,
             ID_EXISTS,
@@ -129,7 +129,7 @@ public class FlowImportValidationDTO {
             VERSION_MISMATCH
         }
     }
-    
+
     /**
      * Version compatibility information
      */

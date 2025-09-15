@@ -27,82 +27,82 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class MessageQueueManagementService {
-    
+
     private final MessageRepository messageRepository;
     private final IntegrationFlowRepository flowRepository;
     private final SystemLogRepository systemLogRepository;
     private final MessageProcessingService processingService;
     private final MessageQueue messageQueue;
     private final FlowExecutionApplicationService flowExecutionService;
-    
+
     private static final int DEFAULT_PRIORITY = 5;
     private static final int MAX_RETRY_COUNT = 3;
-    
+
     @Transactional
     public MessageResponse queueMessage(QueueMessageRequest request) {
         log.debug("Queueing message for flow: {}", request.getFlowId());
-        
+
         // Find the flow
         IntegrationFlow flow = flowRepository.findById(UUID.fromString(request.getFlowId()))
             .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + request.getFlowId()));
-        
+
         // Create the message
         Message message = processingService.createMessage(
-            flow, 
+            flow,
             request.getPayload(),
             request.getCorrelationId(),
             request.getPriority()
-        );
-        
+       );
+
         // Validate message
         processingService.validateMessage(message);
-        
+
         // Save to database
         message = messageRepository.save(message);
-        
+
         // Add to queue for processing
         messageQueue.enqueue(message);
-        
+
         // Log the action
         logMessageAction(message, "QUEUED", "Message queued for processing");
-        
+
         return convertToResponse(message);
     }
-    
+
     @Transactional
     public MessageResponse processMessage(String messageId) {
         log.debug("Processing message: {}", messageId);
-        
+
         Message message = messageRepository.findById(UUID.fromString(messageId))
             .orElseThrow(() -> new IllegalArgumentException("Message not found: " + messageId));
-        
+
         // Validate message can be processed
         processingService.validateMessage(message);
-        
+
         // Mark as processing
         processingService.markAsProcessing(message);
         messageRepository.save(message);
-        
+
         try {
             // Execute the flow asynchronously
             flowExecutionService.executeFlow(message.getFlow().getId().toString());
             log.info("Flow execution triggered for flow: {}", message.getFlow().getId());
-            
+
             // Mark as completed
             processingService.updateMessageStatus(message, true, null);
             messageRepository.save(message);
-            
+
             logMessageAction(message, "COMPLETED", "Message processed successfully");
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error processing message: {}", messageId, e);
-            
+
             // Mark as failed
             processingService.updateMessageStatus(message, false, e.getMessage());
             messageRepository.save(message);
-            
+
             // Check if should retry
-            if (processingService.shouldRetry(message, MAX_RETRY_COUNT)) {
+            if(processingService.shouldRetry(message, MAX_RETRY_COUNT)) {
                 message.setStatus(Message.MessageStatus.PENDING);
                 messageRepository.save(message);
                 messageQueue.enqueue(message);
@@ -111,92 +111,92 @@ public class MessageQueueManagementService {
                 logMessageAction(message, "FAILED", "Message processing failed: " + e.getMessage());
             }
         }
-        
+
         return convertToResponse(message);
     }
-    
+
     @Transactional
     public MessageResponse retryMessage(String messageId) {
         log.debug("Retrying message: {}", messageId);
-        
+
         Message message = messageRepository.findById(UUID.fromString(messageId))
             .orElseThrow(() -> new IllegalArgumentException("Message not found: " + messageId));
-        
-        if (message.getStatus() != Message.MessageStatus.FAILED) {
+
+        if(message.getStatus() != Message.MessageStatus.FAILED) {
             throw new IllegalStateException("Can only retry failed messages");
         }
-        
+
         // Reset status and queue for retry
         message.setStatus(Message.MessageStatus.PENDING);
         messageRepository.save(message);
-        
+
         messageQueue.enqueue(message);
-        
+
         logMessageAction(message, "RETRY_REQUESTED", "Manual retry requested");
-        
+
         return convertToResponse(message);
     }
-    
+
     @Transactional
     public void cancelMessage(String messageId) {
         log.debug("Cancelling message: {}", messageId);
-        
+
         Message message = messageRepository.findById(UUID.fromString(messageId))
             .orElseThrow(() -> new IllegalArgumentException("Message not found: " + messageId));
-        
-        if (message.getStatus() == Message.MessageStatus.COMPLETED) {
+
+        if(message.getStatus() == Message.MessageStatus.COMPLETED) {
             throw new IllegalStateException("Cannot cancel completed messages");
         }
-        
+
         // Update status
         message.setStatus(Message.MessageStatus.CANCELLED);
         messageRepository.save(message);
-        
+
         // Remove from queue if present
         messageQueue.remove(message.getId());
-        
+
         logMessageAction(message, "CANCELLED", "Message cancelled by user");
     }
-    
+
     @Transactional(readOnly = true)
     public List<MessageResponse> getPendingMessages(int limit) {
         log.debug("Getting pending messages, limit: {}", limit);
-        
+
         List<Message> messages = messageRepository.findPendingMessages(limit);
-        
+
         return messages.stream()
             .map(this::convertToResponse)
             .collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
     public long getQueueSize() {
         return messageRepository.countByStatus(Message.MessageStatus.PENDING);
     }
-    
+
     @Transactional(readOnly = true)
     public long getProcessingCount() {
         return messageRepository.countByStatus(Message.MessageStatus.PROCESSING);
     }
-    
+
     @Transactional(readOnly = true)
     public long getFailedCount() {
         return messageRepository.countByStatus(Message.MessageStatus.FAILED);
     }
-    
+
     @Transactional
     public void processNextInQueue() {
         List<Message> pendingMessages = messageRepository.findPendingMessages(1);
-        
-        if (!pendingMessages.isEmpty()) {
+
+        if(!pendingMessages.isEmpty()) {
             Message message = pendingMessages.get(0);
             processMessage(message.getId().toString());
         }
     }
-    
+
     private MessageResponse convertToResponse(Message message) {
         Long executionTime = processingService.calculateExecutionTime(message);
-        
+
         return MessageResponse.builder()
             .id(message.getId().toString())
             .correlationId(message.getCorrelationId())
@@ -213,7 +213,7 @@ public class MessageQueueManagementService {
             .executionTimeMs(executionTime)
             .build();
     }
-    
+
     private void logMessageAction(Message message, String action, String details) {
         SystemLog log = new SystemLog();
         log.setCategory("MESSAGE_QUEUE");
@@ -226,7 +226,7 @@ public class MessageQueueManagementService {
         log.setAction(action);
         log.setMessage("Message " + action + " for flow: " + message.getFlow().getName());
         log.setDetails("status: " + message.getStatus() + ", " + details);
-        
+
         systemLogRepository.save(log);
     }
 }

@@ -16,21 +16,21 @@ import java.util.UUID;
 
 @Repository
 public interface AdapterHealthRecordRepository extends JpaRepository<AdapterHealthRecord, UUID> {
-    
+
     Page<AdapterHealthRecord> findByAdapter(CommunicationAdapter adapter, Pageable pageable);
-    
+
     @Query("SELECT ahr FROM AdapterHealthRecord ahr WHERE ahr.adapter.id = :adapterId ORDER BY ahr.checkedAt DESC")
     Optional<AdapterHealthRecord> findLatestByAdapterId(@Param("adapterId") Long adapterId);
-    
+
     @Query("SELECT ahr FROM AdapterHealthRecord ahr WHERE ahr.checkedAt BETWEEN :startDate AND :endDate")
-    Page<AdapterHealthRecord> findByDateRange(@Param("startDate") LocalDateTime startDate, 
-                                             @Param("endDate") LocalDateTime endDate, 
+    Page<AdapterHealthRecord> findByDateRange(@Param("startDate") LocalDateTime startDate,
+                                             @Param("endDate") LocalDateTime endDate,
                                              Pageable pageable);
-    
+
     @Query("SELECT ahr FROM AdapterHealthRecord ahr WHERE ahr.healthStatus = :status AND ahr.checkedAt > :since")
     List<AdapterHealthRecord> findByStatusSince(@Param("status") AdapterHealthRecord.HealthStatus status,
                                                 @Param("since") LocalDateTime since);
-    
+
     @Query("SELECT AVG(ahr.responseTimeMs) FROM AdapterHealthRecord ahr WHERE ahr.adapter.id = :adapterId AND ahr.checkedAt > :since")
     Double getAverageResponseTime(@Param("adapterId") Long adapterId, @Param("since") LocalDateTime since);
 }

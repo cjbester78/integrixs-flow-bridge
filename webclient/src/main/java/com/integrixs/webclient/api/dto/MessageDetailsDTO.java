@@ -16,7 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageDetailsDTO {
-    
+
     private String messageId;
     private String messageType;
     private String source;

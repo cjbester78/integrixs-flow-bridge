@@ -11,7 +11,7 @@ public class SocialMediaContent {
     public SocialMediaContent() {
     }
 
-    
+
 
     private String id;
     private String text;
@@ -26,7 +26,7 @@ public class SocialMediaContent {
     private ContentType contentType;
     private String author;
     private String authorId;
-    
+
     public enum ContentType {
         POST,
         STORY,
@@ -121,7 +121,7 @@ public class SocialMediaContent {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String id;
         private String text;
@@ -136,72 +136,72 @@ public class SocialMediaContent {
         private ContentType contentType;
         private String author;
         private String authorId;
-        
+
         public Builder id(String id) {
             this.id = id;
             return this;
         }
-        
+
         public Builder text(String text) {
             this.text = text;
             return this;
         }
-        
+
         public Builder imageUrls(List<String> imageUrls) {
             this.imageUrls = imageUrls;
             return this;
         }
-        
+
         public Builder videoUrls(List<String> videoUrls) {
             this.videoUrls = videoUrls;
             return this;
         }
-        
+
         public Builder link(String link) {
             this.link = link;
             return this;
         }
-        
+
         public Builder hashtags(List<String> hashtags) {
             this.hashtags = hashtags;
             return this;
         }
-        
+
         public Builder mentions(List<String> mentions) {
             this.mentions = mentions;
             return this;
         }
-        
+
         public Builder scheduledTime(LocalDateTime scheduledTime) {
             this.scheduledTime = scheduledTime;
             return this;
         }
-        
+
         public Builder published(boolean published) {
             this.published = published;
             return this;
         }
-        
+
         public Builder platformSpecificData(Map<String, Object> platformSpecificData) {
             this.platformSpecificData = platformSpecificData;
             return this;
         }
-        
+
         public Builder contentType(ContentType contentType) {
             this.contentType = contentType;
             return this;
         }
-        
+
         public Builder author(String author) {
             this.author = author;
             return this;
         }
-        
+
         public Builder authorId(String authorId) {
             this.authorId = authorId;
             return this;
         }
-        
+
         public SocialMediaContent build() {
             SocialMediaContent obj = new SocialMediaContent();
             obj.id = this.id;

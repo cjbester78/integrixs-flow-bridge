@@ -21,33 +21,33 @@ public class AdapterTypeDTO {
     private String version;
     private String description;
     private String icon;
-    
+
     // Direction support
     private boolean supportsInbound;
     private boolean supportsOutbound;
     private boolean supportsBidirectional;
-    
+
     // Configuration schemas
     private Map<String, Object> inboundConfigSchema;
     private Map<String, Object> outboundConfigSchema;
     private Map<String, Object> commonConfigSchema;
-    
+
     // Capabilities and metadata
     private Map<String, Object> capabilities;
     private String[] supportedProtocols;
     private String[] supportedFormats;
     private String[] authenticationMethods;
-    
+
     // Documentation and support
     private String documentationUrl;
     private String supportUrl;
     private String pricingTier;
-    
+
     // Status
     private String status;
     private boolean isCertified;
     private LocalDateTime certificationDate;
-    
+
     // Audit
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

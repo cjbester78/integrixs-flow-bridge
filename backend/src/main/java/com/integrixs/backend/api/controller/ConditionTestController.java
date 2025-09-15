@@ -21,31 +21,31 @@ public class ConditionTestController {
     private final ConditionEvaluationService conditionEvaluationService;
 
     @PostMapping("/test")
-    @Operation(summary = "Test a routing condition", 
+    @Operation(summary = "Test a routing condition",
               description = "Evaluate a routing condition against a test payload")
     public ResponseEntity<TestConditionResponse> testCondition(
             @Valid @RequestBody TestConditionRequest request) {
-        
+
         TestConditionResponse response = conditionEvaluationService.evaluateCondition(
             request.getCondition(),
             request.getConditionType(),
             request.getPayload()
-        );
-        
+       );
+
         return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/validate")
-    @Operation(summary = "Validate condition syntax", 
+    @Operation(summary = "Validate condition syntax",
               description = "Check if a condition has valid syntax")
     public ResponseEntity<TestConditionResponse> validateCondition(
             @Valid @RequestBody TestConditionRequest request) {
-        
+
         TestConditionResponse response = conditionEvaluationService.validateCondition(
             request.getCondition(),
             request.getConditionType()
-        );
-        
+       );
+
         return ResponseEntity.ok(response);
     }
 }

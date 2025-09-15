@@ -29,26 +29,26 @@ import java.util.UUID;
 @RequestMapping("/api/jobs")
 @Tag(name = "Background Jobs", description = "Background job management API")
 public class BackgroundJobController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(BackgroundJobController.class);
-    
+
     @Autowired
     private JobExecutionService jobExecutionService;
-    
+
     @Autowired
     private BackgroundJobRepository jobRepository;
-    
+
     /**
      * Get job by ID
      */
-    @GetMapping("/{jobId}")
+    @GetMapping("/ {jobId}")
     @Operation(summary = "Get job details", description = "Gets details of a specific background job")
     public ResponseEntity<?> getJob(@PathVariable UUID jobId) {
         return jobExecutionService.getJob(jobId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * List jobs with pagination
      */
@@ -59,23 +59,23 @@ public class BackgroundJobController {
             @RequestParam(required = false) JobStatus status,
             @RequestParam(required = false) String jobType,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        
-        if (status != null && jobType != null) {
-            return jobRepository.findAll((root, query, cb) -> 
+
+        if(status != null && jobType != null) {
+            return jobRepository.findAll((root, query, cb) ->
                 cb.and(
                     cb.equal(root.get("status"), status),
                     cb.equal(root.get("jobType"), jobType)
-                ), pageable);
-        } else if (status != null) {
+               ), pageable);
+        } else if(status != null) {
             return jobRepository.findByStatus(status, pageable);
-        } else if (jobType != null) {
-            return jobRepository.findAll((root, query, cb) -> 
+        } else if(jobType != null) {
+            return jobRepository.findAll((root, query, cb) ->
                 cb.equal(root.get("jobType"), jobType), pageable);
         } else {
             return jobRepository.findAll(pageable);
         }
     }
-    
+
     /**
      * Get job statistics
      */
@@ -85,49 +85,49 @@ public class BackgroundJobController {
     public ResponseEntity<Map<String, Object>> getStatistics() {
         return ResponseEntity.ok(jobExecutionService.getJobStatistics());
     }
-    
+
     /**
      * Cancel a job
      */
-    @PostMapping("/{jobId}/cancel")
+    @PostMapping("/ {jobId}/cancel")
     @Operation(summary = "Cancel job", description = "Cancels a pending or running job")
     public ResponseEntity<?> cancelJob(@PathVariable UUID jobId) {
         boolean cancelled = jobExecutionService.cancelJob(jobId);
-        if (cancelled) {
+        if(cancelled) {
             return ResponseEntity.ok(Map.of("message", "Job cancelled successfully"));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "Job cannot be cancelled"));
         }
     }
-    
+
     /**
      * Retry a failed job
      */
-    @PostMapping("/{jobId}/retry")
+    @PostMapping("/ {jobId}/retry")
     @Operation(summary = "Retry job", description = "Retries a failed job")
     public ResponseEntity<?> retryJob(@PathVariable UUID jobId) {
         return jobExecutionService.getJob(jobId)
             .map(job -> {
-                if (job.getStatus() != JobStatus.FAILED) {
+                if(job.getStatus() != JobStatus.FAILED) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("error", "Only failed jobs can be retried"));
                 }
-                
+
                 // Reset job status for retry
                 job.setStatus(JobStatus.PENDING);
                 job.setErrorMessage(null);
                 job.setStackTrace(null);
                 jobRepository.save(job);
-                
+
                 // Trigger processing
                 jobExecutionService.processNextJobs();
-                
+
                 return ResponseEntity.ok(Map.of("message", "Job scheduled for retry"));
             })
             .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Delete completed jobs
      */
@@ -136,7 +136,7 @@ public class BackgroundJobController {
     @RequiresPermission(ResourcePermission.ADMIN_SYSTEM)
     public ResponseEntity<?> cleanupJobs(
             @RequestParam(defaultValue = "30") int olderThanDays) {
-        
+
         jobExecutionService.cleanupOldJobs();
         return ResponseEntity.ok(Map.of("message", "Cleanup initiated"));
     }

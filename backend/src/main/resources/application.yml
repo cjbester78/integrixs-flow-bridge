@@ -228,6 +228,64 @@ integrix:
       enabled: true
       include-stack-trace: false
       mask-sensitive-data: true
+  
+  # Adapter configurations
+  adapters:
+    teams:
+      features:
+        enable-messaging: true
+        enable-channels: true
+        enable-teams: true
+        enable-meetings: true
+        enable-calls: true
+        enable-files: true
+        enable-tabs: true
+        enable-bots: true
+        enable-cards: true
+        enable-connectors: true
+        enable-webhooks: true
+        enable-proactive-messaging: true
+        enable-adaptive-cards: true
+        enable-message-extensions: true
+        enable-activity-feed: true
+        enable-shifts: true
+        enable-planner: true
+        enable-one-note: true
+        enable-share-point: true
+        enable-power-apps: true
+        enable-power-automate: true
+        enable-yammer: false
+        enable-stream: true
+        enable-forms: true
+        enable-whiteboard: true
+        enable-lists: true
+        enable-approvals: true
+        enable-bookings: true
+        enable-polls: true
+        enable-praise: true
+      limits:
+        max-message-length: 28000
+        max-card-size: 25
+        max-attachments-per-message: 10
+        max-tabs-per-channel: 30
+        max-private-channels: 30
+        max-channels-per-team: 200
+        max-members-per-team: 25000
+        max-teams-per-user: 250
+        max-meeting-duration: 24
+        max-meeting-participants: 1000
+        max-file-size-mb: 250
+        max-bot-messages-per-second: 8
+        max-bot-messages-per-minute: 60
+        max-bot-conversations-per-second: 15
+        max-card-actions: 6
+        max-suggested-actions: 3
+        max-message-extension-results: 25
+        rate-limit-per-second: 30
+        rate-limit-per-minute: 500
+        burst-limit: 100
+        max-batch-requests: 20
+        webhook-expiry-hours: 72
 
 # ✅ IP Whitelist configuration
 security:

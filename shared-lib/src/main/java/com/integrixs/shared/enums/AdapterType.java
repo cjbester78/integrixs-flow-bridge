@@ -1,7 +1,7 @@
 package com.integrixs.shared.enums;
 
 /**
- * Enum AdapterType - auto-generated documentation.
+ * Enum AdapterType - auto - generated documentation.
  */
 public enum AdapterType {
     FILE,

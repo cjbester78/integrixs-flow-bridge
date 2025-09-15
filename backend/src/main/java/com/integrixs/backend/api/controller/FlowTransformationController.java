@@ -17,13 +17,13 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/flows/{flowId}/transformations")
+@RequestMapping("/api/flows/ {flowId}/transformations")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class FlowTransformationController {
-    
+
     private final FlowTransformationApplicationService transformationService;
-    
+
     /**
      * Get all transformations for a flow
      * @param flowId The flow ID
@@ -36,24 +36,24 @@ public class FlowTransformationController {
         List<FlowTransformationDTO> transformations = transformationService.getByFlowId(flowId);
         return ResponseEntity.ok(transformations);
     }
-    
+
     /**
      * Get a specific transformation
      * @param flowId The flow ID
      * @param id The transformation ID
      * @return Transformation details
      */
-    @GetMapping("/{id}")
+    @GetMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<FlowTransformationDTO> getById(
-            @PathVariable String flowId, 
+            @PathVariable String flowId,
             @PathVariable String id) {
         log.debug("Getting transformation {} for flow {}", id, flowId);
         return transformationService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Create a new transformation
      * @param flowId The flow ID
@@ -63,20 +63,20 @@ public class FlowTransformationController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<FlowTransformationDTO> create(
-            @PathVariable String flowId, 
+            @PathVariable String flowId,
             @RequestBody @Valid FlowTransformationDTO transformation) {
         log.info("Creating transformation for flow: {}", flowId);
         transformation.setFlowId(flowId); // Ensure flow ID is set
-        
+
         try {
             FlowTransformationDTO created = transformationService.save(transformation);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             log.error("Invalid transformation data: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     /**
      * Update an existing transformation
      * @param flowId The flow ID
@@ -84,50 +84,50 @@ public class FlowTransformationController {
      * @param transformation The updated transformation data
      * @return Updated transformation
      */
-    @PutMapping("/{id}")
+    @PutMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<FlowTransformationDTO> update(
-            @PathVariable String flowId, 
-            @PathVariable String id, 
+            @PathVariable String flowId,
+            @PathVariable String id,
             @RequestBody @Valid FlowTransformationDTO transformation) {
         log.info("Updating transformation {} for flow {}", id, flowId);
         transformation.setId(id);
         transformation.setFlowId(flowId);
-        
+
         try {
             FlowTransformationDTO updated = transformationService.save(transformation);
             return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             log.error("Invalid transformation data: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     /**
      * Delete a transformation
      * @param flowId The flow ID
      * @param id The transformation ID
      * @return No content
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<Void> delete(
-            @PathVariable String flowId, 
+            @PathVariable String flowId,
             @PathVariable String id) {
         log.info("Deleting transformation {} from flow {}", id, flowId);
-        
+
         try {
             transformationService.delete(id);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             log.error("Transformation not found: {}", e.getMessage());
             return ResponseEntity.notFound().build();
-        } catch (IllegalStateException e) {
+        } catch(IllegalStateException e) {
             log.error("Cannot delete transformation: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
-    
+
     /**
      * Get count of transformations for a flow
      * @param flowId The flow ID
@@ -140,17 +140,17 @@ public class FlowTransformationController {
         long count = transformationService.countByFlowId(flowId);
         return ResponseEntity.ok(new CountResponse(count));
     }
-    
+
     /**
      * Response class for count endpoint
      */
     public static class CountResponse {
         private final long count;
-        
+
         public CountResponse(long count) {
             this.count = count;
         }
-        
+
         public long getCount() {
             return count;
         }

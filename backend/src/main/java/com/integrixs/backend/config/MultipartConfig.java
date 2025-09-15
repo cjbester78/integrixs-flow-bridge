@@ -14,7 +14,7 @@ import jakarta.servlet.MultipartConfigElement;
  */
 @Configuration
 public class MultipartConfig {
-    
+
     @Bean
     public MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
@@ -22,7 +22,7 @@ public class MultipartConfig {
         factory.setMaxRequestSize(DataSize.ofMegabytes(100));
         return factory.createMultipartConfig();
     }
-    
+
     @Bean
     public MultipartResolver multipartResolver() {
         return new CustomMultipartResolver();

@@ -17,7 +17,7 @@ import java.util.Map;
 public class AuthHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtUtil jwtUtil;
-    
+
     @Autowired
     public AuthHandshakeInterceptor(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -28,23 +28,23 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         try {
             log.debug("WebSocket handshake request: {}", request.getURI());
-            
-            if (jwtUtil == null) {
+
+            if(jwtUtil == null) {
                 log.error("JwtUtil is not initialized!");
                 response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
                 return false;
             }
-            
+
             // Extract token from query parameter or Authorization header
             String token = extractToken(request);
-            
-            if (token == null) {
+
+            if(token == null) {
                 log.warn("WebSocket authentication failed - no token provided");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return false;
             }
-            
-            if (jwtUtil.validateToken(token)) {
+
+            if(jwtUtil.validateToken(token)) {
                 String username = jwtUtil.extractUsername(token);
                 attributes.put("username", username);
                 log.info("WebSocket authenticated for user: {}", username);
@@ -54,7 +54,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return false;
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error during WebSocket handshake authentication", e);
             response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             return false;
@@ -70,22 +70,22 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
     private String extractToken(ServerHttpRequest request) {
         // Try to get token from Authorization header
         String authHeader = request.getHeaders().getFirst("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if(authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
         }
-        
-        // Try to get token from query parameter (for WebSocket connections)
+
+        // Try to get token from query parameter(for WebSocket connections)
         String query = request.getURI().getQuery();
-        if (query != null) {
+        if(query != null) {
             String[] params = query.split("&");
-            for (String param : params) {
-                String[] keyValue = param.split("=");
-                if (keyValue.length == 2 && "token".equals(keyValue[0])) {
+            for(String param : params) {
+                String[] keyValue = param.split(" = ");
+                if(keyValue.length == 2 && "token".equals(keyValue[0])) {
                     return keyValue[1];
                 }
             }
         }
-        
+
         return null;
     }
 }

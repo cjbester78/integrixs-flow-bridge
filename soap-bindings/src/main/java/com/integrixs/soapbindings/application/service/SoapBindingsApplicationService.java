@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class SoapBindingsApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(SoapBindingsApplicationService.class);
-    
+
     private final WsdlService wsdlService;
     private final SoapBindingService bindingService;
     private final SoapClientService clientService;
@@ -57,19 +57,19 @@ public class SoapBindingsApplicationService {
      */
     public WsdlDetailsDTO uploadWsdl(UploadWsdlRequestDTO request) {
         logger.info("Uploading WSDL: {}", request.getName());
-        
+
         // Parse WSDL
         WsdlDefinition wsdl = wsdlService.parseWsdl(request.getWsdlContent(), request.getLocation());
         wsdl.setName(request.getName());
-        
+
         // Validate WSDL
-        if (!wsdlService.validateWsdl(wsdl)) {
+        if(!wsdlService.validateWsdl(wsdl)) {
             throw new RuntimeException("Invalid WSDL content");
         }
-        
+
         // Save WSDL
         WsdlDefinition saved = wsdlService.saveWsdl(wsdl);
-        
+
         return convertToWsdlDetailsDTO(saved);
     }
 
@@ -80,14 +80,14 @@ public class SoapBindingsApplicationService {
      */
     public WsdlDetailsDTO importWsdlFromUrl(ImportWsdlRequestDTO request) {
         logger.info("Importing WSDL from URL: {}", request.getWsdlUrl());
-        
+
         // Load WSDL from URL
         WsdlDefinition wsdl = wsdlService.loadWsdlFromUrl(request.getWsdlUrl());
         wsdl.setName(request.getName());
-        
+
         // Save WSDL
         WsdlDefinition saved = wsdlService.saveWsdl(wsdl);
-        
+
         return convertToWsdlDetailsDTO(saved);
     }
 
@@ -99,27 +99,27 @@ public class SoapBindingsApplicationService {
      */
     public GeneratedBindingDTO generateBinding(String wsdlId, GenerateBindingRequestDTO request) {
         logger.info("Generating binding for WSDL: {}", wsdlId);
-        
+
         // Get WSDL
         WsdlDefinition wsdl = wsdlService.getWsdl(wsdlId);
-        if (wsdl == null) {
+        if(wsdl == null) {
             throw new RuntimeException("WSDL not found: " + wsdlId);
         }
-        
+
         // Generate binding
         GeneratedBinding generated = bindingService.generateBinding(wsdl, request.getPackageName());
-        
+
         // Save generated binding info
         generatedBindingRepository.save(generated);
-        
+
         // Compile if requested
-        if (request.isAutoCompile()) {
+        if(request.isAutoCompile()) {
             boolean compiled = bindingService.compileBinding(generated);
-            if (!compiled) {
+            if(!compiled) {
                 logger.warn("Failed to compile generated binding");
             }
         }
-        
+
         return convertToGeneratedBindingDTO(generated);
     }
 
@@ -130,7 +130,7 @@ public class SoapBindingsApplicationService {
      */
     public SoapBindingDTO createBinding(CreateBindingRequestDTO request) {
         logger.info("Creating SOAP binding: {}", request.getBindingName());
-        
+
         // Create domain model
         SoapBinding binding = SoapBinding.builder()
                 .bindingName(request.getBindingName())
@@ -145,10 +145,10 @@ public class SoapBindingsApplicationService {
                 .active(true)
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         // Create binding
         SoapBinding created = bindingService.createBinding(binding);
-        
+
         return convertToSoapBindingDTO(created);
     }
 
@@ -160,20 +160,20 @@ public class SoapBindingsApplicationService {
      */
     public SoapBindingDTO updateBinding(String bindingId, UpdateBindingRequestDTO request) {
         logger.info("Updating SOAP binding: {}", bindingId);
-        
+
         // Get existing binding
         SoapBinding existing = bindingService.getBinding(bindingId);
-        if (existing == null) {
+        if(existing == null) {
             throw new RuntimeException("Binding not found: " + bindingId);
         }
-        
+
         // Update fields
         updateBindingFields(existing, request);
         existing.setUpdatedAt(LocalDateTime.now());
-        
+
         // Update binding
         SoapBinding updated = bindingService.updateBinding(existing);
-        
+
         return convertToSoapBindingDTO(updated);
     }
 
@@ -196,7 +196,7 @@ public class SoapBindingsApplicationService {
     @Transactional(readOnly = true)
     public SoapBindingDTO getBinding(String bindingId) {
         SoapBinding binding = bindingService.getBinding(bindingId);
-        if (binding == null) {
+        if(binding == null) {
             throw new RuntimeException("Binding not found: " + bindingId);
         }
         return convertToSoapBindingDTO(binding);
@@ -209,9 +209,9 @@ public class SoapBindingsApplicationService {
      */
     public BindingTestResultDTO testBinding(String bindingId) {
         logger.info("Testing SOAP binding connectivity: {}", bindingId);
-        
+
         boolean isReachable = bindingService.testBindingConnectivity(bindingId);
-        
+
         return BindingTestResultDTO.builder()
                 .bindingId(bindingId)
                 .reachable(isReachable)
@@ -228,44 +228,44 @@ public class SoapBindingsApplicationService {
      */
     public SoapOperationResponseDTO invokeOperation(String bindingId, SoapOperationRequestDTO request) {
         logger.info("Invoking SOAP operation {} on binding {}", request.getOperationName(), bindingId);
-        
+
         // Get binding
         SoapBinding binding = bindingService.getBinding(bindingId);
-        if (binding == null) {
+        if(binding == null) {
             throw new RuntimeException("Binding not found: " + bindingId);
         }
-        
+
         // Get generated binding for service class
         GeneratedBinding generatedBinding = generatedBindingRepository
                 .findLatestByWsdlId(binding.getWsdlId())
                 .orElseThrow(() -> new RuntimeException("No generated binding found for WSDL"));
-        
+
         // Load service class
         ClassLoader classLoader = bindingService.loadBindingClasses(generatedBinding);
         Class<?> serviceClass = loadServiceClass(generatedBinding, classLoader);
-        
+
         // Create client
         Object client = clientService.createClient(binding, serviceClass);
-        
+
         // Configure headers if provided
-        if (request.getSoapHeaders() != null && !request.getSoapHeaders().isEmpty()) {
+        if(request.getSoapHeaders() != null && !request.getSoapHeaders().isEmpty()) {
             clientService.setSoapHeaders(client, request.getSoapHeaders());
         }
-        
+
         try {
             // Invoke operation
             Object response = clientService.invokeOperation(client, request.getOperationName(), request.getPayload());
-            
+
             return SoapOperationResponseDTO.builder()
                     .operationId(UUID.randomUUID().toString())
                     .success(true)
                     .response(response)
                     .timestamp(LocalDateTime.now())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error invoking SOAP operation: {}", e.getMessage(), e);
-            
+
             return SoapOperationResponseDTO.builder()
                     .operationId(UUID.randomUUID().toString())
                     .success(false)
@@ -294,7 +294,7 @@ public class SoapBindingsApplicationService {
     @Transactional(readOnly = true)
     public WsdlDetailsDTO getWsdl(String wsdlId) {
         WsdlDefinition wsdl = wsdlService.getWsdl(wsdlId);
-        if (wsdl == null) {
+        if(wsdl == null) {
             throw new RuntimeException("WSDL not found: " + wsdlId);
         }
         return convertToWsdlDetailsDTO(wsdl);
@@ -306,13 +306,13 @@ public class SoapBindingsApplicationService {
      */
     public void deleteWsdl(String wsdlId) {
         logger.info("Deleting WSDL: {}", wsdlId);
-        
+
         // Check if any active bindings exist
         List<SoapBinding> bindings = bindingRepository.findByWsdlId(wsdlId);
-        if (!bindings.isEmpty()) {
+        if(!bindings.isEmpty()) {
             throw new RuntimeException("Cannot delete WSDL with active bindings");
         }
-        
+
         // Delete WSDL
         wsdlService.deleteWsdl(wsdlId);
     }
@@ -357,7 +357,7 @@ public class SoapBindingsApplicationService {
                 .packageName(generated.getPackageName())
                 .serviceName(generated.getServiceName())
                 .status(generated.getStatus() != null ? generated.getStatus().name() : null)
-                .generatedClasses(generated.getGeneratedClassesContent() != null ? 
+                .generatedClasses(generated.getGeneratedClassesContent() != null ?
                         generated.getGeneratedClassesContent().keySet() : new HashSet<>())
                 .generatedAt(generated.getGeneratedAt())
                 .successful(generated.isSuccessful())
@@ -366,13 +366,13 @@ public class SoapBindingsApplicationService {
     }
 
     private SoapBinding.SecurityConfiguration convertSecurityConfig(SecurityConfigurationDTO dto) {
-        if (dto == null) return null;
-        
+        if(dto == null) return null;
+
         SoapBinding.SecurityConfiguration.SecurityConfigurationBuilder builder = SoapBinding.SecurityConfiguration.builder()
                 .securityType(SoapBinding.SecurityConfiguration.SecurityType.valueOf(dto.getSecurityType()))
                 .credentials(dto.getCredentials());
-        
-        if (dto.getWsSecurityConfig() != null) {
+
+        if(dto.getWsSecurityConfig() != null) {
             builder.wsSecurityConfig(SoapBinding.WsSecurityConfig.builder()
                     .enableTimestamp(dto.getWsSecurityConfig().isEnableTimestamp())
                     .enableSignature(dto.getWsSecurityConfig().isEnableSignature())
@@ -382,34 +382,34 @@ public class SoapBindingsApplicationService {
                     .timestampTTL(dto.getWsSecurityConfig().getTimestampTTL())
                     .build());
         }
-        
+
         return builder.build();
     }
 
     private void updateBindingFields(SoapBinding binding, UpdateBindingRequestDTO dto) {
-        if (dto.getEndpointUrl() != null) {
+        if(dto.getEndpointUrl() != null) {
             binding.setEndpointUrl(dto.getEndpointUrl());
         }
-        if (dto.getSoapHeaders() != null) {
+        if(dto.getSoapHeaders() != null) {
             binding.setSoapHeaders(dto.getSoapHeaders());
         }
-        if (dto.getSecurity() != null) {
+        if(dto.getSecurity() != null) {
             binding.setSecurity(convertSecurityConfig(dto.getSecurity()));
         }
-        if (dto.getActive() != null) {
+        if(dto.getActive() != null) {
             binding.setActive(dto.getActive());
         }
     }
 
     private Class<?> loadServiceClass(GeneratedBinding generatedBinding, ClassLoader classLoader) {
         GeneratedBinding.ClassInfo serviceInfo = generatedBinding.getServiceInterface();
-        if (serviceInfo == null) {
+        if(serviceInfo == null) {
             throw new RuntimeException("No service interface found in generated binding");
         }
-        
+
         try {
             return classLoader.loadClass(serviceInfo.getFullQualifiedName());
-        } catch (ClassNotFoundException e) {
+        } catch(ClassNotFoundException e) {
             throw new RuntimeException("Failed to load service class: " + serviceInfo.getFullQualifiedName(), e);
         }
     }

@@ -10,7 +10,7 @@ public class SocialMediaAnalytics {
     public SocialMediaAnalytics() {
     }
 
-    
+
 
     private String postId;
     private String platform;
@@ -19,7 +19,7 @@ public class SocialMediaAnalytics {
     private ReachMetrics reach;
     private AudienceMetrics audience;
     private Map<String, Object> customMetrics;
-    
+
                     public static class EngagementMetrics {
         private long likes;
         private long comments;
@@ -29,16 +29,16 @@ public class SocialMediaAnalytics {
         private double engagementRate;
         private Map<String, Long> reactions; // For platforms with multiple reaction types
     }
-    
+
                     public static class ReachMetrics {
         private long impressions;
-        private long reach;
+        private long reachCount;
         private long uniqueViews;
         private long videoViews;
         private long videoCompletionRate;
         private Map<String, Long> reachBySource;
     }
-    
+
                     public static class AudienceMetrics {
         private Map<String, Long> ageGroups;
         private Map<String, Long> genders;
@@ -137,7 +137,7 @@ public class SocialMediaAnalytics {
     public void setImpressions(long impressions) {
         this.impressions = impressions;
     }
-    public long getReach() {
+    public long getReachCount() {
         return reach;
     }
     public long getUniqueViews() {
@@ -198,7 +198,7 @@ public class SocialMediaAnalytics {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String postId;
         private String platform;
@@ -215,7 +215,7 @@ public class SocialMediaAnalytics {
         private double engagementRate;
         private Map<String, Long> reactions;
         private long impressions;
-        private long reach;
+        private long reachCount;
         private long uniqueViews;
         private long videoViews;
         private long videoCompletionRate;
@@ -225,128 +225,128 @@ public class SocialMediaAnalytics {
         private Map<String, Long> locations;
         private Map<String, Long> devices;
         private Map<String, Long> interests;
-        
+
         public Builder postId(String postId) {
             this.postId = postId;
             return this;
         }
-        
+
         public Builder platform(String platform) {
             this.platform = platform;
             return this;
         }
-        
+
         public Builder fetchedAt(LocalDateTime fetchedAt) {
             this.fetchedAt = fetchedAt;
             return this;
         }
-        
+
         public Builder engagement(EngagementMetrics engagement) {
             this.engagement = engagement;
             return this;
         }
-        
+
         public Builder reach(ReachMetrics reach) {
             this.reach = reach;
             return this;
         }
-        
+
         public Builder audience(AudienceMetrics audience) {
             this.audience = audience;
             return this;
         }
-        
+
         public Builder customMetrics(Map<String, Object> customMetrics) {
             this.customMetrics = customMetrics;
             return this;
         }
-        
+
         public Builder likes(long likes) {
             this.likes = likes;
             return this;
         }
-        
+
         public Builder comments(long comments) {
             this.comments = comments;
             return this;
         }
-        
+
         public Builder shares(long shares) {
             this.shares = shares;
             return this;
         }
-        
+
         public Builder saves(long saves) {
             this.saves = saves;
             return this;
         }
-        
+
         public Builder clicks(long clicks) {
             this.clicks = clicks;
             return this;
         }
-        
+
         public Builder engagementRate(double engagementRate) {
             this.engagementRate = engagementRate;
             return this;
         }
-        
+
         public Builder reactions(Map<String, Long> reactions) {
             this.reactions = reactions;
             return this;
         }
-        
+
         public Builder impressions(long impressions) {
             this.impressions = impressions;
             return this;
         }
-        
-        
+
+
         public Builder uniqueViews(long uniqueViews) {
             this.uniqueViews = uniqueViews;
             return this;
         }
-        
+
         public Builder videoViews(long videoViews) {
             this.videoViews = videoViews;
             return this;
         }
-        
+
         public Builder videoCompletionRate(long videoCompletionRate) {
             this.videoCompletionRate = videoCompletionRate;
             return this;
         }
-        
+
         public Builder reachBySource(Map<String, Long> reachBySource) {
             this.reachBySource = reachBySource;
             return this;
         }
-        
+
         public Builder ageGroups(Map<String, Long> ageGroups) {
             this.ageGroups = ageGroups;
             return this;
         }
-        
+
         public Builder genders(Map<String, Long> genders) {
             this.genders = genders;
             return this;
         }
-        
+
         public Builder locations(Map<String, Long> locations) {
             this.locations = locations;
             return this;
         }
-        
+
         public Builder devices(Map<String, Long> devices) {
             this.devices = devices;
             return this;
         }
-        
+
         public Builder interests(Map<String, Long> interests) {
             this.interests = interests;
             return this;
         }
-        
+
         public SocialMediaAnalytics build() {
             SocialMediaAnalytics obj = new SocialMediaAnalytics();
             obj.postId = this.postId;

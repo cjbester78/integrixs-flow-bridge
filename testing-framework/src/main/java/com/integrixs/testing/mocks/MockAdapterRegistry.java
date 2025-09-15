@@ -66,8 +66,8 @@ public class MockAdapterRegistry {
         // Database Mock
         MockDatabaseAdapter dbMock = new MockDatabaseAdapter();
         dbMock.addQueryResult("SELECT * FROM users", new Object[][]{
-            {"1", "John Doe", "john@example.com"},
-            {"2", "Jane Smith", "jane@example.com"}
+           {"1", "John Doe", "john@example.com"},
+           {"2", "Jane Smith", "jane@example.com"}
         });
         registerMockAdapter("database", dbMock);
         

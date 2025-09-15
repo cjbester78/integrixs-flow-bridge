@@ -21,16 +21,16 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class DeploymentOrchestrator {
-    
-    @Value("${server.host:localhost}")
+
+    @Value("$ {server.host:localhost}")
     private String serverHost;
-    
-    @Value("${server.port:8080}")
+
+    @Value("$ {server.port:8080}")
     private String serverPort;
-    
-    @Value("${server.protocol:http}")
+
+    @Value("$ {server.protocol:http}")
     private String serverProtocol;
-    
+
     /**
      * Prepare a flow for deployment
      */
@@ -40,10 +40,10 @@ public class DeploymentOrchestrator {
         flow.setDeployedBy(deployedBy);
         flow.setDeploymentEndpoint(endpoint);
         flow.setActive(true);
-        
+
         log.info("Prepared flow {} for deployment with endpoint: {}", flow.getId(), endpoint);
     }
-    
+
     /**
      * Revert flow deployment on failure
      */
@@ -54,46 +54,46 @@ public class DeploymentOrchestrator {
         flow.setDeploymentMetadata(null);
         flow.setDeployedAt(null);
         flow.setDeployedBy(null);
-        
+
         log.info("Reverted deployment for flow {}", flow.getId());
     }
-    
+
     /**
      * Generate endpoint URL for flow
      */
     public String generateEndpoint(IntegrationFlow flow, CommunicationAdapter inboundAdapter, String configuredEndpoint) {
         String baseUrl = String.format("%s://%s:%s", serverProtocol, serverHost, serverPort);
-        
+
         // Use configured endpoint if provided
-        if (configuredEndpoint != null && !configuredEndpoint.isEmpty()) {
+        if(configuredEndpoint != null && !configuredEndpoint.isEmpty()) {
             log.info("Using adapter configured endpoint: {}", configuredEndpoint);
-            
+
             // Ensure it starts with /
-            if (!configuredEndpoint.startsWith("/")) {
+            if(!configuredEndpoint.startsWith("/")) {
                 configuredEndpoint = "/" + configuredEndpoint;
             }
-            
+
             // Handle SOAP endpoints
-            if (inboundAdapter.getType() == AdapterType.SOAP) {
-                if (!configuredEndpoint.startsWith("/soap/")) {
+            if(inboundAdapter.getType() == AdapterType.SOAP) {
+                if(!configuredEndpoint.startsWith("/soap/")) {
                     return baseUrl + "/soap" + configuredEndpoint;
                 }
             }
-            
+
             return baseUrl + configuredEndpoint;
         }
-        
+
         // Generate default endpoint based on adapter type
-        String flowPath = flow.getName().toLowerCase().replaceAll("[^a-zA-Z0-9-]", "-");
-        
-        return switch (inboundAdapter.getType()) {
+        String flowPath = flow.getName().toLowerCase().replaceAll("[^a - zA - Z0-9 - ]", "-");
+
+        return switch(inboundAdapter.getType()) {
             case HTTP, REST -> String.format("%s/api/integration/%s", baseUrl, flowPath);
             case SOAP -> String.format("%s/soap/%s", baseUrl, flowPath);
             case FILE, FTP, SFTP -> String.format("file:///opt/integrixflowbridge/flows/%s", flowPath);
             default -> String.format("%s/integration/%s", baseUrl, flowPath);
         };
     }
-    
+
     /**
      * Create deployment metadata
      */
@@ -104,9 +104,9 @@ public class DeploymentOrchestrator {
         metadata.put("adapterType", inboundAdapter.getType().toString());
         metadata.put("adapterMode", inboundAdapter.getMode().toString());
         metadata.put("endpoint", endpoint);
-        
-        // Add adapter-specific metadata
-        switch (inboundAdapter.getType()) {
+
+        // Add adapter - specific metadata
+        switch(inboundAdapter.getType()) {
             case SOAP -> {
                 metadata.put("wsdlUrl", endpoint + "?wsdl");
                 metadata.put("soapVersion", "1.1/1.2");
@@ -124,10 +124,10 @@ public class DeploymentOrchestrator {
                 metadata.put("filePattern", "*.*");
             }
         }
-        
+
         return metadata;
     }
-    
+
     /**
      * Prepare flow for undeployment
      */
@@ -136,7 +136,7 @@ public class DeploymentOrchestrator {
         flow.setActive(false);
         flow.setDeploymentEndpoint(null);
         flow.setDeploymentMetadata(null);
-        
+
         log.info("Prepared flow {} for undeployment", flow.getId());
     }
 }

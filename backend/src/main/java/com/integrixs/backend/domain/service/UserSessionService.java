@@ -18,9 +18,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class UserSessionService {
-    
+
     private final UserSessionRepository sessionRepository;
-    
+
     /**
      * Create a new user session
      */
@@ -31,7 +31,7 @@ public class UserSessionService {
                     session.setInvalidated(true);
                     sessionRepository.save(session);
                 });
-        
+
         // Create new session
         UserSession session = new UserSession();
         session.setUser(user);
@@ -41,30 +41,30 @@ public class UserSessionService {
         session.setLastUsedAt(LocalDateTime.now());
         session.setIpAddress(ipAddress);
         session.setUserAgent(userAgent);
-        
+
         return sessionRepository.save(session);
     }
-    
+
     /**
      * Validate and update session last used time
      */
     public UserSession validateAndRefreshSession(String refreshToken) {
         UserSession session = sessionRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new SessionException("Invalid refresh token"));
-        
-        if (session.isInvalidated()) {
+
+        if(session.isInvalidated()) {
             throw new SessionException("Session has been invalidated");
         }
-        
-        if (session.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+        if(session.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new SessionException("Session has expired");
         }
-        
+
         // Update last used time
         session.setLastUsedAt(LocalDateTime.now());
         return sessionRepository.save(session);
     }
-    
+
     /**
      * Invalidate a session
      */
@@ -75,7 +75,7 @@ public class UserSessionService {
                     sessionRepository.save(session);
                 });
     }
-    
+
     /**
      * Clean up expired sessions
      */

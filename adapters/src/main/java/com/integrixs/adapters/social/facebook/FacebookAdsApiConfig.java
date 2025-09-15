@@ -6,12 +6,12 @@ import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.facebook.ads")
 public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String adAccountId;
     private String businessId;
     private FacebookAdsFeatures features = new FacebookAdsFeatures();
     private FacebookAdsLimits limits = new FacebookAdsLimits();
-    
+
         public static class FacebookAdsFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAudienceTargeting = true;
@@ -24,7 +24,7 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
         private boolean enablePixelTracking = true;
         private boolean enableLeadForms = true;
     }
-    
+
         public static class FacebookAdsLimits {
         private int maxCampaignsPerAccount = 5000;
         private int maxAdSetsPerCampaign = 5000;
@@ -34,7 +34,7 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
         private long maxDailyBudgetCents = 100000000; // $1,000,000
         private int maxBatchSize = 50;
     }
-    
+
     // Campaign objectives
     public enum CampaignObjective {
         BRAND_AWARENESS,
@@ -49,7 +49,7 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
         CATALOG_SALES,
         STORE_TRAFFIC
     }
-    
+
     // Billing events
     public enum BillingEvent {
         APP_INSTALLS,
@@ -62,7 +62,7 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
         VIDEO_VIEWS,
         THRUPLAY
     }
-    
+
     // Optimization goals
     public enum OptimizationGoal {
         APP_INSTALLS,

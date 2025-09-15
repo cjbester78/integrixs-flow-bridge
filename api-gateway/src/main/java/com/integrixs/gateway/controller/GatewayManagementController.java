@@ -59,17 +59,17 @@ public class GatewayManagementController {
                 request.getUri(),
                 request.getPredicates() != null ? request.getPredicates() : new HashMap<>(),
                 request.getFilters() != null ? request.getFilters() : new ArrayList<>()
-            );
+           );
             
             return Mono.just(ResponseEntity.ok(Map.of(
                 "message", "Route added successfully",
                 "id", request.getId()
-            )));
+           )));
         } catch (Exception e) {
             return Mono.just(ResponseEntity.badRequest().body(Map.of(
                 "error", "Failed to add route",
                 "message", e.getMessage()
-            )));
+           )));
         }
     }
     
@@ -84,7 +84,7 @@ public class GatewayManagementController {
         return Mono.just(ResponseEntity.ok(Map.of(
             "message", "Route updated successfully",
             "id", id
-        )));
+       )));
     }
     
     /**
@@ -96,7 +96,7 @@ public class GatewayManagementController {
         return Mono.just(ResponseEntity.ok(Map.of(
             "message", "Route deleted successfully",
             "id", id
-        )));
+       )));
     }
     
     /**
@@ -112,17 +112,17 @@ public class GatewayManagementController {
                 registration.getUrl(),
                 registration.isRequiresAuth(),
                 registration.getRateLimit()
-            );
+           );
             
             return Mono.just(ResponseEntity.ok(Map.of(
                 "message", "Microservice registered successfully",
                 "name", registration.getName()
-            )));
+           )));
         } catch (Exception e) {
             return Mono.just(ResponseEntity.badRequest().body(Map.of(
                 "error", "Failed to register microservice",
                 "message", e.getMessage()
-            )));
+           )));
         }
     }
     
@@ -135,7 +135,7 @@ public class GatewayManagementController {
         return Mono.just(ResponseEntity.ok(Map.of(
             "message", "Routes refreshed successfully",
             "timestamp", new Date().toString()
-        )));
+       )));
     }
     
     // Request DTOs

@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InboundMessageResponseDTO {
-    
+
     private String messageId;
     private boolean success;
     private String status;

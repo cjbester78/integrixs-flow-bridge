@@ -32,14 +32,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RoutingApplicationService {
-    
+
     private final RoutingManagementService routingManagementService;
     private final RoutingEvaluator routingEvaluator;
     private final FlowContextService contextService;
     private final FlowRouteRepository routeRepository;
     private final RouteConditionRepository conditionRepository;
     private final IntegrationFlowRepository flowRepository;
-    
+
     /**
      * Evaluate routing decision for a flow step
      * @param flowId The flow ID
@@ -54,44 +54,44 @@ public class RoutingApplicationService {
             List<FlowRoute> routes = routeRepository.findByFlowIdAndSourceStep(
                 UUID.fromString(flowId),
                 stepId
-            );
-            
-            if (routes.isEmpty()) {
+           );
+
+            if(routes.isEmpty()) {
                 return convertToDTO(routingManagementService.createRoutingDecision(null));
             }
-            
+
             // Sort routes by priority
             routes = routingManagementService.sortRoutesByPriority(routes);
-            
+
             // Evaluate each route's conditions
-            for (FlowRoute route : routes) {
+            for(FlowRoute route : routes) {
                 List<RouteCondition> conditions = conditionRepository.findByFlowRoute(route);
-                if (routingEvaluator.evaluateRouteConditions(route, conditions, context)) {
+                if(routingEvaluator.evaluateRouteConditions(route, conditions, context)) {
                     log.info("Route matched: {} for step {}", route.getRouteName(), stepId);
                     return convertToDTO(routingManagementService.createRoutingDecision(route));
                 }
             }
-            
+
             // Find default route
             FlowRoute defaultRoute = routes.stream()
                 .filter(routingManagementService::isDefaultRoute)
                 .findFirst()
                 .orElse(null);
-            
-            if (defaultRoute != null) {
+
+            if(defaultRoute != null) {
                 log.info("Using default route: {} for step {}", defaultRoute.getRouteName(), stepId);
                 return convertToDTO(routingManagementService.createRoutingDecision(defaultRoute));
             }
-            
+
             log.warn("No matching route found for step {}", stepId);
             return convertToDTO(routingManagementService.createNoMatchDecision());
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error evaluating routing for step {}", stepId, e);
             return convertToDTO(routingManagementService.createErrorDecision(e.getMessage()));
         }
     }
-    
+
     /**
      * Create a choice router configuration
      * @param routerId Router ID
@@ -102,30 +102,30 @@ public class RoutingApplicationService {
         RouterConfiguration config = new RouterConfiguration();
         config.setRouterId(routerId);
         config.setRouterType(RouterConfiguration.RouterType.CHOICE);
-        
+
         List<RouteChoice> routeChoices = choices.stream()
             .map(choice -> new RouteChoice(
                 (String) choice.get("condition"),
                 (String) choice.get("targetStepId"),
                 Boolean.TRUE.equals(choice.get("isDefault"))
-            ))
+           ))
             .collect(Collectors.toList());
-        
+
         config.setChoices(routeChoices);
         routingManagementService.validateRouterConfig(config);
-        
+
         return convertToDTO(config);
     }
-    
+
     /**
-     * Create a content-based router configuration
+     * Create a content - based router configuration
      * @param routerId Router ID
      * @param extractionPath Path to extract value
      * @param sourceType Source type for extraction
      * @param routes Content routes map
      * @return Router configuration
      */
-    public RouterConfigDTO createContentRouter(String routerId, String extractionPath, 
+    public RouterConfigDTO createContentRouter(String routerId, String extractionPath,
                                              String sourceType, Map<String, String> routes) {
         RouterConfiguration config = new RouterConfiguration();
         config.setRouterId(routerId);
@@ -133,12 +133,12 @@ public class RoutingApplicationService {
         config.setExtractionPath(extractionPath);
         config.setSourceType(RouterConfiguration.SourceType.valueOf(sourceType));
         config.setContentRoutes(routes);
-        
+
         routingManagementService.validateRouterConfig(config);
-        
+
         return convertToDTO(config);
     }
-    
+
     /**
      * Execute routing and return target step IDs
      * @param config Router configuration
@@ -149,45 +149,45 @@ public class RoutingApplicationService {
         return CompletableFuture.supplyAsync(() -> {
             RouterConfiguration config = convertFromDTO(configDto);
             routingManagementService.validateRouterConfig(config);
-            
+
             List<String> targetSteps = new ArrayList<>();
-            
-            switch (config.getRouterType()) {
+
+            switch(config.getRouterType()) {
                 case CHOICE:
                     targetSteps.addAll(routingEvaluator.executeChoiceRouting(config, context));
                     break;
-                
+
                 case CONTENT_BASED:
                     targetSteps.addAll(routingEvaluator.executeContentBasedRouting(config, context));
                     break;
-                
+
                 case RECIPIENT_LIST:
                     targetSteps.addAll(routingEvaluator.executeRecipientListRouting(config, context));
                     break;
-                
+
                 case ROUND_ROBIN:
                     String roundRobinTarget = routingEvaluator.executeRoundRobinRouting(config);
-                    if (roundRobinTarget != null) {
+                    if(roundRobinTarget != null) {
                         targetSteps.add(roundRobinTarget);
                     }
                     break;
-                
+
                 case WEIGHTED:
                     String weightedTarget = routingEvaluator.executeWeightedRouting(config);
-                    if (weightedTarget != null) {
+                    if(weightedTarget != null) {
                         targetSteps.add(weightedTarget);
                     }
                     break;
-                
+
                 default:
                     log.warn("Unknown router type: {}", config.getRouterType());
             }
-            
+
             log.info("Router {} selected targets: {}", config.getRouterId(), targetSteps);
             return targetSteps;
         });
     }
-    
+
     /**
      * Get all routes for a flow
      * @param flowId Flow ID
@@ -198,13 +198,13 @@ public class RoutingApplicationService {
         UUID flowUuid = UUID.fromString(flowId);
         IntegrationFlow flow = flowRepository.findById(flowUuid)
             .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-        
+
         List<FlowRoute> routes = routeRepository.findByFlow(flow);
         return routes.stream()
             .map(this::convertRouteToDTO)
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Create a new route
      * @param flowId Flow ID
@@ -216,7 +216,7 @@ public class RoutingApplicationService {
         UUID flowUuid = UUID.fromString(flowId);
         IntegrationFlow flow = flowRepository.findById(flowUuid)
             .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-        
+
         FlowRoute route = new FlowRoute();
         route.setFlow(flow);
         route.setRouteName(routeDto.getRouteName());
@@ -225,13 +225,13 @@ public class RoutingApplicationService {
         route.setPriority(routeDto.getPriority());
         route.setConditionOperator(routeDto.getConditionOperator());
         route.setActive(routeDto.isEnabled());
-        
+
         routingManagementService.validateRoute(route);
         route = routeRepository.save(route);
-        
+
         return convertRouteToDTO(route);
     }
-    
+
     /**
      * Update an existing route
      * @param routeId Route ID
@@ -242,48 +242,48 @@ public class RoutingApplicationService {
     public RouteDTO updateRoute(String routeId, RouteDTO routeDto) {
         FlowRoute route = routeRepository.findById(UUID.fromString(routeId))
             .orElseThrow(() -> new IllegalArgumentException("Route not found: " + routeId));
-        
+
         route.setRouteName(routeDto.getRouteName());
         route.setSourceStep(routeDto.getSourceStep());
         route.setTargetStep(routeDto.getTargetStep());
         route.setPriority(routeDto.getPriority());
         route.setConditionOperator(routeDto.getConditionOperator());
         route.setActive(routeDto.isEnabled());
-        
+
         routingManagementService.validateRoute(route);
         route = routeRepository.save(route);
-        
+
         return convertRouteToDTO(route);
     }
-    
+
     /**
      * Delete a route
      * @param routeId Route ID
      */
     @Transactional
     public void deleteRoute(String routeId) {
-        if (!routeRepository.existsById(UUID.fromString(routeId))) {
+        if(!routeRepository.existsById(UUID.fromString(routeId))) {
             throw new IllegalArgumentException("Route not found: " + routeId);
         }
         routeRepository.deleteById(UUID.fromString(routeId));
     }
-    
+
     // Conversion methods
-    
+
     private RoutingDecisionDTO convertToDTO(RoutingDecision decision) {
         RoutingDecisionDTO dto = new RoutingDecisionDTO();
         dto.setSuccess(decision.isSuccess());
         dto.setErrorMessage(decision.getErrorMessage());
-        
-        if (decision.hasRoute()) {
+
+        if(decision.hasRoute()) {
             dto.setRouteId(decision.getRoute().getId().toString());
             dto.setRouteName(decision.getRoute().getRouteName());
             dto.setTargetStep(decision.getRoute().getTargetStep());
         }
-        
+
         return dto;
     }
-    
+
     private RouteDTO convertRouteToDTO(FlowRoute route) {
         RouteDTO dto = new RouteDTO();
         dto.setId(route.getId().toString());
@@ -296,13 +296,13 @@ public class RoutingApplicationService {
         dto.setEnabled(route.isActive());
         return dto;
     }
-    
+
     private RouterConfigDTO convertToDTO(RouterConfiguration config) {
         RouterConfigDTO dto = new RouterConfigDTO();
         dto.setRouterId(config.getRouterId());
         dto.setRouterType(config.getRouterType().name());
-        
-        if (config.getChoices() != null) {
+
+        if(config.getChoices() != null) {
             dto.setChoices(config.getChoices().stream()
                 .map(choice -> {
                     Map<String, Object> map = new HashMap<>();
@@ -313,7 +313,7 @@ public class RoutingApplicationService {
                 })
                 .collect(Collectors.toList()));
         }
-        
+
         dto.setContentRoutes(config.getContentRoutes());
         dto.setExtractionPath(config.getExtractionPath());
         dto.setSourceType(config.getSourceType() != null ? config.getSourceType().name() : null);
@@ -321,35 +321,35 @@ public class RoutingApplicationService {
         dto.setRecipientListVariable(config.getRecipientListVariable());
         dto.setRoundRobinTargets(config.getRoundRobinTargets());
         dto.setWeightedTargets(config.getWeightedTargets());
-        
+
         return dto;
     }
-    
+
     private RouterConfiguration convertFromDTO(RouterConfigDTO dto) {
         RouterConfiguration config = new RouterConfiguration();
         config.setRouterId(dto.getRouterId());
         config.setRouterType(RouterConfiguration.RouterType.valueOf(dto.getRouterType()));
-        
-        if (dto.getChoices() != null) {
+
+        if(dto.getChoices() != null) {
             config.setChoices(dto.getChoices().stream()
                 .map(choice -> new RouteChoice(
                     (String) choice.get("condition"),
                     (String) choice.get("targetStepId"),
                     Boolean.TRUE.equals(choice.get("isDefault"))
-                ))
+               ))
                 .collect(Collectors.toList()));
         }
-        
+
         config.setContentRoutes(dto.getContentRoutes());
         config.setExtractionPath(dto.getExtractionPath());
-        if (dto.getSourceType() != null) {
+        if(dto.getSourceType() != null) {
             config.setSourceType(RouterConfiguration.SourceType.valueOf(dto.getSourceType()));
         }
         config.setRecipients(dto.getRecipients());
         config.setRecipientListVariable(dto.getRecipientListVariable());
         config.setRoundRobinTargets(dto.getRoundRobinTargets());
         config.setWeightedTargets(dto.getWeightedTargets());
-        
+
         return config;
     }
 }

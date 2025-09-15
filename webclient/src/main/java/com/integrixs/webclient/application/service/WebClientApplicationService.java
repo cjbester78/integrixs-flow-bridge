@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class WebClientApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(WebClientApplicationService.class);
-    
+
     private final InboundMessageService inboundMessageService;
     private final MessageValidationService validationService;
     private final MessageRoutingService routingService;
@@ -49,7 +49,7 @@ public class WebClientApplicationService {
      */
     public InboundMessageResponseDTO receiveMessage(InboundMessageRequestDTO request) {
         logger.info("Receiving message from source: {} with adapter: {}", request.getSource(), request.getAdapterId());
-        
+
         // Convert DTO to domain model
         InboundMessage message = InboundMessage.builder()
                 .messageType(InboundMessage.MessageType.valueOf(request.getMessageType()))
@@ -61,18 +61,18 @@ public class WebClientApplicationService {
                 .metadata(request.getMetadata())
                 .correlationId(request.getCorrelationId())
                 .build();
-        
+
         // Store message
         String messageId = inboundMessageService.storeMessage(message);
         message.setMessageId(messageId);
-        
+
         try {
             // Validate message
             ValidationResult validationResult = validationService.validate(message);
-            if (!validationResult.isValid()) {
+            if(!validationResult.isValid()) {
                 inboundMessageService.updateMessageStatus(messageId, InboundMessage.MessageStatus.REJECTED);
                 logger.warn("Message validation failed: {}", validationResult.getErrorMessage());
-                
+
                 return InboundMessageResponseDTO.builder()
                         .messageId(messageId)
                         .success(false)
@@ -82,20 +82,20 @@ public class WebClientApplicationService {
                         .receivedAt(message.getReceivedAt())
                         .build();
             }
-            
+
             // Update status to validated
             inboundMessageService.updateMessageStatus(messageId, InboundMessage.MessageStatus.VALIDATED);
-            
+
             // Route message
             String flowId = routingService.routeMessage(message);
-            if (flowId == null) {
+            if(flowId == null) {
                 throw new RuntimeException("No flow found for message");
             }
             message.setFlowId(flowId);
-            
+
             // Process message
             ProcessingResult result = inboundMessageService.processMessage(message);
-            
+
             return InboundMessageResponseDTO.builder()
                     .messageId(messageId)
                     .success(result.isSuccess())
@@ -108,11 +108,11 @@ public class WebClientApplicationService {
                     .processedAt(result.getProcessedAt())
                     .processingTimeMillis(result.getProcessingTimeMillis())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error processing message {}: {}", messageId, e.getMessage(), e);
             inboundMessageService.updateMessageStatus(messageId, InboundMessage.MessageStatus.FAILED);
-            
+
             return InboundMessageResponseDTO.builder()
                     .messageId(messageId)
                     .success(false)
@@ -136,9 +136,9 @@ public class WebClientApplicationService {
                 .contentType(request.getContentType())
                 .headers(request.getHeaders())
                 .build();
-        
+
         ValidationResult result = validationService.validate(message);
-        
+
         return ValidationResponseDTO.builder()
                 .valid(result.isValid())
                 .errors(convertValidationErrors(result))
@@ -155,7 +155,7 @@ public class WebClientApplicationService {
     public MessageDetailsDTO getMessage(String messageId) {
         InboundMessage message = repository.findById(messageId)
                 .orElseThrow(() -> new RuntimeException("Message not found: " + messageId));
-        
+
         return convertToDetailsDTO(message);
     }
 
@@ -167,22 +167,22 @@ public class WebClientApplicationService {
     @Transactional(readOnly = true)
     public List<MessageDetailsDTO> searchMessages(MessageSearchCriteriaDTO criteria) {
         List<InboundMessage> messages;
-        
-        if (criteria.getStatus() != null) {
+
+        if(criteria.getStatus() != null) {
             messages = repository.findByStatus(InboundMessage.MessageStatus.valueOf(criteria.getStatus()));
-        } else if (criteria.getFlowId() != null) {
+        } else if(criteria.getFlowId() != null) {
             messages = repository.findByFlowId(criteria.getFlowId());
-        } else if (criteria.getCorrelationId() != null) {
+        } else if(criteria.getCorrelationId() != null) {
             messages = repository.findByCorrelationId(criteria.getCorrelationId());
-        } else if (criteria.getStartDate() != null && criteria.getEndDate() != null) {
+        } else if(criteria.getStartDate() != null && criteria.getEndDate() != null) {
             messages = repository.findByReceivedAtBetween(criteria.getStartDate(), criteria.getEndDate());
         } else {
             messages = repository.findByReceivedAtBetween(
                     LocalDateTime.now().minusDays(1),
                     LocalDateTime.now()
-            );
+           );
         }
-        
+
         return messages.stream()
                 .map(this::convertToDetailsDTO)
                 .collect(Collectors.toList());

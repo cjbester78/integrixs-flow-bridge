@@ -59,7 +59,7 @@ public class MetricsConfig {
                         "route", routeId,
                         "status", String.valueOf(status.value()),
                         "outcome", status.is2xxSuccessful() ? "SUCCESS" : "ERROR"
-                    );
+                   );
                     
                     // Request counter
                     meterRegistry.counter("gateway.requests", tags).increment();

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class InboundMessageServiceImpl implements InboundMessageService {
 
     private static final Logger logger = LoggerFactory.getLogger(InboundMessageServiceImpl.class);
-    
+
     private final InboundMessageRepository repository;
     private final FlowExecutionClient flowExecutionClient;
     private final MessageTransformer messageTransformer;
@@ -35,24 +35,24 @@ public class InboundMessageServiceImpl implements InboundMessageService {
     public ProcessingResult processMessage(InboundMessage message) {
         logger.info("Processing message {} for flow {}", message.getMessageId(), message.getFlowId());
         long startTime = System.currentTimeMillis();
-        
+
         try {
             // Update status to processing
             updateMessageStatus(message.getMessageId(), InboundMessage.MessageStatus.PROCESSING);
-            
+
             // Execute flow with message
             String executionId = flowExecutionClient.executeFlow(message.getFlowId(), message);
-            
+
             // Update status to processed
             updateMessageStatus(message.getMessageId(), InboundMessage.MessageStatus.PROCESSED);
-            
+
             return ProcessingResult.success(message.getMessageId(), message.getFlowId(), executionId)
                     .withProcessingTime(startTime);
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Failed to process message {}: {}", message.getMessageId(), e.getMessage(), e);
             updateMessageStatus(message.getMessageId(), InboundMessage.MessageStatus.FAILED);
-            
+
             return ProcessingResult.failureWithCode(message.getMessageId(), "PROCESSING_ERROR", e.getMessage())
                     .withProcessingTime(startTime);
         }
@@ -61,29 +61,29 @@ public class InboundMessageServiceImpl implements InboundMessageService {
     @Override
     public ValidationResult validateMessage(InboundMessage message) {
         logger.debug("Validating message {}", message.getMessageId());
-        
+
         ValidationResult result = ValidationResult.builder()
                 .valid(true)
                 .build();
-        
+
         // Check required fields
-        if (message.getPayload() == null) {
+        if(message.getPayload() == null) {
             result.addError("payload", "Payload is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
-        
-        if (message.getMessageType() == null) {
+
+        if(message.getMessageType() == null) {
             result.addError("messageType", "Message type is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
-        
-        if (message.getSource() == null || message.getSource().isEmpty()) {
+
+        if(message.getSource() == null || message.getSource().isEmpty()) {
             result.addError("source", "Source is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
-        
+
         // Check content type
-        if (message.getContentType() == null && message.getPayload() != null) {
+        if(message.getContentType() == null && message.getPayload() != null) {
             result.addWarning("Content type not specified, defaulting to application/json");
         }
-        
+
         return result;
     }
 

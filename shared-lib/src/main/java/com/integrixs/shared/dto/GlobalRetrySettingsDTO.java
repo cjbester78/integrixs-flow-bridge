@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GlobalRetrySettingsDTO {
-    
+
     private boolean enabled;
-    
+
     private int maxRetries;
-    
+
     private int retryInterval;
-    
+
     private String retryIntervalUnit; // "seconds", "minutes", "hours"
-    
+
 }

@@ -8,13 +8,13 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.youtube.analytics")
 public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientId;
     private String clientSecret;
     private String channelId;
     private YouTubeAnalyticsFeatures features = new YouTubeAnalyticsFeatures();
     private YouTubeAnalyticsLimits limits = new YouTubeAnalyticsLimits();
-    
+
         public static class YouTubeAnalyticsFeatures {
         private boolean enableChannelReports = true;
         private boolean enableVideoReports = true;
@@ -37,7 +37,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         private boolean enableDemographicsReports = true;
         private boolean enablePlaybackLocationReports = true;
     }
-    
+
         public static class YouTubeAnalyticsLimits {
         private int maxReportDimensions = 3;
         private int maxReportMetrics = 10;
@@ -48,72 +48,72 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         private int realtimeDelayMinutes = 5;
         private int dataAvailabilityDelayHours = 48;
     }
-    
+
     // Report dimensions
     public enum Dimension {
         // Time dimensions
         DAY,
         MONTH,
-        
+
         // Video dimensions
         VIDEO,
         PLAYLIST,
         CHANNEL,
         GROUP,
-        
+
         // Audience dimensions
         AGE_GROUP,
         GENDER,
-        
+
         // Geography dimensions
         COUNTRY,
         PROVINCE,
         CITY,
-        
+
         // Playback dimensions
         LIVE_OR_ON_DEMAND,
         SUBSCRIBED_STATUS,
         YOUTUBE_PRODUCT,
-        
+
         // Device dimensions
         DEVICE_TYPE,
         OPERATING_SYSTEM,
-        
+
         // Traffic dimensions
         TRAFFIC_SOURCE_TYPE,
         TRAFFIC_SOURCE_DETAIL,
-        
+
         // Content dimensions
         CLAIMED_STATUS,
         UPLOADER_TYPE,
-        
+
         // Sharing dimensions
         SHARING_SERVICE,
-        
+
         // Search dimensions
         SEARCH_TERM,
-        
+
         // Ad dimensions
         AD_TYPE,
-        
+
         // Playback location
         PLAYBACK_LOCATION_TYPE,
         PLAYBACK_LOCATION_DETAIL
     }
-    
+
     // Report metrics
     public enum Metric {
         // View metrics
         VIEWS,
         RED_VIEWS, // YouTube Premium views
         UNIQUES,
-        
+
         // Watch time metrics
         ESTIMATED_MINUTES_WATCHED,
         ESTIMATED_RED_MINUTES_WATCHED,
         AVERAGE_VIEW_DURATION,
         AVERAGE_VIEW_PERCENTAGE,
-        
+
         // Engagement metrics
         COMMENTS,
         LIKES,
@@ -121,7 +121,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         SHARES,
         SUBSCRIBERS_GAINED,
         SUBSCRIBERS_LOST,
-        
+
         // Revenue metrics
         ESTIMATED_REVENUE,
         ESTIMATED_AD_REVENUE,
@@ -129,11 +129,11 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         GROSS_REVENUE,
         CPM,
         PLAYBACK_BASED_CPM,
-        
+
         // Ad metrics
         AD_IMPRESSIONS,
         MONETIZED_PLAYBACKS,
-        
+
         // Annotation metrics
         ANNOTATION_IMPRESSIONS,
         ANNOTATION_CLICKABLE_IMPRESSIONS,
@@ -142,7 +142,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         ANNOTATION_CLOSABLE_IMPRESSIONS,
         ANNOTATION_CLOSES,
         ANNOTATION_CLOSE_RATE,
-        
+
         // Card metrics
         CARD_IMPRESSIONS,
         CARD_CLICKS,
@@ -150,24 +150,24 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         CARD_TEASER_IMPRESSIONS,
         CARD_TEASER_CLICKS,
         CARD_TEASER_CLICK_RATE,
-        
+
         // End screen metrics
         END_SCREEN_ELEMENT_IMPRESSIONS,
         END_SCREEN_ELEMENT_CLICKS,
         END_SCREEN_ELEMENT_CLICK_RATE,
-        
+
         // Playlist metrics
         PLAYLIST_STARTS,
         VIEWS_PER_PLAYLIST_START,
         AVERAGE_TIME_IN_PLAYLIST
     }
-    
+
     // Sort options
     public enum SortOrder {
         ASCENDING,
         DESCENDING
     }
-    
+
     // Filter operators
     public enum FilterOperator {
         EQUALS("=="),
@@ -176,20 +176,20 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         LESS_THAN_OR_EQUAL("<="),
         GREATER_THAN(">"),
         GREATER_THAN_OR_EQUAL(">="),
-        IN("=@"),
+        IN(" = @"),
         NOT_IN("!@"),
-        CONTAINS("=~"),
+        CONTAINS(" = ~"),
         NOT_CONTAINS("!~");
-        
+
         private final String symbol;
-        
+
         FilterOperator(String symbol) {
             this.symbol = symbol;
         }
-        
+
         public String getSymbol() { return symbol; }
     }
-    
+
     // Report types
     public enum ReportType {
         CHANNEL_BASIC,
@@ -217,7 +217,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         REVENUE_REPORTS,
         ENGAGEMENT_REPORTS
     }
-    
+
     // Time periods for quick reports
     public enum TimePeriod {
         LAST_7_DAYS,
@@ -231,7 +231,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         LIFETIME,
         CUSTOM
     }
-    
+
     // Currency for revenue reports
     public enum Currency {
         USD,
@@ -247,7 +247,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         CNY,
         KRW
     }
-    
+
     // Age groups
     public enum AgeGroup {
         AGE_13_17("13-17"),
@@ -256,24 +256,24 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         AGE_35_44("35-44"),
         AGE_45_54("45-54"),
         AGE_55_64("55-64"),
-        AGE_65_PLUS("65+");
-        
+        AGE_65_PLUS("65 + ");
+
         private final String range;
-        
+
         AgeGroup(String range) {
             this.range = range;
         }
-        
+
         public String getRange() { return range; }
     }
-    
+
     // Gender values
     public enum Gender {
         FEMALE,
         MALE,
         USER_SPECIFIED_OTHER
     }
-    
+
     // Device types
     public enum DeviceType {
         DESKTOP,
@@ -283,7 +283,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         GAME_CONSOLE,
         UNKNOWN
     }
-    
+
     // Operating systems
     public enum OperatingSystem {
         ANDROID,
@@ -296,7 +296,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         XBOX,
         OTHER
     }
-    
+
     // Traffic source types
     public enum TrafficSourceType {
         ADVERTISING,
@@ -322,17 +322,17 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         YT_SHORTS_FEED,
         YT_TOPIC
     }
-    
+
     // Playback location types
     public enum PlaybackLocationType {
-        WATCH,      // YouTube watch page
-        EMBEDDED,   // Embedded player
-        CHANNEL,    // Channel page
-        MOBILE,     // Mobile apps
+        WATCH,     // YouTube watch page
+        EMBEDDED, // Embedded player
+        CHANNEL,   // Channel page
+        MOBILE,    // Mobile apps
         YOUTUBE_TV, // YouTube TV app
         UNKNOWN
     }
-    
+
     // Sharing services
     public enum SharingService {
         FACEBOOK,
@@ -346,7 +346,7 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         OTHER,
         UNKNOWN
     }
-    
+
     // Ad types
     public enum AdType {
         AUCTION_DISPLAY,
@@ -358,14 +358,14 @@ public class YouTubeAnalyticsApiConfig extends SocialMediaAdapterConfig {
         RESERVED_TRUEVIEW_INSTREAM,
         RESERVED_TRUEVIEW_INDISPLAY
     }
-    
+
     // YouTube products
     public enum YouTubeProduct {
-        CORE,         // Main YouTube
-        GAMING,       // YouTube Gaming
-        KIDS,         // YouTube Kids
-        MUSIC,        // YouTube Music
-        TV,           // YouTube TV
+        CORE,        // Main YouTube
+        GAMING,      // YouTube Gaming
+        KIDS,        // YouTube Kids
+        MUSIC,       // YouTube Music
+        TV,          // YouTube TV
         UNKNOWN
     }
     // Getters and Setters

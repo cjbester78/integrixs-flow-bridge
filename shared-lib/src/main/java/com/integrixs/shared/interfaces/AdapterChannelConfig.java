@@ -5,7 +5,7 @@ package com.integrixs.shared.interfaces;
  */
 
 /**
- * Interface AdapterChannelConfig - auto-generated documentation.
+ * Interface AdapterChannelConfig - auto - generated documentation.
  */
 public interface AdapterChannelConfig {
     String getType();

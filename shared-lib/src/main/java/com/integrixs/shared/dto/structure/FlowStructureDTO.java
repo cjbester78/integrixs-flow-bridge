@@ -34,12 +34,12 @@ public class FlowStructureDTO {
     private UserDTO updatedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     public enum ProcessingMode {
         SYNC,
         ASYNC
     }
-    
+
     public enum Direction {
         SOURCE,
         TARGET

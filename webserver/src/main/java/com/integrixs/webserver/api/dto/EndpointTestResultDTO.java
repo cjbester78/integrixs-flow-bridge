@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EndpointTestResultDTO {
-    
+
     private String endpointId;
     private boolean reachable;
     private LocalDateTime timestamp;

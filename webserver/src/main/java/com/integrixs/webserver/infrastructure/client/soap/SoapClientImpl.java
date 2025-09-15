@@ -23,7 +23,7 @@ import java.io.StringWriter;
 public class SoapClientImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(SoapClientImpl.class);
-    
+
     private final WebServiceTemplate webServiceTemplate;
 
     public SoapClientImpl() {
@@ -38,50 +38,50 @@ public class SoapClientImpl {
     public OutboundResponse executeSoapCall(OutboundRequest request) {
         logger.info("Executing SOAP call to: {}", request.getTargetUrl());
         long startTime = System.currentTimeMillis();
-        
+
         try {
             // Get SOAP action from headers
             String soapAction = request.getHeaders().get("SOAPAction");
-            
+
             // Convert payload to XML Source
             String xmlPayload = (String) request.getPayload();
             Source requestPayload = new StreamSource(new StringReader(xmlPayload));
-            
+
             // Prepare result writer
             StringWriter responseWriter = new StringWriter();
             StreamResult result = new StreamResult(responseWriter);
-            
+
             // Execute SOAP call
             boolean success = webServiceTemplate.sendSourceAndReceiveToResult(
                 request.getTargetUrl(),
                 requestPayload,
                 soapAction != null ? new SoapActionCallback(soapAction) : null,
                 result
-            );
-            
-            if (success) {
+           );
+
+            if(success) {
                 return OutboundResponse.success(
                         request.getRequestId(),
                         200,
                         responseWriter.toString()
-                    )
+                   )
                     .withResponseTime(startTime);
             } else {
                 return OutboundResponse.failure(
                         request.getRequestId(),
                         500,
                         "SOAP call failed"
-                    )
+                   )
                     .withResponseTime(startTime);
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error executing SOAP call to {}: {}", request.getTargetUrl(), e.getMessage(), e);
             return OutboundResponse.failure(
                     request.getRequestId(),
                     500,
                     "SOAP call error: " + e.getMessage()
-                )
+               )
                 .withResponseTime(startTime);
         }
     }
@@ -94,19 +94,19 @@ public class SoapClientImpl {
      * @param portQName Port QName
      * @return SOAP service proxy
      */
-    public <T> T createSoapClient(Class<T> serviceClass, String serviceUrl, 
+    public <T> T createSoapClient(Class<T> serviceClass, String serviceUrl,
                                   QName serviceQName, QName portQName) {
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setServiceClass(serviceClass);
         factory.setAddress(serviceUrl);
-        
-        if (serviceQName != null) {
+
+        if(serviceQName != null) {
             factory.setServiceName(serviceQName);
         }
-        if (portQName != null) {
+        if(portQName != null) {
             factory.setEndpointName(portQName);
         }
-        
-        return (T) factory.create();
+
+        return(T) factory.create();
     }
 }

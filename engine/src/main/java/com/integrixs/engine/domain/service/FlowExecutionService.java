@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
  * Domain service interface for flow execution
  */
 public interface FlowExecutionService {
-    
+
     /**
      * Execute a flow with the given message
      * @param flow The integration flow
@@ -21,16 +21,16 @@ public interface FlowExecutionService {
      * @return Execution result
      */
     FlowExecutionResult executeFlow(IntegrationFlow flow, Object message, FlowExecutionContext context);
-    
+
     /**
      * Execute a flow asynchronously
-     * @param flow The integration flow  
+     * @param flow The integration flow
      * @param message The input message
      * @param context The execution context
      * @return Future with execution result
      */
     CompletableFuture<FlowExecutionResult> executeFlowAsync(IntegrationFlow flow, Object message, FlowExecutionContext context);
-    
+
     /**
      * Process message through source adapter
      * @param message The input message
@@ -39,7 +39,7 @@ public interface FlowExecutionService {
      * @return Processed message
      */
     Object processSourceAdapter(Object message, String inboundAdapterId, FlowExecutionContext context);
-    
+
     /**
      * Apply field mappings to message
      * @param message The message to transform
@@ -48,7 +48,7 @@ public interface FlowExecutionService {
      * @return Transformed message
      */
     Object applyFieldMappings(Object message, List<FieldMapping> mappings, FlowExecutionContext context);
-    
+
     /**
      * Send message through target adapter
      * @param message The message to send
@@ -56,14 +56,14 @@ public interface FlowExecutionService {
      * @param context The execution context
      */
     void sendToTargetAdapter(Object message, String outboundAdapterId, FlowExecutionContext context);
-    
+
     /**
      * Validate flow configuration
      * @param flow The integration flow
      * @throws IllegalArgumentException if flow is invalid
      */
     void validateFlow(IntegrationFlow flow);
-    
+
     /**
      * Check if flow is ready for execution
      * @param flowId The flow ID

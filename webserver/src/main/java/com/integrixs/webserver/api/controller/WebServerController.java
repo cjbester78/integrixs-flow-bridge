@@ -20,7 +20,7 @@ import java.util.List;
 public class WebServerController {
 
     private static final Logger logger = LoggerFactory.getLogger(WebServerController.class);
-    
+
     private final WebServerApplicationService applicationService;
 
     public WebServerController(WebServerApplicationService applicationService) {
@@ -36,16 +36,16 @@ public class WebServerController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<OutboundResponseDTO> executeRequest(@Valid @RequestBody OutboundRequestDTO request) {
         logger.info("Executing outbound request to: {}", request.getTargetUrl());
-        
+
         try {
             OutboundResponseDTO response = applicationService.executeRequest(request);
-            
-            if (response.isSuccess()) {
+
+            if(response.isSuccess()) {
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(response.getStatusCode()).body(response);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error executing request: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -57,22 +57,22 @@ public class WebServerController {
      * @param request Request details
      * @return Response from external service
      */
-    @PostMapping("/endpoints/{endpointId}/execute")
+    @PostMapping("/endpoints/ {endpointId}/execute")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<OutboundResponseDTO> executeWithEndpoint(
             @PathVariable String endpointId,
             @Valid @RequestBody EndpointRequestDTO request) {
         logger.info("Executing request with endpoint: {}", endpointId);
-        
+
         try {
             OutboundResponseDTO response = applicationService.executeRequestWithEndpoint(endpointId, request);
-            
-            if (response.isSuccess()) {
+
+            if(response.isSuccess()) {
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(response.getStatusCode()).body(response);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error executing request with endpoint {}: {}", endpointId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -87,11 +87,11 @@ public class WebServerController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<ServiceEndpointDTO> registerEndpoint(@Valid @RequestBody RegisterEndpointDTO request) {
         logger.info("Registering new endpoint: {}", request.getName());
-        
+
         try {
             ServiceEndpointDTO endpoint = applicationService.registerEndpoint(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(endpoint);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error registering endpoint: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -103,17 +103,17 @@ public class WebServerController {
      * @param request Update request
      * @return Updated endpoint
      */
-    @PutMapping("/endpoints/{endpointId}")
+    @PutMapping("/endpoints/ {endpointId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<ServiceEndpointDTO> updateEndpoint(
             @PathVariable String endpointId,
             @RequestBody UpdateEndpointDTO request) {
         logger.info("Updating endpoint: {}", endpointId);
-        
+
         try {
             ServiceEndpointDTO endpoint = applicationService.updateEndpoint(endpointId, request);
             return ResponseEntity.ok(endpoint);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error updating endpoint {}: {}", endpointId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -127,11 +127,11 @@ public class WebServerController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<List<ServiceEndpointDTO>> getAllEndpoints() {
         logger.info("Getting all endpoints");
-        
+
         try {
             List<ServiceEndpointDTO> endpoints = applicationService.getAllEndpoints();
             return ResponseEntity.ok(endpoints);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting endpoints: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -142,15 +142,15 @@ public class WebServerController {
      * @param endpointId Endpoint ID
      * @return Endpoint details
      */
-    @GetMapping("/endpoints/{endpointId}")
+    @GetMapping("/endpoints/ {endpointId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<ServiceEndpointDTO> getEndpoint(@PathVariable String endpointId) {
         logger.info("Getting endpoint: {}", endpointId);
-        
+
         try {
             ServiceEndpointDTO endpoint = applicationService.getEndpoint(endpointId);
             return ResponseEntity.ok(endpoint);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting endpoint {}: {}", endpointId, e.getMessage());
             return ResponseEntity.notFound().build();
         }
@@ -161,15 +161,15 @@ public class WebServerController {
      * @param endpointId Endpoint ID
      * @return Test result
      */
-    @PostMapping("/endpoints/{endpointId}/test")
+    @PostMapping("/endpoints/ {endpointId}/test")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<EndpointTestResultDTO> testEndpoint(@PathVariable String endpointId) {
         logger.info("Testing endpoint connectivity: {}", endpointId);
-        
+
         try {
             EndpointTestResultDTO result = applicationService.testEndpoint(endpointId);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error testing endpoint {}: {}", endpointId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -184,11 +184,11 @@ public class WebServerController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<List<RequestHistoryDTO>> getRequestHistory(@RequestBody RequestHistoryCriteriaDTO criteria) {
         logger.info("Searching request history with criteria: {}", criteria);
-        
+
         try {
             List<RequestHistoryDTO> history = applicationService.getRequestHistory(criteria);
             return ResponseEntity.ok(history);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting request history: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

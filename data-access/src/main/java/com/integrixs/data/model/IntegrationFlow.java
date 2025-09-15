@@ -14,15 +14,15 @@ import java.util.UUID;
 
 /**
  * Entity representing an integration flow.
- * 
+ *
  * <p>An integration flow defines how data moves from a source adapter
  * to a target adapter, including all transformations and mappings.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
 @Entity
-@Table(name = "integration_flows", 
+@Table(name = "integration_flows",
     uniqueConstraints = {
         @UniqueConstraint(name = "uk_flow_name", columnNames = "name")
     },
@@ -43,7 +43,7 @@ import java.util.UUID;
 public class IntegrationFlow {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -66,31 +66,31 @@ public class IntegrationFlow {
     private String description;
 
     /**
-     * Source adapter ID (sender - receives data FROM external systems)
+     * Source adapter ID(sender - receives data FROM external systems)
      */
     @Column(name = "inbound_adapter_id", nullable = false)
     @NotNull(message = "Source adapter is required")
     private UUID inboundAdapterId;
 
     /**
-     * Target adapter ID (receiver - sends data TO external systems)
+     * Target adapter ID(receiver - sends data TO external systems)
      */
     @Column(name = "outbound_adapter_id", nullable = false)
     @NotNull(message = "Target adapter is required")
     private UUID outboundAdapterId;
 
     /**
-     * Source flow structure ID (for structured data flows)
+     * Source flow structure ID(for structured data flows)
      */
     @Column(name = "source_flow_structure_id")
     private UUID sourceFlowStructureId;
 
     /**
-     * Target flow structure ID (for structured data flows)
+     * Target flow structure ID(for structured data flows)
      */
     @Column(name = "target_flow_structure_id")
     private UUID targetFlowStructureId;
-    
+
 
     /**
      * Current flow status
@@ -125,7 +125,7 @@ public class IntegrationFlow {
     @Column(name = "skip_xml_conversion")
     @Builder.Default
     private boolean skipXmlConversion = false;
-    
+
     /**
      * Flow type - either DIRECT_MAPPING or ORCHESTRATION
      */
@@ -154,7 +154,7 @@ public class IntegrationFlow {
     private String deploymentEndpoint;
 
     /**
-     * Deployment metadata in JSON format (stored as TEXT)
+     * Deployment metadata in JSON format(stored as TEXT)
      */
     @Column(name = "deployment_metadata", columnDefinition = "TEXT")
     private String deploymentMetadata;
@@ -217,9 +217,9 @@ public class IntegrationFlow {
     @OneToMany(mappedBy = "flow", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<FlowTransformation> transformations = new ArrayList<>();
-    
+
     /**
-     * Orchestration targets for this flow (when flow type is ORCHESTRATION)
+     * Orchestration targets for this flow(when flow type is ORCHESTRATION)
      */
     @OneToMany(mappedBy = "flow", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("executionOrder ASC")
@@ -247,10 +247,10 @@ public class IntegrationFlow {
      */
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
+        if(createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-        if (updatedAt == null) {
+        if(updatedAt == null) {
             updatedAt = LocalDateTime.now();
         }
     }
@@ -265,12 +265,12 @@ public class IntegrationFlow {
 
     /**
      * Increments execution statistics
-     * 
+     *
      * @param success whether the execution was successful
      */
     public void recordExecution(boolean success) {
         this.executionCount++;
-        if (success) {
+        if(success) {
             this.successCount++;
         } else {
             this.errorCount++;
@@ -280,11 +280,11 @@ public class IntegrationFlow {
 
     /**
      * Adds a transformation to this flow
-     * 
+     *
      * @param transformation the transformation to add
      */
     public void addTransformation(FlowTransformation transformation) {
-        if (transformations == null) {
+        if(transformations == null) {
             transformations = new ArrayList<>();
         }
         transformations.add(transformation);
@@ -293,11 +293,11 @@ public class IntegrationFlow {
 
     /**
      * Removes a transformation from this flow
-     * 
+     *
      * @param transformation the transformation to remove
      */
     public void removeTransformation(FlowTransformation transformation) {
-        if (transformations != null) {
+        if(transformations != null) {
             transformations.remove(transformation);
             transformation.setFlow(null);
         }

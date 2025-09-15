@@ -16,13 +16,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class UserManagementService {
-    
+
     private final PasswordEncoder passwordEncoder;
-    
+
     /**
      * Creates a new user
      */
-    public User createUser(String username, String email, String firstName, 
+    public User createUser(String username, String email, String firstName,
                           String lastName, String password, String role) {
         User user = new User();
         user.setUsername(username);
@@ -32,36 +32,36 @@ public class UserManagementService {
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setRole(role);
         user.setStatus("active");
-        user.setPermissions("{}");
+        user.setPermissions(" {}");
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
-        
+
         return user;
     }
-    
+
     /**
      * Updates user information
      */
-    public void updateUserInfo(User user, String email, String firstName, 
+    public void updateUserInfo(User user, String email, String firstName,
                               String lastName, String role, String status) {
-        if (email != null) {
+        if(email != null) {
             user.setEmail(email);
         }
-        if (firstName != null) {
+        if(firstName != null) {
             user.setFirstName(firstName);
         }
-        if (lastName != null) {
+        if(lastName != null) {
             user.setLastName(lastName);
         }
-        if (role != null) {
+        if(role != null) {
             user.setRole(role);
         }
-        if (status != null) {
+        if(status != null) {
             user.setStatus(status);
         }
         user.setUpdatedAt(LocalDateTime.now());
     }
-    
+
     /**
      * Changes user password
      */
@@ -69,14 +69,14 @@ public class UserManagementService {
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setUpdatedAt(LocalDateTime.now());
     }
-    
+
     /**
      * Validates password against stored hash
      */
     public boolean validatePassword(User user, String password) {
         return passwordEncoder.matches(password, user.getPasswordHash());
     }
-    
+
     /**
      * Activates a user
      */
@@ -84,7 +84,7 @@ public class UserManagementService {
         user.setStatus("active");
         user.setUpdatedAt(LocalDateTime.now());
     }
-    
+
     /**
      * Deactivates a user
      */
@@ -92,19 +92,19 @@ public class UserManagementService {
         user.setStatus("inactive");
         user.setUpdatedAt(LocalDateTime.now());
     }
-    
+
     /**
      * Updates last login time
      */
     public void updateLastLogin(User user) {
         user.setLastLoginAt(LocalDateTime.now());
     }
-    
+
     /**
      * Validates if user can be deleted
      */
     public void validateDeletion(User user) {
-        if ("system".equals(user.getUsername())) {
+        if("system".equals(user.getUsername())) {
             throw new IllegalStateException("Cannot delete system user");
         }
     }

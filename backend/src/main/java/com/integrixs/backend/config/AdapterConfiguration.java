@@ -27,7 +27,7 @@ public class AdapterConfiguration {
     public HttpInboundAdapterConfig httpInboundAdapterConfig() {
         HttpInboundAdapterConfig config = new HttpInboundAdapterConfig();
         // Set default values for development
-        config.setEndpointUrl("/api/http-adapter/receive");
+        config.setEndpointUrl("/api/http - adapter/receive");
         config.setConnectionTimeout(30);
         config.setReadTimeout(60);
         config.setValidateIncomingData(true);

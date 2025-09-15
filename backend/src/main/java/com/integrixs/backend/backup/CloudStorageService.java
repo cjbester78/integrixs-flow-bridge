@@ -13,7 +13,7 @@ public interface CloudStorageService {
      * @throws Exception if upload fails
      */
     void uploadFile(String localPath) throws Exception;
-    
+
     /**
      * Download a file from cloud storage
      * @param remotePath Path in cloud storage
@@ -21,7 +21,7 @@ public interface CloudStorageService {
      * @throws Exception if download fails
      */
     void downloadFile(String remotePath, String localPath) throws Exception;
-    
+
     /**
      * List files in cloud storage with given prefix
      * @param prefix Path prefix to filter files
@@ -29,14 +29,14 @@ public interface CloudStorageService {
      * @throws Exception if listing fails
      */
     List<String> listFiles(String prefix) throws Exception;
-    
+
     /**
      * Delete a file from cloud storage
      * @param remotePath Path in cloud storage
      * @throws Exception if deletion fails
      */
     void deleteFile(String remotePath) throws Exception;
-    
+
     /**
      * Check if a file exists in cloud storage
      * @param remotePath Path in cloud storage
@@ -44,7 +44,7 @@ public interface CloudStorageService {
      * @throws Exception if check fails
      */
     boolean fileExists(String remotePath) throws Exception;
-    
+
     /**
      * Get file metadata
      * @param remotePath Path in cloud storage
@@ -52,7 +52,7 @@ public interface CloudStorageService {
      * @throws Exception if metadata retrieval fails
      */
     FileMetadata getFileMetadata(String remotePath) throws Exception;
-    
+
     /**
      * File metadata class
      */
@@ -62,8 +62,8 @@ public interface CloudStorageService {
         private final java.time.Instant lastModified;
         private final String contentType;
         private final java.util.Map<String, String> customMetadata;
-        
-        public FileMetadata(String path, long size, java.time.Instant lastModified, 
+
+        public FileMetadata(String path, long size, java.time.Instant lastModified,
                           String contentType, java.util.Map<String, String> customMetadata) {
             this.path = path;
             this.size = size;
@@ -71,7 +71,7 @@ public interface CloudStorageService {
             this.contentType = contentType;
             this.customMetadata = customMetadata;
         }
-        
+
         // Getters
         public String getPath() { return path; }
         public long getSize() { return size; }

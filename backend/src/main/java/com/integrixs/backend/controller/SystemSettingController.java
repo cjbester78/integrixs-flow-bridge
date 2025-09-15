@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/system-settings")
+@RequestMapping("/api/system - settings")
 @PreAuthorize("hasRole('ADMINISTRATOR')")
 public class SystemSettingController {
 
@@ -36,7 +36,7 @@ public class SystemSettingController {
     /**
      * Get settings by category
      */
-    @GetMapping("/category/{category}")
+    @GetMapping("/category/ {category}")
     public ResponseEntity<List<SystemSettingDTO>> getSettingsByCategory(@PathVariable String category) {
         logger.debug("REST request to get system settings for category: {}", category);
         List<SystemSettingDTO> settings = systemSettingService.getSettingsByCategory(category);
@@ -56,7 +56,7 @@ public class SystemSettingController {
     /**
      * Get a specific setting by key
      */
-    @GetMapping("/key/{settingKey}")
+    @GetMapping("/key/ {settingKey}")
     public ResponseEntity<SystemSettingDTO> getSettingByKey(@PathVariable String settingKey) {
         logger.debug("REST request to get system setting: {}", settingKey);
         Optional<SystemSettingDTO> setting = systemSettingService.getSettingByKey(settingKey);
@@ -67,7 +67,7 @@ public class SystemSettingController {
     /**
      * Get setting value by key
      */
-    @GetMapping("/value/{settingKey}")
+    @GetMapping("/value/ {settingKey}")
     public ResponseEntity<String> getSettingValue(@PathVariable String settingKey) {
         logger.debug("REST request to get setting value: {}", settingKey);
         String value = systemSettingService.getSettingValue(settingKey);
@@ -83,7 +83,7 @@ public class SystemSettingController {
         try {
             SystemSettingDTO saved = systemSettingService.saveSetting(dto);
             return ResponseEntity.ok(saved);
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             logger.error("Error saving system setting: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
@@ -92,15 +92,15 @@ public class SystemSettingController {
     /**
      * Update an existing system setting
      */
-    @PutMapping("/{settingKey}")
-    public ResponseEntity<SystemSettingDTO> updateSetting(@PathVariable String settingKey, 
+    @PutMapping("/ {settingKey}")
+    public ResponseEntity<SystemSettingDTO> updateSetting(@PathVariable String settingKey,
                                                           @RequestBody SystemSettingDTO dto) {
         logger.info("REST request to update system setting: {}", settingKey);
         try {
             dto.setSettingKey(settingKey);
             SystemSettingDTO updated = systemSettingService.saveSetting(dto);
             return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             logger.error("Error updating system setting: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
@@ -109,13 +109,13 @@ public class SystemSettingController {
     /**
      * Delete a system setting
      */
-    @DeleteMapping("/{settingKey}")
+    @DeleteMapping("/ {settingKey}")
     public ResponseEntity<Void> deleteSetting(@PathVariable String settingKey) {
         logger.info("REST request to delete system setting: {}", settingKey);
         try {
             systemSettingService.deleteSetting(settingKey);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             logger.error("Error deleting system setting: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
@@ -134,7 +134,7 @@ public class SystemSettingController {
     /**
      * Get base domain for endpoint URL generation
      */
-    @GetMapping("/base-domain")
+    @GetMapping("/base - domain")
     public ResponseEntity<String> getBaseDomain() {
         logger.debug("REST request to get base domain");
         String baseDomain = systemSettingService.getSettingValue("base_domain", "http://localhost:8080");
@@ -144,7 +144,7 @@ public class SystemSettingController {
     /**
      * Get global retry settings
      */
-    @GetMapping("/global-retry")
+    @GetMapping("/global - retry")
     public ResponseEntity<GlobalRetrySettingsDTO> getGlobalRetrySettings() {
         logger.debug("REST request to get global retry settings");
         GlobalRetrySettingsDTO settings = systemSettingService.getGlobalRetrySettings();
@@ -154,13 +154,13 @@ public class SystemSettingController {
     /**
      * Update global retry settings
      */
-    @PutMapping("/global-retry")
+    @PutMapping("/global - retry")
     public ResponseEntity<GlobalRetrySettingsDTO> updateGlobalRetrySettings(@RequestBody GlobalRetrySettingsDTO dto) {
         logger.info("REST request to update global retry settings");
         try {
             GlobalRetrySettingsDTO updated = systemSettingService.updateGlobalRetrySettings(dto);
             return ResponseEntity.ok(updated);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error updating global retry settings: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }

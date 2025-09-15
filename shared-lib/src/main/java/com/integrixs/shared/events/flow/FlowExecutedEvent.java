@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * Event raised when an integration flow is executed.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class FlowExecutedEvent extends AbstractDomainEvent {
-    
+
     private String flowId;
     private String executionId;
     private LocalDateTime startTime;
@@ -29,7 +29,7 @@ public class FlowExecutedEvent extends AbstractDomainEvent {
     private String errorMessage;
     private Long recordsProcessed;
     private String triggeredBy;
-    
+
     public FlowExecutedEvent(String flowId, String executionId, LocalDateTime startTime,
                             LocalDateTime endTime, boolean success, String triggeredBy) {
         super(flowId, triggeredBy);
@@ -40,14 +40,14 @@ public class FlowExecutedEvent extends AbstractDomainEvent {
         this.success = success;
         this.triggeredBy = triggeredBy;
     }
-    
+
     /**
      * Gets the execution duration.
-     * 
+     *
      * @return duration between start and end time
      */
     public Duration getExecutionDuration() {
-        if (startTime != null && endTime != null) {
+        if(startTime != null && endTime != null) {
             return Duration.between(startTime, endTime);
         }
         return Duration.ZERO;

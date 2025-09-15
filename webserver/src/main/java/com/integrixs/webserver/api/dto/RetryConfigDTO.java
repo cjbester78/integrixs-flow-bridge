@@ -13,16 +13,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RetryConfigDTO {
-    
+
     @Builder.Default
     private int maxRetries = 3;
-    
+
     @Builder.Default
     private long retryDelayMillis = 1000;
-    
+
     @Builder.Default
     private boolean exponentialBackoff = true;
-    
+
     @Builder.Default
     private double backoffMultiplier = 2.0;
 }

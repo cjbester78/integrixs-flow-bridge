@@ -11,18 +11,18 @@ import java.util.Map;
  */
 @Data
 public class PerformanceSnapshot {
-    
+
     private LocalDateTime timestamp;
-    
+
     // System metrics
     private double cpuUsage;
     private double memoryUsage;
     private int threadCount;
-    
+
     // Overall metrics
     private double totalThroughput;
     private double errorRate;
-    
+
     // Component summaries
     private List<Map<String, Object>> componentSummaries;
 }

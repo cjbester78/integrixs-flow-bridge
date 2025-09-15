@@ -16,7 +16,7 @@ public class CreateAdapterRequestDTO {
     private AuthenticationConfigDTO authentication;
     private RetryConfigDTO retryConfig;
     private Long timeout;
-    
+
     /**
      * Add connection property
      * @param key Property key
@@ -25,7 +25,7 @@ public class CreateAdapterRequestDTO {
     public void addConnectionProperty(String key, Object value) {
         this.connectionProperties.put(key, value);
     }
-    
+
     /**
      * Add operation property
      * @param key Property key

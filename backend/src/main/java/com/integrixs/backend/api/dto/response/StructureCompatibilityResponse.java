@@ -12,19 +12,19 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StructureCompatibilityResponse {
-    
-    private int overallCompatibility;  // 0-100 percentage
+
+    private int overallCompatibility; // 0-100 percentage
     private boolean isCompatible;
-    
+
     @Builder.Default
     private List<CompatibilityIssue> issues = new ArrayList<>();
-    
+
     @Builder.Default
     private List<FieldMapping> mappings = new ArrayList<>();
-    
+
     private StructureMetadata sourceMetadata;
     private StructureMetadata targetMetadata;
-    
+
     @Builder.Default
     private List<String> recommendations = new ArrayList<>();
 }

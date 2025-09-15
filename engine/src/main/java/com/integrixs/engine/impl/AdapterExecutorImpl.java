@@ -33,84 +33,84 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class AdapterExecutorImpl implements AdapterExecutor {
-    
+
     private final AdapterFactoryManager adapterFactoryManager;
     private final CommunicationAdapterRepository adapterRepository;
-    
+
     @Override
     public String fetchData(String adapterId) {
         Object data = fetchDataAsObject(adapterId);
         return convertToString(data);
     }
-    
+
     @Override
     public Object fetchDataAsObject(String adapterId) {
         try {
             CommunicationAdapter adapter = getAdapter(adapterId);
             validateInboundAdapter(adapter);
-            
+
             AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
             Map<String, Object> config = parseConfiguration(adapter.getConfiguration());
-            
+
             InboundAdapterPort senderAdapter = adapterFactoryManager.createSender(adapterType, config);
-            
+
             // Create fetch request
             FetchRequest fetchRequest = FetchRequest.builder()
                 .requestId(UUID.randomUUID().toString())
                 .adapterId(adapterId)
                 .parameters(config)
                 .build();
-            
+
             // Execute the fetch operation
             AdapterOperationResult result = senderAdapter.fetch(fetchRequest);
-            
-            if (!result.isSuccess()) {
+
+            if(!result.isSuccess()) {
                 throw new RuntimeException("Fetch failed: " + result.getMessage());
             }
-            
+
             return result.getData();
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error fetching data from adapter {}: {}", adapterId, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch data from adapter " + adapterId, e);
         }
     }
-    
+
     @Override
     public void sendData(String adapterId, String payload) {
         sendData(adapterId, payload, null);
     }
-    
+
     @Override
     public void sendData(String adapterId, String payload, Map<String, Object> context) {
         sendData(adapterId, (Object) payload, context);
     }
-    
+
     @Override
     public void sendData(String adapterId, byte[] data) {
         sendData(adapterId, (Object) data, null);
     }
-    
+
     @Override
     public void sendData(String adapterId, Object data) {
         sendData(adapterId, data, null);
     }
-    
+
     private void sendData(String adapterId, Object data, Map<String, Object> context) {
         try {
             CommunicationAdapter adapter = getAdapter(adapterId);
             validateOutboundAdapter(adapter);
-            
+
             AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
             Map<String, Object> config = parseConfiguration(adapter.getConfiguration());
-            
+
             // Merge context into config if provided
-            if (context != null && !context.isEmpty()) {
+            if(context != null && !context.isEmpty()) {
                 config.putAll(context);
             }
-            
+
             OutboundAdapterPort receiverAdapter = adapterFactoryManager.createReceiver(adapterType, config);
-            
+
             // Create send request
             SendRequest sendRequest = SendRequest.builder()
                 .requestId(UUID.randomUUID().toString())
@@ -119,123 +119,123 @@ public class AdapterExecutorImpl implements AdapterExecutor {
                 .parameters(config)
                 .synchronous(true)
                 .build();
-            
+
             // Execute the send operation
             AdapterOperationResult result = receiverAdapter.send(sendRequest);
-            
-            if (!result.isSuccess()) {
+
+            if(!result.isSuccess()) {
                 throw new RuntimeException("Send failed: " + result.getMessage());
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error sending data to adapter {}: {}", adapterId, e.getMessage(), e);
             throw new RuntimeException("Failed to send data to adapter " + adapterId, e);
         }
     }
-    
+
     @Override
     public WritableByteChannel getWritableChannel(String adapterId, Map<String, Object> config) {
         try {
             CommunicationAdapter adapter = getAdapter(adapterId);
             validateOutboundAdapter(adapter);
-            
+
             AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
             Map<String, Object> adapterConfig = parseConfiguration(adapter.getConfiguration());
-            
+
             // Merge provided config with adapter config
-            if (config != null && !config.isEmpty()) {
+            if(config != null && !config.isEmpty()) {
                 adapterConfig.putAll(config);
             }
-            
+
             // Create outbound adapter
             OutboundAdapterPort outboundAdapter = adapterFactoryManager.createReceiver(adapterType, adapterConfig);
-            
+
             // Check if adapter supports streaming
-            if (!(outboundAdapter instanceof StreamingAdapterPort)) {
+            if(!(outboundAdapter instanceof StreamingAdapterPort)) {
                 throw new UnsupportedOperationException(
                     "Adapter " + adapterId + " (" + adapter.getType() + ") does not support streaming"
-                );
+               );
             }
-            
+
             StreamingAdapterPort streamingAdapter = (StreamingAdapterPort) outboundAdapter;
-            
+
             // Check if adapter supports WritableByteChannel specifically
-            if (!streamingAdapter.supportsWritableByteChannel()) {
+            if(!streamingAdapter.supportsWritableByteChannel()) {
                 throw new UnsupportedOperationException(
                     "Adapter " + adapterId + " does not support WritableByteChannel, use OutputStream instead"
-                );
+               );
             }
-            
-            log.info("Creating WritableByteChannel for adapter: {} ({})", adapter.getName(), adapter.getType());
+
+            log.info("Creating WritableByteChannel for adapter: {} ( {})", adapter.getName(), adapter.getType());
             return streamingAdapter.getWritableChannel(adapterConfig);
-            
-        } catch (UnsupportedOperationException e) {
-            throw e; // Re-throw as-is
-        } catch (Exception e) {
+
+        } catch(UnsupportedOperationException e) {
+            throw e; // Re - throw as - is
+        } catch(Exception e) {
             log.error("Error creating WritableByteChannel for adapter {}: {}", adapterId, e.getMessage(), e);
             throw new RuntimeException("Failed to create WritableByteChannel for adapter " + adapterId, e);
         }
     }
-    
+
     @Override
     public OutputStream getOutputStream(String adapterId, Map<String, Object> config) {
         try {
             CommunicationAdapter adapter = getAdapter(adapterId);
             validateOutboundAdapter(adapter);
-            
+
             AdapterConfiguration.AdapterTypeEnum adapterType = mapAdapterType(adapter.getType());
             Map<String, Object> adapterConfig = parseConfiguration(adapter.getConfiguration());
-            
+
             // Merge provided config with adapter config
-            if (config != null && !config.isEmpty()) {
+            if(config != null && !config.isEmpty()) {
                 adapterConfig.putAll(config);
             }
-            
+
             // Create outbound adapter
             OutboundAdapterPort outboundAdapter = adapterFactoryManager.createReceiver(adapterType, adapterConfig);
-            
+
             // Check if adapter supports streaming
-            if (!(outboundAdapter instanceof StreamingAdapterPort)) {
+            if(!(outboundAdapter instanceof StreamingAdapterPort)) {
                 // Fallback: Create a buffered OutputStream that collects data and sends when closed
                 log.info("Adapter {} does not support native streaming, using buffered approach", adapterId);
                 return new BufferedAdapterOutputStream(adapterId, outboundAdapter, adapterConfig);
             }
-            
+
             StreamingAdapterPort streamingAdapter = (StreamingAdapterPort) outboundAdapter;
-            
-            log.info("Creating OutputStream for adapter: {} ({})", adapter.getName(), adapter.getType());
+
+            log.info("Creating OutputStream for adapter: {} ( {})", adapter.getName(), adapter.getType());
             return streamingAdapter.getOutputStream(adapterConfig);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error creating OutputStream for adapter {}: {}", adapterId, e.getMessage(), e);
             throw new RuntimeException("Failed to create OutputStream for adapter " + adapterId, e);
         }
     }
-    
+
     private CommunicationAdapter getAdapter(String adapterId) {
         return adapterRepository.findById(UUID.fromString(adapterId))
                 .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
     }
-    
+
     private void validateInboundAdapter(CommunicationAdapter adapter) {
-        if (!"INBOUND".equalsIgnoreCase(adapter.getDirection())) {
+        if(!"INBOUND".equalsIgnoreCase(adapter.getDirection())) {
             throw new IllegalArgumentException(
-                "Adapter " + adapter.getId() + " is not a inbound adapter (direction: " + adapter.getDirection() + ")"
-            );
+                "Adapter " + adapter.getId() + " is not a inbound adapter(direction: " + adapter.getDirection() + ")"
+           );
         }
     }
-    
+
     private void validateOutboundAdapter(CommunicationAdapter adapter) {
-        if (!"OUTBOUND".equalsIgnoreCase(adapter.getDirection())) {
+        if(!"OUTBOUND".equalsIgnoreCase(adapter.getDirection())) {
             throw new IllegalArgumentException(
-                "Adapter " + adapter.getId() + " is not a outbound adapter (direction: " + adapter.getDirection() + ")"
-            );
+                "Adapter " + adapter.getId() + " is not a outbound adapter(direction: " + adapter.getDirection() + ")"
+           );
         }
     }
-    
+
     private AdapterConfiguration.AdapterTypeEnum mapAdapterType(AdapterType type) {
         // Map from shared enum to adapter configuration enum
-        return switch (type) {
+        return switch(type) {
             case HTTP, HTTPS -> AdapterConfiguration.AdapterTypeEnum.HTTP;
             case REST -> AdapterConfiguration.AdapterTypeEnum.REST;
             case JDBC -> AdapterConfiguration.AdapterTypeEnum.JDBC;
@@ -249,40 +249,40 @@ public class AdapterExecutorImpl implements AdapterExecutor {
             default -> throw new IllegalArgumentException("Unsupported adapter type: " + type);
         };
     }
-    
+
     private Map<String, Object> parseConfiguration(String configuration) {
         try {
             // Parse JSON configuration to Map
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             return mapper.readValue(configuration, Map.class);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error parsing adapter configuration: {}", e.getMessage(), e);
             throw new RuntimeException("Invalid adapter configuration", e);
         }
     }
-    
+
     private String convertToString(Object data) {
-        if (data == null) {
+        if(data == null) {
             return null;
         }
-        if (data instanceof String) {
-            return (String) data;
+        if(data instanceof String) {
+            return(String) data;
         }
-        if (data instanceof byte[]) {
+        if(data instanceof byte[]) {
             return new String((byte[]) data, StandardCharsets.UTF_8);
         }
-        if (data instanceof InputStream) {
-            try (InputStream is = (InputStream) data;
+        if(data instanceof InputStream) {
+            try(InputStream is = (InputStream) data;
                  ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 is.transferTo(baos);
                 return baos.toString(StandardCharsets.UTF_8);
-            } catch (Exception e) {
+            } catch(Exception e) {
                 throw new RuntimeException("Failed to read InputStream", e);
             }
         }
         return data.toString();
     }
-    
+
     /**
      * Buffered OutputStream implementation for adapters that don't support native streaming
      * Collects data in memory and sends it when the stream is closed
@@ -293,26 +293,26 @@ public class AdapterExecutorImpl implements AdapterExecutor {
         private final Map<String, Object> config;
         private final ByteArrayOutputStream buffer;
         private boolean closed = false;
-        
+
         public BufferedAdapterOutputStream(String adapterId, OutboundAdapterPort adapter, Map<String, Object> config) {
             this.adapterId = adapterId;
             this.adapter = adapter;
             this.config = config;
             this.buffer = new ByteArrayOutputStream();
         }
-        
+
         @Override
         public void write(int b) throws java.io.IOException {
             ensureOpen();
             buffer.write(b);
         }
-        
+
         @Override
         public void write(byte[] b, int off, int len) throws java.io.IOException {
             ensureOpen();
             buffer.write(b, off, len);
         }
-        
+
         @Override
         public void flush() throws java.io.IOException {
             ensureOpen();
@@ -320,17 +320,17 @@ public class AdapterExecutorImpl implements AdapterExecutor {
             // Note: We don't send data on flush, only on close
             // This prevents partial data from being sent
         }
-        
+
         @Override
         public void close() throws java.io.IOException {
-            if (closed) {
+            if(closed) {
                 return;
             }
-            
+
             try {
                 // Send the collected data
                 byte[] data = buffer.toByteArray();
-                if (data.length > 0) {
+                if(data.length > 0) {
                     SendRequest sendRequest = SendRequest.builder()
                         .requestId(UUID.randomUUID().toString())
                         .adapterId(adapterId)
@@ -338,14 +338,14 @@ public class AdapterExecutorImpl implements AdapterExecutor {
                         .parameters(config)
                         .synchronous(true)
                         .build();
-                    
+
                     AdapterOperationResult result = adapter.send(sendRequest);
-                    
-                    if (!result.isSuccess()) {
+
+                    if(!result.isSuccess()) {
                         throw new java.io.IOException("Failed to send buffered data: " + result.getMessage());
                     }
-                    
-                    log.debug("Successfully sent {} bytes through buffered stream to adapter {}", 
+
+                    log.debug("Successfully sent {} bytes through buffered stream to adapter {}",
                         data.length, adapterId);
                 }
             } finally {
@@ -353,9 +353,9 @@ public class AdapterExecutorImpl implements AdapterExecutor {
                 buffer.close();
             }
         }
-        
+
         private void ensureOpen() throws java.io.IOException {
-            if (closed) {
+            if(closed) {
                 throw new java.io.IOException("Stream is closed");
             }
         }

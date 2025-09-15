@@ -16,24 +16,24 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowImportRequestDTO {
-    
+
     /**
      * The exported flow data
      */
     @NotNull(message = "Flow export data is required")
     private FlowExportDTO flowExport;
-    
+
     /**
      * Import options
      */
     @NotNull(message = "Import options are required")
     private ImportOptions options;
-    
+
     /**
      * Mapping of old IDs to new IDs for conflict resolution
      */
     private Map<String, String> idMappings;
-    
+
     /**
      * Import configuration options
      */
@@ -42,64 +42,64 @@ public class FlowImportRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ImportOptions {
-        
+
         /**
          * Strategy for handling conflicts
          */
         @Builder.Default
         private ConflictStrategy conflictStrategy = ConflictStrategy.FAIL;
-        
+
         /**
          * Whether to import the business component
          */
         @Builder.Default
         private boolean importBusinessComponent = true;
-        
+
         /**
          * Whether to import adapters
          */
         @Builder.Default
         private boolean importAdapters = true;
-        
+
         /**
-         * Whether to import certificates (references only)
+         * Whether to import certificates(references only)
          */
         @Builder.Default
         private boolean importCertificateReferences = true;
-        
+
         /**
          * Whether to validate all references exist
          */
         @Builder.Default
         private boolean validateReferences = true;
-        
+
         /**
          * Whether to activate the flow after import
          */
         @Builder.Default
         private boolean activateAfterImport = false;
-        
+
         /**
          * Prefix to add to imported object names
          */
         private String namePrefix;
-        
+
         /**
          * Suffix to add to imported object names
          */
         private String nameSuffix;
-        
+
         /**
-         * Target business component ID (if different from export)
+         * Target business component ID(if different from export)
          */
         private String targetBusinessComponentId;
-        
+
         /**
-         * Environment-specific configuration overrides
+         * Environment - specific configuration overrides
          */
         private Map<String, Object> configOverrides;
     }
-    
+
     /**
      * Strategy for handling conflicts during import
      */
@@ -108,24 +108,24 @@ public class FlowImportRequestDTO {
          * Fail the import if any conflicts are found
          */
         FAIL,
-        
+
         /**
          * Skip conflicting objects and continue
          */
         SKIP,
-        
+
         /**
          * Create new objects with modified names
          */
         CREATE_NEW,
-        
+
         /**
-         * Update existing objects (requires permissions)
+         * Update existing objects(requires permissions)
          */
         UPDATE_EXISTING,
-        
+
         /**
-         * Prompt user for each conflict (interactive mode)
+         * Prompt user for each conflict(interactive mode)
          */
         PROMPT
     }

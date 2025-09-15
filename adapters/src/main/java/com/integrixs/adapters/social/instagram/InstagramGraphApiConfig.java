@@ -8,45 +8,45 @@ public class InstagramGraphApiConfig extends SocialMediaAdapterConfig {
     public InstagramGraphApiConfig() {
     }
 
-    
+
     // Instagram specific configuration
     private String instagramBusinessAccountId;
     private String facebookPageId;
     private String facebookPageAccessToken;
-    
+
     // Instagram API settings
     private boolean enableInsights;
     private boolean enableStories;
     private boolean enableReels;
     private boolean enableShopping;
     private boolean enableCommentFiltering;
-    
+
     // Content moderation
     private boolean autoHideOffensiveComments;
     private String[] blockedKeywords;
-    
+
     // Default values
     private static final String DEFAULT_API_VERSION = "v18.0";
     private static final String DEFAULT_API_BASE_URL = "https://graph.facebook.com";
-    
+
     @Override
     public String getAuthorizationUrl() {
-        return String.format("https://www.facebook.com/%s/dialog/oauth", 
+        return String.format("https://www.facebook.com/%s/dialog/oauth",
                             getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
-    
+
     @Override
     public String getTokenUrl() {
         return String.format("%s/%s/oauth/access_token",
                             getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
                             getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
     }
-    
+
     @Override
     public String getPlatformName() {
         return "instagram";
     }
-    
+
     /**
      * Get the base URL for API calls
      */
@@ -55,14 +55,14 @@ public class InstagramGraphApiConfig extends SocialMediaAdapterConfig {
         String version = getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION;
         return String.format("%s/%s", baseUrl, version);
     }
-    
+
     /**
      * Get the full API endpoint for media
      */
     public String getMediaEndpoint() {
         return String.format("%s/%s/media", getBaseUrl(), instagramBusinessAccountId);
     }
-    
+
     /**
      * Get the full API endpoint for insights
      */

@@ -18,42 +18,42 @@ import java.util.concurrent.TimeoutException;
  */
 @Configuration
 public class CircuitBreakerConfiguration {
-    
-    @Value("${resilience4j.circuitbreaker.instances.default.failureRateThreshold:50}")
+
+    @Value("$ {resilience4j.circuitbreaker.instances.default.failureRateThreshold:50}")
     private float defaultFailureRateThreshold;
-    
-    @Value("${resilience4j.circuitbreaker.instances.default.waitDurationInOpenState:60000}")
+
+    @Value("$ {resilience4j.circuitbreaker.instances.default.waitDurationInOpenState:60000}")
     private long defaultWaitDurationInOpenState;
-    
-    @Value("${resilience4j.circuitbreaker.instances.default.slidingWindowSize:100}")
+
+    @Value("$ {resilience4j.circuitbreaker.instances.default.slidingWindowSize:100}")
     private int defaultSlidingWindowSize;
-    
+
     @Bean
     public CircuitBreakerRegistry circuitBreakerRegistry() {
         // Create registry with custom configurations for different adapter types
         Map<String, CircuitBreakerConfig> configs = new HashMap<>();
-        
+
         // Default configuration
         configs.put("default", createDefaultConfig());
-        
+
         // HTTP/REST adapters - more sensitive to timeouts
         configs.put("http", createHttpConfig());
-        
+
         // Database adapters - longer wait times, fewer retries
         configs.put("database", createDatabaseConfig());
-        
+
         // Message queue adapters - high throughput, quick recovery
         configs.put("messaging", createMessagingConfig());
-        
+
         // File transfer adapters - longer operations, patient recovery
         configs.put("file", createFileTransferConfig());
-        
+
         // SAP adapters - critical systems, conservative approach
         configs.put("sap", createSapConfig());
-        
+
         return CircuitBreakerRegistry.of(configs);
     }
-    
+
     private CircuitBreakerConfig createDefaultConfig() {
         return CircuitBreakerConfig.custom()
             .failureRateThreshold(defaultFailureRateThreshold)
@@ -68,7 +68,7 @@ public class CircuitBreakerConfiguration {
             .ignoreExceptions()
             .build();
     }
-    
+
     private CircuitBreakerConfig createHttpConfig() {
         return CircuitBreakerConfig.custom()
             .failureRateThreshold(40) // More sensitive to failures
@@ -84,11 +84,11 @@ public class CircuitBreakerConfiguration {
                 TimeoutException.class,
                 java.net.SocketTimeoutException.class,
                 java.net.ConnectException.class
-            )
+           )
             .ignoreExceptions()
             .build();
     }
-    
+
     private CircuitBreakerConfig createDatabaseConfig() {
         return CircuitBreakerConfig.custom()
             .failureRateThreshold(60) // More tolerant of failures
@@ -103,13 +103,13 @@ public class CircuitBreakerConfiguration {
                 java.sql.SQLException.class,
                 org.springframework.dao.DataAccessException.class,
                 org.springframework.transaction.TransactionException.class
-            )
+           )
             .ignoreExceptions(
                 org.springframework.dao.DuplicateKeyException.class // Business logic, not failure
-            )
+           )
             .build();
     }
-    
+
     private CircuitBreakerConfig createMessagingConfig() {
         return CircuitBreakerConfig.custom()
             .failureRateThreshold(30) // Low tolerance for messaging failures
@@ -124,11 +124,11 @@ public class CircuitBreakerConfiguration {
                 javax.jms.JMSException.class,
                 org.apache.kafka.common.KafkaException.class,
                 org.springframework.messaging.MessagingException.class
-            )
+           )
             .ignoreExceptions()
             .build();
     }
-    
+
     private CircuitBreakerConfig createFileTransferConfig() {
         return CircuitBreakerConfig.custom()
             .failureRateThreshold(70) // File operations can have transient failures
@@ -143,13 +143,13 @@ public class CircuitBreakerConfiguration {
                 java.io.IOException.class,
                 java.net.UnknownHostException.class,
                 org.apache.commons.net.ftp.FTPConnectionClosedException.class
-            )
+           )
             .ignoreExceptions(
                 java.io.FileNotFoundException.class // Might be expected
-            )
+           )
             .build();
     }
-    
+
     private CircuitBreakerConfig createSapConfig() {
         return CircuitBreakerConfig.custom()
             .failureRateThreshold(80) // Very tolerant - SAP is critical
@@ -163,46 +163,46 @@ public class CircuitBreakerConfiguration {
             .recordExceptions(
                 com.sap.conn.jco.JCoException.class,
                 com.sap.conn.jco.JCoRuntimeException.class
-            )
+           )
             .ignoreExceptions()
             .build();
     }
-    
+
     /**
      * Get circuit breaker for a specific adapter.
      */
-    public CircuitBreaker getCircuitBreaker(CircuitBreakerRegistry registry, 
-                                           String adapterType, 
+    public CircuitBreaker getCircuitBreaker(CircuitBreakerRegistry registry,
+                                           String adapterType,
                                            String adapterId) {
         String configName = mapAdapterTypeToConfig(adapterType);
         String breakerName = adapterType + "-" + adapterId;
-        
+
         return registry.circuitBreaker(breakerName, configName);
     }
-    
+
     private String mapAdapterTypeToConfig(String adapterType) {
-        switch (adapterType.toUpperCase()) {
+        switch(adapterType.toUpperCase()) {
             case "HTTP":
             case "REST":
             case "SOAP":
             case "ODATA":
                 return "http";
-                
+
             case "JDBC":
                 return "database";
-                
+
             case "JMS":
             case "KAFKA":
                 return "messaging";
-                
+
             case "FTP":
             case "SFTP":
                 return "file";
-                
+
             case "RFC":
             case "IDOC":
                 return "sap";
-                
+
             default:
                 return "default";
         }

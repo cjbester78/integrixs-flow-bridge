@@ -16,31 +16,31 @@ import java.util.Map;
 public abstract class AbstractMessagingOutboundAdapter extends AbstractOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(AbstractMessagingOutboundAdapter.class);
 
-    
+
     protected AbstractMessagingOutboundAdapter() {
         super(AdapterConfiguration.AdapterTypeEnum.JMS);
     }
-    
+
     /**
      * Connect to the messaging system
      */
     protected abstract void connect() throws Exception;
-    
+
     /**
      * Disconnect from the messaging system
      */
     protected abstract void disconnect() throws Exception;
-    
+
     /**
      * Send a message to a destination
      */
     protected abstract void sendMessage(String destination, MessageDTO message) throws Exception;
-    
+
     /**
      * Send a message with specific properties
      */
     protected abstract void sendMessage(String destination, MessageDTO message, Map<String, Object> properties) throws Exception;
-    
+
     /**
      * Create a connection configuration
      */
@@ -51,9 +51,9 @@ public abstract class AbstractMessagingOutboundAdapter extends AbstractOutboundA
             "username", adapterConfig.getOrDefault("username", "guest"),
             "password", adapterConfig.getOrDefault("password", "guest"),
             "virtualHost", adapterConfig.getOrDefault("virtualHost", "/")
-        );
+       );
     }
-    
+
     /**
      * Create a success response
      */
@@ -64,10 +64,10 @@ public abstract class AbstractMessagingOutboundAdapter extends AbstractOutboundA
         response.setHeaders(Map.of(
             "adapterType", getAdapterType().name(),
             "timestamp", System.currentTimeMillis()
-        ));
+       ));
         return response;
     }
-    
+
     /**
      * Create an error response
      */
@@ -79,23 +79,23 @@ public abstract class AbstractMessagingOutboundAdapter extends AbstractOutboundA
             "adapterType", getAdapterType().name(),
             "error", error,
             "timestamp", System.currentTimeMillis()
-        ));
+       ));
         return response;
     }
-    
+
     /**
      * Get the adapter type identifier
      */
     public abstract AdapterConfiguration.AdapterTypeEnum getAdapterType();
-    
+
     /**
      * Validate connection configuration
      */
     protected void validateConnectionConfig(Map<String, Object> config) {
-        if (!config.containsKey("host")) {
+        if(!config.containsKey("host")) {
             throw new IllegalArgumentException("Host is required");
         }
-        if (!config.containsKey("port")) {
+        if(!config.containsKey("port")) {
             throw new IllegalArgumentException("Port is required");
         }
     }

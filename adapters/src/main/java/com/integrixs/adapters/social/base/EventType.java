@@ -21,7 +21,7 @@ public enum EventType {
     SOCIAL_MEDIA_REEL,
     SOCIAL_MEDIA_VIDEO,
     SOCIAL_MEDIA_IMAGE,
-    
+
     // Collaboration Events
     COLLABORATION_MESSAGE,
     COLLABORATION_FILE,
@@ -30,7 +30,7 @@ public enum EventType {
     COLLABORATION_REACTION,
     COLLABORATION_MENTION,
     COLLABORATION_THREAD,
-    
+
     // Generic Events
     ADAPTER_CONNECTED,
     ADAPTER_DISCONNECTED,

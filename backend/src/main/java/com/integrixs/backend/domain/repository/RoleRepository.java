@@ -12,22 +12,22 @@ import java.util.UUID;
  * Domain repository interface for roles
  */
 public interface RoleRepository {
-    
+
     Role save(Role role);
-    
+
     Optional<Role> findById(UUID id);
-    
+
     Optional<Role> findByName(String name);
-    
+
     Page<Role> findAll(Pageable pageable);
-    
+
     List<Role> findAll();
-    
+
     void deleteById(UUID id);
-    
+
     boolean existsByName(String name);
-    
+
     boolean existsByNameAndIdNot(String name, UUID id);
-    
+
     long count();
 }

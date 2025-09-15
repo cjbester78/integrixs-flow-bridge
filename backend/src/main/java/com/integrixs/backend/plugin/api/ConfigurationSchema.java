@@ -11,12 +11,12 @@ import java.util.Map;
 @Data
 @Builder
 public class ConfigurationSchema {
-    
+
     /**
      * Schema sections
      */
     private List<Section> sections;
-    
+
     /**
      * Configuration section
      */
@@ -29,7 +29,7 @@ public class ConfigurationSchema {
         private List<Field> fields;
         private Map<String, Object> properties;
     }
-    
+
     /**
      * Configuration field
      */
@@ -48,7 +48,7 @@ public class ConfigurationSchema {
         private Condition condition;
         private Map<String, Object> properties;
     }
-    
+
     /**
      * Field option for select/multiselect
      */
@@ -60,7 +60,7 @@ public class ConfigurationSchema {
         private String description;
         private boolean disabled;
     }
-    
+
     /**
      * Field validation rules
      */
@@ -75,7 +75,7 @@ public class ConfigurationSchema {
         private String message;
         private Map<String, Object> custom;
     }
-    
+
     /**
      * Field visibility condition
      */

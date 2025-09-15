@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to mark methods that perform custom actions and should be audited.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -20,7 +20,7 @@ public @interface AuditAction {
      * The type of entity being operated on
      */
     String entityType();
-    
+
     /**
      * The action being performed
      */

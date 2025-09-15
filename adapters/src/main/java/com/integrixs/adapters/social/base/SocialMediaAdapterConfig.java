@@ -10,14 +10,14 @@ public abstract class SocialMediaAdapterConfig implements AdapterConfig {
     public SocialMediaAdapterConfig() {
     }
 
-    
+
     // Base adapter configuration
     private String type;
     private String name;
     private String description;
     private boolean enabled;
     private Map<String, Object> configuration;
-    
+
     // OAuth2 Configuration
     private String clientId;
     private String clientSecret;
@@ -25,36 +25,36 @@ public abstract class SocialMediaAdapterConfig implements AdapterConfig {
     private String refreshToken;
     private String redirectUri;
     private String scope;
-    
+
     // API Configuration
     private String apiVersion;
     private String apiBaseUrl;
     private Integer requestTimeout;
     private Integer maxRetries;
-    
+
     // Rate Limiting
     private Integer rateLimitPerMinute;
     private Integer rateLimitPerHour;
-    
+
     // Webhook Configuration
     private String webhookUrl;
     private String webhookVerifyToken;
-    
-    // Platform-specific configuration
+
+    // Platform - specific configuration
     private Map<String, Object> platformConfig;
-    
+
     /**
      * Get the OAuth2 authorization URL for this platform
      */
     public abstract String getAuthorizationUrl();
-    
+
     /**
      * Get the OAuth2 token URL for this platform
      */
     public abstract String getTokenUrl();
-    
+
     /**
-     * Get the platform name (e.g., "facebook", "twitter", "linkedin")
+     * Get the platform name(e.g., "facebook", "twitter", "linkedin")
      */
     public abstract String getPlatformName();
     // Getters and Setters

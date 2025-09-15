@@ -27,85 +27,85 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class RateLimitService {
-    
+
     private final MeterRegistry meterRegistry;
-    
+
     // Rate limit configurations
-    @Value("${rate.limit.default.capacity:100}")
+    @Value("$ {rate.limit.default.capacity:100}")
     private long defaultCapacity;
-    
-    @Value("${rate.limit.default.refill.tokens:100}")
+
+    @Value("$ {rate.limit.default.refill.tokens:100}")
     private long defaultRefillTokens;
-    
-    @Value("${rate.limit.default.refill.period:60}")
+
+    @Value("$ {rate.limit.default.refill.period:60}")
     private long defaultRefillPeriod; // seconds
-    
-    @Value("${rate.limit.premium.capacity:1000}")
+
+    @Value("$ {rate.limit.premium.capacity:1000}")
     private long premiumCapacity;
-    
-    @Value("${rate.limit.premium.refill.tokens:1000}")
+
+    @Value("$ {rate.limit.premium.refill.tokens:1000}")
     private long premiumRefillTokens;
-    
-    @Value("${rate.limit.api.capacity:10}")
+
+    @Value("$ {rate.limit.api.capacity:10}")
     private long apiKeyCapacity;
-    
-    @Value("${rate.limit.api.refill.tokens:10}")
+
+    @Value("$ {rate.limit.api.refill.tokens:10}")
     private long apiKeyRefillTokens;
-    
+
     // User buckets
     private final Map<String, UserRateLimit> userBuckets = new ConcurrentHashMap<>();
-    
-    // IP-based buckets for anonymous users
+
+    // IP - based buckets for anonymous users
     private final Map<String, Bucket> ipBuckets = new ConcurrentHashMap<>();
-    
-    // API endpoint-specific limits
+
+    // API endpoint - specific limits
     private final Map<String, EndpointRateLimit> endpointLimits = new ConcurrentHashMap<>();
-    
+
     /**
      * Check if request is allowed for a user.
      */
     public boolean allowRequest(String userId, String userType) {
-        UserRateLimit userLimit = userBuckets.computeIfAbsent(userId, 
+        UserRateLimit userLimit = userBuckets.computeIfAbsent(userId,
             k -> createUserRateLimit(userId, userType));
-        
+
         boolean allowed = userLimit.getBucket().tryConsume(1);
-        
+
         // Record metrics
         Tags tags = Tags.of("user", userId, "type", userType);
-        if (allowed) {
+        if(allowed) {
             meterRegistry.counter("rate.limit.allowed", tags).increment();
         } else {
             meterRegistry.counter("rate.limit.denied", tags).increment();
             log.warn("Rate limit exceeded for user: {} (type: {})", userId, userType);
         }
-        
+
         // Update last access
         userLimit.setLastAccess(LocalDateTime.now());
         userLimit.incrementRequestCount();
-        
+
         return allowed;
     }
-    
+
     /**
      * Check if request is allowed for an IP address.
      */
     public boolean allowRequestByIp(String ipAddress) {
         Bucket bucket = ipBuckets.computeIfAbsent(ipAddress, k -> createIpBucket());
-        
+
         boolean allowed = bucket.tryConsume(1);
-        
+
         // Record metrics
         Tags tags = Tags.of("ip", ipAddress);
-        if (allowed) {
+        if(allowed) {
             meterRegistry.counter("rate.limit.ip.allowed", tags).increment();
         } else {
             meterRegistry.counter("rate.limit.ip.denied", tags).increment();
             log.warn("Rate limit exceeded for IP: {}", ipAddress);
         }
-        
+
         return allowed;
     }
-    
+
     /**
      * Check if request is allowed for a specific API endpoint.
      */
@@ -113,33 +113,33 @@ public class RateLimitService {
         String key = userId + ":" + endpoint;
         EndpointRateLimit endpointLimit = endpointLimits.computeIfAbsent(key,
             k -> createEndpointRateLimit(endpoint));
-        
+
         boolean allowed = endpointLimit.getBucket().tryConsume(cost);
-        
-        if (!allowed) {
+
+        if(!allowed) {
             log.warn("Endpoint rate limit exceeded for user {} on {}", userId, endpoint);
         }
-        
+
         return allowed;
     }
-    
+
     /**
      * Get remaining tokens for a user.
      */
     public long getRemainingTokens(String userId) {
         UserRateLimit userLimit = userBuckets.get(userId);
-        if (userLimit == null) {
+        if(userLimit == null) {
             return defaultCapacity;
         }
         return userLimit.getBucket().getAvailableTokens();
     }
-    
+
     /**
      * Get rate limit status for a user.
      */
     public RateLimitStatus getRateLimitStatus(String userId) {
         UserRateLimit userLimit = userBuckets.get(userId);
-        if (userLimit == null) {
+        if(userLimit == null) {
             return RateLimitStatus.builder()
                 .userId(userId)
                 .limit(defaultCapacity)
@@ -147,7 +147,7 @@ public class RateLimitService {
                 .resetTime(LocalDateTime.now().plusSeconds(defaultRefillPeriod))
                 .build();
         }
-        
+
         Bucket bucket = userLimit.getBucket();
         return RateLimitStatus.builder()
             .userId(userId)
@@ -158,134 +158,134 @@ public class RateLimitService {
             .lastAccess(userLimit.getLastAccess())
             .build();
     }
-    
+
     /**
      * Reset rate limit for a user.
      */
     public void resetUserLimit(String userId) {
         UserRateLimit userLimit = userBuckets.get(userId);
-        if (userLimit != null) {
+        if(userLimit != null) {
             userLimit.reset();
             log.info("Reset rate limit for user: {}", userId);
         }
     }
-    
+
     /**
      * Update rate limit for a user.
      */
     public void updateUserLimit(String userId, long capacity, long refillTokens, long refillPeriod) {
         UserRateLimit userLimit = userBuckets.get(userId);
-        if (userLimit != null) {
-            Bandwidth bandwidth = Bandwidth.classic(capacity, 
+        if(userLimit != null) {
+            Bandwidth bandwidth = Bandwidth.classic(capacity,
                 Refill.intervally(refillTokens, Duration.ofSeconds(refillPeriod)));
             userLimit.setBucket(Bucket4j.builder().addLimit(bandwidth).build());
             userLimit.setCapacity(capacity);
-            log.info("Updated rate limit for user {}: capacity={}, refill={}/{}", 
+            log.info("Updated rate limit for user {}: capacity = {}, refill = {}/ {}",
                 userId, capacity, refillTokens, refillPeriod);
         }
     }
-    
+
     /**
      * Clean up inactive buckets.
      */
     @Scheduled(fixedDelay = 3600000) // Every hour
     public void cleanupInactiveBuckets() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
-        
+
         // Clean user buckets
         userBuckets.entrySet().removeIf(entry -> {
             UserRateLimit limit = entry.getValue();
             return limit.getLastAccess() != null && limit.getLastAccess().isBefore(cutoff);
         });
-        
+
         // IP buckets don't track last access, so clear based on size
-        if (ipBuckets.size() > 10000) {
+        if(ipBuckets.size() > 10000) {
             ipBuckets.clear();
             log.info("Cleared IP rate limit cache");
         }
-        
+
         log.debug("Cleaned up inactive rate limit buckets");
     }
-    
+
     /**
      * Get all active rate limits.
      */
     public Map<String, RateLimitStatus> getAllRateLimits() {
         Map<String, RateLimitStatus> statuses = new HashMap<>();
-        
-        for (Map.Entry<String, UserRateLimit> entry : userBuckets.entrySet()) {
+
+        for(Map.Entry<String, UserRateLimit> entry : userBuckets.entrySet()) {
             statuses.put(entry.getKey(), getRateLimitStatus(entry.getKey()));
         }
-        
+
         return statuses;
     }
-    
+
     private UserRateLimit createUserRateLimit(String userId, String userType) {
         long capacity;
         long refillTokens;
-        
-        switch (userType.toUpperCase()) {
+
+        switch(userType.toUpperCase()) {
             case "PREMIUM":
             case "ADMIN":
                 capacity = premiumCapacity;
                 refillTokens = premiumRefillTokens;
                 break;
-                
+
             case "API":
                 capacity = apiKeyCapacity;
                 refillTokens = apiKeyRefillTokens;
                 break;
-                
+
             default:
                 capacity = defaultCapacity;
                 refillTokens = defaultRefillTokens;
         }
-        
-        Bandwidth bandwidth = Bandwidth.classic(capacity, 
+
+        Bandwidth bandwidth = Bandwidth.classic(capacity,
             Refill.intervally(refillTokens, Duration.ofSeconds(defaultRefillPeriod)));
-        
+
         UserRateLimit userLimit = new UserRateLimit();
         userLimit.setUserId(userId);
         userLimit.setUserType(userType);
         userLimit.setBucket(Bucket4j.builder().addLimit(bandwidth).build());
         userLimit.setCapacity(capacity);
         userLimit.setCreatedAt(LocalDateTime.now());
-        
-        log.debug("Created rate limit for user {} (type: {}) with capacity {}", 
+
+        log.debug("Created rate limit for user {} (type: {}) with capacity {}",
             userId, userType, capacity);
-        
+
         return userLimit;
     }
-    
+
     private Bucket createIpBucket() {
-        Bandwidth bandwidth = Bandwidth.classic(50, 
+        Bandwidth bandwidth = Bandwidth.classic(50,
             Refill.intervally(50, Duration.ofMinutes(1)));
         return Bucket4j.builder().addLimit(bandwidth).build();
     }
-    
+
     private EndpointRateLimit createEndpointRateLimit(String endpoint) {
         // Configure based on endpoint sensitivity
         long capacity = 10;
         long refillTokens = 10;
-        
-        if (endpoint.contains("/api/v1/flows/execute")) {
+
+        if(endpoint.contains("/api/v1/flows/execute")) {
             capacity = 5;
             refillTokens = 5;
-        } else if (endpoint.contains("/api/v1/adapters/test")) {
+        } else if(endpoint.contains("/api/v1/adapters/test")) {
             capacity = 20;
             refillTokens = 20;
         }
-        
-        Bandwidth bandwidth = Bandwidth.classic(capacity, 
+
+        Bandwidth bandwidth = Bandwidth.classic(capacity,
             Refill.intervally(refillTokens, Duration.ofMinutes(1)));
-        
+
         EndpointRateLimit endpointLimit = new EndpointRateLimit();
         endpointLimit.setEndpoint(endpoint);
         endpointLimit.setBucket(Bucket4j.builder().addLimit(bandwidth).build());
-        
+
         return endpointLimit;
     }
-    
+
     @Data
     private static class UserRateLimit {
         private String userId;
@@ -295,25 +295,25 @@ public class RateLimitService {
         private LocalDateTime createdAt;
         private LocalDateTime lastAccess;
         private long requestCount;
-        
+
         public void incrementRequestCount() {
             this.requestCount++;
         }
-        
+
         public void reset() {
-            Bandwidth bandwidth = Bandwidth.classic(capacity, 
+            Bandwidth bandwidth = Bandwidth.classic(capacity,
                 Refill.intervally(capacity, Duration.ofMinutes(1)));
             this.bucket = Bucket4j.builder().addLimit(bandwidth).build();
             this.requestCount = 0;
         }
     }
-    
+
     @Data
     private static class EndpointRateLimit {
         private String endpoint;
         private Bucket bucket;
     }
-    
+
     @Data
     @lombok.Builder
     public static class RateLimitStatus {

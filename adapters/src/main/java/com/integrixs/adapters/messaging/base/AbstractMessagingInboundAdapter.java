@@ -15,36 +15,36 @@ import java.util.Map;
 public abstract class AbstractMessagingInboundAdapter extends AbstractInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(AbstractMessagingInboundAdapter.class);
 
-    
+
     protected AbstractMessagingInboundAdapter() {
         super(AdapterConfiguration.AdapterTypeEnum.JMS);
     }
-    
+
     /**
      * Connect to the messaging system
      */
     protected abstract void connect() throws Exception;
-    
+
     /**
      * Disconnect from the messaging system
      */
     protected abstract void disconnect() throws Exception;
-    
+
     /**
      * Subscribe to a queue or topic
      */
     protected abstract void subscribe(String destination) throws Exception;
-    
+
     /**
      * Unsubscribe from a queue or topic
      */
     protected abstract void unsubscribe(String destination) throws Exception;
-    
+
     /**
      * Process an incoming message
      */
     protected abstract void processMessage(Object message) throws Exception;
-    
+
     /**
      * Convert messaging system message to MessageDTO
      */
@@ -55,12 +55,12 @@ public abstract class AbstractMessagingInboundAdapter extends AbstractInboundAda
         messageDTO.setPayload(payload);
         return messageDTO;
     }
-    
+
     /**
      * Acknowledge message processing
      */
     protected abstract void acknowledgeMessage(Object message) throws Exception;
-    
+
     /**
      * Handle connection errors
      */
@@ -68,7 +68,7 @@ public abstract class AbstractMessagingInboundAdapter extends AbstractInboundAda
         log.error("Connection error in {} adapter: {}", getAdapterType(), e.getMessage(), e);
         // Implement reconnection logic
     }
-    
+
     /**
      * Get the adapter type identifier
      */

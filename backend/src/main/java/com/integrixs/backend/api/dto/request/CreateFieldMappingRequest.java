@@ -11,18 +11,18 @@ import java.util.List;
  */
 @Data
 public class CreateFieldMappingRequest {
-    
+
     @NotNull(message = "Source fields are required")
     private List<String> sourceFields;
-    
-    private String targetField;  // Deprecated - use targetFields
-    
-    private List<String> targetFields;  // New - supports 1-to-many mappings
-    
-    private String mappingType = "DIRECT";  // DIRECT, SPLIT, AGGREGATE, CONDITIONAL, ITERATE
-    
-    private Object splitConfiguration;  // Configuration for SPLIT type mappings
-    
+
+    private String targetField; // Deprecated - use targetFields
+
+    private List<String> targetFields; // New - supports 1 - to - many mappings
+
+    private String mappingType = "DIRECT"; // DIRECT, SPLIT, AGGREGATE, CONDITIONAL, ITERATE
+
+    private Object splitConfiguration; // Configuration for SPLIT type mappings
+
     private String javaFunction;
     private String mappingRule;
     private String inputTypes;
@@ -37,21 +37,21 @@ public class CreateFieldMappingRequest {
     private Integer mappingOrder;
     private Object visualFlowData;
     private Object functionNode;
-    
+
     // Helper methods for backward compatibility
     public List<String> getTargetFieldsList() {
-        if (targetFields != null && !targetFields.isEmpty()) {
+        if(targetFields != null && !targetFields.isEmpty()) {
             return targetFields;
-        } else if (targetField != null && !targetField.isEmpty()) {
+        } else if(targetField != null && !targetField.isEmpty()) {
             return List.of(targetField);
         }
         return List.of();
     }
-    
+
     public void setTargetFieldsList(List<String> fields) {
         this.targetFields = fields;
         // Set single field for backward compatibility
-        if (fields != null && fields.size() == 1) {
+        if(fields != null && fields.size() == 1) {
             this.targetField = fields.get(0);
         } else {
             this.targetField = null;

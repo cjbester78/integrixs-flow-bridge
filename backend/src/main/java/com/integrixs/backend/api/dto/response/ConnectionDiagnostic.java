@@ -12,19 +12,19 @@ import java.util.HashMap;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConnectionDiagnostic {
-    
+
     public enum Status {
         SUCCESS, FAILED, WARNING, SKIPPED
     }
-    
+
     private String step;
     private Status status;
     private String message;
     private long duration; // in milliseconds
-    
+
     @Builder.Default
     private Map<String, Object> details = new HashMap<>();
-    
+
     // Optional error details
     private String errorCode;
     private String stackTrace;

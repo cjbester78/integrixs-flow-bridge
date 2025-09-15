@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowPerformanceMetricsResponse {
-    
+
     private String flowId;
     private String flowName;
     private int totalExecutions;

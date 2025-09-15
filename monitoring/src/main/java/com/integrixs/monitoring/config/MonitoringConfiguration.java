@@ -12,7 +12,7 @@ import java.time.Duration;
  */
 @Configuration
 public class MonitoringConfiguration {
-    
+
     /**
      * Configure RestTemplate for webhook notifications
      */

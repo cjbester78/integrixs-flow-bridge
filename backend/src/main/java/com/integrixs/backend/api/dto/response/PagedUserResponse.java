@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PagedUserResponse {
-    
+
     private List<UserResponse> content;
     private int pageNumber;
     private int pageSize;
@@ -23,7 +23,7 @@ public class PagedUserResponse {
     private int totalPages;
     private boolean first;
     private boolean last;
-    
+
     @Builder.Default
     private boolean empty = false;
 }

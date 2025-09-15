@@ -17,11 +17,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.Arrays;
 
 /**
- * Memory-aware caching configuration with automatic eviction.
- * 
- * <p>Implements memory-sensitive caching to prevent memory leaks
+ * Memory - aware caching configuration with automatic eviction.
+ *
+ * <p>Implements memory - sensitive caching to prevent memory leaks
  * and ensure efficient garbage collection.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -29,9 +29,9 @@ import java.util.Arrays;
 @Configuration
 @EnableCaching
 public class CacheConfig {
-    
+
     /**
-     * Primary cache manager with memory-aware eviction policies.
+     * Primary cache manager with memory - aware eviction policies.
      */
     @Bean
     @Primary
@@ -39,16 +39,16 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
         cacheManager.setCaffeine(defaultCaffeineConfig());
         cacheManager.setAllowNullValues(false);
-        
+
         // Register specific caches with custom configurations
         cacheManager.registerCustomCache("flows", flowsCacheConfig().build());
         cacheManager.registerCustomCache("adapters", adaptersCacheConfig().build());
         cacheManager.registerCustomCache("users", usersCacheConfig().build());
         cacheManager.registerCustomCache("businessComponents", businessComponentsCacheConfig().build());
-        
+
         return cacheManager;
     }
-    
+
     /**
      * Session cache with short TTL for security.
      */
@@ -59,7 +59,7 @@ public class CacheConfig {
         cacheManager.setAllowNullValues(false);
         return cacheManager;
     }
-    
+
     /**
      * Query result cache manager for database query caching.
      */
@@ -68,8 +68,8 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
         cacheManager.setCaffeine(queryCacheConfig());
         cacheManager.setAllowNullValues(false);
-        
-        // Register query-specific caches
+
+        // Register query - specific caches
         Arrays.asList(
             "flowsByStatus",
             "flowsByUser",
@@ -77,15 +77,15 @@ public class CacheConfig {
             "adaptersByType",
             "userPermissions",
             "componentAdapters"
-        ).forEach(cacheName -> 
+       ).forEach(cacheName ->
             cacheManager.registerCustomCache(cacheName, queryCacheConfig().build())
-        );
-        
+       );
+
         return cacheManager;
     }
-    
+
     /**
-     * Default Caffeine configuration with memory-aware settings.
+     * Default Caffeine configuration with memory - aware settings.
      */
     private Caffeine<Object, Object> defaultCaffeineConfig() {
         return Caffeine.newBuilder()
@@ -98,7 +98,7 @@ public class CacheConfig {
                 .recordStats()
                 .removalListener(new LoggingRemovalListener());
     }
-    
+
     /**
      * Session cache configuration with strict security settings.
      */
@@ -109,12 +109,12 @@ public class CacheConfig {
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .recordStats()
                 .removalListener((key, value, cause) -> {
-                    if (cause == RemovalCause.EXPIRED) {
+                    if(cause == RemovalCause.EXPIRED) {
                         log.debug("Session cache entry expired: {}", key);
                     }
                 });
     }
-    
+
     /**
      * Query cache configuration for database results.
      */
@@ -126,7 +126,7 @@ public class CacheConfig {
                 .recordStats()
                 .removalListener(new LoggingRemovalListener());
     }
-    
+
     /**
      * Flows cache configuration.
      */
@@ -137,7 +137,7 @@ public class CacheConfig {
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .recordStats();
     }
-    
+
     /**
      * Adapters cache configuration.
      */
@@ -148,7 +148,7 @@ public class CacheConfig {
                 .expireAfterAccess(15, TimeUnit.MINUTES)
                 .recordStats();
     }
-    
+
     /**
      * Users cache configuration.
      */
@@ -159,7 +159,7 @@ public class CacheConfig {
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .recordStats();
     }
-    
+
     /**
      * Business components cache configuration.
      */
@@ -170,19 +170,19 @@ public class CacheConfig {
                 .expireAfterAccess(30, TimeUnit.MINUTES)
                 .recordStats();
     }
-    
+
     /**
      * Estimate object size for cache weight calculation.
      */
     private int estimateSize(Object value) {
-        if (value == null) return 1;
-        
+        if(value == null) return 1;
+
         // Basic size estimation - can be refined based on actual objects
-        if (value instanceof String) {
-            return ((String) value).length() * 2; // 2 bytes per char
-        } else if (value instanceof byte[]) {
-            return ((byte[]) value).length;
-        } else if (value instanceof WeakReference) {
+        if(value instanceof String) {
+            return((String) value).length() * 2; // 2 bytes per char
+        } else if(value instanceof byte[]) {
+            return((byte[]) value).length;
+        } else if(value instanceof WeakReference) {
             Object ref = ((WeakReference<?>) value).get();
             return ref != null ? estimateSize(ref) : 1;
         } else {
@@ -190,21 +190,21 @@ public class CacheConfig {
             return 100;
         }
     }
-    
+
     /**
      * Removal listener for cache debugging and monitoring.
      */
     private static class LoggingRemovalListener implements RemovalListener<Object, Object> {
         @Override
         public void onRemoval(Object key, Object value, RemovalCause cause) {
-            if (cause == RemovalCause.SIZE) {
-                log.warn("Cache entry evicted due to size limit: key={}", key);
-            } else if (cause == RemovalCause.COLLECTED) {
-                log.debug("Cache entry garbage collected: key={}", key);
+            if(cause == RemovalCause.SIZE) {
+                log.warn("Cache entry evicted due to size limit: key = {}", key);
+            } else if(cause == RemovalCause.COLLECTED) {
+                log.debug("Cache entry garbage collected: key = {}", key);
             }
         }
     }
-    
+
     /**
      * Bean for monitoring cache statistics.
      */
@@ -212,27 +212,27 @@ public class CacheConfig {
     public CacheStatsMonitor cacheStatsMonitor(CacheManager cacheManager) {
         return new CacheStatsMonitor(cacheManager);
     }
-    
+
     /**
      * Monitor for cache statistics and memory usage.
      */
     public static class CacheStatsMonitor {
         private final CacheManager cacheManager;
-        
+
         public CacheStatsMonitor(CacheManager cacheManager) {
             this.cacheManager = cacheManager;
         }
-        
+
         @Scheduled(fixedDelay = 300000) // Every 5 minutes
         public void logCacheStats() {
             cacheManager.getCacheNames().forEach(cacheName -> {
                 var cache = cacheManager.getCache(cacheName);
-                if (cache != null && cache.getNativeCache() instanceof com.github.benmanes.caffeine.cache.Cache) {
+                if(cache != null && cache.getNativeCache() instanceof com.github.benmanes.caffeine.cache.Cache) {
                     var caffeineCache = (com.github.benmanes.caffeine.cache.Cache<?, ?>) cache.getNativeCache();
                     var stats = caffeineCache.stats();
-                    
-                    if (stats.requestCount() > 0) {
-                        log.info("Cache '{}' stats - Hit rate: {:.2f}%, Evictions: {}, Size: {}",
+
+                    if(stats.requestCount() > 0) {
+                        log.info("Cache ' {}' stats - Hit rate: {:.2f}%, Evictions: {}, Size: {}",
                                 cacheName,
                                 stats.hitRate() * 100,
                                 stats.evictionCount(),
@@ -241,14 +241,14 @@ public class CacheConfig {
                 }
             });
         }
-        
+
         /**
          * Clear cache entries that haven't been accessed recently.
          */
         public void cleanupStaleEntries() {
             cacheManager.getCacheNames().forEach(cacheName -> {
                 var cache = cacheManager.getCache(cacheName);
-                if (cache != null && cache.getNativeCache() instanceof com.github.benmanes.caffeine.cache.Cache) {
+                if(cache != null && cache.getNativeCache() instanceof com.github.benmanes.caffeine.cache.Cache) {
                     var caffeineCache = (com.github.benmanes.caffeine.cache.Cache<?, ?>) cache.getNativeCache();
                     caffeineCache.cleanUp();
                 }

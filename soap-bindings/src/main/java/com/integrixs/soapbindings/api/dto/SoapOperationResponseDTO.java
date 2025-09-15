@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SoapOperationResponseDTO {
-    
+
     private String operationId;
     private boolean success;
     private Object response;

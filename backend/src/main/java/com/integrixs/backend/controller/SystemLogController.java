@@ -58,13 +58,13 @@ public class SystemLogController {
             @RequestParam(required = false) String domainReferenceId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
-    ) {
-    	SystemLog.LogLevel logLevel = level != null ? SystemLog.LogLevel.valueOf(level) : null;
-    	List<SystemLog> logs = systemLogRepository.findAll(
+   ) {
+        SystemLog.LogLevel logLevel = level != null ? SystemLog.LogLevel.valueOf(level) : null;
+        List<SystemLog> logs = systemLogRepository.findAll(
             SystemLogSpecifications.withFilters(source, null, logLevel, userId, from, to)
                 .and(SystemLogSpecifications.withDomainType(domainType))
                 .and(SystemLogSpecifications.withDomainReferenceId(domainReferenceId))
-        );
+       );
 
         List<SystemLogDTO> dtos = logs.stream().map(log -> {
             SystemLogDTO dto = new SystemLogDTO();
@@ -87,32 +87,32 @@ public class SystemLogController {
 
         return ResponseEntity.ok(dtos);
     }
-    
-    @GetMapping("/system-logs")
+
+    @GetMapping("/system - logs")
     public ResponseEntity<List<SystemLog>> getSystemLogsByCorrelation(
             @RequestParam(required = false) String correlationId,
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "100") int limit,
             @RequestParam(defaultValue = "0") int offset) {
-        
+
         List<SystemLog> logs;
-        
-        if (correlationId != null && category != null) {
+
+        if(correlationId != null && category != null) {
             logs = systemLogRepository.findByCorrelationIdAndCategoryOrderByTimestampDesc(correlationId, category);
-        } else if (correlationId != null) {
+        } else if(correlationId != null) {
             logs = systemLogRepository.findByCorrelationIdOrderByTimestampDesc(correlationId);
-        } else if (category != null) {
+        } else if(category != null) {
             logs = systemLogRepository.findByCategoryOrderByTimestampDesc(category);
         } else {
             Pageable pageable = PageRequest.of(0, limit);
             logs = systemLogRepository.findAllByOrderByTimestampDesc(pageable);
         }
-        
-        // Apply limit (for non-pageable methods)
-        if (!logs.isEmpty() && logs.size() > limit && category != null) {
+
+        // Apply limit(for non - pageable methods)
+        if(!logs.isEmpty() && logs.size() > limit && category != null) {
             logs = logs.subList(0, limit);
         }
-        
+
         return ResponseEntity.ok(logs);
     }
 }

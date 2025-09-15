@@ -28,7 +28,7 @@ public class WorkflowEvent {
     private Map<String, Object> eventData = new HashMap<>();
     private String userId;
     private String source;
-    
+
     /**
      * Event types
      */
@@ -49,7 +49,7 @@ public class WorkflowEvent {
         WARNING_RAISED,
         CUSTOM
     }
-    
+
     /**
      * Add event data
      * @param key Data key

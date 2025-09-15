@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RetryInfoDTO {
-    
+
     private int attemptCount;
     private boolean wasRetried;
     private String lastRetryReason;

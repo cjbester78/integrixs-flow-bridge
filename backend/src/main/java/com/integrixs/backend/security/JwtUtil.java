@@ -13,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private String secret = "integrixlab-very-secret-key-must-be-long-enough";
+    private String secret = "integrixlab - very - secret - key - must - be - long - enough";
     private long expirationMillis = 60 * 60 * 1000; // 1 hour
     private long refreshExpirationMillis = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -47,7 +47,7 @@ public class JwtUtil {
         try {
             Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch(JwtException | IllegalArgumentException e) {
             return false;
         }
     }
@@ -56,14 +56,14 @@ public class JwtUtil {
         Claims claims = extractClaims(token);
         return claims.getSubject();
     }
-    
+
     public String extractRole(String token) {
         Claims claims = extractClaims(token);
         String role = claims.get("role", String.class);
-        // If role is not in token (old tokens), return null
+        // If role is not in token(old tokens), return null
         return role;
     }
-    
+
     private Claims extractClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
@@ -75,17 +75,17 @@ public class JwtUtil {
     public long getExpirationMillis() {
         return expirationMillis;
     }
-    
+
     public Date getExpirationDateFromToken(String token) {
         Claims claims = extractClaims(token);
         return claims.getExpiration();
     }
-    
+
     public String getClaimFromToken(String token, String claimName) {
         Claims claims = extractClaims(token);
         return claims.get(claimName, String.class);
     }
-    
+
     public String getUserId(String token) {
         // For now, return username as user ID
         return extractUsername(token);

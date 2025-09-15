@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class OrchestrationTargetService {
-    
+
     private final OrchestrationTargetRepository orchestrationTargetRepository;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final CommunicationAdapterRepository adapterRepository;
     private final TargetFieldMappingRepository fieldMappingRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
-    
+
     /**
      * Get all targets for a flow
      */
@@ -47,14 +47,14 @@ public class OrchestrationTargetService {
     public List<OrchestrationTargetResponse> getFlowTargets(String flowId) {
         UUID flowUuid = parseUuid(flowId, "flow");
         IntegrationFlow flow = findFlowWithAccess(flowUuid);
-        
+
         List<OrchestrationTarget> targets = orchestrationTargetRepository.findByFlowIdOrderByExecutionOrder(flowUuid);
-        
+
         return targets.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Get a specific target
      */
@@ -63,14 +63,14 @@ public class OrchestrationTargetService {
     public Optional<OrchestrationTargetResponse> getTarget(String flowId, String targetId) {
         UUID flowUuid = parseUuid(flowId, "flow");
         UUID targetUuid = parseUuid(targetId, "target");
-        
+
         findFlowWithAccess(flowUuid);
-        
+
         return orchestrationTargetRepository.findById(targetUuid)
                 .filter(target -> target.getFlow().getId().equals(flowUuid))
                 .map(this::toResponse);
     }
-    
+
     /**
      * Add a target to a flow
      */
@@ -78,29 +78,29 @@ public class OrchestrationTargetService {
     public OrchestrationTargetResponse addTarget(String flowId, CreateOrchestrationTargetRequest request) {
         UUID flowUuid = parseUuid(flowId, "flow");
         IntegrationFlow flow = findFlowWithWriteAccess(flowUuid);
-        
+
         // Validate adapter exists and is active
         UUID adapterUuid = parseUuid(request.getTargetAdapterId(), "adapter");
         CommunicationAdapter adapter = adapterRepository.findById(adapterUuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Adapter not found: " + request.getTargetAdapterId()));
-        
-        if (!adapter.isActive()) {
+
+        if(!adapter.isActive()) {
             throw new ValidationException("Cannot add inactive adapter as target");
         }
-        
+
         // Check if adapter is already a target
-        if (orchestrationTargetRepository.existsByFlowIdAndTargetAdapterId(flowUuid, adapterUuid)) {
+        if(orchestrationTargetRepository.existsByFlowIdAndTargetAdapterId(flowUuid, adapterUuid)) {
             throw new ValidationException("Adapter is already a target for this flow");
         }
-        
+
         // Determine execution order if not specified
         Integer executionOrder = request.getExecutionOrder();
-        if (executionOrder == null) {
+        if(executionOrder == null) {
             executionOrder = orchestrationTargetRepository.getMaxExecutionOrder(flowUuid)
                     .map(max -> max + 1)
                     .orElse(0);
         }
-        
+
         OrchestrationTarget target = OrchestrationTarget.builder()
                 .flow(flow)
                 .targetAdapter(adapter)
@@ -115,9 +115,9 @@ public class OrchestrationTargetService {
                 .configuration(convertMapToJson(request.getConfiguration()))
                 .description(request.getDescription())
                 .build();
-        
+
         // Set retry policy
-        if (request.getRetryPolicy() != null) {
+        if(request.getRetryPolicy() != null) {
             var retryDto = request.getRetryPolicy();
             target.setRetryPolicy(OrchestrationTarget.RetryPolicy.builder()
                     .maxAttempts(retryDto.getMaxAttempts())
@@ -127,121 +127,121 @@ public class OrchestrationTargetService {
                     .retryOnErrors(retryDto.getRetryOnErrors())
                     .build());
         }
-        
+
         // Set structure IDs if provided
-        if (request.getStructureId() != null) {
+        if(request.getStructureId() != null) {
             target.setStructureId(parseUuid(request.getStructureId(), "structure"));
         }
-        if (request.getResponseStructureId() != null) {
+        if(request.getResponseStructureId() != null) {
             target.setResponseStructureId(parseUuid(request.getResponseStructureId(), "responseStructure"));
         }
-        
+
         // Set user info
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         userRepository.findByUsername(username).ifPresent(user -> {
             target.setCreatedBy(user);
             target.setUpdatedBy(user);
         });
-        
+
         target = orchestrationTargetRepository.save(target);
-        
-        log.info("#2.0# Orchestration target added - Flow: {}, Adapter: {}, Order: {}", 
+
+        log.info("#2.0# Orchestration target added - Flow: {}, Adapter: {}, Order: {}",
                 flow.getName(), adapter.getName(), executionOrder);
-        
+
         return toResponse(target);
     }
-    
+
     /**
      * Update a target
      */
     @BusinessOperation(value = "ORCHESTRATION.TARGET.UPDATE", module = "OrchestrationManagement", logInput = true)
-    public Optional<OrchestrationTargetResponse> updateTarget(String flowId, String targetId, 
+    public Optional<OrchestrationTargetResponse> updateTarget(String flowId, String targetId,
                                                             UpdateOrchestrationTargetRequest request) {
         UUID flowUuid = parseUuid(flowId, "flow");
         UUID targetUuid = parseUuid(targetId, "target");
-        
+
         findFlowWithWriteAccess(flowUuid);
-        
+
         return orchestrationTargetRepository.findById(targetUuid)
                 .filter(target -> target.getFlow().getId().equals(flowUuid))
                 .map(target -> {
                     // Update fields
-                    if (request.getExecutionOrder() != null) {
+                    if(request.getExecutionOrder() != null) {
                         target.setExecutionOrder(request.getExecutionOrder());
                     }
-                    if (request.getParallel() != null) {
+                    if(request.getParallel() != null) {
                         target.setParallel(request.getParallel());
                     }
-                    if (request.getRoutingCondition() != null) {
+                    if(request.getRoutingCondition() != null) {
                         target.setRoutingCondition(request.getRoutingCondition());
                     }
-                    if (request.getConditionType() != null) {
+                    if(request.getConditionType() != null) {
                         target.setConditionType(request.getConditionType());
                     }
-                    if (request.getAwaitResponse() != null) {
+                    if(request.getAwaitResponse() != null) {
                         target.setAwaitResponse(request.getAwaitResponse());
                     }
-                    if (request.getTimeoutMs() != null) {
+                    if(request.getTimeoutMs() != null) {
                         target.setTimeoutMs(request.getTimeoutMs());
                     }
-                    if (request.getErrorStrategy() != null) {
+                    if(request.getErrorStrategy() != null) {
                         target.setErrorStrategy(request.getErrorStrategy());
                     }
-                    if (request.getConfiguration() != null) {
+                    if(request.getConfiguration() != null) {
                         target.setConfiguration(convertMapToJson(request.getConfiguration()));
                     }
-                    if (request.getDescription() != null) {
+                    if(request.getDescription() != null) {
                         target.setDescription(request.getDescription());
                     }
-                    
+
                     // Update retry policy
-                    if (request.getRetryPolicy() != null) {
+                    if(request.getRetryPolicy() != null) {
                         var retryDto = request.getRetryPolicy();
-                        var currentRetry = target.getRetryPolicy() != null ? 
+                        var currentRetry = target.getRetryPolicy() != null ?
                                 target.getRetryPolicy() : new OrchestrationTarget.RetryPolicy();
-                        
-                        if (retryDto.getMaxAttempts() != null) {
+
+                        if(retryDto.getMaxAttempts() != null) {
                             currentRetry.setMaxAttempts(retryDto.getMaxAttempts());
                         }
-                        if (retryDto.getRetryDelayMs() != null) {
+                        if(retryDto.getRetryDelayMs() != null) {
                             currentRetry.setRetryDelayMs(retryDto.getRetryDelayMs());
                         }
-                        if (retryDto.getBackoffMultiplier() != null) {
+                        if(retryDto.getBackoffMultiplier() != null) {
                             currentRetry.setBackoffMultiplier(retryDto.getBackoffMultiplier());
                         }
-                        if (retryDto.getMaxRetryDelayMs() != null) {
+                        if(retryDto.getMaxRetryDelayMs() != null) {
                             currentRetry.setMaxRetryDelayMs(retryDto.getMaxRetryDelayMs());
                         }
-                        if (retryDto.getRetryOnErrors() != null) {
+                        if(retryDto.getRetryOnErrors() != null) {
                             currentRetry.setRetryOnErrors(retryDto.getRetryOnErrors());
                         }
-                        
+
                         target.setRetryPolicy(currentRetry);
                     }
-                    
+
                     // Update structure IDs
-                    if (request.getStructureId() != null) {
-                        target.setStructureId(request.getStructureId().isEmpty() ? 
+                    if(request.getStructureId() != null) {
+                        target.setStructureId(request.getStructureId().isEmpty() ?
                                 null : parseUuid(request.getStructureId(), "structure"));
                     }
-                    if (request.getResponseStructureId() != null) {
-                        target.setResponseStructureId(request.getResponseStructureId().isEmpty() ? 
+                    if(request.getResponseStructureId() != null) {
+                        target.setResponseStructureId(request.getResponseStructureId().isEmpty() ?
                                 null : parseUuid(request.getResponseStructureId(), "responseStructure"));
                     }
-                    
+
                     // Update user info
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
                     userRepository.findByUsername(username).ifPresent(target::setUpdatedBy);
-                    
+
                     target = orchestrationTargetRepository.save(target);
-                    
-                    log.info("#2.0# Orchestration target updated - Target: {}, Flow: {}", 
+
+                    log.info("#2.0# Orchestration target updated - Target: {}, Flow: {}",
                             targetId, target.getFlow().getName());
-                    
+
                     return toResponse(target);
                 });
     }
-    
+
     /**
      * Remove a target
      */
@@ -249,29 +249,29 @@ public class OrchestrationTargetService {
     public boolean removeTarget(String flowId, String targetId) {
         UUID flowUuid = parseUuid(flowId, "flow");
         UUID targetUuid = parseUuid(targetId, "target");
-        
+
         findFlowWithWriteAccess(flowUuid);
-        
+
         return orchestrationTargetRepository.findById(targetUuid)
                 .filter(target -> target.getFlow().getId().equals(flowUuid))
                 .map(target -> {
                     // Delete associated field mappings first
                     fieldMappingRepository.deleteByOrchestrationTargetId(targetUuid);
-                    
+
                     // Delete the target
                     orchestrationTargetRepository.delete(target);
-                    
+
                     // Reorder remaining targets
                     reorderTargetsAfterDeletion(flowUuid, target.getExecutionOrder());
-                    
-                    log.info("#2.0# Orchestration target removed - Target: {}, Flow: {}", 
+
+                    log.info("#2.0# Orchestration target removed - Target: {}, Flow: {}",
                             targetId, target.getFlow().getName());
-                    
+
                     return true;
                 })
                 .orElse(false);
     }
-    
+
     /**
      * Activate a target
      */
@@ -279,7 +279,7 @@ public class OrchestrationTargetService {
     public Optional<OrchestrationTargetResponse> activateTarget(String flowId, String targetId) {
         return updateTargetStatus(flowId, targetId, true);
     }
-    
+
     /**
      * Deactivate a target
      */
@@ -287,7 +287,7 @@ public class OrchestrationTargetService {
     public Optional<OrchestrationTargetResponse> deactivateTarget(String flowId, String targetId) {
         return updateTargetStatus(flowId, targetId, false);
     }
-    
+
     /**
      * Reorder targets
      */
@@ -295,133 +295,133 @@ public class OrchestrationTargetService {
     public List<OrchestrationTargetResponse> reorderTargets(String flowId, List<TargetOrderRequest> orderRequests) {
         UUID flowUuid = parseUuid(flowId, "flow");
         findFlowWithWriteAccess(flowUuid);
-        
+
         // Validate all target IDs belong to the flow
         Map<UUID, Integer> orderMap = new HashMap<>();
-        for (TargetOrderRequest request : orderRequests) {
+        for(TargetOrderRequest request : orderRequests) {
             UUID targetUuid = parseUuid(request.getTargetId(), "target");
             orderMap.put(targetUuid, request.getExecutionOrder());
         }
-        
+
         List<OrchestrationTarget> targets = orchestrationTargetRepository.findByFlowId(flowUuid);
-        
+
         // Validate all targets are included
-        if (targets.size() != orderRequests.size()) {
+        if(targets.size() != orderRequests.size()) {
             throw new ValidationException("All targets must be included in reorder request");
         }
-        
+
         // Update execution orders
-        for (OrchestrationTarget target : targets) {
+        for(OrchestrationTarget target : targets) {
             Integer newOrder = orderMap.get(target.getId());
-            if (newOrder == null) {
+            if(newOrder == null) {
                 throw new ValidationException("Target not found in reorder request: " + target.getId());
             }
             target.setExecutionOrder(newOrder);
         }
-        
+
         // Save all targets
         targets = orchestrationTargetRepository.saveAll(targets);
-        
-        log.info("#2.0# Orchestration targets reordered - Flow: {}, Count: {}", 
+
+        log.info("#2.0# Orchestration targets reordered - Flow: {}, Count: {}",
                 flowId, targets.size());
-        
+
         return targets.stream()
                 .sorted(Comparator.comparing(OrchestrationTarget::getExecutionOrder))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
-    
+
     /**
-     * Update target status (activate/deactivate)
+     * Update target status(activate/deactivate)
      */
     private Optional<OrchestrationTargetResponse> updateTargetStatus(String flowId, String targetId, boolean active) {
         UUID flowUuid = parseUuid(flowId, "flow");
         UUID targetUuid = parseUuid(targetId, "target");
-        
+
         findFlowWithWriteAccess(flowUuid);
-        
+
         return orchestrationTargetRepository.findById(targetUuid)
                 .filter(target -> target.getFlow().getId().equals(flowUuid))
                 .map(target -> {
                     target.setActive(active);
-                    
+
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
                     userRepository.findByUsername(username).ifPresent(target::setUpdatedBy);
-                    
+
                     target = orchestrationTargetRepository.save(target);
-                    
-                    log.info("#2.0# Orchestration target {} - Target: {}, Flow: {}", 
+
+                    log.info("#2.0# Orchestration target {} - Target: {}, Flow: {}",
                             active ? "activated" : "deactivated", targetId, target.getFlow().getName());
-                    
+
                     return toResponse(target);
                 });
     }
-    
+
     /**
      * Reorder targets after deletion
      */
     private void reorderTargetsAfterDeletion(UUID flowId, Integer deletedOrder) {
         List<OrchestrationTarget> targets = orchestrationTargetRepository.findByFlowId(flowId);
-        
-        for (OrchestrationTarget target : targets) {
-            if (target.getExecutionOrder() > deletedOrder) {
+
+        for(OrchestrationTarget target : targets) {
+            if(target.getExecutionOrder() > deletedOrder) {
                 target.setExecutionOrder(target.getExecutionOrder() - 1);
             }
         }
-        
+
         orchestrationTargetRepository.saveAll(targets);
     }
-    
+
     /**
      * Find flow and check read access
      */
     private IntegrationFlow findFlowWithAccess(UUID flowId) {
         IntegrationFlow flow = integrationFlowRepository.findById(flowId)
                 .orElseThrow(() -> new ResourceNotFoundException("Integration flow not found: " + flowId));
-        
+
         // Check user has access to the package
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         boolean hasAccess = userRepository.findByUsername(username)
                 .map(user -> flow.getPackageEntity().getMembers().contains(user))
                 .orElse(false);
-        
-        if (!hasAccess) {
+
+        if(!hasAccess) {
             throw new AccessDeniedException("Access denied to flow: " + flowId);
         }
-        
+
         return flow;
     }
-    
+
     /**
      * Find flow and check write access
      */
     private IntegrationFlow findFlowWithWriteAccess(UUID flowId) {
         IntegrationFlow flow = findFlowWithAccess(flowId);
-        
-        // Additional check for write access (could be role-based)
+
+        // Additional check for write access(could be role - based)
         // For now, same as read access
-        
+
         return flow;
     }
-    
+
     /**
      * Parse UUID from string
      */
     private UUID parseUuid(String value, String type) {
         try {
             return UUID.fromString(value);
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             throw new ValidationException("Invalid " + type + " ID: " + value);
         }
     }
-    
+
     /**
      * Convert entity to response DTO
      */
     private OrchestrationTargetResponse toResponse(OrchestrationTarget target) {
         // Get mapping count
         long mappingCount = fieldMappingRepository.countByOrchestrationTargetId(target.getId());
-        
+
         // Build adapter summary
         CommunicationAdapter adapter = target.getTargetAdapter();
         OrchestrationTargetResponse.AdapterSummary adapterSummary = OrchestrationTargetResponse.AdapterSummary.builder()
@@ -431,10 +431,10 @@ public class OrchestrationTargetService {
                 .mode(adapter.getMode())
                 .active(adapter.isActive())
                 .build();
-        
+
         // Build retry policy
         OrchestrationTargetResponse.RetryPolicyResponse retryPolicy = null;
-        if (target.getRetryPolicy() != null) {
+        if(target.getRetryPolicy() != null) {
             var rp = target.getRetryPolicy();
             retryPolicy = OrchestrationTargetResponse.RetryPolicyResponse.builder()
                     .maxAttempts(rp.getMaxAttempts())
@@ -444,7 +444,7 @@ public class OrchestrationTargetService {
                     .retryOnErrors(rp.getRetryOnErrors())
                     .build();
         }
-        
+
         return OrchestrationTargetResponse.builder()
                 .id(target.getId().toString())
                 .flowId(target.getFlow().getId().toString())
@@ -467,32 +467,32 @@ public class OrchestrationTargetService {
                 .mappingCount(mappingCount)
                 .build();
     }
-    
+
     /**
      * Convert Map to JSON string
      */
     private String convertMapToJson(Map<String, Object> map) {
-        if (map == null || map.isEmpty()) {
+        if(map == null || map.isEmpty()) {
             return null;
         }
         try {
             return objectMapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.warn("Failed to convert map to JSON", e);
             return null;
         }
     }
-    
+
     /**
      * Convert JSON string to Map
      */
     private Map<String, Object> convertJsonToMap(String json) {
-        if (json == null || json.trim().isEmpty()) {
+        if(json == null || json.trim().isEmpty()) {
             return null;
         }
         try {
             return objectMapper.readValue(json, Map.class);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.warn("Failed to convert JSON to map", e);
             return null;
         }

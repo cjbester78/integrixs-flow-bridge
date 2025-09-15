@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class WebServerApplicationService {
 
     private static final Logger logger = LoggerFactory.getLogger(WebServerApplicationService.class);
-    
+
     private final OutboundRequestService requestService;
     private final ServiceEndpointService endpointService;
     private final HttpClientService httpClientService;
@@ -53,34 +53,34 @@ public class WebServerApplicationService {
      */
     public OutboundResponseDTO executeRequest(OutboundRequestDTO request) {
         logger.info("Executing outbound request to: {}", request.getTargetUrl());
-        
+
         // Convert DTO to domain model
         OutboundRequest domainRequest = convertToDomainRequest(request);
-        
+
         // Save request to history
         historyRepository.saveRequest(domainRequest);
-        
+
         try {
             // Execute request
             OutboundResponse response = requestService.executeRequest(domainRequest);
-            
+
             // Save response to history
             historyRepository.saveResponse(response);
-            
+
             // Convert response to DTO
             return convertToResponseDTO(response);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error executing request {}: {}", domainRequest.getRequestId(), e.getMessage(), e);
-            
+
             // Create error response
             OutboundResponse errorResponse = OutboundResponse.failure(
-                domainRequest.getRequestId(), 
-                500, 
+                domainRequest.getRequestId(),
+                500,
                 e.getMessage()
-            );
+           );
             historyRepository.saveResponse(errorResponse);
-            
+
             return convertToResponseDTO(errorResponse);
         }
     }
@@ -93,16 +93,16 @@ public class WebServerApplicationService {
      */
     public OutboundResponseDTO executeRequestWithEndpoint(String endpointId, EndpointRequestDTO request) {
         logger.info("Executing request with endpoint: {}", endpointId);
-        
+
         // Get endpoint configuration
         ServiceEndpoint endpoint = endpointService.getEndpoint(endpointId);
-        if (endpoint == null || !endpoint.isActive()) {
+        if(endpoint == null || !endpoint.isActive()) {
             throw new RuntimeException("Endpoint not found or inactive: " + endpointId);
         }
-        
+
         // Build full URL
         String fullUrl = endpoint.buildUrl(request.getPath());
-        
+
         // Create outbound request with endpoint configuration
         OutboundRequest domainRequest = OutboundRequest.builder()
                 .requestType(mapEndpointTypeToRequestType(endpoint.getType()))
@@ -117,14 +117,14 @@ public class WebServerApplicationService {
                 .flowId(request.getFlowId())
                 .adapterId(request.getAdapterId())
                 .build();
-        
+
         // Save request to history
         historyRepository.saveRequest(domainRequest);
-        
+
         try {
             // Execute request based on type
             OutboundResponse response;
-            switch (endpoint.getType()) {
+            switch(endpoint.getType()) {
                 case SOAP_SERVICE:
                     response = httpClientService.executeSoapCall(domainRequest);
                     break;
@@ -135,22 +135,22 @@ public class WebServerApplicationService {
                     response = httpClientService.executeRestCall(domainRequest);
                     break;
             }
-            
+
             // Save response to history
             historyRepository.saveResponse(response);
-            
+
             return convertToResponseDTO(response);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error executing request with endpoint {}: {}", endpointId, e.getMessage(), e);
-            
+
             OutboundResponse errorResponse = OutboundResponse.failure(
                 domainRequest.getRequestId(),
                 500,
                 e.getMessage()
-            );
+           );
             historyRepository.saveResponse(errorResponse);
-            
+
             return convertToResponseDTO(errorResponse);
         }
     }
@@ -162,23 +162,23 @@ public class WebServerApplicationService {
      */
     public ServiceEndpointDTO registerEndpoint(RegisterEndpointDTO request) {
         logger.info("Registering new endpoint: {}", request.getName());
-        
+
         // Check if endpoint name already exists
-        if (endpointRepository.existsByName(request.getName())) {
+        if(endpointRepository.existsByName(request.getName())) {
             throw new RuntimeException("Endpoint with name already exists: " + request.getName());
         }
-        
+
         // Create domain model
         ServiceEndpoint endpoint = convertToDomainEndpoint(request);
-        
+
         // Validate endpoint configuration
-        if (!endpointService.validateEndpointConfiguration(endpoint)) {
+        if(!endpointService.validateEndpointConfiguration(endpoint)) {
             throw new RuntimeException("Invalid endpoint configuration");
         }
-        
+
         // Register endpoint
         ServiceEndpoint registered = endpointService.registerEndpoint(endpoint);
-        
+
         return convertToEndpointDTO(registered);
     }
 
@@ -190,19 +190,19 @@ public class WebServerApplicationService {
      */
     public ServiceEndpointDTO updateEndpoint(String endpointId, UpdateEndpointDTO request) {
         logger.info("Updating endpoint: {}", endpointId);
-        
+
         // Get existing endpoint
         ServiceEndpoint existing = endpointService.getEndpoint(endpointId);
-        if (existing == null) {
+        if(existing == null) {
             throw new RuntimeException("Endpoint not found: " + endpointId);
         }
-        
+
         // Update fields
         updateEndpointFields(existing, request);
-        
+
         // Update endpoint
         ServiceEndpoint updated = endpointService.updateEndpoint(existing);
-        
+
         return convertToEndpointDTO(updated);
     }
 
@@ -225,7 +225,7 @@ public class WebServerApplicationService {
     @Transactional(readOnly = true)
     public ServiceEndpointDTO getEndpoint(String endpointId) {
         ServiceEndpoint endpoint = endpointService.getEndpoint(endpointId);
-        if (endpoint == null) {
+        if(endpoint == null) {
             throw new RuntimeException("Endpoint not found: " + endpointId);
         }
         return convertToEndpointDTO(endpoint);
@@ -238,9 +238,9 @@ public class WebServerApplicationService {
      */
     public EndpointTestResultDTO testEndpoint(String endpointId) {
         logger.info("Testing endpoint connectivity: {}", endpointId);
-        
+
         boolean isReachable = endpointService.testEndpointConnectivity(endpointId);
-        
+
         return EndpointTestResultDTO.builder()
                 .endpointId(endpointId)
                 .reachable(isReachable)
@@ -257,21 +257,21 @@ public class WebServerApplicationService {
     @Transactional(readOnly = true)
     public List<RequestHistoryDTO> getRequestHistory(RequestHistoryCriteriaDTO criteria) {
         List<OutboundRequest> requests;
-        
-        if (criteria.getFlowId() != null) {
+
+        if(criteria.getFlowId() != null) {
             requests = historyRepository.findRequestsByFlowId(criteria.getFlowId());
-        } else if (criteria.getAdapterId() != null) {
+        } else if(criteria.getAdapterId() != null) {
             requests = historyRepository.findRequestsByAdapterId(criteria.getAdapterId());
-        } else if (criteria.getStartDate() != null && criteria.getEndDate() != null) {
+        } else if(criteria.getStartDate() != null && criteria.getEndDate() != null) {
             requests = historyRepository.findRequestsByDateRange(criteria.getStartDate(), criteria.getEndDate());
         } else {
             // Default to last 24 hours
             requests = historyRepository.findRequestsByDateRange(
                     LocalDateTime.now().minusDays(1),
                     LocalDateTime.now()
-            );
+           );
         }
-        
+
         return requests.stream()
                 .map(this::convertToHistoryDTO)
                 .collect(Collectors.toList());
@@ -297,8 +297,8 @@ public class WebServerApplicationService {
     }
 
     private OutboundRequest.AuthenticationConfig convertAuthConfig(AuthenticationConfigDTO dto) {
-        if (dto == null) return null;
-        
+        if(dto == null) return null;
+
         return OutboundRequest.AuthenticationConfig.builder()
                 .authType(OutboundRequest.AuthenticationConfig.AuthType.valueOf(dto.getAuthType()))
                 .credentials(dto.getCredentials())
@@ -306,8 +306,8 @@ public class WebServerApplicationService {
     }
 
     private OutboundRequest.AuthenticationConfig convertAuthConfig(ServiceEndpoint.AuthenticationConfig config) {
-        if (config == null) return null;
-        
+        if(config == null) return null;
+
         return OutboundRequest.AuthenticationConfig.builder()
                 .authType(OutboundRequest.AuthenticationConfig.AuthType.valueOf(config.getAuthType().name()))
                 .credentials(config.getCredentials())
@@ -315,8 +315,8 @@ public class WebServerApplicationService {
     }
 
     private OutboundRequest.RetryConfig convertRetryConfig(RetryConfigDTO dto) {
-        if (dto == null) return null;
-        
+        if(dto == null) return null;
+
         return OutboundRequest.RetryConfig.builder()
                 .maxRetries(dto.getMaxRetries())
                 .retryDelayMillis(dto.getRetryDelayMillis())
@@ -343,8 +343,8 @@ public class WebServerApplicationService {
     }
 
     private RetryInfoDTO convertRetryInfo(OutboundResponse.RetryInfo info) {
-        if (info == null) return null;
-        
+        if(info == null) return null;
+
         return RetryInfoDTO.builder()
                 .attemptCount(info.getAttemptCount())
                 .wasRetried(info.isWasRetried())
@@ -369,8 +369,8 @@ public class WebServerApplicationService {
     }
 
     private ServiceEndpoint.AuthenticationConfig convertEndpointAuth(AuthenticationConfigDTO dto) {
-        if (dto == null) return null;
-        
+        if(dto == null) return null;
+
         return ServiceEndpoint.AuthenticationConfig.builder()
                 .authType(ServiceEndpoint.AuthenticationConfig.AuthType.valueOf(dto.getAuthType()))
                 .credentials(dto.getCredentials())
@@ -378,10 +378,10 @@ public class WebServerApplicationService {
     }
 
     private ServiceEndpoint.ConnectionConfig convertConnectionConfig(ConnectionConfigDTO dto) {
-        if (dto == null) {
+        if(dto == null) {
             return ServiceEndpoint.ConnectionConfig.builder().build();
         }
-        
+
         return ServiceEndpoint.ConnectionConfig.builder()
                 .connectionTimeoutSeconds(dto.getConnectionTimeoutSeconds())
                 .readTimeoutSeconds(dto.getReadTimeoutSeconds())
@@ -407,25 +407,25 @@ public class WebServerApplicationService {
     }
 
     private void updateEndpointFields(ServiceEndpoint endpoint, UpdateEndpointDTO dto) {
-        if (dto.getBaseUrl() != null) {
+        if(dto.getBaseUrl() != null) {
             endpoint.setBaseUrl(dto.getBaseUrl());
         }
-        if (dto.getDescription() != null) {
+        if(dto.getDescription() != null) {
             endpoint.setDescription(dto.getDescription());
         }
-        if (dto.getDefaultHeaders() != null) {
+        if(dto.getDefaultHeaders() != null) {
             endpoint.setDefaultHeaders(dto.getDefaultHeaders());
         }
-        if (dto.getActive() != null) {
+        if(dto.getActive() != null) {
             endpoint.setActive(dto.getActive());
         }
-        if (dto.getVersion() != null) {
+        if(dto.getVersion() != null) {
             endpoint.setVersion(dto.getVersion());
         }
     }
 
     private OutboundRequest.RequestType mapEndpointTypeToRequestType(ServiceEndpoint.EndpointType type) {
-        switch (type) {
+        switch(type) {
             case SOAP_SERVICE:
                 return OutboundRequest.RequestType.SOAP_SERVICE;
             case GRAPHQL_API:
@@ -440,7 +440,7 @@ public class WebServerApplicationService {
     private RequestHistoryDTO convertToHistoryDTO(OutboundRequest request) {
         // Get response if available
         OutboundResponse response = historyRepository.findResponseByRequestId(request.getRequestId()).orElse(null);
-        
+
         return RequestHistoryDTO.builder()
                 .requestId(request.getRequestId())
                 .requestType(request.getRequestType().name())

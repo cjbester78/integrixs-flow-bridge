@@ -18,28 +18,28 @@ import java.util.Map;
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
-    // Handle validation errors (@Valid)
+    // Handle validation errors(@Valid)
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex, 
+            MethodArgumentNotValidException ex,
             HttpHeaders headers,
-            HttpStatus status, 
+            HttpStatus status,
             WebRequest request) {
-        
+
         Map<String, Object> body = new HashMap<>();
         Map<String, String> fieldErrors = new HashMap<>();
-        
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
+
+        ex.getBindingResult().getFieldErrors().forEach(error ->
             fieldErrors.put(error.getField(), error.getDefaultMessage())
-        );
-        
+       );
+
         body.put("timestamp", LocalDateTime.now());
         body.put("status", status.value());
         body.put("errors", fieldErrors);
         body.put("message", "Validation failed");
-        
+
         return new ResponseEntity<>(body, headers, status);
     }
-    
+
     // Handle IllegalArgumentException, e.g. bad input parameters
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex) {
@@ -50,8 +50,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
-    
-    // Handle Resource Not Found (custom exception example)
+
+    // Handle Resource Not Found(custom exception example)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFound(ResourceNotFoundException ex) {
         Map<String, Object> body = new HashMap<>();

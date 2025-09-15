@@ -39,17 +39,17 @@ public class SystemLogService {
     private final SystemLogRepository systemLogRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
-    
+
     @Autowired(required = false)
     private AuditLogEncryptionService auditLogEncryptionService;
 
-    @Value("${logging.frontend.level:INFO}")
+    @Value("$ {logging.frontend.level:INFO}")
     private String frontendLogLevel;
 
-    @Value("${logging.frontend.enabled-categories:ALL}")
+    @Value("$ {logging.frontend.enabled - categories:ALL}")
     private String enabledCategories;
-    
-    @Value("${systemlog.encryption.enabled:false}")
+
+    @Value("$ {systemlog.encryption.enabled:false}")
     private boolean encryptionEnabled;
 
     /**
@@ -77,22 +77,22 @@ public class SystemLogService {
                     .build();
 
             // Encrypt sensitive data if enabled
-            if (encryptionEnabled && auditLogEncryptionService != null) {
+            if(encryptionEnabled && auditLogEncryptionService != null) {
                 systemLog = auditLogEncryptionService.encryptSystemLog(systemLog);
             }
 
             systemLogRepository.save(systemLog);
 
             // Log to server logs as well for debugging
-            if ("ERROR".equals(entry.getLevel()) || "FATAL".equals(entry.getLevel())) {
+            if("ERROR".equals(entry.getLevel()) || "FATAL".equals(entry.getLevel())) {
                 log.error("Frontend error: {} - {}", entry.getCategory(), entry.getMessage());
-            } else if ("WARN".equals(entry.getLevel())) {
+            } else if("WARN".equals(entry.getLevel())) {
                 log.warn("Frontend warning: {} - {}", entry.getCategory(), entry.getMessage());
-            } else if ("DEBUG".equals(entry.getLevel())) {
+            } else if("DEBUG".equals(entry.getLevel())) {
                 log.debug("Frontend debug: {} - {}", entry.getCategory(), entry.getMessage());
             }
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to save frontend log entry: {}", e.getMessage(), e);
         }
     }
@@ -108,13 +108,13 @@ public class SystemLogService {
             try {
                 // Parse the beacon data as JSON
                 FrontendLogBatchRequest batch = objectMapper.readValue(beaconData, FrontendLogBatchRequest.class);
-                
+
                 // Process each log entry
-                for (FrontendLogEntry entry : batch.getLogs()) {
+                for(FrontendLogEntry entry : batch.getLogs()) {
                     logFrontendEvent(entry);
                 }
-                
-            } catch (Exception e) {
+
+            } catch(Exception e) {
                 log.error("Failed to process beacon logs: {}", e.getMessage());
             }
         });
@@ -149,11 +149,11 @@ public class SystemLogService {
                 entry.getSessionId(),
                 entry.getCorrelationId(),
                 entry.getStackTrace() != null ? entry.getStackTrace() : "N/A"
-            );
+           );
 
             log.error("System alert: {} - {}", subject, message);
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to send error alert: {}", e.getMessage());
         }
     }
@@ -173,9 +173,9 @@ public class SystemLogService {
      * @return List of enabled categories
      */
     public List<String> getEnabledCategories() {
-        if ("ALL".equals(enabledCategories)) {
-            return Arrays.asList("AUTH", "API", "VALIDATION", "USER_ACTION", 
-                               "NAVIGATION", "PERFORMANCE", "ERROR", "SECURITY", 
+        if("ALL".equals(enabledCategories)) {
+            return Arrays.asList("AUTH", "API", "VALIDATION", "USER_ACTION",
+                               "NAVIGATION", "PERFORMANCE", "ERROR", "SECURITY",
                                "BUSINESS_LOGIC", "UI", "SYSTEM");
         }
         return Arrays.asList(enabledCategories.split(","));
@@ -188,13 +188,13 @@ public class SystemLogService {
      * @return The system log level
      */
     private SystemLog.LogLevel mapLogLevel(String frontendLevel) {
-        if (frontendLevel == null) {
+        if(frontendLevel == null) {
             return SystemLog.LogLevel.INFO;
         }
-        
+
         try {
             return SystemLog.LogLevel.valueOf(frontendLevel.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             log.warn("Unknown frontend log level: {}", frontendLevel);
             return SystemLog.LogLevel.INFO;
         }
@@ -207,19 +207,19 @@ public class SystemLogService {
      * @return The username or null
      */
     private String getUsernameById(String userId) {
-        if (userId == null) {
+        if(userId == null) {
             return null;
         }
-        
+
         try {
             Optional<User> user = userRepository.findById(UUID.fromString(userId));
             return user.map(User::getUsername).orElse(null);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.debug("Failed to get username for ID: {}", userId);
             return null;
         }
     }
-    
+
     /**
      * Get username by user UUID.
      *
@@ -227,14 +227,14 @@ public class SystemLogService {
      * @return The username or null if not found
      */
     private String getUsernameByUuid(UUID userId) {
-        if (userId == null) {
+        if(userId == null) {
             return null;
         }
-        
+
         try {
             Optional<User> user = userRepository.findById(userId);
             return user.map(User::getUsername).orElse(null);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.debug("Failed to get username for UUID: {}", userId);
             return null;
         }
@@ -249,23 +249,23 @@ public class SystemLogService {
     private String convertDetailsToJson(FrontendLogEntry entry) {
         try {
             Map<String, Object> allDetails = new HashMap<>();
-            
-            if (entry.getDetails() != null) {
+
+            if(entry.getDetails() != null) {
                 allDetails.putAll(entry.getDetails());
             }
-            
-            if (entry.getError() != null) {
+
+            if(entry.getError() != null) {
                 allDetails.put("error", entry.getError());
             }
-            
+
             allDetails.put("frontendTimestamp", entry.getTimestamp());
             allDetails.put("serverReceivedAt", entry.getServerReceivedAt());
-            
+
             return objectMapper.writeValueAsString(allDetails);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to convert details to JSON: {}", e.getMessage());
-            return "{}";
+            return " {}";
         }
     }
 
@@ -279,31 +279,31 @@ public class SystemLogService {
      * @param endDate The end date filter
      * @return List of system logs
      */
-    public List<SystemLog> queryFrontendLogs(String category, String level, String userId, 
+    public List<SystemLog> queryFrontendLogs(String category, String level, String userId,
                                             LocalDateTime startDate, LocalDateTime endDate) {
         // Build query based on filters
-        if (category != null) {
+        if(category != null) {
             category = "FRONTEND_" + category;
         }
-        
+
         List<SystemLog> logs = systemLogRepository.findAll(
             SystemLogSpecifications.withFilters(
-                "FRONTEND", 
-                category, 
+                "FRONTEND",
+                category,
                 level != null ? SystemLog.LogLevel.valueOf(level) : null,
                 userId,
                 startDate,
                 endDate
-            )
-        );
-        
+           )
+       );
+
         // Decrypt sensitive data if enabled
-        if (encryptionEnabled && auditLogEncryptionService != null) {
+        if(encryptionEnabled && auditLogEncryptionService != null) {
             return logs.stream()
                 .map(log -> auditLogEncryptionService.decryptSystemLog(log))
                 .collect(Collectors.toList());
         }
-        
+
         return logs;
     }
 
@@ -315,27 +315,27 @@ public class SystemLogService {
      */
     public Map<String, Object> getFrontendErrorStats(int hours) {
         LocalDateTime since = LocalDateTime.now().minusHours(hours);
-        
+
         List<SystemLog> errors = systemLogRepository.findBySourceAndLevelAndTimestampAfter(
-            "FRONTEND", 
-            SystemLog.LogLevel.ERROR, 
+            "FRONTEND",
+            SystemLog.LogLevel.ERROR,
             since
-        );
-        
-        // Decrypt sensitive data if enabled (for statistics, we might not need decryption)
+       );
+
+        // Decrypt sensitive data if enabled(for statistics, we might not need decryption)
         // But keeping for consistency
-        if (encryptionEnabled && auditLogEncryptionService != null) {
+        if(encryptionEnabled && auditLogEncryptionService != null) {
             errors = errors.stream()
                 .map(log -> auditLogEncryptionService.decryptSystemLog(log))
                 .collect(Collectors.toList());
         }
-        
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalErrors", errors.size());
         stats.put("uniqueUsers", errors.stream().map(SystemLog::getUserId).distinct().count());
         stats.put("topCategories", getTopCategories(errors));
         stats.put("errorsByHour", groupErrorsByHour(errors));
-        
+
         return stats;
     }
 
@@ -347,12 +347,12 @@ public class SystemLogService {
      */
     private Map<String, Long> getTopCategories(List<SystemLog> logs) {
         Map<String, Long> categoryCounts = new HashMap<>();
-        
-        for (SystemLog log : logs) {
+
+        for(SystemLog log : logs) {
             String category = log.getCategory().replace("FRONTEND_", "");
             categoryCounts.put(category, categoryCounts.getOrDefault(category, 0L) + 1);
         }
-        
+
         return categoryCounts;
     }
 
@@ -364,15 +364,15 @@ public class SystemLogService {
      */
     private Map<String, Long> groupErrorsByHour(List<SystemLog> logs) {
         Map<String, Long> hourlyCounts = new TreeMap<>();
-        
-        for (SystemLog log : logs) {
+
+        for(SystemLog log : logs) {
             String hour = log.getTimestamp().toLocalDate() + " " + log.getTimestamp().getHour() + ":00";
             hourlyCounts.put(hour, hourlyCounts.getOrDefault(hour, 0L) + 1);
         }
-        
+
         return hourlyCounts;
     }
-    
+
     /**
      * Get logs for a specific adapter.
      *
@@ -382,9 +382,9 @@ public class SystemLogService {
      */
     public Page<SystemLogDTO> getAdapterLogs(String adapterId, Pageable pageable) {
         log.debug("Fetching logs for adapter: {}", adapterId);
-        
+
         // Use JPA Specification to query logs where:
-        // 1. domainReferenceId matches the adapterId (for adapter activity logs)
+        // 1. domainReferenceId matches the adapterId(for adapter activity logs)
         // 2. OR it's part of a flow execution involving this adapter
         Page<SystemLog> logs = systemLogRepository.findAll(
             (root, query, cb) -> cb.or(
@@ -392,28 +392,28 @@ public class SystemLogService {
                 cb.and(
                     cb.equal(root.get("domainType"), "CommunicationAdapter"),
                     cb.equal(root.get("domainReferenceId"), adapterId)
-                ),
+               ),
                 // Flow execution logs where this adapter is involved
                 cb.and(
                     cb.equal(root.get("category"), "FLOW_EXECUTION"),
                     root.get("details").isNotNull()
-                )
-            ),
+               )
+           ),
             pageable
-        );
-        
+       );
+
         // Decrypt sensitive data if enabled before converting to DTOs
-        if (encryptionEnabled && auditLogEncryptionService != null) {
+        if(encryptionEnabled && auditLogEncryptionService != null) {
             List<SystemLog> decryptedLogs = logs.getContent().stream()
                 .map(log -> auditLogEncryptionService.decryptSystemLog(log))
                 .collect(Collectors.toList());
             logs = new org.springframework.data.domain.PageImpl<>(decryptedLogs, pageable, logs.getTotalElements());
         }
-        
+
         // Convert to DTOs
         return logs.map(this::convertToDTO);
     }
-    
+
     /**
      * Convert SystemLog entity to DTO.
      *

@@ -20,10 +20,10 @@ import java.util.function.Supplier;
 public class CircuitBreakerService {
     private static final Logger log = LoggerFactory.getLogger(CircuitBreakerService.class);
 
-    
+
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final ConcurrentHashMap<String, CircuitBreaker> circuitBreakers = new ConcurrentHashMap<>();
-    
+
     public CircuitBreakerService() {
         // Default configuration
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
@@ -32,19 +32,19 @@ public class CircuitBreakerService {
             .permittedNumberOfCallsInHalfOpenState(3)
             .slidingWindowSize(10)
             .build();
-            
+
         this.circuitBreakerRegistry = CircuitBreakerRegistry.of(config);
     }
-    
+
     /**
      * Get or create a circuit breaker for the given name
      */
     public CircuitBreaker getCircuitBreaker(String name) {
-        return circuitBreakers.computeIfAbsent(name, key -> 
+        return circuitBreakers.computeIfAbsent(name, key ->
             circuitBreakerRegistry.circuitBreaker(name)
-        );
+       );
     }
-    
+
     /**
      * Execute a callable with circuit breaker protection
      */
@@ -52,7 +52,7 @@ public class CircuitBreakerService {
         CircuitBreaker circuitBreaker = getCircuitBreaker(circuitBreakerName);
         return circuitBreaker.executeCallable(callable);
     }
-    
+
     /**
      * Execute a supplier with circuit breaker protection
      */
@@ -60,7 +60,7 @@ public class CircuitBreakerService {
         CircuitBreaker circuitBreaker = getCircuitBreaker(circuitBreakerName);
         return circuitBreaker.executeSupplier(supplier);
     }
-    
+
     /**
      * Check if circuit breaker is open
      */
@@ -68,12 +68,28 @@ public class CircuitBreakerService {
         CircuitBreaker circuitBreaker = getCircuitBreaker(circuitBreakerName);
         return circuitBreaker.getState() == CircuitBreaker.State.OPEN;
     }
-    
+
     /**
      * Reset circuit breaker
      */
     public void reset(String circuitBreakerName) {
         CircuitBreaker circuitBreaker = getCircuitBreaker(circuitBreakerName);
         circuitBreaker.reset();
+    }
+    
+    /**
+     * Execute with fallback
+     */
+    public <T> T executeWithFallback(String circuitBreakerName, String instanceId, 
+                                     Supplier<T> supplier, Supplier<T> fallbackSupplier) {
+        try {
+            return executeWithCircuitBreaker(circuitBreakerName, supplier);
+        } catch (io.github.resilience4j.circuitbreaker.CallNotPermittedException e) {
+            log.warn("Circuit breaker {} is open for instance {}, executing fallback", circuitBreakerName, instanceId);
+            return fallbackSupplier.get();
+        } catch (Exception e) {
+            log.error("Error executing circuit breaker operation for {} instance {}", circuitBreakerName, instanceId, e);
+            throw e;
+        }
     }
 }

@@ -10,14 +10,14 @@ import java.util.UUID;
 
 /**
  * Entity representing WSDL operations for flow structures.
- * 
+ *
  * <p>Stores operation details extracted from WSDL definitions.
- * 
+ *
  * @author Integration Team
  * @since 2.0.0
  */
 @Entity
-@Table(name = "flow_structure_operations", 
+@Table(name = "flow_structure_operations",
        uniqueConstraints = @UniqueConstraint(columnNames = {"flow_structure_id", "operation_name"}),
        indexes = @Index(name = "idx_flow_struct_ops", columnList = "flow_structure_id"))
 @Data
@@ -29,7 +29,7 @@ import java.util.UUID;
 public class FlowStructureOperation {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

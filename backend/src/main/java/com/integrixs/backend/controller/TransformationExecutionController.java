@@ -19,14 +19,14 @@ public class TransformationExecutionController {
     /**
      * Execute transformation for a specific transformation ID with input data
      */
-    @PostMapping("/{transformationId}/execute")
+    @PostMapping("/ {transformationId}/execute")
     public ResponseEntity<TransformationResult> executeTransformation(
-            @PathVariable String transformationId, 
+            @PathVariable String transformationId,
             @RequestBody Object inputData) {
         try {
             TransformationResult result = transformationService.executeTransformation(transformationId, inputData);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             TransformationResult errorResult = TransformationResult.error("Execution failed: " + e.getMessage());
             return ResponseEntity.internalServerError().body(errorResult);
         }
@@ -35,22 +35,22 @@ public class TransformationExecutionController {
     /**
      * Test transformation with sample data before applying to real flow
      */
-    @PostMapping("/{transformationId}/test")
+    @PostMapping("/ {transformationId}/test")
     public ResponseEntity<TransformationResult> testTransformation(
             @PathVariable String transformationId,
             @RequestBody TestTransformationRequest request) {
         try {
             TransformationResult result = transformationService.executeTransformation(
-                transformationId, 
+                transformationId,
                 request.getSampleData()
-            );
-            
-            // Add test-specific metadata
-            result.setMessage("Test execution completed - " + 
+           );
+
+            // Add test - specific metadata
+            result.setMessage("Test execution completed - " +
                 (result.isSuccess() ? "SUCCESS" : "FAILED"));
-            
+
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             TransformationResult errorResult = TransformationResult.error("Test failed: " + e.getMessage());
             return ResponseEntity.ok(errorResult);
         }
@@ -59,12 +59,12 @@ public class TransformationExecutionController {
     /**
      * Validate transformation configuration without executing
      */
-    @PostMapping("/{transformationId}/validate")
+    @PostMapping("/ {transformationId}/validate")
     public ResponseEntity<TransformationExecutionService.ValidationResult> validateTransformation(@PathVariable String transformationId) {
         try {
             TransformationExecutionService.ValidationResult result = transformationService.validateTransformation(transformationId);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             TransformationExecutionService.ValidationResult errorResult = new TransformationExecutionService.ValidationResult();
             errorResult.addError("Validation failed: " + e.getMessage());
             return ResponseEntity.ok(errorResult);
@@ -72,19 +72,19 @@ public class TransformationExecutionController {
     }
 
     /**
-     * Execute transformation with custom JavaScript function (for testing)
+     * Execute transformation with custom JavaScript function(for testing)
      */
-    @PostMapping("/execute-javascript")
+    @PostMapping("/execute - javascript")
     public ResponseEntity<JavaScriptExecutionResult> executeJavaScript(@RequestBody JavaScriptExecutionRequest request) {
         try {
             // Create a temporary transformation for testing JavaScript
             JavaScriptExecutionResult result = executeCustomJavaScript(
                 request.getJavaScriptCode(),
                 request.getInputData()
-            );
-            
+           );
+
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             JavaScriptExecutionResult errorResult = new JavaScriptExecutionResult();
             errorResult.setSuccess(false);
             errorResult.setError("JavaScript execution failed: " + e.getMessage());
@@ -103,10 +103,10 @@ public class TransformationExecutionController {
                 request.getSourceData(),
                 request.getFieldMappings(),
                 request.getTransformationRules()
-            );
-            
+           );
+
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             TransformationResult errorResult = TransformationResult.error("Preview failed: " + e.getMessage());
             return ResponseEntity.ok(errorResult);
         }
@@ -115,12 +115,12 @@ public class TransformationExecutionController {
     /**
      * Get transformation execution statistics
      */
-    @GetMapping("/{transformationId}/stats")
+    @GetMapping("/ {transformationId}/stats")
     public ResponseEntity<TransformationStats> getTransformationStats(@PathVariable String transformationId) {
         try {
             TransformationStats stats = getExecutionStats(transformationId);
             return ResponseEntity.ok(stats);
-        } catch (Exception e) {
+        } catch(Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -128,14 +128,14 @@ public class TransformationExecutionController {
     /**
      * Batch execute transformations for multiple records
      */
-    @PostMapping("/{transformationId}/batch-execute")
+    @PostMapping("/ {transformationId}/batch - execute")
     public ResponseEntity<BatchTransformationResult> batchExecuteTransformation(
             @PathVariable String transformationId,
             @RequestBody BatchTransformationRequest request) {
         try {
             BatchTransformationResult result = executeBatchTransformation(transformationId, request);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             BatchTransformationResult errorResult = new BatchTransformationResult();
             errorResult.setOverallSuccess(false);
             errorResult.setErrorMessage("Batch execution failed: " + e.getMessage());
@@ -156,18 +156,18 @@ public class TransformationExecutionController {
 
     private JavaScriptExecutionResult executeCustomJavaScript(String jsCode, Object inputData) {
         JavaScriptExecutionResult result = new JavaScriptExecutionResult();
-        
+
         try {
             // This would use the JavaScript engine from TransformationExecutionService
             // For now, returning a basic result
             result.setSuccess(true);
             result.setResult("JavaScript execution placeholder - would execute: " + jsCode);
             result.setExecutionTimeMs(System.currentTimeMillis() % 100); // Simulated time
-        } catch (Exception e) {
+        } catch(Exception e) {
             result.setSuccess(false);
             result.setError(e.getMessage());
         }
-        
+
         return result;
     }
 
@@ -175,9 +175,9 @@ public class TransformationExecutionController {
         // This would create a temporary transformation and execute it
         // For now, returning a basic preview result
         return TransformationResult.success(
-            "Preview result for source data", 
+            "Preview result for source data",
             "Field mappings would be applied here"
-        );
+       );
     }
 
     private TransformationStats getExecutionStats(String transformationId) {
@@ -198,34 +198,34 @@ public class TransformationExecutionController {
         result.setSuccessfulRecords(0);
         result.setFailedRecords(0);
         result.setOverallSuccess(true);
-        
+
         // This would iterate through all input records and execute transformation for each
         // For now, returning a basic result
         result.setProcessedRecords(request.getInputRecords().size());
         result.setSuccessfulRecords(request.getInputRecords().size());
-        
+
         return result;
     }
 
     private TransformationFunctionLibrary buildFunctionLibrary() {
         TransformationFunctionLibrary library = new TransformationFunctionLibrary();
-        
+
         // String functions
         library.addStringFunction("toUpperCase", "Convert string to uppercase", "toUpperCase(value)");
         library.addStringFunction("toLowerCase", "Convert string to lowercase", "toLowerCase(value)");
         library.addStringFunction("trim", "Remove leading/trailing whitespace", "trim(value)");
         library.addStringFunction("substring", "Extract substring", "substring(value, start, end)");
         library.addStringFunction("replace", "Replace text", "replace(value, search, replacement)");
-        
+
         // Date functions
         library.addDateFunction("formatDate", "Format date string", "formatDate(date, format)");
         library.addDateFunction("getCurrentDate", "Get current date", "getCurrentDate()");
-        
+
         // Number functions
         library.addNumberFunction("parseDouble", "Parse string to double", "parseDouble(value)");
         library.addNumberFunction("parseInt", "Parse string to integer", "parseInt(value)");
         library.addNumberFunction("formatNumber", "Format number", "formatNumber(number, format)");
-        
+
         return library;
     }
 
@@ -233,7 +233,7 @@ public class TransformationExecutionController {
 
     public static class TestTransformationRequest {
         private Object sampleData;
-        
+
         public Object getSampleData() { return sampleData; }
         public void setSampleData(Object sampleData) { this.sampleData = sampleData; }
     }
@@ -241,7 +241,7 @@ public class TransformationExecutionController {
     public static class JavaScriptExecutionRequest {
         private String javaScriptCode;
         private Object inputData;
-        
+
         public String getJavaScriptCode() { return javaScriptCode; }
         public void setJavaScriptCode(String javaScriptCode) { this.javaScriptCode = javaScriptCode; }
         public Object getInputData() { return inputData; }
@@ -253,7 +253,7 @@ public class TransformationExecutionController {
         private Object result;
         private String error;
         private long executionTimeMs;
-        
+
         public boolean isSuccess() { return success; }
         public void setSuccess(boolean success) { this.success = success; }
         public Object getResult() { return result; }
@@ -268,7 +268,7 @@ public class TransformationExecutionController {
         private Object sourceData;
         private Object fieldMappings;
         private Object transformationRules;
-        
+
         public Object getSourceData() { return sourceData; }
         public void setSourceData(Object sourceData) { this.sourceData = sourceData; }
         public Object getFieldMappings() { return fieldMappings; }
@@ -280,7 +280,7 @@ public class TransformationExecutionController {
     public static class BatchTransformationRequest {
         private java.util.List<Object> inputRecords;
         private boolean stopOnError = false;
-        
+
         public java.util.List<Object> getInputRecords() { return inputRecords; }
         public void setInputRecords(java.util.List<Object> inputRecords) { this.inputRecords = inputRecords; }
         public boolean isStopOnError() { return stopOnError; }
@@ -295,7 +295,7 @@ public class TransformationExecutionController {
         private boolean overallSuccess;
         private String errorMessage;
         private java.util.List<TransformationResult> results = new java.util.ArrayList<>();
-        
+
         public int getTotalRecords() { return totalRecords; }
         public void setTotalRecords(int totalRecords) { this.totalRecords = totalRecords; }
         public int getProcessedRecords() { return processedRecords; }
@@ -319,7 +319,7 @@ public class TransformationExecutionController {
         private int failedExecutions;
         private double averageExecutionTimeMs;
         private java.time.LocalDateTime lastExecutionTime;
-        
+
         public String getTransformationId() { return transformationId; }
         public void setTransformationId(String transformationId) { this.transformationId = transformationId; }
         public int getTotalExecutions() { return totalExecutions; }
@@ -336,22 +336,22 @@ public class TransformationExecutionController {
 
     public static class TransformationFunctionLibrary {
         private java.util.Map<String, java.util.List<FunctionInfo>> functions = new java.util.HashMap<>();
-        
+
         public void addStringFunction(String name, String description, String usage) {
             functions.computeIfAbsent("string", k -> new java.util.ArrayList<>())
                     .add(new FunctionInfo(name, description, usage));
         }
-        
+
         public void addDateFunction(String name, String description, String usage) {
             functions.computeIfAbsent("date", k -> new java.util.ArrayList<>())
                     .add(new FunctionInfo(name, description, usage));
         }
-        
+
         public void addNumberFunction(String name, String description, String usage) {
             functions.computeIfAbsent("number", k -> new java.util.ArrayList<>())
                     .add(new FunctionInfo(name, description, usage));
         }
-        
+
         public java.util.Map<String, java.util.List<FunctionInfo>> getFunctions() { return functions; }
         public void setFunctions(java.util.Map<String, java.util.List<FunctionInfo>> functions) { this.functions = functions; }
     }
@@ -360,13 +360,13 @@ public class TransformationExecutionController {
         private String name;
         private String description;
         private String usage;
-        
+
         public FunctionInfo(String name, String description, String usage) {
             this.name = name;
-            this.description = description;  
+            this.description = description;
             this.usage = usage;
         }
-        
+
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
         public String getDescription() { return description; }

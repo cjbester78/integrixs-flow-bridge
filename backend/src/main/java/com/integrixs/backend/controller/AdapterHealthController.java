@@ -15,12 +15,12 @@ import java.util.List;
  * REST controller for adapter health monitoring.
  */
 @RestController
-@RequestMapping("/api/adapter-health")
+@RequestMapping("/api/adapter - health")
 @RequiredArgsConstructor
 public class AdapterHealthController {
-    
+
     private final AdapterHealthService adapterHealthService;
-    
+
     /**
      * Get the main health dashboard.
      */
@@ -28,70 +28,70 @@ public class AdapterHealthController {
     public ResponseEntity<AdapterHealthDashboard> getHealthDashboard() {
         return ResponseEntity.ok(adapterHealthService.getHealthDashboard());
     }
-    
+
     /**
      * Get detailed health information for a specific adapter.
      */
-    @GetMapping("/{adapterId}")
+    @GetMapping("/ {adapterId}")
     public ResponseEntity<AdapterHealthDetail> getAdapterHealth(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getAdapterHealth(adapterId));
     }
-    
+
     /**
      * Perform health check on an adapter.
      */
-    @PostMapping("/{adapterId}/check")
+    @PostMapping("/ {adapterId}/check")
     public ResponseEntity<HealthCheckResult> performHealthCheck(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.performHealthCheck(adapterId));
     }
-    
+
     /**
      * Get health history for an adapter.
      */
-    @GetMapping("/{adapterId}/history")
+    @GetMapping("/ {adapterId}/history")
     public ResponseEntity<AdapterHealthHistory> getHealthHistory(
             @PathVariable String adapterId,
             @RequestParam(defaultValue = "7") int days) {
         return ResponseEntity.ok(adapterHealthService.getHealthHistory(adapterId, days));
     }
-    
+
     /**
      * Get recovery suggestions for an adapter.
      */
-    @GetMapping("/{adapterId}/recovery-suggestions")
+    @GetMapping("/ {adapterId}/recovery - suggestions")
     public ResponseEntity<List<RecoverySuggestion>> getRecoverySuggestions(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getRecoverySuggestions(adapterId));
     }
-    
+
     /**
      * Get connection pool metrics for an adapter.
      */
-    @GetMapping("/{adapterId}/connection-pool")
+    @GetMapping("/ {adapterId}/connection - pool")
     public ResponseEntity<ConnectionPoolMetrics> getConnectionPoolMetrics(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getConnectionPoolMetrics(adapterId));
     }
-    
+
     /**
      * Get resource usage metrics for an adapter.
      */
-    @GetMapping("/{adapterId}/resource-usage")
+    @GetMapping("/ {adapterId}/resource - usage")
     public ResponseEntity<ResourceUsageMetrics> getResourceUsageMetrics(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getResourceUsageMetrics(adapterId));
     }
-    
+
     /**
-     * Stream real-time health updates.
+     * Stream real - time health updates.
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<AdapterHealthDashboard> streamHealthUpdates() {
         return Flux.interval(Duration.ofSeconds(5))
             .map(sequence -> adapterHealthService.getHealthDashboard());
     }
-    
+
     /**
-     * Update connection pool metrics (called by adapters).
+     * Update connection pool metrics(called by adapters).
      */
-    @PostMapping("/{adapterId}/connection-pool/update")
+    @PostMapping("/ {adapterId}/connection - pool/update")
     public ResponseEntity<Void> updateConnectionPoolMetrics(
             @PathVariable String adapterId,
             @RequestParam int active,
@@ -100,11 +100,11 @@ public class AdapterHealthController {
         adapterHealthService.updateConnectionPoolMetrics(adapterId, active, idle, waiting);
         return ResponseEntity.ok().build();
     }
-    
+
     /**
-     * Update resource usage metrics (called by adapters).
+     * Update resource usage metrics(called by adapters).
      */
-    @PostMapping("/{adapterId}/resource-usage/update")
+    @PostMapping("/ {adapterId}/resource - usage/update")
     public ResponseEntity<Void> updateResourceUsageMetrics(
             @PathVariable String adapterId,
             @RequestParam double cpuUsage,

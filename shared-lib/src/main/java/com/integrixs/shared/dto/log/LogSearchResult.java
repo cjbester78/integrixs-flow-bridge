@@ -11,22 +11,22 @@ import java.util.Map;
  */
 @Data
 public class LogSearchResult {
-    
+
     // Search results
     private List<SystemLogDTO> logs;
-    
+
     // Pagination info
     private long totalElements;
     private int totalPages;
     private int currentPage;
     private int pageSize;
-    
-    // Facets (aggregations)
+
+    // Facets(aggregations)
     private Map<String, Map<String, Long>> facets;
-    
+
     // Search highlights
     private Map<String, List<String>> highlights;
-    
+
     // Search metadata
     private long searchTimeMs;
     private String searchQuery;

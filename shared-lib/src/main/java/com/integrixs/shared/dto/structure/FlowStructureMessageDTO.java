@@ -13,7 +13,7 @@ public class FlowStructureMessageDTO {
     private String flowStructureId;
     private MessageType messageType;
     private MessageStructureDTO messageStructure;
-    
+
     public enum MessageType {
         INPUT,
         OUTPUT,

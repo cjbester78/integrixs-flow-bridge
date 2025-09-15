@@ -7,7 +7,7 @@ import java.util.List;
  * Encapsulates data for transport between layers.
  */
 public class PagedUserResponseDTO {
-	
+
     private List<UserDTO> users;
     private int page;
     private int totalPages;

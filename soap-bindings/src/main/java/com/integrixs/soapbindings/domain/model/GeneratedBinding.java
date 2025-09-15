@@ -28,7 +28,7 @@ public class GeneratedBinding {
     private String generatorVersion;
     private GenerationStatus status;
     private String errorMessage;
-    
+
     /**
      * Generation status
      */
@@ -38,7 +38,7 @@ public class GeneratedBinding {
         COMPLETED,
         FAILED
     }
-    
+
     /**
      * Information about generated class
      */
@@ -50,7 +50,7 @@ public class GeneratedBinding {
         private ClassType classType;
         private String sourceFile;
         private boolean compiled;
-        
+
         public enum ClassType {
             SERVICE,
             PORT,
@@ -61,7 +61,7 @@ public class GeneratedBinding {
             PACKAGE_INFO
         }
     }
-    
+
     /**
      * Add generated class info
      * @param className Class name
@@ -70,7 +70,7 @@ public class GeneratedBinding {
     public void addGeneratedClass(String className, ClassInfo classInfo) {
         this.generatedClasses.put(className, classInfo);
     }
-    
+
     /**
      * Get service interface class
      * @return Service interface class info
@@ -81,7 +81,7 @@ public class GeneratedBinding {
                 .findFirst()
                 .orElse(null);
     }
-    
+
     /**
      * Check if generation was successful
      * @return true if successful

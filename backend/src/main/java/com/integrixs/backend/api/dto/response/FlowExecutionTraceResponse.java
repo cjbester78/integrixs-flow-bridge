@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlowExecutionTraceResponse {
-    
+
     private String executionId;
     private String flowId;
     private String flowName;
@@ -30,7 +30,7 @@ public class FlowExecutionTraceResponse {
     private String completionMessage;
     private String errorMessage;
     private List<TraceEventResponse> events;
-    
+
     @Data
     @Builder
     @NoArgsConstructor

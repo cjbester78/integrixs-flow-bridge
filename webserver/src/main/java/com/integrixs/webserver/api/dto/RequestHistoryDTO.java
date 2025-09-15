@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestHistoryDTO {
-    
+
     private String requestId;
     private String requestType;
     private String targetUrl;

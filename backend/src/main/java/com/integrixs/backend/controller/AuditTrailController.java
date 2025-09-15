@@ -18,23 +18,23 @@ import java.time.LocalDateTime;
 
 /**
  * REST controller for audit trail operations.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/audit-trail")
+@RequestMapping("/api/audit - trail")
 @Tag(name = "Audit Trail", description = "Audit trail management endpoints")
 @SecurityRequirement(name = "Bearer Authentication")
 public class AuditTrailController {
-    
+
     @Autowired
     private AuditTrailService auditTrailService;
-    
+
     /**
      * Get audit history for a specific entity
      */
-    @GetMapping("/entity/{entityType}/{entityId}")
+    @GetMapping("/entity/ {entityType}/ {entityId}")
     @PreAuthorize("hasRole('VIEWER')")
     @Operation(summary = "Get audit history for entity", description = "Retrieve audit trail for a specific entity")
     public ResponseEntity<Page<AuditTrail>> getEntityAuditHistory(
@@ -44,11 +44,11 @@ public class AuditTrailController {
         Page<AuditTrail> auditHistory = auditTrailService.getEntityAuditHistory(entityType, entityId, pageable);
         return ResponseEntity.ok(auditHistory);
     }
-    
+
     /**
      * Get audit history by user
      */
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/ {userId}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(summary = "Get audit history by user", description = "Retrieve all audit entries for a specific user")
     public ResponseEntity<Page<AuditTrail>> getUserAuditHistory(
@@ -57,7 +57,7 @@ public class AuditTrailController {
         Page<AuditTrail> auditHistory = auditTrailService.getUserAuditHistory(userId, pageable);
         return ResponseEntity.ok(auditHistory);
     }
-    
+
     /**
      * Search audit trail with filters
      */
@@ -67,26 +67,26 @@ public class AuditTrailController {
     public ResponseEntity<Page<AuditTrail>> searchAuditTrail(
             @Parameter(description = "Entity type filter")
             @RequestParam(required = false) String entityType,
-            
+
             @Parameter(description = "Action type filter")
             @RequestParam(required = false) AuditTrail.AuditAction action,
-            
+
             @Parameter(description = "User ID filter")
             @RequestParam(required = false) String userId,
-            
+
             @Parameter(description = "Start date filter")
-            @RequestParam(required = false) 
+            @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            
+
             @Parameter(description = "End date filter")
-            @RequestParam(required = false) 
+            @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            
+
             Pageable pageable) {
-        
+
         Page<AuditTrail> results = auditTrailService.searchAuditTrail(
             entityType, action, userId, startDate, endDate, pageable);
-        
+
         return ResponseEntity.ok(results);
     }
 }

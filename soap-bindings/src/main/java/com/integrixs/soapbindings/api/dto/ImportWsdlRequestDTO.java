@@ -15,12 +15,12 @@ import jakarta.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImportWsdlRequestDTO {
-    
+
     @NotNull(message = "WSDL name is required")
     private String name;
-    
+
     @NotNull(message = "WSDL URL is required")
     private String wsdlUrl;
-    
+
     private String description;
 }

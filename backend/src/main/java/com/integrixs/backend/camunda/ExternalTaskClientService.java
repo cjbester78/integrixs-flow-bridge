@@ -28,171 +28,171 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @ConditionalOnProperty(name = "camunda.bpm.enabled", havingValue = "true", matchIfMissing = false)
 public class ExternalTaskClientService implements CommandLineRunner {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ExternalTaskClientService.class);
-    
-    @Value("${camunda.bpm.client.base-url:http://localhost:8080/engine-rest}")
+
+    @Value("$ {camunda.bpm.client.base - url:http://localhost:8080/engine - rest}")
     private String baseUrl;
-    
-    @Value("${camunda.bpm.client.worker-id:integrix-worker}")
+
+    @Value("$ {camunda.bpm.client.worker - id:integrix - worker}")
     private String workerId;
-    
-    @Value("${camunda.bpm.client.max-tasks:10}")
+
+    @Value("$ {camunda.bpm.client.max - tasks:10}")
     private int maxTasks;
-    
-    @Value("${camunda.bpm.client.lock-duration:60000}")
+
+    @Value("$ {camunda.bpm.client.lock - duration:60000}")
     private long lockDuration;
-    
-    @Value("${camunda.bpm.client.async-response-timeout:30000}")
+
+    @Value("$ {camunda.bpm.client.async - response - timeout:30000}")
     private long asyncResponseTimeout;
-    
+
     @Autowired
     private TransformationExecutionService transformationService;
-    
+
     @Autowired
     private AdapterExecutionService adapterExecutionService;
-    
+
     @Autowired
     private OrchestrationTargetService orchestrationTargetService;
-    
+
     private final Map<String, ExternalTaskClient> clients = new ConcurrentHashMap<>();
-    
+
     @Override
     public void run(String... args) {
         logger.info("Starting Camunda external task clients");
-        
+
         // Create transformation task client
         createTransformationTaskClient();
-        
+
         // Create adapter task client
         createAdapterTaskClient();
-        
+
         // Create orchestration task client
         createOrchestrationTaskClient();
-        
+
         // Create routing task client
         createRoutingTaskClient();
-        
+
         // Create generic service task client
         createGenericServiceTaskClient();
     }
-    
+
     /**
      * Create client for transformation tasks
      */
     private void createTransformationTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + "-transformation")
+            .workerId(workerId + " - transformation")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
-        
-        client.subscribe("integrix-transformation")
+
+        client.subscribe("integrix - transformation")
             .handler(new TransformationTaskHandler())
             .open();
-        
+
         clients.put("transformation", client);
         logger.info("Transformation task client started");
     }
-    
+
     /**
      * Create client for adapter tasks
      */
     private void createAdapterTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + "-adapter")
+            .workerId(workerId + " - adapter")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
-        
-        client.subscribe("integrix-adapter")
+
+        client.subscribe("integrix - adapter")
             .handler(new AdapterTaskHandler())
             .open();
-        
+
         clients.put("adapter", client);
         logger.info("Adapter task client started");
     }
-    
+
     /**
      * Create client for orchestration tasks
      */
     private void createOrchestrationTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + "-orchestration")
+            .workerId(workerId + " - orchestration")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
-        
-        client.subscribe("integrix-orchestration")
+
+        client.subscribe("integrix - orchestration")
             .handler(new OrchestrationTaskHandler())
             .open();
-        
+
         clients.put("orchestration", client);
         logger.info("Orchestration task client started");
     }
-    
+
     /**
      * Create client for routing tasks
      */
     private void createRoutingTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + "-routing")
+            .workerId(workerId + " - routing")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
-        
-        client.subscribe("integrix-routing")
+
+        client.subscribe("integrix - routing")
             .handler(new RoutingTaskHandler())
             .open();
-        
+
         clients.put("routing", client);
         logger.info("Routing task client started");
     }
-    
+
     /**
      * Create client for generic service tasks
      */
     private void createGenericServiceTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + "-generic")
+            .workerId(workerId + " - generic")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
-        
+
         // Subscribe to multiple generic topics
         String[] genericTopics = {
-            "integrix-service",
-            "integrix-enrichment",
-            "integrix-validation",
-            "integrix-logging"
+            "integrix - service",
+            "integrix - enrichment",
+            "integrix - validation",
+            "integrix - logging"
         };
-        
-        for (String topic : genericTopics) {
+
+        for(String topic : genericTopics) {
             client.subscribe(topic)
                 .handler(new GenericTaskHandler())
                 .open();
         }
-        
+
         clients.put("generic", client);
         logger.info("Generic service task client started");
     }
-    
+
     @PreDestroy
     public void shutdown() {
         logger.info("Shutting down external task clients");
         clients.values().forEach(ExternalTaskClient::stop);
     }
-    
+
     /**
      * Handler for transformation tasks
      */
@@ -200,30 +200,30 @@ public class ExternalTaskClientService implements CommandLineRunner {
         @Override
         public void execute(ExternalTask externalTask, ExternalTaskService externalTaskService) {
             logger.debug("Executing transformation task: {}", externalTask.getActivityId());
-            
+
             try {
                 // Get transformation ID
                 String transformationId = externalTask.getVariable("transformationId");
-                if (transformationId == null) {
+                if(transformationId == null) {
                     transformationId = externalTask.getActivityId();
                 }
-                
+
                 // Get input data
                 Object inputData = externalTask.getVariable("currentData");
-                if (inputData == null) {
+                if(inputData == null) {
                     inputData = externalTask.getAllVariables();
                 }
-                
+
                 // Execute transformation
                 var result = transformationService.executeTransformation(transformationId, inputData);
-                
-                if (result.isSuccess()) {
+
+                if(result.isSuccess()) {
                     // Complete task with result
                     Map<String, Object> variables = new HashMap<>();
                     variables.put("currentData", result.getData());
                     variables.put("transformationResult", result.getData());
                     variables.put("transformationSuccess", true);
-                    
+
                     externalTaskService.complete(externalTask, variables);
                     logger.debug("Transformation task completed successfully");
                 } else {
@@ -234,9 +234,9 @@ public class ExternalTaskClientService implements CommandLineRunner {
                         result.getStackTrace(),
                         3,
                         Duration.ofSeconds(30).toMillis()
-                    );
+                   );
                 }
-            } catch (Exception e) {
+            } catch(Exception e) {
                 logger.error("Error executing transformation task", e);
                 externalTaskService.handleFailure(
                     externalTask,
@@ -244,11 +244,11 @@ public class ExternalTaskClientService implements CommandLineRunner {
                     getStackTrace(e),
                     0,
                     0L
-                );
+               );
             }
         }
     }
-    
+
     /**
      * Handler for adapter tasks
      */
@@ -256,32 +256,32 @@ public class ExternalTaskClientService implements CommandLineRunner {
         @Override
         public void execute(ExternalTask externalTask, ExternalTaskService externalTaskService) {
             logger.debug("Executing adapter task: {}", externalTask.getActivityId());
-            
+
             try {
                 // Get adapter ID
                 String adapterId = externalTask.getVariable("adapterId");
-                if (adapterId == null) {
+                if(adapterId == null) {
                     throw new RuntimeException("No adapter ID specified for adapter task");
                 }
-                
+
                 // Get message data
                 Object messageData = externalTask.getVariable("currentData");
                 Map<String, Object> context = externalTask.getAllVariables();
-                
+
                 // Execute adapter
                 var result = adapterExecutionService.executeAdapter(
                     UUID.fromString(adapterId),
                     messageData != null ? messageData : context,
                     context
-                );
-                
-                if (result.isSuccess()) {
+               );
+
+                if(result.isSuccess()) {
                     // Complete task with result
                     Map<String, Object> variables = new HashMap<>();
                     variables.put("currentData", result.getData());
                     variables.put("adapterResult", result.getData());
                     variables.put("adapterSuccess", true);
-                    
+
                     externalTaskService.complete(externalTask, variables);
                     logger.debug("Adapter task completed successfully");
                 } else {
@@ -292,9 +292,9 @@ public class ExternalTaskClientService implements CommandLineRunner {
                         result.getStackTrace(),
                         3,
                         Duration.ofSeconds(30).toMillis()
-                    );
+                   );
                 }
-            } catch (Exception e) {
+            } catch(Exception e) {
                 logger.error("Error executing adapter task", e);
                 externalTaskService.handleFailure(
                     externalTask,
@@ -302,11 +302,11 @@ public class ExternalTaskClientService implements CommandLineRunner {
                     getStackTrace(e),
                     0,
                     0L
-                );
+               );
             }
         }
     }
-    
+
     /**
      * Handler for orchestration tasks
      */
@@ -314,60 +314,60 @@ public class ExternalTaskClientService implements CommandLineRunner {
         @Override
         public void execute(ExternalTask externalTask, ExternalTaskService externalTaskService) {
             logger.debug("Executing orchestration task: {}", externalTask.getActivityId());
-            
+
             try {
                 // Get flow ID
                 String flowId = externalTask.getVariable("flowId");
-                if (flowId == null) {
+                if(flowId == null) {
                     throw new RuntimeException("No flow ID specified for orchestration task");
                 }
-                
+
                 // Get orchestration targets
                 List<OrchestrationTarget> targets = orchestrationTargetService.getTargetsByFlowId(UUID.fromString(flowId));
-                
+
                 // Get message data
                 Object messageData = externalTask.getVariable("currentData");
                 Map<String, Object> context = externalTask.getAllVariables();
-                
+
                 Map<String, Object> results = new HashMap<>();
                 List<String> failures = new ArrayList<>();
-                
+
                 // Execute each target
-                for (OrchestrationTarget target : targets) {
-                    if (!target.isActive()) {
+                for(OrchestrationTarget target : targets) {
+                    if(!target.isActive()) {
                         continue;
                     }
-                    
+
                     try {
                         // Execute adapter for target
                         var result = adapterExecutionService.executeAdapter(
                             target.getTargetAdapter().getId(),
                             messageData != null ? messageData : context,
                             context
-                        );
-                        
-                        if (result.isSuccess()) {
+                       );
+
+                        if(result.isSuccess()) {
                             results.put("target_" + target.getId() + "_result", result.getData());
                         } else {
                             failures.add(target.getName() + ": " + result.getError());
                         }
-                    } catch (Exception e) {
+                    } catch(Exception e) {
                         failures.add(target.getName() + ": " + e.getMessage());
                     }
                 }
-                
+
                 // Complete task with results
                 Map<String, Object> variables = new HashMap<>();
                 variables.putAll(results);
                 variables.put("orchestrationSuccess", failures.isEmpty());
-                if (!failures.isEmpty()) {
+                if(!failures.isEmpty()) {
                     variables.put("orchestrationFailures", failures);
                 }
-                
+
                 externalTaskService.complete(externalTask, variables);
                 logger.debug("Orchestration task completed with {} targets executed", results.size());
-                
-            } catch (Exception e) {
+
+            } catch(Exception e) {
                 logger.error("Error executing orchestration task", e);
                 externalTaskService.handleFailure(
                     externalTask,
@@ -375,11 +375,11 @@ public class ExternalTaskClientService implements CommandLineRunner {
                     getStackTrace(e),
                     0,
                     0L
-                );
+               );
             }
         }
     }
-    
+
     /**
      * Handler for routing tasks
      */
@@ -387,24 +387,24 @@ public class ExternalTaskClientService implements CommandLineRunner {
         @Override
         public void execute(ExternalTask externalTask, ExternalTaskService externalTaskService) {
             logger.debug("Executing routing task: {}", externalTask.getActivityId());
-            
+
             try {
                 // Get routing rules
                 String routingRules = externalTask.getVariable("routingRules");
                 Object messageData = externalTask.getVariable("currentData");
-                
-                // Simple routing logic (in production would use ConditionEvaluationService)
+
+                // Simple routing logic(in production would use ConditionEvaluationService)
                 String selectedRoute = evaluateRouting(routingRules, messageData, externalTask.getAllVariables());
-                
+
                 // Complete task with selected route
                 Map<String, Object> variables = new HashMap<>();
                 variables.put("selectedRoute", selectedRoute);
                 variables.put("routingSuccess", true);
-                
+
                 externalTaskService.complete(externalTask, variables);
                 logger.debug("Routing task completed, selected route: {}", selectedRoute);
-                
-            } catch (Exception e) {
+
+            } catch(Exception e) {
                 logger.error("Error executing routing task", e);
                 externalTaskService.handleFailure(
                     externalTask,
@@ -412,67 +412,67 @@ public class ExternalTaskClientService implements CommandLineRunner {
                     getStackTrace(e),
                     0,
                     0L
-                );
+               );
             }
         }
-        
+
         private String evaluateRouting(String rules, Object data, Map<String, Object> variables) {
             // Simple implementation - in production would parse and evaluate rules
-            if (rules == null || rules.isEmpty()) {
+            if(rules == null || rules.isEmpty()) {
                 return "default";
             }
-            
+
             // Check for specific conditions in variables
-            if (variables.containsKey("priority") && "high".equals(variables.get("priority"))) {
+            if(variables.containsKey("priority") && "high".equals(variables.get("priority"))) {
                 return "express";
             }
-            
-            if (variables.containsKey("errorCount") && (Integer) variables.get("errorCount") > 3) {
+
+            if(variables.containsKey("errorCount") && (Integer) variables.get("errorCount") > 3) {
                 return "error";
             }
-            
+
             return "default";
         }
     }
-    
+
     /**
      * Handler for generic service tasks
      */
     private class GenericTaskHandler implements ExternalTaskHandler {
         @Override
         public void execute(ExternalTask externalTask, ExternalTaskService externalTaskService) {
-            logger.debug("Executing generic task: {} ({})", externalTask.getActivityId(), externalTask.getTopicName());
-            
+            logger.debug("Executing generic task: {} ( {})", externalTask.getActivityId(), externalTask.getTopicName());
+
             try {
                 // Add timestamp
                 Map<String, Object> variables = new HashMap<>();
                 variables.put("taskExecutionTime_" + externalTask.getActivityId(), System.currentTimeMillis());
-                
+
                 // Process based on topic
                 String topic = externalTask.getTopicName();
-                switch (topic) {
-                    case "integrix-enrichment":
+                switch(topic) {
+                    case "integrix - enrichment":
                         handleEnrichment(externalTask, variables);
                         break;
-                    case "integrix-validation":
+                    case "integrix - validation":
                         handleValidation(externalTask, variables);
                         break;
-                    case "integrix-logging":
+                    case "integrix - logging":
                         handleLogging(externalTask, variables);
                         break;
                     default:
                         // Generic processing
                         Object currentData = externalTask.getVariable("currentData");
-                        if (currentData != null) {
+                        if(currentData != null) {
                             variables.put("currentData", currentData);
                         }
                 }
-                
+
                 // Complete task
                 externalTaskService.complete(externalTask, variables);
                 logger.debug("Generic task completed successfully");
-                
-            } catch (Exception e) {
+
+            } catch(Exception e) {
                 logger.error("Error executing generic task", e);
                 externalTaskService.handleFailure(
                     externalTask,
@@ -480,10 +480,10 @@ public class ExternalTaskClientService implements CommandLineRunner {
                     getStackTrace(e),
                     1,
                     Duration.ofMinutes(5).toMillis()
-                );
+               );
             }
         }
-        
+
         private void handleEnrichment(ExternalTask task, Map<String, Object> variables) {
             // Add enrichment data
             Map<String, Object> enrichmentData = new HashMap<>();
@@ -491,7 +491,7 @@ public class ExternalTaskClientService implements CommandLineRunner {
             enrichmentData.put("enrichmentSource", "integrix");
             variables.put("enrichmentData", enrichmentData);
         }
-        
+
         private void handleValidation(ExternalTask task, Map<String, Object> variables) {
             // Perform validation
             Object data = task.getVariable("currentData");
@@ -499,27 +499,27 @@ public class ExternalTaskClientService implements CommandLineRunner {
             variables.put("validationResult", isValid);
             variables.put("validationErrors", isValid ? Collections.emptyList() : Arrays.asList("Data is empty"));
         }
-        
+
         private void handleLogging(ExternalTask task, Map<String, Object> variables) {
             // Log process data
-            logger.info("Process logging - Instance: {}, Activity: {}, Variables: {}", 
+            logger.info("Process logging - Instance: {}, Activity: {}, Variables: {}",
                 task.getProcessInstanceId(),
                 task.getActivityId(),
                 task.getAllVariables().keySet()
-            );
+           );
             variables.put("logged", true);
         }
     }
-    
+
     /**
      * Get stack trace as string
      */
     private String getStackTrace(Exception e) {
         StringBuilder sb = new StringBuilder();
         sb.append(e.toString()).append("\n");
-        for (StackTraceElement element : e.getStackTrace()) {
+        for(StackTraceElement element : e.getStackTrace()) {
             sb.append("\tat ").append(element.toString()).append("\n");
-            if (sb.length() > 4000) { // Limit size
+            if(sb.length() > 4000) { // Limit size
                 sb.append("\t... truncated");
                 break;
             }

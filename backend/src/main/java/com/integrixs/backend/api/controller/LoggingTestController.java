@@ -17,31 +17,31 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/logging-test")
+@RequestMapping("/api/logging - test")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class LoggingTestController {
-    
+
     private final EnhancedFlowExecutionLogger flowLogger;
-    
-    @GetMapping("/test-business-operation")
+
+    @GetMapping("/test - business - operation")
     @BusinessOperation(value = "TEST.OPERATION", module = "TestModule", includeMetrics = true)
     public ResponseEntity<Map<String, String>> testBusinessOperation() {
         log.info("Inside test business operation");
-        
+
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
         response.put("message", "Business operation logging test completed");
         response.put("correlationId", UUID.randomUUID().toString());
-        
+
         return ResponseEntity.ok(response);
     }
-    
-    @GetMapping("/test-flow-logging")
+
+    @GetMapping("/test - flow - logging")
     public ResponseEntity<Map<String, String>> testFlowLogging() {
         String correlationId = UUID.randomUUID().toString();
         String flowId = UUID.randomUUID().toString();
-        
+
         // Test flow start
         FlowExecutionContext context = FlowExecutionContext.builder()
             .flowId(flowId)
@@ -53,9 +53,9 @@ public class LoggingTestController {
             .messageId("MSG-" + UUID.randomUUID())
             .payloadSize(1024)
             .build();
-            
+
         flowLogger.logFlowStart(context);
-        
+
         // Test transformation
         TransformationContext transformContext = TransformationContext.builder()
             .stepNumber(1)
@@ -65,33 +65,33 @@ public class LoggingTestController {
             .inputFormat("JSON")
             .outputFormat("XML")
             .build();
-            
+
         flowLogger.logTransformationStep(transformContext);
-        
+
         // Test flow complete
         flowLogger.logFlowComplete(context, 150);
-        
+
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
         response.put("message", "Flow logging test completed");
         response.put("correlationId", correlationId);
-        
+
         return ResponseEntity.ok(response);
     }
-    
-    @PostMapping("/test-error-logging")
+
+    @PostMapping("/test - error - logging")
     @BusinessOperation(value = "TEST.ERROR", module = "TestModule", logInput = true, logOutput = false)
     public ResponseEntity<Map<String, String>> testErrorLogging(@RequestBody Map<String, String> request) {
         try {
             // Simulate an error
             throw new RuntimeException("Test error for logging verification");
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Caught test error", e);
-            
+
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
             response.put("message", e.getMessage());
-            
+
             return ResponseEntity.status(500).body(response);
         }
     }

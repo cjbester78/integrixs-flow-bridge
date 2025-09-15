@@ -14,40 +14,40 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Service adapter to bridge between FlowCompositionService (using DTOs) 
- * and FieldMappingApplicationService (using domain requests)
+ * Service adapter to bridge between FlowCompositionService(using DTOs)
+ * and FieldMappingApplicationService(using domain requests)
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FieldMappingServiceAdapter {
-    
+
     private final FieldMappingApplicationService fieldMappingApplicationService;
     private final UserRepository userRepository;
-    
+
     /**
      * Create a field mapping from DTO
      */
     @Transactional
     public void createMapping(FieldMappingDTO dto, User createdBy) {
         log.debug("Creating field mapping for transformation: {}", dto.getTransformationId());
-        
+
         // Convert DTO to CreateFieldMappingRequest
         CreateFieldMappingRequest request = new CreateFieldMappingRequest();
         request.setSourceFields(dto.getSourceFields());
-        
+
         // Handle target fields - support both single and multiple
-        if (dto.getTargetFields() != null && !dto.getTargetFields().isEmpty()) {
+        if(dto.getTargetFields() != null && !dto.getTargetFields().isEmpty()) {
             request.setTargetFields(dto.getTargetFields());
             // Set single field for backward compatibility if only one target
-            if (dto.getTargetFields().size() == 1) {
+            if(dto.getTargetFields().size() == 1) {
                 request.setTargetField(dto.getTargetFields().get(0));
             }
-        } else if (dto.getTargetField() != null) {
+        } else if(dto.getTargetField() != null) {
             request.setTargetField(dto.getTargetField());
             request.setTargetFields(List.of(dto.getTargetField()));
         }
-        
+
         request.setMappingType(dto.getMappingType() != null ? dto.getMappingType() : "DIRECT");
         request.setSplitConfiguration(dto.getSplitConfiguration());
         request.setJavaFunction(dto.getJavaFunction());
@@ -64,15 +64,15 @@ public class FieldMappingServiceAdapter {
         request.setMappingOrder(dto.getMappingOrder());
         request.setVisualFlowData(dto.getVisualFlowData());
         request.setFunctionNode(dto.getFunctionNode());
-        
+
         // Create the mapping
         fieldMappingApplicationService.createMapping(
-            dto.getTransformationId(), 
-            request, 
+            dto.getTransformationId(),
+            request,
             createdBy
-        );
+       );
     }
-    
+
     /**
      * Create a field mapping from DTO using system user
      */
@@ -84,27 +84,27 @@ public class FieldMappingServiceAdapter {
                 .filter(u -> u.getUsername() != null)
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No users found in system"))
-            );
-        
+           );
+
         createMapping(dto, systemUser);
     }
-    
+
     /**
      * Create a field mapping from DTO using user ID
      */
     @Transactional
     public void createMapping(FieldMappingDTO dto, String userId) {
         User user = null;
-        if (userId != null) {
+        if(userId != null) {
             try {
                 user = userRepository.findById(UUID.fromString(userId))
                     .orElse(null);
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.warn("Invalid user ID: {}", userId);
             }
         }
-        
-        if (user == null) {
+
+        if(user == null) {
             // Fallback to system user
             createMapping(dto);
         } else {

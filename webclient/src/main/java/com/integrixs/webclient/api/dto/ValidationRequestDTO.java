@@ -17,17 +17,17 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ValidationRequestDTO {
-    
+
     @NotNull(message = "Message type is required")
     private String messageType;
-    
+
     @NotNull(message = "Payload is required")
     private Object payload;
-    
+
     private String contentType;
-    
+
     @Builder.Default
     private Map<String, String> headers = new HashMap<>();
-    
+
     private String schemaId;
 }

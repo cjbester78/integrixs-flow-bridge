@@ -16,7 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GeneratedBindingDTO {
-    
+
     private String generationId;
     private String wsdlId;
     private String packageName;

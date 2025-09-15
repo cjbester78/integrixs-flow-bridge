@@ -20,14 +20,14 @@ public class WebSocketDebugController {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @GetMapping("/websocket-handlers")
+    @GetMapping("/websocket - handlers")
     public Map<String, Object> getWebSocketHandlers() {
         Map<String, Object> result = new HashMap<>();
-        
+
         Map<String, HandlerMapping> handlerMappings = applicationContext.getBeansOfType(HandlerMapping.class);
-        
-        for (Map.Entry<String, HandlerMapping> entry : handlerMappings.entrySet()) {
-            if (entry.getValue() instanceof WebSocketHandlerMapping) {
+
+        for(Map.Entry<String, HandlerMapping> entry : handlerMappings.entrySet()) {
+            if(entry.getValue() instanceof WebSocketHandlerMapping) {
                 WebSocketHandlerMapping wsMapping = (WebSocketHandlerMapping) entry.getValue();
                 Map<String, Object> wsInfo = new HashMap<>();
                 wsInfo.put("order", wsMapping.getOrder());
@@ -36,7 +36,7 @@ public class WebSocketDebugController {
                 result.put(entry.getKey(), wsInfo);
             }
         }
-        
+
         return result;
     }
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageSearchCriteriaDTO {
-    
+
     private String status;
     private String flowId;
     private String correlationId;

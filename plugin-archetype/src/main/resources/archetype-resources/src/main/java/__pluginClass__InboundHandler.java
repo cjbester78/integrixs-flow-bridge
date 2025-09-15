@@ -47,14 +47,14 @@ public class ${pluginClass}InboundHandler implements InboundHandler {
         // Configure polling interval from configuration
         int pollingInterval = Integer.parseInt(
             configuration.getOrDefault("pollingInterval", "60").toString()
-        );
+       );
         
         scheduler.scheduleWithFixedDelay(
             this::pollForData,
             0,
             pollingInterval,
             TimeUnit.SECONDS
-        );
+       );
         
         listening = true;
         log.info("Started listening for data (polling every {} seconds)", pollingInterval);
@@ -112,10 +112,10 @@ public class ${pluginClass}InboundHandler implements InboundHandler {
             String authType = (String) configuration.get("authType");
             int batchSize = Integer.parseInt(
                 configuration.getOrDefault("batchSize", "100").toString()
-            );
+           );
             int timeout = Integer.parseInt(
                 configuration.getOrDefault("timeout", "30").toString()
-            ) * 1000;
+           ) * 1000;
             
             // Build URL with parameters for polling
             URL url = new URL(endpoint + "?limit=" + batchSize + "&since=" + getLastPollTime());
@@ -135,7 +135,7 @@ public class ${pluginClass}InboundHandler implements InboundHandler {
             if (responseCode >= 200 && responseCode < 300) {
                 BufferedReader reader = new BufferedReader(
                     new InputStreamReader(conn.getInputStream())
-                );
+               );
                 StringBuilder response = new StringBuilder();
                 String line;
                 
@@ -197,7 +197,7 @@ public class ${pluginClass}InboundHandler implements InboundHandler {
                             "sourceMessageId", id,
                             "receivedAt", Instant.now().toString(),
                             "messageNumber", messageCounter.incrementAndGet()
-                        ))
+                       ))
                         .body(item)
                         .contentType("application/json")
                         .timestamp(System.currentTimeMillis())
@@ -252,7 +252,7 @@ public class ${pluginClass}InboundHandler implements InboundHandler {
         // For now, return current time minus polling interval
         int pollingInterval = Integer.parseInt(
             configuration.getOrDefault("pollingInterval", "60").toString()
-        );
+       );
         
         return Instant.now().minusSeconds(pollingInterval * 2).toString();
     }

@@ -8,14 +8,14 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.youtube.data")
 public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientId;
     private String clientSecret;
     private String channelId;
     private String uploadPlaylistId; // Usually "uploads" playlist
     private YouTubeDataFeatures features = new YouTubeDataFeatures();
     private YouTubeDataLimits limits = new YouTubeDataLimits();
-    
+
         public static class YouTubeDataFeatures {
         private boolean enableVideoUpload = true;
         private boolean enableVideoManagement = true;
@@ -38,7 +38,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         private boolean enableSuperChat = true;
         private boolean enableMerchandise = true;
     }
-    
+
         public static class YouTubeDataLimits {
         private long maxVideoSize = 128L * 1024 * 1024 * 1024; // 128GB
         private int maxVideoLength = 12 * 60 * 60; // 12 hours in seconds
@@ -53,7 +53,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         private int dailyUploadLimit = 50;
         private int rateLimit = 10000; // Quota units per day
     }
-    
+
     // Video categories
     public enum VideoCategory {
         FILM_ANIMATION("1", "Film & Animation"),
@@ -71,26 +71,26 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         EDUCATION("27", "Education"),
         SCIENCE_TECHNOLOGY("28", "Science & Technology"),
         NONPROFITS_ACTIVISM("29", "Nonprofits & Activism");
-        
+
         private final String id;
         private final String name;
-        
+
         VideoCategory(String id, String name) {
             this.id = id;
             this.name = name;
         }
-        
+
         public String getId() { return id; }
         public String getName() { return name; }
     }
-    
+
     // Privacy status
     public enum PrivacyStatus {
-        PRIVATE,    // Only visible to channel owner
-        UNLISTED,   // Visible to anyone with the link
+        PRIVATE,   // Only visible to channel owner
+        UNLISTED, // Visible to anyone with the link
         PUBLIC      // Visible to everyone
     }
-    
+
     // Upload status
     public enum UploadStatus {
         UPLOADED,
@@ -99,52 +99,52 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         REJECTED,
         DELETED
     }
-    
+
     // License types
     public enum License {
-        YOUTUBE,         // Standard YouTube License
+        YOUTUBE,        // Standard YouTube License
         CREATIVE_COMMONS // Creative Commons - Attribution
     }
-    
+
     // Video dimensions
     public enum VideoDimension {
         TWO_D("2d"),
         THREE_D("3d");
-        
+
         private final String value;
-        
+
         VideoDimension(String value) {
             this.value = value;
         }
-        
+
         public String getValue() { return value; }
     }
-    
+
     // Video definition
     public enum VideoDefinition {
-        HD,  // High Definition
+        HD, // High Definition
         SD   // Standard Definition
     }
-    
+
     // Video projection
     public enum VideoProjection {
         RECTANGULAR,
         SPHERICAL // 360° video
     }
-    
+
     // Caption types
     public enum CaptionType {
         STANDARD,
         ASR // Automatic Speech Recognition
     }
-    
+
     // Playlist status
     public enum PlaylistStatus {
         PRIVATE,
         UNLISTED,
         PUBLIC
     }
-    
+
     // Comment moderation status
     public enum CommentModerationStatus {
         PUBLISHED,
@@ -152,7 +152,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         LIKELY_SPAM,
         REJECTED
     }
-    
+
     // Live broadcast status
     public enum LiveBroadcastStatus {
         UPCOMING,
@@ -165,7 +165,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         LIVE,
         RECLAIMED
     }
-    
+
     // Live stream status
     public enum LiveStreamStatus {
         CREATED,
@@ -174,14 +174,14 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         INACTIVE,
         ERROR
     }
-    
+
     // Content rating
     public enum ContentRating {
-        YT_AGE_RESTRICTED,  // Age-restricted content
-        MADE_FOR_KIDS,      // Made for kids
+        YT_AGE_RESTRICTED, // Age - restricted content
+        MADE_FOR_KIDS,     // Made for kids
         NOT_MADE_FOR_KIDS   // Not made for kids
     }
-    
+
     // Monetization status
     public enum MonetizationStatus {
         ENABLED,
@@ -189,7 +189,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         PENDING_REVIEW,
         INELIGIBLE
     }
-    
+
     // Thumbnail resolution
     public enum ThumbnailResolution {
         DEFAULT("default", 120, 90),
@@ -197,22 +197,22 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         HIGH("high", 480, 360),
         STANDARD("standard", 640, 480),
         MAXRES("maxres", 1280, 720);
-        
+
         private final String key;
         private final int width;
         private final int height;
-        
+
         ThumbnailResolution(String key, int width, int height) {
             this.key = key;
             this.width = width;
             this.height = height;
         }
-        
+
         public String getKey() { return key; }
         public int getWidth() { return width; }
         public int getHeight() { return height; }
     }
-    
+
     // Activity types
     public enum ActivityType {
         UPLOAD,
@@ -227,7 +227,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         CHANNEL_ITEM,
         PROMOTION_ITEM
     }
-    
+
     // Resource types
     public enum ResourceType {
         VIDEO,
@@ -245,7 +245,7 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         I18N_LANGUAGE,
         I18N_REGION
     }
-    
+
     // Video parts for API requests
     public enum VideoPart {
         ID,
@@ -262,21 +262,21 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         SUGGESTIONS,
         TOPIC_DETAILS
     }
-    
+
     // Sorting options
     public enum SortOrder {
-        DATE,        // Newest first
-        RATING,      // Highest rated first
-        RELEVANCE,   // Most relevant first
-        TITLE,       // Alphabetical by title
-        VIDEO_COUNT, // Most videos first (for playlists)
+        DATE,       // Newest first
+        RATING,     // Highest rated first
+        RELEVANCE, // Most relevant first
+        TITLE,      // Alphabetical by title
+        VIDEO_COUNT, // Most videos first(for playlists)
         VIEW_COUNT   // Most viewed first
     }
-    
+
     // Safe search options
     public enum SafeSearch {
-        NONE,      // No filtering
-        MODERATE,  // Filter some content
+        NONE,     // No filtering
+        MODERATE, // Filter some content
         STRICT     // Filter all potentially inappropriate content
     }
     // Getters and Setters

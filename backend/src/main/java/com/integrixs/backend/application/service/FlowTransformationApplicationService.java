@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class FlowTransformationApplicationService {
-    
+
     private final FlowTransformationManagementService transformationManagementService;
     private final FlowTransformationDomainRepository transformationRepository;
     private final IntegrationFlowRepository flowRepository;
-    
+
     /**
      * Get all transformations for a flow
      * @param flowId The flow ID
@@ -38,14 +38,14 @@ public class FlowTransformationApplicationService {
     public List<FlowTransformationDTO> getByFlowId(String flowId) {
         UUID flowUuid = UUID.fromString(flowId);
         List<FlowTransformation> transformations = transformationRepository.findByFlowIdOrderByExecutionOrder(flowUuid);
-        
+
         log.debug("Found {} transformations for flow {}", transformations.size(), flowId);
-        
+
         return transformations.stream()
             .map(this::toDTO)
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Get transformation by ID
      * @param id The transformation ID
@@ -57,7 +57,7 @@ public class FlowTransformationApplicationService {
         return transformationRepository.findById(transformationId)
             .map(this::toDTO);
     }
-    
+
     /**
      * Create or update a transformation
      * @param dto The transformation DTO
@@ -68,86 +68,86 @@ public class FlowTransformationApplicationService {
         UUID flowId = UUID.fromString(dto.getFlowId());
         IntegrationFlow flow = flowRepository.findById(flowId)
             .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-        
+
         FlowTransformation transformation;
-        
-        if (dto.getId() != null) {
+
+        if(dto.getId() != null) {
             // Update existing
             UUID transformationId = UUID.fromString(dto.getId());
             transformation = transformationRepository.findById(transformationId)
                 .orElseThrow(() -> new IllegalArgumentException("Transformation not found: " + transformationId));
-            
+
             // Create updated data
             FlowTransformation updatedData = fromDTO(dto);
-            
+
             // Validate
             transformationManagementService.validateTransformation(updatedData, flow);
-            
+
             // Check name uniqueness
             List<FlowTransformation> existingTransformations = transformationRepository.findByFlowId(flowId);
-            if (!transformationManagementService.isTransformationNameUnique(
+            if(!transformationManagementService.isTransformationNameUnique(
                     flowId, updatedData.getName(), transformationId, existingTransformations)) {
                 throw new IllegalArgumentException("Transformation name already exists in flow");
             }
-            
+
             // Check execution order uniqueness
-            if (!transformationManagementService.isExecutionOrderUnique(
+            if(!transformationManagementService.isExecutionOrderUnique(
                     flowId, updatedData.getExecutionOrder(), transformationId, existingTransformations)) {
                 throw new IllegalArgumentException("Execution order already exists in flow");
             }
-            
+
             // Update
             transformationManagementService.prepareForUpdate(transformation, updatedData);
-            
+
         } else {
             // Create new
             transformation = fromDTO(dto);
-            
+
             // Validate
             transformationManagementService.validateTransformation(transformation, flow);
-            
+
             // Check name uniqueness
             List<FlowTransformation> existingTransformations = transformationRepository.findByFlowId(flowId);
-            if (!transformationManagementService.isTransformationNameUnique(
+            if(!transformationManagementService.isTransformationNameUnique(
                     flowId, transformation.getName(), null, existingTransformations)) {
                 throw new IllegalArgumentException("Transformation name already exists in flow");
             }
-            
+
             // Check execution order uniqueness
-            if (!transformationManagementService.isExecutionOrderUnique(
+            if(!transformationManagementService.isExecutionOrderUnique(
                     flowId, transformation.getExecutionOrder(), null, existingTransformations)) {
                 throw new IllegalArgumentException("Execution order already exists in flow");
             }
-            
+
             // Prepare for creation
             transformationManagementService.prepareForCreation(transformation, flow);
         }
-        
+
         // Save
         FlowTransformation saved = transformationRepository.save(transformation);
-        log.info("Saved transformation '{}' for flow '{}'", saved.getName(), flow.getName());
-        
+        log.info("Saved transformation ' {}' for flow ' {}'", saved.getName(), flow.getName());
+
         return toDTO(saved);
     }
-    
+
     /**
      * Delete a transformation
      * @param id The transformation ID
      */
     public void delete(String id) {
         UUID transformationId = UUID.fromString(id);
-        
+
         FlowTransformation transformation = transformationRepository.findById(transformationId)
             .orElseThrow(() -> new IllegalArgumentException("Transformation not found: " + transformationId));
-        
-        if (!transformationManagementService.canDeleteTransformation(transformation)) {
+
+        if(!transformationManagementService.canDeleteTransformation(transformation)) {
             throw new IllegalStateException("Cannot delete transformation: " + transformation.getName());
         }
-        
+
         transformationRepository.deleteById(transformationId);
         log.info("Deleted transformation: {}", transformation.getName());
     }
-    
+
     /**
      * Delete all transformations for a flow
      * @param flowId The flow ID
@@ -157,7 +157,7 @@ public class FlowTransformationApplicationService {
         transformationRepository.deleteByFlowId(flowUuid);
         log.info("Deleted all transformations for flow: {}", flowId);
     }
-    
+
     /**
      * Count transformations for a flow
      * @param flowId The flow ID
@@ -168,7 +168,7 @@ public class FlowTransformationApplicationService {
         UUID flowUuid = UUID.fromString(flowId);
         return transformationRepository.countByFlowId(flowUuid);
     }
-    
+
     /**
      * Convert entity to DTO
      */
@@ -186,23 +186,23 @@ public class FlowTransformationApplicationService {
         // Note: fieldMappings would be populated separately if needed
         return dto;
     }
-    
+
     /**
      * Convert DTO to entity
      */
     private FlowTransformation fromDTO(FlowTransformationDTO dto) {
         FlowTransformation transformation = new FlowTransformation();
-        
-        if (dto.getId() != null) {
+
+        if(dto.getId() != null) {
             transformation.setId(UUID.fromString(dto.getId()));
         }
-        
+
         transformation.setType(FlowTransformation.TransformationType.valueOf(dto.getType()));
         transformation.setName(dto.getName());
         transformation.setConfiguration(dto.getConfiguration());
         transformation.setExecutionOrder(dto.getExecutionOrder());
         transformation.setActive(dto.isActive());
-        
+
         return transformation;
     }
 }

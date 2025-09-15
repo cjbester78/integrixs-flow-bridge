@@ -12,18 +12,18 @@ import java.util.UUID;
 
 @Repository
 public interface SagaStepRepository extends JpaRepository<SagaStep, UUID> {
-    
+
     List<SagaStep> findBySagaTransaction(SagaTransaction sagaTransaction);
-    
+
     List<SagaStep> findBySagaTransactionOrderByStepOrder(SagaTransaction sagaTransaction);
-    
+
     @Query("SELECT ss FROM SagaStep ss WHERE ss.sagaTransaction.id = :transactionId AND ss.status = :status")
-    List<SagaStep> findByTransactionIdAndStatus(@Param("transactionId") UUID transactionId, 
+    List<SagaStep> findByTransactionIdAndStatus(@Param("transactionId") UUID transactionId,
                                                 @Param("status") SagaStep.StepStatus status);
-    
+
     @Query("SELECT ss FROM SagaStep ss WHERE ss.sagaTransaction.sagaId = :sagaId ORDER BY ss.stepOrder")
     List<SagaStep> findBySagaId(@Param("sagaId") String sagaId);
-    
+
     @Query("SELECT ss FROM SagaStep ss WHERE ss.sagaTransaction.id = :transactionId ORDER BY ss.stepOrder")
     List<SagaStep> findByTransactionIdOrderByStepOrder(@Param("transactionId") UUID transactionId);
 }

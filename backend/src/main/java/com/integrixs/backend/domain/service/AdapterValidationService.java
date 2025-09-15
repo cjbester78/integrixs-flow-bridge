@@ -16,32 +16,32 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AdapterValidationService {
-    
+
     private final CommunicationAdapterRepository adapterRepository;
-    
+
     /**
      * Validates that adapter name is unique
      */
     public void validateAdapterNameUniqueness(String name, UUID excludeId) {
-        boolean exists = excludeId == null ? 
-            adapterRepository.existsByName(name) : 
+        boolean exists = excludeId == null ?
+            adapterRepository.existsByName(name) :
             adapterRepository.existsByNameAndIdNot(name, excludeId);
-            
-        if (exists) {
+
+        if(exists) {
             throw new IllegalArgumentException("An adapter with the name '" + name + "' already exists");
         }
     }
-    
+
     /**
      * Validates adapter configuration based on type and mode
      */
     public void validateAdapterConfiguration(AdapterType type, AdapterModeEnum mode, Map<String, Object> config) {
-        if (config == null || config.isEmpty()) {
+        if(config == null || config.isEmpty()) {
             throw new IllegalArgumentException("Adapter configuration cannot be empty");
         }
-        
+
         // Validate based on adapter type
-        switch (type) {
+        switch(type) {
             case HTTP:
             case HTTPS:
                 validateHttpConfiguration(config, mode);
@@ -75,104 +75,104 @@ public class AdapterValidationService {
                 throw new IllegalArgumentException("Unsupported adapter type: " + type);
         }
     }
-    
+
     /**
      * Validates if adapter can be activated
      */
     public void validateAdapterActivation(CommunicationAdapter adapter) {
-        if (adapter.getConfiguration() == null || adapter.getConfiguration().trim().isEmpty()) {
+        if(adapter.getConfiguration() == null || adapter.getConfiguration().trim().isEmpty()) {
             throw new IllegalStateException("Adapter configuration must be complete before activation");
         }
-        
-        if (adapter.getBusinessComponent() == null) {
+
+        if(adapter.getBusinessComponent() == null) {
             throw new IllegalStateException("Adapter must be assigned to a business component before activation");
         }
     }
-    
+
     private void validateHttpConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("url")) {
+        if(!config.containsKey("url")) {
             throw new IllegalArgumentException("HTTP adapter requires 'url' configuration");
         }
-        
-        if (mode == AdapterModeEnum.OUTBOUND && !config.containsKey("method")) {
+
+        if(mode == AdapterModeEnum.OUTBOUND && !config.containsKey("method")) {
             throw new IllegalArgumentException("HTTP outbound adapter requires 'method' configuration");
         }
     }
-    
+
     private void validateJdbcConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("driverClass") || !config.containsKey("jdbcUrl")) {
+        if(!config.containsKey("driverClass") || !config.containsKey("jdbcUrl")) {
             throw new IllegalArgumentException("JDBC adapter requires 'driverClass' and 'jdbcUrl' configuration");
         }
-        
-        if (!config.containsKey("username") || !config.containsKey("password")) {
+
+        if(!config.containsKey("username") || !config.containsKey("password")) {
             throw new IllegalArgumentException("JDBC adapter requires database credentials");
         }
-        
-        if (mode == AdapterModeEnum.INBOUND && !config.containsKey("query")) {
+
+        if(mode == AdapterModeEnum.INBOUND && !config.containsKey("query")) {
             throw new IllegalArgumentException("JDBC inbound adapter requires 'query' configuration");
         }
     }
-    
+
     private void validateFtpConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("host") || !config.containsKey("port")) {
+        if(!config.containsKey("host") || !config.containsKey("port")) {
             throw new IllegalArgumentException("FTP adapter requires 'host' and 'port' configuration");
         }
-        
-        if (!config.containsKey("username") || !config.containsKey("password")) {
+
+        if(!config.containsKey("username") || !config.containsKey("password")) {
             throw new IllegalArgumentException("FTP adapter requires credentials");
         }
-        
-        if (!config.containsKey("directory")) {
+
+        if(!config.containsKey("directory")) {
             throw new IllegalArgumentException("FTP adapter requires 'directory' configuration");
         }
     }
-    
+
     private void validateSoapConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("wsdlUrl")) {
+        if(!config.containsKey("wsdlUrl")) {
             throw new IllegalArgumentException("SOAP adapter requires 'wsdlUrl' configuration");
         }
-        
-        if (!config.containsKey("operation")) {
+
+        if(!config.containsKey("operation")) {
             throw new IllegalArgumentException("SOAP adapter requires 'operation' configuration");
         }
     }
-    
+
     private void validateFileConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("directory")) {
+        if(!config.containsKey("directory")) {
             throw new IllegalArgumentException("File adapter requires 'directory' configuration");
         }
-        
-        if (mode == AdapterModeEnum.INBOUND && !config.containsKey("filePattern")) {
+
+        if(mode == AdapterModeEnum.INBOUND && !config.containsKey("filePattern")) {
             throw new IllegalArgumentException("File inbound adapter requires 'filePattern' configuration");
         }
     }
-    
+
     private void validateEmailConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (mode == AdapterModeEnum.INBOUND) {
-            if (!config.containsKey("host") || !config.containsKey("port")) {
+        if(mode == AdapterModeEnum.INBOUND) {
+            if(!config.containsKey("host") || !config.containsKey("port")) {
                 throw new IllegalArgumentException("Email inbound adapter requires mail server configuration");
             }
         } else {
-            if (!config.containsKey("smtpHost") || !config.containsKey("smtpPort")) {
+            if(!config.containsKey("smtpHost") || !config.containsKey("smtpPort")) {
                 throw new IllegalArgumentException("Email outbound adapter requires SMTP configuration");
             }
         }
     }
-    
+
     private void validateJmsConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("connectionFactory") || !config.containsKey("destination")) {
+        if(!config.containsKey("connectionFactory") || !config.containsKey("destination")) {
             throw new IllegalArgumentException("JMS adapter requires 'connectionFactory' and 'destination' configuration");
         }
     }
-    
+
     private void validateKafkaConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("bootstrapServers") || !config.containsKey("topic")) {
+        if(!config.containsKey("bootstrapServers") || !config.containsKey("topic")) {
             throw new IllegalArgumentException("Kafka adapter requires 'bootstrapServers' and 'topic' configuration");
         }
     }
-    
+
     private void validateOdataConfiguration(Map<String, Object> config, AdapterModeEnum mode) {
-        if (!config.containsKey("serviceUrl") || !config.containsKey("entitySet")) {
+        if(!config.containsKey("serviceUrl") || !config.containsKey("entitySet")) {
             throw new IllegalArgumentException("OData adapter requires 'serviceUrl' and 'entitySet' configuration");
         }
     }

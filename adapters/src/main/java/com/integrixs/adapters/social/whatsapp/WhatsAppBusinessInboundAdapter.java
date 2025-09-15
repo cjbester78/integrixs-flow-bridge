@@ -36,18 +36,18 @@ import java.io.IOException;
 public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(WhatsAppBusinessInboundAdapter.class);
 
-    
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> messageTimestamps = new ConcurrentHashMap<>();
     private final Set<String> processedMessageIds = ConcurrentHashMap.newKeySet();
-    
+
     private WhatsAppBusinessApiConfig config;
     private final RateLimiterService rateLimiterService;
     private final TokenRefreshService tokenRefreshService;
     private final CredentialEncryptionService credentialEncryptionService;
     private volatile boolean isListening = false;
-    
+
     @Autowired
     public WhatsAppBusinessInboundAdapter(
             RateLimiterService rateLimiterService,
@@ -61,34 +61,34 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
-    
+
     @Override
     public void startListening() throws AdapterException {
-        if (!isConfigValid()) {
+        if(!isConfigValid()) {
             throw new AdapterException("WhatsApp Business configuration is invalid");
         }
-        
-        log.info("Starting WhatsApp Business inbound adapter for phone: {}", 
+
+        log.info("Starting WhatsApp Business inbound adapter for phone: {}",
                 config.getPhoneNumberId());
         isListening = true;
-        
+
         // Initialize media storage if enabled
-        if (config.getSettings().isSaveMediaLocally()) {
+        if(config.getSettings().isSaveMediaLocally()) {
             initializeMediaStorage();
         }
-        
+
         // WhatsApp primarily uses webhooks, but we can poll for status updates
-        if (config.getFeatures().isEnableStatusUpdates()) {
+        if(config.getFeatures().isEnableStatusUpdates()) {
             scheduleStatusPolling();
         }
     }
-    
+
     @Override
     public void stopListening() {
         log.info("Stopping WhatsApp Business inbound adapter");
         isListening = false;
     }
-    
+
     @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
@@ -96,10 +96,10 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
             message.setCorrelationId(UUID.randomUUID().toString());
             message.setMessageTimestamp(Instant.now());
             message.setStatus(MessageStatus.NEW);
-            
+
             JsonNode dataNode = objectMapper.readTree(data);
-            
-            switch (type) {
+
+            switch(type) {
                 case "MESSAGE":
                     message = processInboundMessage(dataNode);
                     break;
@@ -119,82 +119,82 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
                     message.setPayload(data);
                     message.setHeaders(Map.of("type", type, "source", "whatsapp"));
             }
-            
+
             return message;
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error processing WhatsApp inbound data", e);
             throw new AdapterException("Failed to process inbound data", e);
         }
     }
-    
+
     @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             String object = (String) webhookData.get("object");
-            if (!"whatsapp_business_account".equals(object)) {
-                log.warn("Received webhook for non-WhatsApp object: {}", object);
+            if(!"whatsapp_business_account".equals(object)) {
+                log.warn("Received webhook for non - WhatsApp object: {}", object);
                 return null;
             }
-            
+
             List<Map<String, Object>> entries = (List<Map<String, Object>>) webhookData.get("entry");
-            if (entries == null || entries.isEmpty()) {
+            if(entries == null || entries.isEmpty()) {
                 return null;
             }
-            
-            for (Map<String, Object> entry : entries) {
+
+            for(Map<String, Object> entry : entries) {
                 String entryId = (String) entry.get("id");
                 List<Map<String, Object>> changes = (List<Map<String, Object>>) entry.get("changes");
-                
-                for (Map<String, Object> change : changes) {
+
+                for(Map<String, Object> change : changes) {
                     String field = (String) change.get("field");
                     Map<String, Object> value = (Map<String, Object>) change.get("value");
-                    
-                    if ("messages".equals(field)) {
+
+                    if("messages".equals(field)) {
                         return processWebhookMessages(value);
-                    } else if ("statuses".equals(field)) {
+                    } else if("statuses".equals(field)) {
                         return processWebhookStatuses(value);
-                    } else if ("business_profile".equals(field)) {
+                    } else if("business_profile".equals(field)) {
                         return processWebhookBusinessProfile(value);
                     }
                 }
             }
-            
+
             return null;
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error processing WhatsApp webhook", e);
             throw new AdapterException("Failed to process webhook", e);
         }
     }
-    
+
     private MessageDTO processWebhookMessages(Map<String, Object> value) {
         List<Map<String, Object>> messages = (List<Map<String, Object>>) value.get("messages");
-        if (messages == null || messages.isEmpty()) {
+        if(messages == null || messages.isEmpty()) {
             return null;
         }
-        
+
         Map<String, Object> messageData = messages.get(0);
         String messageId = (String) messageData.get("id");
-        
+
         // Check if already processed
-        if (processedMessageIds.contains(messageId)) {
+        if(processedMessageIds.contains(messageId)) {
             log.debug("MessageDTO {} already processed", messageId);
             return null;
         }
-        
+
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(messageId);
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "INBOUND_MESSAGE");
         headers.put("source", "whatsapp");
         headers.put("from", messageData.get("from"));
         headers.put("message_type", messageData.get("type"));
-        
+
         // Handle different message types
         String msgType = (String) messageData.get("type");
-        switch (msgType) {
+        switch(msgType) {
             case "text":
                 headers.put("text", ((Map<String, Object>) messageData.get("text")).get("body"));
                 break;
@@ -205,10 +205,10 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
                 Map<String, Object> media = (Map<String, Object>) messageData.get(msgType);
                 headers.put("media_id", media.get("id"));
                 headers.put("mime_type", media.get("mime_type"));
-                if (media.containsKey("caption")) {
+                if(media.containsKey("caption")) {
                     headers.put("caption", media.get("caption"));
                 }
-                if (config.getSettings().isAutoDownloadMedia()) {
+                if(config.getSettings().isAutoDownloadMedia()) {
                     downloadAndSaveMedia((String) media.get("id"), msgType);
                 }
                 break;
@@ -233,35 +233,35 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
                 headers.put("button_text", button.get("text"));
                 break;
         }
-        
-        // Handle context (replies)
-        if (messageData.containsKey("context")) {
+
+        // Handle context(replies)
+        if(messageData.containsKey("context")) {
             Map<String, Object> context = (Map<String, Object>) messageData.get("context");
             headers.put("reply_to", context.get("message_id"));
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(objectMapper.valueToTree(messageData).toString());
-        
+
         processedMessageIds.add(messageId);
         messageTimestamps.put(messageId, LocalDateTime.now());
-        
+
         return message;
     }
-    
+
     private MessageDTO processWebhookStatuses(Map<String, Object> value) {
         List<Map<String, Object>> statuses = (List<Map<String, Object>>) value.get("statuses");
-        if (statuses == null || statuses.isEmpty()) {
+        if(statuses == null || statuses.isEmpty()) {
             return null;
         }
-        
+
         Map<String, Object> status = statuses.get(0);
-        
+
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "STATUS_UPDATE");
         headers.put("source", "whatsapp");
@@ -269,172 +269,172 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         headers.put("recipient", status.get("recipient_id"));
         headers.put("status", status.get("status"));
         headers.put("timestamp", status.get("timestamp"));
-        
-        if (status.containsKey("errors")) {
+
+        if(status.containsKey("errors")) {
             headers.put("errors", status.get("errors"));
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(objectMapper.valueToTree(status).toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processWebhookBusinessProfile(Map<String, Object> value) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUSINESS_PROFILE_UPDATE");
         headers.put("source", "whatsapp");
-        
+
         message.setHeaders(headers);
         message.setPayload(objectMapper.valueToTree(value).toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processInboundMessage(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(data.path("id").asText());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "MESSAGE");
         headers.put("source", "whatsapp");
         headers.put("from", data.path("from").asText());
         headers.put("message_type", data.path("type").asText());
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processStatusUpdate(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "STATUS_UPDATE");
         headers.put("source", "whatsapp");
         headers.put("message_id", data.path("id").asText());
         headers.put("delivery_status", data.path("status").asText());
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processTemplateStatus(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "TEMPLATE_STATUS");
         headers.put("source", "whatsapp");
         headers.put("template_name", data.path("template_name").asText());
         headers.put("template_status", data.path("status").asText());
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processBusinessUpdate(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUSINESS_UPDATE");
         headers.put("source", "whatsapp");
         headers.put("update_type", data.path("update_type").asText());
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processFlowUpdate(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
         message.setMessageTimestamp(Instant.now());
         message.setStatus(MessageStatus.NEW);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "FLOW_UPDATE");
         headers.put("source", "whatsapp");
         headers.put("flow_id", data.path("flow_id").asText());
         headers.put("flow_status", data.path("status").asText());
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private void downloadAndSaveMedia(String mediaId, String mediaType) {
         try {
             // Get media URL
-            String url = String.format("%s/%s/%s", 
-                config.getBaseUrl(), 
-                config.getApiVersion(), 
+            String url = String.format("%s/%s/%s",
+                config.getBaseUrl(),
+                config.getApiVersion(),
                 mediaId);
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(getAccessToken());
             HttpEntity<String> entity = new HttpEntity<>(headers);
-            
+
             ResponseEntity<String> response = restTemplate.exchange(
                 url, HttpMethod.GET, entity, String.class);
-            
-            if (response.getStatusCode().is2xxSuccessful()) {
+
+            if(response.getStatusCode().is2xxSuccessful()) {
                 JsonNode mediaInfo = objectMapper.readTree(response.getBody());
                 String mediaUrl = mediaInfo.path("url").asText();
-                
+
                 // Download media
                 HttpEntity<String> downloadEntity = new HttpEntity<>(headers);
                 ResponseEntity<byte[]> mediaResponse = restTemplate.exchange(
                     mediaUrl, HttpMethod.GET, downloadEntity, byte[].class);
-                
-                if (mediaResponse.getStatusCode().is2xxSuccessful() && config.getSettings().isSaveMediaLocally()) {
+
+                if(mediaResponse.getStatusCode().is2xxSuccessful() && config.getSettings().isSaveMediaLocally()) {
                     saveMediaToFile(mediaId, mediaType, mediaResponse.getBody());
                 }
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error downloading media {}", mediaId, e);
         }
     }
-    
+
     private void saveMediaToFile(String mediaId, String mediaType, byte[] data) {
         try {
             Path mediaDir = Paths.get(config.getSettings().getMediaStoragePath(), mediaType);
             Files.createDirectories(mediaDir);
-            
+
             String extension = getFileExtension(mediaType);
             Path filePath = mediaDir.resolve(mediaId + extension);
             Files.write(filePath, data);
-            
+
             log.info("Saved {} media to {}", mediaType, filePath);
-        } catch (IOException e) {
+        } catch(IOException e) {
             log.error("Error saving media to file", e);
         }
     }
-    
+
     private String getFileExtension(String mediaType) {
-        switch (mediaType) {
+        switch(mediaType) {
             case "image":
                 return ".jpg";
             case "audio":
@@ -447,55 +447,55 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
                 return "";
         }
     }
-    
+
     private void initializeMediaStorage() {
         try {
             Path mediaPath = Paths.get(config.getSettings().getMediaStoragePath());
             Files.createDirectories(mediaPath);
             log.info("Initialized media storage at {}", mediaPath);
-        } catch (IOException e) {
+        } catch(IOException e) {
             log.error("Failed to initialize media storage", e);
         }
     }
-    
-    @Scheduled(fixedDelayString = "${integrixs.adapters.whatsapp.statusPollingInterval:60000}") // 1 minute
+
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.whatsapp.statusPollingInterval:60000}") // 1 minute
     private void pollMessageStatuses() {
-        if (!isListening) return;
-        
-        // Clean up old processed message IDs (older than 24 hours)
+        if(!isListening) return;
+
+        // Clean up old processed message IDs(older than 24 hours)
         LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24);
         messageTimestamps.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoffTime));
         processedMessageIds.removeIf(id -> !messageTimestamps.containsKey(id));
     }
-    
+
     private void scheduleStatusPolling() {
         log.info("Scheduled status polling for WhatsApp Business");
     }
-    
+
     private String getAccessToken() {
-        String encryptedToken = config.getSystemUserAccessToken() != null ? 
+        String encryptedToken = config.getSystemUserAccessToken() != null ?
             config.getSystemUserAccessToken() : config.getAccessToken();
         return credentialEncryptionService.decrypt(encryptedToken);
     }
-    
+
     private boolean isConfigValid() {
-        return config != null 
-            && config.getPhoneNumberId() != null 
+        return config != null
+            && config.getPhoneNumberId() != null
             && (config.getSystemUserAccessToken() != null || config.getAccessToken() != null)
             && config.getAppId() != null
             && config.getAppSecret() != null;
     }
-    
-    // Verify webhook challenge (required by WhatsApp)
+
+    // Verify webhook challenge(required by WhatsApp)
     public String verifyWebhookChallenge(String mode, String token, String challenge) {
-        if ("subscribe".equals(mode) && config.getVerifyToken().equals(token)) {
+        if("subscribe".equals(mode) && config.getVerifyToken().equals(token)) {
             log.info("WhatsApp webhook verified successfully");
             return challenge;
         }
         log.warn("WhatsApp webhook verification failed");
         return null;
     }
-    
+
     public void setConfiguration(WhatsAppBusinessApiConfig config) {
         this.config = config;
     }

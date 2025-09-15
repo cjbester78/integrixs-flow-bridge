@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  * Base entity class providing common fields for all entities.
- * 
+ *
  * @author Integration Team
  * @since 2.0.0
  */
@@ -21,7 +21,7 @@ import java.util.UUID;
 public abstract class BaseEntity {
 
     /**
-     * Unique identifier (UUID) for the entity
+     * Unique identifier(UUID) for the entity
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

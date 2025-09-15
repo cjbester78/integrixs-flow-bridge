@@ -17,7 +17,7 @@ import com.integrixs.data.repository.SystemLogRepository;
 
 @Service
 /**
- * Class SystemLogServiceImpl - auto-generated documentation.
+ * Class SystemLogServiceImpl - auto - generated documentation.
  */
 public class SystemLogServiceImpl implements SystemLogService {
 
@@ -37,10 +37,10 @@ public class SystemLogServiceImpl implements SystemLogService {
      * Method: {()
      */
     public void log(SystemLog log) {
-        if (log.getCreatedAt() == null) {
+        if(log.getCreatedAt() == null) {
             log.setCreatedAt(LocalDateTime.now());
         }
-        if (log.getTimestamp() == null) {
+        if(log.getTimestamp() == null) {
             log.setTimestamp(LocalDateTime.now());
         }
         systemLogRepository.save(log);
@@ -66,8 +66,8 @@ public class SystemLogServiceImpl implements SystemLogService {
                 // Validate detailsJson
                 objectMapper.readTree(detailsJson);
                 log.setDetails(detailsJson);
-            } catch (Exception jsonEx) {
-                log.setDetails("{\"error\": \"Invalid JSON payload\"}");
+            } catch(Exception jsonEx) {
+                log.setDetails(" {\"error\": \"Invalid JSON payload\"}");
             }
 
             log = systemLogRepository.save(log);
@@ -80,12 +80,12 @@ public class SystemLogServiceImpl implements SystemLogService {
             error.setCreatedAt(LocalDateTime.now());
 
             userManagementErrorRepository.save(error);
-        } catch (Exception e) {
+        } catch(Exception e) {
             System.err.println("Failed to log user management error: " + e.getMessage());
             // DO NOT attempt recursive logging here!
         }
     }
-    
+
     @Override
     public void logFlowActivity(String activity, String message, String flowId, String userId, String source) {
         SystemLog log = new SystemLog();
@@ -98,13 +98,13 @@ public class SystemLogServiceImpl implements SystemLogService {
         log.setUserId(userId != null ? UUID.fromString(userId) : null);
         log.setTimestamp(LocalDateTime.now());
         log.setCreatedAt(LocalDateTime.now());
-        log.setDetails("{\"activity\": \"" + activity + "\"}");
-        
+        log.setDetails(" {\"activity\": \"" + activity + "\"}");
+
         systemLogRepository.save(log);
     }
-    
+
     @Override
-    public void logFlowExecution(String flowId, String flowName, String status, Long flowVersion, 
+    public void logFlowExecution(String flowId, String flowName, String status, Long flowVersion,
                                 long executionDuration, String correlationId, String userId, String source) {
         SystemLog log = new SystemLog();
         log.setLevel(status.equals("SUCCESS") ? SystemLog.LogLevel.INFO : SystemLog.LogLevel.ERROR);
@@ -116,7 +116,7 @@ public class SystemLogServiceImpl implements SystemLogService {
         log.setUserId(userId != null ? UUID.fromString(userId) : null);
         log.setTimestamp(LocalDateTime.now());
         log.setCreatedAt(LocalDateTime.now());
-        
+
         try {
             String details = objectMapper.writeValueAsString(new java.util.HashMap<String, Object>() {{
                 put("status", status);
@@ -125,10 +125,10 @@ public class SystemLogServiceImpl implements SystemLogService {
                 put("correlation_id", correlationId);
             }});
             log.setDetails(details);
-        } catch (Exception e) {
-            log.setDetails("{\"error\": \"Failed to serialize execution details\"}");
+        } catch(Exception e) {
+            log.setDetails(" {\"error\": \"Failed to serialize execution details\"}");
         }
-        
+
         systemLogRepository.save(log);
     }
 }

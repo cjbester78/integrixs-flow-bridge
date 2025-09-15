@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 public class SecurityConfiguration {
-    
+
     private SecurityType securityType;
     private String username;
     private String password;
@@ -19,7 +19,7 @@ public class SecurityConfiguration {
     private String oauthClientId;
     private String oauthClientSecret;
     private WsSecurityConfig wsSecurityConfig;
-    
+
     /**
      * Security type enumeration
      */
@@ -31,9 +31,9 @@ public class SecurityConfiguration {
         CERTIFICATE,
         CUSTOM
     }
-    
+
     /**
-     * WS-Security specific configuration
+     * WS - Security specific configuration
      */
     @Data
     @Builder

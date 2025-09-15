@@ -30,42 +30,42 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationService {
-    
+
     private final UserAuthenticationService authService;
     private final UserSessionService sessionService;
     private final JwtUtil jwtUtil;
     // private final UserService userService;
     private final AuditTrailService auditTrailService;
-    
+
     /**
      * Handle user login
      */
     @Transactional
     public LoginResponse login(LoginRequest request, String ipAddress, String userAgent) {
         log.info("Login attempt for username: {}", request.getUsername());
-        
+
         // Authenticate user
         User user = authService.authenticate(request.getUsername(), request.getPassword());
-        
+
         // Generate tokens
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
         long expiresIn = jwtUtil.getExpirationMillis() / 1000;
-        
+
         // Create session
         UserSession session = sessionService.createSession(user, refreshToken, ipAddress, userAgent);
-        
+
         // Audit trail
         Map<String, Object> loginDetails = new HashMap<>();
         loginDetails.put("ipAddress", ipAddress);
         loginDetails.put("userAgent", userAgent);
         loginDetails.put("sessionId", session.getId());
         auditTrailService.logAction("User", user.getId().toString(), AuditTrail.AuditAction.LOGIN, loginDetails);
-        
+
         // Map to DTO
         // UserDTO userDTO = userService.mapToDTO(user);
         UserDTO userDTO = mapUserToDTO(user);
-        
+
         return LoginResponse.builder()
                 .token(token)
                 .refreshToken(refreshToken)
@@ -73,25 +73,25 @@ public class AuthenticationService {
                 .user(userDTO)
                 .build();
     }
-    
+
     /**
      * Handle user logout
      */
     @Transactional
     public void logout(String username, String refreshToken) {
-        if (refreshToken != null) {
+        if(refreshToken != null) {
             sessionService.invalidateSession(refreshToken);
         }
-        
-        if (username != null) {
+
+        if(username != null) {
             User currentUser = authService.findByUsername(username);
-            if (currentUser != null) {
-                auditTrailService.logAction("User", currentUser.getId().toString(), 
+            if(currentUser != null) {
+                auditTrailService.logAction("User", currentUser.getId().toString(),
                         AuditTrail.AuditAction.LOGOUT, null);
             }
         }
     }
-    
+
     /**
      * Refresh authentication token
      */
@@ -99,14 +99,14 @@ public class AuthenticationService {
     public LoginResponse refreshToken(String refreshToken) {
         UserSession session = sessionService.validateAndRefreshSession(refreshToken);
         User user = session.getUser();
-        
+
         // Generate new access token
         String newToken = jwtUtil.generateToken(user.getUsername(), user.getRole());
         long expiresIn = jwtUtil.getExpirationMillis() / 1000;
-        
+
         // UserDTO userDTO = userService.mapToDTO(user);
         UserDTO userDTO = mapUserToDTO(user);
-        
+
         return LoginResponse.builder()
                 .token(newToken)
                 .refreshToken(refreshToken)
@@ -114,7 +114,7 @@ public class AuthenticationService {
                 .user(userDTO)
                 .build();
     }
-    
+
     // Temporary helper method to replace userService.mapToDTO
     private UserDTO mapUserToDTO(User user) {
         UserDTO dto = new UserDTO();
@@ -127,17 +127,17 @@ public class AuthenticationService {
         dto.setUpdatedAt(user.getUpdatedAt());
         return dto;
     }
-    
+
     /**
      * Get user profile by username
      */
     @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(String username) {
         User user = authService.findByUsername(username);
-        if (user == null) {
+        if(user == null) {
             throw new RuntimeException("User not found: " + username);
         }
-        
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -148,15 +148,15 @@ public class AuthenticationService {
                 .updatedAt(user.getUpdatedAt())
                 .build();
     }
-    
+
     /**
-     * Handle user registration (Admin-only)
+     * Handle user registration(Admin - only)
      * Users are created by admin staff and are immediately active
      */
     @Transactional
     public RegisterResponseDTO register(UserRegisterResponseDTO request, String ipAddress) {
         log.info("Admin registration request for email: {}", request.getEmail());
-        
+
         try {
             // Register user through domain service
             User newUser = authService.register(
@@ -164,25 +164,25 @@ public class AuthenticationService {
                 request.getEmail(),
                 request.getPassword(),
                 request.getRole()
-            );
-            
+           );
+
             // Audit trail
             Map<String, Object> registrationDetails = new HashMap<>();
             registrationDetails.put("ipAddress", ipAddress);
             registrationDetails.put("email", request.getEmail());
             registrationDetails.put("role", request.getRole());
             registrationDetails.put("createdByAdmin", true);
-            auditTrailService.logAction("User", newUser.getId().toString(), 
+            auditTrailService.logAction("User", newUser.getId().toString(),
                 AuditTrail.AuditAction.CREATE, registrationDetails);
-            
+
             // Return success response
             return RegisterResponseDTO.builder()
                     .success(true)
                     .message("User created successfully. The user can now login with their credentials.")
                     .userId(newUser.getId())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("User registration failed for email: {}", request.getEmail(), e);
             throw new IllegalArgumentException("Registration failed: " + e.getMessage());
         }

@@ -21,7 +21,7 @@ public class UserSession {
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "id", columnDefinition = "UUID")
-    /** Unique identifier (UUID) for the entity */
+    /** Unique identifier(UUID) for the entity */
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -46,7 +46,7 @@ public class UserSession {
 
     @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
-    
+
     @Column(name = "invalidated", nullable = false)
     private boolean invalidated = false;
 
@@ -130,13 +130,13 @@ public class UserSession {
     public void setVersion(int version) {
         this.version = version;
     }
-    
+
     public boolean isInvalidated() {
         return invalidated;
     }
-    
+
     public void setInvalidated(boolean invalidated) {
         this.invalidated = invalidated;
     }
- 
+
 }

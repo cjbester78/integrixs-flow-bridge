@@ -154,7 +154,7 @@ public class LoggingGatewayFilter implements GlobalFilter, Ordered {
             "cookie",
             "x-api-key",
             "x-auth-token"
-        );
+       );
         return sensitiveHeaders.contains(headerName.toLowerCase());
     }
     

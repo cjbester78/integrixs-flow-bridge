@@ -1,4 +1,4 @@
-	package com.integrixs.shared.dto.certificate;
+    package com.integrixs.shared.dto.certificate;
 
 /**
  * DTO for CertificateUploadRequestDTO.

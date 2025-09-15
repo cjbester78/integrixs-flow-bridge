@@ -20,30 +20,30 @@ import java.util.UUID;
 @Repository("domainMessageRepositoryImpl")
 @RequiredArgsConstructor
 public class DomainMessageRepositoryImpl implements DomainMessageRepository {
-    
+
     private final MessageRepository jpaRepository;
-    
+
     @Override
     public List<Message> findAll() {
         return jpaRepository.findAll();
     }
-    
+
     @Override
     public Optional<Message> findById(UUID id) {
         return jpaRepository.findById(id);
     }
-    
+
     @Override
     public Message save(Message message) {
         return jpaRepository.save(message);
     }
-    
+
     @Override
     public long countByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
             .getTotalElements();
     }
-    
+
     @Override
     public long countByBusinessComponentAndDateRange(UUID businessComponentId, LocalDateTime startDate, LocalDateTime endDate) {
         // This is a simplified implementation - in reality would need a custom query
@@ -51,7 +51,7 @@ public class DomainMessageRepositoryImpl implements DomainMessageRepository {
         return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
             .getTotalElements();
     }
-    
+
     @Override
     public long countByStatusAndDateRange(MessageStatus status, LocalDateTime startDate, LocalDateTime endDate) {
         // This would need a custom query in the JPA repository
@@ -60,9 +60,9 @@ public class DomainMessageRepositoryImpl implements DomainMessageRepository {
             .filter(m -> m.getStatus() == status)
             .count();
     }
-    
+
     @Override
-    public long countByBusinessComponentStatusAndDateRange(UUID businessComponentId, MessageStatus status, 
+    public long countByBusinessComponentStatusAndDateRange(UUID businessComponentId, MessageStatus status,
                                                           LocalDateTime startDate, LocalDateTime endDate) {
         // Simplified implementation - would need proper query
         return countByStatusAndDateRange(status, startDate, endDate);

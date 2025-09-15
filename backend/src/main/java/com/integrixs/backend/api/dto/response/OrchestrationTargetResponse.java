@@ -17,7 +17,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrchestrationTargetResponse {
-    
+
     private String id;
     private String flowId;
     private AdapterSummary targetAdapter;
@@ -37,7 +37,7 @@ public class OrchestrationTargetResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long mappingCount;
-    
+
     /**
      * Adapter summary
      */
@@ -52,7 +52,7 @@ public class OrchestrationTargetResponse {
         private String mode;
         private boolean active;
     }
-    
+
     /**
      * Retry policy response
      */

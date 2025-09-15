@@ -66,113 +66,113 @@ public class ExternalAuthentication {
     // Basic Authentication fields
     @Column(length = 255)
     private String username;
-    
+
     @Column(name = "encrypted_password", columnDefinition = "TEXT")
     private String encryptedPassword;
-    
+
     @Column(length = 100)
     private String realm;
 
     // OAuth 1.0 fields
     @Column(name = "consumer_key", length = 255)
     private String consumerKey;
-    
+
     @Column(name = "consumer_secret", columnDefinition = "TEXT")
     private String consumerSecret;
-    
+
     @Column(name = "oauth1_token", length = 500)
     private String oauth1Token;
-    
+
     @Column(name = "oauth1_token_secret", columnDefinition = "TEXT")
     private String oauth1TokenSecret;
-    
+
     @Column(name = "oauth1_signature_method", length = 50)
     @Builder.Default
-    private String oauth1SignatureMethod = "HMAC-SHA1";
-    
+    private String oauth1SignatureMethod = "HMAC - SHA1";
+
     @Column(name = "oauth1_realm", length = 255)
     private String oauth1Realm;
 
     // OAuth 2.0 fields
     @Column(name = "client_id", length = 255)
     private String clientId;
-    
+
     @Column(name = "encrypted_client_secret", columnDefinition = "TEXT")
     private String encryptedClientSecret;
-    
+
     @Column(name = "token_endpoint", length = 500)
     private String tokenEndpoint;
-    
+
     @Column(name = "authorization_endpoint", length = 500)
     private String authorizationEndpoint;
-    
+
     @Column(name = "redirect_uri", length = 500)
     private String redirectUri;
-    
+
     @Column(columnDefinition = "TEXT")
     private String scopes;
-    
+
     @Column(name = "grant_type", length = 50)
     private String grantType;
-    
+
     @Column(name = "encrypted_access_token", columnDefinition = "TEXT")
     private String encryptedAccessToken;
-    
+
     @Column(name = "refresh_token", columnDefinition = "TEXT")
     private String refreshToken;
-    
+
     @Column(name = "token_expires_at")
     private LocalDateTime tokenExpiresAt;
 
     // API Key fields
     @Column(name = "encrypted_api_key", columnDefinition = "TEXT")
     private String encryptedApiKey;
-    
+
     @Column(name = "api_key_header", length = 100)
     private String apiKeyHeader;
-    
+
     @Column(name = "api_key_prefix", length = 50)
     private String apiKeyPrefix;
 
     // Rate limiting fields
     @Column(name = "rate_limit")
     private Integer rateLimit;
-    
+
     @Column(name = "rate_limit_window_seconds")
     private Integer rateLimitWindowSeconds;
-    
+
     // HMAC fields
     @Column(name = "hmac_algorithm", length = 50)
     private String hmacAlgorithm;
-    
+
     @Column(name = "hmac_secret_key", columnDefinition = "TEXT")
     private String encryptedHmacSecretKey;
-    
+
     @Column(name = "hmac_header_name", length = 100)
     private String hmacHeaderName;
-    
+
     @Column(name = "hmac_include_timestamp")
     private Boolean hmacIncludeTimestamp;
-    
+
     @Column(name = "hmac_include_nonce")
     private Boolean hmacIncludeNonce;
-    
+
     // Certificate fields
     @Column(name = "certificate_path", length = 500)
     private String certificatePath;
-    
+
     @Column(name = "certificate_password", columnDefinition = "TEXT")
     private String encryptedCertificatePassword;
-    
+
     @Column(name = "certificate_type", length = 50)
     private String certificateType;
-    
+
     @Column(name = "trust_store_path", length = 500)
     private String trustStorePath;
-    
+
     @Column(name = "trust_store_password", columnDefinition = "TEXT")
     private String encryptedTrustStorePassword;
-    
+
     // Custom header fields
     @ElementCollection
     @CollectionTable(name = "external_auth_custom_headers",
@@ -185,14 +185,14 @@ public class ExternalAuthentication {
     @Column(nullable = false)
     @Builder.Default
     private boolean isActive = true;
-    
+
     @Column(name = "last_used_at")
     private LocalDateTime lastUsedAt;
-    
+
     @Column(name = "usage_count")
     @Builder.Default
     private Long usageCount = 0L;
-    
+
     @Column(name = "error_count")
     @Builder.Default
     private Long errorCount = 0L;
@@ -233,10 +233,10 @@ public class ExternalAuthentication {
     }
 
     /**
-     * Check if token needs refresh (OAuth2)
+     * Check if token needs refresh(OAuth2)
      */
     public boolean needsTokenRefresh() {
-        if (authType != AuthType.OAUTH2 || tokenExpiresAt == null) {
+        if(authType != AuthType.OAUTH2 || tokenExpiresAt == null) {
             return false;
         }
         // Refresh if token expires in less than 5 minutes

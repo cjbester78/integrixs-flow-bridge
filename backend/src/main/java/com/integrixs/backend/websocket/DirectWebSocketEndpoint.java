@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ServerEndpoint("/direct-ws")
+@ServerEndpoint("/direct - ws")
 @Profile("!test")
 public class DirectWebSocketEndpoint {
 
@@ -17,7 +17,7 @@ public class DirectWebSocketEndpoint {
         log.info("Direct WebSocket opened: {}", session.getId());
         try {
             session.getBasicRemote().sendText("Connected to Direct WebSocket!");
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error sending welcome message", e);
         }
     }

@@ -17,37 +17,37 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class JobProgressWebSocketHandler implements WebSocketHandler {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(JobProgressWebSocketHandler.class);
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     // Map of session ID to WebSocket session
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
-    
+
     // Map of job ID to interested sessions
     private final Map<UUID, Set<String>> jobSubscriptions = new ConcurrentHashMap<>();
-    
+
     // Map of user ID to sessions
     private final Map<UUID, Set<String>> userSessions = new ConcurrentHashMap<>();
-    
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.info("WebSocket connection established: {}", session.getId());
         sessions.put(session.getId(), session);
-        
+
         // Send welcome message
         sendMessage(session, new Message("connected", Map.of("sessionId", session.getId())));
     }
-    
+
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage) throws Exception {
-        if (webSocketMessage instanceof TextMessage) {
+        if(webSocketMessage instanceof TextMessage) {
             String payload = ((TextMessage) webSocketMessage).getPayload();
             Message message = objectMapper.readValue(payload, Message.class);
-            
-            switch (message.getType()) {
+
+            switch(message.getType()) {
                 case "subscribe":
                     handleSubscribe(session, message);
                     break;
@@ -62,29 +62,29 @@ public class JobProgressWebSocketHandler implements WebSocketHandler {
             }
         }
     }
-    
+
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
         logger.error("WebSocket transport error for session {}", session.getId(), exception);
     }
-    
+
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
         logger.info("WebSocket connection closed: {} with status {}", session.getId(), closeStatus);
-        
+
         // Remove session
         sessions.remove(session.getId());
-        
+
         // Remove from all subscriptions
         jobSubscriptions.values().forEach(sessions -> sessions.remove(session.getId()));
         userSessions.values().forEach(sessions -> sessions.remove(session.getId()));
     }
-    
+
     @Override
     public boolean supportsPartialMessages() {
         return false;
     }
-    
+
     /**
      * Send job update to all subscribed sessions
      */
@@ -96,32 +96,32 @@ public class JobProgressWebSocketHandler implements WebSocketHandler {
         update.setCurrentStep(job.getCurrentStep());
         update.setErrorMessage(job.getErrorMessage());
         update.setResults(job.getResults());
-        
+
         Message message = new Message("jobUpdate", update);
-        
+
         // Send to sessions subscribed to this specific job
         Set<String> subscribedSessions = jobSubscriptions.getOrDefault(job.getId(), Collections.emptySet());
-        for (String sessionId : subscribedSessions) {
+        for(String sessionId : subscribedSessions) {
             WebSocketSession session = sessions.get(sessionId);
-            if (session != null && session.isOpen()) {
+            if(session != null && session.isOpen()) {
                 try {
                     sendMessage(session, message);
-                } catch (Exception e) {
+                } catch(Exception e) {
                     logger.error("Error sending job update to session {}", sessionId, e);
                 }
             }
         }
-        
+
         // Also send to sessions of the job creator
-        if (job.getCreatedBy() != null) {
+        if(job.getCreatedBy() != null) {
             Set<String> userSessionIds = userSessions.getOrDefault(job.getCreatedBy(), Collections.emptySet());
-            for (String sessionId : userSessionIds) {
-                if (!subscribedSessions.contains(sessionId)) { // Avoid duplicates
+            for(String sessionId : userSessionIds) {
+                if(!subscribedSessions.contains(sessionId)) { // Avoid duplicates
                     WebSocketSession session = sessions.get(sessionId);
-                    if (session != null && session.isOpen()) {
+                    if(session != null && session.isOpen()) {
                         try {
                             sendMessage(session, message);
-                        } catch (Exception e) {
+                        } catch(Exception e) {
                             logger.error("Error sending job update to user session {}", sessionId, e);
                         }
                     }
@@ -129,97 +129,97 @@ public class JobProgressWebSocketHandler implements WebSocketHandler {
             }
         }
     }
-    
+
     /**
      * Handle subscription request
      */
     private void handleSubscribe(WebSocketSession session, Message message) {
         Map<String, Object> data = (Map<String, Object>) message.getData();
-        
-        if (data.containsKey("jobId")) {
+
+        if(data.containsKey("jobId")) {
             UUID jobId = UUID.fromString(data.get("jobId").toString());
             jobSubscriptions.computeIfAbsent(jobId, k -> ConcurrentHashMap.newKeySet())
                 .add(session.getId());
             logger.debug("Session {} subscribed to job {}", session.getId(), jobId);
         }
-        
-        if (data.containsKey("userId")) {
+
+        if(data.containsKey("userId")) {
             UUID userId = UUID.fromString(data.get("userId").toString());
             userSessions.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet())
                 .add(session.getId());
             logger.debug("Session {} subscribed to user {}", session.getId(), userId);
         }
-        
+
         // Send acknowledgment
         sendMessage(session, new Message("subscribed", data));
     }
-    
+
     /**
      * Handle unsubscription request
      */
     private void handleUnsubscribe(WebSocketSession session, Message message) {
         Map<String, Object> data = (Map<String, Object>) message.getData();
-        
-        if (data.containsKey("jobId")) {
+
+        if(data.containsKey("jobId")) {
             UUID jobId = UUID.fromString(data.get("jobId").toString());
             Set<String> sessions = jobSubscriptions.get(jobId);
-            if (sessions != null) {
+            if(sessions != null) {
                 sessions.remove(session.getId());
-                if (sessions.isEmpty()) {
+                if(sessions.isEmpty()) {
                     jobSubscriptions.remove(jobId);
                 }
             }
         }
-        
-        if (data.containsKey("userId")) {
+
+        if(data.containsKey("userId")) {
             UUID userId = UUID.fromString(data.get("userId").toString());
             Set<String> sessions = userSessions.get(userId);
-            if (sessions != null) {
+            if(sessions != null) {
                 sessions.remove(session.getId());
-                if (sessions.isEmpty()) {
+                if(sessions.isEmpty()) {
                     userSessions.remove(userId);
                 }
             }
         }
-        
+
         // Send acknowledgment
         sendMessage(session, new Message("unsubscribed", data));
     }
-    
+
     /**
      * Send message to session
      */
     private void sendMessage(WebSocketSession session, Message message) {
-        if (session.isOpen()) {
+        if(session.isOpen()) {
             try {
                 String json = objectMapper.writeValueAsString(message);
                 session.sendMessage(new TextMessage(json));
-            } catch (IOException e) {
+            } catch(IOException e) {
                 logger.error("Error sending message to session {}", session.getId(), e);
             }
         }
     }
-    
+
     /**
      * WebSocket message class
      */
     public static class Message {
         private String type;
         private Object data;
-        
+
         public Message() {}
-        
+
         public Message(String type, Object data) {
             this.type = type;
             this.data = data;
         }
-        
+
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
         public Object getData() { return data; }
         public void setData(Object data) { this.data = data; }
     }
-    
+
     /**
      * Job update message
      */
@@ -230,7 +230,7 @@ public class JobProgressWebSocketHandler implements WebSocketHandler {
         private String currentStep;
         private String errorMessage;
         private Map<String, String> results;
-        
+
         // Getters and setters
         public UUID getJobId() { return jobId; }
         public void setJobId(UUID jobId) { this.jobId = jobId; }

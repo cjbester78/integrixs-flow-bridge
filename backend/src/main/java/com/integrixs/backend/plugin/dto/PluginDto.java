@@ -26,7 +26,7 @@ public class PluginDto {
     private String documentationUrl;
     private String license;
     private List<String> tags;
-    
+
     public static PluginDto fromMetadata(AdapterMetadata metadata) {
         return PluginDto.builder()
                 .id(metadata.getId())

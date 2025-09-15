@@ -20,14 +20,14 @@ public class HealthCheckResult {
     private String message;
     @Builder.Default
     private Map<String, ComponentHealth> components = new HashMap<>();
-    
+
     public enum HealthStatus {
         UP,
         DOWN,
         DEGRADED,
         UNKNOWN
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor

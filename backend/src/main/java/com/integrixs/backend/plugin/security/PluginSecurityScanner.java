@@ -21,7 +21,7 @@ import java.util.zip.ZipEntry;
 @Component
 @Slf4j
 public class PluginSecurityScanner {
-    
+
     // Dangerous class patterns
     private static final Set<String> DANGEROUS_CLASSES = Set.of(
         "java.lang.Runtime",
@@ -29,8 +29,8 @@ public class PluginSecurityScanner {
         "java.lang.reflect.AccessibleObject",
         "sun.misc.Unsafe",
         "java.security.AllPermission"
-    );
-    
+   );
+
     // Dangerous method patterns
     private static final Set<String> DANGEROUS_METHODS = Set.of(
         "exec",
@@ -39,8 +39,8 @@ public class PluginSecurityScanner {
         "setSecurityManager",
         "setAccessible",
         "doPrivileged"
-    );
-    
+   );
+
     // Suspicious patterns in code
     private static final List<Pattern> SUSPICIOUS_PATTERNS = List.of(
         Pattern.compile("Runtime\\.getRuntime\\(\\)"),
@@ -52,75 +52,75 @@ public class PluginSecurityScanner {
         Pattern.compile("reflection\\.setAccessible"),
         Pattern.compile("URLClassLoader"),
         Pattern.compile("defineClass")
-    );
-    
+   );
+
     // File patterns that should not be in plugins
     private static final Set<String> FORBIDDEN_FILES = Set.of(
         ".exe", ".dll", ".so", ".dylib",
         ".sh", ".bat", ".cmd",
         ".key", ".pem", ".p12", ".jks"
-    );
-    
+   );
+
     /**
      * Perform comprehensive security scan on plugin JAR
      */
     public SecurityScanResult scanPlugin(Path jarPath) {
         log.info("Starting security scan for plugin: {}", jarPath);
-        
+
         SecurityScanResult.SecurityScanResultBuilder resultBuilder = SecurityScanResult.builder()
                 .jarPath(jarPath.toString())
                 .scanDate(new Date());
-        
+
         List<SecurityIssue> issues = new ArrayList<>();
-        
+
         try {
             // Calculate checksum
             String checksum = calculateChecksum(jarPath);
             resultBuilder.checksum(checksum);
-            
+
             // Check file size
             long fileSize = Files.size(jarPath);
             resultBuilder.fileSize(fileSize);
-            if (fileSize > 50 * 1024 * 1024) { // 50MB limit
+            if(fileSize > 50 * 1024 * 1024) { // 50MB limit
                 issues.add(SecurityIssue.builder()
                         .severity(Severity.WARNING)
                         .type(IssueType.FILE_SIZE)
                         .description("JAR file exceeds 50MB size limit")
                         .build());
             }
-            
+
             // Scan JAR contents
-            try (JarFile jarFile = new JarFile(jarPath.toFile())) {
+            try(JarFile jarFile = new JarFile(jarPath.toFile())) {
                 // Check manifest
                 scanManifest(jarFile, issues);
-                
+
                 // Scan all entries
                 Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
+                while(entries.hasMoreElements()) {
                     JarEntry entry = entries.nextElement();
                     scanJarEntry(jarFile, entry, issues);
                 }
-                
+
                 // Check for native libraries
                 checkForNativeLibraries(jarFile, issues);
-                
+
                 // Check for executable files
                 checkForExecutables(jarFile, issues);
-                
+
                 // Verify signatures if signed
                 verifySignatures(jarFile, issues);
             }
-            
+
             // Determine overall risk level
             RiskLevel riskLevel = calculateRiskLevel(issues);
             resultBuilder.riskLevel(riskLevel);
-            
+
             // Set verdict
-            boolean passed = riskLevel != RiskLevel.CRITICAL && 
+            boolean passed = riskLevel != RiskLevel.CRITICAL &&
                            issues.stream().noneMatch(i -> i.getSeverity() == Severity.CRITICAL);
             resultBuilder.passed(passed);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error scanning plugin", e);
             issues.add(SecurityIssue.builder()
                     .severity(Severity.CRITICAL)
@@ -130,23 +130,23 @@ public class PluginSecurityScanner {
             resultBuilder.passed(false);
             resultBuilder.riskLevel(RiskLevel.CRITICAL);
         }
-        
+
         resultBuilder.issues(issues);
         SecurityScanResult result = resultBuilder.build();
-        
-        log.info("Security scan completed. Risk level: {}, Issues found: {}", 
+
+        log.info("Security scan completed. Risk level: {}, Issues found: {}",
                 result.getRiskLevel(), issues.size());
-        
+
         return result;
     }
-    
+
     /**
      * Scan manifest file
      */
     private void scanManifest(JarFile jarFile, List<SecurityIssue> issues) {
         try {
             Manifest manifest = jarFile.getManifest();
-            if (manifest == null) {
+            if(manifest == null) {
                 issues.add(SecurityIssue.builder()
                         .severity(Severity.WARNING)
                         .type(IssueType.MISSING_MANIFEST)
@@ -154,43 +154,43 @@ public class PluginSecurityScanner {
                         .build());
                 return;
             }
-            
+
             Attributes attrs = manifest.getMainAttributes();
-            
+
             // Check for required attributes
-            String pluginClass = attrs.getValue("Plugin-Class");
-            if (pluginClass == null) {
+            String pluginClass = attrs.getValue("Plugin - Class");
+            if(pluginClass == null) {
                 issues.add(SecurityIssue.builder()
                         .severity(Severity.ERROR)
                         .type(IssueType.INVALID_MANIFEST)
-                        .description("Missing required Plugin-Class attribute")
+                        .description("Missing required Plugin - Class attribute")
                         .build());
             }
-            
+
             // Check for suspicious permissions
             String permissions = attrs.getValue("Permissions");
-            if ("all-permissions".equals(permissions)) {
+            if("all - permissions".equals(permissions)) {
                 issues.add(SecurityIssue.builder()
                         .severity(Severity.CRITICAL)
                         .type(IssueType.DANGEROUS_PERMISSION)
                         .description("Plugin requests all permissions")
                         .build());
             }
-            
-        } catch (IOException e) {
+
+        } catch(IOException e) {
             log.error("Error reading manifest", e);
         }
     }
-    
+
     /**
      * Scan individual JAR entry
      */
     private void scanJarEntry(JarFile jarFile, JarEntry entry, List<SecurityIssue> issues) {
         String entryName = entry.getName();
-        
+
         // Check for forbidden file types
-        for (String forbidden : FORBIDDEN_FILES) {
-            if (entryName.endsWith(forbidden)) {
+        for(String forbidden : FORBIDDEN_FILES) {
+            if(entryName.endsWith(forbidden)) {
                 issues.add(SecurityIssue.builder()
                         .severity(Severity.CRITICAL)
                         .type(IssueType.FORBIDDEN_FILE)
@@ -199,14 +199,14 @@ public class PluginSecurityScanner {
                         .build());
             }
         }
-        
+
         // Scan class files
-        if (entryName.endsWith(".class")) {
+        if(entryName.endsWith(".class")) {
             scanClassFile(jarFile, entry, issues);
         }
-        
+
         // Check for hidden files
-        if (entryName.startsWith(".") || entryName.contains("/.")) {
+        if(entryName.startsWith(".") || entryName.contains("/.")) {
             issues.add(SecurityIssue.builder()
                     .severity(Severity.WARNING)
                     .type(IssueType.HIDDEN_FILE)
@@ -215,18 +215,18 @@ public class PluginSecurityScanner {
                     .build());
         }
     }
-    
+
     /**
      * Scan class file for dangerous code
      */
     private void scanClassFile(JarFile jarFile, JarEntry entry, List<SecurityIssue> issues) {
-        try (InputStream is = jarFile.getInputStream(entry)) {
+        try(InputStream is = jarFile.getInputStream(entry)) {
             byte[] classBytes = is.readAllBytes();
             String className = entry.getName().replace('/', '.').replace(".class", "");
-            
+
             // Check for dangerous class usage
-            for (String dangerous : DANGEROUS_CLASSES) {
-                if (containsReference(classBytes, dangerous)) {
+            for(String dangerous : DANGEROUS_CLASSES) {
+                if(containsReference(classBytes, dangerous)) {
                     issues.add(SecurityIssue.builder()
                             .severity(Severity.HIGH)
                             .type(IssueType.DANGEROUS_CLASS)
@@ -235,10 +235,10 @@ public class PluginSecurityScanner {
                             .build());
                 }
             }
-            
+
             // Check for dangerous method calls
-            for (String method : DANGEROUS_METHODS) {
-                if (containsReference(classBytes, method)) {
+            for(String method : DANGEROUS_METHODS) {
+                if(containsReference(classBytes, method)) {
                     issues.add(SecurityIssue.builder()
                             .severity(Severity.HIGH)
                             .type(IssueType.DANGEROUS_METHOD)
@@ -247,12 +247,12 @@ public class PluginSecurityScanner {
                             .build());
                 }
             }
-            
-        } catch (IOException e) {
+
+        } catch(IOException e) {
             log.error("Error scanning class file: " + entry.getName(), e);
         }
     }
-    
+
     /**
      * Check for native libraries
      */
@@ -268,7 +268,7 @@ public class PluginSecurityScanner {
                             .build());
                 });
     }
-    
+
     /**
      * Check for executable files
      */
@@ -284,7 +284,7 @@ public class PluginSecurityScanner {
                             .build());
                 });
     }
-    
+
     /**
      * Verify JAR signatures
      */
@@ -292,46 +292,46 @@ public class PluginSecurityScanner {
         try {
             // Check if JAR is signed
             boolean isSigned = jarFile.stream()
-                    .anyMatch(entry -> entry.getName().startsWith("META-INF/") && 
-                             (entry.getName().endsWith(".SF") || entry.getName().endsWith(".RSA") || 
+                    .anyMatch(entry -> entry.getName().startsWith("META - INF/") &&
+                             (entry.getName().endsWith(".SF") || entry.getName().endsWith(".RSA") ||
                               entry.getName().endsWith(".DSA")));
-            
-            if (!isSigned) {
+
+            if(!isSigned) {
                 issues.add(SecurityIssue.builder()
                         .severity(Severity.INFO)
                         .type(IssueType.UNSIGNED_JAR)
                         .description("JAR file is not digitally signed")
                         .build());
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error verifying signatures", e);
         }
     }
-    
+
     /**
      * Calculate file checksum
      */
     private String calculateChecksum(Path file) throws IOException, NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        try (InputStream is = Files.newInputStream(file)) {
+        try(InputStream is = Files.newInputStream(file)) {
             byte[] buffer = new byte[8192];
             int read;
-            while ((read = is.read(buffer)) > 0) {
+            while((read = is.read(buffer)) > 0) {
                 digest.update(buffer, 0, read);
             }
         }
-        
+
         byte[] hash = digest.digest();
         StringBuilder hexString = new StringBuilder();
-        for (byte b : hash) {
+        for(byte b : hash) {
             String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
+            if(hex.length() == 1) hexString.append('0');
             hexString.append(hex);
         }
         return hexString.toString();
     }
-    
+
     /**
      * Check if bytes contain reference to string
      */
@@ -340,38 +340,38 @@ public class PluginSecurityScanner {
         String bytesAsString = new String(classBytes);
         return bytesAsString.contains(reference);
     }
-    
+
     /**
      * Calculate overall risk level
      */
     private RiskLevel calculateRiskLevel(List<SecurityIssue> issues) {
-        if (issues.stream().anyMatch(i -> i.getSeverity() == Severity.CRITICAL)) {
+        if(issues.stream().anyMatch(i -> i.getSeverity() == Severity.CRITICAL)) {
             return RiskLevel.CRITICAL;
         }
-        
+
         long highCount = issues.stream()
                 .filter(i -> i.getSeverity() == Severity.HIGH)
                 .count();
-        
-        if (highCount >= 3) {
+
+        if(highCount >= 3) {
             return RiskLevel.HIGH;
-        } else if (highCount >= 1) {
+        } else if(highCount >= 1) {
             return RiskLevel.MEDIUM;
         }
-        
+
         long warningCount = issues.stream()
                 .filter(i -> i.getSeverity() == Severity.WARNING)
                 .count();
-        
-        if (warningCount >= 5) {
+
+        if(warningCount >= 5) {
             return RiskLevel.MEDIUM;
-        } else if (warningCount >= 1) {
+        } else if(warningCount >= 1) {
             return RiskLevel.LOW;
         }
-        
+
         return RiskLevel.MINIMAL;
     }
-    
+
     /**
      * Security scan result
      */
@@ -385,11 +385,11 @@ public class PluginSecurityScanner {
         private List<SecurityIssue> issues;
         private String checksum;
         private long fileSize;
-        
+
         public String getSummary() {
             Map<Severity, Long> severityCounts = issues.stream()
                     .collect(Collectors.groupingBy(SecurityIssue::getSeverity, Collectors.counting()));
-            
+
             return String.format("Risk: %s, Critical: %d, High: %d, Warning: %d, Info: %d",
                     riskLevel,
                     severityCounts.getOrDefault(Severity.CRITICAL, 0L),
@@ -398,7 +398,7 @@ public class PluginSecurityScanner {
                     severityCounts.getOrDefault(Severity.INFO, 0L));
         }
     }
-    
+
     /**
      * Security issue
      */
@@ -411,7 +411,7 @@ public class PluginSecurityScanner {
         private String location;
         private String recommendation;
     }
-    
+
     /**
      * Issue severity
      */
@@ -421,7 +421,7 @@ public class PluginSecurityScanner {
         WARNING,
         INFO
     }
-    
+
     /**
      * Issue type
      */
@@ -439,7 +439,7 @@ public class PluginSecurityScanner {
         FILE_SIZE,
         SCAN_ERROR
     }
-    
+
     /**
      * Overall risk level
      */

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Domain model for send requests (used by outbound adapters)
+ * Domain model for send requests(used by outbound adapters)
  */
 public class SendRequest {
     private String requestId;
@@ -17,7 +17,7 @@ public class SendRequest {
     private boolean synchronous;
     private Long timeout; // milliseconds
     private Integer priority;
-    
+
     /**
      * Add parameter
      * @param key Parameter key
@@ -26,7 +26,7 @@ public class SendRequest {
     public void addParameter(String key, Object value) {
         this.parameters.put(key, value);
     }
-    
+
     /**
      * Add header
      * @param key Header key
@@ -35,7 +35,7 @@ public class SendRequest {
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
-    
+
     /**
      * Get payload as specific type
      * @param type Target type
@@ -109,7 +109,7 @@ public class SendRequest {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String requestId;
         private String adapterId;
@@ -121,57 +121,57 @@ public class SendRequest {
         private boolean synchronous;
         private Long timeout;
         private Integer priority;
-        
+
         public Builder requestId(String requestId) {
             this.requestId = requestId;
             return this;
         }
-        
+
         public Builder adapterId(String adapterId) {
             this.adapterId = adapterId;
             return this;
         }
-        
+
         public Builder payload(Object payload) {
             this.payload = payload;
             return this;
         }
-        
+
         public Builder parameters(Map<String, Object> parameters) {
             this.parameters = parameters;
             return this;
         }
-        
+
         public Builder headers(Map<String, String> headers) {
             this.headers = headers;
             return this;
         }
-        
+
         public Builder destination(String destination) {
             this.destination = destination;
             return this;
         }
-        
+
         public Builder operation(String operation) {
             this.operation = operation;
             return this;
         }
-        
+
         public Builder synchronous(boolean synchronous) {
             this.synchronous = synchronous;
             return this;
         }
-        
+
         public Builder timeout(Long timeout) {
             this.timeout = timeout;
             return this;
         }
-        
+
         public Builder priority(Integer priority) {
             this.priority = priority;
             return this;
         }
-        
+
         public SendRequest build() {
             SendRequest obj = new SendRequest();
             obj.requestId = this.requestId;

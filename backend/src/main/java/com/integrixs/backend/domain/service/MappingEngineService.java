@@ -18,44 +18,44 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MappingEngineService {
-    
+
     private final ObjectMapper objectMapper;
-    
+
     /**
      * Validate field mapping configuration
      */
     public void validateMapping(FieldMapping mapping) {
-        if (mapping.getSourceFieldsList() == null || mapping.getSourceFieldsList().isEmpty()) {
+        if(mapping.getSourceFieldsList() == null || mapping.getSourceFieldsList().isEmpty()) {
             throw new IllegalArgumentException("Source fields are required");
         }
-        
+
         // Validate target fields - must have at least one
         List<String> targetFields = mapping.getTargetFieldsList();
-        if (targetFields == null || targetFields.isEmpty()) {
+        if(targetFields == null || targetFields.isEmpty()) {
             throw new IllegalArgumentException("At least one target field is required");
         }
-        
+
         // Validate split configuration for SPLIT type
-        if (mapping.getMappingType() == FieldMapping.MappingType.SPLIT && 
+        if(mapping.getMappingType() == FieldMapping.MappingType.SPLIT &&
             mapping.getSplitConfiguration() == null) {
             throw new IllegalArgumentException("Split configuration is required for SPLIT mapping type");
         }
-        
-        // For 1-to-many mappings, ensure proper configuration
-        if (targetFields.size() > 1 && mapping.getMappingType() == FieldMapping.MappingType.DIRECT) {
+
+        // For 1 - to - many mappings, ensure proper configuration
+        if(targetFields.size() > 1 && mapping.getMappingType() == FieldMapping.MappingType.DIRECT) {
             throw new IllegalArgumentException("Direct mapping type cannot have multiple target fields. Use SPLIT type instead.");
         }
-        
-        if (mapping.isArrayMapping() && (mapping.getArrayContextPath() == null || mapping.getArrayContextPath().isBlank())) {
+
+        if(mapping.isArrayMapping() && (mapping.getArrayContextPath() == null || mapping.getArrayContextPath().isBlank())) {
             throw new IllegalArgumentException("Array context path is required for array mappings");
         }
-        
+
         // Validate function configuration if present
-        if (mapping.getJavaFunction() != null && !mapping.getJavaFunction().isBlank()) {
+        if(mapping.getJavaFunction() != null && !mapping.getJavaFunction().isBlank()) {
             validateJavaFunction(mapping.getJavaFunction());
         }
     }
-    
+
     /**
      * Sort mappings by order
      */
@@ -64,124 +64,124 @@ public class MappingEngineService {
             .sorted((a, b) -> {
                 int orderA = a.getMappingOrder() != null ? a.getMappingOrder() : Integer.MAX_VALUE;
                 int orderB = b.getMappingOrder() != null ? b.getMappingOrder() : Integer.MAX_VALUE;
-                
+
                 int orderCompare = Integer.compare(orderA, orderB);
-                if (orderCompare != 0) {
+                if(orderCompare != 0) {
                     return orderCompare;
                 }
-                
+
                 // Fallback to ID comparison
                 return a.getId().compareTo(b.getId());
             })
             .toList();
     }
-    
+
     /**
      * Convert visual flow data object to JSON string
      */
     public String serializeVisualFlowData(Object visualFlowData) {
-        if (visualFlowData == null) {
+        if(visualFlowData == null) {
             return null;
         }
-        
+
         try {
             return objectMapper.writeValueAsString(visualFlowData);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.error("Failed to serialize visual flow data", e);
             throw new RuntimeException("Failed to serialize visual flow data", e);
         }
     }
-    
+
     /**
      * Convert JSON string to visual flow data object
      */
     public Object deserializeVisualFlowData(String visualFlowDataJson) {
-        if (visualFlowDataJson == null || visualFlowDataJson.isBlank()) {
+        if(visualFlowDataJson == null || visualFlowDataJson.isBlank()) {
             return null;
         }
-        
+
         try {
             return objectMapper.readValue(visualFlowDataJson, Object.class);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.error("Failed to deserialize visual flow data", e);
             return null;
         }
     }
-    
+
     /**
      * Convert function node object to JSON string
      */
     public String serializeFunctionNode(Object functionNode) {
-        if (functionNode == null) {
+        if(functionNode == null) {
             return null;
         }
-        
+
         try {
             return objectMapper.writeValueAsString(functionNode);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.error("Failed to serialize function node", e);
             throw new RuntimeException("Failed to serialize function node", e);
         }
     }
-    
+
     /**
      * Convert JSON string to function node object
      */
     public Object deserializeFunctionNode(String functionNodeJson) {
-        if (functionNodeJson == null || functionNodeJson.isBlank()) {
+        if(functionNodeJson == null || functionNodeJson.isBlank()) {
             return null;
         }
-        
+
         try {
             return objectMapper.readValue(functionNodeJson, Object.class);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.error("Failed to deserialize function node", e);
             return null;
         }
     }
-    
+
     /**
      * Create a new field mapping
      */
     public FieldMapping createMapping(FlowTransformation transformation, FieldMapping mapping) {
         mapping.setTransformation(transformation);
         mapping.setVersion("1");
-        
+
         // Set default order if not specified
-        if (mapping.getMappingOrder() == null) {
+        if(mapping.getMappingOrder() == null) {
             mapping.setMappingOrder(0);
         }
-        
+
         validateMapping(mapping);
-        
-        log.info("Creating field mapping for transformation {} with target field: {}", 
+
+        log.info("Creating field mapping for transformation {} with target field: {}",
             transformation.getId(), mapping.getTargetField());
-        
+
         return mapping;
     }
-    
+
     /**
      * Update an existing field mapping
      */
     public FieldMapping updateMapping(FieldMapping existing, FieldMapping updates) {
         // Update fields
         existing.setSourceFieldsList(updates.getSourceFieldsList());
-        
+
         // Update target fields - handle both single and multiple
-        if (updates.getTargetFieldsList() != null && !updates.getTargetFieldsList().isEmpty()) {
+        if(updates.getTargetFieldsList() != null && !updates.getTargetFieldsList().isEmpty()) {
             existing.setTargetFieldsList(updates.getTargetFieldsList());
-        } else if (updates.getTargetField() != null) {
+        } else if(updates.getTargetField() != null) {
             existing.setTargetField(updates.getTargetField());
         }
-        
+
         // Update mapping type and split configuration
-        if (updates.getMappingType() != null) {
+        if(updates.getMappingType() != null) {
             existing.setMappingType(updates.getMappingType());
         }
-        if (updates.getSplitConfiguration() != null) {
+        if(updates.getSplitConfiguration() != null) {
             existing.setSplitConfiguration(updates.getSplitConfiguration());
         }
-        
+
         existing.setJavaFunction(updates.getJavaFunction());
         existing.setMappingRule(updates.getMappingRule());
         existing.setInputTypes(updates.getInputTypes());
@@ -196,51 +196,51 @@ public class MappingEngineService {
         existing.setMappingOrder(updates.getMappingOrder());
         existing.setVisualFlowData(updates.getVisualFlowData());
         existing.setFunctionNode(updates.getFunctionNode());
-        
+
         // Increment version
         int currentVersion = existing.getVersion() != null ? Integer.parseInt(existing.getVersion()) : 0;
         existing.setVersion(String.valueOf(currentVersion + 1));
-        
+
         validateMapping(existing);
-        
-        log.info("Updating field mapping {} with {} target field(s)", 
+
+        log.info("Updating field mapping {} with {} target field(s)",
             existing.getId(), existing.getTargetFieldsList().size());
-        
+
         return existing;
     }
-    
+
     private void validateJavaFunction(String javaFunction) {
         // Basic validation - could be enhanced with more comprehensive checks
-        if (!javaFunction.contains("(") || !javaFunction.contains(")")) {
+        if(!javaFunction.contains("(") || !javaFunction.contains(")")) {
             throw new IllegalArgumentException("Invalid Java function format");
         }
     }
-    
+
     /**
      * Serialize split configuration to JSON string
      */
     public String serializeSplitConfiguration(Object splitConfiguration) {
-        if (splitConfiguration == null) {
+        if(splitConfiguration == null) {
             return null;
         }
         try {
             return objectMapper.writeValueAsString(splitConfiguration);
-        } catch (JsonProcessingException e) {
+        } catch(JsonProcessingException e) {
             log.error("Error serializing split configuration", e);
-            return "{}";
+            return " {}";
         }
     }
-    
+
     /**
      * Deserialize split configuration from JSON string
      */
     public Object deserializeSplitConfiguration(String splitConfigurationJson) {
-        if (splitConfigurationJson == null || splitConfigurationJson.isBlank()) {
+        if(splitConfigurationJson == null || splitConfigurationJson.isBlank()) {
             return null;
         }
         try {
             return objectMapper.readValue(splitConfigurationJson, Object.class);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error deserializing split configuration: {}", splitConfigurationJson, e);
             return null;
         }

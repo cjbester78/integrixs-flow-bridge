@@ -24,14 +24,14 @@ import javax.validation.Valid;
 @Validated
 @Tag(name = "Adapter Connection Testing", description = "API for testing adapter connections")
 public class AdapterConnectionTestController {
-    
+
     private final AdapterConnectionTestService connectionTestService;
-    
+
     @PostMapping("/test")
     @Operation(
             summary = "Test adapter connection",
             description = "Tests the connection for a specific adapter type with provided configuration"
-    )
+   )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -39,35 +39,35 @@ public class AdapterConnectionTestController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ConnectionTestResponse.class)
-                    )
-            ),
+                   )
+           ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Invalid request data",
                     content = @Content(mediaType = "application/json")
-            ),
+           ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error during connection test",
                     content = @Content(mediaType = "application/json")
-            )
+           )
     })
     public ResponseEntity<ConnectionTestResponse> testConnection(
             @Valid @RequestBody ConnectionTestRequest request) {
-        
-        log.info("Testing connection for adapter: {} ({})", 
+
+        log.info("Testing connection for adapter: {} ( {})",
                 request.getAdapterName(), request.getAdapterType());
-        
+
         try {
             ConnectionTestResponse response = connectionTestService.testConnection(request);
-            
-            log.info("Connection test completed for {}: success={}, duration={}ms",
+
+            log.info("Connection test completed for {}: success = {}, duration = {}ms",
                     request.getAdapterName(), response.isSuccess(), response.getDuration());
-            
+
             // Return 200 OK regardless of test success - the success field indicates the result
             return ResponseEntity.ok(response);
-            
-        } catch (UnsupportedOperationException e) {
+
+        } catch(UnsupportedOperationException e) {
             log.error("Unsupported adapter type: {}", request.getAdapterType());
             return ResponseEntity.badRequest().body(
                     ConnectionTestResponse.builder()
@@ -75,8 +75,8 @@ public class AdapterConnectionTestController {
                             .message("Unsupported adapter type: " + request.getAdapterType())
                             .duration(0)
                             .build()
-            );
-        } catch (Exception e) {
+           );
+        } catch(Exception e) {
             log.error("Error during connection test", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     ConnectionTestResponse.builder()
@@ -84,19 +84,19 @@ public class AdapterConnectionTestController {
                             .message("Internal error during connection test: " + e.getMessage())
                             .duration(0)
                             .build()
-            );
+           );
         }
     }
-    
-    @GetMapping("/test/supported-types")
+
+    @GetMapping("/test/supported - types")
     @Operation(
             summary = "Get supported adapter types",
             description = "Returns a list of adapter types that support connection testing"
-    )
+   )
     public ResponseEntity<String[]> getSupportedTypes() {
         // Return adapter types that have connection test implementation
         String[] supportedTypes = {
-                "REST", "SOAP", "DATABASE", "JMS", "RABBITMQ", 
+                "REST", "SOAP", "DATABASE", "JMS", "RABBITMQ",
                 "FILE", "KAFKA", "SFTP", "EMAIL"
         };
         return ResponseEntity.ok(supportedTypes);

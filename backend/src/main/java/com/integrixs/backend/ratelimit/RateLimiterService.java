@@ -18,39 +18,39 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class RateLimiterService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(RateLimiterService.class);
-    
+
     @Autowired(required = false)
     private DistributedCacheService cacheService;
-    
-    @Value("${api.ratelimit.default.capacity:100}")
+
+    @Value("$ {api.ratelimit.default.capacity:100}")
     private int defaultCapacity;
-    
-    @Value("${api.ratelimit.default.refill-rate:10}")
+
+    @Value("$ {api.ratelimit.default.refill - rate:10}")
     private int defaultRefillRate;
-    
-    @Value("${api.ratelimit.default.refill-period:60}")
+
+    @Value("$ {api.ratelimit.default.refill - period:60}")
     private int defaultRefillPeriod;
-    
+
     // Local cache for when Redis is not available
     private final Map<String, TokenBucket> localBuckets = new ConcurrentHashMap<>();
-    
+
     /**
      * Check if request is allowed based on rate limit
      */
     public RateLimitResult checkRateLimit(String key, RateLimitConfig config) {
-        if (config == null) {
+        if(config == null) {
             config = getDefaultConfig();
         }
-        
-        if (cacheService != null) {
+
+        if(cacheService != null) {
             return checkDistributedRateLimit(key, config);
         } else {
             return checkLocalRateLimit(key, config);
         }
     }
-    
+
     /**
      * Check rate limit for specific user
      */
@@ -59,7 +59,7 @@ public class RateLimiterService {
         RateLimitConfig config = getUserRateLimitConfig(userId, resource);
         return checkRateLimit(key, config);
     }
-    
+
     /**
      * Check rate limit for IP address
      */
@@ -68,7 +68,7 @@ public class RateLimiterService {
         RateLimitConfig config = getIpRateLimitConfig(endpoint);
         return checkRateLimit(key, config);
     }
-    
+
     /**
      * Check rate limit for API key
      */
@@ -77,86 +77,86 @@ public class RateLimiterService {
         RateLimitConfig config = getApiKeyRateLimitConfig(apiKey);
         return checkRateLimit(key, config);
     }
-    
+
     /**
      * Reset rate limit for a key
      */
     public void resetRateLimit(String key) {
-        if (cacheService != null) {
+        if(cacheService != null) {
             cacheService.delete(key);
         } else {
             localBuckets.remove(key);
         }
         logger.info("Reset rate limit for key: {}", key);
     }
-    
+
     /**
      * Get current token count for a key
      */
     public int getAvailableTokens(String key) {
-        if (cacheService != null) {
+        if(cacheService != null) {
             TokenBucket bucket = cacheService.get(key, TokenBucket.class);
-            if (bucket != null) {
+            if(bucket != null) {
                 bucket.refill();
-                return (int) bucket.getTokens();
+                return(int) bucket.getTokens();
             }
         } else {
             TokenBucket bucket = localBuckets.get(key);
-            if (bucket != null) {
+            if(bucket != null) {
                 bucket.refill();
-                return (int) bucket.getTokens();
+                return(int) bucket.getTokens();
             }
         }
         return defaultCapacity;
     }
-    
+
     /**
      * Check distributed rate limit using Redis
      */
     private RateLimitResult checkDistributedRateLimit(String key, RateLimitConfig config) {
         String lockKey = key + ":lock";
-        
+
         return cacheService.executeWithLock(lockKey, Duration.ofMillis(100), () -> {
             TokenBucket bucket = cacheService.get(key, TokenBucket.class);
-            
-            if (bucket == null) {
+
+            if(bucket == null) {
                 bucket = new TokenBucket(config);
             }
-            
+
             bucket.refill();
             boolean allowed = bucket.tryConsume();
-            
+
             // Update bucket in cache
             cacheService.set(key, bucket, Duration.ofMinutes(5));
-            
+
             return new RateLimitResult(
                 allowed,
                 bucket.getTokens(),
                 config.getCapacity(),
                 bucket.getNextRefillTime()
-            );
+           );
         });
     }
-    
+
     /**
      * Check local rate limit
      */
     private RateLimitResult checkLocalRateLimit(String key, RateLimitConfig config) {
         TokenBucket bucket = localBuckets.computeIfAbsent(key, k -> new TokenBucket(config));
-        
-        synchronized (bucket) {
+
+        synchronized(bucket) {
             bucket.refill();
             boolean allowed = bucket.tryConsume();
-            
+
             return new RateLimitResult(
                 allowed,
                 bucket.getTokens(),
                 config.getCapacity(),
                 bucket.getNextRefillTime()
-            );
+           );
         }
     }
-    
+
     /**
      * Get rate limit configuration for user
      */
@@ -170,13 +170,13 @@ public class RateLimiterService {
             .refillUnit(TimeUnit.SECONDS)
             .build();
     }
-    
+
     /**
      * Get rate limit configuration for IP
      */
     private RateLimitConfig getIpRateLimitConfig(String endpoint) {
         // Different limits for different endpoints
-        if (endpoint.startsWith("/api/auth")) {
+        if(endpoint.startsWith("/api/auth")) {
             return RateLimitConfig.builder()
                 .capacity(10)
                 .refillTokens(1)
@@ -184,10 +184,10 @@ public class RateLimiterService {
                 .refillUnit(TimeUnit.SECONDS)
                 .build();
         }
-        
+
         return getDefaultConfig();
     }
-    
+
     /**
      * Get rate limit configuration for API key
      */
@@ -200,7 +200,7 @@ public class RateLimiterService {
             .refillUnit(TimeUnit.SECONDS)
             .build();
     }
-    
+
     /**
      * Get default rate limit configuration
      */
@@ -212,7 +212,7 @@ public class RateLimiterService {
             .refillUnit(TimeUnit.SECONDS)
             .build();
     }
-    
+
     /**
      * Token bucket implementation for rate limiting
      */
@@ -222,7 +222,7 @@ public class RateLimiterService {
         private final int refillTokens;
         private final long refillPeriodMillis;
         private long lastRefillTimestamp;
-        
+
         public TokenBucket(RateLimitConfig config) {
             this.capacity = config.getCapacity();
             this.tokens = capacity;
@@ -230,44 +230,44 @@ public class RateLimiterService {
             this.refillPeriodMillis = config.getRefillUnit().toMillis(config.getRefillPeriod());
             this.lastRefillTimestamp = System.currentTimeMillis();
         }
-        
+
         public synchronized void refill() {
             long now = System.currentTimeMillis();
             long timeSinceLastRefill = now - lastRefillTimestamp;
-            
-            if (timeSinceLastRefill >= refillPeriodMillis) {
+
+            if(timeSinceLastRefill >= refillPeriodMillis) {
                 long periodsElapsed = timeSinceLastRefill / refillPeriodMillis;
                 double tokensToAdd = periodsElapsed * refillTokens;
                 tokens = Math.min(capacity, tokens + tokensToAdd);
                 lastRefillTimestamp = now - (timeSinceLastRefill % refillPeriodMillis);
             }
         }
-        
+
         public synchronized boolean tryConsume() {
-            if (tokens >= 1) {
+            if(tokens >= 1) {
                 tokens--;
                 return true;
             }
             return false;
         }
-        
+
         public synchronized boolean tryConsume(int count) {
-            if (tokens >= count) {
+            if(tokens >= count) {
                 tokens -= count;
                 return true;
             }
             return false;
         }
-        
+
         public double getTokens() {
             return tokens;
         }
-        
+
         public long getNextRefillTime() {
             return lastRefillTimestamp + refillPeriodMillis;
         }
     }
-    
+
     /**
      * Rate limit result
      */
@@ -276,38 +276,38 @@ public class RateLimiterService {
         private final double remainingTokens;
         private final int limit;
         private final long resetTime;
-        
+
         public RateLimitResult(boolean allowed, double remainingTokens, int limit, long resetTime) {
             this.allowed = allowed;
             this.remainingTokens = remainingTokens;
             this.limit = limit;
             this.resetTime = resetTime;
         }
-        
+
         public boolean isAllowed() {
             return allowed;
         }
-        
+
         public int getRemainingRequests() {
-            return (int) remainingTokens;
+            return(int) remainingTokens;
         }
-        
+
         public int getLimit() {
             return limit;
         }
-        
+
         public long getResetTime() {
             return resetTime;
         }
-        
+
         public long getRetryAfter() {
-            if (allowed) {
+            if(allowed) {
                 return 0;
             }
             return Math.max(0, resetTime - System.currentTimeMillis()) / 1000;
         }
     }
-    
+
     /**
      * Rate limit configuration
      */
@@ -316,60 +316,60 @@ public class RateLimiterService {
         private final int refillTokens;
         private final int refillPeriod;
         private final TimeUnit refillUnit;
-        
+
         private RateLimitConfig(Builder builder) {
             this.capacity = builder.capacity;
             this.refillTokens = builder.refillTokens;
             this.refillPeriod = builder.refillPeriod;
             this.refillUnit = builder.refillUnit;
         }
-        
+
         public static Builder builder() {
             return new Builder();
         }
-        
+
         public int getCapacity() {
             return capacity;
         }
-        
+
         public int getRefillTokens() {
             return refillTokens;
         }
-        
+
         public int getRefillPeriod() {
             return refillPeriod;
         }
-        
+
         public TimeUnit getRefillUnit() {
             return refillUnit;
         }
-        
+
         public static class Builder {
             private int capacity = 100;
             private int refillTokens = 10;
             private int refillPeriod = 60;
             private TimeUnit refillUnit = TimeUnit.SECONDS;
-            
+
             public Builder capacity(int capacity) {
                 this.capacity = capacity;
                 return this;
             }
-            
+
             public Builder refillTokens(int refillTokens) {
                 this.refillTokens = refillTokens;
                 return this;
             }
-            
+
             public Builder refillPeriod(int refillPeriod) {
                 this.refillPeriod = refillPeriod;
                 return this;
             }
-            
+
             public Builder refillUnit(TimeUnit refillUnit) {
                 this.refillUnit = refillUnit;
                 return this;
             }
-            
+
             public RateLimitConfig build() {
                 return new RateLimitConfig(this);
             }

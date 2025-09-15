@@ -12,9 +12,9 @@ import java.util.UUID;
 
 /**
  * Entity for event sourcing - stores all domain events.
- * 
+ *
  * <p>Provides an immutable audit trail of all system events.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -31,7 +31,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class EventStore {
-    
+
     /**
      * Unique event ID
      */
@@ -41,74 +41,74 @@ public class EventStore {
     @Column(columnDefinition = "UUID")
     @EqualsAndHashCode.Include
     private UUID eventId;
-    
+
     /**
      * Type of the aggregate this event belongs to
      */
     @Column(name = "aggregate_type", nullable = false, length = 100)
     @NotBlank(message = "Aggregate type is required")
     private String aggregateType;
-    
+
     /**
      * ID of the aggregate this event belongs to
      */
     @Column(name = "aggregate_id", nullable = false)
     @NotNull(message = "Aggregate ID is required")
     private UUID aggregateId;
-    
+
     /**
      * Version of the aggregate when this event was created
      */
     @Column(name = "aggregate_version", nullable = false)
     @NotNull(message = "Aggregate version is required")
     private Long aggregateVersion;
-    
+
     /**
      * Type of the event
      */
     @Column(name = "event_type", nullable = false, length = 100)
     @NotBlank(message = "Event type is required")
     private String eventType;
-    
+
     /**
      * Event data in JSON format
      */
     @Column(name = "event_data", columnDefinition = "json", nullable = false)
     @NotBlank(message = "Event data is required")
     private String eventData;
-    
+
     /**
      * Event metadata in JSON format
      */
     @Column(name = "event_metadata", columnDefinition = "json")
     private String eventMetadata;
-    
+
     /**
      * When the event occurred
      */
     @Column(name = "occurred_at", nullable = false)
     @NotNull(message = "Occurred at is required")
     private LocalDateTime occurredAt;
-    
+
     /**
      * User who triggered the event
      */
     @Column(name = "triggered_by")
     private UUID triggeredBy;
-    
+
     /**
      * When the event was stored
      */
     @Column(name = "stored_at", nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime storedAt;
-    
+
     /**
      * Correlation ID for tracking related events
      */
     @Column(name = "correlation_id")
     private UUID correlationId;
-    
+
     /**
      * Causation ID - ID of the event that caused this event
      */

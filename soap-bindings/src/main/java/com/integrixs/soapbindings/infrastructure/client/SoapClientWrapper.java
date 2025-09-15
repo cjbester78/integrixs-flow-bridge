@@ -18,13 +18,13 @@ import java.util.Map;
  */
 @Component
 public class SoapClientWrapper {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(SoapClientWrapper.class);
-    
+
     private final Map<String, Object> soapHeaders = new HashMap<>();
     private Long timeout = 60000L; // Default 60 seconds
     private SoapBinding.SecurityConfiguration currentSecurity = null;
-    
+
     /**
      * Configure security for the binding
      * @param binding SOAP binding configuration
@@ -32,9 +32,9 @@ public class SoapClientWrapper {
     public void configureSecurityForBinding(SoapBinding binding) {
         logger.debug("Configuring security for binding: {}", binding.getBindingName());
         this.currentSecurity = binding.getSecurity();
-        
-        if (currentSecurity != null) {
-            switch (currentSecurity.getSecurityType()) {
+
+        if(currentSecurity != null) {
+            switch(currentSecurity.getSecurityType()) {
                 case WS_SECURITY:
                     configureWsSecurity();
                     break;
@@ -51,7 +51,7 @@ public class SoapClientWrapper {
             }
         }
     }
-    
+
     /**
      * Set timeout for operations
      * @param timeoutMillis Timeout in milliseconds
@@ -60,7 +60,7 @@ public class SoapClientWrapper {
         this.timeout = timeoutMillis;
         logger.debug("Set timeout to {} ms", timeoutMillis);
     }
-    
+
     /**
      * Add SOAP headers
      * @param headers SOAP headers to add
@@ -69,7 +69,7 @@ public class SoapClientWrapper {
         this.soapHeaders.putAll(headers);
         logger.debug("Added {} SOAP headers", headers.size());
     }
-    
+
     /**
      * Clear all headers
      */
@@ -78,7 +78,7 @@ public class SoapClientWrapper {
         this.currentSecurity = null;
         logger.debug("Cleared all SOAP headers and security configuration");
     }
-    
+
     /**
      * Invoke SOAP operation
      * @param wsdlId WSDL ID
@@ -88,7 +88,7 @@ public class SoapClientWrapper {
      */
     public Object invoke(String wsdlId, String operationName, Object payload) throws Exception {
         logger.info("Invoking SOAP operation: {} for WSDL: {}", operationName, wsdlId);
-        
+
         try {
             // In a real implementation, this would:
             // 1. Load the generated service class dynamically
@@ -96,72 +96,72 @@ public class SoapClientWrapper {
             // 3. Get port
             // 4. Configure security and headers
             // 5. Invoke operation
-            
+
             // For now, we'll simulate the response
-            logger.warn("SOAP invocation is simulated - actual JAX-WS implementation required");
-            
+            logger.warn("SOAP invocation is simulated - actual JAX - WS implementation required");
+
             // Simulate processing time
             Thread.sleep(100);
-            
+
             // Return simulated response
             Map<String, Object> response = new HashMap<>();
             response.put("status", "SUCCESS");
             response.put("operationName", operationName);
             response.put("timestamp", System.currentTimeMillis());
             response.put("message", "Simulated SOAP response");
-            
+
             return response;
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Failed to invoke SOAP operation {}: {}", operationName, e.getMessage(), e);
             throw e;
         }
     }
-    
+
     private void configureWsSecurity() {
-        logger.debug("Configuring WS-Security");
-        
+        logger.debug("Configuring WS - Security");
+
         // In a real implementation, this would configure:
         // - Username token
         // - Timestamp
         // - Signature
         // - Encryption
-        
-        if (currentSecurity.getCredentials() != null) {
+
+        if(currentSecurity.getCredentials() != null) {
             String username = currentSecurity.getCredentials().get("username");
             String password = currentSecurity.getCredentials().get("password");
-            if (username != null && password != null) {
+            if(username != null && password != null) {
                 soapHeaders.put("wsse:Username", username);
                 soapHeaders.put("wsse:Password", password);
             }
         }
     }
-    
+
     private void configureBasicAuth() {
         logger.debug("Configuring Basic Authentication");
-        
-        if (currentSecurity.getCredentials() != null) {
+
+        if(currentSecurity.getCredentials() != null) {
             String username = currentSecurity.getCredentials().get("username");
             String password = currentSecurity.getCredentials().get("password");
-            if (username != null && password != null) {
+            if(username != null && password != null) {
                 String auth = username + ":" + password;
                 String encodedAuth = java.util.Base64.getEncoder().encodeToString(auth.getBytes());
                 soapHeaders.put("Authorization", "Basic " + encodedAuth);
             }
         }
     }
-    
+
     private void configureOAuth2() {
         logger.debug("Configuring OAuth2");
-        
-        if (currentSecurity.getCredentials() != null) {
+
+        if(currentSecurity.getCredentials() != null) {
             String token = currentSecurity.getCredentials().get("oauth_token");
-            if (token != null) {
+            if(token != null) {
                 soapHeaders.put("Authorization", "Bearer " + token);
             }
         }
     }
-    
+
     /**
      * Create SOAP message with headers
      * @param payload Request payload
@@ -170,20 +170,20 @@ public class SoapClientWrapper {
     private SOAPMessage createSoapMessage(Object payload) throws Exception {
         MessageFactory messageFactory = MessageFactory.newInstance();
         SOAPMessage soapMessage = messageFactory.createMessage();
-        
+
         // Add SOAP headers
-        if (!soapHeaders.isEmpty()) {
+        if(!soapHeaders.isEmpty()) {
             SOAPHeader soapHeader = soapMessage.getSOAPHeader();
-            for (Map.Entry<String, Object> entry : soapHeaders.entrySet()) {
+            for(Map.Entry<String, Object> entry : soapHeaders.entrySet()) {
                 SOAPHeaderElement headerElement = soapHeader.addHeaderElement(new QName(entry.getKey()));
                 headerElement.setTextContent(entry.getValue().toString());
             }
         }
-        
+
         // Add payload to SOAP body
         SOAPBody soapBody = soapMessage.getSOAPBody();
         // In a real implementation, this would serialize the payload to XML
-        
+
         return soapMessage;
     }
 }

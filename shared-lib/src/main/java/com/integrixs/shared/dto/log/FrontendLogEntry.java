@@ -21,81 +21,81 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FrontendLogEntry {
-    
+
     /**
-     * Log level (DEBUG, INFO, WARN, ERROR, FATAL)
+     * Log level(DEBUG, INFO, WARN, ERROR, FATAL)
      */
     @NotNull
     private String level;
-    
+
     /**
-     * Log category (AUTH, API, VALIDATION, USER_ACTION, etc.)
+     * Log category(AUTH, API, VALIDATION, USER_ACTION, etc.)
      */
     @NotNull
     private String category;
-    
+
     /**
      * Log message
      */
     @NotBlank
     private String message;
-    
+
     /**
-     * Additional details as key-value pairs
+     * Additional details as key - value pairs
      */
     private Map<String, Object> details;
-    
+
     /**
      * Error object if applicable
      */
     private Object error;
-    
+
     /**
      * Stack trace for errors
      */
     private String stackTrace;
-    
+
     /**
      * User agent string
      */
     private String userAgent;
-    
+
     /**
      * Current URL when log was created
      */
     private String url;
-    
+
     /**
      * Frontend timestamp when log was created
      */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @JsonFormat(pattern = "yyyy - MM - dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime timestamp;
-    
+
     /**
      * User ID if authenticated
      */
     private UUID userId;
-    
+
     /**
      * Session ID
      */
     private String sessionId;
-    
+
     /**
      * Correlation ID for tracing requests
      */
     private String correlationId;
-    
-    // Server-side enriched fields
-    
+
+    // Server - side enriched fields
+
     /**
-     * Client IP address (added by server)
+     * Client IP address(added by server)
      */
     private String clientIp;
-    
+
     /**
      * Server timestamp when log was received
      */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @JsonFormat(pattern = "yyyy - MM - dd'T'HH:mm:ss.SSS")
     private LocalDateTime serverReceivedAt;
 }

@@ -28,28 +28,28 @@ import java.util.Map;
 @EnableRabbit
 @ConditionalOnProperty(name = "spring.rabbitmq.enabled", havingValue = "true", matchIfMissing = false)
 public class RabbitMQConfig {
-    
-    @Value("${integrix.messaging.queues.inbound.name:integrix.inbound}")
+
+    @Value("$ {integrix.messaging.queues.inbound.name:integrix.inbound}")
     private String inboundQueue;
-    
-    @Value("${integrix.messaging.queues.outbound.name:integrix.outbound}")
+
+    @Value("$ {integrix.messaging.queues.outbound.name:integrix.outbound}")
     private String outboundQueue;
-    
-    @Value("${integrix.messaging.queues.error.name:integrix.error}")
+
+    @Value("$ {integrix.messaging.queues.error.name:integrix.error}")
     private String errorQueue;
-    
-    @Value("${integrix.messaging.routing.default-exchange:integrix.exchange}")
+
+    @Value("$ {integrix.messaging.routing.default - exchange:integrix.exchange}")
     private String defaultExchange;
-    
-    @Value("${integrix.messaging.routing.topic-exchange:integrix.topic}")
+
+    @Value("$ {integrix.messaging.routing.topic - exchange:integrix.topic}")
     private String topicExchange;
-    
-    @Value("${integrix.messaging.dlq.enabled:true}")
+
+    @Value("$ {integrix.messaging.dlq.enabled:true}")
     private boolean dlqEnabled;
-    
-    @Value("${integrix.messaging.dlq.ttl:86400000}")
+
+    @Value("$ {integrix.messaging.dlq.ttl:86400000}")
     private long dlqTtl;
-    
+
     /**
      * Message converter for JSON
      */
@@ -57,7 +57,7 @@ public class RabbitMQConfig {
     public MessageConverter messageConverter(ObjectMapper objectMapper) {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
-    
+
     /**
      * RabbitMQ admin for dynamic queue/exchange creation
      */
@@ -65,7 +65,7 @@ public class RabbitMQConfig {
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);
     }
-    
+
     /**
      * Configure RabbitMQ template
      */
@@ -74,7 +74,7 @@ public class RabbitMQConfig {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter);
         template.setMandatory(true);
-        
+
         // Configure retry
         RetryTemplate retryTemplate = new RetryTemplate();
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
@@ -82,19 +82,19 @@ public class RabbitMQConfig {
         backOffPolicy.setMultiplier(2.0);
         backOffPolicy.setMaxInterval(10000);
         retryTemplate.setBackOffPolicy(backOffPolicy);
-        
+
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
         retryPolicy.setMaxAttempts(3);
         retryTemplate.setRetryPolicy(retryPolicy);
-        
+
         template.setRetryTemplate(retryTemplate);
-        
+
         // Set default exchange
         template.setExchange(defaultExchange);
-        
+
         return template;
     }
-    
+
     /**
      * Configure listener container factory
      */
@@ -102,7 +102,7 @@ public class RabbitMQConfig {
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
             MessageConverter messageConverter) {
-        
+
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
@@ -110,52 +110,52 @@ public class RabbitMQConfig {
         factory.setConcurrentConsumers(5);
         factory.setMaxConcurrentConsumers(10);
         factory.setPrefetchCount(10);
-        
+
         // Configure error handling
         factory.setErrorHandler(new IntegrixErrorHandler());
-        
+
         return factory;
     }
-    
+
     /**
      * Inbound queue
      */
     @Bean
     public Queue inboundQueue() {
         Map<String, Object> args = new HashMap<>();
-        if (dlqEnabled) {
-            args.put("x-dead-letter-exchange", "");
-            args.put("x-dead-letter-routing-key", errorQueue);
+        if(dlqEnabled) {
+            args.put("x - dead - letter - exchange", "");
+            args.put("x - dead - letter - routing - key", errorQueue);
         }
-        
+
         return new Queue(inboundQueue, true, false, false, args);
     }
-    
+
     /**
      * Outbound queue
      */
     @Bean
     public Queue outboundQueue() {
         Map<String, Object> args = new HashMap<>();
-        if (dlqEnabled) {
-            args.put("x-dead-letter-exchange", "");
-            args.put("x-dead-letter-routing-key", errorQueue);
+        if(dlqEnabled) {
+            args.put("x - dead - letter - exchange", "");
+            args.put("x - dead - letter - routing - key", errorQueue);
         }
-        
+
         return new Queue(outboundQueue, true, false, false, args);
     }
-    
+
     /**
      * Error/DLQ queue
      */
     @Bean
     public Queue errorQueue() {
         Map<String, Object> args = new HashMap<>();
-        args.put("x-message-ttl", dlqTtl);
-        
+        args.put("x - message - ttl", dlqTtl);
+
         return new Queue(errorQueue, true, false, false, args);
     }
-    
+
     /**
      * Default direct exchange
      */
@@ -163,7 +163,7 @@ public class RabbitMQConfig {
     public DirectExchange defaultExchange() {
         return new DirectExchange(defaultExchange, true, false);
     }
-    
+
     /**
      * Topic exchange for routing
      */
@@ -171,7 +171,7 @@ public class RabbitMQConfig {
     public TopicExchange topicExchange() {
         return new TopicExchange(topicExchange, true, false);
     }
-    
+
     /**
      * Bind inbound queue to default exchange
      */
@@ -182,7 +182,7 @@ public class RabbitMQConfig {
             .to(defaultExchange())
             .with(inboundQueue);
     }
-    
+
     /**
      * Bind outbound queue to default exchange
      */
@@ -193,7 +193,7 @@ public class RabbitMQConfig {
             .to(defaultExchange())
             .with(outboundQueue);
     }
-    
+
     /**
      * Bind inbound queue to topic exchange with pattern
      */
@@ -204,7 +204,7 @@ public class RabbitMQConfig {
             .to(topicExchange())
             .with("integrix.inbound.*");
     }
-    
+
     /**
      * Bind outbound queue to topic exchange with pattern
      */

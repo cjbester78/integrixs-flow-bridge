@@ -30,41 +30,41 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CertificateManagementApplicationService {
-    
+
     private final CertificateRepository certificateRepository;
     private final CertificateManagementService certificateManagementService;
     private final CertificateStorageService certificateStorageService;
     private final AuditTrailService auditTrailService;
-    
+
     /**
      * Upload and save a new certificate
      */
     @Transactional
     public CertificateDTO saveCertificate(CertificateUploadRequestDTO dto, MultipartFile file) {
         log.info("Saving certificate: {}", dto.getName());
-        
+
         try {
             // Check for duplicate name
-            if (certificateRepository.existsByName(dto.getName())) {
+            if(certificateRepository.existsByName(dto.getName())) {
                 throw new ConflictException("Certificate already exists with name: " + dto.getName());
             }
-            
+
             // Read file content
             byte[] content = file.getBytes();
-            
+
             // Validate certificate file
             certificateManagementService.validateCertificateFile(
-                file.getOriginalFilename(), 
-                content, 
+                file.getOriginalFilename(),
+                content,
                 dto.getFormat()
-            );
-            
+           );
+
             // Check if password is required
-            if (certificateManagementService.requiresPassword(dto.getFormat()) && 
+            if(certificateManagementService.requiresPassword(dto.getFormat()) &&
                 (dto.getPassword() == null || dto.getPassword().trim().isEmpty())) {
                 throw new IllegalArgumentException("Password is required for " + dto.getFormat() + " format");
             }
-            
+
             // Create certificate entity
             Certificate certificate = certificateManagementService.createCertificate(
                 dto.getName(),
@@ -74,79 +74,79 @@ public class CertificateManagementApplicationService {
                 dto.getPassword(),
                 dto.getUploadedBy(),
                 content
-            );
-            
+           );
+
             // Validate certificate
             certificateManagementService.validateCertificate(certificate);
-            
+
             // Save to database
             Certificate savedCertificate = certificateRepository.save(certificate);
-            
+
             // Save file to disk
             String storageFileName = certificateManagementService.generateStorageFileName(
                 savedCertificate.getId().toString(),
                 file.getOriginalFilename()
-            );
+           );
             certificateStorageService.saveCertificateFile(storageFileName, content);
-            
+
             // Audit trail
             auditTrailService.logCreate(
                 "Certificate",
                 savedCertificate.getId().toString(),
                 savedCertificate
-            );
-            
+           );
+
             log.info("Certificate saved successfully: {}", savedCertificate.getId());
-            
+
             return toDTO(savedCertificate);
-            
-        } catch (IOException e) {
+
+        } catch(IOException e) {
             log.error("Failed to save certificate file", e);
             throw new RuntimeException("Failed to save certificate file", e);
         }
     }
-    
+
     /**
      * Get all certificates
      */
     @Transactional(readOnly = true)
     public List<CertificateDTO> getAllCertificates() {
         log.debug("Fetching all certificates");
-        
+
         return certificateRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Get certificates with pagination
      */
     @Transactional(readOnly = true)
     public Page<CertificateDTO> getCertificates(int page, int limit) {
         log.debug("Fetching certificates - page: {}, limit: {}", page, limit);
-        
+
         PageRequest pageRequest = PageRequest.of(page, limit);
         Page<Certificate> certificatePage = certificateRepository.findAll(pageRequest);
-        
+
         return certificatePage.map(this::toDTO);
     }
-    
+
     /**
      * Get certificate by ID
      */
     @Transactional(readOnly = true)
     public CertificateDTO getCertificateById(String id) {
         log.debug("Fetching certificate by id: {}", id);
-        
+
         UUID certificateId = UUID.fromString(id);
         Certificate certificate = certificateRepository.findById(certificateId)
                 .orElseThrow(() -> new ResourceNotFoundException("Certificate not found with id: " + id));
-                
+
         return toDTO(certificate);
     }
-    
+
     /**
-     * Get certificate entity by ID (for internal use)
+     * Get certificate entity by ID(for internal use)
      */
     @Transactional(readOnly = true)
     public Certificate getCertificate(String id) {
@@ -154,83 +154,83 @@ public class CertificateManagementApplicationService {
         return certificateRepository.findById(certificateId)
                 .orElseThrow(() -> new ResourceNotFoundException("Certificate not found with id: " + id));
     }
-    
+
     /**
      * Get certificate file content
      */
     @Transactional(readOnly = true)
     public byte[] getCertificateContent(String id) {
         log.debug("Fetching certificate content for id: {}", id);
-        
+
         Certificate certificate = getCertificate(id);
-        
+
         // Try to read from file system first
         String storageFileName = certificateManagementService.generateStorageFileName(
             certificate.getId().toString(),
             certificate.getFileName()
-        );
-        
+       );
+
         try {
-            if (certificateStorageService.certificateFileExists(storageFileName)) {
+            if(certificateStorageService.certificateFileExists(storageFileName)) {
                 return certificateStorageService.readCertificateFile(storageFileName);
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             log.warn("Failed to read certificate from file system, returning from database", e);
         }
-        
+
         // Return from database if file not found
         return certificate.getContent();
     }
-    
+
     /**
      * Delete certificate
      */
     @Transactional
     public void deleteCertificate(String id, String deletedBy) {
         log.info("Deleting certificate: {}", id);
-        
+
         UUID certificateId = UUID.fromString(id);
         Certificate certificate = certificateRepository.findById(certificateId)
                 .orElseThrow(() -> new ResourceNotFoundException("Certificate not found with id: " + id));
-        
+
         // Delete from database
         certificateRepository.deleteById(certificateId);
-        
+
         // Delete file from disk
         String storageFileName = certificateManagementService.generateStorageFileName(
             certificate.getId().toString(),
             certificate.getFileName()
-        );
-        
+       );
+
         try {
             certificateStorageService.deleteCertificateFile(storageFileName);
-        } catch (IOException e) {
+        } catch(IOException e) {
             log.error("Failed to delete certificate file from disk", e);
             // Don't fail the transaction if file deletion fails
         }
-        
+
         // Audit trail
         auditTrailService.logDelete(
             "Certificate",
             certificateId.toString(),
             certificate
-        );
-        
+       );
+
         log.info("Certificate deleted successfully: {}", certificateId);
     }
-    
+
     /**
      * Get certificates uploaded by a specific user
      */
     @Transactional(readOnly = true)
     public List<CertificateDTO> getCertificatesByUploader(String uploadedBy) {
         log.debug("Fetching certificates uploaded by: {}", uploadedBy);
-        
+
         return certificateRepository.findByUploadedBy(uploadedBy).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Convert Certificate entity to DTO
      */

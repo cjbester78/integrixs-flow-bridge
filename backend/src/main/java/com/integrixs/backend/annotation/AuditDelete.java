@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to mark methods that delete entities and should be audited.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */

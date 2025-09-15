@@ -17,9 +17,9 @@ import java.util.UUID;
 public interface FieldMappingRepository extends JpaRepository<FieldMapping, UUID> {
     List<FieldMapping> findByTransformationId(UUID transformationId);
 
-	void deleteByTransformationId(UUID id);
-	
-	List<FieldMapping> findByTransformationFlowIdAndIsActiveTrueOrderByTransformationExecutionOrder(UUID flowId);
-	
-	long countByTransformationId(UUID transformationId);
+    void deleteByTransformationId(UUID id);
+
+    List<FieldMapping> findByTransformationFlowIdAndIsActiveTrueOrderByTransformationExecutionOrder(UUID flowId);
+
+    long countByTransformationId(UUID transformationId);
 }

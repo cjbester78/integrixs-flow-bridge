@@ -73,8 +73,8 @@ public class SystemLog {
     @Column(name = "username", length = 100)
     private String username;
 
-    // Frontend-specific fields
-    
+    // Frontend - specific fields
+
     @Column(name = "category", length = 50)
     private String category;
 
@@ -121,30 +121,30 @@ public class SystemLog {
     }
 
     /**
-     * Pre-persist method to set defaults
+     * Pre - persist method to set defaults
      */
     @PrePersist
     protected void onCreate() {
-        if (timestamp == null) {
+        if(timestamp == null) {
             timestamp = LocalDateTime.now();
         }
-        if (level == null) {
+        if(level == null) {
             level = LogLevel.INFO;
         }
     }
-    
+
     // Additional helper methods for backward compatibility
     public String getDomainId() {
         return domainReferenceId;
     }
-    
+
     public void setDomainId(String domainId) {
         this.domainReferenceId = domainId;
     }
-    
+
     public void setAction(String action) {
         // Store action in the message or details field
-        if (this.message == null || this.message.isEmpty()) {
+        if(this.message == null || this.message.isEmpty()) {
             this.message = action;
         } else {
             this.details = "Action: " + action + (this.details != null ? "; " + this.details : "");

@@ -11,7 +11,7 @@ public class FacebookPost {
     public FacebookPost() {
     }
 
-    
+
 
     private String message;
     private String link;
@@ -21,31 +21,31 @@ public class FacebookPost {
     private LocalDateTime scheduledPublishTime;
     private FacebookTargeting targeting;
     private List<String> tags;
-    private String place;  // Location ID
+    private String place; // Location ID
     private Map<String, Object> callToAction;
-    
+
     // Story and Reel specific
     private boolean isStory;
     private boolean isReel;
     private Integer storyDurationSeconds;
-    
+
     // Live video specific
     private boolean isLiveVideo;
     private String liveVideoTitle;
     private String liveVideoDescription;
-    
+
                     public static class FacebookTargeting {
         private List<String> countries;
         private List<String> cities;
         private List<String> regions;
-        private List<String> locales;  // Languages
+        private List<String> locales; // Languages
         private Integer ageMin;
         private Integer ageMax;
-        private List<Integer> genders;  // 1=male, 2=female
+        private List<Integer> genders; // 1 = male, 2 = female
         private List<String> interests;
         private List<String> behaviors;
         private Map<String, Object> customAudiences;
-        private String audienceOptimization;  // "NONE", "INTEREST_BASED", "CUSTOM"
+        private String audienceOptimization; // "NONE", "INTEREST_BASED", "CUSTOM"
     }
     // Getters and Setters
     public String getMessage() {
@@ -214,7 +214,7 @@ public class FacebookPost {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String message;
         private String link;
@@ -243,142 +243,142 @@ public class FacebookPost {
         private List<String> behaviors;
         private Map<String, Object> customAudiences;
         private String audienceOptimization;
-        
+
         public Builder message(String message) {
             this.message = message;
             return this;
         }
-        
+
         public Builder link(String link) {
             this.link = link;
             return this;
         }
-        
+
         public Builder photoUrls(List<String> photoUrls) {
             this.photoUrls = photoUrls;
             return this;
         }
-        
+
         public Builder videoUrl(String videoUrl) {
             this.videoUrl = videoUrl;
             return this;
         }
-        
+
         public Builder published(boolean published) {
             this.published = published;
             return this;
         }
-        
+
         public Builder scheduledPublishTime(LocalDateTime scheduledPublishTime) {
             this.scheduledPublishTime = scheduledPublishTime;
             return this;
         }
-        
+
         public Builder targeting(FacebookTargeting targeting) {
             this.targeting = targeting;
             return this;
         }
-        
+
         public Builder tags(List<String> tags) {
             this.tags = tags;
             return this;
         }
-        
+
         public Builder place(String place) {
             this.place = place;
             return this;
         }
-        
+
         public Builder callToAction(Map<String, Object> callToAction) {
             this.callToAction = callToAction;
             return this;
         }
-        
+
         public Builder isStory(boolean isStory) {
             this.isStory = isStory;
             return this;
         }
-        
+
         public Builder isReel(boolean isReel) {
             this.isReel = isReel;
             return this;
         }
-        
+
         public Builder storyDurationSeconds(Integer storyDurationSeconds) {
             this.storyDurationSeconds = storyDurationSeconds;
             return this;
         }
-        
+
         public Builder isLiveVideo(boolean isLiveVideo) {
             this.isLiveVideo = isLiveVideo;
             return this;
         }
-        
+
         public Builder liveVideoTitle(String liveVideoTitle) {
             this.liveVideoTitle = liveVideoTitle;
             return this;
         }
-        
+
         public Builder liveVideoDescription(String liveVideoDescription) {
             this.liveVideoDescription = liveVideoDescription;
             return this;
         }
-        
+
         public Builder countries(List<String> countries) {
             this.countries = countries;
             return this;
         }
-        
+
         public Builder cities(List<String> cities) {
             this.cities = cities;
             return this;
         }
-        
+
         public Builder regions(List<String> regions) {
             this.regions = regions;
             return this;
         }
-        
+
         public Builder locales(List<String> locales) {
             this.locales = locales;
             return this;
         }
-        
+
         public Builder ageMin(Integer ageMin) {
             this.ageMin = ageMin;
             return this;
         }
-        
+
         public Builder ageMax(Integer ageMax) {
             this.ageMax = ageMax;
             return this;
         }
-        
+
         public Builder genders(List<Integer> genders) {
             this.genders = genders;
             return this;
         }
-        
+
         public Builder interests(List<String> interests) {
             this.interests = interests;
             return this;
         }
-        
+
         public Builder behaviors(List<String> behaviors) {
             this.behaviors = behaviors;
             return this;
         }
-        
+
         public Builder customAudiences(Map<String, Object> customAudiences) {
             this.customAudiences = customAudiences;
             return this;
         }
-        
+
         public Builder audienceOptimization(String audienceOptimization) {
             this.audienceOptimization = audienceOptimization;
             return this;
         }
-        
+
         public FacebookPost build() {
             FacebookPost obj = new FacebookPost();
             obj.message = this.message;

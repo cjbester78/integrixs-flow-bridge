@@ -24,9 +24,9 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class RoleManagementController {
-    
+
     private final RoleManagementApplicationService roleManagementApplicationService;
-    
+
     /**
      * Get all roles with pagination
      */
@@ -39,7 +39,7 @@ public class RoleManagementController {
         List<RoleDTO> roles = roleManagementApplicationService.getAllRoles(page, limit);
         return ResponseEntity.ok(roles);
     }
-    
+
     /**
      * Get all roles without pagination
      */
@@ -50,29 +50,29 @@ public class RoleManagementController {
         List<RoleDTO> roles = roleManagementApplicationService.getAllRoles();
         return ResponseEntity.ok(roles);
     }
-    
+
     /**
      * Get role by ID
      */
-    @GetMapping("/{id}")
+    @GetMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<RoleDTO> getRoleById(@PathVariable String id) {
         log.debug("Getting role by id: {}", id);
         RoleDTO role = roleManagementApplicationService.getRoleById(id);
         return ResponseEntity.ok(role);
     }
-    
+
     /**
      * Get role by name
      */
-    @GetMapping("/name/{name}")
+    @GetMapping("/name/ {name}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<RoleDTO> getRoleByName(@PathVariable String name) {
         log.debug("Getting role by name: {}", name);
         RoleDTO role = roleManagementApplicationService.getRoleByName(name);
         return ResponseEntity.ok(role);
     }
-    
+
     /**
      * Create new role
      */
@@ -86,11 +86,11 @@ public class RoleManagementController {
         RoleDTO createdRole = roleManagementApplicationService.createRole(roleDTO, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRole);
     }
-    
+
     /**
      * Update existing role
      */
-    @PutMapping("/{id}")
+    @PutMapping("/ {id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<RoleDTO> updateRole(
             @PathVariable String id,
@@ -101,11 +101,11 @@ public class RoleManagementController {
         RoleDTO updatedRole = roleManagementApplicationService.updateRole(id, roleDTO, userId);
         return ResponseEntity.ok(updatedRole);
     }
-    
+
     /**
      * Delete role
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<Void> deleteRole(
             @PathVariable String id,

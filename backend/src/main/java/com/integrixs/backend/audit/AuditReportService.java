@@ -21,110 +21,110 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AuditReportService {
-    
+
     @Autowired
     private AuditEventRepository auditRepository;
-    
-    private static final DateTimeFormatter DATE_FORMATTER = 
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    
+
+    private static final DateTimeFormatter DATE_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
+
     /**
      * Generate audit statistics
      */
     public Map<String, Object> generateStatistics(Instant startTime, Instant endTime) {
         Map<String, Object> stats = new HashMap<>();
-        
+
         // Total events
         long totalEvents = auditRepository.findByEventTimestampBetweenOrderByEventTimestampDesc(
             startTime, endTime, PageRequest.of(0, 1)
-        ).getTotalElements();
+       ).getTotalElements();
         stats.put("totalEvents", totalEvents);
-        
+
         // Events by type
         List<Object[]> eventsByType = auditRepository.countEventsByType(startTime, endTime);
         Map<String, Long> typeDistribution = new HashMap<>();
-        for (Object[] row : eventsByType) {
+        for(Object[] row : eventsByType) {
             typeDistribution.put(row[0].toString(), (Long) row[1]);
         }
         stats.put("eventsByType", typeDistribution);
-        
+
         // Success/failure ratio
         long successCount = auditRepository.findByOutcomeInOrderByEventTimestampDesc(
             List.of(AuditEvent.AuditOutcome.SUCCESS),
             PageRequest.of(0, 1)
-        ).getTotalElements();
-        
+       ).getTotalElements();
+
         long failureCount = auditRepository.findByOutcomeInOrderByEventTimestampDesc(
             List.of(AuditEvent.AuditOutcome.FAILURE, AuditEvent.AuditOutcome.ERROR),
             PageRequest.of(0, 1)
-        ).getTotalElements();
-        
+       ).getTotalElements();
+
         stats.put("successCount", successCount);
         stats.put("failureCount", failureCount);
-        stats.put("successRate", totalEvents > 0 ? 
+        stats.put("successRate", totalEvents > 0 ?
             (double) successCount / totalEvents * 100 : 0.0);
-        
+
         // Top users
         Map<String, Long> topUsers = new HashMap<>();
         // This would need a custom query in production
         stats.put("topUsers", topUsers);
-        
+
         // Time range
         stats.put("startTime", startTime);
         stats.put("endTime", endTime);
-        
+
         return stats;
     }
-    
+
     /**
      * Export audit events to CSV
      */
     public byte[] exportToCsv(String username, AuditEvent.AuditEventType eventType,
-                             AuditEvent.AuditCategory category, 
+                             AuditEvent.AuditCategory category,
                              Instant startTime, Instant endTime) throws IOException {
-        
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(baos, StandardCharsets.UTF_8))) {
+        try(PrintWriter writer = new PrintWriter(new OutputStreamWriter(baos, StandardCharsets.UTF_8))) {
             // Write CSV header
             writer.println("Timestamp,Event Type,Category,Username,IP Address,Entity Type," +
-                         "Entity ID,Entity Name,Action,Outcome,Duration (ms),Error Message");
-            
+                         "Entity ID,Entity Name,Action,Outcome,Duration(ms),Error Message");
+
             // Fetch events in batches
             int page = 0;
             int size = 1000;
             boolean hasMore = true;
-            
-            while (hasMore) {
+
+            while(hasMore) {
                 var events = auditRepository.searchAuditEvents(
                     username, eventType, category, null, null, null,
                     startTime, endTime, PageRequest.of(page, size)
-                );
-                
-                for (AuditEvent event : events) {
+               );
+
+                for(AuditEvent event : events) {
                     writer.println(formatCsvRow(event));
                 }
-                
+
                 hasMore = events.hasNext();
                 page++;
             }
         }
-        
+
         return baos.toByteArray();
     }
-    
+
     /**
      * Generate compliance report
      */
     public Map<String, Object> generateComplianceReport(Instant startTime, Instant endTime) {
         Map<String, Object> report = new HashMap<>();
-        
-        if (startTime == null) {
+
+        if(startTime == null) {
             startTime = Instant.now().minusSeconds(30 * 86400); // Last 30 days
         }
-        if (endTime == null) {
+        if(endTime == null) {
             endTime = Instant.now();
         }
-        
+
         // Authentication summary
         Map<String, Object> authSummary = new HashMap<>();
         authSummary.put("totalLogins", countEventType(
@@ -134,7 +134,7 @@ public class AuditReportService {
         authSummary.put("logouts", countEventType(
             AuditEvent.AuditEventType.LOGOUT, startTime, endTime));
         report.put("authentication", authSummary);
-        
+
         // Data access summary
         Map<String, Object> dataAccess = new HashMap<>();
         dataAccess.put("creates", countEventType(
@@ -146,7 +146,7 @@ public class AuditReportService {
         dataAccess.put("deletes", countEventType(
             AuditEvent.AuditEventType.DELETE, startTime, endTime));
         report.put("dataAccess", dataAccess);
-        
+
         // Security incidents
         var securityEvents = auditRepository.findSecurityEvents(PageRequest.of(0, 100));
         Map<String, Object> securitySummary = new HashMap<>();
@@ -156,14 +156,14 @@ public class AuditReportService {
             .map(this::summarizeEvent)
             .collect(Collectors.toList()));
         report.put("security", securitySummary);
-        
+
         // User activity
         Map<String, Object> userActivity = new HashMap<>();
         // This would need custom queries for production
         userActivity.put("activeUsers", new HashSet<>());
         userActivity.put("suspiciousActivity", new ArrayList<>());
         report.put("userActivity", userActivity);
-        
+
         // Compliance status
         Map<String, Object> compliance = new HashMap<>();
         compliance.put("auditLogRetention", true);
@@ -171,17 +171,17 @@ public class AuditReportService {
         compliance.put("dataEncryption", true);
         compliance.put("passwordPolicyEnforced", true);
         report.put("complianceStatus", compliance);
-        
+
         // Report metadata
         report.put("generatedAt", Instant.now());
         report.put("reportPeriod", Map.of(
             "startTime", startTime,
             "endTime", endTime
-        ));
-        
+       ));
+
         return report;
     }
-    
+
     /**
      * Format CSV row
      */
@@ -199,22 +199,22 @@ public class AuditReportService {
             event.getOutcome().toString(),
             String.valueOf(event.getDurationMs()),
             escapeCsv(event.getErrorMessage())
-        );
+       );
     }
-    
+
     /**
      * Escape CSV value
      */
     private String escapeCsv(String value) {
-        if (value == null) {
+        if(value == null) {
             return "";
         }
-        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+        if(value.contains(",") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
     }
-    
+
     /**
      * Format timestamp
      */
@@ -222,18 +222,18 @@ public class AuditReportService {
         return LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault())
             .format(DATE_FORMATTER);
     }
-    
+
     /**
      * Count events by type
      */
-    private long countEventType(AuditEvent.AuditEventType type, 
+    private long countEventType(AuditEvent.AuditEventType type,
                                Instant startTime, Instant endTime) {
         return auditRepository.searchAuditEvents(
             null, type, null, null, null, null, startTime, endTime,
             PageRequest.of(0, 1)
-        ).getTotalElements();
+       ).getTotalElements();
     }
-    
+
     /**
      * Summarize event for report
      */

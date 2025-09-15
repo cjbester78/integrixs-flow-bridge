@@ -26,10 +26,10 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests that field mappings are created with proper order and foreign key constraints work.
  */
 @SpringBootTest(classes = TestBackendApplication.class, properties = {
-    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration"
+    "spring.autoconfigure.exclude = org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration"
 })
 @ActiveProfiles("test")
-@Import({TestWebSocketConfiguration.class, TestAdapterConfiguration.class})
+@Import( {TestWebSocketConfiguration.class, TestAdapterConfiguration.class})
 @Transactional
 public class FieldMappingIntegrationTest {
 
@@ -55,7 +55,7 @@ public class FieldMappingIntegrationTest {
     void setUp() {
         // Generate unique test data for each test run to avoid conflicts
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
-        
+
         // Create test user with unique username
         testUser = new User();
         testUser.setUsername("testuser_" + uniqueSuffix);
@@ -94,13 +94,13 @@ public class FieldMappingIntegrationTest {
         transformation.setFlow(flow);
         transformation.setName("Test Transformation");
         transformation.setType(FlowTransformation.TransformationType.FIELD_MAPPING);
-        transformation.setConfiguration("{}");
+        transformation.setConfiguration(" {}");
         transformation.setExecutionOrder(1);
         transformation.setActive(true);
         transformation = flowTransformationRepository.save(transformation);
 
         // Create field mappings with sequential order
-        for (int i = 1; i <= 3; i++) {
+        for(int i = 1; i <= 3; i++) {
             FieldMapping mapping = new FieldMapping();
             mapping.setTransformation(transformation);
             mapping.setSourceFieldsList(Arrays.asList("sourceField" + i));
@@ -113,15 +113,15 @@ public class FieldMappingIntegrationTest {
         // Verify all mappings have order > 0
         List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(transformation.getId());
         assertEquals(3, mappings.size());
-        
-        for (FieldMapping mapping : mappings) {
+
+        for(FieldMapping mapping : mappings) {
             assertNotNull(mapping.getMappingOrder());
             assertTrue(mapping.getMappingOrder() > 0, "Mapping order should be greater than 0");
         }
 
         // Verify sequential order
         mappings.sort((a, b) -> a.getMappingOrder().compareTo(b.getMappingOrder()));
-        for (int i = 0; i < mappings.size(); i++) {
+        for(int i = 0; i < mappings.size(); i++) {
             assertEquals(i + 1, mappings.get(i).getMappingOrder());
         }
     }
@@ -147,7 +147,7 @@ public class FieldMappingIntegrationTest {
         transformation.setFlow(flow);
         transformation.setName("Test Transformation");
         transformation.setType(FlowTransformation.TransformationType.FIELD_MAPPING);
-        transformation.setConfiguration("{}");
+        transformation.setConfiguration(" {}");
         transformation.setExecutionOrder(1);
         transformation.setActive(true);
         transformation = flowTransformationRepository.save(transformation);
@@ -162,11 +162,11 @@ public class FieldMappingIntegrationTest {
 
         // Save and verify
         FieldMapping savedMapping = fieldMappingRepository.save(mapping);
-        
+
         // The service should handle this, but if not, at least verify we can save it
         assertNotNull(savedMapping);
         assertNotNull(savedMapping.getMappingOrder());
-        
+
         // Note: In a real implementation, the service layer should ensure order > 0
         // This test documents the current behavior
     }
@@ -192,7 +192,7 @@ public class FieldMappingIntegrationTest {
         transformation.setFlow(flow);
         transformation.setName("Test Transformation");
         transformation.setType(FlowTransformation.TransformationType.FIELD_MAPPING);
-        transformation.setConfiguration("{}");
+        transformation.setConfiguration(" {}");
         transformation.setExecutionOrder(1);
         transformation.setActive(true);
         transformation = flowTransformationRepository.save(transformation);
@@ -210,7 +210,7 @@ public class FieldMappingIntegrationTest {
         FieldMapping savedMapping = fieldMappingRepository.findById(mapping.getId()).orElseThrow();
         assertNotNull(savedMapping.getTransformation());
         assertEquals(transformation.getId(), savedMapping.getTransformation().getId());
-        
+
         // Verify we can find mappings by transformation ID
         List<FieldMapping> mappingsByTransformation = fieldMappingRepository.findByTransformationId(transformation.getId());
         assertEquals(1, mappingsByTransformation.size());

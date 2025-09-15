@@ -6,14 +6,14 @@ import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.linkedin.api")
 public class LinkedInApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientId;
     private String clientSecret;
-    private String memberUrn; // Member URN (e.g., urn:li:person:123ABC)
+    private String memberUrn; // Member URN(e.g., urn:li:person:123ABC)
     private String organizationId; // Organization ID for company pages
     private LinkedInFeatures features = new LinkedInFeatures();
     private LinkedInLimits limits = new LinkedInLimits();
-    
+
         public static class LinkedInFeatures {
         private boolean enableProfileAccess = true;
         private boolean enableCompanyPageManagement = true;
@@ -36,7 +36,7 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAudienceTargeting = true;
         private boolean enableScheduledPosts = true;
     }
-    
+
         public static class LinkedInLimits {
         private int maxPostLength = 3000; // characters
         private int maxArticleLength = 125000; // characters
@@ -53,15 +53,15 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         private int maxPostsPerDay = 100;
         private int maxBatchSize = 50; // for batch operations
     }
-    
+
     // Post visibility types
     public enum Visibility {
-        CONNECTIONS, // Visible to 1st-degree connections
-        PUBLIC,      // Visible to anyone on LinkedIn
-        LOGGED_IN,   // Visible to logged-in LinkedIn members
-        CONTAINER   // Visible only within a container (e.g., a group)
+        CONNECTIONS, // Visible to 1st - degree connections
+        PUBLIC,     // Visible to anyone on LinkedIn
+        LOGGED_IN, // Visible to logged - in LinkedIn members
+        CONTAINER   // Visible only within a container(e.g., a group)
     }
-    
+
     // Share media categories
     public enum MediaCategory {
         NONE,
@@ -72,14 +72,14 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         LIVE_VIDEO,
         LEARNING_COURSE
     }
-    
+
     // Content distribution types
     public enum Distribution {
         MAIN_FEED,
         NONE,
         CONTAINER_ENTITY
     }
-    
+
     // Analytics metrics
     public enum MetricType {
         IMPRESSIONS,
@@ -96,7 +96,7 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         SOCIAL_ACTIONS,
         UNIQUE_IMPRESSIONS
     }
-    
+
     // Connection types
     public enum ConnectionType {
         FIRST_DEGREE,
@@ -104,7 +104,7 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         THIRD_DEGREE,
         OUT_OF_NETWORK
     }
-    
+
     // Organization role types
     public enum OrganizationRole {
         ADMIN,
@@ -119,7 +119,7 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         RECRUITER,
         RECRUITMENT_ADMIN
     }
-    
+
     // Profile fields available
     public enum ProfileField {
         ID,
@@ -148,7 +148,7 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         PHONE_NUMBERS,
         IM_ACCOUNTS
     }
-    
+
     // Activity types for analytics
     public enum ActivityType {
         POST_SHARE,
@@ -164,7 +164,7 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
         REACTION,
         FOLLOW
     }
-    
+
     // Reaction types
     public enum ReactionType {
         LIKE,

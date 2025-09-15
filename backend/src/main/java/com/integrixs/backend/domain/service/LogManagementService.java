@@ -19,11 +19,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class LogManagementService {
-    
+
     /**
      * Create a basic log entry
      */
-    public SystemLog createLog(SystemLog.LogLevel level, String message, String source, 
+    public SystemLog createLog(SystemLog.LogLevel level, String message, String source,
                               String details, UUID userId, String domainType, String domainReferenceId) {
         SystemLog log = new SystemLog();
         log.setId(UUID.randomUUID());
@@ -36,14 +36,14 @@ public class LogManagementService {
         log.setUserId(userId);
         log.setDomainType(domainType);
         log.setDomainReferenceId(domainReferenceId);
-        
+
         return log;
     }
-    
+
     /**
      * Create a user management error log
      */
-    public SystemLog createUserManagementErrorLog(String action, String message, String detailsJson, 
+    public SystemLog createUserManagementErrorLog(String action, String message, String detailsJson,
                                                  UUID userId, String controller) {
         return createLog(
             SystemLog.LogLevel.ERROR,
@@ -53,15 +53,15 @@ public class LogManagementService {
             userId,
             "UserManagement",
             action
-        );
+       );
     }
-    
+
     /**
      * Create flow execution success log
      */
     public SystemLog createFlowExecutionSuccessLog(IntegrationFlow flow, String inputData, String outputData, String detailsJson) {
         String message = "Flow executed successfully: " + flow.getName();
-        
+
         return createLog(
             SystemLog.LogLevel.INFO,
             message,
@@ -70,15 +70,15 @@ public class LogManagementService {
             null,
             "INTEGRATION_FLOW",
             flow.getId().toString()
-        );
+       );
     }
-    
+
     /**
      * Create flow execution error log
      */
     public SystemLog createFlowExecutionErrorLog(IntegrationFlow flow, Exception e, String detailsJson) {
         String message = "Flow execution failed: " + flow.getName();
-        
+
         return createLog(
             SystemLog.LogLevel.ERROR,
             message,
@@ -87,9 +87,9 @@ public class LogManagementService {
             null,
             "INTEGRATION_FLOW",
             flow.getId().toString()
-        );
+       );
     }
-    
+
     /**
      * Build details map for flow execution success
      */
@@ -98,10 +98,10 @@ public class LogManagementService {
         details.put("input", inputData);
         details.put("output", outputData);
         details.put("timestamp", LocalDateTime.now());
-        
+
         return details;
     }
-    
+
     /**
      * Build details map for flow execution error
      */
@@ -111,34 +111,34 @@ public class LogManagementService {
         details.put("message", e.getMessage());
         details.put("stackTrace", getStackTraceAsString(e));
         details.put("timestamp", LocalDateTime.now());
-        
+
         return details;
     }
-    
+
     /**
      * Convert exception stack trace to string
      */
     private String getStackTraceAsString(Exception e) {
         StringBuilder sb = new StringBuilder();
-        for (StackTraceElement element : e.getStackTrace()) {
+        for(StackTraceElement element : e.getStackTrace()) {
             sb.append(element.toString()).append("\n");
         }
         return sb.toString();
     }
-    
+
     /**
      * Validate log entry
      */
     public void validateLog(SystemLog log) {
-        if (log.getLevel() == null) {
+        if(log.getLevel() == null) {
             throw new IllegalArgumentException("Log level is required");
         }
-        
-        if (log.getMessage() == null || log.getMessage().trim().isEmpty()) {
+
+        if(log.getMessage() == null || log.getMessage().trim().isEmpty()) {
             throw new IllegalArgumentException("Log message is required");
         }
-        
-        if (log.getSource() == null || log.getSource().trim().isEmpty()) {
+
+        if(log.getSource() == null || log.getSource().trim().isEmpty()) {
             throw new IllegalArgumentException("Log source is required");
         }
     }

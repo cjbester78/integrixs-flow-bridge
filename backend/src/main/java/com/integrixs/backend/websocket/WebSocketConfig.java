@@ -15,28 +15,28 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
-    
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(jobProgressWebSocketHandler(), "/ws/jobs")
             .setAllowedOrigins("*") // In production, configure specific origins
             .addInterceptors(httpSessionHandshakeInterceptor());
-        
+
         registry.addHandler(flowExecutionWebSocketHandler(), "/ws/flows")
             .setAllowedOrigins("*")
             .addInterceptors(httpSessionHandshakeInterceptor());
     }
-    
+
     @Bean
     public WebSocketHandler jobProgressWebSocketHandler() {
         return new JobProgressWebSocketHandler();
     }
-    
+
     @Bean
     public WebSocketHandler flowExecutionWebSocketHandler() {
         return new FlowExecutionWebSocketHandler();
     }
-    
+
     @Bean
     public HandshakeInterceptor httpSessionHandshakeInterceptor() {
         return new HttpSessionHandshakeInterceptor();

@@ -139,7 +139,7 @@ public class DynamicRouteService implements RouteDefinitionRepository {
             "http://dynamic-service:8080",
             new HashMap<>(),
             Arrays.asList("StripPrefix=2", "AddRequestHeader=X-Source,Gateway")
-        );
+       );
     }
     
     /**

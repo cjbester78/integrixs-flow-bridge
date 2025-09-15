@@ -16,19 +16,19 @@ import java.util.UUID;
  */
 @Repository
 public interface AdapterPayloadRepository extends JpaRepository<AdapterPayload, UUID> {
-    
+
     List<AdapterPayload> findByCorrelationIdOrderByCreatedAtAsc(String correlationId);
-    
+
     List<AdapterPayload> findByCorrelationIdOrderByCreatedAt(String correlationId);
-    
+
     List<AdapterPayload> findByAdapterIdOrderByCreatedAtDesc(UUID adapterId);
-    
+
     void deleteByCorrelationId(String correlationId);
-    
+
     @Modifying
     @Query("DELETE FROM AdapterPayload a WHERE a.createdAt < :cutoffDate")
     int deleteByCreatedAtBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
-    
+
     default List<AdapterPayload> findByCorrelationId(String correlationId) {
         return findByCorrelationIdOrderByCreatedAtAsc(correlationId);
     }

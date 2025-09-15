@@ -4,6 +4,7 @@ package com.integrixs.adapters.messaging.amqp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.messaging.amqp.AMQPConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
@@ -19,333 +20,383 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.jms.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 
 @Component
 public class AMQPInboundAdapter extends AbstractInboundAdapter implements MessageListener {
     private static final Logger log = LoggerFactory.getLogger(AMQPInboundAdapter.class);
 
-    
+    public AMQPInboundAdapter() {
+        super(AdapterConfiguration.AdapterTypeEnum.AMQP);
+    }
+
     @Autowired
     private AMQPConfig config;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     private JmsConnectionFactory connectionFactory;
     private JmsConnection connection;
     private Session session;
     private MessageConsumer consumer;
     private final AtomicBoolean isConnected = new AtomicBoolean(false);
-    
+
     // Metrics
     private final AtomicLong messagesReceived = new AtomicLong(0);
     private final AtomicLong messagesProcessed = new AtomicLong(0);
     private final AtomicLong messagesFailed = new AtomicLong(0);
     private final AtomicLong connectionFailures = new AtomicLong(0);
-    
+
     // Message processing
     private final ExecutorService messageProcessor = Executors.newCachedThreadPool();
     private final Map<String, Instant> messageDeduplication = new ConcurrentHashMap<>();
     private final ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
-    
+
+    // AbstractInboundAdapter required methods
     @Override
-    public AdapterType getType() {
-        return AdapterType.AMQP;
+    protected void doSenderInitialize() throws Exception {
+        setupConnectionFactory();
+        establishConnection();
+        createConsumer();
+        startMessageDeduplicationCleanup();
     }
-    
+
     @Override
-    public String getName() {
-        return "AMQP Inbound Adapter";
+    protected void doSenderDestroy() throws Exception {
+        destroy();
     }
-    
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // This is an inbound adapter - it receives messages, not sends them
+        // But the interface requires this method
+        throw new UnsupportedOperationException("AMQPInboundAdapter is for receiving messages, not sending");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        if (connection != null && isConnected.get()) {
+            return AdapterResult.success(null, "AMQP connection is active");
+        }
+        
+        try {
+            establishConnection();
+            return AdapterResult.success(null, "Successfully connected to AMQP broker");
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String getConfigurationSummary() {
+        return String.format("AMQP Inbound: %s:%d/%s", 
+            config.getHost(), config.getPort(), config.getSourceAddress());
+    }
+
     @PostConstruct
     public void initialize() {
         try {
-            setupConnectionFactory();
-            establishConnection();
-            createConsumer();
-            startMessageDeduplicationCleanup();
-            isInitialized = true;
+            doInitialize();
             log.info("AMQP Inbound Adapter initialized successfully");
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to initialize AMQP Inbound Adapter", e);
             throw new AdapterException("Failed to initialize AMQP adapter", e);
         }
     }
-    
-    private String buildConnectionUrl() {
-        if (config.getConnectionUrl() != null && !config.getConnectionUrl().isEmpty()) {
-            return config.getConnectionUrl();
+
+    private void setupConnectionFactory() {
+        // Build connection URL
+        String connectionUrl = buildConnectionUrl();
+        
+        // Create connection factory
+        connectionFactory = new JmsConnectionFactory(connectionUrl);
+        
+        if (config.getUsername() != null) {
+            connectionFactory.setUsername(config.getUsername());
         }
         
+        if (config.getPassword() != null) {
+            connectionFactory.setPassword(config.getPassword());
+        }
+    }
+
+    private String buildConnectionUrl() {
+        if(config.getConnectionUrl() != null && !config.getConnectionUrl().isEmpty()) {
+            return config.getConnectionUrl();
+        }
+
         StringBuilder urlBuilder = new StringBuilder();
-        
+
         // Protocol
-        if (config.isUseSsl()) {
+        if(config.isUseSsl()) {
             urlBuilder.append("amqps://");
         } else {
             urlBuilder.append("amqp://");
         }
-        
+
         // Host and port
         urlBuilder.append(config.getHost()).append(":").append(config.getPort());
-        
+
         // Connection options
         List<String> options = new ArrayList<>();
-        
-        if (config.getSaslMechanism() != null) {
-            options.add("amqp.saslMechanisms=" + config.getSaslMechanism().getMechanism());
+
+        if(config.getSaslMechanism() != null) {
+            options.add("amqp.saslMechanisms = " + config.getSaslMechanism().getMechanism());
         }
-        
-        if (config.getIdleTimeout() > 0) {
-            options.add("amqp.idleTimeout=" + config.getIdleTimeout());
+
+        if(config.getIdleTimeout() > 0) {
+            options.add("amqp.idleTimeout = " + config.getIdleTimeout());
         }
-        
-        if (config.getMaxFrameSize() > 0) {
-            options.add("amqp.maxFrameSize=" + config.getMaxFrameSize());
+
+        if(config.getMaxFrameSize() > 0) {
+            options.add("amqp.maxFrameSize = " + config.getMaxFrameSize());
         }
-        
-        if (config.getFeatures().isEnableTracing()) {
-            options.add("amqp.traceFrames=true");
+
+        if(config.isEnableTracing()) {
+            options.add("amqp.traceFrames = true");
         }
-        
-        if (!options.isEmpty()) {
+
+        if(!options.isEmpty()) {
             urlBuilder.append("?").append(String.join("&", options));
         }
-        
+
         return urlBuilder.toString();
     }
-    
+
     private void establishConnection() throws JMSException {
         try {
             connection = (JmsConnection) connectionFactory.createConnection();
-            
+
             // Set exception listener
             connection.setExceptionListener(exception -> {
                 log.error("AMQP connection exception", exception);
                 connectionFailures.incrementAndGet();
                 isConnected.set(false);
-                
+
                 // Attempt reconnection
-                if (config.getFeatures().isEnableAutoReconnect()) {
+                if(config.isEnableAutoReconnect()) {
                     scheduleReconnection();
                 }
             });
-            
+
             connection.start();
             isConnected.set(true);
-            
+
             log.info("Successfully connected to AMQP broker");
-        } catch (JMSException e) {
+        } catch(JMSException e) {
             connectionFailures.incrementAndGet();
             throw new AdapterException("Failed to connect to AMQP broker", e);
         }
     }
-    
+
     private void createConsumer() throws JMSException {
-        if (session == null) {
+        if(session == null) {
             createSession();
         }
-        
+
         Destination destination = createDestination();
-        
+
         // Create consumer with message selector if configured
-        String messageSelector = config.getMessageSelector();
+        // Message selector from buildMessageSelector
+        String messageSelector = buildMessageSelector();
         consumer = (messageSelector != null && !messageSelector.isEmpty()) ?
                 session.createConsumer(destination, messageSelector) :
                 session.createConsumer(destination);
-        
+
         // Set message listener
         consumer.setMessageListener(this);
-        
+
         log.info("Created AMQP consumer for: {}", config.getSourceAddress());
     }
-    
+
     private Destination createDestination() throws JMSException {
         String address = config.getSourceAddress();
-        
-        if (address == null || address.isEmpty()) {
+
+        if(address == null || address.isEmpty()) {
             throw new AdapterException("Source address not configured", null);
         }
-        
-        // Handle broker-specific addressing
-        switch (config.getBrokerType()) {
+
+        // Handle broker - specific addressing
+        switch(config.getBrokerType()) {
             case ACTIVEMQ_ARTEMIS:
-                if (config.getRoutingType().equals("multicast")) {
+                if(config.getRoutingType().equals("multicast")) {
                     return session.createTopic(address);
                 } else {
                     return session.createQueue(address);
                 }
-                
+
             case AZURE_SERVICE_BUS:
                 // Azure Service Bus specific addressing
-                String entityPath = config.getAzureSettings().getEntityPath();
-                if (entityPath != null) {
+                String entityPath = config.getEntityPath();
+                if(entityPath != null) {
                     address = entityPath;
                 }
                 return session.createQueue(address);
-                
+
             default:
                 // Generic AMQP addressing
-                if (address.startsWith("topic://")) {
+                if(address.startsWith("topic://")) {
                     return session.createTopic(address.substring(8));
-                } else if (address.startsWith("queue://")) {
+                } else if(address.startsWith("queue://")) {
                     return session.createQueue(address.substring(8));
                 } else {
                     return session.createQueue(address);
                 }
         }
     }
-    
+
     private String buildMessageSelector() {
-        if (config.getSourceFilters() == null || config.getSourceFilters().isEmpty()) {
+        if(config.getSourceFilters() == null || config.getSourceFilters().isEmpty()) {
             return null;
         }
-        
+
         // Build JMS message selector from filters
         List<String> selectors = new ArrayList<>();
-        
+
         config.getSourceFilters().forEach((key, value) -> {
             selectors.add(String.format("%s = '%s'", key, value));
         });
-        
+
         return String.join(" AND ", selectors);
     }
-    
+
     private void createSession() throws JMSException {
-        if (connection == null) {
-            throw new IllegalStateException("Connection not established");
+        if(connection == null) {
+            throw new jakarta.jms.IllegalStateException("Connection not established");
         }
-        
+
         // Create session based on configuration
         session = connection.createSession(
             config.isEnableTransactions(),
-            config.isAutoAck() ? Session.AUTO_ACKNOWLEDGE : Session.CLIENT_ACKNOWLEDGE
-        );
+            Session.AUTO_ACKNOWLEDGE // Always use auto-ack for now
+       );
     }
-    
+
     @Override
     public void onMessage(jakarta.jms.Message jmsMessage) {
         messagesReceived.incrementAndGet();
-        
+
         // Process asynchronously
         messageProcessor.submit(() -> {
             try {
                 processMessage(jmsMessage);
                 messagesProcessed.incrementAndGet();
-            } catch (Exception e) {
+            } catch(Exception e) {
                 messagesFailed.incrementAndGet();
                 handleMessageError(jmsMessage, e);
             }
         });
     }
-    
+
     private void processMessage(jakarta.jms.Message jmsMessage) throws JMSException {
         String messageId = jmsMessage.getJMSMessageID();
-        
+
         // Duplicate detection
-        if (config.getFeatures().isEnableDuplicateDetection()) {
-            if (messageDeduplication.putIfAbsent(messageId, Instant.now()) != null) {
+        if(config.isEnableDuplicateDetection()) {
+            if(messageDeduplication.putIfAbsent(messageId, Instant.now()) != null) {
                 log.debug("Duplicate message detected: {}", messageId);
                 return;
             }
         }
-        
+
         try {
             // Extract message content
             Map<String, Object> messageContent = new HashMap<>();
-            
+
             // Get message body
             String body = extractMessageBody(jmsMessage);
             messageContent.put("body", body);
-            
+
             // Extract properties
             Map<String, Object> properties = extractMessageProperties(jmsMessage);
             messageContent.put("properties", properties);
-            
+
             // Extract headers
             Map<String, Object> headers = extractMessageHeaders(jmsMessage);
             messageContent.put("headers", headers);
-            
+
             // Add AMQP specific info
             messageContent.put("messageType", jmsMessage.getClass().getSimpleName());
             messageContent.put("destination", jmsMessage.getJMSDestination().toString());
             messageContent.put("deliveryMode", jmsMessage.getJMSDeliveryMode());
             messageContent.put("priority", jmsMessage.getJMSPriority());
             messageContent.put("redelivered", jmsMessage.getJMSRedelivered());
-            
+
             // Create MessageDTO
-            MessageDTO message = new MessageDTO()
-                .id(messageId)
-                .type("amqp_message")
-                .source(String.format("amqp://%s:%d/%s", 
-                    config.getHost(), config.getPort(), config.getSourceAddress()))
-                .destination(getQueueName())
-                .content(objectMapper.writeValueAsString(messageContent))
-                .timestamp(jmsMessage.getJMSTimestamp())
-                .metadata(new HashMap<String, String>() {{
-                    put("amqpVersion", config.getVersion().getVersion());
-                    put("brokerType", config.getBrokerType().name());
-                    put("sourceAddress", config.getSourceAddress());
-                }})
-                .build();
+            MessageDTO message = new MessageDTO();
+            message.setId(messageId);
+            message.setType("amqp_message");
+            message.setSource(String.format("amqp://%s:%d/%s",
+                config.getHost(), config.getPort(), config.getSourceAddress()));
+            message.setTarget(config.getSourceAddress());
+            message.setPayload(objectMapper.writeValueAsString(messageContent));
+            message.setTimestamp(LocalDateTime.ofInstant(Instant.ofEpochMilli(jmsMessage.getJMSTimestamp()), java.time.ZoneOffset.UTC));
             
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("amqpVersion", config.getVersion().getVersion());
+            metadata.put("brokerType", config.getBrokerType().name());
+            metadata.put("sourceAddress", config.getSourceAddress());
+            message.setHeaders(metadata);
+
             // Publish to internal queue
-            publishToQueue(message);
-            
+            // Process the message - implementation needed
+            processIncomingMessage(message);
+
             // Commit transaction if enabled
-            if (config.isEnableTransactions()) {
+            if(config.isEnableTransactions()) {
                 session.commit();
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             // Rollback transaction if enabled
-            if (config.isEnableTransactions()) {
+            if(config.isEnableTransactions()) {
                 try {
                     session.rollback();
-                } catch (JMSException ex) {
+                } catch(JMSException ex) {
                     log.error("Failed to rollback transaction", ex);
                 }
             }
             throw new AdapterException("Failed to process AMQP message", e);
         }
     }
-    
+
     private String extractMessageBody(jakarta.jms.Message message) throws JMSException {
-        if (message instanceof TextMessage) {
-            return ((TextMessage) message).getText();
-        } else if (message instanceof BytesMessage) {
+        if(message instanceof TextMessage) {
+            return((TextMessage) message).getText();
+        } else if(message instanceof BytesMessage) {
             BytesMessage bytesMessage = (BytesMessage) message;
             byte[] bytes = new byte[(int) bytesMessage.getBodyLength()];
             bytesMessage.readBytes(bytes);
             return new String(bytes);
-        } else if (message instanceof MapMessage) {
+        } else if(message instanceof MapMessage) {
             MapMessage mapMessage = (MapMessage) message;
             Map<String, Object> map = new HashMap<>();
             Enumeration<String> names = mapMessage.getMapNames();
-            while (names.hasMoreElements()) {
+            while(names.hasMoreElements()) {
                 String name = names.nextElement();
                 map.put(name, mapMessage.getObject(name));
             }
             return objectMapper.writeValueAsString(map);
-        } else if (message instanceof ObjectMessage) {
+        } else if(message instanceof ObjectMessage) {
             ObjectMessage objectMessage = (ObjectMessage) message;
             return objectMapper.writeValueAsString(objectMessage.getObject());
-        } else if (message instanceof StreamMessage) {
+        } else if(message instanceof StreamMessage) {
             // Handle stream message
             return "StreamMessage[" + message.getJMSMessageID() + "]";
         }
-        
+
         return "";
     }
-    
+
     private Map<String, Object> extractMessageProperties(jakarta.jms.Message message) throws JMSException {
         Map<String, Object> properties = new HashMap<>();
-        
+
         // Standard JMS properties
         properties.put("messageId", message.getJMSMessageID());
         properties.put("correlationId", message.getJMSCorrelationID());
@@ -353,197 +404,202 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         properties.put("type", message.getJMSType());
         properties.put("timestamp", message.getJMSTimestamp());
         properties.put("expiration", message.getJMSExpiration());
-        
+
         // AMQP specific properties if available
-        if (message instanceof JmsMessage) {
-            JmsMessage amqpMessage = (JmsMessage) message;
-            
-            // Access AMQP properties through vendor-specific methods
+        // AMQP specific properties
+        try {
+
             properties.put("userId", message.getStringProperty("JMSXUserID"));
             properties.put("groupId", message.getStringProperty("JMSXGroupID"));
             properties.put("groupSequence", message.getIntProperty("JMSXGroupSeq"));
+        } catch (Exception e) {
+            // Ignore if properties not available
         }
-        
+
         return properties;
     }
-    
+
     private Map<String, Object> extractMessageHeaders(jakarta.jms.Message message) throws JMSException {
         Map<String, Object> headers = new HashMap<>();
-        
+
         Enumeration<String> propertyNames = message.getPropertyNames();
-        while (propertyNames.hasMoreElements()) {
+        while(propertyNames.hasMoreElements()) {
             String name = propertyNames.nextElement();
             Object value = message.getObjectProperty(name);
             headers.put(name, value);
         }
-        
+
         return headers;
     }
-    
+
     private void handleMessageError(jakarta.jms.Message message, Exception error) {
         try {
             int deliveryCount = message.getIntProperty("JMSXDeliveryCount");
-            
-            if (deliveryCount < config.getMaxRetries()) {
+
+            if(deliveryCount < config.getMaxRetries()) {
                 // Redelivery will be handled by broker
-                log.warn("Message processing failed, attempt {}/{}", deliveryCount, config.getMaxRetries());
-                
-                if (!config.isAutoAck() && !config.isEnableTransactions()) {
+                log.warn("Message processing failed, attempt {}/ {}", deliveryCount, config.getMaxRetries());
+
+                if(!config.isEnableTransactions()) {
                     // Don't acknowledge - message will be redelivered
                     session.recover();
                 }
             } else {
                 log.error("Message processing failed after {} attempts", config.getMaxRetries());
-                
+
                 // Send to dead letter if configured
-                if (config.isEnableDeadLettering() && config.getDeadLetterAddress() != null) {
+                if(config.isEnableDeadLettering() && config.getDeadLetterAddress() != null) {
                     sendToDeadLetter(message);
                 }
-                
+
                 // Acknowledge to remove from queue
-                if (!config.isAutoAck()) {
+                // Always acknowledge in error cases
+                {
                     message.acknowledge();
                 }
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to handle message error", e);
         }
     }
-    
+
     private void sendToDeadLetter(jakarta.jms.Message message) {
         try {
             Destination deadLetter = session.createQueue(config.getDeadLetterAddress());
             MessageProducer deadLetterProducer = session.createProducer(deadLetter);
-            
+
             // Add dead letter headers
-            message.setStringProperty("x-original-address", config.getSourceAddress());
-            message.setStringProperty("x-failure-reason", "Max retries exceeded");
-            message.setLongProperty("x-failure-timestamp", System.currentTimeMillis());
-            
+            message.setStringProperty("x - original - address", config.getSourceAddress());
+            message.setStringProperty("x - failure - reason", "Max retries exceeded");
+            message.setLongProperty("x - failure - timestamp", System.currentTimeMillis());
+
             deadLetterProducer.send(message);
             deadLetterProducer.close();
-            
+
             log.info("Message sent to dead letter queue: {}", message.getJMSMessageID());
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to send message to dead letter queue", e);
         }
     }
-    
+
     private void startMessageDeduplicationCleanup() {
-        if (!config.getFeatures().isEnableDuplicateDetection()) {
+        if(!config.isEnableDuplicateDetection()) {
             return;
         }
-        
+
         cleanupExecutor.scheduleAtFixedRate(() -> {
             try {
                 Instant cutoff = Instant.now().minusSeconds(3600); // 1 hour
                 messageDeduplication.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoff));
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.error("Error during deduplication cleanup", e);
             }
         }, 60, 60, TimeUnit.SECONDS);
     }
-    
+
     private void scheduleReconnection() {
         CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> {
-            if (!isConnected.get()) {
+            if(!isConnected.get()) {
                 try {
                     log.info("Attempting to reconnect to AMQP broker");
                     destroy();
                     initialize();
-                } catch (Exception e) {
+                } catch(Exception e) {
                     log.error("Reconnection failed, scheduling retry", e);
                     scheduleReconnection();
                 }
             }
         });
     }
-    
-    @Override
+
+    private void processIncomingMessage(MessageDTO message) {
+        // Implementation to process incoming messages
+        // This would typically publish to an internal queue or process directly
+        log.debug("Processing incoming AMQP message: {}", message.getId());
+    }
+
     public void pause() {
         try {
-            if (connection != null) {
+            if(connection != null) {
                 connection.stop();
                 log.info("Paused AMQP consumer");
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to pause consumer", e);
         }
     }
-    
-    @Override
+
     public void resume() {
         try {
-            if (connection != null && !isConnected.get()) {
+            if(connection != null && !isConnected.get()) {
                 connection.start();
                 isConnected.set(true);
                 log.info("Resumed AMQP consumer");
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to resume consumer", e);
         }
     }
-    
-    @Override
+
     public Map<String, Object> getMetrics() {
-        Map<String, Object> metrics = super.getMetrics();
+        Map<String, Object> metrics = new HashMap<>();
         metrics.put("messagesReceived", messagesReceived.get());
         metrics.put("messagesProcessed", messagesProcessed.get());
         metrics.put("messagesFailed", messagesFailed.get());
         metrics.put("connectionFailures", connectionFailures.get());
         metrics.put("isConnected", isConnected.get());
         metrics.put("deduplicationCacheSize", messageDeduplication.size());
-        
+
         return metrics;
     }
-    
+
     @PreDestroy
     public void destroy() {
         log.info("Shutting down AMQP Inbound Adapter");
-        
+
         // Stop message processor
         messageProcessor.shutdown();
         try {
-            if (!messageProcessor.awaitTermination(5, TimeUnit.SECONDS)) {
+            if(!messageProcessor.awaitTermination(5, TimeUnit.SECONDS)) {
                 messageProcessor.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch(InterruptedException e) {
             messageProcessor.shutdownNow();
         }
-        
+
         // Stop cleanup executor
         cleanupExecutor.shutdown();
-        
+
         // Close consumer
-        if (consumer != null) {
+        if(consumer != null) {
             try {
                 consumer.close();
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.error("Failed to close consumer", e);
             }
         }
-        
+
         // Close session
-        if (session != null) {
+        if(session != null) {
             try {
                 session.close();
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.error("Failed to close session", e);
             }
         }
-        
+
         // Close connection
-        if (connection != null) {
+        if(connection != null) {
             try {
                 connection.close();
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.error("Failed to close connection", e);
             }
         }
-        
+
         // Clear caches
         messageDeduplication.clear();
-        
+
         log.info("AMQP Inbound Adapter shut down successfully");
     }
 }

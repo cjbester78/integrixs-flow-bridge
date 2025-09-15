@@ -39,7 +39,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class FlowExecutionApplicationService {
-    
+
     private final FlowExecutionService flowExecutionService;
     private final AdapterConfigurationService adapterConfigurationService;
     private final IntegrationFlowRepository flowRepository;
@@ -57,7 +57,7 @@ public class FlowExecutionApplicationService {
     private final JavaTransformationEngine javaTransformationEngine;
     private final EnhancedFlowExecutionLogger flowLogger;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    
+
     @Autowired
     public FlowExecutionApplicationService(
             FlowExecutionService flowExecutionService,
@@ -93,7 +93,7 @@ public class FlowExecutionApplicationService {
         this.javaTransformationEngine = javaTransformationEngine;
         this.flowLogger = flowLogger != null ? flowLogger : new EnhancedFlowExecutionLogger();
     }
-    
+
     /**
      * Execute a flow asynchronously
      * @param flowId The ID of the flow to execute
@@ -109,7 +109,7 @@ public class FlowExecutionApplicationService {
         String messageId = "MSG-" + UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
         FlowExecutionContext flowContext = null;
-        
+
         log.info("Starting flow execution with correlation ID: {}", correlationId);
 
         try {
@@ -121,7 +121,7 @@ public class FlowExecutionApplicationService {
 
             // Validate flow can be executed
             flowExecutionService.validateFlowExecution(flow, inboundAdapter, outboundAdapter);
-            
+
             // Log flow execution start
             flowContext = FlowExecutionContext.builder()
                 .flowId(flow.getId().toString())
@@ -133,12 +133,12 @@ public class FlowExecutionApplicationService {
                 .messageId(messageId)
                 .payloadSize(0)
                 .build();
-            
+
             flowLogger.logFlowStart(flowContext);
 
-            // Check if we should skip XML conversion (direct passthrough)
-            if (flowExecutionService.shouldUseDirectTransfer(flow)) {
-                log.info("Executing direct transfer (skip XML conversion) for flow: {}", flow.getName());
+            // Check if we should skip XML conversion(direct passthrough)
+            if(flowExecutionService.shouldUseDirectTransfer(flow)) {
+                log.info("Executing direct transfer(skip XML conversion) for flow: {}", flow.getName());
                 directFileTransferService.executeDirectTransfer(flow, inboundAdapter, outboundAdapter);
                 return;
             }
@@ -147,7 +147,7 @@ public class FlowExecutionApplicationService {
             long startTime = System.currentTimeMillis();
             try {
                 executeFlowWithTransformations(flow, inboundAdapter, outboundAdapter, correlationId);
-                
+
                 // Log flow completion
                 long duration = System.currentTimeMillis() - startTime;
                 flowContext = FlowExecutionContext.builder()
@@ -161,39 +161,39 @@ public class FlowExecutionApplicationService {
                     .stepsExecuted(1)
                     .messagesProcessed(1)
                     .build();
-                    
+
                 flowLogger.logFlowComplete(flowContext, duration);
-                
-            } catch (Exception e) {
+
+            } catch(Exception e) {
                 throw new RuntimeException("Flow execution failed: " + e.getMessage(), e);
             }
 
-        } catch (XmlConversionException e) {
+        } catch(XmlConversionException e) {
             long duration = System.currentTimeMillis() - startTime;
             log.error("XML conversion error executing flow: {}", flow.getName(), e);
-            
+
             flowContext.setCurrentStep("XML Conversion");
             flowLogger.logFlowError(flowContext, e, duration);
-            
+
             throw new RuntimeException("XML conversion failed: " + e.getMessage(), e);
-        } catch (Exception e) {
+        } catch(Exception e) {
             long duration = System.currentTimeMillis() - startTime;
             log.error("Error executing flow: {}", flow.getName(), e);
-            
-            if (flowContext != null) {
+
+            if(flowContext != null) {
                 flowLogger.logFlowError(flowContext, e, duration);
             }
-            
+
             throw new RuntimeException("Error executing flow: " + flow.getName(), e);
         }
     }
-    
+
     private void executeFlowWithTransformations(
             IntegrationFlow flow,
             CommunicationAdapter inboundAdapter,
             CommunicationAdapter outboundAdapter,
             String correlationId) throws Exception {
-        
+
         // Step 1: Fetch source data
         // Log adapter communication
         AdapterCommunicationContext inboundContext = AdapterCommunicationContext.builder()
@@ -205,18 +205,18 @@ public class FlowExecutionApplicationService {
             .sourceSystem(inboundAdapter.getName())
             .payloadSize(0)
             .build();
-        
+
         flowLogger.logAdapterCommunication(inboundContext);
-        
+
         Object rawData = adapterExecutor.fetchDataAsObject(flow.getInboundAdapterId().toString());
         log.info("Fetched data from source adapter: {}", inboundAdapter.getName());
-        
+
         // Log source adapter payload
         String rawDataStr = flowExecutionService.convertRawDataToString(rawData);
         messageService.logAdapterPayload(correlationId, inboundAdapter, "REQUEST", rawDataStr, "INBOUND");
 
         // Check if the data is binary and should skip XML conversion
-        if (flowExecutionService.isBinaryData(rawData)) {
+        if(flowExecutionService.isBinaryData(rawData)) {
             log.info("Binary file detected, using direct transfer for flow: {}", flow.getName());
             directFileTransferService.executeDirectTransfer(flow, inboundAdapter, outboundAdapter);
             return;
@@ -235,80 +235,80 @@ public class FlowExecutionApplicationService {
             .targetSystem(outboundAdapter.getName())
             .payloadSize(processedData.length())
             .build();
-            
+
         flowLogger.logAdapterCommunication(outboundContext);
-        
+
         Map<String, Object> context = flowExecutionService.buildExecutionContext(correlationId, flow.getId());
         adapterExecutor.sendData(flow.getOutboundAdapterId().toString(), processedData, context);
         log.info("Sent data to target adapter: {}", outboundAdapter.getName());
-        
+
         // Log target adapter payload
         messageService.logAdapterPayload(correlationId, outboundAdapter, "REQUEST", processedData, "OUTBOUND");
 
         // Step 4: Log success
         log.info("Flow execution successful for flow: {} - correlationId: {}", flow.getName(), correlationId);
-        
+
         // Log response mapping if applicable
-        if (flowExecutionService.isMappingRequired(flow)) {
-            flowLogger.logResponseMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0", 
+        if(flowExecutionService.isMappingRequired(flow)) {
+            flowLogger.logResponseMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0",
                 String.valueOf(System.currentTimeMillis() - System.currentTimeMillis()));
         }
     }
-    
+
     private String processData(
             IntegrationFlow flow,
             Object rawData,
             CommunicationAdapter inboundAdapter,
             CommunicationAdapter outboundAdapter) throws Exception {
-        
-        if (flowExecutionService.isMappingRequired(flow)) {
+
+        if(flowExecutionService.isMappingRequired(flow)) {
             log.info("Mapping required for flow: {}", flow.getName());
-            
+
             // Convert source data to XML
-            flowLogger.logRequestMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0", 
+            flowLogger.logRequestMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0",
                 inboundAdapter.getType(), "XML");
-            
+
             String xmlData = formatConversionService.convertToXml(rawData, inboundAdapter);
             log.debug("Converted source data to XML");
-            
+
             // Apply transformations
             String transformedXml = applyTransformations(flow, xmlData);
             log.debug("Applied transformations to XML data");
-            
+
             // Get conversion config
             List<FlowTransformation> transformations = transformationRepository.findByFlowId(flow.getId());
             Map<String, Object> conversionConfig = adapterConfigurationService.buildConversionConfig(
-                flow, 
-                outboundAdapter, 
+                flow,
+                outboundAdapter,
                 transformations,
                 transformationId -> fieldMappingRepository.findByTransformationId(transformationId)
-            );
-            
+           );
+
             // Convert XML back to target format
             Object targetData = formatConversionService.convertFromXml(
-                transformedXml, 
-                outboundAdapter, 
+                transformedXml,
+                outboundAdapter,
                 conversionConfig
-            );
+           );
             log.info("Converted XML to target format: {}", outboundAdapter.getType());
-            
+
             return targetData.toString();
         } else {
-            log.info("Pass-through mode for flow: {}", flow.getName());
+            log.info("Pass - through mode for flow: {}", flow.getName());
             return rawData.toString();
         }
     }
-    
+
     private String applyTransformations(IntegrationFlow flow, String inputData) throws Exception {
         List<FlowTransformation> transformations = transformationRepository.findByFlowId(flow.getId());
         transformations = flowExecutionService.orderTransformations(transformations);
 
         String currentData = inputData;
-        for (FlowTransformation transformation : transformations) {
-            if (!flowExecutionService.isTransformationTypeSupported(transformation.getType())) {
+        for(FlowTransformation transformation : transformations) {
+            if(!flowExecutionService.isTransformationTypeSupported(transformation.getType())) {
                 throw new UnsupportedOperationException(
                     "Transformation type not supported: " + transformation.getType()
-                );
+               );
             }
 
             TransformationContext transformContext = TransformationContext.builder()
@@ -320,104 +320,104 @@ public class FlowExecutionApplicationService {
                 .outputFormat("XML")
                 .configuration(transformation.getConfiguration())
                 .build();
-                
+
             flowLogger.logTransformationStep(transformContext);
-            
+
             currentData = applyTransformation(transformation, currentData);
         }
         return currentData;
     }
-    
+
     private String applyTransformation(FlowTransformation transformation, String currentData) throws Exception {
-        switch (transformation.getType()) {
+        switch(transformation.getType()) {
             case FIELD_MAPPING:
                 List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(transformation.getId());
                 return FieldMapper.apply(currentData, mappings, javaTransformationEngine);
-                
+
             case CUSTOM_FUNCTION:
                 return applyCustomFunctionTransformation(transformation, currentData);
-                
+
             case FILTER:
                 return applyFilterTransformation(transformation, currentData);
-                
+
             case ENRICHMENT:
                 return applyEnrichmentTransformation(transformation, currentData);
-                
+
             case VALIDATION:
                 return applyValidationTransformation(transformation, currentData);
-                
+
             default:
                 throw new UnsupportedOperationException(
                     "Transformation type not supported: " + transformation.getType()
-                );
+               );
         }
     }
-    
-    private String applyCustomFunctionTransformation(FlowTransformation transformation, String currentData) 
+
+    private String applyCustomFunctionTransformation(FlowTransformation transformation, String currentData)
             throws Exception {
-        if (transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
+        if(transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
             throw new RuntimeException("Custom function configuration is missing");
         }
-        
+
         CustomFunctionConfigDTO config = objectMapper.readValue(
-            transformation.getConfiguration(), 
+            transformation.getConfiguration(),
             CustomFunctionConfigDTO.class
-        );
+       );
         Map<String, Object> inputMap = objectMapper.readValue(currentData, Map.class);
 
         String functionBody = config.getJavaFunction();
-        if (functionBody == null || functionBody.isBlank()) {
+        if(functionBody == null || functionBody.isBlank()) {
             throw new RuntimeException("Custom function name/body is missing");
         }
 
         // Try to find the function in transformation_custom_functions table
         try {
-            TransformationCustomFunction customFunction = 
+            TransformationCustomFunction customFunction =
                 developmentFunctionService.getBuiltInFunctionByName(functionBody);
             functionBody = customFunction.getFunctionBody();
-        } catch (Exception e) {
+        } catch(Exception e) {
             // Function not found in database, assume functionBody contains the actual code
-            log.debug("Function '{}' not found in transformation_custom_functions, using as direct code", 
+            log.debug("Function ' {}' not found in transformation_custom_functions, using as direct code",
                 functionBody);
         }
 
         Object result = JavaFunctionRunner.run(functionBody, config.getSourceFields(), inputMap);
         return result != null ? result.toString() : null;
     }
-    
-    private String applyFilterTransformation(FlowTransformation transformation, String currentData) 
+
+    private String applyFilterTransformation(FlowTransformation transformation, String currentData)
             throws Exception {
-        if (transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
+        if(transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
             throw new RuntimeException("Filter transformation configuration is missing");
         }
         FilterTransformationConfigDTO filterConfig = objectMapper.readValue(
-            transformation.getConfiguration(), 
+            transformation.getConfiguration(),
             FilterTransformationConfigDTO.class
-        );
+       );
         return filterTransformationService.applyFilter(currentData, filterConfig);
     }
-    
-    private String applyEnrichmentTransformation(FlowTransformation transformation, String currentData) 
+
+    private String applyEnrichmentTransformation(FlowTransformation transformation, String currentData)
             throws Exception {
-        if (transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
+        if(transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
             throw new RuntimeException("Enrichment transformation configuration is missing");
         }
         EnrichmentTransformationConfigDTO enrichConfig = objectMapper.readValue(
-            transformation.getConfiguration(), 
+            transformation.getConfiguration(),
             EnrichmentTransformationConfigDTO.class
-        );
+       );
         return enrichmentTransformationService.applyEnrichment(currentData, enrichConfig);
     }
-    
-    private String applyValidationTransformation(FlowTransformation transformation, String currentData) 
+
+    private String applyValidationTransformation(FlowTransformation transformation, String currentData)
             throws Exception {
-        if (transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
+        if(transformation.getConfiguration() == null || transformation.getConfiguration().isBlank()) {
             throw new RuntimeException("Validation transformation configuration is missing");
         }
         ValidationTransformationConfigDTO validationConfig = objectMapper.readValue(
-            transformation.getConfiguration(), 
+            transformation.getConfiguration(),
             ValidationTransformationConfigDTO.class
-        );
+       );
         return validationTransformationService.applyValidation(currentData, validationConfig);
     }
 }

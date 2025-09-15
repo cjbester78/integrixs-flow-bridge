@@ -15,13 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestFieldMappingsRequestDTO {
-    
+
     private String inputXml;
     private List<TestMappingDTO> mappings;
     private String mappingType; // request, response, or fault
     private String sourceStructureXml;
     private String targetStructureXml;
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -36,7 +36,7 @@ public class TestFieldMappingsRequestDTO {
         private boolean requiresTransformation;
         private VisualFlowData visualFlowData;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -46,7 +46,7 @@ public class TestFieldMappingsRequestDTO {
         private List<VisualFlowEdge> edges;
         private int nodeIdCounter;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -57,7 +57,7 @@ public class TestFieldMappingsRequestDTO {
         private Object data;
         private Position position;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -70,7 +70,7 @@ public class TestFieldMappingsRequestDTO {
         private String sourceHandle;
         private String targetHandle;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor

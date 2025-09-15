@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.reddit")
 public class RedditApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientId;
     private String clientSecret;
     private String userAgent;
@@ -16,7 +16,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
     private String password;
     private RedditFeatures features = new RedditFeatures();
     private RedditLimits limits = new RedditLimits();
-    
+
         public static class RedditFeatures {
         private boolean enablePostManagement = true;
         private boolean enableCommentManagement = true;
@@ -37,7 +37,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         private boolean enableScheduledPosts = true;
         private boolean enableAnalytics = true;
     }
-    
+
         public static class RedditLimits {
         private int maxTitleLength = 300;
         private int maxTextLength = 40000;
@@ -55,18 +55,18 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         private int maxPollOptions = 6;
         private int maxPollDurationDays = 7;
     }
-    
+
     // Post types
     public enum PostType {
-        SELF,        // Text post
-        LINK,        // Link post
-        IMAGE,       // Image post
-        VIDEO,       // Video post
-        GALLERY,     // Multiple images
-        POLL,        // Poll post
+        SELF,       // Text post
+        LINK,       // Link post
+        IMAGE,      // Image post
+        VIDEO,      // Video post
+        GALLERY,    // Multiple images
+        POLL,       // Poll post
         CROSSPOST    // Crosspost from another subreddit
     }
-    
+
     // Sorting options
     public enum SortType {
         HOT,
@@ -77,7 +77,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         BEST,
         GILDED
     }
-    
+
     // Time filter for top/controversial
     public enum TimeFilter {
         HOUR,
@@ -87,22 +87,22 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         YEAR,
         ALL
     }
-    
+
     // Vote direction
     public enum VoteDirection {
         UPVOTE(1),
         DOWNVOTE(-1),
         UNVOTE(0);
-        
+
         private final int value;
-        
+
         VoteDirection(int value) {
             this.value = value;
         }
-        
+
         public int getValue() { return value; }
     }
-    
+
     // Listing type
     public enum ListingType {
         POSTS,
@@ -112,7 +112,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         MULTI,
         MIXED
     }
-    
+
     // Moderation action types
     public enum ModAction {
         APPROVE,
@@ -133,7 +133,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         REMOVE_MOD,
         SET_FLAIR
     }
-    
+
     // User relationship
     public enum UserRelationship {
         FRIEND,
@@ -145,7 +145,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         WIKIBANNED,
         WIKICONTRIBUTOR
     }
-    
+
     // Subreddit type
     public enum SubredditType {
         PUBLIC,
@@ -155,7 +155,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         ARCHIVED,
         EMPLOYEES_ONLY
     }
-    
+
     // MessageDTO type
     public enum MessageType {
         INBOX,
@@ -166,8 +166,8 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         SELFREPLY,
         MENTIONS
     }
-    
-    // Award types (common ones)
+
+    // Award types(common ones)
     public enum AwardType {
         SILVER,
         GOLD,
@@ -181,14 +181,14 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         TABLE_SLAP,
         CUSTOM
     }
-    
+
     // Flair types
     public enum FlairType {
         USER_FLAIR,
         LINK_FLAIR,
         MOD_FLAIR
     }
-    
+
     // Search syntax
     public enum SearchSyntax {
         TITLE,
@@ -205,7 +205,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         SCORE,
         NUM_COMMENTS
     }
-    
+
     // Report reasons
     public enum ReportReason {
         SPAM,
@@ -221,7 +221,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         RULE_REASON_SELECTED,
         NO_REASON_SELECTED
     }
-    
+
     // Notification types
     public enum NotificationType {
         POST_REPLY,
@@ -237,7 +237,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         COMMUNITY_RECOMMENDATION,
         BROADCAST_RECOMMENDATION
     }
-    
+
     // Trophy types
     public enum TrophyType {
         VERIFIED_EMAIL,
@@ -258,14 +258,14 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         BEST_COMMENT,
         BEST_LINK
     }
-    
+
     // NSFW levels
     public enum NSFWLevel {
         NONE,
         SOFT,
         HARD
     }
-    
+
     // Spoiler tags
     public enum SpoilerTag {
         NONE,
@@ -273,7 +273,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         NSFW,
         NSFW_AND_SPOILER
     }
-    
+
     // Webhook events
     public enum WebhookEvent {
         POST_CREATE,
@@ -290,7 +290,7 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         WIKI_UPDATE,
         AWARD_GIVEN
     }
-    
+
     // Error codes
     public enum RedditErrorCode {
         INVALID_TOKEN(401),
@@ -310,13 +310,13 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         NO_TEXT(400),
         INVALID_OPTION(400),
         THREAD_LOCKED(403);
-        
+
         private final int code;
-        
+
         RedditErrorCode(int code) {
             this.code = code;
         }
-        
+
         public int getCode() { return code; }
     }
     // Getters and Setters

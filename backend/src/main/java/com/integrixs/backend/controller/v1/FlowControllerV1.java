@@ -26,27 +26,27 @@ import java.util.UUID;
 
 /**
  * REST controller for integration flows - API Version 1.
- * 
+ *
  * <p>Provides versioned endpoints for flow management.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
 @Slf4j
 @RestController
 @RequestMapping("/flows")
-@ApiV1  // This annotation marks it for v1 versioning
+@ApiV1 // This annotation marks it for v1 versioning
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class FlowControllerV1 {
-    
+
     private final FlowCompositionService flowCompositionService;
     private final IntegrationFlowService integrationFlowService;
     private final FlowDomainService flowDomainService;
-    
+
     /**
      * Gets all integration flows with pagination.
-     * 
+     *
      * @param pageable pagination parameters
      * @return page of flows
      */
@@ -54,50 +54,50 @@ public class FlowControllerV1 {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Timed(value = "api.flows.list", description = "Time taken to list flows")
     public ResponseEntity<Page<IntegrationFlowDTO>> getAllFlows(Pageable pageable) {
-        log.debug("GET /api/v1/flows - page: {}, size: {}", 
+        log.debug("GET /api/v1/flows - page: {}, size: {}",
                  pageable.getPageNumber(), pageable.getPageSize());
-        
+
         // Convert list to page manually
         List<com.integrixs.backend.api.dto.response.FlowResponse> allFlows = integrationFlowService.getAllFlows();
         List<IntegrationFlowDTO> flowDTOs = allFlows.stream()
             .map(this::mapToDTO)
             .collect(Collectors.toList());
-        
+
         // Simple pagination
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), flowDTOs.size());
-        
+
         Page<IntegrationFlowDTO> flows = new PageImpl<>(
             flowDTOs.subList(start, end),
             pageable,
             flowDTOs.size()
-        );
+       );
         return ResponseEntity.ok(flows);
     }
-    
+
     /**
      * Gets a specific integration flow by ID.
-     * 
+     *
      * @param id the flow ID
      * @return the flow
      */
-    @GetMapping("/{id}")
+    @GetMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Timed(value = "api.flows.get", description = "Time taken to get flow")
     public ResponseEntity<IntegrationFlowDTO> getFlow(@PathVariable String id) {
-        log.debug("GET /api/v1/flows/{}", id);
-        
+        log.debug("GET /api/v1/flows/ {}", id);
+
         try {
             com.integrixs.backend.api.dto.response.FlowResponse flow = integrationFlowService.getFlowById(id);
             return ResponseEntity.ok(mapToDTO(flow));
-        } catch (Exception e) {
+        } catch(Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     /**
      * Creates a new integration flow.
-     * 
+     *
      * @param request the flow creation request
      * @param userDetails the authenticated user
      * @return created flow
@@ -108,97 +108,97 @@ public class FlowControllerV1 {
     public ResponseEntity<IntegrationFlowDTO> createFlow(
             @Valid @RequestBody FlowCreateRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        log.info("POST /api/v1/flows - Creating flow: {} by user: {}", 
+
+        log.info("POST /api/v1/flows - Creating flow: {} by user: {}",
                  request.getName(), userDetails.getUsername());
-        
+
         // Convert FlowCreateRequestDTO to CreateFlowRequest
-        com.integrixs.backend.api.dto.request.CreateFlowRequest createRequest = 
+        com.integrixs.backend.api.dto.request.CreateFlowRequest createRequest =
             new com.integrixs.backend.api.dto.request.CreateFlowRequest();
         // Note: Proper mapping needed here
-        
-        com.integrixs.backend.api.dto.response.FlowResponse created = 
+
+        com.integrixs.backend.api.dto.response.FlowResponse created =
             integrationFlowService.createFlow(createRequest);
         IntegrationFlowDTO dto = mapToDTO(created);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
-    
+
     /**
      * Activates an integration flow.
-     * 
+     *
      * @param id the flow ID
      * @param userDetails the authenticated user
      * @return activated flow
      */
-    @PutMapping("/{id}/activate")
+    @PutMapping("/ {id}/activate")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Timed(value = "api.flows.activate", description = "Time taken to activate flow")
     public ResponseEntity<IntegrationFlowDTO> activateFlow(
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        log.info("PUT /api/v1/flows/{}/activate - User: {}", id, userDetails.getUsername());
-        
+
+        log.info("PUT /api/v1/flows/ {}/activate - User: {}", id, userDetails.getUsername());
+
         IntegrationFlow activated = flowDomainService.activateFlow(id, userDetails.getUsername());
         // Convert IntegrationFlow entity to FlowResponse
         com.integrixs.backend.api.dto.response.FlowResponse flowResponse = convertEntityToResponse(activated);
         IntegrationFlowDTO dto = mapToDTO(flowResponse);
-        
+
         return ResponseEntity.ok(dto);
     }
-    
+
     /**
      * Deactivates an integration flow.
-     * 
+     *
      * @param id the flow ID
      * @param reason the deactivation reason
      * @param userDetails the authenticated user
      * @return deactivated flow
      */
-    @PutMapping("/{id}/deactivate")
+    @PutMapping("/ {id}/deactivate")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Timed(value = "api.flows.deactivate", description = "Time taken to deactivate flow")
     public ResponseEntity<IntegrationFlowDTO> deactivateFlow(
             @PathVariable String id,
             @RequestParam(required = false, defaultValue = "Manual deactivation") String reason,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        log.info("PUT /api/v1/flows/{}/deactivate - User: {}, Reason: {}", 
+
+        log.info("PUT /api/v1/flows/ {}/deactivate - User: {}, Reason: {}",
                  id, userDetails.getUsername(), reason);
-        
+
         IntegrationFlow deactivated = flowDomainService.deactivateFlow(
             id, userDetails.getUsername(), reason);
-        // Convert IntegrationFlow entity to FlowResponse  
+        // Convert IntegrationFlow entity to FlowResponse
         com.integrixs.backend.api.dto.response.FlowResponse flowResponse = convertEntityToResponse(deactivated);
         IntegrationFlowDTO dto = mapToDTO(flowResponse);
-        
+
         return ResponseEntity.ok(dto);
     }
-    
+
     /**
      * Deletes an integration flow.
-     * 
+     *
      * @param id the flow ID
      * @param userDetails the authenticated user
      * @return no content
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Timed(value = "api.flows.delete", description = "Time taken to delete flow")
     public ResponseEntity<Void> deleteFlow(
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        log.warn("DELETE /api/v1/flows/{} - User: {}", id, userDetails.getUsername());
-        
+
+        log.warn("DELETE /api/v1/flows/ {} - User: {}", id, userDetails.getUsername());
+
         integrationFlowService.deleteFlow(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     /**
      * Maps DTO to entity.
-     * 
+     *
      * @param dto the DTO
      * @return the entity
      */
@@ -211,10 +211,10 @@ public class FlowControllerV1 {
         // Configuration field removed - using native columns instead
         return flow;
     }
-    
+
     /**
      * Convert IntegrationFlow entity to FlowResponse.
-     * 
+     *
      * @param flow the entity
      * @return the response DTO
      */
@@ -235,10 +235,10 @@ public class FlowControllerV1 {
         // Note: getMappingMode() might not be available in FlowResponse
         return response;
     }
-    
+
     /**
      * Maps entity to DTO.
-     * 
+     *
      * @param flow the entity
      * @return the DTO
      */

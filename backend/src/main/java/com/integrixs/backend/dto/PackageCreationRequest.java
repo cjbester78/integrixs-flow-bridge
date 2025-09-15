@@ -16,55 +16,55 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PackageCreationRequest {
-    
+
     @NotBlank(message = "Flow name is required")
     private String flowName;
-    
+
     private String description;
-    
+
     @NotNull(message = "Flow type is required")
     private String flowType;
-    
+
     private UUID tenantId;
-    
+
     private UUID userId;
-    
+
     private Map<String, Object> flowConfiguration;
-    
+
     private AdapterRequest sourceAdapter;
-    
+
     private List<AdapterRequest> targetAdapters = new ArrayList<>();
-    
+
     private StructureRequest sourceStructure;
-    
+
     private List<StructureRequest> targetStructures = new ArrayList<>();
-    
+
     private List<TransformationRequest> transformations = new ArrayList<>();
-    
+
     private List<OrchestrationTargetRequest> orchestrationTargets = new ArrayList<>();
-    
+
     private boolean deployToEngine = false;
-    
+
     private boolean activateImmediately = false;
-    
+
     private Map<String, Object> metadata;
-    
+
     /**
      * Adapter configuration request
      */
     public static class AdapterRequest {
         @NotBlank(message = "Adapter name is required")
         private String name;
-        
+
         @NotBlank(message = "Adapter type is required")
         private String type;
-        
+
         private Map<String, Object> configuration;
-        
+
         private Map<String, Object> credentials;
-        
+
         private Map<String, Object> connectionSettings;
-        
+
         // Getters and setters
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -77,26 +77,26 @@ public class PackageCreationRequest {
         public Map<String, Object> getConnectionSettings() { return connectionSettings; }
         public void setConnectionSettings(Map<String, Object> connectionSettings) { this.connectionSettings = connectionSettings; }
     }
-    
+
     /**
      * Structure configuration request
      */
     public static class StructureRequest {
         @NotBlank(message = "Structure name is required")
         private String name;
-        
+
         @NotBlank(message = "Structure type is required")
         private String type;
-        
+
         @NotBlank(message = "Structure format is required")
         private String format;
-        
+
         private String content;
-        
+
         private String schemaLocation;
-        
+
         private Map<String, Object> metadata;
-        
+
         // Getters and setters
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -111,25 +111,25 @@ public class PackageCreationRequest {
         public Map<String, Object> getMetadata() { return metadata; }
         public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
     }
-    
+
     /**
      * Transformation configuration request
      */
     public static class TransformationRequest {
         @NotBlank(message = "Transformation name is required")
         private String name;
-        
+
         @NotBlank(message = "Transformation type is required")
         private String type;
-        
+
         private Map<String, Object> configuration;
-        
+
         private List<FieldMappingRequest> fieldMappings = new ArrayList<>();
-        
+
         private String script;
-        
+
         private String template;
-        
+
         // Getters and setters
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -144,27 +144,27 @@ public class PackageCreationRequest {
         public String getTemplate() { return template; }
         public void setTemplate(String template) { this.template = template; }
     }
-    
+
     /**
      * Field mapping request
      */
     public static class FieldMappingRequest {
         @NotBlank(message = "Source path is required")
         private String sourcePath;
-        
+
         @NotBlank(message = "Target path is required")
         private String targetPath;
-        
+
         private String expression;
-        
+
         private String type = "DIRECT";
-        
+
         private boolean required = false;
-        
+
         private int order = 0;
-        
+
         private Map<String, Object> transformationOptions;
-        
+
         // Getters and setters
         public String getSourcePath() { return sourcePath; }
         public void setSourcePath(String sourcePath) { this.sourcePath = sourcePath; }
@@ -181,29 +181,29 @@ public class PackageCreationRequest {
         public Map<String, Object> getTransformationOptions() { return transformationOptions; }
         public void setTransformationOptions(Map<String, Object> transformationOptions) { this.transformationOptions = transformationOptions; }
     }
-    
+
     /**
      * Orchestration target request
      */
     public static class OrchestrationTargetRequest {
         @NotBlank(message = "Target name is required")
         private String name;
-        
+
         @NotBlank(message = "Adapter name is required")
         private String adapterName;
-        
+
         private String routingCondition;
-        
+
         private Map<String, Object> transformationConfig;
-        
+
         private int order = 0;
-        
+
         private boolean parallel = false;
-        
+
         private String errorStrategy = "FAIL_FAST";
-        
+
         private Map<String, Object> retryConfig;
-        
+
         // Getters and setters
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -222,7 +222,7 @@ public class PackageCreationRequest {
         public Map<String, Object> getRetryConfig() { return retryConfig; }
         public void setRetryConfig(Map<String, Object> retryConfig) { this.retryConfig = retryConfig; }
     }
-    
+
     // Main class getters and setters
     public String getFlowName() { return flowName; }
     public void setFlowName(String flowName) { this.flowName = flowName; }

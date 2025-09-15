@@ -8,14 +8,14 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.tiktok.content")
 public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientKey;
     private String clientSecret;
     private String userId;
     private String username;
     private TikTokContentFeatures features = new TikTokContentFeatures();
     private TikTokContentLimits limits = new TikTokContentLimits();
-    
+
         public static class TikTokContentFeatures {
         private boolean enableVideoPublishing = true;
         private boolean enableVideoRetrieval = true;
@@ -38,7 +38,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         private boolean enableCollaboration = true;
         private boolean enableAnalyticsExport = true;
     }
-    
+
         public static class TikTokContentLimits {
         private int maxVideoDurationSeconds = 180; // 3 minutes for most accounts
         private int maxVideoSizeMB = 287; // TikTok limit
@@ -54,14 +54,14 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         private int maxCaptionLength = 150; // For display
         private int analyticsRetentionDays = 90;
     }
-    
+
     // Video privacy settings
     public enum VideoPrivacy {
         PUBLIC_TO_EVERYONE,
         FRIENDS_ONLY,
         PRIVATE_ONLY_ME
     }
-    
+
     // Video status
     public enum VideoStatus {
         PUBLISHED,
@@ -71,7 +71,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         REMOVED,
         SCHEDULED
     }
-    
+
     // Content categories
     public enum ContentCategory {
         DANCE,
@@ -95,7 +95,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         FAMILY,
         BUSINESS
     }
-    
+
     // Engagement types
     public enum EngagementType {
         LIKE,
@@ -108,7 +108,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         STITCH,
         DOWNLOAD
     }
-    
+
     // Comment filter
     public enum CommentFilter {
         ALL,
@@ -116,7 +116,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         NO_ONE,
         FILTERED_KEYWORDS
     }
-    
+
     // Video source
     public enum VideoSource {
         CAMERA,
@@ -127,7 +127,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         EFFECT,
         LIVE_REPLAY
     }
-    
+
     // Trending type
     public enum TrendingType {
         HASHTAG,
@@ -137,7 +137,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         CREATOR,
         VIDEO
     }
-    
+
     // Analytics metric
     public enum AnalyticsMetric {
         VIEWS,
@@ -156,7 +156,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         CLICK_THROUGH_RATE,
         SAVES
     }
-    
+
     // Time period for analytics
     public enum TimePeriod {
         LAST_7_DAYS,
@@ -165,37 +165,37 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         LAST_90_DAYS,
         CUSTOM
     }
-    
+
     // Video resolution
     public enum VideoResolution {
         RESOLUTION_540P("960x540"),
         RESOLUTION_720P("1280x720"),
         RESOLUTION_1080P("1920x1080");
-        
+
         private final String resolution;
-        
+
         VideoResolution(String resolution) {
             this.resolution = resolution;
         }
-        
+
         public String getResolution() { return resolution; }
     }
-    
+
     // Video aspect ratio
     public enum VideoAspectRatio {
-        RATIO_9_16("9:16"),  // Standard TikTok
-        RATIO_1_1("1:1"),    // Square
-        RATIO_16_9("16:9");  // Horizontal
-        
+        RATIO_9_16("9:16"), // Standard TikTok
+        RATIO_1_1("1:1"),   // Square
+        RATIO_16_9("16:9"); // Horizontal
+
         private final String ratio;
-        
+
         VideoAspectRatio(String ratio) {
             this.ratio = ratio;
         }
-        
+
         public String getRatio() { return ratio; }
     }
-    
+
     // Music/Sound categories
     public enum SoundCategory {
         TRENDING,
@@ -208,7 +208,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         THEMES,
         ORIGINAL_SOUNDS
     }
-    
+
     // Effect types
     public enum EffectType {
         BEAUTY,
@@ -221,7 +221,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         INTERACTIVE,
         TRANSITION
     }
-    
+
     // Collaboration type
     public enum CollaborationType {
         DUET,
@@ -230,7 +230,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         COLLAB,
         RESPONSE
     }
-    
+
     // Discovery feed type
     public enum DiscoveryFeedType {
         FOR_YOU,
@@ -239,7 +239,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         EXPLORE,
         NEARBY
     }
-    
+
     // Creator type
     public enum CreatorType {
         INDIVIDUAL,
@@ -248,7 +248,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         VERIFIED,
         POPULAR_CREATOR
     }
-    
+
     // Content moderation status
     public enum ModerationStatus {
         PENDING,
@@ -258,7 +258,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         SHADOW_BANNED,
         AGE_RESTRICTED
     }
-    
+
     // Notification type
     public enum NotificationType {
         NEW_FOLLOWER,
@@ -270,7 +270,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         DUET_CREATED,
         MILESTONE_REACHED
     }
-    
+
     // Live stream status
     public enum LiveStreamStatus {
         SCHEDULED,
@@ -279,7 +279,7 @@ public class TikTokContentApiConfig extends SocialMediaAdapterConfig {
         CANCELLED,
         INTERRUPTED
     }
-    
+
     // Challenge participation status
     public enum ChallengeStatus {
         ACTIVE,

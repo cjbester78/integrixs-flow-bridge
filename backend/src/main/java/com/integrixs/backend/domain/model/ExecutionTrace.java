@@ -10,7 +10,7 @@ import java.util.List;
  */
 @Data
 public class ExecutionTrace {
-    
+
     private String executionId;
     private String flowId;
     private String flowType;
@@ -24,7 +24,7 @@ public class ExecutionTrace {
     private String errorMessage;
     private String exceptionDetails;
     private List<TraceEvent> events = new ArrayList<>();
-    
+
     /**
      * Adds a new event to the trace
      */

@@ -16,9 +16,9 @@ public class MDCTaskDecorator implements TaskDecorator {
     public Runnable decorate(Runnable runnable) {
         // Capture the current MDC context
         Map<String, String> contextMap = MDC.getCopyOfContextMap();
-        
-        return () -> {
-            if (contextMap != null) {
+
+        return() -> {
+            if(contextMap != null) {
                 // Set the captured context in the new thread
                 MDC.setContextMap(contextMap);
             }

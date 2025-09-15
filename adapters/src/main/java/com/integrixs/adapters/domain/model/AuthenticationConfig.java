@@ -15,7 +15,7 @@ public class AuthenticationConfig {
     private String certificatePassword;
     private Map<String, String> customHeaders;
     private Map<String, Object> additionalProperties;
-    
+
     /**
      * Authentication types
      */
@@ -87,7 +87,7 @@ public class AuthenticationConfig {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private AuthenticationType type;
         private String username;
@@ -98,52 +98,52 @@ public class AuthenticationConfig {
         private String certificatePassword;
         private Map<String, String> customHeaders;
         private Map<String, Object> additionalProperties;
-        
+
         public Builder type(AuthenticationType type) {
             this.type = type;
             return this;
         }
-        
+
         public Builder username(String username) {
             this.username = username;
             return this;
         }
-        
+
         public Builder password(String password) {
             this.password = password;
             return this;
         }
-        
+
         public Builder apiKey(String apiKey) {
             this.apiKey = apiKey;
             return this;
         }
-        
+
         public Builder token(String token) {
             this.token = token;
             return this;
         }
-        
+
         public Builder certificatePath(String certificatePath) {
             this.certificatePath = certificatePath;
             return this;
         }
-        
+
         public Builder certificatePassword(String certificatePassword) {
             this.certificatePassword = certificatePassword;
             return this;
         }
-        
+
         public Builder customHeaders(Map<String, String> customHeaders) {
             this.customHeaders = customHeaders;
             return this;
         }
-        
+
         public Builder additionalProperties(Map<String, Object> additionalProperties) {
             this.additionalProperties = additionalProperties;
             return this;
         }
-        
+
         public AuthenticationConfig build() {
             AuthenticationConfig obj = new AuthenticationConfig();
             obj.type = this.type;

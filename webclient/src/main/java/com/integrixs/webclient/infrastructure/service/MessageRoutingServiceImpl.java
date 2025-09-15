@@ -17,11 +17,11 @@ import java.util.regex.Pattern;
 public class MessageRoutingServiceImpl implements MessageRoutingService {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageRoutingServiceImpl.class);
-    
-    // In-memory routing rules (in production, this would be database-backed)
+
+    // In - memory routing rules(in production, this would be database - backed)
     private final Map<String, String> routingRules = new ConcurrentHashMap<>();
     private final Map<InboundMessage.MessageType, String> defaultFlows = new ConcurrentHashMap<>();
-    
+
     public MessageRoutingServiceImpl() {
         // Initialize default routing rules
         initializeDefaultRules();
@@ -30,27 +30,27 @@ public class MessageRoutingServiceImpl implements MessageRoutingService {
     @Override
     public String routeMessage(InboundMessage message) {
         logger.info("Routing message {} of type {}", message.getMessageId(), message.getMessageType());
-        
+
         // Check if message already has a flow ID
-        if (message.getFlowId() != null && !message.getFlowId().isEmpty()) {
+        if(message.getFlowId() != null && !message.getFlowId().isEmpty()) {
             return message.getFlowId();
         }
-        
+
         // Try to find compatible flows
         List<String> compatibleFlows = findCompatibleFlows(message);
-        if (!compatibleFlows.isEmpty()) {
+        if(!compatibleFlows.isEmpty()) {
             String flowId = compatibleFlows.get(0); // Use first compatible flow
             logger.info("Routed message {} to flow {}", message.getMessageId(), flowId);
             return flowId;
         }
-        
+
         // Fall back to default flow for message type
         String defaultFlow = getDefaultFlow(message.getMessageType());
-        if (defaultFlow != null) {
+        if(defaultFlow != null) {
             logger.info("Using default flow {} for message type {}", defaultFlow, message.getMessageType());
             return defaultFlow;
         }
-        
+
         logger.warn("No flow found for message {} of type {}", message.getMessageId(), message.getMessageType());
         return null;
     }
@@ -58,16 +58,16 @@ public class MessageRoutingServiceImpl implements MessageRoutingService {
     @Override
     public List<String> findCompatibleFlows(InboundMessage message) {
         List<String> compatibleFlows = new ArrayList<>();
-        
+
         // Check routing rules based on message attributes
         String messagePattern = buildMessagePattern(message);
-        
-        for (Map.Entry<String, String> rule : routingRules.entrySet()) {
-            if (matchesPattern(messagePattern, rule.getKey())) {
+
+        for(Map.Entry<String, String> rule : routingRules.entrySet()) {
+            if(matchesPattern(messagePattern, rule.getKey())) {
                 compatibleFlows.add(rule.getValue());
             }
         }
-        
+
         return compatibleFlows;
     }
 
@@ -93,48 +93,48 @@ public class MessageRoutingServiceImpl implements MessageRoutingService {
         logger.info("Unregistering routing rule: {}", pattern);
         routingRules.remove(pattern);
     }
-    
+
     private void initializeDefaultRules() {
         // Default flows for different message types
-        defaultFlows.put(InboundMessage.MessageType.HTTP_REQUEST, "default-http-flow");
-        defaultFlows.put(InboundMessage.MessageType.SOAP_REQUEST, "default-soap-flow");
-        defaultFlows.put(InboundMessage.MessageType.WEBHOOK, "default-webhook-flow");
-        defaultFlows.put(InboundMessage.MessageType.API_CALL, "default-api-flow");
-        
+        defaultFlows.put(InboundMessage.MessageType.HTTP_REQUEST, "default - http - flow");
+        defaultFlows.put(InboundMessage.MessageType.SOAP_REQUEST, "default - soap - flow");
+        defaultFlows.put(InboundMessage.MessageType.WEBHOOK, "default - webhook - flow");
+        defaultFlows.put(InboundMessage.MessageType.API_CALL, "default - api - flow");
+
         // Example routing rules
-        routingRules.put("source:external-api,type:HTTP_REQUEST", "external-api-flow");
-        routingRules.put("source:partner-system,type:WEBHOOK", "partner-webhook-flow");
-        routingRules.put("adapterId:soap-adapter-1,type:SOAP_REQUEST", "soap-processing-flow");
+        routingRules.put("source:external - api,type:HTTP_REQUEST", "external - api - flow");
+        routingRules.put("source:partner - system,type:WEBHOOK", "partner - webhook - flow");
+        routingRules.put("adapterId:soap - adapter-1,type:SOAP_REQUEST", "soap - processing - flow");
     }
-    
+
     private String buildMessagePattern(InboundMessage message) {
         StringBuilder pattern = new StringBuilder();
-        
-        if (message.getSource() != null) {
+
+        if(message.getSource() != null) {
             pattern.append("source:").append(message.getSource()).append(",");
         }
-        
-        if (message.getMessageType() != null) {
+
+        if(message.getMessageType() != null) {
             pattern.append("type:").append(message.getMessageType()).append(",");
         }
-        
-        if (message.getAdapterId() != null) {
+
+        if(message.getAdapterId() != null) {
             pattern.append("adapterId:").append(message.getAdapterId()).append(",");
         }
-        
+
         // Remove trailing comma
-        if (pattern.length() > 0 && pattern.charAt(pattern.length() - 1) == ',') {
+        if(pattern.length() > 0 && pattern.charAt(pattern.length() - 1) == ',') {
             pattern.setLength(pattern.length() - 1);
         }
-        
+
         return pattern.toString();
     }
-    
+
     private boolean matchesPattern(String messagePattern, String rulePattern) {
-        // Simple pattern matching (in production, use more sophisticated matching)
+        // Simple pattern matching(in production, use more sophisticated matching)
         String[] ruleParts = rulePattern.split(",");
-        for (String rulePart : ruleParts) {
-            if (!messagePattern.contains(rulePart)) {
+        for(String rulePart : ruleParts) {
+            if(!messagePattern.contains(rulePart)) {
                 return false;
             }
         }

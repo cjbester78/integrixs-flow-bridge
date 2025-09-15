@@ -17,21 +17,21 @@ import java.util.UUID;
  */
 @Repository
 public interface JpaMessageRepository extends JpaRepository<Message, UUID>, JpaSpecificationExecutor<Message> {
-    
+
     List<Message> findByStatus(Message.MessageStatus status);
-    
+
     Page<Message> findByStatus(Message.MessageStatus status, Pageable pageable);
-    
+
     List<Message> findByCorrelationId(String correlationId);
-    
+
     @Query("SELECT m FROM Message m WHERE m.flow.id = :flowId")
     List<Message> findByFlowId(@Param("flowId") UUID flowId);
-    
+
     long countByStatus(Message.MessageStatus status);
-    
+
     @Query("SELECT COUNT(m) FROM Message m WHERE m.flow.id = :flowId")
     long countByFlowId(@Param("flowId") UUID flowId);
-    
+
     @Query("SELECT m FROM Message m WHERE m.status IN :statuses ORDER BY m.priority ASC, m.createdAt ASC")
     List<Message> findByStatusInOrderByPriorityAscCreatedAtAsc(@Param("statuses") List<Message.MessageStatus> statuses);
 }

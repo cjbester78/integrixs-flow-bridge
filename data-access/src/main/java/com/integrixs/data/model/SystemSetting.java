@@ -9,7 +9,7 @@ import java.util.UUID;
 @Table(name = "system_settings")
 /**
  * Entity representing SystemSetting.
- * This maps to the corresponding table in the database for system-wide configuration.
+ * This maps to the corresponding table in the database for system - wide configuration.
  */
 public class SystemSetting {
 
@@ -17,11 +17,11 @@ public class SystemSetting {
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(columnDefinition = "UUID")
-    /** Unique identifier (UUID) for the entity */
+    /** Unique identifier(UUID) for the entity */
     private UUID id;
 
     @Column(nullable = false, unique = true, length = 100)
-    /** Setting key/name (e.g., 'base_domain', 'default_timeout') */
+    /** Setting key/name(e.g., 'base_domain', 'default_timeout') */
     private String settingKey;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -33,11 +33,11 @@ public class SystemSetting {
     private String description;
 
     @Column(length = 50)
-    /** Category for grouping settings (e.g., 'network', 'security', 'integration') */
+    /** Category for grouping settings(e.g., 'network', 'security', 'integration') */
     private String category;
 
     @Column(length = 20)
-    /** Data type of the setting value (STRING, INTEGER, BOOLEAN, URL, etc.) */
+    /** Data type of the setting value(STRING, INTEGER, BOOLEAN, URL, etc.) */
     private String dataType = "STRING";
 
     @Column(name = "is_encrypted")
@@ -176,13 +176,13 @@ public class SystemSetting {
 
     @Override
     public String toString() {
-        return "SystemSetting{" +
-                "id='" + id + '\'' +
-                ", settingKey='" + settingKey + '\'' +
-                ", settingValue='" + (isEncrypted ? "[ENCRYPTED]" : settingValue) + '\'' +
-                ", description='" + description + '\'' +
-                ", category='" + category + '\'' +
-                ", dataType='" + dataType + '\'' +
+        return "SystemSetting {" +
+                "id = '" + id + '\'' +
+                ", settingKey = '" + settingKey + '\'' +
+                ", settingValue = '" + (isEncrypted ? "[ENCRYPTED]" : settingValue) + '\'' +
+                ", description = '" + description + '\'' +
+                ", category = '" + category + '\'' +
+                ", dataType = '" + dataType + '\'' +
                 '}';
     }
 }

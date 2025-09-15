@@ -15,22 +15,22 @@ import java.util.HashMap;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConnectionTestResponse {
-    
+
     private boolean success;
     private String message;
-    
+
     @Builder.Default
     private List<ConnectionDiagnostic> diagnostics = new ArrayList<>();
-    
+
     private long duration; // in milliseconds
     private LocalDateTime timestamp;
-    
+
     @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
-    
-    // Connection health score (0-100)
+
+    // Connection health score(0-100)
     private Integer healthScore;
-    
+
     // Recommendations for connection improvement
     @Builder.Default
     private List<String> recommendations = new ArrayList<>();

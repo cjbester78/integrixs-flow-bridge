@@ -11,17 +11,17 @@ public class RetryConfig {
     private long maxDelay = 60000; // milliseconds
     private boolean retryOnTimeout = true;
     private boolean retryOnConnectionError = true;
-    
+
     /**
      * Calculate delay for retry attempt
-     * @param attempt Current attempt number (starting from 1)
+     * @param attempt Current attempt number(starting from 1)
      * @return Delay in milliseconds
      */
     public long calculateDelay(int attempt) {
-        if (attempt <= 1) {
+        if(attempt <= 1) {
             return initialDelay;
         }
-        
+
         long delay = (long) (initialDelay * Math.pow(backoffMultiplier, attempt - 1));
         return Math.min(delay, maxDelay);
     }
@@ -72,7 +72,7 @@ public class RetryConfig {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private boolean enabled;
         private int maxAttempts;
@@ -81,42 +81,42 @@ public class RetryConfig {
         private long maxDelay;
         private boolean retryOnTimeout;
         private boolean retryOnConnectionError;
-        
+
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
             return this;
         }
-        
+
         public Builder maxAttempts(int maxAttempts) {
             this.maxAttempts = maxAttempts;
             return this;
         }
-        
+
         public Builder initialDelay(long initialDelay) {
             this.initialDelay = initialDelay;
             return this;
         }
-        
+
         public Builder backoffMultiplier(double backoffMultiplier) {
             this.backoffMultiplier = backoffMultiplier;
             return this;
         }
-        
+
         public Builder maxDelay(long maxDelay) {
             this.maxDelay = maxDelay;
             return this;
         }
-        
+
         public Builder retryOnTimeout(boolean retryOnTimeout) {
             this.retryOnTimeout = retryOnTimeout;
             return this;
         }
-        
+
         public Builder retryOnConnectionError(boolean retryOnConnectionError) {
             this.retryOnConnectionError = retryOnConnectionError;
             return this;
         }
-        
+
         public RetryConfig build() {
             RetryConfig obj = new RetryConfig();
             obj.enabled = this.enabled;

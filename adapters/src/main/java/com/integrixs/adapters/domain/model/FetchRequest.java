@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Domain model for fetch requests (used by inbound adapters)
+ * Domain model for fetch requests(used by inbound adapters)
  */
 public class FetchRequest {
     private String requestId;
@@ -17,10 +17,10 @@ public class FetchRequest {
     private String lastFetchMarker;
     private boolean deltaFetch;
     private Long timeout; // milliseconds
-    
+
     public FetchRequest() {
     }
-    
+
     private FetchRequest(Builder builder) {
         this.requestId = builder.requestId;
         this.adapterId = builder.adapterId;
@@ -33,7 +33,7 @@ public class FetchRequest {
         this.deltaFetch = builder.deltaFetch;
         this.timeout = builder.timeout;
     }
-    
+
     /**
      * Add parameter
      * @param key Parameter key
@@ -42,7 +42,7 @@ public class FetchRequest {
     public void addParameter(String key, Object value) {
         this.parameters.put(key, value);
     }
-    
+
     /**
      * Add header
      * @param key Header key
@@ -51,7 +51,7 @@ public class FetchRequest {
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
-    
+
     // Getters and Setters
     public String getRequestId() {
         return requestId;
@@ -132,12 +132,12 @@ public class FetchRequest {
     public void setTimeout(Long timeout) {
         this.timeout = timeout;
     }
-    
+
     // Builder pattern
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String requestId;
         private String adapterId;
@@ -149,57 +149,57 @@ public class FetchRequest {
         private String lastFetchMarker;
         private boolean deltaFetch;
         private Long timeout;
-        
+
         public Builder requestId(String requestId) {
             this.requestId = requestId;
             return this;
         }
-        
+
         public Builder adapterId(String adapterId) {
             this.adapterId = adapterId;
             return this;
         }
-        
+
         public Builder parameters(Map<String, Object> parameters) {
             this.parameters = parameters;
             return this;
         }
-        
+
         public Builder headers(Map<String, String> headers) {
             this.headers = headers;
             return this;
         }
-        
+
         public Builder query(String query) {
             this.query = query;
             return this;
         }
-        
+
         public Builder limit(Integer limit) {
             this.limit = limit;
             return this;
         }
-        
+
         public Builder offset(Integer offset) {
             this.offset = offset;
             return this;
         }
-        
+
         public Builder lastFetchMarker(String lastFetchMarker) {
             this.lastFetchMarker = lastFetchMarker;
             return this;
         }
-        
+
         public Builder deltaFetch(boolean deltaFetch) {
             this.deltaFetch = deltaFetch;
             return this;
         }
-        
+
         public Builder timeout(Long timeout) {
             this.timeout = timeout;
             return this;
         }
-        
+
         public FetchRequest build() {
             return new FetchRequest(this);
         }

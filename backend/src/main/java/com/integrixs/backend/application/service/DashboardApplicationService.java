@@ -18,24 +18,24 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class DashboardApplicationService {
-    
+
     private final MetricsAggregatorService metricsAggregator;
     private final StatisticsCalculatorService statisticsCalculator;
-    
+
     /**
      * Get comprehensive dashboard statistics
      */
     @Transactional(readOnly = true)
     public DashboardStatsDTO getDashboardStats(String businessComponentId) {
         log.debug("Getting dashboard stats for business component: {}", businessComponentId);
-        
+
         // Calculate metrics based on business component filter
         int activeIntegrations;
         long messagesToday;
         double successRate;
         long avgResponseTime;
-        
-        if (businessComponentId != null) {
+
+        if(businessComponentId != null) {
             UUID componentId = UUID.fromString(businessComponentId);
             activeIntegrations = metricsAggregator.countActiveFlowsByBusinessComponent(componentId);
             messagesToday = statisticsCalculator.countMessagesTodayForBusinessComponent(componentId);
@@ -47,20 +47,20 @@ public class DashboardApplicationService {
             successRate = statisticsCalculator.calculateSuccessRateToday();
             avgResponseTime = statisticsCalculator.calculateAverageResponseTime();
         }
-        
+
         // Get additional metrics
         int totalFlows = metricsAggregator.countTotalFlows();
         int errorFlows = metricsAggregator.countFlowsWithErrors(5); // Flows with > 5 errors
         double uptimePercentage = statisticsCalculator.calculateUptimePercentage();
-        
+
         // Ensure response time is reasonable
-        if (avgResponseTime == 0) {
+        if(avgResponseTime == 0) {
             avgResponseTime = metricsAggregator.calculateAverageProcessingTime();
         }
-        
+
         log.info("Dashboard stats - Active flows: {}, Messages today: {}, Success rate: {}%, Avg response: {}ms",
             activeIntegrations, messagesToday, String.format("%.2f", successRate), avgResponseTime);
-        
+
         return DashboardStatsDTO.builder()
             .activeIntegrations(activeIntegrations)
             .messagesToday(messagesToday)
@@ -71,9 +71,9 @@ public class DashboardApplicationService {
             .uptimePercentage(uptimePercentage)
             .build();
     }
-    
+
     /**
-     * Get metrics for dashboard (alias for stats)
+     * Get metrics for dashboard(alias for stats)
      * Frontend uses both endpoints interchangeably
      */
     @Transactional(readOnly = true)

@@ -13,26 +13,26 @@ import java.util.UUID;
  * Domain repository interface for messages
  */
 public interface MessageRepository {
-    
+
     Optional<Message> findById(UUID id);
-    
+
     Message save(Message message);
-    
+
     void deleteById(UUID id);
-    
+
     Page<Message> findAll(Specification<Message> spec, Pageable pageable);
-    
+
     List<Message> findByStatus(Message.MessageStatus status);
-    
+
     List<Message> findPendingMessages(int limit);
-    
+
     List<Message> findByCorrelationId(String correlationId);
-    
+
     Optional<Message> findByCorrelationIdAndType(String correlationId, String type);
-    
+
     long countByStatus(Message.MessageStatus status);
-    
+
     long countByFlowId(UUID flowId);
-    
+
     void updateStatus(UUID id, Message.MessageStatus status);
 }

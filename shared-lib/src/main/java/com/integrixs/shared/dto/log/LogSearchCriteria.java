@@ -10,11 +10,11 @@ import java.util.List;
  */
 @Data
 public class LogSearchCriteria {
-    
+
     // Time range
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    
+
     // Filters
     private List<String> levels;
     private List<String> sources;
@@ -23,22 +23,22 @@ public class LogSearchCriteria {
     private List<String> userIds;
     private String correlationId;
     private String ipAddress;
-    
+
     // Text search
     private String searchText;
     private String regexPattern;
-    
+
     // Exclusions
     private List<String> excludePatterns;
-    
+
     // Pagination
     private Integer page;
     private Integer pageSize;
-    
+
     // Sorting
     private String sortBy;
     private boolean ascending;
-    
+
     // Options
     private boolean includeFacets;
     private boolean includeStackTraces;

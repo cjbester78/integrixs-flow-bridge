@@ -14,19 +14,19 @@ import java.util.UUID;
 @Repository("domainFlowTransformationRepository")
 @RequiredArgsConstructor
 public class FlowTransformationRepositoryImpl implements FlowTransformationRepository {
-    
+
     private final com.integrixs.data.repository.FlowTransformationRepository jpaRepository;
-    
+
     @Override
     public Optional<FlowTransformation> findById(UUID id) {
         return jpaRepository.findById(id);
     }
-    
+
     @Override
     public FlowTransformation save(FlowTransformation transformation) {
         return jpaRepository.save(transformation);
     }
-    
+
     @Override
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);

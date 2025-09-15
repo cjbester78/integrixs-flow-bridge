@@ -16,14 +16,14 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestAdapterRequest {
-    
+
     @NotBlank(message = "Adapter ID is required")
     private String adapterId;
-    
+
     private String testData;
-    
+
     private Map<String, String> testParameters;
-    
+
     @Builder.Default
     private boolean validateOnly = false;
 }

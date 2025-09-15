@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Handler for outbound operations (sending data to external systems)
+ * Handler for outbound operations(sending data to external systems)
  */
 public interface OutboundHandler {
-    
+
     /**
      * Send a single message
      * @param message the message to send
@@ -15,7 +15,7 @@ public interface OutboundHandler {
      * @throws PluginException if send fails
      */
     SendResult send(PluginMessage message) throws PluginException;
-    
+
     /**
      * Send multiple messages in a batch
      * @param messages list of messages to send
@@ -23,7 +23,7 @@ public interface OutboundHandler {
      * @throws PluginException if batch send fails
      */
     BatchSendResult sendBatch(List<PluginMessage> messages) throws PluginException;
-    
+
     /**
      * Send a message asynchronously
      * @param message the message to send
@@ -32,7 +32,7 @@ public interface OutboundHandler {
     default CompletableFuture<SendResult> sendAsync(PluginMessage message) {
         return CompletableFuture.supplyAsync(() -> send(message));
     }
-    
+
     /**
      * Check if batch operations are supported
      * @return true if batch operations are supported
@@ -40,7 +40,7 @@ public interface OutboundHandler {
     default boolean supportsBatch() {
         return false;
     }
-    
+
     /**
      * Get maximum batch size
      * @return max batch size or -1 if unlimited
@@ -48,7 +48,7 @@ public interface OutboundHandler {
     default int getMaxBatchSize() {
         return 100;
     }
-    
+
     /**
      * Prepare/validate message before sending
      * @param message message to prepare
@@ -57,7 +57,7 @@ public interface OutboundHandler {
     default PluginMessage prepareMessage(PluginMessage message) {
         return message;
     }
-    
+
     /**
      * Get the current configuration
      * @return configuration

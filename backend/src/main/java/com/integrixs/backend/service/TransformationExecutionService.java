@@ -23,16 +23,16 @@ public class TransformationExecutionService {
 
     @Autowired
     private FieldMappingRepository fieldMappingRepository;
-    
+
     @Autowired
     private EnrichmentTransformationService enrichmentService;
-    
+
     @Autowired
     private FilterTransformationService filterService;
-    
+
     @Autowired
     private ValidationTransformationService validationService;
-    
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ScriptEngine scriptEngine;
 
@@ -47,8 +47,8 @@ public class TransformationExecutionService {
     public TransformationResult executeTransformation(String transformationId, Object inputData) {
         try {
             List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(UUID.fromString(transformationId));
-            
-            if (mappings.isEmpty()) {
+
+            if(mappings.isEmpty()) {
                 return TransformationResult.success(inputData, "No field mappings found");
             }
 
@@ -56,19 +56,19 @@ public class TransformationExecutionService {
             ObjectNode outputJson = objectMapper.createObjectNode();
             List<String> executionLogs = new ArrayList<>();
 
-            for (FieldMapping mapping : mappings) {
+            for(FieldMapping mapping : mappings) {
                 try {
                     Object transformedValue = executeFieldMapping(mapping, inputJson, executionLogs);
                     setNestedValue(outputJson, mapping.getTargetField(), transformedValue);
                     executionLogs.add("Successfully mapped: " + mapping.getSourceFields() + " -> " + mapping.getTargetField());
-                } catch (Exception e) {
+                } catch(Exception e) {
                     executionLogs.add("Failed to map " + mapping.getTargetField() + ": " + e.getMessage());
                     return TransformationResult.error("Field mapping failed: " + e.getMessage(), executionLogs);
                 }
             }
 
             return TransformationResult.success(outputJson, executionLogs);
-        } catch (Exception e) {
+        } catch(Exception e) {
             return TransformationResult.error("Transformation execution failed: " + e.getMessage());
         }
     }
@@ -77,11 +77,11 @@ public class TransformationExecutionService {
      * Execute a single field mapping
      */
     private Object executeFieldMapping(FieldMapping mapping, JsonNode inputData, List<String> logs) throws Exception {
-        // Parse source fields (could be comma-separated)
+        // Parse source fields(could be comma - separated)
         String[] sourceFields = mapping.getSourceFields().split(",");
         Map<String, Object> sourceValues = new HashMap<>();
-        
-        for (String field : sourceFields) {
+
+        for(String field : sourceFields) {
             field = field.trim();
             Object value = getNestedValue(inputData, field);
             sourceValues.put(field, value);
@@ -89,11 +89,11 @@ public class TransformationExecutionService {
         }
 
         // Execute transformation based on type
-        if (mapping.getJavaFunction() != null && !mapping.getJavaFunction().isEmpty()) {
+        if(mapping.getJavaFunction() != null && !mapping.getJavaFunction().isEmpty()) {
             return executeJavaScriptFunction(mapping.getJavaFunction(), sourceValues, logs);
-        } else if (mapping.getMappingRule() != null && !mapping.getMappingRule().isEmpty()) {
+        } else if(mapping.getMappingRule() != null && !mapping.getMappingRule().isEmpty()) {
             return executeMappingRule(mapping.getMappingRule(), sourceValues, logs);
-        } else if (sourceFields.length == 1) {
+        } else if(sourceFields.length == 1) {
             // Direct mapping - just copy the value
             return sourceValues.get(sourceFields[0].trim());
         } else {
@@ -106,33 +106,33 @@ public class TransformationExecutionService {
      */
     private Object executeJavaScriptFunction(String javaFunction, Map<String, Object> sourceValues, List<String> logs) throws ScriptException {
         // Set source values as variables in the script engine
-        for (Map.Entry<String, Object> entry : sourceValues.entrySet()) {
-            scriptEngine.put(entry.getKey().replaceAll("[^a-zA-Z0-9_]", "_"), entry.getValue());
+        for(Map.Entry<String, Object> entry : sourceValues.entrySet()) {
+            scriptEngine.put(entry.getKey().replaceAll("[^a - zA - Z0-9_]", "_"), entry.getValue());
         }
-        
+
         // Add utility functions
         scriptEngine.put("StringUtils", new StringTransformationUtils());
         scriptEngine.put("DateUtils", new DateTransformationUtils());
         scriptEngine.put("NumberUtils", new NumberTransformationUtils());
-        
+
         logs.add("Executing JavaScript: " + javaFunction);
         Object result = scriptEngine.eval(javaFunction);
         logs.add("JavaScript result: " + result);
-        
+
         return result;
     }
 
     /**
-     * Execute mapping rule (e.g., lookup tables, conditions)
+     * Execute mapping rule(e.g., lookup tables, conditions)
      */
     private Object executeMappingRule(String mappingRule, Map<String, Object> sourceValues, List<String> logs) throws Exception {
         logs.add("Executing mapping rule: " + mappingRule);
-        
+
         // Parse mapping rule as JSON
         JsonNode ruleNode = objectMapper.readTree(mappingRule);
         String ruleType = ruleNode.get("type").asText();
-        
-        switch (ruleType) {
+
+        switch(ruleType) {
             case "lookup":
                 return executeLookupRule(ruleNode, sourceValues, logs);
             case "condition":
@@ -151,8 +151,8 @@ public class TransformationExecutionService {
         Object sourceValue = sourceValues.get(sourceField);
         JsonNode lookupTable = rule.get("lookupTable");
         String defaultValue = rule.has("defaultValue") ? rule.get("defaultValue").asText() : null;
-        
-        if (lookupTable.has(sourceValue.toString())) {
+
+        if(lookupTable.has(sourceValue.toString())) {
             Object result = lookupTable.get(sourceValue.toString()).asText();
             logs.add("Lookup result for " + sourceValue + ": " + result);
             return result;
@@ -166,14 +166,14 @@ public class TransformationExecutionService {
         String condition = rule.get("condition").asText();
         String trueValue = rule.get("trueValue").asText();
         String falseValue = rule.get("falseValue").asText();
-        
+
         try {
-            // Simple condition evaluation (can be extended)
+            // Simple condition evaluation(can be extended)
             boolean conditionResult = evaluateCondition(condition, sourceValues);
             Object result = conditionResult ? trueValue : falseValue;
             logs.add("Condition '" + condition + "' evaluated to " + conditionResult + ", result: " + result);
             return result;
-        } catch (Exception e) {
+        } catch(Exception e) {
             logs.add("Failed to evaluate condition: " + e.getMessage());
             return falseValue;
         }
@@ -182,19 +182,19 @@ public class TransformationExecutionService {
     private Object executeConcatenationRule(JsonNode rule, Map<String, Object> sourceValues, List<String> logs) {
         JsonNode fields = rule.get("fields");
         String separator = rule.has("separator") ? rule.get("separator").asText() : "";
-        
+
         StringBuilder result = new StringBuilder();
-        for (JsonNode field : fields) {
+        for(JsonNode field : fields) {
             String fieldName = field.asText();
             Object value = sourceValues.get(fieldName);
-            if (value != null) {
-                if (result.length() > 0 && !separator.isEmpty()) {
+            if(value != null) {
+                if(result.length() > 0 && !separator.isEmpty()) {
                     result.append(separator);
                 }
                 result.append(value.toString());
             }
         }
-        
+
         logs.add("Concatenation result: " + result.toString());
         return result.toString();
     }
@@ -203,13 +203,13 @@ public class TransformationExecutionService {
         String pattern = rule.get("pattern").asText();
         String sourceField = rule.get("sourceField").asText();
         Object sourceValue = sourceValues.get(sourceField);
-        
-        if (sourceValue != null) {
+
+        if(sourceValue != null) {
             String result = String.format(pattern, sourceValue);
             logs.add("Format result: " + result);
             return result;
         }
-        
+
         return null;
     }
 
@@ -218,49 +218,49 @@ public class TransformationExecutionService {
      */
     public ValidationResult validateTransformation(String transformationId) {
         ValidationResult result = new ValidationResult();
-        
+
         try {
             List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(UUID.fromString(transformationId));
-            
-            if (mappings.isEmpty()) {
+
+            if(mappings.isEmpty()) {
                 result.addWarning("No field mappings defined for transformation");
                 return result;
             }
 
-            for (FieldMapping mapping : mappings) {
+            for(FieldMapping mapping : mappings) {
                 validateFieldMapping(mapping, result);
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             result.addError("Validation failed: " + e.getMessage());
         }
-        
+
         return result;
     }
 
     private void validateFieldMapping(FieldMapping mapping, ValidationResult result) {
-        if (mapping.getSourceFields() == null || mapping.getSourceFields().trim().isEmpty()) {
+        if(mapping.getSourceFields() == null || mapping.getSourceFields().trim().isEmpty()) {
             result.addError("Source fields cannot be empty for target: " + mapping.getTargetField());
         }
-        
-        if (mapping.getTargetField() == null || mapping.getTargetField().trim().isEmpty()) {
+
+        if(mapping.getTargetField() == null || mapping.getTargetField().trim().isEmpty()) {
             result.addError("Target field cannot be empty");
         }
-        
+
         // Validate JavaScript function if present
-        if (mapping.getJavaFunction() != null && !mapping.getJavaFunction().isEmpty()) {
+        if(mapping.getJavaFunction() != null && !mapping.getJavaFunction().isEmpty()) {
             try {
                 scriptEngine.eval("(function() { " + mapping.getJavaFunction() + " })");
-            } catch (ScriptException e) {
+            } catch(ScriptException e) {
                 result.addError("Invalid JavaScript function for " + mapping.getTargetField() + ": " + e.getMessage());
             }
         }
-        
+
         // Validate mapping rule if present
-        if (mapping.getMappingRule() != null && !mapping.getMappingRule().isEmpty()) {
+        if(mapping.getMappingRule() != null && !mapping.getMappingRule().isEmpty()) {
             try {
                 objectMapper.readTree(mapping.getMappingRule());
-            } catch (Exception e) {
+            } catch(Exception e) {
                 result.addError("Invalid mapping rule JSON for " + mapping.getTargetField() + ": " + e.getMessage());
             }
         }
@@ -270,48 +270,48 @@ public class TransformationExecutionService {
     private Object getNestedValue(JsonNode node, String path) {
         String[] parts = path.split("\\.");
         JsonNode current = node;
-        
-        for (String part : parts) {
-            if (current == null || !current.has(part)) {
+
+        for(String part : parts) {
+            if(current == null || !current.has(part)) {
                 return null;
             }
             current = current.get(part);
         }
-        
+
         return current != null ? current.asText() : null;
     }
-    
+
     private void setNestedValue(ObjectNode node, String path, Object value) {
         String[] parts = path.split("\\.");
         ObjectNode current = node;
-        
-        for (int i = 0; i < parts.length - 1; i++) {
-            if (!current.has(parts[i])) {
+
+        for(int i = 0; i < parts.length - 1; i++) {
+            if(!current.has(parts[i])) {
                 current.set(parts[i], objectMapper.createObjectNode());
             }
             current = (ObjectNode) current.get(parts[i]);
         }
-        
-        if (value != null) {
+
+        if(value != null) {
             current.set(parts[parts.length - 1], objectMapper.valueToTree(value));
         }
     }
 
     private boolean evaluateCondition(String condition, Map<String, Object> sourceValues) {
         // Simple condition evaluator - can be extended
-        for (Map.Entry<String, Object> entry : sourceValues.entrySet()) {
-            condition = condition.replace("${" + entry.getKey() + "}", entry.getValue().toString());
+        for(Map.Entry<String, Object> entry : sourceValues.entrySet()) {
+            condition = condition.replace("$ {" + entry.getKey() + "}", entry.getValue().toString());
         }
-        
+
         // Basic comparisons
-        if (condition.contains("==")) {
+        if(condition.contains("==")) {
             String[] parts = condition.split("==");
             return parts[0].trim().equals(parts[1].trim());
-        } else if (condition.contains("!=")) {
+        } else if(condition.contains("!=")) {
             String[] parts = condition.split("!=");
             return !parts[0].trim().equals(parts[1].trim());
         }
-        
+
         return Boolean.parseBoolean(condition);
     }
 
@@ -377,14 +377,14 @@ public class TransformationExecutionService {
         public void setErrors(List<String> errors) { this.errors = errors; }
         public List<String> getWarnings() { return warnings; }
         public void setWarnings(List<String> warnings) { this.warnings = warnings; }
-        
-        public void addError(String error) { 
-            this.errors.add(error); 
+
+        public void addError(String error) {
+            this.errors.add(error);
             this.valid = false;
         }
-        
-        public void addWarning(String warning) { 
-            this.warnings.add(warning); 
+
+        public void addWarning(String warning) {
+            this.warnings.add(warning);
         }
     }
 
@@ -403,7 +403,7 @@ public class TransformationExecutionService {
             // Simplified date formatting - can be extended with proper date parsing
             return date;
         }
-        
+
         public String getCurrentDate() {
             return new java.util.Date().toString();
         }
@@ -413,19 +413,19 @@ public class TransformationExecutionService {
         public double parseDouble(String str) {
             try {
                 return Double.parseDouble(str);
-            } catch (NumberFormatException e) {
+            } catch(NumberFormatException e) {
                 return 0.0;
             }
         }
-        
+
         public int parseInt(String str) {
             try {
                 return Integer.parseInt(str);
-            } catch (NumberFormatException e) {
+            } catch(NumberFormatException e) {
                 return 0;
             }
         }
-        
+
         public String formatNumber(double number, String format) {
             return String.format(format, number);
         }

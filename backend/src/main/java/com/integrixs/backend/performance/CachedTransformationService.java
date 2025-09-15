@@ -28,15 +28,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class CachedTransformationService {
-    
+
     private final TransformationRuleRepository transformationRuleRepository;
     private final Cache<String, Object> transformationCache;
-    
+
     // Cache for compiled scripts
     private final ConcurrentHashMap<String, CompiledScript> compiledScripts = new ConcurrentHashMap<>();
-    
+
     private final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-    
+
     /**
      * Get transformation rule by ID with caching.
      */
@@ -46,7 +46,7 @@ public class CachedTransformationService {
         log.debug("Loading transformation rule from database: {}", id);
         return transformationRuleRepository.findById(id);
     }
-    
+
     /**
      * Get transformation rules by flow ID with caching.
      */
@@ -56,32 +56,32 @@ public class CachedTransformationService {
         log.debug("Loading transformation rules for flow: {}", flowId);
         return transformationRuleRepository.findByFlowDefinitionId(flowId);
     }
-    
+
     /**
      * Get compiled transformation script with caching.
      */
     public CompiledScript getCompiledScript(String ruleId, String script, String scriptType) {
         String cacheKey = ruleId + ":" + script.hashCode();
-        
+
         return compiledScripts.computeIfAbsent(cacheKey, k -> {
             try {
                 ScriptEngine engine = scriptEngineManager.getEngineByName(
                     scriptType != null ? scriptType : "javascript");
-                
-                if (engine instanceof Compilable) {
+
+                if(engine instanceof Compilable) {
                     log.debug("Compiling transformation script for rule: {}", ruleId);
-                    return ((Compilable) engine).compile(script);
+                    return((Compilable) engine).compile(script);
                 }
-                
+
                 log.warn("Script engine {} is not compilable", scriptType);
                 return null;
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.error("Failed to compile transformation script for rule: {}", ruleId, e);
                 return null;
             }
         });
     }
-    
+
     /**
      * Save transformation rule and update cache.
      */
@@ -90,14 +90,14 @@ public class CachedTransformationService {
     @Transactional
     public TransformationRule save(TransformationRule rule) {
         log.debug("Saving transformation rule: {}", rule.getName());
-        
+
         // Evict compiled script if exists
         String cacheKey = rule.getId() + ":" + rule.getTransformationLogic().hashCode();
         compiledScripts.remove(cacheKey);
-        
+
         return transformationRuleRepository.save(rule);
     }
-    
+
     /**
      * Delete transformation rule and evict from cache.
      */
@@ -105,13 +105,13 @@ public class CachedTransformationService {
     @Transactional
     public void deleteById(UUID id) {
         log.debug("Deleting transformation rule: {}", id);
-        
+
         // Remove all compiled scripts for this rule
         compiledScripts.entrySet().removeIf(entry -> entry.getKey().startsWith(id.toString()));
-        
+
         transformationRuleRepository.deleteById(id);
     }
-    
+
     /**
      * Clear transformation caches.
      */
@@ -121,7 +121,7 @@ public class CachedTransformationService {
         compiledScripts.clear();
         transformationCache.invalidateAll();
     }
-    
+
     /**
      * Get cache statistics.
      */
@@ -132,35 +132,35 @@ public class CachedTransformationService {
         stats.setTransformationCacheStats(transformationCache.stats());
         return stats;
     }
-    
+
     /**
      * Preload frequently used transformations.
      */
     public void preloadCache() {
         log.info("Preloading transformation rules into cache");
-        
+
         // Load all active transformation rules
         List<TransformationRule> activeRules = transformationRuleRepository.findByIsActiveTrue();
         log.info("Found {} active transformation rules", activeRules.size());
-        
+
         // Precompile scripts
         int compiledCount = 0;
-        for (TransformationRule rule : activeRules) {
-            if (rule.getTransformationType() == TransformationRule.TransformationType.SCRIPT) {
+        for(TransformationRule rule : activeRules) {
+            if(rule.getTransformationType() == TransformationRule.TransformationType.SCRIPT) {
                 CompiledScript compiled = getCompiledScript(
                     rule.getId().toString(),
                     rule.getTransformationLogic(),
                     "javascript"
-                );
-                if (compiled != null) {
+               );
+                if(compiled != null) {
                     compiledCount++;
                 }
             }
         }
-        
+
         log.info("Precompiled {} transformation scripts", compiledCount);
     }
-    
+
     @lombok.Data
     public static class TransformationCacheStats {
         private int compiledScriptCount;

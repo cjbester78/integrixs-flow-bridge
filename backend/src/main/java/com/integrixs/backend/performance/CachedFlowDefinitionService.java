@@ -22,9 +22,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CachedFlowDefinitionService {
-    
+
     private final FlowDefinitionRepository flowDefinitionRepository;
-    
+
     /**
      * Get flow definition by ID with caching.
      */
@@ -34,7 +34,7 @@ public class CachedFlowDefinitionService {
         log.debug("Loading flow definition from database: {}", id);
         return flowDefinitionRepository.findById(id);
     }
-    
+
     /**
      * Get flow definition by name with caching.
      */
@@ -44,7 +44,7 @@ public class CachedFlowDefinitionService {
         log.debug("Loading flow definition by name from database: {}", name);
         return flowDefinitionRepository.findByName(name);
     }
-    
+
     /**
      * Get all active flow definitions with caching.
      */
@@ -54,7 +54,7 @@ public class CachedFlowDefinitionService {
         log.debug("Loading all active flow definitions from database");
         return flowDefinitionRepository.findByIsActiveTrue();
     }
-    
+
     /**
      * Save flow definition and update cache.
      */
@@ -64,15 +64,15 @@ public class CachedFlowDefinitionService {
     public FlowDefinition save(FlowDefinition flowDefinition) {
         log.debug("Saving flow definition: {}", flowDefinition.getName());
         FlowDefinition saved = flowDefinitionRepository.save(flowDefinition);
-        
-        // Also update the name-based cache
-        if (saved.getName() != null) {
+
+        // Also update the name - based cache
+        if(saved.getName() != null) {
             updateNameCache(saved);
         }
-        
+
         return saved;
     }
-    
+
     /**
      * Delete flow definition and evict from cache.
      */
@@ -82,7 +82,7 @@ public class CachedFlowDefinitionService {
         log.debug("Deleting flow definition: {}", id);
         flowDefinitionRepository.deleteById(id);
     }
-    
+
     /**
      * Update flow definition status with cache eviction.
      */
@@ -95,7 +95,7 @@ public class CachedFlowDefinitionService {
             flowDefinitionRepository.save(flow);
         });
     }
-    
+
     /**
      * Refresh cache for a specific flow.
      */
@@ -104,7 +104,7 @@ public class CachedFlowDefinitionService {
         log.debug("Refreshing cache for flow definition: {}", id);
         return flowDefinitionRepository.findById(id);
     }
-    
+
     /**
      * Clear all flow definition caches.
      */
@@ -112,23 +112,23 @@ public class CachedFlowDefinitionService {
     public void clearCache() {
         log.info("Clearing all flow definition caches");
     }
-    
+
     /**
      * Preload frequently accessed flows into cache.
      */
     public void preloadCache() {
         log.info("Preloading flow definitions into cache");
-        
+
         // Load all active flows
         List<FlowDefinition> activeFlows = findAllActive();
         log.info("Preloaded {} active flow definitions", activeFlows.size());
-        
-        // Load individual flows to populate ID-based cache
-        for (FlowDefinition flow : activeFlows) {
+
+        // Load individual flows to populate ID - based cache
+        for(FlowDefinition flow : activeFlows) {
             findById(flow.getId());
         }
     }
-    
+
     @CachePut(value = "flowDefinitions", key = "'name:' + #flow.name")
     private FlowDefinition updateNameCache(FlowDefinition flow) {
         return flow;

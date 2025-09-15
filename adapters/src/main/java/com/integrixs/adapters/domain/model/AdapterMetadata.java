@@ -22,7 +22,7 @@ public class AdapterMetadata {
     private boolean supportsStreaming;
     private boolean requiresAuthentication;
     private List<AuthenticationConfig.AuthenticationType> supportedAuthTypes;
-    
+
     /**
      * Check if adapter supports a specific operation
      * @param operation Operation name
@@ -31,7 +31,7 @@ public class AdapterMetadata {
     public boolean supportsOperation(String operation) {
         return supportedOperations != null && supportedOperations.contains(operation);
     }
-    
+
     /**
      * Check if a property is required
      * @param property Property name
@@ -135,7 +135,7 @@ public class AdapterMetadata {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String adapterName;
         private AdapterConfiguration.AdapterTypeEnum adapterType;
@@ -152,82 +152,82 @@ public class AdapterMetadata {
         private boolean supportsStreaming;
         private boolean requiresAuthentication;
         private List<AuthenticationConfig.AuthenticationType> supportedAuthTypes;
-        
+
         public Builder adapterName(String adapterName) {
             this.adapterName = adapterName;
             return this;
         }
-        
+
         public Builder adapterType(AdapterConfiguration.AdapterTypeEnum adapterType) {
             this.adapterType = adapterType;
             return this;
         }
-        
+
         public Builder adapterMode(AdapterConfiguration.AdapterModeEnum adapterMode) {
             this.adapterMode = adapterMode;
             return this;
         }
-        
+
         public Builder version(String version) {
             this.version = version;
             return this;
         }
-        
+
         public Builder description(String description) {
             this.description = description;
             return this;
         }
-        
+
         public Builder supportedOperations(List<String> supportedOperations) {
             this.supportedOperations = supportedOperations;
             return this;
         }
-        
+
         public Builder requiredProperties(List<String> requiredProperties) {
             this.requiredProperties = requiredProperties;
             return this;
         }
-        
+
         public Builder optionalProperties(List<String> optionalProperties) {
             this.optionalProperties = optionalProperties;
             return this;
         }
-        
+
         public Builder propertyDescriptions(Map<String, String> propertyDescriptions) {
             this.propertyDescriptions = propertyDescriptions;
             return this;
         }
-        
+
         public Builder capabilities(Map<String, Object> capabilities) {
             this.capabilities = capabilities;
             return this;
         }
-        
+
         public Builder supportsAsync(boolean supportsAsync) {
             this.supportsAsync = supportsAsync;
             return this;
         }
-        
+
         public Builder supportsBatch(boolean supportsBatch) {
             this.supportsBatch = supportsBatch;
             return this;
         }
-        
+
         public Builder supportsStreaming(boolean supportsStreaming) {
             this.supportsStreaming = supportsStreaming;
             return this;
         }
-        
+
         public Builder requiresAuthentication(boolean requiresAuthentication) {
             this.requiresAuthentication = requiresAuthentication;
             return this;
         }
-        
+
         public Builder supportedAuthTypes(List<AuthenticationConfig.AuthenticationType> supportedAuthTypes) {
             this.supportedAuthTypes = supportedAuthTypes;
             return this;
         }
-        
+
         public AdapterMetadata build() {
             AdapterMetadata obj = new AdapterMetadata();
             obj.adapterName = this.adapterName;

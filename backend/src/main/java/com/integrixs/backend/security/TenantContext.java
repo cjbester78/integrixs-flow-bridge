@@ -3,40 +3,40 @@ package com.integrixs.backend.security;
 import java.util.UUID;
 
 /**
- * Thread-local tenant context for multi-tenancy support
+ * Thread - local tenant context for multi - tenancy support
  */
 public class TenantContext {
-    
+
     private static final ThreadLocal<UUID> currentTenant = new ThreadLocal<>();
-    
+
     /**
      * Get current tenant ID
      */
     public static UUID getCurrentTenant() {
         return currentTenant.get();
     }
-    
+
     /**
      * Set current tenant ID
      */
     public static void setCurrentTenant(UUID tenantId) {
         currentTenant.set(tenantId);
     }
-    
+
     /**
      * Clear current tenant
      */
     public static void clear() {
         currentTenant.remove();
     }
-    
+
     /**
      * Check if tenant context is set
      */
     public static boolean hasTenant() {
         return currentTenant.get() != null;
     }
-    
+
     /**
      * Execute code within a tenant context
      */
@@ -46,14 +46,14 @@ public class TenantContext {
             setCurrentTenant(tenantId);
             return operation.execute();
         } finally {
-            if (previousTenant != null) {
+            if(previousTenant != null) {
                 setCurrentTenant(previousTenant);
             } else {
                 clear();
             }
         }
     }
-    
+
     /**
      * Functional interface for tenant operations
      */

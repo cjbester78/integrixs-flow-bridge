@@ -36,21 +36,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CommunicationAdapterService {
-    
+
     private final CommunicationAdapterRepository adapterRepository;
     private final AdapterValidationService validationService;
     private final AdapterConfigurationService configurationService;
     private final AuditTrailService auditTrailService;
     private final BusinessComponentRepository businessComponentRepository;
     private final ExternalAuthenticationRepository externalAuthRepository;
-    
+
     @Transactional(readOnly = true)
     public List<AdapterResponse> getAllAdapters() {
         return adapterRepository.findAll().stream()
                 .map(this::toAdapterResponse)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
     public AdapterResponse getAdapterById(String id) {
         UUID adapterId = UUID.fromString(id);
@@ -58,22 +58,22 @@ public class CommunicationAdapterService {
                 .map(this::toAdapterResponse)
                 .orElseThrow(() -> new RuntimeException("Adapter not found: " + id));
     }
-    
+
     @AuditCreate
     @Transactional
     public AdapterResponse createAdapter(CreateAdapterRequest request) {
         log.debug("Creating adapter with name: {}", request.getName());
-        
+
         // Validate name uniqueness
         validationService.validateAdapterNameUniqueness(request.getName(), null);
-        
+
         // Parse and validate configuration
         Map<String, Object> config = configurationService.parseConfiguration(request.getConfiguration());
         AdapterType type = AdapterType.valueOf(request.getType().toUpperCase());
         AdapterModeEnum mode = mapDtoModeToAdapterMode(request.getMode(), request.getDirection());
-        
+
         validationService.validateAdapterConfiguration(type, mode, config);
-        
+
         // Create new adapter
         CommunicationAdapter adapter = new CommunicationAdapter();
         adapter.setName(request.getName());
@@ -81,70 +81,70 @@ public class CommunicationAdapterService {
         adapter.setMode(mode);
         adapter.setDescription(request.getDescription());
         adapter.setActive(request.isActive());
-        
-        // Set direction based on mode (following reversed convention)
+
+        // Set direction based on mode(following reversed convention)
         adapter.setDirection(mode == AdapterModeEnum.INBOUND ? "OUTBOUND" : "INBOUND");
-        
+
         // Encrypt and set configuration
         String encryptedConfig = configurationService.encryptConfiguration(request.getConfiguration());
         adapter.setConfiguration(encryptedConfig);
-        
+
         // Set business component
         BusinessComponent businessComponent = businessComponentRepository.findById(
                 UUID.fromString(request.getBusinessComponentId()))
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Business component not found: " + request.getBusinessComponentId()));
         adapter.setBusinessComponent(businessComponent);
-        
+
         // Set external authentication if provided
-        if (request.getExternalAuthId() != null && !request.getExternalAuthId().trim().isEmpty()) {
+        if(request.getExternalAuthId() != null && !request.getExternalAuthId().trim().isEmpty()) {
             ExternalAuthentication externalAuth = externalAuthRepository.findById(
                     UUID.fromString(request.getExternalAuthId()))
                     .orElseThrow(() -> new IllegalArgumentException(
                         "External authentication not found: " + request.getExternalAuthId()));
             adapter.setExternalAuthentication(externalAuth);
         }
-        
+
         // Validate activation if requested
-        if (adapter.isActive()) {
+        if(adapter.isActive()) {
             validationService.validateAdapterActivation(adapter);
         }
-        
+
         // Save and audit
         CommunicationAdapter saved = adapterRepository.save(adapter);
-        
+
         Map<String, Object> details = new HashMap<>();
         details.put("adapterName", saved.getName());
         details.put("adapterType", saved.getType().name());
         details.put("adapterMode", saved.getMode().name());
-        auditTrailService.logAction("CommunicationAdapter", saved.getId().toString(), 
+        auditTrailService.logAction("CommunicationAdapter", saved.getId().toString(),
                 AuditTrail.AuditAction.CREATE, details);
-        
+
         log.info("Created adapter: {} with ID: {}", saved.getName(), saved.getId());
         return toAdapterResponse(saved);
     }
-    
+
     @AuditUpdate
     @Transactional
     public AdapterResponse updateAdapter(String id, UpdateAdapterRequest request) {
         UUID adapterId = UUID.fromString(id);
         log.debug("Updating adapter: {}", adapterId);
-        
+
         CommunicationAdapter adapter = adapterRepository.findById(adapterId)
                 .orElseThrow(() -> new RuntimeException("Adapter not found: " + id));
-        
+
         // Validate name uniqueness if changed
-        if (!adapter.getName().equals(request.getName())) {
+        if(!adapter.getName().equals(request.getName())) {
             validationService.validateAdapterNameUniqueness(request.getName(), adapterId);
         }
-        
+
         // Parse and validate configuration
         Map<String, Object> config = configurationService.parseConfiguration(request.getConfiguration());
         AdapterType type = AdapterType.valueOf(request.getType().toUpperCase());
         AdapterModeEnum mode = mapDtoModeToAdapterMode(request.getMode(), request.getDirection());
-        
+
         validationService.validateAdapterConfiguration(type, mode, config);
-        
+
         // Update fields
         adapter.setName(request.getName());
         adapter.setType(type);
@@ -152,22 +152,22 @@ public class CommunicationAdapterService {
         adapter.setDescription(request.getDescription());
         adapter.setActive(request.isActive());
         adapter.setDirection(mode == AdapterModeEnum.INBOUND ? "OUTBOUND" : "INBOUND");
-        
+
         // Encrypt and update configuration
         String encryptedConfig = configurationService.encryptConfiguration(request.getConfiguration());
         adapter.setConfiguration(encryptedConfig);
-        
+
         // Update business component if provided
-        if (request.getBusinessComponentId() != null) {
+        if(request.getBusinessComponentId() != null) {
             BusinessComponent businessComponent = businessComponentRepository.findById(
                     UUID.fromString(request.getBusinessComponentId()))
                     .orElseThrow(() -> new IllegalArgumentException(
                         "Business component not found: " + request.getBusinessComponentId()));
             adapter.setBusinessComponent(businessComponent);
         }
-        
+
         // Update external authentication
-        if (request.getExternalAuthId() != null && !request.getExternalAuthId().trim().isEmpty()) {
+        if(request.getExternalAuthId() != null && !request.getExternalAuthId().trim().isEmpty()) {
             ExternalAuthentication externalAuth = externalAuthRepository.findById(
                     UUID.fromString(request.getExternalAuthId()))
                     .orElseThrow(() -> new IllegalArgumentException(
@@ -176,92 +176,92 @@ public class CommunicationAdapterService {
         } else {
             adapter.setExternalAuthentication(null);
         }
-        
+
         // Validate activation if requested
-        if (adapter.isActive()) {
+        if(adapter.isActive()) {
             validationService.validateAdapterActivation(adapter);
         }
-        
+
         // Save and audit
         CommunicationAdapter updated = adapterRepository.save(adapter);
-        
+
         Map<String, Object> details = new HashMap<>();
         details.put("adapterName", updated.getName());
         details.put("changes", "Updated adapter configuration");
-        auditTrailService.logAction("CommunicationAdapter", updated.getId().toString(), 
+        auditTrailService.logAction("CommunicationAdapter", updated.getId().toString(),
                 AuditTrail.AuditAction.UPDATE, details);
-        
+
         log.info("Updated adapter: {} with ID: {}", updated.getName(), updated.getId());
         return toAdapterResponse(updated);
     }
-    
+
     @AuditDelete
     @Transactional
     public void deleteAdapter(String id) {
         UUID adapterId = UUID.fromString(id);
         log.debug("Deleting adapter: {}", adapterId);
-        
+
         CommunicationAdapter adapter = adapterRepository.findById(adapterId)
                 .orElseThrow(() -> new RuntimeException("Adapter not found: " + id));
-        
+
         Map<String, Object> details = new HashMap<>();
         details.put("adapterName", adapter.getName());
         details.put("adapterType", adapter.getType().name());
-        auditTrailService.logAction("CommunicationAdapter", adapter.getId().toString(), 
+        auditTrailService.logAction("CommunicationAdapter", adapter.getId().toString(),
                 AuditTrail.AuditAction.DELETE, details);
-        
+
         adapterRepository.deleteById(adapterId);
-        
+
         log.info("Deleted adapter: {} with ID: {}", adapter.getName(), adapterId);
     }
-    
+
     @Transactional
     public AdapterResponse activateAdapter(String id) {
         UUID adapterId = UUID.fromString(id);
         log.debug("Activating adapter: {}", adapterId);
-        
+
         CommunicationAdapter adapter = adapterRepository.findById(adapterId)
                 .orElseThrow(() -> new RuntimeException("Adapter not found: " + id));
-        
+
         validationService.validateAdapterActivation(adapter);
-        
+
         adapter.setActive(true);
         CommunicationAdapter updated = adapterRepository.save(adapter);
-        
+
         Map<String, Object> details = new HashMap<>();
         details.put("adapterName", updated.getName());
         details.put("action", "activated");
-        auditTrailService.logAction("CommunicationAdapter", updated.getId().toString(), 
+        auditTrailService.logAction("CommunicationAdapter", updated.getId().toString(),
                 AuditTrail.AuditAction.UPDATE, details);
-        
+
         return toAdapterResponse(updated);
     }
-    
+
     @Transactional
     public AdapterResponse deactivateAdapter(String id) {
         UUID adapterId = UUID.fromString(id);
         log.debug("Deactivating adapter: {}", adapterId);
-        
+
         CommunicationAdapter adapter = adapterRepository.findById(adapterId)
                 .orElseThrow(() -> new RuntimeException("Adapter not found: " + id));
-        
+
         adapter.setActive(false);
         CommunicationAdapter updated = adapterRepository.save(adapter);
-        
+
         Map<String, Object> details = new HashMap<>();
         details.put("adapterName", updated.getName());
         details.put("action", "deactivated");
-        auditTrailService.logAction("CommunicationAdapter", updated.getId().toString(), 
+        auditTrailService.logAction("CommunicationAdapter", updated.getId().toString(),
                 AuditTrail.AuditAction.UPDATE, details);
-        
+
         return toAdapterResponse(updated);
     }
-    
+
     private AdapterResponse toAdapterResponse(CommunicationAdapter adapter) {
         // Decrypt configuration for response
         String decryptedConfig = configurationService.decryptConfiguration(adapter.getConfiguration());
         Map<String, Object> configMap = configurationService.parseConfiguration(decryptedConfig);
-        
+
         return AdapterResponse.builder()
                 .id(adapter.getId().toString())
                 .name(adapter.getName())
@@ -273,9 +273,9 @@ public class CommunicationAdapterService {
                 .healthy(adapter.isHealthy())
                 .lastHealthCheck(adapter.getLastHealthCheck())
                 .configuration(configMap)
-                .businessComponentId(adapter.getBusinessComponent() != null ? 
+                .businessComponentId(adapter.getBusinessComponent() != null ?
                     adapter.getBusinessComponent().getId().toString() : null)
-                .businessComponentName(adapter.getBusinessComponent() != null ? 
+                .businessComponentName(adapter.getBusinessComponent() != null ?
                     adapter.getBusinessComponent().getName() : null)
                 .externalAuthId(adapter.getExternalAuthentication() != null ?
                     adapter.getExternalAuthentication().getId().toString() : null)
@@ -287,20 +287,20 @@ public class CommunicationAdapterService {
                 .updatedBy(adapter.getUpdatedBy() != null ? adapter.getUpdatedBy().getUsername() : null)
                 .build();
     }
-    
+
     private AdapterModeEnum mapDtoModeToAdapterMode(String dtoMode, String direction) {
         // Following the reversed convention:
-        // INBOUND = OUTBOUND (receives from external)
-        // OUTBOUND = INBOUND (sends to external)
-        
-        if ("INBOUND".equalsIgnoreCase(dtoMode)) {
+        // INBOUND = OUTBOUND(receives from external)
+        // OUTBOUND = INBOUND(sends to external)
+
+        if("INBOUND".equalsIgnoreCase(dtoMode)) {
             return AdapterModeEnum.INBOUND;
-        } else if ("OUTBOUND".equalsIgnoreCase(dtoMode)) {
+        } else if("OUTBOUND".equalsIgnoreCase(dtoMode)) {
             return AdapterModeEnum.OUTBOUND;
         }
-        
-        // Fallback to direction-based mapping
-        if ("OUTBOUND".equalsIgnoreCase(direction)) {
+
+        // Fallback to direction - based mapping
+        if("OUTBOUND".equalsIgnoreCase(direction)) {
             return AdapterModeEnum.INBOUND;
         } else {
             return AdapterModeEnum.OUTBOUND;

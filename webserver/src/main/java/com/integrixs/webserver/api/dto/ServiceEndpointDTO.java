@@ -15,7 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServiceEndpointDTO {
-    
+
     private String endpointId;
     private String name;
     private String baseUrl;

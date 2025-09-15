@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  */
 @Data
 public class PerformanceMetrics {
-    
+
     private String flowId;
     private int totalExecutions;
     private int successfulExecutions;
@@ -17,14 +17,14 @@ public class PerformanceMetrics {
     private long minExecutionTimeMs;
     private long maxExecutionTimeMs;
     private LocalDateTime lastUpdate;
-    
+
     /**
      * Calculates the success rate percentage
      */
     public double getSuccessRate() {
-        if (totalExecutions == 0) {
+        if(totalExecutions == 0) {
             return 0.0;
         }
-        return (double) successfulExecutions / totalExecutions * 100;
+        return(double) successfulExecutions / totalExecutions * 100;
     }
 }

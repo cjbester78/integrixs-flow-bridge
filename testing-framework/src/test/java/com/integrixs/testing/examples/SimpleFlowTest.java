@@ -39,8 +39,8 @@ public class SimpleFlowTest {
                 "id", "123",
                 "name", "Test User",
                 "email", "test@example.com"
-            )
-        ));
+           )
+       ));
     }
     
     @Test
@@ -104,9 +104,9 @@ public class SimpleFlowTest {
         // Performance assertion
         FlowAssertions.PerformanceAssert.assertThroughput(
             () -> executor.withInput(Map.of("userId", "456")).execute(),
-            100,  // iterations
+            100, // iterations
             50    // minimum throughput (ops/sec)
-        );
+       );
     }
     
     @Test
@@ -116,7 +116,7 @@ public class SimpleFlowTest {
             .withInput(Map.of(
                 "userId", "123",
                 "premium", true
-            ))
+           ))
             .waitUntil(exec -> exec.getState().equals("COMPLETED"))
             .execute();
         

@@ -29,9 +29,9 @@ public class CustomFunctionConfigDTO {
 
     @Override
     public String toString() {
-        return "CustomFunctionConfigDTO{" +
-                "sourceFields=" + sourceFields +
-                ", javaFunction='" + javaFunction + '\'' +
+        return "CustomFunctionConfigDTO {" +
+                "sourceFields = " + sourceFields +
+                ", javaFunction = '" + javaFunction + '\'' +
                 '}';
     }
 }

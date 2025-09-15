@@ -24,18 +24,18 @@ public class RouterConfiguration {
     private List<String> roundRobinTargets;
     private final AtomicInteger roundRobinIndex = new AtomicInteger(0);
     private Map<String, Integer> weightedTargets;
-    
+
     /**
      * Router types
      */
     public enum RouterType {
-        CHOICE,         // If-else style routing
-        CONTENT_BASED,  // Route based on message content
+        CHOICE,        // If - else style routing
+        CONTENT_BASED, // Route based on message content
         RECIPIENT_LIST, // Send to multiple recipients
-        ROUND_ROBIN,    // Distribute load in round-robin fashion
+        ROUND_ROBIN,   // Distribute load in round - robin fashion
         WEIGHTED        // Distribute based on weights
     }
-    
+
     /**
      * Source types for value extraction
      */
@@ -46,7 +46,7 @@ public class RouterConfiguration {
         JSONPATH,
         CONSTANT
     }
-    
+
     /**
      * Route choice for choice router
      */
@@ -56,7 +56,7 @@ public class RouterConfiguration {
         private String condition;
         private String targetStepId;
         private boolean isDefault;
-        
+
         public RouteChoice(String condition, String targetStepId, boolean isDefault) {
             this.condition = condition;
             this.targetStepId = targetStepId;

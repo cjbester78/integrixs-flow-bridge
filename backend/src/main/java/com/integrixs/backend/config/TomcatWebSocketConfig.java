@@ -22,6 +22,6 @@ public class TomcatWebSocketConfig {
         log.info("Creating ServletServerContainerFactoryBean for WebSocket support");
         return container;
     }
-    
+
     // Removed ServerEndpointExporter - it conflicts with Spring's WebSocket support
 }

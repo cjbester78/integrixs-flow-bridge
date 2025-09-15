@@ -15,17 +15,17 @@ import java.util.HashMap;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConnectionTestRequest {
-    
+
     @NotNull(message = "Adapter type is required")
     private AdapterType adapterType;
-    
+
     @NotBlank(message = "Adapter name is required")
     private String adapterName;
-    
+
     @NotNull(message = "Configuration is required")
     @Builder.Default
     private Map<String, Object> configuration = new HashMap<>();
-    
+
     // Optional test parameters
     private Integer timeout = 30000; // Default 30 seconds
     private boolean performExtendedTests = false;

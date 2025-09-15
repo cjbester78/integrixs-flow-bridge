@@ -31,7 +31,7 @@ public class SoapBinding {
     private LocalDateTime lastModified;
     private EncodingStyle encoding;
     private SoapVersion soapVersion;
-    
+
     /**
      * SOAP encoding styles
      */
@@ -39,7 +39,7 @@ public class SoapBinding {
         LITERAL,
         ENCODED
     }
-    
+
     /**
      * SOAP versions
      */
@@ -47,7 +47,7 @@ public class SoapBinding {
         SOAP_1_1,
         SOAP_1_2
     }
-    
+
     /**
      * Binding styles
      */
@@ -55,7 +55,7 @@ public class SoapBinding {
         DOCUMENT,
         RPC
     }
-    
+
     /**
      * Transport protocols
      */
@@ -65,7 +65,7 @@ public class SoapBinding {
         JMS,
         SMTP
     }
-    
+
     /**
      * Security configuration
      */
@@ -79,7 +79,7 @@ public class SoapBinding {
         private String truststorePath;
         private boolean enableWsSecurity;
         private WsSecurityConfig wsSecurityConfig;
-        
+
         public enum SecurityType {
             NONE,
             BASIC_AUTH,
@@ -88,9 +88,9 @@ public class SoapBinding {
             OAUTH2
         }
     }
-    
+
     /**
-     * WS-Security configuration
+     * WS - Security configuration
      */
     @Data
     @Builder
@@ -104,16 +104,16 @@ public class SoapBinding {
         private String encryptionAlgorithm;
         private int timestampTTL;
     }
-    
+
     /**
      * Check if binding requires authentication
      * @return true if authentication is required
      */
     public boolean requiresAuthentication() {
-        return security != null && 
+        return security != null &&
                security.getSecurityType() != SecurityConfiguration.SecurityType.NONE;
     }
-    
+
     /**
      * Check if binding uses secure transport
      * @return true if using HTTPS
@@ -121,7 +121,7 @@ public class SoapBinding {
     public boolean isSecureTransport() {
         return transport == TransportProtocol.HTTPS;
     }
-    
+
     /**
      * Add SOAP header
      * @param name Header name

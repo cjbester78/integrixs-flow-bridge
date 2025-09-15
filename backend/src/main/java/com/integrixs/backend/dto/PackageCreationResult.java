@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PackageCreationResult {
-    
+
     private boolean success;
     private UUID correlationId;
     private UUID flowId;
@@ -32,10 +32,10 @@ public class PackageCreationResult {
     private LocalDateTime endTime;
     private Long durationMillis;
     private IntegrationFlow flow;
-    
+
     private PackageCreationResult() {
     }
-    
+
     /**
      * Create success result
      */
@@ -54,14 +54,14 @@ public class PackageCreationResult {
         result.currentStep = "Completed";
         result.startTime = context.getStartTime();
         result.endTime = context.getEndTime();
-        
-        if (context.getStartTime() != null && context.getEndTime() != null) {
+
+        if(context.getStartTime() != null && context.getEndTime() != null) {
             result.durationMillis = Duration.between(context.getStartTime(), context.getEndTime()).toMillis();
         }
-        
+
         return result;
     }
-    
+
     /**
      * Create failure result
      */
@@ -78,16 +78,16 @@ public class PackageCreationResult {
         result.currentStep = context.getCurrentStep();
         result.startTime = context.getStartTime();
         result.endTime = context.getEndTime();
-        
-        if (context.getStartTime() != null && context.getEndTime() != null) {
+
+        if(context.getStartTime() != null && context.getEndTime() != null) {
             result.durationMillis = Duration.between(context.getStartTime(), context.getEndTime()).toMillis();
         }
-        
+
         return result;
     }
-    
+
     /**
-     * Create in-progress result
+     * Create in - progress result
      */
     public static PackageCreationResult inProgress(PackageCreationContext context) {
         PackageCreationResult result = new PackageCreationResult();
@@ -99,67 +99,67 @@ public class PackageCreationResult {
         result.currentStep = context.getCurrentStep();
         result.checkpoints = context.getCheckpoints();
         result.startTime = context.getStartTime();
-        
+
         return result;
     }
-    
+
     // Getters
     public boolean isSuccess() {
         return success;
     }
-    
+
     public UUID getCorrelationId() {
         return correlationId;
     }
-    
+
     public UUID getFlowId() {
         return flowId;
     }
-    
+
     public String getFlowName() {
         return flowName;
     }
-    
+
     public PackageCreationStatus getStatus() {
         return status;
     }
-    
+
     public String getMessage() {
         return message;
     }
-    
+
     public String getErrorMessage() {
         return errorMessage;
     }
-    
+
     public Map<String, Object> getCreatedResources() {
         return createdResources;
     }
-    
+
     public List<String> getCheckpoints() {
         return checkpoints;
     }
-    
+
     public int getProgress() {
         return progress;
     }
-    
+
     public String getCurrentStep() {
         return currentStep;
     }
-    
+
     public LocalDateTime getStartTime() {
         return startTime;
     }
-    
+
     public LocalDateTime getEndTime() {
         return endTime;
     }
-    
+
     public Long getDurationMillis() {
         return durationMillis;
     }
-    
+
     public IntegrationFlow getFlow() {
         return flow;
     }

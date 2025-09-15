@@ -17,39 +17,39 @@ import java.util.concurrent.Callable;
  * Provides common functionality for posting to social media platforms.
  */
 public abstract class AbstractSocialMediaOutboundAdapter extends AbstractOutboundAdapter {
-    
+
     /**
      * Get the adapter configuration
      */
     public abstract Map<String, Object> getAdapterConfig();
-    
+
     /**
      * Get the adapter type
      */
     public abstract AdapterConfiguration.AdapterTypeEnum getAdapterType();
     private static final Logger log = LoggerFactory.getLogger(AbstractSocialMediaOutboundAdapter.class);
 
-    
+
     protected final RateLimiterService rateLimiterService;
     protected final CredentialEncryptionService credentialEncryptionService;
-    
+
     protected AbstractSocialMediaOutboundAdapter(RateLimiterService rateLimiterService,
                                                 CredentialEncryptionService credentialEncryptionService) {
         super(AdapterConfiguration.AdapterTypeEnum.REST);
         this.rateLimiterService = rateLimiterService;
         this.credentialEncryptionService = credentialEncryptionService;
     }
-    
+
     /**
      * Process a message to be sent to the social media platform
      */
     public abstract MessageDTO processMessage(MessageDTO message);
-    
+
     /**
      * Get the adapter configuration
      */
     protected abstract SocialMediaAdapterConfig getConfig();
-    
+
     /**
      * Execute an API call with rate limiting
      */
@@ -57,7 +57,7 @@ public abstract class AbstractSocialMediaOutboundAdapter extends AbstractOutboun
         String rateLimiterName = getAdapterType().name() + "_rate_limiter";
         return rateLimiterService.executeWithRateLimit(rateLimiterName, callable);
     }
-    
+
     /**
      * Get decrypted credential
      */
@@ -66,7 +66,7 @@ public abstract class AbstractSocialMediaOutboundAdapter extends AbstractOutboun
         String encryptedValue = (String) config.get(credentialKey);
         return credentialEncryptionService.decryptIfNeeded(encryptedValue);
     }
-    
+
     /**
      * Create a success response
      */
@@ -78,11 +78,11 @@ public abstract class AbstractSocialMediaOutboundAdapter extends AbstractOutboun
             "operation", operation,
             "source", getAdapterType(),
             "timestamp", System.currentTimeMillis()
-        ));
+       ));
         response.setPayload(payload);
         return response;
     }
-    
+
     /**
      * Create an error response
      */
@@ -94,15 +94,11 @@ public abstract class AbstractSocialMediaOutboundAdapter extends AbstractOutboun
             "error", error,
             "source", getAdapterType(),
             "timestamp", System.currentTimeMillis()
-        ));
+       ));
         return response;
     }
-    
-    /**
-     * Get the adapter type identifier
-     */
-    public abstract AdapterConfiguration.AdapterTypeEnum getAdapterType();
-    
+
+
     /**
      * Parse JSON string to object
      */
@@ -110,7 +106,7 @@ public abstract class AbstractSocialMediaOutboundAdapter extends AbstractOutboun
         try {
             // Simple implementation - in real scenario would use Jackson ObjectMapper
             return Map.of("data", json);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error parsing JSON", e);
             return Map.of();
         }

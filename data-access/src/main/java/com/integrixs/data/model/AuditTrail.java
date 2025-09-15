@@ -10,9 +10,9 @@ import java.util.UUID;
 
 /**
  * Entity representing an audit trail entry.
- * 
+ *
  * <p>Tracks all CRUD operations and significant system events.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -33,7 +33,7 @@ import java.util.UUID;
 public class AuditTrail {
 
     /**
-     * Unique identifier (UUID) for the audit entry
+     * Unique identifier(UUID) for the audit entry
      */
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -43,7 +43,7 @@ public class AuditTrail {
     private UUID id;
 
     /**
-     * Type of entity being audited (e.g., IntegrationFlow, CommunicationAdapter)
+     * Type of entity being audited(e.g., IntegrationFlow, CommunicationAdapter)
      */
     @Column(name = "entity_type", length = 100, nullable = false)
     private String entityType;
@@ -62,7 +62,7 @@ public class AuditTrail {
     private AuditAction action;
 
     /**
-     * JSON representation of changes (before and after values for updates)
+     * JSON representation of changes(before and after values for updates)
      */
     @Column(columnDefinition = "json")
     private String changes;

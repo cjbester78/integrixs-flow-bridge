@@ -16,7 +16,7 @@ public interface CommunicationAdapterRepository extends JpaRepository<Communicat
     List<CommunicationAdapter> findByBusinessComponent_Id(UUID businessComponentId);
     boolean existsByName(String name);
     List<CommunicationAdapter> findByIsActiveTrue();
-    
+
     // Count adapters by business component
     long countByBusinessComponent_Id(UUID businessComponentId);
 }

@@ -24,16 +24,16 @@ import java.util.stream.Stream;
 @Slf4j
 @Transactional(readOnly = true)
 public abstract class OptimizedRepositoryImpl<T, ID> {
-    
+
     @PersistenceContext
     protected EntityManager entityManager;
-    
+
     protected final Class<T> entityClass;
-    
+
     protected OptimizedRepositoryImpl(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
-    
+
     /**
      * Find entities with eager loading of associations.
      */
@@ -41,49 +41,49 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
-        
+
         // Create fetches for each association path
-        for (String path : associationPaths) {
+        for(String path : associationPaths) {
             createFetchPath(root, path);
         }
-        
+
         query.select(root).distinct(true);
-        
+
         return entityManager.createQuery(query)
             .setHint("org.hibernate.readOnly", true)
             .setHint("org.hibernate.cacheable", true)
             .getResultList();
     }
-    
+
     /**
      * Paginated query with associations.
      */
     public Page<T> findPageWithAssociations(Pageable pageable, String... associationPaths) {
         // Count query without fetches
         Long total = count();
-        
+
         // Data query with fetches
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
-        
-        for (String path : associationPaths) {
+
+        for(String path : associationPaths) {
             createFetchPath(root, path);
         }
-        
+
         query.select(root).distinct(true);
-        
+
         // Apply pagination
         TypedQuery<T> typedQuery = entityManager.createQuery(query);
         typedQuery.setFirstResult((int) pageable.getOffset());
         typedQuery.setMaxResults(pageable.getPageSize());
         typedQuery.setHint("org.hibernate.readOnly", true);
-        
+
         List<T> content = typedQuery.getResultList();
-        
+
         return new PageImpl<>(content, pageable, total);
     }
-    
+
     /**
      * Batch update operation.
      */
@@ -93,22 +93,22 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         parameters.forEach(query::setParameter);
         return query.executeUpdate();
     }
-    
+
     /**
      * Batch delete operation.
      */
     @Transactional
     public int batchDelete(List<ID> ids) {
-        if (ids == null || ids.isEmpty()) {
+        if(ids == null || ids.isEmpty()) {
             return 0;
         }
-        
+
         String jpql = "DELETE FROM " + entityClass.getSimpleName() + " e WHERE e.id IN :ids";
         return entityManager.createQuery(jpql)
             .setParameter("ids", ids)
             .executeUpdate();
     }
-    
+
     /**
      * Stream results for large datasets.
      */
@@ -117,13 +117,13 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         CriteriaQuery<T> query = cb.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
         query.select(root);
-        
+
         return entityManager.createQuery(query)
             .setHint("org.hibernate.fetchSize", 1000)
             .setHint("org.hibernate.readOnly", true)
             .getResultStream();
     }
-    
+
     /**
      * Find with specification and fetch joins.
      */
@@ -131,27 +131,27 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
-        
+
         // Apply specification
-        if (spec != null) {
+        if(spec != null) {
             Predicate predicate = spec.toPredicate(root, query, cb);
-            if (predicate != null) {
+            if(predicate != null) {
                 query.where(predicate);
             }
         }
-        
+
         // Apply fetches
-        for (String path : fetchPaths) {
+        for(String path : fetchPaths) {
             createFetchPath(root, path);
         }
-        
+
         query.select(root).distinct(true);
-        
+
         return entityManager.createQuery(query)
             .setHint("org.hibernate.readOnly", true)
             .getResultList();
     }
-    
+
     /**
      * Count with specification.
      */
@@ -159,21 +159,21 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<T> root = query.from(entityClass);
-        
-        if (spec != null) {
+
+        if(spec != null) {
             Predicate predicate = spec.toPredicate(root, query, cb);
-            if (predicate != null) {
+            if(predicate != null) {
                 query.where(predicate);
             }
         }
-        
+
         query.select(cb.count(root));
-        
+
         return entityManager.createQuery(query)
             .setHint("org.hibernate.cacheable", true)
             .getSingleResult();
     }
-    
+
     /**
      * Check existence efficiently.
      */
@@ -185,7 +185,7 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
             .getSingleResult();
         return count > 0;
     }
-    
+
     /**
      * Projection query for specific fields.
      */
@@ -193,56 +193,56 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<R> query = cb.createQuery(projectionClass);
         Root<T> root = query.from(entityClass);
-        
+
         // Build selection list
         List<Selection<?>> selections = new ArrayList<>();
-        for (String field : fields) {
+        for(String field : fields) {
             selections.add(root.get(field));
         }
-        
+
         query.multiselect(selections);
-        
+
         return entityManager.createQuery(query)
             .setHint("org.hibernate.readOnly", true)
             .setHint("org.hibernate.cacheable", true)
             .getResultList();
     }
-    
+
     /**
      * Bulk insert operation.
      */
     @Transactional
     public void bulkInsert(List<T> entities) {
-        if (entities == null || entities.isEmpty()) {
+        if(entities == null || entities.isEmpty()) {
             return;
         }
-        
+
         int batchSize = 50;
-        for (int i = 0; i < entities.size(); i++) {
+        for(int i = 0; i < entities.size(); i++) {
             entityManager.persist(entities.get(i));
-            
-            if (i % batchSize == 0 && i > 0) {
+
+            if(i % batchSize == 0 && i > 0) {
                 entityManager.flush();
                 entityManager.clear();
             }
         }
-        
+
         entityManager.flush();
         entityManager.clear();
     }
-    
+
     /**
      * Helper method to create fetch paths.
      */
     private void createFetchPath(Root<T> root, String path) {
         String[] parts = path.split("\\.");
         Fetch<?, ?> fetch = root.fetch(parts[0], JoinType.LEFT);
-        
-        for (int i = 1; i < parts.length; i++) {
+
+        for(int i = 1; i < parts.length; i++) {
             fetch = fetch.fetch(parts[i], JoinType.LEFT);
         }
     }
-    
+
     /**
      * Get count of all entities.
      */
@@ -251,7 +251,7 @@ public abstract class OptimizedRepositoryImpl<T, ID> {
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
         Root<T> root = query.from(entityClass);
         query.select(cb.count(root));
-        
+
         return entityManager.createQuery(query)
             .setHint("org.hibernate.cacheable", true)
             .getSingleResult();

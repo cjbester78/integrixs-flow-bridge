@@ -17,23 +17,23 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EndpointRequestDTO {
-    
+
     private String path;
-    
+
     @NotNull(message = "HTTP method is required")
     private String method;
-    
+
     private Object payload;
-    
+
     private String contentType;
-    
+
     @Builder.Default
     private Map<String, String> headers = new HashMap<>();
-    
+
     @Builder.Default
     private Map<String, String> queryParams = new HashMap<>();
-    
+
     private String flowId;
-    
+
     private String adapterId;
 }

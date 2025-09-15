@@ -29,7 +29,7 @@ public interface SystemSettingRepository extends JpaRepository<SystemSetting, UU
     List<SystemSetting> findByCategoryOrderBySettingKeyAsc(String category);
 
     /**
-     * Find all non-readonly settings
+     * Find all non - readonly settings
      */
     List<SystemSetting> findByIsReadonlyFalse();
 
@@ -44,12 +44,12 @@ public interface SystemSettingRepository extends JpaRepository<SystemSetting, UU
     boolean existsBySettingKey(String settingKey);
 
     /**
-     * Get setting value by key (returns null if not found)
+     * Get setting value by key(returns null if not found)
      * Note: This needs custom implementation in service layer to extract just the value
      */
 
     /**
-     * Get all settings with non-null categories for distinct processing in service layer
+     * Get all settings with non - null categories for distinct processing in service layer
      */
     List<SystemSetting> findByCategoryIsNotNullOrderByCategory();
 }

@@ -16,7 +16,7 @@ public class UploadResultDto {
     private AdapterMetadata metadata;
     private List<String> warnings;
     private String error;
-    
+
     public static UploadResultDto success(String pluginId, AdapterMetadata metadata, List<String> warnings) {
         return UploadResultDto.builder()
                 .successful(true)
@@ -25,7 +25,7 @@ public class UploadResultDto {
                 .warnings(warnings)
                 .build();
     }
-    
+
     public static UploadResultDto failure(String error) {
         return UploadResultDto.builder()
                 .successful(false)

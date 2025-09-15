@@ -7,7 +7,7 @@ import java.util.List;
  * Used by Engine module to execute adapters
  */
 public interface AdapterExecutionService {
-    
+
     /**
      * Execute an adapter with given context
      * @param adapterId Adapter ID
@@ -15,27 +15,27 @@ public interface AdapterExecutionService {
      * @return Adapter execution result
      */
     AdapterResult executeAdapter(String adapterId, AdapterContext context);
-    
+
     /**
      * Test adapter connectivity
      * @param adapterId Adapter ID
      * @return True if adapter is reachable
      */
     boolean testAdapter(String adapterId);
-    
+
     /**
      * Get adapter metadata
      * @param adapterId Adapter ID
      * @return Adapter metadata
      */
     AdapterMetadata getAdapterMetadata(String adapterId);
-    
+
     /**
      * List all available adapters
      * @return List of adapter metadata
      */
     List<AdapterMetadata> listAdapters();
-    
+
     /**
      * Validate adapter configuration
      * @param adapterId Adapter ID

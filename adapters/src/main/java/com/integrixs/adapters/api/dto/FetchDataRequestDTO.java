@@ -15,7 +15,7 @@ public class FetchDataRequestDTO {
     private String lastFetchMarker;
     private boolean deltaFetch = false;
     private Long timeout;
-    
+
     /**
      * Add parameter
      * @param key Parameter key
@@ -24,7 +24,7 @@ public class FetchDataRequestDTO {
     public void addParameter(String key, Object value) {
         this.parameters.put(key, value);
     }
-    
+
     /**
      * Add header
      * @param key Header key

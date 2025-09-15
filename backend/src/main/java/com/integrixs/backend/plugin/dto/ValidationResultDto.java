@@ -15,7 +15,7 @@ public class ValidationResultDto {
     @Builder.Default
     private List<ValidationError> errors = new ArrayList<>();
     private String message;
-    
+
     @Data
     @Builder
     public static class ValidationError {
@@ -23,21 +23,21 @@ public class ValidationResultDto {
         private String message;
         private String value;
     }
-    
+
     public static ValidationResultDto success() {
         return ValidationResultDto.builder()
                 .valid(true)
                 .message("Configuration is valid")
                 .build();
     }
-    
+
     public static ValidationResultDto error(String message) {
         return ValidationResultDto.builder()
                 .valid(false)
                 .message(message)
                 .build();
     }
-    
+
     public static ValidationResultDto withErrors(List<ValidationError> errors) {
         return ValidationResultDto.builder()
                 .valid(false)

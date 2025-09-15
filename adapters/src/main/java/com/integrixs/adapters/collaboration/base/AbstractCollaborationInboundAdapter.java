@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.core.AbstractInboundAdapter;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.dto.MessageDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
 /**
@@ -14,27 +15,29 @@ import java.util.Map;
  */
 public abstract class AbstractCollaborationInboundAdapter extends AbstractInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(AbstractCollaborationInboundAdapter.class);
-
     
+    protected final ObjectMapper objectMapper = new ObjectMapper();
+
+
     protected AbstractCollaborationInboundAdapter() {
         super(AdapterConfiguration.AdapterTypeEnum.REST);
     }
-    
+
     /**
      * Process incoming webhook from collaboration platform
      */
     public abstract void processWebhook(Map<String, Object> webhookData);
-    
+
     /**
      * Verify webhook signature for security
      */
     public abstract boolean verifyWebhookSignature(String signature, String timestamp, String body);
-    
+
     /**
-     * Poll for new messages (if webhook is not available)
+     * Poll for new messages(if webhook is not available)
      */
     protected abstract void pollMessages();
-    
+
     /**
      * Convert collaboration message to MessageDTO
      */
@@ -45,19 +48,23 @@ public abstract class AbstractCollaborationInboundAdapter extends AbstractInboun
             "userId", userId,
             "adapterType", getAdapterType().name(),
             "timestamp", System.currentTimeMillis()
-        ));
-        message.setPayload(Map.of(
-            "text", text,
-            "metadata", metadata
-        ));
+       ));
+        try {
+            message.setPayload(objectMapper.writeValueAsString(Map.of(
+                "text", text,
+                "metadata", metadata
+            )));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize message payload", e);
+        }
         return message;
     }
-    
+
     /**
      * Get the adapter type identifier
      */
     public abstract AdapterConfiguration.AdapterTypeEnum getAdapterType();
-    
+
     /**
      * Handle rate limiting from collaboration platform
      */
@@ -65,7 +72,7 @@ public abstract class AbstractCollaborationInboundAdapter extends AbstractInboun
         log.warn("Rate limited by {} platform. Retry after {} seconds", getAdapterType(), retryAfterSeconds);
         try {
             Thread.sleep(retryAfterSeconds * 1000L);
-        } catch (InterruptedException e) {
+        } catch(InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Interrupted while waiting for rate limit", e);
         }

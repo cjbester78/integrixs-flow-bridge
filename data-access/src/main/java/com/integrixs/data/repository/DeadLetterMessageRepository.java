@@ -15,18 +15,18 @@ import java.util.UUID;
 
 @Repository
 public interface DeadLetterMessageRepository extends JpaRepository<DeadLetterMessage, UUID> {
-    
+
     Page<DeadLetterMessage> findByFlow(IntegrationFlow flow, Pageable pageable);
-    
+
     Page<DeadLetterMessage> findByReprocessedFalse(Pageable pageable);
-    
+
     Page<DeadLetterMessage> findByQueuedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
-    
+
     List<DeadLetterMessage> findByFlowIdAndReprocessedFalse(Long flowId);
-    
+
     List<DeadLetterMessage> findByCorrelationId(String correlationId);
-    
+
     Long countByFlowIdAndReprocessedFalse(Long flowId);
-    
+
     List<DeadLetterMessage> findByStatusAndRetryCountLessThanOrderByQueuedAtAsc(DeadLetterMessage.Status status, int maxRetries);
 }

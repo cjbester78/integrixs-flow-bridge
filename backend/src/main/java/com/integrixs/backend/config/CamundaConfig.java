@@ -25,35 +25,35 @@ public class CamundaConfig {
     @Bean
     public SpringProcessEngineConfiguration processEngineConfiguration() {
         SpringProcessEngineConfiguration config = new SpringProcessEngineConfiguration();
-        
+
         // Database configuration
         config.setDataSource(dataSource);
         config.setDatabaseSchemaUpdate("true");
         config.setDatabaseType("postgres");
-        
+
         // Transaction manager
         config.setTransactionManager(transactionManager());
-        
+
         // Job execution
         config.setJobExecutorActivate(true);
         config.setAsyncExecutorEnabled(true);
         config.setAsyncExecutorActivate(true);
-        
+
         // History configuration
         config.setHistory("full");
         config.setHistoryCleanupBatchWindowStartTime("00:00");
         config.setHistoryCleanupBatchWindowEndTime("06:00");
-        
+
         // Deployment
-        config.setDeploymentResources(new String[]{"classpath*:bpmn/*.bpmn"});
-        
+        config.setDeploymentResources(new String[] {"classpath*:bpmn/*.bpmn"});
+
         // Metrics
         config.setMetricsEnabled(true);
         config.setDbMetricsReporterActivate(true);
-        
+
         // Authorization
         config.setAuthorizationEnabled(true);
-        
+
         return config;
     }
 

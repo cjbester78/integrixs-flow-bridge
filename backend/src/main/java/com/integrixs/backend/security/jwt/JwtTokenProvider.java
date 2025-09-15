@@ -10,17 +10,17 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-    
+
     private final JwtUtil jwtUtil;
-    
+
     public boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
     }
-    
+
     public String getUserId(String token) {
         return jwtUtil.getUserId(token);
     }
-    
+
     public String getClaimFromToken(String token, String claimName) {
         return jwtUtil.getClaimFromToken(token, claimName);
     }

@@ -9,12 +9,12 @@ import java.util.Map;
 @RestController
 public class HealthCheckController {
 
-	@GetMapping("/health")
-	public Map<String, Object> healthCheck() {
-		Map<String, Object> response = new HashMap<>();
-		response.put("status", "UP");
-		response.put("timestamp", LocalDateTime.now().toString());
-		response.put("application", "IntegrixLab Backend");
-		return response;
-	}
+    @GetMapping("/health")
+    public Map<String, Object> healthCheck() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("application", "IntegrixLab Backend");
+        return response;
+    }
 }

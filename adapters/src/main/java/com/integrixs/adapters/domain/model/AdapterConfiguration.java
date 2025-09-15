@@ -19,23 +19,23 @@ public class AdapterConfiguration {
     private boolean enableLogging;
     private boolean enableMonitoring;
     private Integer timeout; // milliseconds
-    
+
     /**
      * Adapter types
      */
     public enum AdapterTypeEnum {
-        HTTP,      // HTTP/HTTPS endpoints
-        REST,      // RESTful web services
-        SOAP,      // SOAP web services
-        JDBC,      // Database connections
-        FILE,      // Local file system
-        FTP,       // FTP protocol
-        SFTP,      // Secure FTP
-        IBMMQ,     // IBM MQ (formerly WebSphere MQ)
-        KAFKA,     // Apache Kafka
-        MAIL,      // Email (SMTP/POP3/IMAP)
-        ODATA,     // OData protocol
-        IDOC,      // SAP IDoc
+        HTTP,     // HTTP/HTTPS endpoints
+        REST,     // RESTful web services
+        SOAP,     // SOAP web services
+        JDBC,     // Database connections
+        FILE,     // Local file system
+        FTP,      // FTP protocol
+        SFTP,     // Secure FTP
+        IBMMQ,    // IBM MQ(formerly WebSphere MQ)
+        KAFKA,    // Apache Kafka
+        MAIL,     // Email(SMTP/POP3/IMAP)
+        ODATA,    // OData protocol
+        IDOC,     // SAP IDoc
         RFC        // SAP RFC
     ,
         // Social Media Adapters
@@ -51,30 +51,30 @@ public class AdapterConfiguration {
         WHATSAPP,
         TELEGRAM,
         DISCORD,
-        
-        // Collaboration Adapters  
+
+        // Collaboration Adapters
         SLACK,
         TEAMS,
-        
+
         // Messaging Adapters
         SMS,
         AMQP,
         RABBITMQ,
         ACTIVEMQ,
-        
+
         // Other Adapters
         WEBHOOK,
         WEBSOCKET,
         STREAMING}
-    
+
     /**
      * Adapter modes
      */
     public enum AdapterModeEnum {
-        INBOUND,   // Receives FROM external systems
-        OUTBOUND  // Sends TO external systems
+        INBOUND, // Receives FROM external systems
+        OUTBOUND // Sends TO external systems
     }
-    
+
     /**
      * Add connection property
      * @param key Property key
@@ -83,7 +83,7 @@ public class AdapterConfiguration {
     public void addConnectionProperty(String key, Object value) {
         this.connectionProperties.put(key, value);
     }
-    
+
     /**
      * Add operation property
      * @param key Property key
@@ -169,7 +169,7 @@ public class AdapterConfiguration {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String adapterId;
         private AdapterTypeEnum adapterType;
@@ -183,67 +183,67 @@ public class AdapterConfiguration {
         private boolean enableLogging;
         private boolean enableMonitoring;
         private Integer timeout;
-        
+
         public Builder adapterId(String adapterId) {
             this.adapterId = adapterId;
             return this;
         }
-        
+
         public Builder adapterType(AdapterTypeEnum adapterType) {
             this.adapterType = adapterType;
             return this;
         }
-        
+
         public Builder adapterMode(AdapterModeEnum adapterMode) {
             this.adapterMode = adapterMode;
             return this;
         }
-        
+
         public Builder name(String name) {
             this.name = name;
             return this;
         }
-        
+
         public Builder description(String description) {
             this.description = description;
             return this;
         }
-        
+
         public Builder connectionProperties(Map<String, Object> connectionProperties) {
             this.connectionProperties = connectionProperties;
             return this;
         }
-        
+
         public Builder operationProperties(Map<String, Object> operationProperties) {
             this.operationProperties = operationProperties;
             return this;
         }
-        
+
         public Builder authentication(AuthenticationConfig authentication) {
             this.authentication = authentication;
             return this;
         }
-        
+
         public Builder retryConfig(RetryConfig retryConfig) {
             this.retryConfig = retryConfig;
             return this;
         }
-        
+
         public Builder enableLogging(boolean enableLogging) {
             this.enableLogging = enableLogging;
             return this;
         }
-        
+
         public Builder enableMonitoring(boolean enableMonitoring) {
             this.enableMonitoring = enableMonitoring;
             return this;
         }
-        
+
         public Builder timeout(Integer timeout) {
             this.timeout = timeout;
             return this;
         }
-        
+
         public AdapterConfiguration build() {
             AdapterConfiguration obj = new AdapterConfiguration();
             obj.adapterId = this.adapterId;

@@ -12,16 +12,16 @@ import java.util.Map;
 @RequestMapping("/api/test")
 @Slf4j
 public class TestMultipartController {
-    
+
     @PostMapping(value = "/multipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> testMultipart(@RequestParam("files") MultipartFile[] files) {
         log.info("Test multipart endpoint called with {} files", files.length);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("fileCount", files.length);
-        
-        for (int i = 0; i < files.length; i++) {
+
+        for(int i = 0; i < files.length; i++) {
             MultipartFile file = files[i];
             Map<String, Object> fileInfo = new HashMap<>();
             fileInfo.put("name", file.getOriginalFilename());
@@ -29,7 +29,7 @@ public class TestMultipartController {
             fileInfo.put("contentType", file.getContentType());
             response.put("file" + i, fileInfo);
         }
-        
+
         return ResponseEntity.ok(response);
     }
 }

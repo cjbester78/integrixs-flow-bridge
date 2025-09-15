@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Legacy Inbound REST Controller for backward compatibility.
  * New implementations should use WebClientController at /api/webclient
- * 
+ *
  * @deprecated Use {@link com.integrixs.webclient.api.controller.WebClientController} instead
  */
 @RestController
@@ -35,14 +35,14 @@ public class InboundRestController {
     /**
      * Generic webhook endpoint for receiving inbound HTTP POST requests
      */
-    @PostMapping("/webhook/{adapterId}")
+    @PostMapping("/webhook/ {adapterId}")
     public ResponseEntity<String> receiveWebhook(
             @PathVariable String adapterId,
             @RequestBody String payload,
             HttpServletRequest request) {
-        
+
         logger.info("Received inbound webhook for adapter: {}", adapterId);
-        
+
         try {
             // Convert to new DTO format
             InboundMessageRequestDTO messageRequest = InboundMessageRequestDTO.builder()
@@ -53,21 +53,21 @@ public class InboundRestController {
                     .contentType(request.getContentType())
                     .headers(extractHeaders(request))
                     .build();
-            
+
             // Process through new service
             InboundMessageResponseDTO response = webClientService.receiveMessage(messageRequest);
-            
-            if (response.isSuccess()) {
+
+            if(response.isSuccess()) {
                 logger.info("Successfully processed inbound message for adapter: {}", adapterId);
                 return ResponseEntity.ok("Message processed successfully");
             } else {
-                logger.error("Failed to process inbound message for adapter {}: {}", 
+                logger.error("Failed to process inbound message for adapter {}: {}",
                         adapterId, response.getError());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Failed to process message: " + response.getError());
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error processing inbound webhook for adapter: {}", adapterId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal server error: " + e.getMessage());
@@ -77,14 +77,14 @@ public class InboundRestController {
     /**
      * Generic GET endpoint for inbound requests
      */
-    @GetMapping("/data/{adapterId}")
+    @GetMapping("/data/ {adapterId}")
     public ResponseEntity<String> receiveGetRequest(
             @PathVariable String adapterId,
             @RequestParam Map<String, String> params,
             HttpServletRequest request) {
-        
+
         logger.info("Received inbound GET request for adapter: {}", adapterId);
-        
+
         try {
             // Convert to new DTO format
             InboundMessageRequestDTO messageRequest = InboundMessageRequestDTO.builder()
@@ -92,25 +92,25 @@ public class InboundRestController {
                     .source(request.getRemoteAddr())
                     .adapterId(adapterId)
                     .payload(params)
-                    .contentType("application/x-www-form-urlencoded")
+                    .contentType("application/x - www - form - urlencoded")
                     .headers(extractHeaders(request))
                     .build();
-            
+
             // Process through new service
             InboundMessageResponseDTO response = webClientService.receiveMessage(messageRequest);
-            
-            if (response.isSuccess()) {
+
+            if(response.isSuccess()) {
                 logger.info("Successfully processed inbound GET request for adapter: {}", adapterId);
-                return ResponseEntity.ok(response.getResponseData() != null ? 
+                return ResponseEntity.ok(response.getResponseData() != null ?
                         response.getResponseData().toString() : "Success");
             } else {
-                logger.error("Failed to process inbound GET request for adapter {}: {}", 
+                logger.error("Failed to process inbound GET request for adapter {}: {}",
                         adapterId, response.getError());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Failed to process request: " + response.getError());
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             logger.error("Error processing inbound GET request for adapter: {}", adapterId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal server error: " + e.getMessage());
@@ -131,7 +131,7 @@ public class InboundRestController {
     private Map<String, String> extractHeaders(HttpServletRequest request) {
         Map<String, String> headers = new HashMap<>();
         Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
+        while(headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             headers.put(headerName, request.getHeader(headerName));
         }

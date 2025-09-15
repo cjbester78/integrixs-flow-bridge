@@ -11,53 +11,53 @@ import java.util.Map;
 @Data
 @Builder
 public class SendResult {
-    
+
     /**
      * Whether the send was successful
      */
     private boolean successful;
-    
+
     /**
      * Message ID assigned by the external system
      */
     private String externalMessageId;
-    
+
     /**
      * Original message ID
      */
     private String messageId;
-    
+
     /**
      * Status message
      */
     private String message;
-    
+
     /**
      * Error details if failed
      */
     private String errorDetails;
-    
+
     /**
      * Timestamp when sent
      */
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-    
+
     /**
      * Response from external system
      */
     private Object response;
-    
+
     /**
      * Response headers/metadata
      */
     private Map<String, String> responseHeaders;
-    
+
     /**
      * Additional details
      */
     private Map<String, Object> details;
-    
+
     /**
      * Static factory for success
      */
@@ -69,7 +69,7 @@ public class SendResult {
                 .message("Message sent successfully")
                 .build();
     }
-    
+
     /**
      * Static factory for failure
      */

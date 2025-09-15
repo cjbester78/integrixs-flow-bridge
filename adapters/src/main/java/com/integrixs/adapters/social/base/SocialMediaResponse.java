@@ -10,7 +10,7 @@ public class SocialMediaResponse {
     public SocialMediaResponse() {
     }
 
-    
+
 
     private String id;
     private String platform;
@@ -22,7 +22,7 @@ public class SocialMediaResponse {
     private String postUrl;
     private Map<String, Object> metrics;
     private RateLimitInfo rateLimitInfo;
-    
+
     public enum ResponseStatus {
         SUCCESS,
         FAILED,
@@ -32,7 +32,7 @@ public class SocialMediaResponse {
         VALIDATION_ERROR,
         PLATFORM_ERROR
     }
-    
+
                     public static class RateLimitInfo {
         private int remaining;
         private int limit;
@@ -128,7 +128,7 @@ public class SocialMediaResponse {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String id;
         private String platform;
@@ -144,77 +144,77 @@ public class SocialMediaResponse {
         private int limit;
         private long resetTime;
         private int retryAfter;
-        
+
         public Builder id(String id) {
             this.id = id;
             return this;
         }
-        
+
         public Builder platform(String platform) {
             this.platform = platform;
             return this;
         }
-        
+
         public Builder status(ResponseStatus status) {
             this.status = status;
             return this;
         }
-        
+
         public Builder message(String message) {
             this.message = message;
             return this;
         }
-        
+
         public Builder data(Map<String, Object> data) {
             this.data = data;
             return this;
         }
-        
+
         public Builder timestamp(LocalDateTime timestamp) {
             this.timestamp = timestamp;
             return this;
         }
-        
+
         public Builder postId(String postId) {
             this.postId = postId;
             return this;
         }
-        
+
         public Builder postUrl(String postUrl) {
             this.postUrl = postUrl;
             return this;
         }
-        
+
         public Builder metrics(Map<String, Object> metrics) {
             this.metrics = metrics;
             return this;
         }
-        
+
         public Builder rateLimitInfo(RateLimitInfo rateLimitInfo) {
             this.rateLimitInfo = rateLimitInfo;
             return this;
         }
-        
+
         public Builder remaining(int remaining) {
             this.remaining = remaining;
             return this;
         }
-        
+
         public Builder limit(int limit) {
             this.limit = limit;
             return this;
         }
-        
+
         public Builder resetTime(long resetTime) {
             this.resetTime = resetTime;
             return this;
         }
-        
+
         public Builder retryAfter(int retryAfter) {
             this.retryAfter = retryAfter;
             return this;
         }
-        
+
         public SocialMediaResponse build() {
             SocialMediaResponse obj = new SocialMediaResponse();
             obj.id = this.id;

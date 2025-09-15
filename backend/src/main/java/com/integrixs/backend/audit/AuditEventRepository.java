@@ -16,47 +16,47 @@ import java.util.UUID;
  */
 @Repository
 public interface AuditEventRepository extends JpaRepository<AuditEvent, UUID> {
-    
+
     /**
      * Find events by user
      */
     Page<AuditEvent> findByUsernameOrderByEventTimestampDesc(String username, Pageable pageable);
-    
+
     /**
      * Find events by entity
      */
     Page<AuditEvent> findByEntityTypeAndEntityIdOrderByEventTimestampDesc(
         String entityType, String entityId, Pageable pageable);
-    
+
     /**
      * Find events by type
      */
     Page<AuditEvent> findByEventTypeOrderByEventTimestampDesc(
         AuditEvent.AuditEventType eventType, Pageable pageable);
-    
+
     /**
      * Find events by category
      */
     Page<AuditEvent> findByCategoryOrderByEventTimestampDesc(
         AuditEvent.AuditCategory category, Pageable pageable);
-    
+
     /**
      * Find events within time range
      */
     Page<AuditEvent> findByEventTimestampBetweenOrderByEventTimestampDesc(
         Instant start, Instant end, Pageable pageable);
-    
+
     /**
      * Find failed events
      */
     Page<AuditEvent> findByOutcomeInOrderByEventTimestampDesc(
         List<AuditEvent.AuditOutcome> outcomes, Pageable pageable);
-    
+
     /**
      * Find events by tenant
      */
     Page<AuditEvent> findByTenantIdOrderByEventTimestampDesc(String tenantId, Pageable pageable);
-    
+
     /**
      * Complex search query
      */
@@ -80,18 +80,18 @@ public interface AuditEventRepository extends JpaRepository<AuditEvent, UUID> {
         @Param("startTime") Instant startTime,
         @Param("endTime") Instant endTime,
         Pageable pageable
-    );
-    
+   );
+
     /**
      * Find security events
      */
     @Query("SELECT a FROM AuditEvent a WHERE " +
            "a.category = 'SECURITY' OR " +
-           "a.eventType IN ('LOGIN_FAILURE', 'ACCESS_DENIED', 'RATE_LIMIT_EXCEEDED', " +
+           "a.eventType IN('LOGIN_FAILURE', 'ACCESS_DENIED', 'RATE_LIMIT_EXCEEDED', " +
            "'SUSPICIOUS_ACTIVITY', 'SECURITY_ALERT') " +
            "ORDER BY a.eventTimestamp DESC")
     Page<AuditEvent> findSecurityEvents(Pageable pageable);
-    
+
     /**
      * Count events by type in time range
      */
@@ -101,8 +101,8 @@ public interface AuditEventRepository extends JpaRepository<AuditEvent, UUID> {
     List<Object[]> countEventsByType(
         @Param("startTime") Instant startTime,
         @Param("endTime") Instant endTime
-    );
-    
+   );
+
     /**
      * Find recent failed login attempts
      */
@@ -113,13 +113,13 @@ public interface AuditEventRepository extends JpaRepository<AuditEvent, UUID> {
     List<AuditEvent> findRecentFailedLogins(
         @Param("ipAddress") String ipAddress,
         @Param("since") Instant since
-    );
-    
+   );
+
     /**
      * Delete old audit events
      */
     void deleteByEventTimestampBefore(Instant cutoffTime);
-    
+
     /**
      * Find events by correlation ID
      */

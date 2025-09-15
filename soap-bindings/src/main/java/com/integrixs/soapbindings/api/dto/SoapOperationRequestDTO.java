@@ -17,15 +17,15 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SoapOperationRequestDTO {
-    
+
     @NotNull(message = "Operation name is required")
     private String operationName;
-    
+
     @NotNull(message = "Payload is required")
     private Object payload;
-    
+
     @Builder.Default
     private Map<String, String> soapHeaders = new HashMap<>();
-    
+
     private Long timeoutMillis;
 }

@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO for refresh token requests.
- * 
+ *
  * <p>Used to request a new access token using a refresh token.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RefreshTokenRequestDTO {
-    
+
     /**
      * The refresh token
      */

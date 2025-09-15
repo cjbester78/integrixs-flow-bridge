@@ -8,19 +8,19 @@ public enum AlertType {
     EXECUTION_FAILED("error", "Execution Failed"),
     HIGH_ERROR_RATE("warning", "High Error Rate"),
     PERFORMANCE_DEGRADATION("warning", "Performance Degradation");
-    
+
     private final String severity;
     private final String displayName;
-    
+
     AlertType(String severity, String displayName) {
         this.severity = severity;
         this.displayName = displayName;
     }
-    
+
     public String getSeverity() {
         return severity;
     }
-    
+
     public String getDisplayName() {
         return displayName;
     }

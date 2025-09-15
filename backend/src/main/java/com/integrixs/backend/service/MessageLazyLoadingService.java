@@ -19,67 +19,67 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MessageLazyLoadingService {
-    
+
     private final MessageRepository messageRepository;
     private final LazyLoadingService lazyLoadingService;
-    
+
     /**
      * Save message with automatic large payload handling.
      */
     @Transactional
     public Message saveMessageWithLazyLoading(Message message) {
-        if (message == null) {
+        if(message == null) {
             return null;
         }
-        
+
         // Check if payload should be stored externally
         String payload = message.getMessageContent();
-        if (lazyLoadingService.shouldStoreExternally(payload)) {
+        if(lazyLoadingService.shouldStoreExternally(payload)) {
             // Store payload externally and get reference
             String payloadReference = lazyLoadingService.storeLargePayload(
-                message.getMessageId(), 
+                message.getMessageId(),
                 payload
-            );
-            
+           );
+
             // Update message with reference
             message.setMessageContent(payloadReference);
             log.debug("Stored large payload externally for message: {}", message.getMessageId());
         }
-        
+
         // Save message with JPA
         return messageRepository.save(message);
     }
-    
+
     /**
      * Load message with automatic payload retrieval.
      */
     @Transactional(readOnly = true)
     public Optional<Message> loadMessageWithPayload(UUID id) {
         Optional<Message> messageOpt = messageRepository.findById(id);
-        
-        if (messageOpt.isPresent()) {
+
+        if(messageOpt.isPresent()) {
             Message message = messageOpt.get();
             loadPayloadForMessage(message);
         }
-        
+
         return messageOpt;
     }
-    
+
     /**
      * Load message by messageId with automatic payload retrieval.
      */
     @Transactional(readOnly = true)
     public Optional<Message> loadMessageByMessageId(String messageId) {
         Optional<Message> messageOpt = messageRepository.findByMessageId(messageId);
-        
-        if (messageOpt.isPresent()) {
+
+        if(messageOpt.isPresent()) {
             Message message = messageOpt.get();
             loadPayloadForMessage(message);
         }
-        
+
         return messageOpt;
     }
-    
+
     /**
      * Update message content with lazy loading support.
      */
@@ -87,31 +87,31 @@ public class MessageLazyLoadingService {
     public Message updateMessageContent(UUID id, String newContent) {
         Message message = messageRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Message not found: " + id));
-        
+
         // Handle large payload
-        if (lazyLoadingService.shouldStoreExternally(newContent)) {
+        if(lazyLoadingService.shouldStoreExternally(newContent)) {
             String payloadReference = lazyLoadingService.storeLargePayload(
-                message.getMessageId(), 
+                message.getMessageId(),
                 newContent
-            );
+           );
             message.setMessageContent(payloadReference);
         } else {
             message.setMessageContent(newContent);
         }
-        
+
         return messageRepository.save(message);
     }
-    
+
     /**
      * Get actual payload size for a message.
      */
     public long getMessagePayloadSize(UUID id) {
         Message message = messageRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Message not found: " + id));
-        
+
         return lazyLoadingService.getPayloadSize(message.getMessageContent());
     }
-    
+
     /**
      * Clean up orphaned payload files.
      */
@@ -122,20 +122,20 @@ public class MessageLazyLoadingService {
         lazyLoadingService.cleanupOldPayloads(daysToKeep);
         log.info("Cleaned up payload files older than {} days", daysToKeep);
     }
-    
+
     /**
      * Helper method to load payload for a message.
      */
     private void loadPayloadForMessage(Message message) {
         String content = message.getMessageContent();
-        if (content != null && content.startsWith("FILE:")) {
+        if(content != null && content.startsWith("FILE:")) {
             // Load actual payload from file
             String actualPayload = lazyLoadingService.loadPayload(
-                message.getMessageId(), 
+                message.getMessageId(),
                 content
-            );
-            
-            if (actualPayload != null) {
+           );
+
+            if(actualPayload != null) {
                 message.setMessageContent(actualPayload);
             } else {
                 log.warn("Failed to load external payload for message: {}", message.getMessageId());
@@ -143,13 +143,13 @@ public class MessageLazyLoadingService {
             }
         }
     }
-    
+
     /**
      * Check if a message has externally stored payload.
      */
     public boolean hasExternalPayload(Message message) {
-        return message != null && 
-               message.getMessageContent() != null && 
+        return message != null &&
+               message.getMessageContent() != null &&
                message.getMessageContent().startsWith("FILE:");
     }
 }

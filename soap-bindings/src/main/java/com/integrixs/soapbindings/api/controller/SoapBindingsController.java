@@ -20,11 +20,11 @@ import java.util.List;
  * REST controller for SOAP bindings operations
  */
 @RestController
-@RequestMapping("/api/soap-bindings")
+@RequestMapping("/api/soap - bindings")
 public class SoapBindingsController {
 
     private static final Logger logger = LoggerFactory.getLogger(SoapBindingsController.class);
-    
+
     private final SoapBindingsApplicationService applicationService;
 
     public SoapBindingsController(SoapBindingsApplicationService applicationService) {
@@ -46,26 +46,26 @@ public class SoapBindingsController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("name") String name,
             @RequestParam(value = "description", required = false) String description) {
-        
+
         logger.info("Uploading WSDL file: {}", file.getOriginalFilename());
-        
+
         try {
             String wsdlContent = new String(file.getBytes(), StandardCharsets.UTF_8);
-            
+
             UploadWsdlRequestDTO request = UploadWsdlRequestDTO.builder()
                     .name(name)
                     .wsdlContent(wsdlContent)
                     .location(file.getOriginalFilename())
                     .description(description)
                     .build();
-            
+
             WsdlDetailsDTO wsdl = applicationService.uploadWsdl(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(wsdl);
-            
-        } catch (IOException e) {
+
+        } catch(IOException e) {
             logger.error("Error reading WSDL file: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error uploading WSDL: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -80,11 +80,11 @@ public class SoapBindingsController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<WsdlDetailsDTO> importWsdl(@Valid @RequestBody ImportWsdlRequestDTO request) {
         logger.info("Importing WSDL from URL: {}", request.getWsdlUrl());
-        
+
         try {
             WsdlDetailsDTO wsdl = applicationService.importWsdlFromUrl(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(wsdl);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error importing WSDL: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -98,11 +98,11 @@ public class SoapBindingsController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<List<WsdlDetailsDTO>> getAllWsdls() {
         logger.info("Getting all WSDLs");
-        
+
         try {
             List<WsdlDetailsDTO> wsdls = applicationService.getAllWsdls();
             return ResponseEntity.ok(wsdls);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting WSDLs: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -113,15 +113,15 @@ public class SoapBindingsController {
      * @param wsdlId WSDL ID
      * @return WSDL details
      */
-    @GetMapping("/wsdl/{wsdlId}")
+    @GetMapping("/wsdl/ {wsdlId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<WsdlDetailsDTO> getWsdl(@PathVariable String wsdlId) {
         logger.info("Getting WSDL: {}", wsdlId);
-        
+
         try {
             WsdlDetailsDTO wsdl = applicationService.getWsdl(wsdlId);
             return ResponseEntity.ok(wsdl);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting WSDL {}: {}", wsdlId, e.getMessage());
             return ResponseEntity.notFound().build();
         }
@@ -132,15 +132,15 @@ public class SoapBindingsController {
      * @param wsdlId WSDL ID
      * @return No content
      */
-    @DeleteMapping("/wsdl/{wsdlId}")
+    @DeleteMapping("/wsdl/ {wsdlId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<Void> deleteWsdl(@PathVariable String wsdlId) {
         logger.info("Deleting WSDL: {}", wsdlId);
-        
+
         try {
             applicationService.deleteWsdl(wsdlId);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error deleting WSDL {}: {}", wsdlId, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -154,18 +154,18 @@ public class SoapBindingsController {
      * @param request Generation request
      * @return Generated binding details
      */
-    @PostMapping("/wsdl/{wsdlId}/generate")
+    @PostMapping("/wsdl/ {wsdlId}/generate")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<GeneratedBindingDTO> generateBinding(
             @PathVariable String wsdlId,
             @Valid @RequestBody GenerateBindingRequestDTO request) {
-        
+
         logger.info("Generating binding for WSDL: {}", wsdlId);
-        
+
         try {
             GeneratedBindingDTO generated = applicationService.generateBinding(wsdlId, request);
             return ResponseEntity.ok(generated);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error generating binding for WSDL {}: {}", wsdlId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -182,11 +182,11 @@ public class SoapBindingsController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<SoapBindingDTO> createBinding(@Valid @RequestBody CreateBindingRequestDTO request) {
         logger.info("Creating SOAP binding: {}", request.getBindingName());
-        
+
         try {
             SoapBindingDTO binding = applicationService.createBinding(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(binding);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error creating binding: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -198,18 +198,18 @@ public class SoapBindingsController {
      * @param request Update request
      * @return Updated binding
      */
-    @PutMapping("/bindings/{bindingId}")
+    @PutMapping("/bindings/ {bindingId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<SoapBindingDTO> updateBinding(
             @PathVariable String bindingId,
             @RequestBody UpdateBindingRequestDTO request) {
-        
+
         logger.info("Updating SOAP binding: {}", bindingId);
-        
+
         try {
             SoapBindingDTO binding = applicationService.updateBinding(bindingId, request);
             return ResponseEntity.ok(binding);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error updating binding {}: {}", bindingId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -223,11 +223,11 @@ public class SoapBindingsController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<List<SoapBindingDTO>> getAllBindings() {
         logger.info("Getting all SOAP bindings");
-        
+
         try {
             List<SoapBindingDTO> bindings = applicationService.getAllBindings();
             return ResponseEntity.ok(bindings);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting bindings: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -238,15 +238,15 @@ public class SoapBindingsController {
      * @param bindingId Binding ID
      * @return Binding details
      */
-    @GetMapping("/bindings/{bindingId}")
+    @GetMapping("/bindings/ {bindingId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<SoapBindingDTO> getBinding(@PathVariable String bindingId) {
         logger.info("Getting SOAP binding: {}", bindingId);
-        
+
         try {
             SoapBindingDTO binding = applicationService.getBinding(bindingId);
             return ResponseEntity.ok(binding);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error getting binding {}: {}", bindingId, e.getMessage());
             return ResponseEntity.notFound().build();
         }
@@ -257,15 +257,15 @@ public class SoapBindingsController {
      * @param bindingId Binding ID
      * @return Test result
      */
-    @PostMapping("/bindings/{bindingId}/test")
+    @PostMapping("/bindings/ {bindingId}/test")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<BindingTestResultDTO> testBinding(@PathVariable String bindingId) {
         logger.info("Testing SOAP binding connectivity: {}", bindingId);
-        
+
         try {
             BindingTestResultDTO result = applicationService.testBinding(bindingId);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error testing binding {}: {}", bindingId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -279,23 +279,23 @@ public class SoapBindingsController {
      * @param request Operation request
      * @return Operation response
      */
-    @PostMapping("/bindings/{bindingId}/invoke")
+    @PostMapping("/bindings/ {bindingId}/invoke")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<SoapOperationResponseDTO> invokeOperation(
             @PathVariable String bindingId,
             @Valid @RequestBody SoapOperationRequestDTO request) {
-        
+
         logger.info("Invoking SOAP operation {} on binding {}", request.getOperationName(), bindingId);
-        
+
         try {
             SoapOperationResponseDTO response = applicationService.invokeOperation(bindingId, request);
-            
-            if (response.isSuccess()) {
+
+            if(response.isSuccess()) {
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Error invoking operation: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

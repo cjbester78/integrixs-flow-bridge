@@ -12,19 +12,19 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service for monitoring flow execution progress and providing real-time updates
+ * Service for monitoring flow execution progress and providing real - time updates
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FlowExecutionMonitoringService {
-    
+
     private final SystemLogRepository systemLogRepository;
     private final IntegrationFlowRepository flowRepository;
-    
-    // In-memory cache for active executions
+
+    // In - memory cache for active executions
     private final Map<String, ExecutionProgress> activeExecutions = new ConcurrentHashMap<>();
-    
+
     /**
      * Start monitoring a flow execution
      */
@@ -32,7 +32,7 @@ public class FlowExecutionMonitoringService {
     public void startExecution(String correlationId, String flowId, String flowName) {
         ExecutionProgress progress = new ExecutionProgress(correlationId, flowId, flowName);
         activeExecutions.put(correlationId, progress);
-        
+
         // Log to system log
         SystemLog logEntry = SystemLog.builder()
             .timestamp(LocalDateTime.now())
@@ -48,24 +48,24 @@ public class FlowExecutionMonitoringService {
             .correlationId(correlationId)
             .category("FLOW_MONITORING")
             .build();
-        
+
         systemLogRepository.save(logEntry);
-        log.info("[{}] Started monitoring flow execution: {}", correlationId, flowName);
+        log.info("[ {}] Started monitoring flow execution: {}", correlationId, flowName);
     }
-    
+
     /**
      * Update execution progress
      */
     @Transactional
     public void updateExecutionProgress(String correlationId, String stage, String message) {
         ExecutionProgress progress = activeExecutions.get(correlationId);
-        if (progress == null) {
+        if(progress == null) {
             log.warn("No active execution found for correlationId: {}", correlationId);
             return;
         }
-        
+
         progress.updateStage(stage, message);
-        
+
         // Log to system log
         SystemLog logEntry = SystemLog.builder()
             .timestamp(LocalDateTime.now())
@@ -81,24 +81,24 @@ public class FlowExecutionMonitoringService {
             .correlationId(correlationId)
             .category("FLOW_MONITORING")
             .build();
-        
+
         systemLogRepository.save(logEntry);
-        log.info("[{}] Progress update - Stage: {}, Message: {}", correlationId, stage, message);
+        log.info("[ {}] Progress update - Stage: {}, Message: {}", correlationId, stage, message);
     }
-    
+
     /**
      * Complete execution monitoring
      */
     @Transactional
     public void completeExecution(String correlationId, boolean success, String message) {
         ExecutionProgress progress = activeExecutions.remove(correlationId);
-        if (progress == null) {
+        if(progress == null) {
             log.warn("No active execution found for correlationId: {}", correlationId);
             return;
         }
-        
+
         progress.complete(success);
-        
+
         // Log completion
         SystemLog logEntry = SystemLog.builder()
             .timestamp(LocalDateTime.now())
@@ -114,45 +114,45 @@ public class FlowExecutionMonitoringService {
             .correlationId(correlationId)
             .category("FLOW_MONITORING")
             .build();
-        
+
         systemLogRepository.save(logEntry);
-        
-        log.info("[{}] Execution {} - Duration: {}ms", 
-            correlationId, 
+
+        log.info("[ {}] Execution {} - Duration: {}ms",
+            correlationId,
             success ? "succeeded" : "failed",
             progress.getDuration());
     }
-    
+
     /**
      * Get current execution progress
      */
     public ExecutionProgress getExecutionProgress(String correlationId) {
         return activeExecutions.get(correlationId);
     }
-    
+
     /**
      * Get all active executions
      */
     public Collection<ExecutionProgress> getActiveExecutions() {
         return new ArrayList<>(activeExecutions.values());
     }
-    
+
     /**
      * Get execution history from logs
      */
     public List<SystemLog> getExecutionHistory(String correlationId) {
         return systemLogRepository.findByCorrelationIdOrderByTimestamp(correlationId);
     }
-    
+
     /**
-     * Clean up stale executions (older than 1 hour)
+     * Clean up stale executions(older than 1 hour)
      */
     public void cleanupStaleExecutions() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(1);
-        
+
         activeExecutions.entrySet().removeIf(entry -> {
             ExecutionProgress progress = entry.getValue();
-            if (progress.getStartTime().isBefore(cutoff) && !progress.isCompleted()) {
+            if(progress.getStartTime().isBefore(cutoff) && !progress.isCompleted()) {
                 log.warn("Removing stale execution: {}", entry.getKey());
                 completeExecution(entry.getKey(), false, "Execution timed out");
                 return true;
@@ -160,7 +160,7 @@ public class FlowExecutionMonitoringService {
             return false;
         });
     }
-    
+
     /**
      * Execution progress tracking class
      */
@@ -175,7 +175,7 @@ public class FlowExecutionMonitoringService {
         private final List<StageProgress> stages;
         private boolean completed;
         private boolean success;
-        
+
         public ExecutionProgress(String correlationId, String flowId, String flowName) {
             this.correlationId = correlationId;
             this.flowId = flowId;
@@ -184,24 +184,24 @@ public class FlowExecutionMonitoringService {
             this.stages = new ArrayList<>();
             this.completed = false;
         }
-        
+
         public void updateStage(String stage, String message) {
             this.currentStage = stage;
             this.currentMessage = message;
             stages.add(new StageProgress(stage, message, LocalDateTime.now()));
         }
-        
+
         public void complete(boolean success) {
             this.completed = true;
             this.success = success;
             this.endTime = LocalDateTime.now();
         }
-        
+
         public long getDuration() {
             LocalDateTime end = endTime != null ? endTime : LocalDateTime.now();
             return java.time.Duration.between(startTime, end).toMillis();
         }
-        
+
         // Getters
         public String getCorrelationId() { return correlationId; }
         public String getFlowId() { return flowId; }
@@ -214,7 +214,7 @@ public class FlowExecutionMonitoringService {
         public boolean isCompleted() { return completed; }
         public boolean isSuccess() { return success; }
     }
-    
+
     /**
      * Stage progress tracking
      */
@@ -222,13 +222,13 @@ public class FlowExecutionMonitoringService {
         private final String stage;
         private final String message;
         private final LocalDateTime timestamp;
-        
+
         public StageProgress(String stage, String message, LocalDateTime timestamp) {
             this.stage = stage;
             this.message = message;
             this.timestamp = timestamp;
         }
-        
+
         // Getters
         public String getStage() { return stage; }
         public String getMessage() { return message; }

@@ -22,38 +22,38 @@ import java.util.concurrent.TimeoutException;
  */
 @Configuration
 public class RetryPolicyConfiguration {
-    
-    @Value("${resilience4j.retry.instances.default.maxAttempts:3}")
+
+    @Value("$ {resilience4j.retry.instances.default.maxAttempts:3}")
     private int defaultMaxAttempts;
-    
-    @Value("${resilience4j.retry.instances.default.waitDuration:1000}")
+
+    @Value("$ {resilience4j.retry.instances.default.waitDuration:1000}")
     private long defaultWaitDuration;
-    
+
     @Bean
     public RetryRegistry retryRegistry() {
         Map<String, RetryConfig> configs = new HashMap<>();
-        
+
         // Default configuration
         configs.put("default", createDefaultRetryConfig());
-        
+
         // HTTP/REST adapters - quick retries with exponential backoff
         configs.put("http", createHttpRetryConfig());
-        
+
         // Database adapters - fewer retries, longer waits
         configs.put("database", createDatabaseRetryConfig());
-        
+
         // Message queue adapters - aggressive retries
         configs.put("messaging", createMessagingRetryConfig());
-        
+
         // File transfer adapters - patient retries
         configs.put("file", createFileTransferRetryConfig());
-        
+
         // SAP adapters - conservative retry approach
         configs.put("sap", createSapRetryConfig());
-        
+
         return RetryRegistry.of(configs);
     }
-    
+
     private RetryConfig createDefaultRetryConfig() {
         return RetryConfig.custom()
             .maxAttempts(defaultMaxAttempts)
@@ -61,7 +61,7 @@ public class RetryPolicyConfiguration {
             .retryOnException(e -> !(e instanceof IllegalArgumentException))
             .build();
     }
-    
+
     private RetryConfig createHttpRetryConfig() {
         return RetryConfig.custom()
             .maxAttempts(3)
@@ -73,14 +73,14 @@ public class RetryPolicyConfiguration {
                 TimeoutException.class,
                 ConnectException.class,
                 SocketTimeoutException.class
-            )
+           )
             .ignoreExceptions(
                 IllegalArgumentException.class,
                 IllegalStateException.class
-            )
+           )
             .retryOnResult(response -> {
                 // Retry on 5xx server errors
-                if (response instanceof Map) {
+                if(response instanceof Map) {
                     Integer status = (Integer) ((Map<?, ?>) response).get("status");
                     return status != null && status >= 500 && status < 600;
                 }
@@ -88,7 +88,7 @@ public class RetryPolicyConfiguration {
             })
             .build();
     }
-    
+
     private RetryConfig createDatabaseRetryConfig() {
         return RetryConfig.custom()
             .maxAttempts(2) // Fewer retries for DB
@@ -99,14 +99,14 @@ public class RetryPolicyConfiguration {
                 SQLException.class,
                 org.springframework.dao.TransientDataAccessException.class,
                 org.springframework.transaction.TransactionTimedOutException.class
-            )
+           )
             .ignoreExceptions(
                 org.springframework.dao.DataIntegrityViolationException.class,
                 org.springframework.dao.DuplicateKeyException.class
-            )
+           )
             .retryOnException(e -> {
                 // Retry on connection/network issues
-                if (e instanceof SQLException) {
+                if(e instanceof SQLException) {
                     String sqlState = ((SQLException) e).getSQLState();
                     // Connection errors typically start with "08"
                     return sqlState != null && sqlState.startsWith("08");
@@ -115,7 +115,7 @@ public class RetryPolicyConfiguration {
             })
             .build();
     }
-    
+
     private RetryConfig createMessagingRetryConfig() {
         return RetryConfig.custom()
             .maxAttempts(5) // More retries for messaging
@@ -126,14 +126,14 @@ public class RetryPolicyConfiguration {
                 javax.jms.JMSException.class,
                 org.apache.kafka.common.errors.RetriableException.class,
                 org.springframework.messaging.MessagingException.class
-            )
+           )
             .ignoreExceptions(
                 javax.jms.InvalidDestinationException.class,
                 org.apache.kafka.common.errors.SerializationException.class
-            )
+           )
             .build();
     }
-    
+
     private RetryConfig createFileTransferRetryConfig() {
         return RetryConfig.custom()
             .maxAttempts(4)
@@ -144,21 +144,21 @@ public class RetryPolicyConfiguration {
                 IOException.class,
                 ConnectException.class,
                 org.apache.commons.net.ftp.FTPConnectionClosedException.class
-            )
+           )
             .ignoreExceptions(
                 java.io.FileNotFoundException.class,
                 java.security.AccessControlException.class
-            )
+           )
             .retryOnException(e -> {
                 // Don't retry on permission errors
                 String message = e.getMessage();
-                return message == null || 
-                    (!message.contains("Permission denied") && 
+                return message == null ||
+                    (!message.contains("Permission denied") &&
                      !message.contains("Access denied"));
             })
             .build();
     }
-    
+
     private RetryConfig createSapRetryConfig() {
         return RetryConfig.custom()
             .maxAttempts(2) // Conservative for SAP
@@ -166,15 +166,15 @@ public class RetryPolicyConfiguration {
             .intervalFunction(io.github.resilience4j.core.IntervalFunction
                 .ofExponentialBackoff(10000, 1.2)) // 10s, 12s
             .retryOnException(e -> {
-                // Check if it's a SAP exception by class name to avoid compile-time dependency
-                if (e.getClass().getName().equals("com.sap.conn.jco.JCoException")) {
+                // Check if it's a SAP exception by class name to avoid compile - time dependency
+                if(e.getClass().getName().equals("com.sap.conn.jco.JCoException")) {
                     try {
                         // Use reflection to get the error group
                         java.lang.reflect.Method getGroupMethod = e.getClass().getMethod("getGroup");
                         int group = (int) getGroupMethod.invoke(e);
-                        // Retry on communication errors (group 1xx)
+                        // Retry on communication errors(group 1xx)
                         return group >= 100 && group < 200;
-                    } catch (Exception ex) {
+                    } catch(Exception ex) {
                         // If reflection fails, don't retry
                         return false;
                     }
@@ -183,40 +183,40 @@ public class RetryPolicyConfiguration {
             })
             .build();
     }
-    
+
     /**
      * Get retry instance for a specific adapter.
      */
     public Retry getRetry(RetryRegistry registry, String adapterType, String adapterId) {
         String configName = mapAdapterTypeToConfig(adapterType);
         String retryName = adapterType + "-" + adapterId;
-        
+
         return registry.retry(retryName, configName);
     }
-    
+
     public String mapAdapterTypeToConfig(String adapterType) {
-        switch (adapterType.toUpperCase()) {
+        switch(adapterType.toUpperCase()) {
             case "HTTP":
             case "REST":
             case "SOAP":
             case "ODATA":
                 return "http";
-                
+
             case "JDBC":
                 return "database";
-                
+
             case "JMS":
             case "KAFKA":
                 return "messaging";
-                
+
             case "FTP":
             case "SFTP":
                 return "file";
-                
+
             case "RFC":
             case "IDOC":
                 return "sap";
-                
+
             default:
                 return "default";
         }

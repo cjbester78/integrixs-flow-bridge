@@ -13,7 +13,7 @@ import java.time.Duration;
  */
 @Configuration
 public class RestTemplateConfig {
-    
+
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
@@ -21,14 +21,14 @@ public class RestTemplateConfig {
             .setReadTimeout(Duration.ofSeconds(60))
             .build();
     }
-    
+
     @Bean
     public RestTemplate connectionTestRestTemplate(RestTemplateBuilder builder) {
         // Special RestTemplate for connection testing with shorter timeouts
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(5000); // 5 seconds for connection
         factory.setReadTimeout(10000); // 10 seconds for read
-        
+
         return builder
                 .requestFactory(() -> factory)
                 .build();

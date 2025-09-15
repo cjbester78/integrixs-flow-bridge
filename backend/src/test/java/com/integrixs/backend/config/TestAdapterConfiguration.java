@@ -23,23 +23,23 @@ public class TestAdapterConfiguration {
 
     @MockBean
     private AdapterExecutor adapterExecutor;
-    
+
     @MockBean
     private AdapterHealthMonitor adapterHealthMonitor;
-    
+
     @MockBean
     private AdapterPoolManager adapterPoolManager;
-    
+
     @MockBean
     private EnhancedAdapterExecutionService enhancedAdapterExecutionService;
-    
+
     @MockBean
     private ErrorHandlingService errorHandlingService;
-    
+
     @MockBean
     private MessageQueueService messageQueueService;
-    
+
     @MockBean
     private HttpInboundAdapterConfig httpInboundAdapterConfig;
-    
+
 }

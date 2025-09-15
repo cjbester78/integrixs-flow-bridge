@@ -22,8 +22,8 @@ public interface UserSessionRepository extends JpaRepository<UserSession, UUID> 
     void deleteByRefreshToken(String refreshToken);
 
     void deleteAllByUser_Id(UUID userId);
-    
+
     List<UserSession> findByUserAndExpiresAtAfter(User user, LocalDateTime expiresAt);
-    
+
     void deleteByExpiresAtBefore(LocalDateTime expiresAt);
 }

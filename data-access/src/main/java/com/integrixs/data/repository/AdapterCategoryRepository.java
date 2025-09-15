@@ -9,13 +9,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AdapterCategoryRepository extends JpaRepository<AdapterCategory, UUID> {
-    
+
     Optional<AdapterCategory> findByCode(String code);
-    
+
     List<AdapterCategory> findByParentCategoryIsNullOrderByDisplayOrder();
-    
+
     List<AdapterCategory> findByParentCategoryIdOrderByDisplayOrder(UUID parentId);
-    
+
     @Query("SELECT ac FROM AdapterCategory ac WHERE ac.parentCategory IS NULL ORDER BY ac.displayOrder")
     List<AdapterCategory> findAllRootCategories();
 }

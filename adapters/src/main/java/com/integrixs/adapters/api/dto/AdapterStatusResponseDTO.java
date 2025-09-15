@@ -92,7 +92,7 @@ public class AdapterStatusResponseDTO {
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String adapterId;
         private String adapterName;
@@ -105,62 +105,62 @@ public class AdapterStatusResponseDTO {
         private Long lastActivityTimestamp;
         private Integer messagesProcessed;
         private Integer errorCount;
-        
+
         public Builder adapterId(String adapterId) {
             this.adapterId = adapterId;
             return this;
         }
-        
+
         public Builder adapterName(String adapterName) {
             this.adapterName = adapterName;
             return this;
         }
-        
+
         public Builder adapterType(String adapterType) {
             this.adapterType = adapterType;
             return this;
         }
-        
+
         public Builder adapterMode(String adapterMode) {
             this.adapterMode = adapterMode;
             return this;
         }
-        
+
         public Builder isActive(boolean isActive) {
             this.isActive = isActive;
             return this;
         }
-        
+
         public Builder status(String status) {
             this.status = status;
             return this;
         }
-        
+
         public Builder metadata(Map<String, Object> metadata) {
             this.metadata = metadata;
             return this;
         }
-        
+
         public Builder lastError(String lastError) {
             this.lastError = lastError;
             return this;
         }
-        
+
         public Builder lastActivityTimestamp(Long lastActivityTimestamp) {
             this.lastActivityTimestamp = lastActivityTimestamp;
             return this;
         }
-        
+
         public Builder messagesProcessed(Integer messagesProcessed) {
             this.messagesProcessed = messagesProcessed;
             return this;
         }
-        
+
         public Builder errorCount(Integer errorCount) {
             this.errorCount = errorCount;
             return this;
         }
-        
+
         public AdapterStatusResponseDTO build() {
             AdapterStatusResponseDTO obj = new AdapterStatusResponseDTO();
             obj.adapterId = this.adapterId;

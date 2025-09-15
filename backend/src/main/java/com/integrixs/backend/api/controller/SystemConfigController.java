@@ -29,10 +29,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "System Configuration", description = "System configuration management")
 public class SystemConfigController {
-    
+
     private final SystemConfigurationApplicationService systemConfigurationService;
     private final UserRepository userRepository;
-    
+
     /**
      * Get all system configurations
      */
@@ -42,7 +42,7 @@ public class SystemConfigController {
         log.debug("Getting all system settings");
         return ResponseEntity.ok(systemConfigurationService.getAllConfigurations());
     }
-    
+
     /**
      * Get system timezone info
      */
@@ -52,7 +52,7 @@ public class SystemConfigController {
         log.debug("Getting system timezone info");
         return ResponseEntity.ok(systemConfigurationService.getTimezoneInfo());
     }
-    
+
     /**
      * Update system timezone
      */
@@ -61,27 +61,27 @@ public class SystemConfigController {
     @Operation(summary = "Update system timezone")
     public ResponseEntity<Map<String, String>> updateSystemTimezone(
             @Valid @RequestBody UpdateTimezoneRequest request) {
-        
+
         log.info("Updating system timezone to: {}", request.getTimezone());
-        
+
         try {
             String username = SecurityUtils.getCurrentUsernameStatic();
             User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             systemConfigurationService.updateSystemTimezone(request.getTimezone(), currentUser);
-            
+
             return ResponseEntity.ok(Map.of(
                 "message", "Timezone updated successfully",
                 "timezone", request.getTimezone()
-            ));
-        } catch (IllegalArgumentException e) {
+           ));
+        } catch(IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", e.getMessage()
-            ));
+           ));
         }
     }
-    
+
     /**
      * Get available timezones
      */
@@ -91,7 +91,7 @@ public class SystemConfigController {
         log.debug("Getting available timezones");
         return ResponseEntity.ok(systemConfigurationService.getAvailableTimezones());
     }
-    
+
     /**
      * Get environment configuration
      */
@@ -102,9 +102,9 @@ public class SystemConfigController {
         return ResponseEntity.ok(Map.of(
             "environment", systemConfigurationService.getEnvironmentType(),
             "type", systemConfigurationService.getEnvironmentType()
-        ));
+       ));
     }
-    
+
     /**
      * Get permissions configuration
      */
@@ -119,6 +119,6 @@ public class SystemConfigController {
             "canModify", systemConfigurationService.canModifyResources(currentRole),
             "canDelete", systemConfigurationService.canDeleteResources(currentRole),
             "canDeploy", systemConfigurationService.canDeployFlows(currentRole)
-        ));
+       ));
     }
 }

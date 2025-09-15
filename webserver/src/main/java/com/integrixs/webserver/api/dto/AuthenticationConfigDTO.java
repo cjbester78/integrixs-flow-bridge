@@ -16,9 +16,9 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthenticationConfigDTO {
-    
+
     private String authType;
-    
+
     @Builder.Default
     private Map<String, String> credentials = new HashMap<>();
 }

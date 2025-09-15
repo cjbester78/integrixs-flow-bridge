@@ -24,15 +24,15 @@ import java.util.List;
  * Handles only HTTP concerns, delegates business logic to application service
  */
 @RestController
-@RequestMapping("/api/communication-adapters")
+@RequestMapping("/api/communication - adapters")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
 public class CommunicationAdapterController {
-    
+
     private final CommunicationAdapterService adapterService;
     private final AdapterTestingService testingService;
-    
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ADAPTER.LIST", module = "AdapterManagement")
@@ -41,8 +41,8 @@ public class CommunicationAdapterController {
         List<AdapterResponse> adapters = adapterService.getAllAdapters();
         return ResponseEntity.ok(adapters);
     }
-    
-    @GetMapping("/{id}")
+
+    @GetMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ADAPTER.GET", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> getAdapterById(@PathVariable String id) {
@@ -50,12 +50,12 @@ public class CommunicationAdapterController {
         try {
             AdapterResponse adapter = adapterService.getAdapterById(id);
             return ResponseEntity.ok(adapter);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Adapter not found: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.CREATE", module = "AdapterManagement", logInput = true)
@@ -64,32 +64,32 @@ public class CommunicationAdapterController {
         try {
             AdapterResponse adapter = adapterService.createAdapter(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(adapter);
-        } catch (IllegalArgumentException e) {
+        } catch(IllegalArgumentException e) {
             log.error("Invalid adapter data: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    @PutMapping("/{id}")
+
+    @PutMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.UPDATE", module = "AdapterManagement", logInput = true)
     public ResponseEntity<AdapterResponse> updateAdapter(
-            @PathVariable String id, 
+            @PathVariable String id,
             @Valid @RequestBody UpdateAdapterRequest request) {
         log.debug("Updating communication adapter: {}", id);
         try {
             AdapterResponse adapter = adapterService.updateAdapter(id, request);
             return ResponseEntity.ok(adapter);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Error updating adapter: {}", e.getMessage());
-            if (e.getMessage().contains("not found")) {
+            if(e.getMessage().contains("not found")) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    @DeleteMapping("/{id}")
+
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER')")
     @BusinessOperation(value = "ADAPTER.DELETE", module = "AdapterManagement")
     public ResponseEntity<Void> deleteAdapter(@PathVariable String id) {
@@ -97,16 +97,16 @@ public class CommunicationAdapterController {
         try {
             adapterService.deleteAdapter(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Error deleting adapter: {}", e.getMessage());
-            if (e.getMessage().contains("not found")) {
+            if(e.getMessage().contains("not found")) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    @PostMapping("/{id}/activate")
+
+    @PostMapping("/ {id}/activate")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.ACTIVATE", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> activateAdapter(@PathVariable String id) {
@@ -114,16 +114,16 @@ public class CommunicationAdapterController {
         try {
             AdapterResponse adapter = adapterService.activateAdapter(id);
             return ResponseEntity.ok(adapter);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Error activating adapter: {}", e.getMessage());
-            if (e.getMessage().contains("not found")) {
+            if(e.getMessage().contains("not found")) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    @PostMapping("/{id}/deactivate")
+
+    @PostMapping("/ {id}/deactivate")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.DEACTIVATE", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> deactivateAdapter(@PathVariable String id) {
@@ -131,15 +131,15 @@ public class CommunicationAdapterController {
         try {
             AdapterResponse adapter = adapterService.deactivateAdapter(id);
             return ResponseEntity.ok(adapter);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Error deactivating adapter: {}", e.getMessage());
-            if (e.getMessage().contains("not found")) {
+            if(e.getMessage().contains("not found")) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     @PostMapping("/test")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.TEST", module = "AdapterManagement", includeMetrics = true)
@@ -148,9 +148,9 @@ public class CommunicationAdapterController {
         try {
             AdapterTestResponse result = testingService.testAdapter(request);
             return ResponseEntity.ok(result);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             log.error("Error testing adapter: {}", e.getMessage());
-            if (e.getMessage().contains("not found")) {
+            if(e.getMessage().contains("not found")) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

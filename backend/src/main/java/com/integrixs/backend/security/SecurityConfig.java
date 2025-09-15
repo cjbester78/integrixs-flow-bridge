@@ -26,20 +26,20 @@ import com.integrixs.data.repository.UserRepository;
 
 /**
  * Enhanced security configuration with comprehensive security features.
- * 
+ *
  * <p>Provides JWT authentication, CORS configuration, security headers,
- * and method-level security.
- * 
+ * and method - level security.
+ *
  * @author Integration Team
  * @since 1.0.0
  */
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
-    
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+
+    @Value("$ {app.cors.allowed - origins:http://localhost:3000,http://localhost:8080}")
     private String[] allowedOrigins;
-    
+
     @Autowired(required = false)
     private IpWhitelistFilter ipWhitelistFilter;
 
@@ -54,8 +54,8 @@ public class SecurityConfig {
     public UserContextFilter userContextFilter(UserRepository userRepository) {
         return new UserContextFilter(userRepository);
     }
-    
-    
+
+
     @Bean
     public FilterRegistrationBean<Filter> jwtFilterRegistration(JwtAuthFilter jwtAuthFilter) {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
@@ -72,21 +72,21 @@ public class SecurityConfig {
         return http
                 // CORS configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                
+
                 // CSRF disabled for stateless JWT authentication
                 .csrf(csrf -> csrf.disable())
-                
+
                 // Security headers
                 .headers(headers -> headers
                     .frameOptions(frame -> frame.deny())
                     .xssProtection(xss -> xss.headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
                     .contentTypeOptions(content -> content.disable())
-                    .referrerPolicy(referrer -> 
+                    .referrerPolicy(referrer ->
                         referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                    .permissionsPolicy(permissions -> 
-                        permissions.policy("camera=(), microphone=(), geolocation=()"))
-                )
-                
+                    .permissionsPolicy(permissions ->
+                        permissions.policy("camera = (), microphone = (), geolocation = ()"))
+               )
+
                 // Authorization rules
                 .authorizeHttpRequests(authz -> authz
                         // CRITICAL: Allow all SPA routes without authentication
@@ -99,7 +99,7 @@ public class SecurityConfig {
                                 "/settings",
                                 "/admin/**",
                                 "/admin"
-                        ).permitAll()
+                       ).permitAll()
                         .requestMatchers(
                                 "/auth/**",
                                 "/api/auth/**",
@@ -108,9 +108,9 @@ public class SecurityConfig {
                                 "/api/health",
                                 "/health",
                                 "/actuator/health",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
+                                "/v3/api - docs/**",
+                                "/swagger - ui/**",
+                                "/swagger - ui.html",
                                 "/",
                                 "/index.html",
                                 "/favicon.ico",
@@ -125,49 +125,49 @@ public class SecurityConfig {
                                 "/*.woff2",
                                 "/*.ttf",
                                 "/ws/**",
-                                "/flow-execution",
+                                "/flow - execution",
                                 "/ws/messages",
-                                "/ws/flow-execution",
-                                "/ws/flow-execution-native",
+                                "/ws/flow - execution",
+                                "/ws/flow - execution - native",
                                 "/echo",
-                                "/test-ws",
+                                "/test - ws",
                                 "/wstest",
-                                "/direct-ws",
-                                "/minimal-echo",
+                                "/direct - ws",
+                                "/minimal - echo",
                                 "/basic"
-                        ).permitAll()
+                       ).permitAll()
                         .requestMatchers("/soap/**").permitAll() // Allow SOAP endpoints without authentication
-                        .requestMatchers("/api/test-deployed-flows").permitAll() // Test endpoint
+                        .requestMatchers("/api/test - deployed - flows").permitAll() // Test endpoint
                         .requestMatchers("/api/debug/**").permitAll()
-                        .requestMatchers("/api/websocket-test/**").permitAll()
-                        .requestMatchers("/api/system-settings/**").hasRole("ADMINISTRATOR")
+                        .requestMatchers("/api/websocket - test/**").permitAll()
+                        .requestMatchers("/api/system - settings/**").hasRole("ADMINISTRATOR")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER")
                         .requestMatchers("/api/flows/execute/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER", "INTEGRATOR")
                         .requestMatchers("/api/flows/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER", "VIEWER")
                         .requestMatchers("/api/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER", "INTEGRATOR", "VIEWER")
                         .anyRequest().permitAll() // Change to permitAll for SPA routes
-                )
-                
+               )
+
                 // Session management
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-                
+
                 // Add IP whitelist filter if enabled
-                if (ipWhitelistFilter != null) {
+                if(ipWhitelistFilter != null) {
                     http.addFilterBefore(ipWhitelistFilter, UsernamePasswordAuthenticationFilter.class);
                 }
-                
+
                 // JWT filter
                 http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                
-                // UserContext filter (after JWT authentication)
+
+                // UserContext filter(after JWT authentication)
                 .addFilterAfter(userContextFilter, JwtAuthFilter.class)
-                
+
                 // Exception handling
                 .exceptionHandling(exceptions -> exceptions
                     .authenticationEntryPoint(customAuthenticationEntryPoint)
                     .accessDeniedHandler(customAccessDeniedHandler)
-                );
-                
+               );
+
                 return http.build();
     }
 
@@ -175,10 +175,10 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12); // Increased strength
     }
-    
+
     /**
-     * CORS configuration for secure cross-origin requests.
-     * 
+     * CORS configuration for secure cross - origin requests.
+     *
      * @return CORS configuration source
      */
     @Bean
@@ -187,22 +187,22 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization", 
-            "Content-Type", 
-            "X-Requested-With", 
-            "Accept", 
+            "Authorization",
+            "Content - Type",
+            "X - Requested - With",
+            "Accept",
             "Origin",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers"
-        ));
+            "Access - Control - Request - Method",
+            "Access - Control - Request - Headers"
+       ));
         configuration.setExposedHeaders(Arrays.asList(
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Credentials",
+            "Access - Control - Allow - Origin",
+            "Access - Control - Allow - Credentials",
             "Authorization"
-        ));
+       ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

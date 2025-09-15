@@ -28,10 +28,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Marketplace", description = "Template marketplace endpoints")
 public class MarketplaceController {
-    
+
     private final MarketplaceService marketplaceService;
     private final OrganizationService organizationService;
-    
+
     @GetMapping("/templates")
     @Operation(summary = "Search templates", description = "Search and filter templates in the marketplace")
     public ResponseEntity<Page<TemplateDto>> searchTemplates(
@@ -40,15 +40,15 @@ public class MarketplaceController {
         Page<TemplateDto> templates = marketplaceService.searchTemplates(searchRequest, pageable);
         return ResponseEntity.ok(templates);
     }
-    
-    @GetMapping("/templates/{slug}")
+
+    @GetMapping("/templates/ {slug}")
     @Operation(summary = "Get template details", description = "Get detailed information about a template")
     public ResponseEntity<TemplateDetailDto> getTemplateDetails(
             @PathVariable String slug) {
         TemplateDetailDto template = marketplaceService.getTemplateDetails(slug);
         return ResponseEntity.ok(template);
     }
-    
+
     @PostMapping("/templates")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Create template", description = "Create a new template in the marketplace")
@@ -57,8 +57,8 @@ public class MarketplaceController {
         TemplateDto template = marketplaceService.createTemplate(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(template);
     }
-    
-    @PutMapping("/templates/{slug}")
+
+    @PutMapping("/templates/ {slug}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Update template", description = "Update an existing template")
     public ResponseEntity<TemplateDto> updateTemplate(
@@ -67,8 +67,8 @@ public class MarketplaceController {
         TemplateDto template = marketplaceService.updateTemplate(slug, request);
         return ResponseEntity.ok(template);
     }
-    
-    @PostMapping("/templates/{slug}/icon")
+
+    @PostMapping("/templates/ {slug}/icon")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Upload template icon", description = "Upload an icon for the template")
     public ResponseEntity<Void> uploadIcon(
@@ -77,8 +77,8 @@ public class MarketplaceController {
         marketplaceService.uploadIcon(slug, file);
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping("/templates/{slug}/screenshots")
+
+    @PostMapping("/templates/ {slug}/screenshots")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Add screenshot", description = "Add a screenshot to the template")
     public ResponseEntity<Void> addScreenshot(
@@ -87,8 +87,8 @@ public class MarketplaceController {
         marketplaceService.addScreenshot(slug, file);
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping("/templates/{slug}/versions")
+
+    @PostMapping("/templates/ {slug}/versions")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Publish new version", description = "Publish a new version of the template")
     public ResponseEntity<TemplateVersionDto> publishVersion(
@@ -97,8 +97,8 @@ public class MarketplaceController {
         TemplateVersionDto version = marketplaceService.publishVersion(slug, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(version);
     }
-    
-    @PostMapping("/templates/{slug}/install")
+
+    @PostMapping("/templates/ {slug}/install")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Install template", description = "Install a template and create a new flow")
     public ResponseEntity<InstallationResultDto> installTemplate(
@@ -107,8 +107,8 @@ public class MarketplaceController {
         InstallationResultDto result = marketplaceService.installTemplate(slug, request);
         return ResponseEntity.ok(result);
     }
-    
-    @PostMapping("/templates/{slug}/rate")
+
+    @PostMapping("/templates/ {slug}/rate")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Rate template", description = "Rate and review a template")
     public ResponseEntity<Void> rateTemplate(
@@ -117,8 +117,8 @@ public class MarketplaceController {
         marketplaceService.rateTemplate(slug, request);
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping("/templates/{slug}/comments")
+
+    @PostMapping("/templates/ {slug}/comments")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Add comment", description = "Add a comment to a template")
     public ResponseEntity<CommentDto> addComment(
@@ -127,22 +127,22 @@ public class MarketplaceController {
         CommentDto comment = marketplaceService.addComment(slug, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
-    
-    @GetMapping("/templates/{slug}/stats")
+
+    @GetMapping("/templates/ {slug}/stats")
     @Operation(summary = "Get template statistics", description = "Get usage statistics for a template")
     public ResponseEntity<TemplateStatsDto> getTemplateStats(
             @PathVariable String slug) {
         TemplateStatsDto stats = marketplaceService.getTemplateStats(slug);
         return ResponseEntity.ok(stats);
     }
-    
+
     @GetMapping("/templates/featured")
     @Operation(summary = "Get featured templates", description = "Get currently featured templates")
     public ResponseEntity<List<TemplateDto>> getFeaturedTemplates() {
         List<TemplateDto> templates = marketplaceService.getFeaturedTemplates();
         return ResponseEntity.ok(templates);
     }
-    
+
     @GetMapping("/templates/trending")
     @Operation(summary = "Get trending templates", description = "Get trending templates for a period")
     public ResponseEntity<List<TemplateDto>> getTrendingTemplates(
@@ -150,14 +150,14 @@ public class MarketplaceController {
         List<TemplateDto> templates = marketplaceService.getTrendingTemplates(period);
         return ResponseEntity.ok(templates);
     }
-    
+
     @GetMapping("/categories")
     @Operation(summary = "Get categories", description = "Get all template categories with counts")
     public ResponseEntity<List<CategoryDto>> getCategories() {
         List<CategoryDto> categories = marketplaceService.getCategories();
         return ResponseEntity.ok(categories);
     }
-    
+
     @GetMapping("/tags")
     @Operation(summary = "Get popular tags", description = "Get popular tags used in templates")
     public ResponseEntity<List<TagDto>> getPopularTags(
@@ -165,9 +165,9 @@ public class MarketplaceController {
         List<TagDto> tags = marketplaceService.getPopularTags(limit);
         return ResponseEntity.ok(tags);
     }
-    
+
     // Organization endpoints
-    
+
     @PostMapping("/organizations")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Create organization", description = "Create a new organization")
@@ -176,16 +176,16 @@ public class MarketplaceController {
         OrganizationDto org = organizationService.createOrganization(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(org);
     }
-    
-    @GetMapping("/organizations/{slug}")
+
+    @GetMapping("/organizations/ {slug}")
     @Operation(summary = "Get organization", description = "Get organization details")
     public ResponseEntity<OrganizationDetailDto> getOrganization(
             @PathVariable String slug) {
         OrganizationDetailDto org = organizationService.getOrganization(slug);
         return ResponseEntity.ok(org);
     }
-    
-    @PutMapping("/organizations/{slug}")
+
+    @PutMapping("/organizations/ {slug}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Update organization", description = "Update organization details")
     public ResponseEntity<OrganizationDto> updateOrganization(
@@ -194,8 +194,8 @@ public class MarketplaceController {
         OrganizationDto org = organizationService.updateOrganization(slug, request);
         return ResponseEntity.ok(org);
     }
-    
-    @PostMapping("/organizations/{slug}/members")
+
+    @PostMapping("/organizations/ {slug}/members")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Add member", description = "Add a member to the organization")
     public ResponseEntity<Void> addMember(
@@ -204,8 +204,8 @@ public class MarketplaceController {
         organizationService.addMember(slug, request.getUserId());
         return ResponseEntity.noContent().build();
     }
-    
-    @DeleteMapping("/organizations/{slug}/members/{userId}")
+
+    @DeleteMapping("/organizations/ {slug}/members/ {userId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Remove member", description = "Remove a member from the organization")
     public ResponseEntity<Void> removeMember(
@@ -214,8 +214,8 @@ public class MarketplaceController {
         organizationService.removeMember(slug, userId);
         return ResponseEntity.noContent().build();
     }
-    
-    @GetMapping("/organizations/{slug}/templates")
+
+    @GetMapping("/organizations/ {slug}/templates")
     @Operation(summary = "Get organization templates", description = "Get all templates by an organization")
     public ResponseEntity<Page<TemplateDto>> getOrganizationTemplates(
             @PathVariable String slug,
@@ -223,9 +223,9 @@ public class MarketplaceController {
         Page<TemplateDto> templates = organizationService.getOrganizationTemplates(slug, pageable);
         return ResponseEntity.ok(templates);
     }
-    
+
     // User endpoints
-    
+
     @GetMapping("/my/templates")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "Get my templates", description = "Get templates created by the current user")
@@ -234,7 +234,7 @@ public class MarketplaceController {
         Page<TemplateDto> templates = marketplaceService.getUserTemplates(pageable);
         return ResponseEntity.ok(templates);
     }
-    
+
     @GetMapping("/my/installations")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get my installations", description = "Get templates installed by the current user")
@@ -243,8 +243,8 @@ public class MarketplaceController {
         Page<InstallationDto> installations = marketplaceService.getUserInstallations(pageable);
         return ResponseEntity.ok(installations);
     }
-    
-    @DeleteMapping("/my/installations/{installationId}")
+
+    @DeleteMapping("/my/installations/ {installationId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Uninstall template", description = "Uninstall a template")
     public ResponseEntity<Void> uninstallTemplate(
@@ -252,10 +252,10 @@ public class MarketplaceController {
         marketplaceService.uninstallTemplate(installationId);
         return ResponseEntity.noContent().build();
     }
-    
+
     // Admin endpoints
-    
-    @PostMapping("/admin/templates/{slug}/certify")
+
+    @PostMapping("/admin/templates/ {slug}/certify")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Certify template", description = "Mark a template as certified")
     public ResponseEntity<Void> certifyTemplate(
@@ -263,8 +263,8 @@ public class MarketplaceController {
         marketplaceService.certifyTemplate(slug);
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping("/admin/templates/{slug}/feature")
+
+    @PostMapping("/admin/templates/ {slug}/feature")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Feature template", description = "Mark a template as featured")
     public ResponseEntity<Void> featureTemplate(
@@ -273,8 +273,8 @@ public class MarketplaceController {
         marketplaceService.featureTemplate(slug, request.getDuration());
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping("/admin/organizations/{slug}/verify")
+
+    @PostMapping("/admin/organizations/ {slug}/verify")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Verify organization", description = "Mark an organization as verified")
     public ResponseEntity<Void> verifyOrganization(

@@ -30,7 +30,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
         // Initialize rate limiter based on configuration
         int rateLimit = Integer.parseInt(
             configuration.getOrDefault("rateLimit", "100").toString()
-        );
+       );
         this.rateLimiter = new Semaphore(rateLimit);
         
         // Start rate limit reset scheduler
@@ -64,7 +64,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
                     .metadata(Map.of(
                         "statusCode", response.getStatusCode(),
                         "responseTime", response.getResponseTime()
-                    ))
+                   ))
                     .build();
                     
         } catch (Exception e) {
@@ -83,7 +83,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
             List<CompletableFuture<SendResult>> futures = messages.stream()
                     .map(msg -> CompletableFuture.supplyAsync(
                         () -> send(msg), executor
-                    ))
+                   ))
                     .collect(Collectors.toList());
             
             // Wait for all to complete
@@ -95,7 +95,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
                             return SendResult.failure(
                                 "unknown", 
                                 "Timeout or error: " + e.getMessage()
-                            );
+                           );
                         }
                     })
                     .collect(Collectors.toList());
@@ -118,7 +118,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
         // Check configuration for batch support
         return Boolean.parseBoolean(
             configuration.getOrDefault("supportsBatch", "false").toString()
-        );
+       );
     }
     
     private Map<String, Object> preparePayload(PluginMessage message) {
@@ -132,7 +132,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
             "sourceId", message.getId(),
             "timestamp", message.getTimestamp(),
             "source", "${pluginId}"
-        ));
+       ));
         
         // Add any custom headers from message
         if (message.getHeaders() != null) {
@@ -145,7 +145,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
     private SendResponse sendWithRetry(Map<String, Object> payload, String messageId) throws PluginException {
         int maxRetries = Integer.parseInt(
             configuration.getOrDefault("retryAttempts", "3").toString()
-        );
+       );
         
         Exception lastException = null;
         
@@ -176,7 +176,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
         String endpoint = (String) configuration.get("endpoint");
         int timeout = Integer.parseInt(
             configuration.getOrDefault("timeout", "30").toString()
-        ) * 1000;
+       ) * 1000;
         
         URL url = new URL(endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -223,7 +223,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
                     "Message sent successfully",
                     responseCode,
                     responseTime
-                );
+               );
             } else {
                 return new SendResponse(
                     false,
@@ -231,7 +231,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
                     "Server returned status " + responseCode + ": " + response,
                     responseCode,
                     responseTime
-                );
+               );
             }
             
         } finally {
@@ -249,7 +249,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
             String endpoint = (String) configuration.get("endpoint") + "/batch";
             int timeout = Integer.parseInt(
                 configuration.getOrDefault("timeout", "30").toString()
-            ) * 1000;
+           ) * 1000;
             
             URL url = new URL(endpoint);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -266,7 +266,7 @@ public class ${pluginClass}OutboundHandler implements OutboundHandler {
                 String jsonPayload = objectMapper.writeValueAsString(Map.of(
                     "batch", batchPayload,
                     "batchId", UUID.randomUUID().toString()
-                ));
+               ));
                 
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));

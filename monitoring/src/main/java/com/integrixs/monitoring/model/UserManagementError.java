@@ -9,7 +9,7 @@ import com.integrixs.data.model.SystemLog;
 @Entity
 @Table(name = "user_management_errors")
 /**
- * Class UserManagementError - auto-generated documentation.
+ * Class UserManagementError - auto - generated documentation.
  */
 public class UserManagementError {
 

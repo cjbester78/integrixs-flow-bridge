@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/flow-structures")
+@RequestMapping("/api/flow - structures")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Flow Structures", description = "Flow structure management endpoints")
 public class FlowStructureController {
-    
+
     private final FlowStructureService flowStructureService;
-    
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Create a new flow structure")
@@ -37,8 +37,8 @@ public class FlowStructureController {
         FlowStructureDTO created = flowStructureService.create(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-    
-    @PutMapping("/{id}")
+
+    @PutMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Update an existing flow structure")
     public ResponseEntity<FlowStructureDTO> update(@PathVariable String id,
@@ -48,15 +48,15 @@ public class FlowStructureController {
         FlowStructureDTO updated = flowStructureService.update(id, request, currentUser);
         return ResponseEntity.ok(updated);
     }
-    
-    @GetMapping("/{id}")
+
+    @GetMapping("/ {id}")
     @Operation(summary = "Get a flow structure by ID")
     public ResponseEntity<FlowStructureDTO> findById(@PathVariable String id) {
         log.info("Getting flow structure: {}", id);
         FlowStructureDTO structure = flowStructureService.findById(id);
         return ResponseEntity.ok(structure);
     }
-    
+
     @GetMapping
     @Operation(summary = "Get all flow structures with filters")
     public ResponseEntity<Page<FlowStructureDTO>> findAll(
@@ -70,24 +70,24 @@ public class FlowStructureController {
                 businessComponentId, processingMode, direction, search, pageable);
         return ResponseEntity.ok(structures);
     }
-    
-    @GetMapping("/by-business-component/{businessComponentId}")
+
+    @GetMapping("/by - business - component/ {businessComponentId}")
     @Operation(summary = "Get all flow structures for a business component")
     public ResponseEntity<List<FlowStructureDTO>> findByBusinessComponent(@PathVariable String businessComponentId) {
         log.info("Getting flow structures for business component: {}", businessComponentId);
         List<FlowStructureDTO> structures = flowStructureService.findByBusinessComponent(businessComponentId);
         return ResponseEntity.ok(structures);
     }
-    
-    @GetMapping("/by-message-structure/{messageStructureId}")
+
+    @GetMapping("/by - message - structure/ {messageStructureId}")
     @Operation(summary = "Get all flow structures using a specific message structure")
     public ResponseEntity<List<FlowStructureDTO>> findByMessageStructure(@PathVariable String messageStructureId) {
         log.info("Getting flow structures using message structure: {}", messageStructureId);
         List<FlowStructureDTO> structures = flowStructureService.findByMessageStructure(messageStructureId);
         return ResponseEntity.ok(structures);
     }
-    
-    @DeleteMapping("/{id}")
+
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(summary = "Delete a flow structure")
     public ResponseEntity<Void> delete(@PathVariable String id) {
@@ -95,8 +95,8 @@ public class FlowStructureController {
         flowStructureService.delete(id);
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping("/regenerate-wsdl")
+
+    @PostMapping("/regenerate - wsdl")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(summary = "Regenerate WSDL for all flow structures with placeholders")
     public ResponseEntity<String> regenerateWsdl() {
@@ -104,8 +104,8 @@ public class FlowStructureController {
         flowStructureService.regenerateWsdlForAll();
         return ResponseEntity.ok("WSDL regeneration completed");
     }
-    
-    @PostMapping("/{id}/regenerate-wsdl")
+
+    @PostMapping("/ {id}/regenerate - wsdl")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     @Operation(summary = "Regenerate WSDL for a specific flow structure")
     public ResponseEntity<FlowStructureDTO> regenerateWsdlForOne(@PathVariable String id) {

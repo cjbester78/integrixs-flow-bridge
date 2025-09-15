@@ -16,26 +16,26 @@ import java.util.Map;
 public abstract class AbstractSocialMediaInboundAdapter extends AbstractInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(AbstractSocialMediaInboundAdapter.class);
 
-    
+
     protected AbstractSocialMediaInboundAdapter() {
         super(AdapterConfiguration.AdapterTypeEnum.REST);
     }
-    
+
     /**
      * Get the supported event types for this social media adapter
      */
     protected abstract List<String> getSupportedEventTypes();
-    
+
     /**
-     * Get the adapter-specific configuration
+     * Get the adapter - specific configuration
      */
     protected abstract Map<String, Object> getConfig();
-    
+
     /**
      * Get the adapter configuration
      */
     public abstract Map<String, Object> getAdapterConfig();
-    
+
     /**
      * Process webhook events from social media platforms
      */
@@ -43,7 +43,7 @@ public abstract class AbstractSocialMediaInboundAdapter extends AbstractInboundA
         log.debug("Processing webhook event for adapter: {}", getAdapterType());
         // Default implementation - can be overridden by specific adapters
     }
-    
+
     /**
      * Verify webhook signature for security
      */
@@ -52,12 +52,12 @@ public abstract class AbstractSocialMediaInboundAdapter extends AbstractInboundA
         // Default implementation - should be overridden by specific adapters
         return true;
     }
-    
+
     /**
      * Get the adapter type identifier
      */
     public abstract AdapterConfiguration.AdapterTypeEnum getAdapterType();
-    
+
     /**
      * Convert social media data to MessageDTO
      */
@@ -67,22 +67,22 @@ public abstract class AbstractSocialMediaInboundAdapter extends AbstractInboundA
             "eventType", eventType,
             "adapterType", getAdapterType().name(),
             "timestamp", System.currentTimeMillis()
-        ));
-        if (data != null) {
+       ));
+        if(data != null) {
             try {
                 message.setPayload(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(data));
-            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            } catch(com.fasterxml.jackson.core.JsonProcessingException e) {
                 message.setPayload(data.toString());
             }
         }
         return message;
     }
-    
+
     /**
      * Common error handling for social media API calls
      */
     protected void handleApiError(Exception e, String operation) {
-        log.error("Error in {} operation for adapter {}: {}", 
+        log.error("Error in {} operation for adapter {}: {}",
             operation, getAdapterType(), e.getMessage(), e);
     }
 }

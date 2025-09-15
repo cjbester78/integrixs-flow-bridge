@@ -24,31 +24,31 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SystemConfigurationApplicationService {
-    
+
     private final ConfigurationManagementService configurationService;
     private final AuditTrailService auditTrailService;
     private final com.integrixs.backend.domain.repository.SystemConfigurationRepository systemConfigurationRepository;
-    
+
     /**
      * Get all system configurations
      */
     @Transactional(readOnly = true)
     public SystemConfigResponse getAllConfigurations() {
         log.debug("Getting all system configurations");
-        
+
         Map<String, String> configs = new HashMap<>();
         List<SystemConfiguration> allConfigs = systemConfigurationRepository.findAll();
-        
-        for (SystemConfiguration config : allConfigs) {
+
+        for(SystemConfiguration config : allConfigs) {
             configs.put(config.getConfigKey(), config.getConfigValue());
         }
-        
+
         // Add defaults if not present
         configs.putIfAbsent(ConfigurationManagementService.TIMEZONE_KEY, configurationService.getSystemTimezone());
         configs.putIfAbsent(ConfigurationManagementService.DATE_FORMAT_KEY, configurationService.getDateFormat());
         configs.putIfAbsent(ConfigurationManagementService.TIME_FORMAT_KEY, configurationService.getTimeFormat());
         configs.putIfAbsent(ConfigurationManagementService.DATETIME_FORMAT_KEY, configurationService.getDateTimeFormat());
-        
+
         return SystemConfigResponse.builder()
             .timezone(configurationService.getSystemTimezone())
             .dateFormat(configurationService.getDateFormat())
@@ -57,7 +57,7 @@ public class SystemConfigurationApplicationService {
             .allConfigurations(configs)
             .build();
     }
-    
+
     /**
      * Update system timezone
      */
@@ -65,31 +65,31 @@ public class SystemConfigurationApplicationService {
     @CacheEvict(value = "systemConfig", key = "'timezone'")
     public void updateSystemTimezone(String timezone, User performedBy) {
         log.info("Updating system timezone to: {} by user: {}", timezone, performedBy.getUsername());
-        
+
         // Validate timezone
-        if (!configurationService.isValidTimezone(timezone)) {
+        if(!configurationService.isValidTimezone(timezone)) {
             throw new IllegalArgumentException("Invalid timezone: " + timezone);
         }
-        
+
         // Save configuration
         configurationService.saveConfiguration(
             ConfigurationManagementService.TIMEZONE_KEY,
             timezone,
             "System timezone",
             "STRING"
-        );
-        
+       );
+
         // Audit the change
         auditTrailService.logUserAction(
             performedBy,
             "SystemConfiguration",
             ConfigurationManagementService.TIMEZONE_KEY,
             "UPDATE_TIMEZONE"
-        );
-        
+       );
+
         log.info("System timezone updated successfully to: {}", timezone);
     }
-    
+
     /**
      * Update date format
      */
@@ -97,22 +97,22 @@ public class SystemConfigurationApplicationService {
     @CacheEvict(value = "systemConfig", key = "'dateFormat'")
     public void updateDateFormat(String format, User performedBy) {
         log.info("Updating date format to: {} by user: {}", format, performedBy.getUsername());
-        
+
         configurationService.saveConfiguration(
             ConfigurationManagementService.DATE_FORMAT_KEY,
             format,
             "Date display format",
             "STRING"
-        );
-        
+       );
+
         auditTrailService.logUserAction(
             performedBy,
             "SystemConfiguration",
             ConfigurationManagementService.DATE_FORMAT_KEY,
             "UPDATE_DATE_FORMAT"
-        );
+       );
     }
-    
+
     /**
      * Update time format
      */
@@ -120,22 +120,22 @@ public class SystemConfigurationApplicationService {
     @CacheEvict(value = "systemConfig", key = "'timeFormat'")
     public void updateTimeFormat(String format, User performedBy) {
         log.info("Updating time format to: {} by user: {}", format, performedBy.getUsername());
-        
+
         configurationService.saveConfiguration(
             ConfigurationManagementService.TIME_FORMAT_KEY,
             format,
             "Time display format",
             "STRING"
-        );
-        
+       );
+
         auditTrailService.logUserAction(
             performedBy,
             "SystemConfiguration",
             ConfigurationManagementService.TIME_FORMAT_KEY,
             "UPDATE_TIME_FORMAT"
-        );
+       );
     }
-    
+
     /**
      * Update datetime format
      */
@@ -143,22 +143,22 @@ public class SystemConfigurationApplicationService {
     @CacheEvict(value = "systemConfig", key = "'dateTimeFormat'")
     public void updateDateTimeFormat(String format, User performedBy) {
         log.info("Updating datetime format to: {} by user: {}", format, performedBy.getUsername());
-        
+
         configurationService.saveConfiguration(
             ConfigurationManagementService.DATETIME_FORMAT_KEY,
             format,
             "DateTime display format",
             "STRING"
-        );
-        
+       );
+
         auditTrailService.logUserAction(
             performedBy,
             "SystemConfiguration",
             ConfigurationManagementService.DATETIME_FORMAT_KEY,
             "UPDATE_DATETIME_FORMAT"
-        );
+       );
     }
-    
+
     /**
      * Get available timezones
      */
@@ -171,7 +171,7 @@ public class SystemConfigurationApplicationService {
                 .build())
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Get system timezone info
      */
@@ -184,7 +184,7 @@ public class SystemConfigurationApplicationService {
             .dateTimeFormat(configurationService.getDateTimeFormat())
             .build();
     }
-    
+
     /**
      * Format timezone display name
      */
@@ -192,53 +192,53 @@ public class SystemConfigurationApplicationService {
         try {
             TimeZone tz = TimeZone.getTimeZone(zoneId);
             int offset = tz.getRawOffset() / 3600000;
-            String offsetStr = offset >= 0 ? "+" + offset : String.valueOf(offset);
-            return String.format("%s (UTC%s)", zoneId, offsetStr);
-        } catch (Exception e) {
+            String offsetStr = offset >= 0 ? " + " + offset : String.valueOf(offset);
+            return String.format("%s(UTC%s)", zoneId, offsetStr);
+        } catch(Exception e) {
             return zoneId;
         }
     }
-    
+
     /**
      * Get current environment type
      */
     public String getEnvironmentType() {
         return configurationService.getConfigValue("environment.type", "DEVELOPMENT");
     }
-    
+
     /**
      * Check if role can create resources
      */
     public boolean canCreateResources(String role) {
         String env = configurationService.getConfigValue("environment.type", "DEVELOPMENT");
-        if ("PRODUCTION".equals(env) || "QUALITY_ASSURANCE".equals(env)) {
+        if("PRODUCTION".equals(env) || "QUALITY_ASSURANCE".equals(env)) {
             return false;
         }
         return "ADMINISTRATOR".equals(role) || "DEVELOPER".equals(role) || "INTEGRATOR".equals(role);
     }
-    
+
     /**
      * Check if role can modify resources
      */
     public boolean canModifyResources(String role) {
         String env = configurationService.getConfigValue("environment.type", "DEVELOPMENT");
-        if ("PRODUCTION".equals(env) || "QUALITY_ASSURANCE".equals(env)) {
+        if("PRODUCTION".equals(env) || "QUALITY_ASSURANCE".equals(env)) {
             return false;
         }
         return "ADMINISTRATOR".equals(role) || "DEVELOPER".equals(role) || "INTEGRATOR".equals(role);
     }
-    
+
     /**
      * Check if role can delete resources
      */
     public boolean canDeleteResources(String role) {
         String env = configurationService.getConfigValue("environment.type", "DEVELOPMENT");
-        if ("PRODUCTION".equals(env) || "QUALITY_ASSURANCE".equals(env)) {
+        if("PRODUCTION".equals(env) || "QUALITY_ASSURANCE".equals(env)) {
             return false;
         }
         return "ADMINISTRATOR".equals(role) || "DEVELOPER".equals(role);
     }
-    
+
     /**
      * Check if role can deploy flows
      */

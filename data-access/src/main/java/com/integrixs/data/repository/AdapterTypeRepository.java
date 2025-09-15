@@ -12,11 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AdapterTypeRepository extends JpaRepository<AdapterType, UUID> {
-    
+
     Optional<AdapterType> findByCode(String code);
-    
+
     boolean existsByCode(String code);
-    
+
     @Query("SELECT at FROM AdapterType at WHERE " +
            "(:categoryId IS NULL OR at.category.id = :categoryId) AND " +
            "(:status IS NULL OR at.status = :status) AND " +
@@ -26,15 +26,15 @@ public interface AdapterTypeRepository extends JpaRepository<AdapterType, UUID> 
                                      @Param("status") String status,
                                      @Param("search") String search,
                                      Pageable pageable);
-    
+
     List<AdapterType> findByCategoryIdAndStatus(UUID categoryId, String status);
-    
+
     List<AdapterType> findByStatus(String status);
-    
+
     @Query("SELECT at FROM AdapterType at WHERE " +
            "(:inbound = false OR at.supportsInbound = true) AND " +
            "(:outbound = false OR at.supportsOutbound = true) AND " +
            "at.status = 'active'")
-    List<AdapterType> findByDirectionSupport(@Param("inbound") boolean inbound, 
+    List<AdapterType> findByDirectionSupport(@Param("inbound") boolean inbound,
                                             @Param("outbound") boolean outbound);
 }

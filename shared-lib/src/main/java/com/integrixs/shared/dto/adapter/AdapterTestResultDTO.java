@@ -13,10 +13,10 @@ import java.util.Map;
 
 /**
  * DTO for adapter test results.
- * 
+ *
  * <p>Contains the outcome of an adapter connectivity test including
  * success status, error messages, and diagnostic information.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -26,38 +26,38 @@ import java.util.Map;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdapterTestResultDTO {
-    
+
     /**
      * Name or type of adapter that was tested
      */
     @NotBlank(message = "Adapter name is required")
     private String adapter;
-    
+
     /**
      * Whether the test was successful
      */
     @NotNull(message = "Success status is required")
     private boolean success;
-    
+
     /**
      * Result message or error description
      */
     @NotBlank(message = "Message is required")
     private String message;
-    
+
     /**
      * Timestamp of when the test was performed
      */
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-    
+
     /**
-     * Response time in milliseconds (optional)
+     * Response time in milliseconds(optional)
      */
     private Long responseTimeMs;
-    
+
     /**
-     * Additional diagnostic information (optional)
+     * Additional diagnostic information(optional)
      */
     private Map<String, Object> diagnostics;
 }

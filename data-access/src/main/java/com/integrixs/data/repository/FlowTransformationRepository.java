@@ -18,17 +18,17 @@ import java.util.UUID;
  */
 public interface FlowTransformationRepository extends JpaRepository<FlowTransformation, UUID> {
     List<FlowTransformation> findByFlowId(UUID flowId);
-    
+
     List<FlowTransformation> findByFlowIdOrderByExecutionOrder(UUID flowId);
 
-	void deleteByFlowId(UUID flowId);
-    
+    void deleteByFlowId(UUID flowId);
+
     long countByFlowId(UUID flowId);
-    
+
     // Find transformation with field mappings eagerly loaded
     @EntityGraph(attributePaths = {"fieldMappings"})
     Optional<FlowTransformation> findWithFieldMappingsById(UUID id);
-    
+
     // Find all transformations for a flow with field mappings eagerly loaded
     @EntityGraph(attributePaths = {"fieldMappings"})
     List<FlowTransformation> findWithFieldMappingsByFlowId(UUID flowId);

@@ -15,7 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateEndpointDTO {
-    
+
     private String baseUrl;
     private String description;
     private AuthenticationConfigDTO defaultAuth;

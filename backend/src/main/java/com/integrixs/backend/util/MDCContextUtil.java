@@ -16,21 +16,21 @@ import java.util.function.Supplier;
 @Slf4j
 @UtilityClass
 public class MDCContextUtil {
-    
+
     /**
      * Wraps a Runnable with MDC context preservation
      */
     public static Runnable wrapWithMDC(Runnable runnable) {
         Map<String, String> contextMap = MDC.getCopyOfContextMap();
-        return () -> {
+        return() -> {
             Map<String, String> previousContext = MDC.getCopyOfContextMap();
             try {
-                if (contextMap != null) {
+                if(contextMap != null) {
                     MDC.setContextMap(contextMap);
                 }
                 runnable.run();
             } finally {
-                if (previousContext != null) {
+                if(previousContext != null) {
                     MDC.setContextMap(previousContext);
                 } else {
                     MDC.clear();
@@ -38,21 +38,21 @@ public class MDCContextUtil {
             }
         };
     }
-    
+
     /**
      * Wraps a Callable with MDC context preservation
      */
     public static <T> Callable<T> wrapWithMDC(Callable<T> callable) {
         Map<String, String> contextMap = MDC.getCopyOfContextMap();
-        return () -> {
+        return() -> {
             Map<String, String> previousContext = MDC.getCopyOfContextMap();
             try {
-                if (contextMap != null) {
+                if(contextMap != null) {
                     MDC.setContextMap(contextMap);
                 }
                 return callable.call();
             } finally {
-                if (previousContext != null) {
+                if(previousContext != null) {
                     MDC.setContextMap(previousContext);
                 } else {
                     MDC.clear();
@@ -60,21 +60,21 @@ public class MDCContextUtil {
             }
         };
     }
-    
+
     /**
      * Wraps a Supplier with MDC context preservation
      */
     public static <T> Supplier<T> wrapWithMDC(Supplier<T> supplier) {
         Map<String, String> contextMap = MDC.getCopyOfContextMap();
-        return () -> {
+        return() -> {
             Map<String, String> previousContext = MDC.getCopyOfContextMap();
             try {
-                if (contextMap != null) {
+                if(contextMap != null) {
                     MDC.setContextMap(contextMap);
                 }
                 return supplier.get();
             } finally {
-                if (previousContext != null) {
+                if(previousContext != null) {
                     MDC.setContextMap(previousContext);
                 } else {
                     MDC.clear();
@@ -82,14 +82,14 @@ public class MDCContextUtil {
             }
         };
     }
-    
+
     /**
      * Creates a CompletableFuture that preserves MDC context
      */
     public static <T> CompletableFuture<T> supplyAsyncWithMDC(Supplier<T> supplier) {
         Map<String, String> contextMap = MDC.getCopyOfContextMap();
         return CompletableFuture.supplyAsync(() -> {
-            if (contextMap != null) {
+            if(contextMap != null) {
                 MDC.setContextMap(contextMap);
             }
             try {
@@ -99,14 +99,14 @@ public class MDCContextUtil {
             }
         });
     }
-    
+
     /**
      * Runs async operation with MDC context
      */
     public static CompletableFuture<Void> runAsyncWithMDC(Runnable runnable) {
         Map<String, String> contextMap = MDC.getCopyOfContextMap();
         return CompletableFuture.runAsync(() -> {
-            if (contextMap != null) {
+            if(contextMap != null) {
                 MDC.setContextMap(contextMap);
             }
             try {
@@ -116,7 +116,7 @@ public class MDCContextUtil {
             }
         });
     }
-    
+
     /**
      * Sets flow context in MDC
      */
@@ -125,7 +125,7 @@ public class MDCContextUtil {
         MDC.put("flowName", flowName);
         MDC.put("correlationId", correlationId);
     }
-    
+
     /**
      * Sets adapter context in MDC
      */
@@ -134,7 +134,7 @@ public class MDCContextUtil {
         MDC.put("adapterName", adapterName);
         MDC.put("adapterType", adapterType);
     }
-    
+
     /**
      * Sets operation context in MDC
      */
@@ -143,16 +143,16 @@ public class MDCContextUtil {
         MDC.put("operationType", operationType);
         MDC.put("module", module);
     }
-    
+
     /**
      * Clears specific context keys from MDC
      */
     public static void clearContext(String... keys) {
-        for (String key : keys) {
+        for(String key : keys) {
             MDC.remove(key);
         }
     }
-    
+
     /**
      * Executes a block of code with temporary MDC context
      */
@@ -163,7 +163,7 @@ public class MDCContextUtil {
             return supplier.get();
         } finally {
             MDC.clear();
-            if (previousContext != null) {
+            if(previousContext != null) {
                 MDC.setContextMap(previousContext);
             }
         }

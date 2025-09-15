@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @Data
 public class CorrelatedLogGroup {
-    
+
     private String correlationId;
     private String flowId;
     private List<SystemLogDTO> logs;
@@ -25,7 +25,7 @@ public class CorrelatedLogGroup {
     private List<ErrorChainEntry> errorChain;
     private Map<String, Object> statistics;
     private String relationType; // For related logs
-    
+
     /**
      * Timeline entry for a component.
      */
@@ -36,7 +36,7 @@ public class CorrelatedLogGroup {
         private String message;
         private String category;
     }
-    
+
     /**
      * Error chain entry for debugging.
      */

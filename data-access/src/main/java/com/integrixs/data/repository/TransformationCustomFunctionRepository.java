@@ -54,24 +54,24 @@ public interface TransformationCustomFunctionRepository extends JpaRepository<Tr
            "LOWER(f.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(f.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<TransformationCustomFunction> searchByNameOrDescription(@Param("searchTerm") String searchTerm);
-    
+
     /**
-     * Find all built-in functions
+     * Find all built - in functions
      */
     List<TransformationCustomFunction> findByBuiltInTrue();
-    
+
     /**
-     * Find all custom (non-built-in) functions
+     * Find all custom(non - built - in) functions
      */
     List<TransformationCustomFunction> findByBuiltInFalse();
-    
+
     /**
      * Find functions by category
      */
     List<TransformationCustomFunction> findByCategory(String category);
-    
+
     /**
-     * Find built-in functions by category
+     * Find built - in functions by category
      */
     List<TransformationCustomFunction> findByBuiltInTrueAndCategory(String category);
 }

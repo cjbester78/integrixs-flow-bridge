@@ -25,11 +25,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class AlertController {
-    
+
     private final AlertRepository alertRepository;
     private final AlertRuleRepository alertRuleRepository;
     private final AlertingService alertingService;
-    
+
     /**
      * Get all alerts with pagination
      */
@@ -41,18 +41,18 @@ public class AlertController {
             @RequestParam(required = false) Alert.SourceType sourceType,
             @RequestParam(required = false) String sourceId,
             Pageable pageable) {
-        
-        if (status != null) {
+
+        if(status != null) {
             return alertRepository.findByStatus(status, pageable);
-        } else if (severity != null) {
+        } else if(severity != null) {
             return alertRepository.findBySeverity(severity, pageable);
-        } else if (sourceType != null && sourceId != null) {
+        } else if(sourceType != null && sourceId != null) {
             return alertRepository.findBySourceTypeAndSourceId(sourceType, sourceId, pageable);
         } else {
             return alertRepository.findAll(pageable);
         }
     }
-    
+
     /**
      * Get unresolved alerts
      */
@@ -61,73 +61,73 @@ public class AlertController {
     public Page<Alert> getUnresolvedAlerts(Pageable pageable) {
         return alertRepository.findUnresolvedAlerts(pageable);
     }
-    
+
     /**
      * Get alert by ID
      */
-    @GetMapping("/{alertId}")
+    @GetMapping("/ {alertId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Alert> getAlert(@PathVariable String alertId) {
         return alertRepository.findByAlertId(alertId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Acknowledge an alert
      */
-    @PostMapping("/{alertId}/acknowledge")
+    @PostMapping("/ {alertId}/acknowledge")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Alert> acknowledgeAlert(
             @PathVariable String alertId,
             @RequestParam String userId,
             @RequestParam(required = false) String notes) {
-        
+
         try {
             Alert alert = alertingService.acknowledgeAlert(alertId, userId, notes);
             return ResponseEntity.ok(alert);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     /**
      * Resolve an alert
      */
-    @PostMapping("/{alertId}/resolve")
+    @PostMapping("/ {alertId}/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Alert> resolveAlert(
             @PathVariable String alertId,
             @RequestParam String userId,
             @RequestParam String resolutionNotes) {
-        
+
         try {
             Alert alert = alertingService.resolveAlert(alertId, userId, resolutionNotes);
             return ResponseEntity.ok(alert);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     /**
      * Suppress an alert
      */
-    @PostMapping("/{alertId}/suppress")
+    @PostMapping("/ {alertId}/suppress")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Alert> suppressAlert(
             @PathVariable String alertId,
             @RequestParam String until,
             @RequestParam String reason) {
-        
+
         try {
             LocalDateTime suppressUntil = LocalDateTime.parse(until);
             Alert alert = alertingService.suppressAlert(alertId, suppressUntil, reason);
             return ResponseEntity.ok(alert);
-        } catch (RuntimeException e) {
+        } catch(RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     /**
      * Get alert statistics
      */
@@ -135,19 +135,19 @@ public class AlertController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Map<String, Object>> getAlertStatistics(
             @RequestParam(defaultValue = "24") int hours) {
-        
+
         LocalDateTime since = LocalDateTime.now().minusHours(hours);
-        
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("since", since);
         stats.put("total", alertRepository.count());
         stats.put("unresolved", alertRepository.findUnresolvedAlerts(Pageable.unpaged()).getTotalElements());
         stats.put("critical", alertRepository.findUnacknowledgedCriticalAlerts().size());
         stats.put("byStatusAndSeverity", alertRepository.countByStatusAndSeveritySince(since));
-        
+
         return ResponseEntity.ok(stats);
     }
-    
+
     /**
      * Get alert rules
      */
@@ -158,13 +158,13 @@ public class AlertController {
             @RequestParam(required = false) AlertRule.AlertType type,
             @RequestParam(required = false) AlertRule.AlertSeverity severity,
             Pageable pageable) {
-        
+
         Page<AlertRule> rules;
-        
-        if (enabled != null && enabled) {
-            if (type != null) {
+
+        if(enabled != null && enabled) {
+            if(type != null) {
                 rules = alertRuleRepository.findByAlertTypeAndEnabledTrue(type, pageable);
-            } else if (severity != null) {
+            } else if(severity != null) {
                 rules = alertRuleRepository.findBySeverityAndEnabledTrue(severity, pageable);
             } else {
                 rules = alertRuleRepository.findByEnabledTrue(pageable);
@@ -172,48 +172,48 @@ public class AlertController {
         } else {
             rules = alertRuleRepository.findAll(pageable);
         }
-        
+
         return ResponseEntity.ok(rules);
     }
-    
+
     /**
      * Get alert rule by ID
      */
-    @GetMapping("/rules/{ruleId}")
+    @GetMapping("/rules/ {ruleId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<AlertRule> getAlertRule(@PathVariable Long ruleId) {
         return alertRuleRepository.findById(ruleId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Create alert rule
      */
     @PostMapping("/rules")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlertRule> createAlertRule(@RequestBody AlertRule rule) {
-        if (alertRuleRepository.existsByRuleName(rule.getRuleName())) {
+        if(alertRuleRepository.existsByRuleName(rule.getRuleName())) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         rule.setId(null); // Ensure new entity
         rule.setCreatedAt(LocalDateTime.now());
         rule.setModifiedAt(LocalDateTime.now());
-        
+
         AlertRule saved = alertRuleRepository.save(rule);
         return ResponseEntity.ok(saved);
     }
-    
+
     /**
      * Update alert rule
      */
-    @PutMapping("/rules/{ruleId}")
+    @PutMapping("/rules/ {ruleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlertRule> updateAlertRule(
             @PathVariable Long ruleId,
             @RequestBody AlertRule rule) {
-        
+
         return alertRuleRepository.findById(ruleId)
                 .map(existing -> {
                     // Update fields
@@ -238,34 +238,34 @@ public class AlertController {
                     existing.setTags(rule.getTags());
                     existing.setModifiedAt(LocalDateTime.now());
                     existing.setModifiedBy(rule.getModifiedBy());
-                    
+
                     return ResponseEntity.ok(alertRuleRepository.save(existing));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * Delete alert rule
      */
-    @DeleteMapping("/rules/{ruleId}")
+    @DeleteMapping("/rules/ {ruleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAlertRule(@PathVariable Long ruleId) {
-        if (alertRuleRepository.existsById(ruleId)) {
+        if(alertRuleRepository.existsById(ruleId)) {
             alertRuleRepository.deleteById(ruleId);
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
     }
-    
+
     /**
      * Enable/disable alert rule
      */
-    @PatchMapping("/rules/{ruleId}/enabled")
+    @PatchMapping("/rules/ {ruleId}/enabled")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlertRule> toggleAlertRule(
             @PathVariable Long ruleId,
             @RequestParam boolean enabled) {
-        
+
         return alertRuleRepository.findById(ruleId)
                 .map(rule -> {
                     rule.setEnabled(enabled);

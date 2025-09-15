@@ -16,10 +16,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * Configuration for event-driven architecture.
- * 
+ * Configuration for event - driven architecture.
+ *
  * <p>Configures async event processing and thread pools.
- * 
+ *
  * @author Integration Team
  * @since 1.0.0
  */
@@ -27,10 +27,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @EnableAsync
 public class EventDrivenConfig implements AsyncConfigurer {
-    
+
     /**
      * Creates the event executor for async event processing.
-     * 
+     *
      * @return configured thread pool executor
      */
     @Bean(name = "eventExecutor")
@@ -39,17 +39,17 @@ public class EventDrivenConfig implements AsyncConfigurer {
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(10);
         executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("event-handler-");
+        executor.setThreadNamePrefix("event - handler-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;
     }
-    
+
     /**
      * Configures the application event multicaster for async event processing.
-     * 
+     *
      * @param eventExecutor the event executor
      * @return configured event multicaster
      */
@@ -57,21 +57,21 @@ public class EventDrivenConfig implements AsyncConfigurer {
     public ApplicationEventMulticaster applicationEventMulticaster(@Qualifier("eventExecutor") TaskExecutor eventExecutor) {
         SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
         eventMulticaster.setTaskExecutor(eventExecutor);
-        eventMulticaster.setErrorHandler(throwable -> 
+        eventMulticaster.setErrorHandler(throwable ->
             log.error("Error in event listener", throwable)
-        );
+       );
         return eventMulticaster;
     }
-    
+
     @Override
     public Executor getAsyncExecutor() {
         return eventExecutor();
     }
-    
+
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-        return (throwable, method, objects) -> {
-            log.error("Uncaught async exception in method: {} with params: {}", 
+        return(throwable, method, objects) -> {
+            log.error("Uncaught async exception in method: {} with params: {}",
                      method.getName(), objects, throwable);
         };
     }

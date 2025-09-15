@@ -15,12 +15,12 @@ import jakarta.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenerateBindingRequestDTO {
-    
+
     @NotNull(message = "Package name is required")
     private String packageName;
-    
+
     @Builder.Default
     private boolean autoCompile = true;
-    
+
     private String outputDirectory;
 }

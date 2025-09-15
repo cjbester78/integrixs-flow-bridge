@@ -23,7 +23,7 @@ public class AuthService {
 
     public Optional<User> validateUser(String username, String password) {
         User user = userRepository.findByUsername(username);
-        if (user != null && BCrypt.checkpw(password, user.getPasswordHash())) {
+        if(user != null && BCrypt.checkpw(password, user.getPasswordHash())) {
             return Optional.of(user);
         }
         return Optional.empty();
@@ -31,7 +31,7 @@ public class AuthService {
 
     public String generateToken(String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null) {
+        if(user == null) {
             throw new RuntimeException("User not found: " + username);
         }
         return jwtUtil.generateToken(username, user.getRole());
@@ -40,7 +40,7 @@ public class AuthService {
     public String refreshToken(String token) {
         String username = jwtUtil.extractUsername(token);
         User user = userRepository.findByUsername(username);
-        if (user == null) {
+        if(user == null) {
             throw new RuntimeException("User not found: " + username);
         }
         return jwtUtil.generateToken(username, user.getRole());

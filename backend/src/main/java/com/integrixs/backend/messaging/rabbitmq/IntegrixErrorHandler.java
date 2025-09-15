@@ -12,34 +12,34 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class IntegrixErrorHandler implements RabbitListenerErrorHandler {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(IntegrixErrorHandler.class);
-    
+
     @Override
-    public Object handleError(Message amqpMessage, org.springframework.messaging.Message<?> message, 
+    public Object handleError(Message amqpMessage, org.springframework.messaging.Message<?> message,
                             ListenerExecutionFailedException exception) throws Exception {
-        
+
         logger.error("Error processing message: {}", exception.getMessage(), exception);
-        
+
         // Extract message details
         String messageId = amqpMessage.getMessageProperties().getMessageId();
         String correlationId = amqpMessage.getMessageProperties().getCorrelationId();
         String routingKey = amqpMessage.getMessageProperties().getReceivedRoutingKey();
-        
-        logger.error("Failed message details - ID: {}, CorrelationId: {}, RoutingKey: {}", 
+
+        logger.error("Failed message details - ID: {}, CorrelationId: {}, RoutingKey: {}",
             messageId, correlationId, routingKey);
-        
+
         // Check if we should requeue
         Integer retryCount = (Integer) amqpMessage.getMessageProperties()
-            .getHeaders().get("x-retry-count");
-        
-        if (retryCount == null) {
+            .getHeaders().get("x - retry - count");
+
+        if(retryCount == null) {
             retryCount = 0;
         }
-        
-        if (retryCount < 3) {
+
+        if(retryCount < 3) {
             // Add retry count and requeue
-            amqpMessage.getMessageProperties().setHeader("x-retry-count", retryCount + 1);
+            amqpMessage.getMessageProperties().setHeader("x - retry - count", retryCount + 1);
             throw new MessageProcessingException("Message processing failed, will retry", exception);
         } else {
             // Max retries reached, send to DLQ
@@ -47,22 +47,22 @@ public class IntegrixErrorHandler implements RabbitListenerErrorHandler {
             throw new MessageProcessingException("Message processing failed after max retries", exception, false);
         }
     }
-    
+
     /**
      * Custom exception for message processing
      */
     public static class MessageProcessingException extends RuntimeException {
         private final boolean shouldRequeue;
-        
+
         public MessageProcessingException(String message, Throwable cause) {
             this(message, cause, true);
         }
-        
+
         public MessageProcessingException(String message, Throwable cause, boolean shouldRequeue) {
             super(message, cause);
             this.shouldRequeue = shouldRequeue;
         }
-        
+
         public boolean shouldRequeue() {
             return shouldRequeue;
         }

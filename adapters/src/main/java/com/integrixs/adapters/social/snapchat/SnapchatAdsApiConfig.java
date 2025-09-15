@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.snapchat.ads")
 public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientId;
     private String clientSecret;
     private String adAccountId;
@@ -16,7 +16,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
     private String pixelId;
     private SnapchatAdsFeatures features = new SnapchatAdsFeatures();
     private SnapchatAdsLimits limits = new SnapchatAdsLimits();
-    
+
         public static class SnapchatAdsFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAdManagement = true;
@@ -39,7 +39,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAutoOptimization = true;
         private boolean enableCreativeLibrary = true;
     }
-    
+
         public static class SnapchatAdsLimits {
         private int maxCampaignsPerAccount = 1000;
         private int maxAdSquadsPerCampaign = 1000;
@@ -58,7 +58,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         private int maxBulkOperations = 100;
         private int maxReportRows = 100000;
     }
-    
+
     // Campaign objectives
     public enum CampaignObjective {
         AWARENESS,
@@ -74,7 +74,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         BRAND_AWARENESS,
         LOCAL_AWARENESS
     }
-    
+
     // Ad squad types
     public enum AdSquadType {
         SNAP_ADS,
@@ -84,7 +84,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         COMMERCIALS,
         AR_EXPERIENCE
     }
-    
+
     // Creative types
     public enum CreativeType {
         SINGLE_IMAGE,
@@ -100,7 +100,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         FILTER,
         BRANDED_MOMENT
     }
-    
+
     // Targeting types
     public enum TargetingType {
         DEMOGRAPHICS,
@@ -122,7 +122,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         SHOPPERS,
         CONTENT_KEYWORDS
     }
-    
+
     // Audience types
     public enum AudienceType {
         CUSTOMER_LIST,
@@ -134,7 +134,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         CATALOG,
         LOCATION_BASED
     }
-    
+
     // Bid strategy
     public enum BidStrategy {
         LOWEST_COST,
@@ -143,7 +143,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         MIN_ROAS,
         TARGET_COST
     }
-    
+
     // Optimization goal
     public enum OptimizationGoal {
         IMPRESSIONS,
@@ -166,7 +166,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         STORY_OPENS,
         STORY_COMPLETES
     }
-    
+
     // Delivery status
     public enum DeliveryStatus {
         ACTIVE,
@@ -178,7 +178,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         REJECTED,
         DELETED
     }
-    
+
     // Media types
     public enum MediaType {
         IMAGE,
@@ -188,7 +188,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         BRANDED_MOMENT,
         GIF
     }
-    
+
     // Report level
     public enum ReportLevel {
         ACCOUNT,
@@ -199,7 +199,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         PIXEL,
         AUDIENCE
     }
-    
+
     // Report metrics
     public enum ReportMetric {
         IMPRESSIONS,
@@ -254,7 +254,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         STORY_COMPLETES,
         STORY_OPENS
     }
-    
+
     // Report dimensions
     public enum ReportDimension {
         COUNTRY,
@@ -276,7 +276,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         PRODUCT_ID,
         SKU
     }
-    
+
     // Creative properties
     public enum CreativeProperty {
         HEADLINE,
@@ -295,7 +295,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         DYNAMIC_PROPERTIES,
         AR_PROPERTIES
     }
-    
+
     // Pixel event types
     public enum PixelEventType {
         PAGE_VIEW,
@@ -330,7 +330,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         ADD_TO_CART_MOBILE,
         RATE
     }
-    
+
     // Attachment types
     public enum AttachmentType {
         LENS,
@@ -341,7 +341,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         DEEP_LINK,
         APP_INSTALL
     }
-    
+
     // Review status
     public enum ReviewStatus {
         PENDING,
@@ -352,7 +352,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         CHANGES_REQUESTED,
         EXPIRED
     }
-    
+
     // Currency
     public enum Currency {
         USD,
@@ -374,7 +374,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         MXN,
         AED
     }
-    
+
     // Error codes
     public enum SnapchatAdsErrorCode {
         INVALID_PARAMETER(400),
@@ -391,16 +391,16 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
         DUPLICATE_NAME(4005),
         INVALID_DATE_RANGE(4006),
         EXCEEDED_LIMIT(4007);
-        
+
         private final int code;
-        
+
         SnapchatAdsErrorCode(int code) {
             this.code = code;
         }
-        
+
         public int getCode() { return code; }
     }
-    
+
     // Webhook events
     public enum WebhookEvent {
         CAMPAIGN_CREATED,

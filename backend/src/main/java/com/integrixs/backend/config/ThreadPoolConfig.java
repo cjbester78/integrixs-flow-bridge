@@ -20,9 +20,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @RequiredArgsConstructor
 public class ThreadPoolConfig {
-    
+
     private final MDCTaskDecorator mdcTaskDecorator;
-    
+
     /**
      * Primary task executor for general async operations
      */
@@ -39,11 +39,11 @@ public class ThreadPoolConfig {
         executor.setAwaitTerminationSeconds(30);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("Configured primary task executor with MDC context propagation");
         return executor;
     }
-    
+
     /**
      * Dedicated executor for adapter operations
      */
@@ -59,11 +59,11 @@ public class ThreadPoolConfig {
         executor.setAwaitTerminationSeconds(60);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("Configured adapter task executor with MDC context propagation");
         return executor;
     }
-    
+
     /**
      * Dedicated executor for flow execution
      */
@@ -79,11 +79,11 @@ public class ThreadPoolConfig {
         executor.setAwaitTerminationSeconds(120); // Longer timeout for flow completion
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("Configured flow execution executor with MDC context propagation");
         return executor;
     }
-    
+
     /**
      * Dedicated executor for monitoring and health checks
      */
@@ -98,11 +98,11 @@ public class ThreadPoolConfig {
         executor.setWaitForTasksToCompleteOnShutdown(false); // Don't wait for monitoring tasks
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
         executor.initialize();
-        
+
         log.info("Configured monitoring executor with MDC context propagation");
         return executor;
     }
-    
+
     /**
      * Dedicated executor for email and notification operations
      */
@@ -118,7 +118,7 @@ public class ThreadPoolConfig {
         executor.setAwaitTerminationSeconds(30);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
-        
+
         log.info("Configured notification executor with MDC context propagation");
         return executor;
     }

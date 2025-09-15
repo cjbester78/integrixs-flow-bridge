@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @Data
 public class FlowExecutionTimeline {
-    
+
     private String flowId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -21,7 +21,7 @@ public class FlowExecutionTimeline {
     private List<ExecutionStep> executionSteps;
     private List<Bottleneck> bottlenecks;
     private Map<String, Object> executionGraph;
-    
+
     /**
      * Execution step in the flow.
      */
@@ -35,7 +35,7 @@ public class FlowExecutionTimeline {
         private List<SystemLogDTO> logs;
         private List<String> keyEvents;
     }
-    
+
     /**
      * Identified bottleneck.
      */

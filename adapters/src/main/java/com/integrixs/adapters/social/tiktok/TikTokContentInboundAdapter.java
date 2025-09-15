@@ -36,18 +36,18 @@ import javax.crypto.spec.SecretKeySpec;
 public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(TikTokContentInboundAdapter.class);
 
-    
-    private static final String TIKTOK_API_BASE = "https://open-api.tiktok.com";
+
+    private static final String TIKTOK_API_BASE = "https://open - api.tiktok.com";
     private static final String TIKTOK_API_VERSION = "/v1.3";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private final Map<String, String> lastVideoId = new ConcurrentHashMap<>();
-    
+
     private final TikTokContentApiConfig config;
     private final RateLimiterService rateLimiterService;
     private final CredentialEncryptionService credentialEncryptionService;
-    
+
     @Autowired
     public TikTokContentInboundAdapter(
             TikTokContentApiConfig config,
@@ -62,47 +62,47 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
-    
+
     @Override
     public void startListening() throws AdapterException {
-        if (!isConfigValid()) {
+        if(!isConfigValid()) {
             throw new AdapterException("TikTok Content configuration is invalid");
         }
-        
+
         log.info("Starting TikTok Content inbound adapter for user: {}", config.getUsername());
-        
+
         // Refresh access token if needed
         refreshAccessTokenIfNeeded();
-        
+
         isListening = true;
-        
+
         // Initialize scheduled polling based on enabled features
-        if (config.getFeatures().isEnableVideoRetrieval()) {
+        if(config.getFeatures().isEnableVideoRetrieval()) {
             scheduleVideoPolling();
         }
-        if (config.getFeatures().isEnableCommentManagement()) {
+        if(config.getFeatures().isEnableCommentManagement()) {
             scheduleCommentPolling();
         }
-        if (config.getFeatures().isEnableEngagementMetrics()) {
+        if(config.getFeatures().isEnableEngagementMetrics()) {
             scheduleEngagementPolling();
         }
-        if (config.getFeatures().isEnableTrendingContent()) {
+        if(config.getFeatures().isEnableTrendingContent()) {
             scheduleTrendingPolling();
         }
-        if (config.getFeatures().isEnableFollowerAnalytics()) {
+        if(config.getFeatures().isEnableFollowerAnalytics()) {
             scheduleFollowerPolling();
         }
-        if (config.getFeatures().isEnableHashtagAnalytics()) {
+        if(config.getFeatures().isEnableHashtagAnalytics()) {
             scheduleHashtagPolling();
         }
     }
-    
+
     @Override
     public void stopListening() {
         log.info("Stopping TikTok Content inbound adapter");
         isListening = false;
     }
-    
+
     @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
@@ -110,10 +110,10 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
-            
+
             JsonNode dataNode = objectMapper.readTree(data);
-            
-            switch (type) {
+
+            switch(type) {
                 case "VIDEO":
                     message = processVideoData(dataNode);
                     break;
@@ -142,14 +142,14 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
                     message.setPayload(data);
                     message.setHeaders(Map.of("type", type, "source", "tiktok_content"));
             }
-            
+
             return message;
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error processing TikTok Content inbound data", e);
             throw new AdapterException("Failed to process inbound data", e);
         }
     }
-    
+
     @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // TikTok Content API supports webhooks for certain events
@@ -158,20 +158,20 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             message.setMessageId(UUID.randomUUID().toString());
             message.setTimestamp(Instant.now());
             message.setStatus(MessageStatus.RECEIVED);
-            
+
             // Verify webhook signature
-            if (!verifyWebhookSignature(webhookData)) {
+            if(!verifyWebhookSignature(webhookData)) {
                 throw new AdapterException("Invalid webhook signature");
             }
-            
+
             String eventType = (String) webhookData.get("event_type");
             Map<String, Object> headers = new HashMap<>();
             headers.put("type", "WEBHOOK_EVENT");
             headers.put("eventType", eventType);
             headers.put("source", "tiktok_content");
-            
+
             // Process based on event type
-            switch (eventType) {
+            switch(eventType) {
                 case "video.publish":
                     headers.put("videoId", webhookData.get("video_id"));
                     headers.put("status", webhookData.get("publish_status"));
@@ -190,260 +190,260 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
                     headers.put("roomId", webhookData.get("room_id"));
                     break;
             }
-            
+
             message.setHeaders(headers);
             message.setPayload(objectMapper.writeValueAsString(webhookData));
-            
+
             return message;
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error processing TikTok Content webhook", e);
             throw new AdapterException("Failed to process webhook data", 1);
-            
+
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/list/";
-            
+
             Map<String, Object> params = new HashMap<>();
             params.put("user_id", config.getUserId());
             params.put("count", Math.min(20, config.getLimits().getMaxVideosPerDay()));
             params.put("cursor", 0);
-            
+
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if(response.getStatusCode().is2xxSuccessful()) {
                 JsonNode responseData = objectMapper.readTree(response.getBody());
                 processInboundData(response.getBody(), "VIDEO");
-                
+
                 // Store latest video ID for incremental polling
-                if (responseData.has("data") && responseData.get("data").has("videos")) {
+                if(responseData.has("data") && responseData.get("data").has("videos")) {
                     JsonNode videos = responseData.get("data").get("videos");
-                    if (videos.size() > 0) {
+                    if(videos.size() > 0) {
                         lastVideoId.put("latest", videos.get(0).path("id").asText());
                     }
                 }
-                
+
                 lastPollTime.put("videos", LocalDateTime.now());
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling videos", e);
         }
     }
-    
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.commentPollInterval:1800000}") // 30 minutes
+
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.commentPollInterval:1800000}") // 30 minutes
     private void pollComments() {
-        if (!isListening || !config.getFeatures().isEnableCommentManagement()) return;
-        
+        if(!isListening || !config.getFeatures().isEnableCommentManagement()) return;
+
         try {
             String latestVideo = lastVideoId.get("latest");
-            if (latestVideo == null) return;
-            
+            if(latestVideo == null) return;
+
             rateLimiterService.acquire("tiktok_content_api", 1);
-            
+
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/comment/list/";
-            
+
             Map<String, Object> params = new HashMap<>();
             params.put("video_id", latestVideo);
             params.put("count", Math.min(50, config.getLimits().getMaxCommentsToRetrieve()));
             params.put("cursor", 0);
-            
+
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if(response.getStatusCode().is2xxSuccessful()) {
                 processInboundData(response.getBody(), "COMMENT");
                 lastPollTime.put("comments", LocalDateTime.now());
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling comments", e);
         }
     }
-    
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.engagementPollInterval:900000}") // 15 minutes
+
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.engagementPollInterval:900000}") // 15 minutes
     private void pollEngagement() {
-        if (!isListening || !config.getFeatures().isEnableEngagementMetrics()) return;
-        
+        if(!isListening || !config.getFeatures().isEnableEngagementMetrics()) return;
+
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
-            
+
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/stats/";
-            
+
             Map<String, Object> params = new HashMap<>();
             params.put("user_id", config.getUserId());
-            
+
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if(response.getStatusCode().is2xxSuccessful()) {
                 processInboundData(response.getBody(), "ENGAGEMENT");
                 lastPollTime.put("engagement", LocalDateTime.now());
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling engagement metrics", e);
         }
     }
-    
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.trendingPollInterval:7200000}") // 2 hours
+
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.trendingPollInterval:7200000}") // 2 hours
     private void pollTrending() {
-        if (!isListening || !config.getFeatures().isEnableTrendingContent()) return;
-        
+        if(!isListening || !config.getFeatures().isEnableTrendingContent()) return;
+
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
-            
+
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/trending/feed/";
-            
+
             Map<String, Object> params = new HashMap<>();
             params.put("count", Math.min(50, config.getLimits().getMaxTrendingVideos()));
             params.put("category", "all");
-            
+
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if(response.getStatusCode().is2xxSuccessful()) {
                 processInboundData(response.getBody(), "TRENDING");
                 lastPollTime.put("trending", LocalDateTime.now());
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling trending content", e);
         }
     }
-    
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.followerPollInterval:21600000}") // 6 hours
+
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.followerPollInterval:21600000}") // 6 hours
     private void pollFollowers() {
-        if (!isListening || !config.getFeatures().isEnableFollowerAnalytics()) return;
-        
+        if(!isListening || !config.getFeatures().isEnableFollowerAnalytics()) return;
+
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
-            
+
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/followers/";
-            
+
             Map<String, Object> params = new HashMap<>();
             params.put("user_id", config.getUserId());
             params.put("count", Math.min(100, config.getLimits().getMaxFollowersToRetrieve()));
             params.put("cursor", 0);
-            
+
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if(response.getStatusCode().is2xxSuccessful()) {
                 processInboundData(response.getBody(), "FOLLOWER");
                 lastPollTime.put("followers", LocalDateTime.now());
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling followers", e);
         }
     }
-    
-    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.hashtagPollInterval:14400000}") // 4 hours
+
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.hashtagPollInterval:14400000}") // 4 hours
     private void pollHashtags() {
-        if (!isListening || !config.getFeatures().isEnableHashtagAnalytics()) return;
-        
+        if(!isListening || !config.getFeatures().isEnableHashtagAnalytics()) return;
+
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
-            
+
             String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/hashtag/trending/";
-            
+
             Map<String, Object> params = new HashMap<>();
             params.put("count", 20);
-            
+
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if(response.getStatusCode().is2xxSuccessful()) {
                 processInboundData(response.getBody(), "HASHTAG");
                 lastPollTime.put("hashtags", LocalDateTime.now());
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error polling hashtags", e);
         }
     }
-    
+
     // Process different data types
     private MessageDTO processVideoData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "VIDEO_DATA");
         headers.put("source", "tiktok_content");
         headers.put("userId", config.getUserId());
-        
-        if (data.has("data") && data.get("data").has("videos")) {
+
+        if(data.has("data") && data.get("data").has("videos")) {
             JsonNode videos = data.get("data").get("videos");
             headers.put("videoCount", videos.size());
-            
+
             long totalViews = 0;
             long totalLikes = 0;
             long totalComments = 0;
             long totalShares = 0;
-            
-            for (JsonNode video : videos) {
+
+            for(JsonNode video : videos) {
                 JsonNode stats = video.get("statistics");
-                if (stats != null) {
+                if(stats != null) {
                     totalViews += stats.path("play_count").asLong(0);
                     totalLikes += stats.path("digg_count").asLong(0);
                     totalComments += stats.path("comment_count").asLong(0);
                     totalShares += stats.path("share_count").asLong(0);
                 }
             }
-            
+
             headers.put("totalViews", totalViews);
             headers.put("totalLikes", totalLikes);
             headers.put("totalComments", totalComments);
             headers.put("totalShares", totalShares);
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processCommentData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "COMMENT_DATA");
         headers.put("source", "tiktok_content");
-        
-        if (data.has("data") && data.get("data").has("comments")) {
+
+        if(data.has("data") && data.get("data").has("comments")) {
             JsonNode comments = data.get("data").get("comments");
             headers.put("commentCount", comments.size());
             headers.put("videoId", data.path("video_id").asText());
-            
+
             // Count comment types
             int positiveComments = 0;
             int questionsCount = 0;
-            
-            for (JsonNode comment : comments) {
+
+            for(JsonNode comment : comments) {
                 String text = comment.path("text").asText("");
-                if (text.contains("?")) {
+                if(text.contains("?")) {
                     questionsCount++;
                 }
                 // Simple positive sentiment check
-                if (text.contains("love") || text.contains("great") || text.contains("amazing")) {
+                if(text.contains("love") || text.contains("great") || text.contains("amazing")) {
                     positiveComments++;
                 }
             }
-            
+
             headers.put("questionsCount", questionsCount);
             headers.put("positiveComments", positiveComments);
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processEngagementData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ENGAGEMENT_DATA");
         headers.put("source", "tiktok_content");
-        
-        if (data.has("data") && data.get("data").has("stats")) {
+
+        if(data.has("data") && data.get("data").has("stats")) {
             JsonNode stats = data.get("data").get("stats");
             headers.put("followerCount", stats.path("follower_count").asLong(0));
             headers.put("followingCount", stats.path("following_count").asLong(0));
             headers.put("heartCount", stats.path("heart_count").asLong(0));
             headers.put("videoCount", stats.path("video_count").asLong(0));
-            
+
             // Calculate engagement rate
             long followers = stats.path("follower_count").asLong(1);
             long hearts = stats.path("heart_count").asLong(0);
@@ -451,114 +451,114 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             double engagementRate = (hearts / (double)(followers * videos)) * 100;
             headers.put("engagementRate", engagementRate);
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processTrendingData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "TRENDING_DATA");
         headers.put("source", "tiktok_content");
-        
-        if (data.has("data") && data.get("data").has("items")) {
+
+        if(data.has("data") && data.get("data").has("items")) {
             headers.put("trendingCount", data.get("data").get("items").size());
             headers.put("category", data.path("category").asText("all"));
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processFollowerData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "FOLLOWER_DATA");
         headers.put("source", "tiktok_content");
-        
-        if (data.has("data") && data.get("data").has("followers")) {
+
+        if(data.has("data") && data.get("data").has("followers")) {
             JsonNode followers = data.get("data").get("followers");
             headers.put("newFollowerCount", followers.size());
-            
+
             // Analyze follower quality
             int verifiedFollowers = 0;
             int activeFollowers = 0;
-            
-            for (JsonNode follower : followers) {
-                if (follower.path("verified").asBoolean()) {
+
+            for(JsonNode follower : followers) {
+                if(follower.path("verified").asBoolean()) {
                     verifiedFollowers++;
                 }
-                if (follower.path("video_count").asInt(0) > 10) {
+                if(follower.path("video_count").asInt(0) > 10) {
                     activeFollowers++;
                 }
             }
-            
+
             headers.put("verifiedFollowers", verifiedFollowers);
             headers.put("activeFollowers", activeFollowers);
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processHashtagData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "HASHTAG_DATA");
         headers.put("source", "tiktok_content");
-        
-        if (data.has("data") && data.get("data").has("hashtags")) {
+
+        if(data.has("data") && data.get("data").has("hashtags")) {
             JsonNode hashtags = data.get("data").get("hashtags");
             headers.put("trendingHashtagCount", hashtags.size());
-            
+
             List<String> topHashtags = new ArrayList<>();
-            for (JsonNode hashtag : hashtags) {
-                if (topHashtags.size() < 5) {
+            for(JsonNode hashtag : hashtags) {
+                if(topHashtags.size() < 5) {
                     topHashtags.add("#" + hashtag.path("name").asText());
                 }
             }
             headers.put("topHashtags", topHashtags);
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processAnalyticsData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ANALYTICS_DATA");
         headers.put("source", "tiktok_content");
         headers.put("period", data.path("period").asText());
-        
-        if (data.has("data") && data.get("data").has("metrics")) {
+
+        if(data.has("data") && data.get("data").has("metrics")) {
             JsonNode metrics = data.get("data").get("metrics");
-            
+
             headers.put("totalViews", metrics.path("views").asLong(0));
             headers.put("totalLikes", metrics.path("likes").asLong(0));
             headers.put("totalComments", metrics.path("comments").asLong(0));
@@ -566,163 +566,163 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             headers.put("averageWatchTime", metrics.path("average_watch_time").asDouble(0));
             headers.put("completionRate", metrics.path("completion_rate").asDouble(0));
         }
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     private MessageDTO processNotificationData(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setMessageId(UUID.randomUUID().toString());
         message.setTimestamp(Instant.now());
         message.setStatus(MessageStatus.RECEIVED);
-        
+
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "NOTIFICATION_DATA");
         headers.put("source", "tiktok_content");
         headers.put("notificationType", data.path("notification_type").asText());
-        
+
         message.setHeaders(headers);
         message.setPayload(data.toString());
-        
+
         return message;
     }
-    
+
     // Helper methods
     private ResponseEntity<String> makeApiCall(String url, HttpMethod method, Map<String, Object> params, Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + getAccessToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-        if (params != null && method == HttpMethod.GET) {
+        if(params != null && method == HttpMethod.GET) {
             params.forEach((key, value) -> builder.queryParam(key, value.toString()));
         }
-        
+
         HttpEntity<?> entity;
-        if (body != null) {
+        if(body != null) {
             entity = new HttpEntity<>(body, headers);
-        } else if (params != null && method != HttpMethod.GET) {
+        } else if(params != null && method != HttpMethod.GET) {
             entity = new HttpEntity<>(params, headers);
         } else {
             entity = new HttpEntity<>(headers);
         }
-        
+
         return restTemplate.exchange(builder.toUriString(), method, entity, String.class);
     }
-    
+
     private boolean verifyWebhookSignature(Map<String, Object> webhookData) {
         try {
-            String signature = (String) webhookData.get("x-tiktok-signature");
-            String timestamp = (String) webhookData.get("x-tiktok-timestamp");
-            
-            if (signature == null || timestamp == null) {
+            String signature = (String) webhookData.get("x - tiktok - signature");
+            String timestamp = (String) webhookData.get("x - tiktok - timestamp");
+
+            if(signature == null || timestamp == null) {
                 return false;
             }
-            
+
             // Verify timestamp is within 5 minutes
             long webhookTime = Long.parseLong(timestamp);
             long currentTime = Instant.now().getEpochSecond();
-            if (Math.abs(currentTime - webhookTime) > 300) {
+            if(Math.abs(currentTime - webhookTime) > 300) {
                 return false;
             }
-            
+
             // Calculate signature
             String payload = objectMapper.writeValueAsString(webhookData.get("body"));
             String toSign = timestamp + payload;
-            
+
             Mac hmac = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKeySpec = new SecretKeySpec(
                 config.getClientSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             hmac.init(secretKeySpec);
-            
+
             byte[] signatureBytes = hmac.doFinal(toSign.getBytes(StandardCharsets.UTF_8));
             String calculatedSignature = bytesToHex(signatureBytes);
-            
+
             return signature.equals(calculatedSignature);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error verifying webhook signature", e);
             return false;
         }
     }
-    
+
     private String bytesToHex(byte[] bytes) {
         StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
+        for(byte b : bytes) {
             result.append(String.format("%02x", b));
         }
         return result.toString();
     }
-    
+
     private String getAccessToken() {
         return credentialEncryptionService.decrypt(config.getAccessToken());
     }
-    
+
     private void refreshAccessTokenIfNeeded() {
         try {
-            if (config.getRefreshToken() != null) {
+            if(config.getRefreshToken() != null) {
                 tokenRefreshService.refreshToken(
                     config.getClientKey(),
                     config.getClientSecret(),
                     config.getRefreshToken(),
                     TIKTOK_API_BASE + "/oauth/refresh_token/"
-                );
+               );
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error refreshing TikTok Content access token", e);
         }
     }
-    
+
     // Scheduling initialization methods
     private void scheduleVideoPolling() {
         log.info("Scheduled video polling for TikTok Content");
     }
-    
+
     private void scheduleCommentPolling() {
         log.info("Scheduled comment polling for TikTok Content");
     }
-    
+
     private void scheduleEngagementPolling() {
         log.info("Scheduled engagement polling for TikTok Content");
     }
-    
+
     private void scheduleTrendingPolling() {
         log.info("Scheduled trending content polling for TikTok Content");
     }
-    
+
     private void scheduleFollowerPolling() {
         log.info("Scheduled follower polling for TikTok Content");
     }
-    
+
     private void scheduleHashtagPolling() {
         log.info("Scheduled hashtag polling for TikTok Content");
     }
-    
+
     private boolean isConfigValid() {
-        return config != null 
+        return config != null
             && config.getClientKey() != null
             && config.getClientSecret() != null
             && config.getUserId() != null
             && config.getAccessToken() != null;
     }
-    
+
     @Override
     protected String getAdapterType() {
         return "TIKTOK_CONTENT";
     }
-    
+
     @Override
     protected List<String> getSupportedEventTypes() {
         return Arrays.asList(
             "SOCIAL_MEDIA_VIDEO",
-            "SOCIAL_MEDIA_COMMENT", 
+            "SOCIAL_MEDIA_COMMENT",
             "SOCIAL_MEDIA_ENGAGEMENT",
             "SOCIAL_MEDIA_ANALYTICS"
-        );
+       );
     }
-    
+
     @Override
     protected Map<String, Object> getConfig() {
         Map<String, Object> configMap = new HashMap<>();
@@ -731,7 +731,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         configMap.put("enabled", config.isEnabled());
         return configMap;
     }
-    
+
     @Override
     public Map<String, Object> getAdapterConfig() {
         return getConfig();

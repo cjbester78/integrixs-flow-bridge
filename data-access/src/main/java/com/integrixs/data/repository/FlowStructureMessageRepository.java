@@ -14,14 +14,14 @@ import java.util.UUID;
 
 @Repository
 public interface FlowStructureMessageRepository extends JpaRepository<FlowStructureMessage, FlowStructureMessageId> {
-    
+
     List<FlowStructureMessage> findByFlowStructureId(UUID flowStructureId);
-    
+
     Optional<FlowStructureMessage> findByFlowStructureAndMessageType(FlowStructure flowStructure,
                                                                     FlowStructureMessage.MessageType messageType);
-    
+
     void deleteByFlowStructureId(UUID flowStructureId);
-    
+
     @Query("SELECT DISTINCT fsm.flowStructure FROM FlowStructureMessage fsm WHERE fsm.messageStructure.id = :messageStructureId")
     List<FlowStructure> findFlowStructuresByMessageStructureId(@Param("messageStructureId") UUID messageStructureId);
 }

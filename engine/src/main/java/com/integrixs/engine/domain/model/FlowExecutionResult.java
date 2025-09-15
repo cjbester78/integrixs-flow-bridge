@@ -31,7 +31,7 @@ public class FlowExecutionResult {
     private String inboundAdapterId;
     private String outboundAdapterId;
     private Integer recordsProcessed;
-    
+
     /**
      * Create a successful result
      * @param executionId Execution ID
@@ -45,7 +45,7 @@ public class FlowExecutionResult {
                 .processedData(processedData)
                 .build();
     }
-    
+
     /**
      * Create an error result
      * @param executionId Execution ID
@@ -61,7 +61,7 @@ public class FlowExecutionResult {
                 .errorCode(errorCode)
                 .build();
     }
-    
+
     /**
      * Add a warning to the result
      * @param warning Warning message
@@ -69,7 +69,7 @@ public class FlowExecutionResult {
     public void addWarning(String warning) {
         this.warnings.add(warning);
     }
-    
+
     /**
      * Add metadata to the result
      * @param key Metadata key

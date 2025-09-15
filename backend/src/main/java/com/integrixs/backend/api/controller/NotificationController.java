@@ -19,9 +19,9 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class NotificationController {
-    
+
     private final NotificationApplicationService notificationApplicationService;
-    
+
     /**
      * Test notification configuration
      */
@@ -29,44 +29,44 @@ public class NotificationController {
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<Map<String, Object>> testNotifications() {
         log.info("Testing notification configuration");
-        
+
         boolean success = notificationApplicationService.testNotificationConfiguration();
-        
+
         return ResponseEntity.ok(Map.of(
             "success", success,
             "message", success ? "Test notification sent successfully" : "Notifications are disabled or not configured"
-        ));
+       ));
     }
-    
+
     /**
-     * Send a custom system alert (for testing purposes)
+     * Send a custom system alert(for testing purposes)
      */
     @PostMapping("/alert")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<Map<String, Object>> sendSystemAlert(
             @RequestBody Map<String, String> request) {
-        
+
         String subject = request.get("subject");
         String message = request.get("message");
-        
-        if (subject == null || subject.trim().isEmpty()) {
+
+        if(subject == null || subject.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "Subject is required"
-            ));
+           ));
         }
-        
-        if (message == null || message.trim().isEmpty()) {
+
+        if(message == null || message.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "Message is required"
-            ));
+           ));
         }
-        
+
         log.info("Sending custom system alert: {}", subject);
         notificationApplicationService.sendSystemAlert(subject, message);
-        
+
         return ResponseEntity.ok(Map.of(
             "success", true,
             "message", "Alert sent successfully"
-        ));
+       ));
     }
 }

@@ -29,14 +29,14 @@ import java.util.HashSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
-@RequestMapping("/api/message-structures")
+@RequestMapping("/api/message - structures")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Message Structures", description = "Message structure management endpoints")
 public class MessageStructureController {
-    
+
     private final MessageStructureService messageStructureService;
-    
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Create a new message structure")
@@ -46,8 +46,8 @@ public class MessageStructureController {
         MessageStructureDTO created = messageStructureService.create(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-    
-    @PutMapping("/{id}")
+
+    @PutMapping("/ {id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Update an existing message structure")
     public ResponseEntity<MessageStructureDTO> update(@PathVariable String id,
@@ -57,15 +57,15 @@ public class MessageStructureController {
         MessageStructureDTO updated = messageStructureService.update(id, request, currentUser);
         return ResponseEntity.ok(updated);
     }
-    
-    @GetMapping("/{id}")
+
+    @GetMapping("/ {id}")
     @Operation(summary = "Get a message structure by ID")
     public ResponseEntity<MessageStructureDTO> findById(@PathVariable String id) {
         log.info("Getting message structure: {}", id);
         MessageStructureDTO structure = messageStructureService.findById(id);
         return ResponseEntity.ok(structure);
     }
-    
+
     @GetMapping
     @Operation(summary = "Get all message structures with filters")
     public ResponseEntity<Page<MessageStructureDTO>> findAll(
@@ -76,16 +76,16 @@ public class MessageStructureController {
         Page<MessageStructureDTO> structures = messageStructureService.findAll(businessComponentId, search, pageable);
         return ResponseEntity.ok(structures);
     }
-    
-    @GetMapping("/by-business-component/{businessComponentId}")
+
+    @GetMapping("/by - business - component/ {businessComponentId}")
     @Operation(summary = "Get all message structures for a business component")
     public ResponseEntity<List<MessageStructureDTO>> findByBusinessComponent(@PathVariable String businessComponentId) {
         log.info("Getting message structures for business component: {}", businessComponentId);
         List<MessageStructureDTO> structures = messageStructureService.findByBusinessComponent(businessComponentId);
         return ResponseEntity.ok(structures);
     }
-    
-    @DeleteMapping("/{id}")
+
+    @DeleteMapping("/ {id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @Operation(summary = "Delete a message structure")
     public ResponseEntity<Void> delete(@PathVariable String id) {
@@ -93,8 +93,8 @@ public class MessageStructureController {
         messageStructureService.delete(id);
         return ResponseEntity.noContent().build();
     }
-    
-    @PostMapping(value = "/validate-xsd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
+    @PostMapping(value = "/validate - xsd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Validate XSD files and check dependencies")
     public ResponseEntity<List<?>> validateXsdFiles(@RequestParam("files") MultipartFile[] files,
@@ -102,33 +102,33 @@ public class MessageStructureController {
                                                    @CurrentUser User currentUser) {
         log.info("Validating {} XSD files", files.length);
         List<MultipartFile> fileList = Arrays.asList(files);
-        
+
         Set<String> allFileNames = null;
-        if (allFileNamesJson != null) {
+        if(allFileNamesJson != null) {
             try {
                 allFileNames = new HashSet<>(Arrays.asList(
                     new ObjectMapper().readValue(allFileNamesJson, String[].class)
-                ));
+               ));
                 log.info("Received {} total file names for dependency checking", allFileNames.size());
-            } catch (Exception e) {
+            } catch(Exception e) {
                 log.error("Failed to parse allFileNames", e);
             }
         }
-        
-        for (MultipartFile file : fileList) {
-            log.info("  - File: {}, Size: {} bytes", file.getOriginalFilename(), file.getSize());
+
+        for(MultipartFile file : fileList) {
+            log.info(" - File: {}, Size: {} bytes", file.getOriginalFilename(), file.getSize());
         }
         try {
             List<?> results = messageStructureService.validateXsdFiles(fileList, allFileNames);
             log.info("Validation completed with {} results", results.size());
             return ResponseEntity.ok(results);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Validation failed", e);
             throw e;
         }
     }
-    
-    @PostMapping(value = "/import-xsd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
+    @PostMapping(value = "/import - xsd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Import XSD files as message structures")
     public ResponseEntity<List<?>> importXsdFiles(@RequestParam("files") MultipartFile[] files,
@@ -138,26 +138,26 @@ public class MessageStructureController {
         List<MultipartFile> fileList = Arrays.asList(files);
         return ResponseEntity.ok(messageStructureService.importXsdFiles(fileList, businessComponentId, currentUser));
     }
-    
-    @PostMapping(value = "/test-multipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
+    @PostMapping(value = "/test - multipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Test multipart file upload")
     public ResponseEntity<Map<String, Object>> testMultipart(@RequestParam("files") MultipartFile[] files) {
         log.info("Test multipart endpoint called with {} files", files.length);
         Map<String, Object> response = new HashMap<>();
         response.put("fileCount", files.length);
-        
+
         List<Map<String, Object>> fileInfos = new ArrayList<>();
-        for (MultipartFile file : files) {
+        for(MultipartFile file : files) {
             Map<String, Object> fileInfo = new HashMap<>();
             fileInfo.put("name", file.getOriginalFilename());
             fileInfo.put("size", file.getSize());
             fileInfo.put("contentType", file.getContentType());
             fileInfos.add(fileInfo);
-            log.info("  - File: {}, Size: {} bytes, Type: {}", 
+            log.info(" - File: {}, Size: {} bytes, Type: {}",
                      file.getOriginalFilename(), file.getSize(), file.getContentType());
         }
         response.put("files", fileInfos);
-        
+
         return ResponseEntity.ok(response);
     }
 }

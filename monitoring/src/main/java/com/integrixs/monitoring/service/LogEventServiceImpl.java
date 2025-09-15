@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Service
 /**
- * Class LogEventServiceImpl - auto-generated documentation.
+ * Class LogEventServiceImpl - auto - generated documentation.
  */
 public class LogEventServiceImpl implements LogEventService {
 
@@ -33,7 +33,7 @@ public class LogEventServiceImpl implements LogEventService {
         String domainType,
         String domainReferenceId,
         String userId
-    ) {
+   ) {
         SystemLog log = new SystemLog();
         log.setTimestamp(LocalDateTime.now());
         log.setLevel(SystemLog.LogLevel.valueOf(level.name()));
@@ -45,11 +45,11 @@ public class LogEventServiceImpl implements LogEventService {
         log.setSourceName(source.name());
 
         try {
-            if (detailsJson != null) {
+            if(detailsJson != null) {
                 log.setDetails(objectMapper.writeValueAsString(detailsJson));
             }
-        } catch (JsonProcessingException e) {
-            log.setDetails("{\"error\": \"Failed to serialize log details\"}");
+        } catch(JsonProcessingException e) {
+            log.setDetails(" {\"error\": \"Failed to serialize log details\"}");
         }
 
         systemLogRepository.save(log);
@@ -61,7 +61,7 @@ public class LogEventServiceImpl implements LogEventService {
         LogSource source,
         String message,
         Object detailsJson
-    ) {
+   ) {
         logEvent(level, source, message, detailsJson, null, null, null);
     }
 
@@ -72,7 +72,7 @@ public class LogEventServiceImpl implements LogEventService {
         String domainType,
         String domainReferenceId,
         String userId
-    ) {
+   ) {
         logEvent(
             LogLevel.ERROR,
             LogSource.SYSTEM,
@@ -81,6 +81,6 @@ public class LogEventServiceImpl implements LogEventService {
             domainType,
             domainReferenceId,
             userId
-        );
+       );
     }
 }

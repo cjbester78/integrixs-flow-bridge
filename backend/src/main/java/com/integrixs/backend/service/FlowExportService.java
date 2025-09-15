@@ -41,7 +41,7 @@ public class FlowExportService {
     private final SystemLogRepository systemLogRepository;
     private final ObjectMapper objectMapper;
 
-    @Value("${app.version:1.0.0}")
+    @Value("$ {app.version:1.0.0}")
     private String applicationVersion;
 
     /**
@@ -52,64 +52,64 @@ public class FlowExportService {
      */
     public FlowExportDTO exportFlow(FlowExportRequestDTO request) {
         log.info("Exporting flow: {}", request.getFlowId());
-        
+
         // Load the flow
         IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(request.getFlowId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Flow not found: " + request.getFlowId()));
-        
+
         // Build export
         FlowExportDTO export = FlowExportDTO.builder()
                 .metadata(buildExportMetadata(request, flow))
                 .flow(convertToFlowDTO(flow))
                 .build();
-        
+
         // Include dependencies based on options
         FlowExportRequestDTO.ExportOptions options = request.getOptions();
-        
+
         // Load and include adapters
-        if (options.isIncludeAdapterConfigs()) {
+        if(options.isIncludeAdapterConfigs()) {
             export.setInboundAdapter(loadAdapter(flow.getInboundAdapterId() != null ? flow.getInboundAdapterId().toString() : null));
             export.setOutboundAdapter(loadAdapter(flow.getOutboundAdapterId() != null ? flow.getOutboundAdapterId().toString() : null));
-            
+
             // Include certificate references
-            if (options.isIncludeCertificateReferences()) {
+            if(options.isIncludeCertificateReferences()) {
                 Set<String> certificateIds = new HashSet<>();
                 certificateIds.addAll(extractCertificateIds(export.getInboundAdapter()));
                 certificateIds.addAll(extractCertificateIds(export.getOutboundAdapter()));
-                
+
                 List<FlowExportDTO.CertificateReferenceDTO> certRefs = certificateIds.stream()
                         .map(this::createCertificateReference)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
-                
+
                 export.setCertificateReferences(certRefs);
             }
         }
-        
+
         // Include business component
-        if (options.isIncludeBusinessComponent() && flow.getBusinessComponent() != null) {
+        if(options.isIncludeBusinessComponent() && flow.getBusinessComponent() != null) {
             export.setBusinessComponent(convertToBusinessComponentDTO(flow.getBusinessComponent()));
         }
-        
+
         // Load transformations and field mappings
         List<FlowTransformation> transformations = flowTransformationRepository.findByFlowId(flow.getId());
         export.setTransformations(transformations.stream()
                 .map(this::convertToFlowTransformationDTO)
                 .collect(Collectors.toList()));
-        
+
         // Flatten field mappings for easy access
         List<FieldMappingDTO> allMappings = new ArrayList<>();
-        for (FlowTransformation transformation : transformations) {
+        for(FlowTransformation transformation : transformations) {
             List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(transformation.getId());
             allMappings.addAll(mappings.stream()
                     .map(this::convertToFieldMappingDTO)
                     .collect(Collectors.toList()));
         }
         export.setFieldMappings(allMappings);
-        
+
         // Log the export
         logExportActivity(flow, request);
-        
+
         return export;
     }
 
@@ -121,45 +121,45 @@ public class FlowExportService {
      */
     public Map<String, Object> validateExport(String flowId) {
         Map<String, Object> validation = new HashMap<>();
-        
+
         try {
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(flowId))
                     .orElseThrow(() -> new ResourceNotFoundException("Flow not found"));
-            
+
             validation.put("canExport", true);
             validation.put("flowName", flow.getName());
             validation.put("status", flow.getStatus().toString());
-            
+
             // Check dependencies
             boolean hasSourceAdapter = communicationAdapterRepository.existsById(flow.getInboundAdapterId());
             boolean hasTargetAdapter = communicationAdapterRepository.existsById(flow.getOutboundAdapterId());
-            
+
             validation.put("hasSourceAdapter", hasSourceAdapter);
             validation.put("hasTargetAdapter", hasTargetAdapter);
-            
-            if (!hasSourceAdapter || !hasTargetAdapter) {
+
+            if(!hasSourceAdapter || !hasTargetAdapter) {
                 validation.put("canExport", false);
                 validation.put("reason", "Missing adapter dependencies");
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             validation.put("canExport", false);
             validation.put("error", e.getMessage());
         }
-        
+
         return validation;
     }
 
     private FlowExportDTO.ExportMetadata buildExportMetadata(FlowExportRequestDTO request, IntegrationFlow flow) {
         FlowExportRequestDTO.ExportOptions options = request.getOptions();
-        
+
         Map<String, String> tags = new HashMap<>();
-        if (options.getTags() != null) {
+        if(options.getTags() != null) {
             options.getTags().forEach(tag -> tags.put(tag, "true"));
         }
         tags.put("flowName", flow.getName());
         tags.put("flowStatus", flow.getStatus().toString());
-        
+
         return FlowExportDTO.ExportMetadata.builder()
                 .exportId(UUID.randomUUID().toString())
                 .exportVersion("1.0")
@@ -181,29 +181,29 @@ public class FlowExportService {
 
     private Set<String> extractCertificateIds(CommunicationAdapterDTO adapter) {
         Set<String> certificateIds = new HashSet<>();
-        
-        if (adapter == null || adapter.getConfiguration() == null) {
+
+        if(adapter == null || adapter.getConfiguration() == null) {
             return certificateIds;
         }
-        
+
         try {
             // Configuration is already a Map
             Map<String, Object> config = adapter.getConfiguration();
-            
+
             // Common certificate field names
-            String[] certFields = {"certificateId", "clientCertificateId", "serverCertificateId", 
+            String[] certFields = {"certificateId", "clientCertificateId", "serverCertificateId",
                                  "truststoreId", "keystoreId", "sslCertificateId"};
-            
-            for (String field : certFields) {
-                if (config.containsKey(field) && config.get(field) != null) {
+
+            for(String field : certFields) {
+                if(config.containsKey(field) && config.get(field) != null) {
                     certificateIds.add(config.get(field).toString());
                 }
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.warn("Failed to extract certificate IDs from adapter config: {}", e.getMessage());
         }
-        
+
         return certificateIds;
     }
 
@@ -226,7 +226,7 @@ public class FlowExportService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(content);
             return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Failed to calculate checksum", e);
             return null;
         }
@@ -238,7 +238,7 @@ public class FlowExportService {
             details.put("flowId", flow.getId());
             details.put("flowName", flow.getName());
             details.put("exportOptions", request.getOptions());
-            
+
             SystemLog log = SystemLog.builder()
                     .timestamp(LocalDateTime.now())
                     .level(SystemLog.LogLevel.INFO)
@@ -251,10 +251,10 @@ public class FlowExportService {
                     .domainType("INTEGRATION_FLOW")
                     .domainReferenceId(flow.getId().toString())
                     .build();
-            
+
             systemLogRepository.save(log);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Failed to log export activity", e);
         }
     }
@@ -343,15 +343,15 @@ public class FlowExportService {
                 .updatedAt(mapping.getUpdatedAt())
                 .build();
     }
-    
+
     private Map<String, Object> parseConfiguration(String configJson) {
-        if (configJson == null || configJson.isEmpty()) {
+        if(configJson == null || configJson.isEmpty()) {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(configJson, 
+            return objectMapper.readValue(configJson,
                 objectMapper.getTypeFactory().constructMapType(HashMap.class, String.class, Object.class));
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.warn("Failed to parse configuration JSON: {}", e.getMessage());
             return new HashMap<>();
         }

@@ -20,10 +20,10 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        
+
         // For a SPA, always return JSON response and let frontend handle routing
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
-        response.getWriter().write("{\"error\":\"Access Denied\",\"message\":\"Insufficient permissions\"}");
+        response.getWriter().write(" {\"error\":\"Access Denied\",\"message\":\"Insufficient permissions\"}");
     }
 }

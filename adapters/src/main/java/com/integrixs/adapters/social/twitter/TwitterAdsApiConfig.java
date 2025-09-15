@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.twitter.ads")
 public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String adsAccountId;
     private String apiKey;
     private String apiKeySecret;
@@ -16,7 +16,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
     private String accessTokenSecret;
     private TwitterAdsFeatures features = new TwitterAdsFeatures();
     private TwitterAdsLimits limits = new TwitterAdsLimits();
-    
+
         public static class TwitterAdsFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAdGroupManagement = true;
@@ -39,7 +39,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAppCards = true;
         private boolean enableLeadGenCards = true;
     }
-    
+
         public static class TwitterAdsLimits {
         private int maxCampaignsPerAccount = 200;
         private int maxAdGroupsPerCampaign = 100;
@@ -52,7 +52,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         private int minCustomAudienceSize = 100;
         private int maxConversionEventsPerDay = 100000;
     }
-    
+
     // Campaign objectives
     public enum CampaignObjective {
         AWARENESS,
@@ -66,7 +66,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         WEBSITE_CONVERSIONS,
         IN_STREAM_VIDEO_VIEWS
     }
-    
+
     // Funding instruments
     public enum FundingInstrumentType {
         CREDIT_CARD,
@@ -74,14 +74,14 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         INSERTION_ORDER,
         CREDIT_LINE
     }
-    
+
     // Bidding types
     public enum BidType {
         AUTO,
         MAX,
         TARGET
     }
-    
+
     // Placement types
     public enum PlacementType {
         ALL_ON_TWITTER,
@@ -90,7 +90,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         TWITTER_TIMELINE,
         TWITTER_PROFILE
     }
-    
+
     // Creative types
     public enum CreativeType {
         TWEET,
@@ -108,7 +108,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         POLL_VIDEO_CARD,
         CONVERSATIONAL_VIDEO_CARD
     }
-    
+
     // Audience types
     public enum AudienceType {
         CUSTOM_AUDIENCE,
@@ -132,7 +132,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         TV_GENRE,
         TV_CHANNEL
     }
-    
+
     // Metric types for reporting
     public enum MetricType {
         IMPRESSIONS,
@@ -163,7 +163,7 @@ public class TwitterAdsApiConfig extends SocialMediaAdapterConfig {
         CONVERSION_DOWNLOADS,
         CONVERSION_CUSTOM
     }
-    
+
     // Report granularity
     public enum Granularity {
         HOUR,

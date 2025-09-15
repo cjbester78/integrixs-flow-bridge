@@ -1,7 +1,7 @@
 package com.integrixs.shared.exception;
 
 /**
- * Class IntegrationException - auto-generated documentation.
+ * Class IntegrationException - auto - generated documentation.
  */
 public class IntegrationException extends RuntimeException {
     /**

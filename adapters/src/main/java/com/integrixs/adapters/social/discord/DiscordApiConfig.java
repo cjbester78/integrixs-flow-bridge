@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.discord")
 public class DiscordApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String clientId;
     private String clientSecret;
     private String botToken;
@@ -17,7 +17,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     private String applicationId;
     private DiscordFeatures features = new DiscordFeatures();
     private DiscordLimits limits = new DiscordLimits();
-    
+
         public static class DiscordFeatures {
         private boolean enableGuildManagement = true;
         private boolean enableChannelOperations = true;
@@ -40,7 +40,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         private boolean enableVoiceRecording = false;
         private boolean enableStreamNotifications = true;
     }
-    
+
         public static class DiscordLimits {
         private int maxMessageLength = 2000;
         private int maxEmbedLength = 6000;
@@ -58,7 +58,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         private int messageHistoryLimit = 100; // Per request
         private int guildMemberLimit = 250000; // Without verification
     }
-    
+
     // Gateway intents
     public enum GatewayIntent {
         GUILDS,
@@ -81,7 +81,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         AUTO_MODERATION_CONFIGURATION,
         AUTO_MODERATION_EXECUTION
     }
-    
+
     // Channel types
     public enum ChannelType {
         GUILD_TEXT,
@@ -98,7 +98,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         GUILD_DIRECTORY,
         GUILD_FORUM
     }
-    
+
     // MessageDTO types
     public enum MessageType {
         DEFAULT,
@@ -126,7 +126,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         CONTEXT_MENU_COMMAND,
         AUTO_MODERATION_ACTION
     }
-    
+
     // Permission flags
     public enum Permission {
         CREATE_INSTANT_INVITE,
@@ -171,7 +171,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         USE_EMBEDDED_ACTIVITIES,
         MODERATE_MEMBERS
     }
-    
+
     // Interaction types
     public enum InteractionType {
         PING,
@@ -180,7 +180,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         APPLICATION_COMMAND_AUTOCOMPLETE,
         MODAL_SUBMIT
     }
-    
+
     // Component types
     public enum ComponentType {
         ACTION_ROW,
@@ -188,7 +188,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         SELECT_MENU,
         TEXT_INPUT
     }
-    
+
     // Button styles
     public enum ButtonStyle {
         PRIMARY,
@@ -197,7 +197,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         DANGER,
         LINK
     }
-    
+
     // Event types
     public enum EventType {
         READY,
@@ -256,7 +256,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         VOICE_SERVER_UPDATE,
         WEBHOOKS_UPDATE
     }
-    
+
     // Audit log event types
     public enum AuditLogEvent {
         GUILD_UPDATE,
@@ -312,7 +312,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         AUTO_MODERATION_RULE_DELETE,
         AUTO_MODERATION_BLOCK_MESSAGE
     }
-    
+
     // Voice states
     public enum VoiceState {
         DEAF,
@@ -324,7 +324,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         SUPPRESS,
         REQUEST_TO_SPEAK_TIMESTAMP
     }
-    
+
     // Activity types
     public enum ActivityType {
         GAME,
@@ -334,7 +334,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         CUSTOM,
         COMPETING
     }
-    
+
     // Status types
     public enum StatusType {
         ONLINE,
@@ -343,7 +343,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         INVISIBLE,
         OFFLINE
     }
-    
+
     // Embed types
     public enum EmbedType {
         RICH,
@@ -353,7 +353,7 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         ARTICLE,
         LINK
     }
-    
+
     // Error codes
     public enum DiscordErrorCode {
         GENERAL_ERROR(0),
@@ -545,13 +545,13 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         REMOTE_AUTH_SESSION_INVALID_AUDIENCE(170005),
         CANNOT_JOIN_VOICE_MORE_THAN_ONCE(180000),
         INVALID_REQUEST(190001);
-        
+
         private final int code;
-        
+
         DiscordErrorCode(int code) {
             this.code = code;
         }
-        
+
         public int getCode() {
             return code;
         }

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TargetFieldMappingResponse {
-    
+
     private String id;
     private String orchestrationTargetId;
     private String sourceFieldPath;

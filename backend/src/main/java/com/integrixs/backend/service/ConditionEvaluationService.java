@@ -40,12 +40,12 @@ public class ConditionEvaluationService {
         String testId = UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
         List<TestConditionResponse.ExecutionStep> steps = new ArrayList<>();
-        
+
         try {
             boolean result = false;
             String error = null;
-            
-            switch (conditionType) {
+
+            switch(conditionType) {
                 case ALWAYS:
                     result = true;
                     steps.add(TestConditionResponse.ExecutionStep.builder()
@@ -53,40 +53,40 @@ public class ConditionEvaluationService {
                         .result(true)
                         .build());
                     break;
-                    
+
                 case EXPRESSION:
                     result = evaluateExpression(condition, payload, steps);
                     break;
-                    
+
                 case JSONPATH:
                     result = evaluateJsonPath(condition, payload, steps);
                     break;
-                    
+
                 case XPATH:
                     result = evaluateXPath(condition, payload, steps);
                     break;
-                    
+
                 case REGEX:
                     result = evaluateRegex(condition, payload, steps);
                     break;
-                    
+
                 case HEADER_MATCH:
                     result = evaluateHeaderMatch(condition, payload, steps);
                     break;
-                    
+
                 case CONTENT_TYPE:
                     result = evaluateContentType(condition, payload, steps);
                     break;
-                    
+
                 case CUSTOM:
                     throw new BusinessException("Custom condition evaluation not implemented");
-                    
+
                 default:
                     throw new BusinessException("Unknown condition type: " + conditionType);
             }
-            
+
             long executionTime = System.currentTimeMillis() - startTime;
-            
+
             return TestConditionResponse.builder()
                 .id(testId)
                 .timestamp(Instant.now())
@@ -101,11 +101,11 @@ public class ConditionEvaluationService {
                     .steps(steps)
                     .build())
                 .build();
-                
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error evaluating condition", e);
             long executionTime = System.currentTimeMillis() - startTime;
-            
+
             return TestConditionResponse.builder()
                 .id(testId)
                 .timestamp(Instant.now())
@@ -122,20 +122,20 @@ public class ConditionEvaluationService {
                 .build();
         }
     }
-    
+
     public TestConditionResponse validateCondition(String condition, ConditionType conditionType) {
         String testId = UUID.randomUUID().toString();
         List<TestConditionResponse.ExecutionStep> steps = new ArrayList<>();
-        
+
         try {
             boolean valid = false;
             String error = null;
-            
-            switch (conditionType) {
+
+            switch(conditionType) {
                 case ALWAYS:
                     valid = true;
                     break;
-                    
+
                 case EXPRESSION:
                     parser.parseExpression(condition);
                     valid = true;
@@ -144,7 +144,7 @@ public class ConditionEvaluationService {
                         .result("Valid SpEL expression")
                         .build());
                     break;
-                    
+
                 case JSONPATH:
                     JsonPath.compile(condition);
                     valid = true;
@@ -153,7 +153,7 @@ public class ConditionEvaluationService {
                         .result("Valid JSONPath expression")
                         .build());
                     break;
-                    
+
                 case REGEX:
                     Pattern.compile(condition);
                     valid = true;
@@ -162,11 +162,11 @@ public class ConditionEvaluationService {
                         .result("Valid regular expression")
                         .build());
                     break;
-                    
+
                 default:
                     valid = true; // Assume valid for other types
             }
-            
+
             return TestConditionResponse.builder()
                 .id(testId)
                 .timestamp(Instant.now())
@@ -179,8 +179,8 @@ public class ConditionEvaluationService {
                     .steps(steps)
                     .build())
                 .build();
-                
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             return TestConditionResponse.builder()
                 .id(testId)
                 .timestamp(Instant.now())
@@ -192,28 +192,28 @@ public class ConditionEvaluationService {
                 .build();
         }
     }
-    
+
     private boolean evaluateExpression(String condition, Map<String, Object> payload, List<TestConditionResponse.ExecutionStep> steps) {
         try {
             Expression exp = parser.parseExpression(condition);
             EvaluationContext context = new StandardEvaluationContext();
             context.setVariable("payload", payload);
             context.setVariable("headers", payload.get("headers"));
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Parsing SpEL expression")
                 .result(condition)
                 .build());
-            
+
             Boolean result = exp.getValue(context, Boolean.class);
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Expression evaluation result")
                 .result(result)
                 .build());
-            
+
             return Boolean.TRUE.equals(result);
-        } catch (Exception e) {
+        } catch(Exception e) {
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Expression evaluation failed")
                 .result(e.getMessage())
@@ -221,38 +221,38 @@ public class ConditionEvaluationService {
             throw new BusinessException("Expression evaluation failed: " + e.getMessage(), e);
         }
     }
-    
+
     private boolean evaluateJsonPath(String jsonPath, Map<String, Object> payload, List<TestConditionResponse.ExecutionStep> steps) {
         try {
             String json = objectMapper.writeValueAsString(payload);
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Converting payload to JSON")
                 .result("JSON conversion successful")
                 .build());
-            
+
             Object result = JsonPath.read(json, jsonPath);
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("JSONPath evaluation")
                 .result(result)
                 .build());
-            
+
             // If result is boolean, return it
-            if (result instanceof Boolean) {
-                return (Boolean) result;
+            if(result instanceof Boolean) {
+                return(Boolean) result;
             }
-            
+
             // If result exists and is not null/empty, consider it a match
-            if (result != null) {
-                if (result instanceof Collection) {
+            if(result != null) {
+                if(result instanceof Collection) {
                     return !((Collection<?>) result).isEmpty();
                 }
                 return true;
             }
-            
+
             return false;
-        } catch (Exception e) {
+        } catch(Exception e) {
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("JSONPath evaluation failed")
                 .result(e.getMessage())
@@ -260,34 +260,34 @@ public class ConditionEvaluationService {
             throw new BusinessException("JSONPath evaluation failed: " + e.getMessage(), e);
         }
     }
-    
+
     private boolean evaluateXPath(String xpath, Map<String, Object> payload, List<TestConditionResponse.ExecutionStep> steps) {
         try {
-            // Convert payload to XML (simplified - in real implementation, use proper XML converter)
+            // Convert payload to XML(simplified - in real implementation, use proper XML converter)
             String xml = "<root>" + convertToXml(payload) + "</root>";
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Converting payload to XML")
                 .result("XML conversion successful")
                 .build());
-            
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new StringReader(xml)));
-            
+
             XPathFactory xPathfactory = XPathFactory.newInstance();
             XPath xPath = xPathfactory.newXPath();
             XPathExpression expr = xPath.compile(xpath);
-            
+
             Object result = expr.evaluate(doc, XPathConstants.BOOLEAN);
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("XPath evaluation")
                 .result(result)
                 .build());
-            
-            return (Boolean) result;
-        } catch (Exception e) {
+
+            return(Boolean) result;
+        } catch(Exception e) {
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("XPath evaluation failed")
                 .result(e.getMessage())
@@ -295,98 +295,98 @@ public class ConditionEvaluationService {
             throw new BusinessException("XPath evaluation failed: " + e.getMessage(), e);
         }
     }
-    
+
     private boolean evaluateRegex(String regex, Map<String, Object> payload, List<TestConditionResponse.ExecutionStep> steps) {
         try {
             String payloadStr = objectMapper.writeValueAsString(payload);
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Converting payload to string")
                 .result("Payload size: " + payloadStr.length() + " chars")
                 .build());
-            
+
             Pattern pattern = Pattern.compile(regex);
             boolean matches = pattern.matcher(payloadStr).find();
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Regex pattern matching")
                 .result(matches ? "Pattern found" : "No match")
                 .build());
-            
+
             return matches;
-        } catch (PatternSyntaxException e) {
+        } catch(PatternSyntaxException e) {
             throw new BusinessException("Invalid regex pattern: " + e.getMessage(), e);
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new BusinessException("Regex evaluation failed: " + e.getMessage(), e);
         }
     }
-    
+
     private boolean evaluateHeaderMatch(String headerMatch, Map<String, Object> payload, List<TestConditionResponse.ExecutionStep> steps) {
         try {
             @SuppressWarnings("unchecked")
             Map<String, String> headers = (Map<String, String>) payload.get("headers");
-            if (headers == null) {
+            if(headers == null) {
                 steps.add(TestConditionResponse.ExecutionStep.builder()
                     .description("No headers found in payload")
                     .result(false)
                     .build());
                 return false;
             }
-            
-            // Parse header match condition (e.g., "X-Custom-Header: value")
+
+            // Parse header match condition(e.g., "X - Custom - Header: value")
             String[] parts = headerMatch.split(":", 2);
-            if (parts.length != 2) {
+            if(parts.length != 2) {
                 throw new BusinessException("Invalid header match format. Expected 'Header: value'");
             }
-            
+
             String headerName = parts[0].trim();
             String expectedValue = parts[1].trim();
             String actualValue = headers.get(headerName);
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
                 .description("Checking header: " + headerName)
                 .result("Expected: " + expectedValue + ", Actual: " + actualValue)
                 .build());
-            
+
             return expectedValue.equals(actualValue);
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new BusinessException("Header match evaluation failed: " + e.getMessage(), e);
         }
     }
-    
+
     private boolean evaluateContentType(String contentType, Map<String, Object> payload, List<TestConditionResponse.ExecutionStep> steps) {
         try {
             @SuppressWarnings("unchecked")
             Map<String, String> headers = (Map<String, String>) payload.get("headers");
-            if (headers == null) {
+            if(headers == null) {
                 steps.add(TestConditionResponse.ExecutionStep.builder()
                     .description("No headers found, assuming default content type")
                     .result("application/json")
                     .build());
                 return "application/json".equals(contentType);
             }
-            
-            String actualContentType = headers.get("Content-Type");
-            if (actualContentType == null) {
+
+            String actualContentType = headers.get("Content - Type");
+            if(actualContentType == null) {
                 actualContentType = "application/json"; // Default
             }
-            
+
             steps.add(TestConditionResponse.ExecutionStep.builder()
-                .description("Content-Type check")
+                .description("Content - Type check")
                 .result("Expected: " + contentType + ", Actual: " + actualContentType)
                 .build());
-            
+
             return contentType.equals(actualContentType);
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new BusinessException("Content type evaluation failed: " + e.getMessage(), e);
         }
     }
-    
+
     private String convertToXml(Map<String, Object> map) {
         StringBuilder xml = new StringBuilder();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
+        for(Map.Entry<String, Object> entry : map.entrySet()) {
             xml.append("<").append(entry.getKey()).append(">");
-            if (entry.getValue() instanceof Map) {
+            if(entry.getValue() instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> nested = (Map<String, Object>) entry.getValue();
                 xml.append(convertToXml(nested));

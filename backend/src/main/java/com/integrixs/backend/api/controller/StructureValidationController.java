@@ -23,66 +23,66 @@ public class StructureValidationController {
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
     @PostMapping("/validate")
-    @Operation(summary = "Validate a structure", 
-              description = "Validate WSDL, JSON Schema or other structure formats with real-time feedback")
+    @Operation(summary = "Validate a structure",
+              description = "Validate WSDL, JSON Schema or other structure formats with real - time feedback")
     public ResponseEntity<StructureValidationResponse> validateStructure(
             @Valid @RequestBody ValidateStructureRequest request) {
-        
+
         StructureValidationResponse response;
-        
-        switch (request.getStructureType()) {
+
+        switch(request.getStructureType()) {
             case "WSDL":
-                WsdlValidationService.ValidationResult wsdlResult = 
+                WsdlValidationService.ValidationResult wsdlResult =
                     wsdlValidationService.validateWsdl(request.getContent());
                 response = convertWsdlResult(wsdlResult);
                 break;
-                
+
             case "JSON_SCHEMA":
                 response = jsonSchemaValidationService.validateJsonSchema(request.getContent());
                 break;
-                
+
             case "XSD":
                 response = StructureValidationResponse.builder()
                     .valid(false)
                     .message("XSD validation not yet implemented")
                     .build();
                 break;
-                
+
             default:
                 response = StructureValidationResponse.builder()
                     .valid(false)
                     .message("Unknown structure type: " + request.getStructureType())
                     .build();
         }
-        
+
         return ResponseEntity.ok(response);
     }
-    
-    @PostMapping("/wsdl/extract-operations")
-    @Operation(summary = "Extract operations from WSDL", 
+
+    @PostMapping("/wsdl/extract - operations")
+    @Operation(summary = "Extract operations from WSDL",
               description = "Parse WSDL and extract available operations and message types")
     public ResponseEntity<StructureValidationResponse> extractWsdlOperations(
             @Valid @RequestBody ValidateStructureRequest request) {
-        
-        if (!"WSDL".equals(request.getStructureType())) {
+
+        if(!"WSDL".equals(request.getStructureType())) {
             return ResponseEntity.badRequest().body(
                 StructureValidationResponse.builder()
                     .valid(false)
                     .message("This endpoint only accepts WSDL content")
                     .build()
-            );
+           );
         }
-        
-        WsdlValidationService.ValidationResult result = 
+
+        WsdlValidationService.ValidationResult result =
             wsdlValidationService.validateWsdl(request.getContent());
-        
+
         return ResponseEntity.ok(convertWsdlResult(result));
     }
-    
+
     private StructureValidationResponse convertWsdlResult(WsdlValidationService.ValidationResult wsdlResult) {
         StructureValidationResponse response = new StructureValidationResponse();
         response.setValid(wsdlResult.isValid());
-        
+
         // Convert issues
         response.setIssues(wsdlResult.getIssues().stream()
             .map(issue -> StructureValidationResponse.Issue.builder()
@@ -93,14 +93,14 @@ public class StructureValidationController {
                 .path(issue.getPath())
                 .build())
             .toList());
-        
+
         // Convert metadata if present
-        if (wsdlResult.getMetadata() != null) {
+        if(wsdlResult.getMetadata() != null) {
             StructureValidationResponse.WsdlMetadata metadata = new StructureValidationResponse.WsdlMetadata();
             metadata.setTargetNamespace(wsdlResult.getMetadata().getTargetNamespace());
             metadata.setVersion(wsdlResult.getMetadata().getVersion());
             metadata.setNamespaces(wsdlResult.getMetadata().getNamespaces());
-            
+
             // Convert services
             metadata.setServices(wsdlResult.getMetadata().getServices().stream()
                 .map(service -> {
@@ -118,7 +118,7 @@ public class StructureValidationController {
                     return serviceInfo;
                 })
                 .toList());
-            
+
             // Convert port types
             metadata.setPortTypes(wsdlResult.getMetadata().getPortTypes().stream()
                 .map(portType -> {
@@ -137,7 +137,7 @@ public class StructureValidationController {
                     return portTypeInfo;
                 })
                 .toList());
-            
+
             // Convert messages
             metadata.setMessages(wsdlResult.getMetadata().getMessages().stream()
                 .map(message -> {
@@ -155,10 +155,10 @@ public class StructureValidationController {
                     return messageInfo;
                 })
                 .toList());
-            
+
             response.setWsdlMetadata(metadata);
         }
-        
+
         // Generate summary message
         long errorCount = response.getIssues().stream()
             .filter(i -> i.getType() == StructureValidationResponse.IssueType.ERROR)
@@ -166,16 +166,16 @@ public class StructureValidationController {
         long warningCount = response.getIssues().stream()
             .filter(i -> i.getType() == StructureValidationResponse.IssueType.WARNING)
             .count();
-        
-        if (response.isValid()) {
+
+        if(response.isValid()) {
             response.setMessage("Valid WSDL");
-            if (warningCount > 0) {
+            if(warningCount > 0) {
                 response.setMessage(response.getMessage() + " with " + warningCount + " warning(s)");
             }
         } else {
             response.setMessage("Invalid WSDL: " + errorCount + " error(s), " + warningCount + " warning(s)");
         }
-        
+
         return response;
     }
 }

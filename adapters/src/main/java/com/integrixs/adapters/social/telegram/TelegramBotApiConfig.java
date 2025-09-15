@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.telegram.bot")
 public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String botToken;
     private String botUsername;
     private String webhookUrl;
@@ -18,7 +18,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
     private String apiUrl = "https://api.telegram.org"; // Allow custom API URL for local bot API server
     private TelegramFeatures features = new TelegramFeatures();
     private TelegramLimits limits = new TelegramLimits();
-    
+
         public static class TelegramFeatures {
         private boolean enableMessages = true;
         private boolean enableInlineQueries = true;
@@ -44,7 +44,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         private boolean enableBotAPI60 = true; // Features from Bot API 6.0+
         private boolean enableBotAPI70 = true; // Features from Bot API 7.0+
     }
-    
+
         public static class TelegramLimits {
         private int maxMessageLength = 4096; // UTF-8 characters
         private int maxCaptionLength = 1024;
@@ -66,7 +66,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         private int maxKeyboardButtons = 100;
         private int maxInlineKeyboardButtons = 100;
     }
-    
+
     // Update types
     public enum UpdateType {
         MESSAGE,
@@ -92,7 +92,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         EDITED_BUSINESS_MESSAGE,
         DELETED_BUSINESS_MESSAGES
     }
-    
+
     // MessageDTO types
     public enum MessageType {
         TEXT,
@@ -128,7 +128,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         VIDEO_CHAT_PARTICIPANTS_INVITED,
         WEB_APP_DATA
     }
-    
+
     // Chat types
     public enum ChatType {
         PRIVATE,
@@ -136,7 +136,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         SUPERGROUP,
         CHANNEL
     }
-    
+
     // Chat member status
     public enum ChatMemberStatus {
         CREATOR,
@@ -146,7 +146,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         LEFT,
         KICKED
     }
-    
+
     // Parse modes
     public enum ParseMode {
         NONE,
@@ -154,7 +154,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         MARKDOWNV2,
         HTML
     }
-    
+
     // Keyboard button types
     public enum KeyboardButtonType {
         TEXT,
@@ -165,7 +165,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         REQUEST_CHAT,
         WEB_APP
     }
-    
+
     // Inline keyboard button types
     public enum InlineKeyboardButtonType {
         URL,
@@ -178,7 +178,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         CALLBACK_GAME,
         PAY
     }
-    
+
     // Bot command scope types
     public enum BotCommandScopeType {
         DEFAULT,
@@ -189,14 +189,14 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         CHAT_ADMINISTRATORS,
         CHAT_MEMBER
     }
-    
+
     // Menu button types
     public enum MenuButtonType {
         COMMANDS,
         WEB_APP,
         DEFAULT
     }
-    
+
     // Media group types
     public enum MediaGroupType {
         PHOTO,
@@ -204,34 +204,34 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         AUDIO,
         DOCUMENT
     }
-    
+
     // Reaction types
     public enum ReactionType {
         EMOJI,
         CUSTOM_EMOJI,
         PAID
     }
-    
+
     // Sticker types
     public enum StickerType {
         REGULAR,
         MASK,
         CUSTOM_EMOJI
     }
-    
+
     // Sticker format
     public enum StickerFormat {
         STATIC,
         ANIMATED,
         VIDEO
     }
-    
+
     // Poll types
     public enum PollType {
         REGULAR,
         QUIZ
     }
-    
+
     // Dice emoji types
     public enum DiceEmoji {
         DICE("🎲"),
@@ -240,18 +240,18 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         FOOTBALL("⚽"),
         BOWLING("🎳"),
         SLOT_MACHINE("🎰");
-        
+
         private final String emoji;
-        
+
         DiceEmoji(String emoji) {
             this.emoji = emoji;
         }
-        
+
         public String getEmoji() {
             return emoji;
         }
     }
-    
+
     // Chat action types
     public enum ChatAction {
         TYPING,
@@ -266,7 +266,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         RECORD_VIDEO_NOTE,
         UPLOAD_VIDEO_NOTE
     }
-    
+
     // Entity types
     public enum MessageEntityType {
         MENTION,
@@ -289,7 +289,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         TEXT_MENTION,
         CUSTOM_EMOJI
     }
-    
+
     // Chat permissions
     public enum ChatPermission {
         CAN_SEND_MESSAGES,
@@ -307,7 +307,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         CAN_PIN_MESSAGES,
         CAN_MANAGE_TOPICS
     }
-    
+
     // Administrator rights
     public enum AdministratorRight {
         CAN_MANAGE_CHAT,
@@ -325,7 +325,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         CAN_DELETE_STORIES,
         CAN_MANAGE_TOPICS
     }
-    
+
     // Inline query result types
     public enum InlineQueryResultType {
         ARTICLE,
@@ -350,7 +350,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         CACHED_VOICE,
         CACHED_AUDIO
     }
-    
+
     // Input media types
     public enum InputMediaType {
         PHOTO,
@@ -359,7 +359,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         AUDIO,
         DOCUMENT
     }
-    
+
     // Webhook info status
     public enum WebhookStatus {
         NOT_SET,
@@ -367,7 +367,7 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         ERROR,
         PENDING_UPDATE
     }
-    
+
     // Error codes
     public enum TelegramErrorCode {
         // General errors
@@ -377,56 +377,56 @@ public class TelegramBotApiConfig extends SocialMediaAdapterConfig {
         NOT_FOUND(404, "Not Found"),
         CONFLICT(409, "Conflict"),
         TOO_MANY_REQUESTS(429, "Too Many Requests"),
-        
+
         // Telegram specific errors
         MESSAGE_NOT_MODIFIED(400, "Bad Request: message is not modified"),
         MESSAGE_TO_DELETE_NOT_FOUND(400, "Bad Request: message to delete not found"),
         MESSAGE_TOO_LONG(400, "Bad Request: message is too long"),
         MESSAGE_CANT_BE_EDITED(400, "Bad Request: message can't be edited"),
         MESSAGE_CANT_BE_DELETED(400, "Bad Request: message can't be deleted"),
-        
+
         // Bot errors
         BOT_BLOCKED_BY_USER(403, "Forbidden: bot was blocked by the user"),
         BOT_KICKED_FROM_CHAT(403, "Forbidden: bot was kicked from the group chat"),
         BOT_NOT_IN_CHAT(403, "Forbidden: bot is not a member of the chat"),
         BOT_CANT_INIT_CONVERSATION(403, "Forbidden: bot can't initiate conversation with a user"),
-        
+
         // Chat errors
         CHAT_NOT_FOUND(400, "Bad Request: chat not found"),
         CHAT_ADMIN_REQUIRED(400, "Bad Request: need administrator rights in the chat"),
         NOT_ENOUGH_RIGHTS(400, "Bad Request: not enough rights"),
         PARTICIPANT_ID_INVALID(400, "Bad Request: participant_id invalid"),
-        
+
         // File errors
         FILE_TOO_LARGE(413, "Request Entity Too Large"),
         FILE_ID_INVALID(400, "Bad Request: invalid file_id"),
-        
+
         // Query errors
         QUERY_ID_INVALID(400, "Bad Request: query is too old and response timeout expired"),
         RESULT_ID_DUPLICATE(400, "Bad Request: result_id is duplicated"),
-        
+
         // Webhook errors
         WEBHOOK_REQUIRE_HTTPS(400, "Bad Request: webhook URL must be HTTPS"),
         BAD_WEBHOOK_PORT(400, "Bad Request: bad webhook port"),
         BAD_WEBHOOK_ADDR_INFO(400, "Bad Request: bad webhook: IP address is reserved"),
         WEBHOOK_URL_NOT_VALID(400, "Bad Request: invalid webhook URL"),
-        
+
         // Payment errors
         PAYMENT_PROVIDER_INVALID(400, "Bad Request: payment provider invalid"),
         CURRENCY_TOTAL_AMOUNT_INVALID(400, "Bad Request: currency_total_amount invalid");
-        
+
         private final int code;
         private final String message;
-        
+
         TelegramErrorCode(int code, String message) {
             this.code = code;
             this.message = message;
         }
-        
+
         public int getCode() {
             return code;
         }
-        
+
         public String getMessage() {
             return message;
         }

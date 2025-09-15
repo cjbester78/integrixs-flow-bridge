@@ -12,12 +12,12 @@ import java.util.UUID;
  */
 @Repository
 public interface SystemConfigurationRepository extends JpaRepository<SystemConfiguration, UUID> {
-    
+
     /**
      * Find configuration by key
      */
     Optional<SystemConfiguration> findByConfigKey(String configKey);
-    
+
     /**
      * Check if configuration exists by key
      */

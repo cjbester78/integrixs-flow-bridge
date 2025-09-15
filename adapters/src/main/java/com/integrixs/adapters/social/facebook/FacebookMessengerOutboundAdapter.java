@@ -53,9 +53,9 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     @Override
     public MessageDTO processMessage(MessageDTO message) {
         String action = message.getHeader("action");
-        
+
         try {
-            switch (action) {
+            switch(action) {
                 case "SEND_TEXT_MESSAGE":
                     return sendTextMessage(message);
                 case "SEND_IMAGE":
@@ -123,7 +123,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
                 default:
                     throw new UnsupportedOperationException("Unknown action: " + action);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             return createErrorResponse(message, e.getMessage());
         }
     }
@@ -138,23 +138,23 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", messagingType);
-        
+
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("text", text);
-        
-        if (personaId != null) {
+
+        if(personaId != null) {
             messageData.put("persona_id", personaId);
         }
-        
+
         request.put("message", messageData);
-        
-        if (messageTag != null) {
+
+        if(messageTag != null) {
             request.put("tag", messageTag);
         }
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -182,19 +182,19 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> attachment = new HashMap<>();
         attachment.put("type", type);
         attachment.put("payload", Map.of(
                 "url", url,
                 "is_reusable", isReusable
-        ));
-        
+       ));
+
         request.put("message", Map.of("attachment", attachment));
 
         String apiUrl = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(apiUrl, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -206,19 +206,19 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> attachment = new HashMap<>();
         attachment.put("type", "template");
-        
+
         Map<String, Object> payload = new HashMap<>(templateData);
         payload.put("template_type", templateType);
         attachment.put("payload", payload);
-        
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -230,22 +230,22 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("template_type", "button");
         payload.put("text", text);
         payload.put("buttons", buttons);
-        
+
         Map<String, Object> attachment = Map.of(
                 "type", "template",
                 "payload", payload
-        );
-        
+       );
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -256,21 +256,21 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("template_type", "generic");
         payload.put("elements", elements);
-        
+
         Map<String, Object> attachment = Map.of(
                 "type", "template",
                 "payload", payload
-        );
-        
+       );
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -281,26 +281,26 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("template_type", "list");
         payload.put("top_element_style", listData.get("topElementStyle"));
         payload.put("elements", listData.get("elements"));
-        
-        if (listData.containsKey("buttons")) {
+
+        if(listData.containsKey("buttons")) {
             payload.put("buttons", listData.get("buttons"));
         }
-        
+
         Map<String, Object> attachment = Map.of(
                 "type", "template",
                 "payload", payload
-        );
-        
+       );
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -311,20 +311,20 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> payload = new HashMap<>(receiptData);
         payload.put("template_type", "receipt");
-        
+
         Map<String, Object> attachment = Map.of(
                 "type", "template",
                 "payload", payload
-        );
-        
+       );
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -338,35 +338,35 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> element = new HashMap<>();
         element.put("media_type", mediaType);
-        
-        if (attachmentId != null) {
+
+        if(attachmentId != null) {
             element.put("attachment_id", attachmentId);
-        } else if (mediaUrl != null) {
+        } else if(mediaUrl != null) {
             element.put("url", mediaUrl);
         }
-        
-        if (buttons != null) {
+
+        if(buttons != null) {
             element.put("buttons", buttons);
         }
-        
+
         Map<String, Object> payload = Map.of(
                 "template_type", "media",
                 "elements", List.of(element)
-        );
-        
+       );
+
         Map<String, Object> attachment = Map.of(
                 "type", "template",
                 "payload", payload
-        );
-        
+       );
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -382,16 +382,16 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("text", text);
         messageData.put("quick_replies", quickReplies);
-        
+
         request.put("message", messageData);
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -403,27 +403,27 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
-        
+
         Map<String, Object> coordinates = Map.of(
                 "lat", latitude,
                 "long", longitude
-        );
-        
+       );
+
         Map<String, Object> payload = Map.of(
                 "type", "location",
                 "coordinates", coordinates
-        );
-        
+       );
+
         Map<String, Object> attachment = Map.of(
                 "type", "location",
                 "payload", payload
-        );
-        
+       );
+
         request.put("message", Map.of("attachment", attachment));
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -441,11 +441,11 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = Map.of(
                 "recipient", Map.of("id", recipientId),
                 "sender_action", action
-        );
+       );
 
         String url = config.getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -457,13 +457,13 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
                 "locale", locale,
                 "composer_input_disabled", Boolean.parseBoolean(message.getHeader("composerInputDisabled", "false")),
                 "call_to_actions", menuItems
-        );
+       );
 
         Map<String, Object> request = Map.of("persistent_menu", List.of(persistentMenu));
 
         String url = config.getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -474,7 +474,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -485,7 +485,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -496,7 +496,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -505,7 +505,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/me/personas";
         String response = executeApiCall(() -> makePostRequest(url, personaData));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -515,7 +515,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/" + personaId;
         String response = executeApiCall(() -> makePostRequest(url, personaData));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -524,7 +524,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/" + personaId;
         String response = executeApiCall(() -> makeDeleteRequest(url));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -536,14 +536,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
         request.put("target_app_id", targetAppId);
-        
-        if (metadata != null) {
+
+        if(metadata != null) {
             request.put("metadata", metadata);
         }
 
         String url = config.getApiUrl() + "/me/pass_thread_control";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -553,14 +553,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        
-        if (metadata != null) {
+
+        if(metadata != null) {
             request.put("metadata", metadata);
         }
 
         String url = config.getApiUrl() + "/me/take_thread_control";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -570,14 +570,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        
-        if (metadata != null) {
+
+        if(metadata != null) {
             request.put("metadata", metadata);
         }
 
         String url = config.getApiUrl() + "/me/request_thread_control";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -593,14 +593,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         request.put("notification_type", notificationType);
         request.put("messaging_type", messagingType);
         request.put("tag", tag);
-        
-        if (customLabelId != null) {
+
+        if(customLabelId != null) {
             request.put("custom_label_id", customLabelId);
         }
 
         String url = config.getApiUrl() + "/me/broadcast_messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -611,7 +611,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/me/message_creatives";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -626,7 +626,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/act_" + adAccountId + "/sponsored_message_ads";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -638,7 +638,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/" + commentId + "/private_replies";
         String response = executeApiCall(() -> makePostRequest(url, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -652,7 +652,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         String url = config.getApiUrl() + "/" + userId;
         String response = executeApiCall(() -> makeGetRequest(url, params));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -666,14 +666,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
                 "payload", Map.of(
                         "url", url,
                         "is_reusable", isReusable
-                )
-        );
+               )
+       );
 
         Map<String, Object> request = Map.of("message", Map.of("attachment", attachment));
 
         String apiUrl = config.getApiUrl() + "/me/message_attachments";
         String response = executeApiCall(() -> makePostRequest(apiUrl, request));
-        
+
         return createSuccessResponse(message, response);
     }
 
@@ -684,7 +684,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(data, headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-        
+
         return response.getBody();
     }
 
@@ -693,15 +693,15 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         headers.setBearerAuth(getDecryptedCredential("pageAccessToken"));
 
         StringBuilder urlWithParams = new StringBuilder(url);
-        if (!params.isEmpty()) {
+        if(!params.isEmpty()) {
             urlWithParams.append("?");
-            params.forEach((key, value) -> urlWithParams.append(key).append("=").append(value).append("&"));
+            params.forEach((key, value) -> urlWithParams.append(key).append(" = ").append(value).append("&"));
             urlWithParams.deleteCharAt(urlWithParams.length() - 1);
         }
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(urlWithParams.toString(), HttpMethod.GET, entity, String.class);
-        
+
         return response.getBody();
     }
 
@@ -711,7 +711,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
-        
+
         return response.getBody();
     }
 

@@ -19,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FrontendLogBatchRequest {
-    
+
     /**
      * List of log entries to submit
      */

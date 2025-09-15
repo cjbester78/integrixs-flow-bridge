@@ -31,20 +31,20 @@ public class Alert {
     @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
     private AlertAction action;
-    
+
     /**
      * Alert types
      */
     public enum AlertType {
-        THRESHOLD,          // Metric exceeded threshold
-        ANOMALY,            // Unusual pattern detected
-        ERROR_RATE,         // High error rate
-        AVAILABILITY,       // Service availability issue
-        PERFORMANCE,        // Performance degradation
-        SECURITY,           // Security event
+        THRESHOLD,         // Metric exceeded threshold
+        ANOMALY,           // Unusual pattern detected
+        ERROR_RATE,        // High error rate
+        AVAILABILITY,      // Service availability issue
+        PERFORMANCE,       // Performance degradation
+        SECURITY,          // Security event
         CUSTOM              // Custom alert rule
     }
-    
+
     /**
      * Alert severities
      */
@@ -55,7 +55,7 @@ public class Alert {
         MAJOR,
         CRITICAL
     }
-    
+
     /**
      * Alert status
      */
@@ -65,7 +65,7 @@ public class Alert {
         RESOLVED,
         SUPPRESSED
     }
-    
+
     /**
      * Alert action
      */
@@ -74,7 +74,7 @@ public class Alert {
     public static class AlertAction {
         private ActionType type;
         private Map<String, String> parameters;
-        
+
         public enum ActionType {
             EMAIL,
             SMS,
@@ -84,8 +84,8 @@ public class Alert {
             RESTART_SERVICE
         }
     }
-    
-    
+
+
     /**
      * Acknowledge alert
      */
@@ -94,7 +94,7 @@ public class Alert {
         this.acknowledgedAt = LocalDateTime.now();
         this.acknowledgedBy = userId;
     }
-    
+
     /**
      * Resolve alert
      */
@@ -102,21 +102,21 @@ public class Alert {
         this.status = AlertStatus.RESOLVED;
         this.resolvedAt = LocalDateTime.now();
     }
-    
+
     /**
      * Check if alert is active
      */
     public boolean isActive() {
         return status == AlertStatus.TRIGGERED || status == AlertStatus.ACKNOWLEDGED;
     }
-    
+
     /**
      * Check if alert requires immediate action
      */
     public boolean requiresImmediateAction() {
         return severity == AlertSeverity.CRITICAL && status == AlertStatus.TRIGGERED;
     }
-    
+
     /**
      * Add metadata
      */

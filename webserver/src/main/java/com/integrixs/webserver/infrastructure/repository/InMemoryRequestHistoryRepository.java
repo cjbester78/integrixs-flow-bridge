@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * In-memory implementation of request history repository
+ * In - memory implementation of request history repository
  */
 @Repository
 public class InMemoryRequestHistoryRepository implements RequestHistoryRepository {
@@ -62,8 +62,8 @@ public class InMemoryRequestHistoryRepository implements RequestHistoryRepositor
         return requests.entrySet().stream()
                 .filter(entry -> {
                     LocalDateTime timestamp = requestTimestamps.get(entry.getKey());
-                    return timestamp != null && 
-                           !timestamp.isBefore(start) && 
+                    return timestamp != null &&
+                           !timestamp.isBefore(start) &&
                            !timestamp.isAfter(end);
                 })
                 .map(Map.Entry::getValue)
@@ -76,10 +76,10 @@ public class InMemoryRequestHistoryRepository implements RequestHistoryRepositor
         return requests.entrySet().stream()
                 .filter(entry -> {
                     LocalDateTime timestamp = requestTimestamps.get(entry.getKey());
-                    if (timestamp == null || timestamp.isBefore(start) || timestamp.isAfter(end)) {
+                    if(timestamp == null || timestamp.isBefore(start) || timestamp.isAfter(end)) {
                         return false;
                     }
-                    
+
                     OutboundResponse response = responses.get(entry.getKey());
                     return response != null && !response.isSuccess();
                 })
@@ -91,33 +91,33 @@ public class InMemoryRequestHistoryRepository implements RequestHistoryRepositor
     @Override
     public RequestStatistics getRequestStatistics(String endpointId, LocalDateTime start, LocalDateTime end) {
         RequestStatistics stats = new RequestStatistics();
-        
+
         List<String> relevantRequestIds = requests.entrySet().stream()
                 .filter(entry -> {
                     LocalDateTime timestamp = requestTimestamps.get(entry.getKey());
-                    return timestamp != null && 
-                           !timestamp.isBefore(start) && 
+                    return timestamp != null &&
+                           !timestamp.isBefore(start) &&
                            !timestamp.isAfter(end);
                 })
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        
+
         stats.totalRequests = relevantRequestIds.size();
-        
+
         long totalResponseTime = 0;
         long maxResponseTime = 0;
         long minResponseTime = Long.MAX_VALUE;
-        
-        for (String requestId : relevantRequestIds) {
+
+        for(String requestId : relevantRequestIds) {
             OutboundResponse response = responses.get(requestId);
-            if (response != null) {
-                if (response.isSuccess()) {
+            if(response != null) {
+                if(response.isSuccess()) {
                     stats.successfulRequests++;
                 } else {
                     stats.failedRequests++;
                 }
-                
-                if (response.getResponseTimeMillis() != 0) {
+
+                if(response.getResponseTimeMillis() != 0) {
                     long responseTime = response.getResponseTimeMillis();
                     totalResponseTime += responseTime;
                     maxResponseTime = Math.max(maxResponseTime, responseTime);
@@ -125,13 +125,13 @@ public class InMemoryRequestHistoryRepository implements RequestHistoryRepositor
                 }
             }
         }
-        
-        if (stats.totalRequests > 0) {
+
+        if(stats.totalRequests > 0) {
             stats.averageResponseTime = (double) totalResponseTime / stats.totalRequests;
             stats.maxResponseTime = maxResponseTime;
             stats.minResponseTime = (minResponseTime == Long.MAX_VALUE) ? 0 : minResponseTime;
         }
-        
+
         return stats;
     }
 
@@ -141,13 +141,13 @@ public class InMemoryRequestHistoryRepository implements RequestHistoryRepositor
                 .filter(entry -> entry.getValue().isBefore(before))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-        
+
         toRemove.forEach(requestId -> {
             requests.remove(requestId);
             responses.remove(requestId);
             requestTimestamps.remove(requestId);
         });
-        
+
         return toRemove.size();
     }
 }

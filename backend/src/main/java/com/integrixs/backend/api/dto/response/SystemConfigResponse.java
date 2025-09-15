@@ -15,7 +15,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SystemConfigResponse {
-    
+
     private String timezone;
     private String dateFormat;
     private String timeFormat;

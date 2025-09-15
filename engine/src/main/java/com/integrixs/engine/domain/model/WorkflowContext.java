@@ -30,7 +30,7 @@ public class WorkflowContext {
     private Long startTime;
     private Long endTime;
     private String initiatedBy;
-    
+
     /**
      * Workflow execution states
      */
@@ -42,7 +42,7 @@ public class WorkflowContext {
         CANCELLED,
         SUSPENDED
     }
-    
+
     /**
      * Add a workflow step
      * @param step The step to add
@@ -50,7 +50,7 @@ public class WorkflowContext {
     public void addStep(WorkflowStep step) {
         this.steps.add(step);
     }
-    
+
     /**
      * Add a global variable
      * @param key Variable key
@@ -59,7 +59,7 @@ public class WorkflowContext {
     public void addGlobalVariable(String key, Object value) {
         this.globalVariables.put(key, value);
     }
-    
+
     /**
      * Add metadata
      * @param key Metadata key
@@ -68,13 +68,13 @@ public class WorkflowContext {
     public void addMetadata(String key, Object value) {
         this.metadata.put(key, value);
     }
-    
+
     /**
      * Get execution duration
      * @return Duration in milliseconds
      */
     public Long getDuration() {
-        if (startTime != null && endTime != null) {
+        if(startTime != null && endTime != null) {
             return endTime - startTime;
         }
         return null;

@@ -18,13 +18,13 @@ public class TestWebSocketConfiguration {
     @Bean
     @Primary
     public ServerEndpointExporter serverEndpointExporter() {
-        // Return a no-op ServerEndpointExporter for tests
+        // Return a no - op ServerEndpointExporter for tests
         return new ServerEndpointExporter() {
             @Override
             public void afterPropertiesSet() {
                 // Do nothing - avoid the ServletContext issue in tests
             }
-            
+
             @Override
             public void afterSingletonsInstantiated() {
                 // Do nothing - prevent registration of endpoints

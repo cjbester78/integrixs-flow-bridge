@@ -24,15 +24,15 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/business-components")
+@RequestMapping("/api/business - components")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Tag(name = "Business Components", description = "Business component management")
 public class BusinessComponentController {
-    
+
     private final BusinessComponentApplicationService businessComponentService;
     private final UserRepository userRepository;
-    
+
     /**
      * Create a new business component
      */
@@ -42,16 +42,16 @@ public class BusinessComponentController {
     public ResponseEntity<BusinessComponentResponse> createBusinessComponent(
             @Valid @RequestBody CreateBusinessComponentRequest request) {
         log.info("Creating business component: {}", request.getName());
-        
+
         String username = SecurityUtils.getCurrentUsernameStatic();
         User currentUser = userRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         BusinessComponentResponse response = businessComponentService.createBusinessComponent(request, currentUser);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     /**
      * Get all business components
      */
@@ -60,61 +60,61 @@ public class BusinessComponentController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<List<BusinessComponentResponse>> getAllBusinessComponents() {
         log.debug("Fetching all business components");
-        
+
         List<BusinessComponentResponse> components = businessComponentService.getAllBusinessComponents();
-        
+
         return ResponseEntity.ok(components);
     }
-    
+
     /**
      * Get business component by ID
      */
-    @GetMapping("/{id}")
+    @GetMapping("/ {id}")
     @Operation(summary = "Get business component by ID")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<BusinessComponentResponse> getBusinessComponentById(@PathVariable String id) {
         log.debug("Fetching business component: {}", id);
-        
+
         BusinessComponentResponse component = businessComponentService.getBusinessComponentById(id);
-        
+
         return ResponseEntity.ok(component);
     }
-    
+
     /**
      * Update business component
      */
-    @PutMapping("/{id}")
+    @PutMapping("/ {id}")
     @Operation(summary = "Update business component")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<BusinessComponentResponse> updateBusinessComponent(
             @PathVariable String id,
             @Valid @RequestBody UpdateBusinessComponentRequest request) {
         log.info("Updating business component: {}", id);
-        
+
         String username = SecurityUtils.getCurrentUsernameStatic();
         User currentUser = userRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         BusinessComponentResponse response = businessComponentService.updateBusinessComponent(id, request, currentUser);
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Delete business component
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/ {id}")
     @Operation(summary = "Delete business component")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<Void> deleteBusinessComponent(@PathVariable String id) {
         log.info("Deleting business component: {}", id);
-        
+
         String username = SecurityUtils.getCurrentUsernameStatic();
         User currentUser = userRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         businessComponentService.deleteBusinessComponent(id, currentUser);
-        
+
         return ResponseEntity.noContent().build();
     }
 }

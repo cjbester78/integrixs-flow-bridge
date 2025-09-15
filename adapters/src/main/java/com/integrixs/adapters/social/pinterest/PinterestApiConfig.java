@@ -8,13 +8,13 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.pinterest")
 public class PinterestApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String appId;
     private String appSecret;
     private String advertiserId;
     private PinterestFeatures features = new PinterestFeatures();
     private PinterestLimits limits = new PinterestLimits();
-    
+
         public static class PinterestFeatures {
         private boolean enablePinManagement = true;
         private boolean enableBoardManagement = true;
@@ -33,7 +33,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         private boolean enableMerchant = true;
         private boolean enableCreatorTools = true;
     }
-    
+
         public static class PinterestLimits {
         private int maxPinsPerBoard = 200000;
         private int maxBoardsPerUser = 2000;
@@ -49,7 +49,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         private int rateLimitPerMinute = 300;
         private int maxProductsPerCatalog = 20000000;
     }
-    
+
     // Pin types
     public enum PinType {
         STANDARD,
@@ -63,14 +63,14 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         RECIPE,
         ARTICLE
     }
-    
+
     // Board types
     public enum BoardPrivacy {
         PUBLIC,
         SECRET,
         PROTECTED
     }
-    
+
     // Pin status
     public enum PinStatus {
         ACTIVE,
@@ -79,7 +79,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         REJECTED,
         DELETED
     }
-    
+
     // Media types
     public enum MediaType {
         IMAGE,
@@ -88,7 +88,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         MULTIPLE_VIDEO,
         MIXED_MEDIA
     }
-    
+
     // Analytics metrics
     public enum AnalyticsMetric {
         IMPRESSION,
@@ -127,7 +127,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         TOTAL_VIEW_VIDEO,
         TOTAL_WATCH_VIDEO
     }
-    
+
     // Ad objectives
     public enum CampaignObjective {
         AWARENESS,
@@ -142,7 +142,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         LEAD_GENERATION,
         SHOPPING_CONVERSIONS
     }
-    
+
     // Ad creative types
     public enum CreativeType {
         REGULAR,
@@ -156,7 +156,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         SHOWCASE,
         QUIZ
     }
-    
+
     // Targeting types
     public enum TargetingType {
         INTEREST,
@@ -173,7 +173,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         SHOPPING_RETARGETING,
         ACTALIKE
     }
-    
+
     // Audience types
     public enum AudienceType {
         CUSTOMER_LIST,
@@ -182,7 +182,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         ACTALIKE,
         PERSONA
     }
-    
+
     // Product availability
     public enum ProductAvailability {
         IN_STOCK,
@@ -191,7 +191,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         AVAILABLE_FOR_ORDER,
         DISCONTINUED
     }
-    
+
     // Currency codes
     public enum Currency {
         USD,
@@ -239,7 +239,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         SAR,
         ILS
     }
-    
+
     // Conversion event types
     public enum ConversionEventType {
         PAGE_VISIT,
@@ -254,7 +254,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         WATCH_VIDEO,
         UNKNOWN
     }
-    
+
     // Board section types
     public enum BoardSectionType {
         NORMAL,
@@ -269,7 +269,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         HOLIDAY,
         CUSTOM
     }
-    
+
     // Shopping settings
     public enum ShoppingRecommendationType {
         DISABLED,
@@ -279,7 +279,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         TRENDING,
         NEW_ARRIVAL
     }
-    
+
     // Merchant status
     public enum MerchantStatus {
         ACTIVE,
@@ -288,7 +288,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         SUSPENDED,
         ARCHIVED
     }
-    
+
     // Report format
     public enum ReportFormat {
         JSON,
@@ -296,7 +296,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         TSV,
         XML
     }
-    
+
     // Report granularity
     public enum ReportGranularity {
         TOTAL,
@@ -305,7 +305,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         WEEK,
         MONTH
     }
-    
+
     // Filter operators
     public enum FilterOperator {
         LESS_THAN,
@@ -321,7 +321,7 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         STARTS_WITH,
         ENDS_WITH
     }
-    
+
     // Error codes
     public enum PinterestErrorCode {
         UNAUTHORIZED(401),
@@ -331,16 +331,16 @@ public class PinterestApiConfig extends SocialMediaAdapterConfig {
         INVALID_PARAMETERS(400),
         INTERNAL_ERROR(500),
         SERVICE_UNAVAILABLE(503);
-        
+
         private final int code;
-        
+
         PinterestErrorCode(int code) {
             this.code = code;
         }
-        
+
         public int getCode() { return code; }
     }
-    
+
     // Webhook events
     public enum WebhookEvent {
         PIN_CREATE,

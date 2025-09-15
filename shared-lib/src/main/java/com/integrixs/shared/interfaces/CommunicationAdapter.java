@@ -18,7 +18,7 @@ public interface CommunicationAdapter {
     AdapterTestResultDTO test(String payload);
 
     /**
-     * Returns the strongly-typed configuration for this adapter.
+     * Returns the strongly - typed configuration for this adapter.
      * @param configClass The class object of the expected config type
      * @param <T> The type of the configuration
      * @return The configuration object cast to the given type

@@ -16,7 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OutboundResponseDTO {
-    
+
     private String requestId;
     private boolean success;
     private int statusCode;

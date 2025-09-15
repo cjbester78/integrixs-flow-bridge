@@ -21,15 +21,15 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/flows/{flowId}/deployment")
+@RequestMapping("/api/flows/ {flowId}/deployment")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Tag(name = "Flow Deployment", description = "Flow deployment management")
 public class FlowDeploymentController {
-    
+
     private final FlowDeploymentApplicationService deploymentService;
     private final UserRepository userRepository;
-    
+
     /**
      * Deploy a flow
      */
@@ -39,30 +39,30 @@ public class FlowDeploymentController {
     public ResponseEntity<?> deployFlow(@PathVariable String flowId) {
         try {
             log.info("Deploy flow request for flowId: {}", flowId);
-            
+
             String username = SecurityUtils.getCurrentUsernameStatic();
             User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             DeploymentInfoResponse deploymentInfo = deploymentService.deployFlow(flowId, currentUser);
-            
+
             log.info("Deployment successful for flowId: {}", flowId);
             return ResponseEntity.ok(deploymentInfo);
-            
-        } catch (IllegalStateException e) {
+
+        } catch(IllegalStateException e) {
             log.error("IllegalStateException during deployment: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Exception during deployment for flowId {}: {}", flowId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                     "error", e.getMessage() != null ? e.getMessage() : "Failed to deploy flow",
                     "type", e.getClass().getSimpleName(),
                     "flowId", flowId
-                ));
+               ));
         }
     }
-    
+
     /**
      * Undeploy a flow
      */
@@ -72,32 +72,32 @@ public class FlowDeploymentController {
     public ResponseEntity<?> undeployFlow(@PathVariable String flowId) {
         try {
             log.info("Undeploy flow request for flowId: {}", flowId);
-            
+
             String username = SecurityUtils.getCurrentUsernameStatic();
             User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             deploymentService.undeployFlow(flowId, currentUser);
-            
+
             log.info("Undeploy successful for flowId: {}", flowId);
             return ResponseEntity.ok().body(Map.of(
                 "message", "Flow undeployed successfully",
                 "flowId", flowId
-            ));
-            
-        } catch (IllegalStateException e) {
+           ));
+
+        } catch(IllegalStateException e) {
             log.error("IllegalStateException during undeployment: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Exception during undeployment for flowId {}: {}", flowId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                     "error", e.getMessage() != null ? e.getMessage() : "Failed to undeploy flow",
                     "flowId", flowId
-                ));
+               ));
         }
     }
-    
+
     /**
      * Get deployment information
      */
@@ -107,22 +107,22 @@ public class FlowDeploymentController {
     public ResponseEntity<?> getDeploymentInfo(@PathVariable String flowId) {
         try {
             log.debug("Get deployment info request for flowId: {}", flowId);
-            
+
             DeploymentInfoResponse deploymentInfo = deploymentService.getDeploymentInfo(flowId);
-            
-            if (deploymentInfo != null) {
+
+            if(deploymentInfo != null) {
                 return ResponseEntity.ok(deploymentInfo);
             } else {
                 return ResponseEntity.notFound().build();
             }
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Exception getting deployment info for flowId {}: {}", flowId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                     "error", e.getMessage() != null ? e.getMessage() : "Failed to get deployment info",
                     "flowId", flowId
-                ));
+               ));
         }
     }
 }

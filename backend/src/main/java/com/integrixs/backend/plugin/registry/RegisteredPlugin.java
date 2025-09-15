@@ -12,48 +12,48 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class RegisteredPlugin {
-    
+
     /**
      * Plugin metadata
      */
     private AdapterMetadata metadata;
-    
+
     /**
      * Plugin class
      */
     private Class<? extends AdapterPlugin> pluginClass;
-    
+
     /**
-     * Plugin instance (lazy loaded)
+     * Plugin instance(lazy loaded)
      */
     private AdapterPlugin instance;
-    
+
     /**
      * Current status
      */
     private PluginStatus status;
-    
+
     /**
      * Registration timestamp
      */
     @Builder.Default
     private LocalDateTime registeredAt = LocalDateTime.now();
-    
+
     /**
      * Last activated timestamp
      */
     private LocalDateTime lastActivated;
-    
+
     /**
-     * Plugin JAR file location (if loaded from JAR)
+     * Plugin JAR file location(if loaded from JAR)
      */
     private String jarPath;
-    
+
     /**
      * Class loader used for this plugin
      */
     private ClassLoader classLoader;
-    
+
     /**
      * Error message if failed to load
      */

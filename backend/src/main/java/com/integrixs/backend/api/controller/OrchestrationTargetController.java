@@ -25,40 +25,40 @@ import java.util.List;
  * REST controller for orchestration target management
  */
 @RestController
-@RequestMapping("/api/flows/{flowId}/targets")
+@RequestMapping("/api/flows/ {flowId}/targets")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Orchestration Targets", description = "Manage orchestration flow targets")
 public class OrchestrationTargetController {
-    
+
     private final OrchestrationTargetService orchestrationTargetService;
-    
+
     @GetMapping
     @Operation(summary = "Get all targets for a flow", description = "Retrieve all orchestration targets for a specific flow")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ORCHESTRATION.TARGET.LIST", module = "OrchestrationManagement")
     public ResponseEntity<List<OrchestrationTargetResponse>> getFlowTargets(
             @Parameter(description = "Flow ID") @PathVariable String flowId) {
-        
+
         log.debug("Fetching orchestration targets for flow: {}", flowId);
         List<OrchestrationTargetResponse> targets = orchestrationTargetService.getFlowTargets(flowId);
         return ResponseEntity.ok(targets);
     }
-    
-    @GetMapping("/{targetId}")
+
+    @GetMapping("/ {targetId}")
     @Operation(summary = "Get target by ID", description = "Retrieve a specific orchestration target")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ORCHESTRATION.TARGET.GET", module = "OrchestrationManagement")
     public ResponseEntity<OrchestrationTargetResponse> getTarget(
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @Parameter(description = "Target ID") @PathVariable String targetId) {
-        
+
         log.debug("Fetching orchestration target: {} for flow: {}", targetId, flowId);
         return orchestrationTargetService.getTarget(flowId, targetId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @PostMapping
     @Operation(summary = "Add target to flow", description = "Add a new orchestration target to a flow")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
@@ -66,13 +66,13 @@ public class OrchestrationTargetController {
     public ResponseEntity<OrchestrationTargetResponse> addTarget(
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @Valid @RequestBody CreateOrchestrationTargetRequest request) {
-        
+
         log.debug("Adding orchestration target to flow: {}", flowId);
         OrchestrationTargetResponse target = orchestrationTargetService.addTarget(flowId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(target);
     }
-    
-    @PutMapping("/{targetId}")
+
+    @PutMapping("/ {targetId}")
     @Operation(summary = "Update target", description = "Update an existing orchestration target")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ORCHESTRATION.TARGET.UPDATE", module = "OrchestrationManagement", logInput = true)
@@ -80,54 +80,54 @@ public class OrchestrationTargetController {
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @Parameter(description = "Target ID") @PathVariable String targetId,
             @Valid @RequestBody UpdateOrchestrationTargetRequest request) {
-        
+
         log.debug("Updating orchestration target: {} for flow: {}", targetId, flowId);
         return orchestrationTargetService.updateTarget(flowId, targetId, request)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
-    @DeleteMapping("/{targetId}")
+
+    @DeleteMapping("/ {targetId}")
     @Operation(summary = "Remove target", description = "Remove an orchestration target from a flow")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER')")
     @BusinessOperation(value = "ORCHESTRATION.TARGET.DELETE", module = "OrchestrationManagement")
     public ResponseEntity<Void> removeTarget(
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @Parameter(description = "Target ID") @PathVariable String targetId) {
-        
+
         log.debug("Removing orchestration target: {} from flow: {}", targetId, flowId);
         boolean removed = orchestrationTargetService.removeTarget(flowId, targetId);
         return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
-    
-    @PostMapping("/{targetId}/activate")
+
+    @PostMapping("/ {targetId}/activate")
     @Operation(summary = "Activate target", description = "Activate an orchestration target")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ORCHESTRATION.TARGET.ACTIVATE", module = "OrchestrationManagement")
     public ResponseEntity<OrchestrationTargetResponse> activateTarget(
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @Parameter(description = "Target ID") @PathVariable String targetId) {
-        
+
         log.debug("Activating orchestration target: {} for flow: {}", targetId, flowId);
         return orchestrationTargetService.activateTarget(flowId, targetId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
-    @PostMapping("/{targetId}/deactivate")
+
+    @PostMapping("/ {targetId}/deactivate")
     @Operation(summary = "Deactivate target", description = "Deactivate an orchestration target")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ORCHESTRATION.TARGET.DEACTIVATE", module = "OrchestrationManagement")
     public ResponseEntity<OrchestrationTargetResponse> deactivateTarget(
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @Parameter(description = "Target ID") @PathVariable String targetId) {
-        
+
         log.debug("Deactivating orchestration target: {} for flow: {}", targetId, flowId);
         return orchestrationTargetService.deactivateTarget(flowId, targetId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @PutMapping("/reorder")
     @Operation(summary = "Reorder targets", description = "Update the execution order of orchestration targets")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
@@ -135,12 +135,12 @@ public class OrchestrationTargetController {
     public ResponseEntity<List<OrchestrationTargetResponse>> reorderTargets(
             @Parameter(description = "Flow ID") @PathVariable String flowId,
             @RequestBody List<TargetOrderRequest> orderRequests) {
-        
+
         log.debug("Reordering orchestration targets for flow: {}", flowId);
         List<OrchestrationTargetResponse> targets = orchestrationTargetService.reorderTargets(flowId, orderRequests);
         return ResponseEntity.ok(targets);
     }
-    
+
     /**
      * Request for updating target order
      */

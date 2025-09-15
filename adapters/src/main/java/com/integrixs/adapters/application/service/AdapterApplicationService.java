@@ -24,18 +24,18 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AdapterApplicationService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(AdapterApplicationService.class);
-    
+
     private final AdapterManagementService adapterManagementService;
     private final AdapterRegistryService adapterRegistryService;
-    
-    public AdapterApplicationService(AdapterManagementService adapterManagementService, 
+
+    public AdapterApplicationService(AdapterManagementService adapterManagementService,
                                    AdapterRegistryService adapterRegistryService) {
         this.adapterManagementService = adapterManagementService;
         this.adapterRegistryService = adapterRegistryService;
     }
-    
+
     /**
      * Create a new adapter
      * @param request Create adapter request
@@ -44,30 +44,30 @@ public class AdapterApplicationService {
     @Transactional
     public CreateAdapterResponseDTO createAdapter(CreateAdapterRequestDTO request) {
         log.info("Creating adapter of type: {} mode: {}", request.getAdapterType(), request.getAdapterMode());
-        
+
         try {
             // Convert DTO to domain model
             AdapterConfiguration configuration = convertToConfiguration(request);
-            
+
             // Validate configuration
             AdapterOperationResult validationResult = adapterManagementService.validateConfiguration(configuration);
-            if (!validationResult.isSuccess()) {
+            if(!validationResult.isSuccess()) {
                 return CreateAdapterResponseDTO.builder()
                         .success(false)
                         .errorMessage(validationResult.getMessage())
                         .build();
             }
-            
+
             // Create adapter
             String adapterId = adapterManagementService.createAdapter(configuration);
-            
+
             return CreateAdapterResponseDTO.builder()
                     .adapterId(adapterId)
                     .success(true)
                     .message("Adapter created successfully")
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error creating adapter: {}", e.getMessage(), e);
             return CreateAdapterResponseDTO.builder()
                     .success(false)
@@ -75,7 +75,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Update adapter configuration
      * @param adapterId Adapter ID
@@ -85,18 +85,18 @@ public class AdapterApplicationService {
     @Transactional
     public AdapterOperationResponseDTO updateAdapter(String adapterId, UpdateAdapterRequestDTO request) {
         log.info("Updating adapter: {}", adapterId);
-        
+
         try {
             AdapterConfiguration configuration = convertToConfiguration(request, adapterId);
             adapterManagementService.updateAdapterConfiguration(adapterId, configuration);
-            
+
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
                     .success(true)
                     .message("Adapter updated successfully")
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error updating adapter {}: {}", adapterId, e.getMessage(), e);
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
@@ -105,7 +105,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Delete an adapter
      * @param adapterId Adapter ID
@@ -114,17 +114,17 @@ public class AdapterApplicationService {
     @Transactional
     public AdapterOperationResponseDTO deleteAdapter(String adapterId) {
         log.info("Deleting adapter: {}", adapterId);
-        
+
         try {
             adapterManagementService.deleteAdapter(adapterId);
-            
+
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
                     .success(true)
                     .message("Adapter deleted successfully")
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error deleting adapter {}: {}", adapterId, e.getMessage(), e);
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
@@ -133,7 +133,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Test adapter connection
      * @param adapterId Adapter ID
@@ -141,10 +141,10 @@ public class AdapterApplicationService {
      */
     public AdapterOperationResponseDTO testConnection(String adapterId) {
         log.info("Testing connection for adapter: {}", adapterId);
-        
+
         try {
             AdapterOperationResult result = adapterManagementService.testAdapterConnection(adapterId);
-            
+
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
                     .success(result.isSuccess())
@@ -152,8 +152,8 @@ public class AdapterApplicationService {
                     .errorMessage(result.getErrorCode())
                     .metadata(result.getMetadata())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error testing adapter connection {}: {}", adapterId, e.getMessage(), e);
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
@@ -162,7 +162,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Fetch data using inbound adapter
      * @param adapterId Adapter ID
@@ -171,18 +171,18 @@ public class AdapterApplicationService {
      */
     public AdapterOperationResponseDTO fetchData(String adapterId, FetchDataRequestDTO request) {
         log.info("Fetching data from adapter: {}", adapterId);
-        
+
         try {
             // Get adapter
             var adapter = adapterRegistryService.getAdapter(adapterId)
                     .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
-            
-            if (!(adapter instanceof InboundAdapterPort)) {
+
+            if(!(adapter instanceof InboundAdapterPort)) {
                 throw new IllegalArgumentException("Adapter is not a inbound adapter");
             }
-            
+
             InboundAdapterPort senderAdapter = (InboundAdapterPort) adapter;
-            
+
             // Convert to domain model
             FetchRequest fetchRequest = FetchRequest.builder()
                     .requestId(UUID.randomUUID().toString())
@@ -193,10 +193,10 @@ public class AdapterApplicationService {
                     .limit(request.getLimit())
                     .timeout(request.getTimeout())
                     .build();
-            
+
             // Execute fetch
             AdapterOperationResult result = senderAdapter.fetch(fetchRequest);
-            
+
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
                     .success(result.isSuccess())
@@ -205,8 +205,8 @@ public class AdapterApplicationService {
                     .metadata(result.getMetadata())
                     .recordsProcessed(result.getRecordsProcessed())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error fetching data from adapter {}: {}", adapterId, e.getMessage(), e);
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
@@ -215,7 +215,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Send data using outbound adapter
      * @param adapterId Adapter ID
@@ -224,18 +224,18 @@ public class AdapterApplicationService {
      */
     public AdapterOperationResponseDTO sendData(String adapterId, SendDataRequestDTO request) {
         log.info("Sending data to adapter: {}", adapterId);
-        
+
         try {
             // Get adapter
             var adapter = adapterRegistryService.getAdapter(adapterId)
                     .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
-            
-            if (!(adapter instanceof OutboundAdapterPort)) {
+
+            if(!(adapter instanceof OutboundAdapterPort)) {
                 throw new IllegalArgumentException("Adapter is not a outbound adapter");
             }
-            
+
             OutboundAdapterPort receiverAdapter = (OutboundAdapterPort) adapter;
-            
+
             // Convert to domain model
             SendRequest sendRequest = SendRequest.builder()
                     .requestId(UUID.randomUUID().toString())
@@ -246,10 +246,10 @@ public class AdapterApplicationService {
                     .destination(request.getDestination())
                     .timeout(request.getTimeout())
                     .build();
-            
+
             // Execute send
             AdapterOperationResult result = receiverAdapter.send(sendRequest);
-            
+
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
                     .success(result.isSuccess())
@@ -257,8 +257,8 @@ public class AdapterApplicationService {
                     .metadata(result.getMetadata())
                     .recordsProcessed(result.getRecordsProcessed())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error sending data to adapter {}: {}", adapterId, e.getMessage(), e);
             return AdapterOperationResponseDTO.builder()
                     .adapterId(adapterId)
@@ -267,7 +267,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Get adapter status
      * @param adapterId Adapter ID
@@ -277,7 +277,7 @@ public class AdapterApplicationService {
         try {
             AdapterOperationResult status = adapterManagementService.getAdapterStatus(adapterId);
             AdapterConfiguration config = adapterManagementService.getAdapterConfiguration(adapterId);
-            
+
             return AdapterStatusResponseDTO.builder()
                     .adapterId(adapterId)
                     .adapterName(config.getName())
@@ -287,8 +287,8 @@ public class AdapterApplicationService {
                     .status(status.getMessage())
                     .metadata(status.getMetadata())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error getting adapter status {}: {}", adapterId, e.getMessage(), e);
             return AdapterStatusResponseDTO.builder()
                     .adapterId(adapterId)
@@ -297,7 +297,7 @@ public class AdapterApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * List all adapters
      * @return List of adapter info
@@ -307,7 +307,7 @@ public class AdapterApplicationService {
                 .map(this::convertToAdapterInfo)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Get adapter metadata
      * @param adapterType Adapter type
@@ -318,17 +318,17 @@ public class AdapterApplicationService {
         try {
             AdapterConfiguration.AdapterTypeEnum type = AdapterConfiguration.AdapterTypeEnum.valueOf(adapterType);
             AdapterConfiguration.AdapterModeEnum mode = AdapterConfiguration.AdapterModeEnum.valueOf(adapterMode);
-            
+
             AdapterMetadata metadata = adapterManagementService.getAdapterMetadata(type, mode);
-            
+
             return convertToMetadataDTO(metadata);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error getting adapter metadata: {}", e.getMessage(), e);
             return null;
         }
     }
-    
+
     /**
      * Start adapter
      * @param adapterId Adapter ID
@@ -337,7 +337,7 @@ public class AdapterApplicationService {
         log.info("Starting adapter: {}", adapterId);
         adapterManagementService.startAdapter(adapterId);
     }
-    
+
     /**
      * Stop adapter
      * @param adapterId Adapter ID
@@ -346,7 +346,7 @@ public class AdapterApplicationService {
         log.info("Stopping adapter: {}", adapterId);
         adapterManagementService.stopAdapter(adapterId);
     }
-    
+
     /**
      * Reset adapter
      * @param adapterId Adapter ID
@@ -355,9 +355,36 @@ public class AdapterApplicationService {
         log.info("Resetting adapter: {}", adapterId);
         adapterManagementService.resetAdapter(adapterId);
     }
-    
+
     // Conversion methods
+
+    private AdapterConfiguration convertToConfiguration(UpdateAdapterRequestDTO request, String adapterId) {
+        // Get existing configuration to preserve adapter type and mode
+        AdapterConfiguration existing = adapterManagementService.getAdapterConfiguration(adapterId);
+        
+        return AdapterConfiguration.builder()
+                .adapterId(adapterId)
+                .adapterType(existing.getAdapterType())
+                .adapterMode(existing.getAdapterMode())
+                .name(request.getName() != null ? request.getName() : existing.getName())
+                .description(request.getDescription() != null ? request.getDescription() : existing.getDescription())
+                .enableLogging(existing.isEnableLogging()) // Keep existing logging state
+                .enableMonitoring(existing.isEnableMonitoring()) // Keep existing monitoring state
+                .connectionProperties(mergeConfiguration(existing.getConnectionProperties(), request.getConnectionProperties()))
+                .retryConfig(request.getRetryConfig() != null ? convertRetryConfig(request.getRetryConfig()) : existing.getRetryConfig())
+                .authentication(request.getAuthentication() != null ? convertAuthConfig(request.getAuthentication()) : existing.getAuthentication())
+                .build();
+    }
     
+    private Map<String, Object> mergeConfiguration(Map<String, Object> existing, Map<String, Object> updates) {
+        if (updates == null || updates.isEmpty()) {
+            return existing;
+        }
+        Map<String, Object> merged = new HashMap<>(existing);
+        merged.putAll(updates);
+        return merged;
+    }
+
     private AdapterConfiguration convertToConfiguration(CreateAdapterRequestDTO request) {
         return AdapterConfiguration.builder()
                 .adapterId(UUID.randomUUID().toString())
@@ -372,13 +399,13 @@ public class AdapterApplicationService {
                 .timeout(request.getTimeout() != null ? request.getTimeout().intValue() : null)
                 .build();
     }
-    
-    
+
+
     private AuthenticationConfig convertAuthConfig(AuthenticationConfigDTO dto) {
-        if (dto == null) {
+        if(dto == null) {
             return null;
         }
-        
+
         return AuthenticationConfig.builder()
                 .type(AuthenticationConfig.AuthenticationType.valueOf(dto.getType()))
                 .username(dto.getUsername())
@@ -390,12 +417,12 @@ public class AdapterApplicationService {
                 .customHeaders(dto.getCustomHeaders())
                 .build();
     }
-    
+
     private RetryConfig convertRetryConfig(RetryConfigDTO dto) {
-        if (dto == null) {
+        if(dto == null) {
             return RetryConfig.builder().build();
         }
-        
+
         return RetryConfig.builder()
                 .enabled(dto.isEnabled())
                 .maxAttempts(dto.getMaxAttempts())
@@ -404,10 +431,10 @@ public class AdapterApplicationService {
                 .maxDelay(dto.getMaxDelay())
                 .build();
     }
-    
+
     private AdapterInfoDTO convertToAdapterInfo(AdapterConfiguration config) {
         AdapterOperationResult status = adapterManagementService.getAdapterStatus(config.getAdapterId());
-        
+
         return AdapterInfoDTO.builder()
                 .adapterId(config.getAdapterId())
                 .name(config.getName())
@@ -418,14 +445,14 @@ public class AdapterApplicationService {
                 .status(status.getMessage())
                 .build();
     }
-    
+
     private AdapterMetadataDTO convertToMetadataDTO(AdapterMetadata metadata) {
         Map<String, String> capabilitiesStr = new HashMap<>();
-        if (metadata.getCapabilities() != null) {
-            metadata.getCapabilities().forEach((key, value) -> 
+        if(metadata.getCapabilities() != null) {
+            metadata.getCapabilities().forEach((key, value) ->
                 capabilitiesStr.put(key, value != null ? value.toString() : null));
         }
-        
+
         return AdapterMetadataDTO.builder()
                 .adapterName(metadata.getAdapterName())
                 .adapterType(metadata.getAdapterType().name())

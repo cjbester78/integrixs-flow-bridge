@@ -26,69 +26,69 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationService {
-    
+
     private final NotificationChannelRepository channelRepository;
     private final JavaMailSender mailSender;
     private final RestTemplate restTemplate;
-    
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    
+
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
+
     /**
      * Send notification for an alert
      */
     public String sendNotification(NotificationChannel channel, Alert alert) {
-        if (!channel.isEnabled()) {
+        if(!channel.isEnabled()) {
             throw new RuntimeException("Notification channel is disabled: " + channel.getChannelName());
         }
-        
+
         // Check rate limit
-        if (!checkRateLimit(channel)) {
+        if(!checkRateLimit(channel)) {
             throw new RuntimeException("Rate limit exceeded for channel: " + channel.getChannelName());
         }
-        
+
         String notificationId = generateNotificationId();
-        
+
         try {
-            switch (channel.getChannelType()) {
+            switch(channel.getChannelType()) {
                 case EMAIL:
                     sendEmailNotification(channel, alert, notificationId);
                     break;
-                    
+
                 case SMS:
                     sendSmsNotification(channel, alert, notificationId);
                     break;
-                    
+
                 case WEBHOOK:
                     sendWebhookNotification(channel, alert, notificationId);
                     break;
-                    
+
                 case SLACK:
                     sendSlackNotification(channel, alert, notificationId);
                     break;
-                    
+
                 case TEAMS:
                     sendTeamsNotification(channel, alert, notificationId);
                     break;
-                    
+
                 default:
                     throw new RuntimeException("Unsupported channel type: " + channel.getChannelType());
             }
-            
+
             // Update channel usage
             updateChannelUsage(channel);
-            
-            log.info("Notification sent successfully via {} for alert {}", 
+
+            log.info("Notification sent successfully via {} for alert {}",
                     channel.getChannelName(), alert.getAlertId());
-            
+
             return notificationId;
-            
-        } catch (Exception e) {
-            log.error("Failed to send notification via {} for alert {}", 
+
+        } catch(Exception e) {
+            log.error("Failed to send notification via {} for alert {}",
                     channel.getChannelName(), alert.getAlertId(), e);
             throw new RuntimeException("Notification failed: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * Send escalation notification
      */
@@ -96,14 +96,14 @@ public class NotificationService {
         // Add escalation prefix to the alert title
         String originalTitle = alert.getTitle();
         alert.setTitle("[ESCALATED] " + originalTitle);
-        
+
         try {
             return sendNotification(channel, alert);
         } finally {
             alert.setTitle(originalTitle);
         }
     }
-    
+
     /**
      * Send email notification
      */
@@ -111,46 +111,46 @@ public class NotificationService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            
+
             // Get email configuration
             String from = channel.getConfigValue("from_address");
             String to = channel.getConfigValue("to_addresses");
-            
+
             helper.setFrom(from);
             helper.setTo(to.split(","));
             helper.setSubject(formatEmailSubject(alert));
             helper.setText(formatEmailBody(alert, notificationId), true);
-            
+
             mailSender.send(message);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             throw new RuntimeException("Failed to send email notification", e);
         }
     }
-    
+
     /**
      * Send SMS notification
      */
     private void sendSmsNotification(NotificationChannel channel, Alert alert, String notificationId) {
         String provider = channel.getConfigValue("provider");
-        
-        switch (provider.toLowerCase()) {
+
+        switch(provider.toLowerCase()) {
             case "twilio":
                 sendTwilioSms(channel, alert, notificationId);
                 break;
-                
+
             default:
                 throw new RuntimeException("Unsupported SMS provider: " + provider);
         }
     }
-    
+
     /**
      * Send webhook notification
      */
     private void sendWebhookNotification(NotificationChannel channel, Alert alert, String notificationId) {
         String url = channel.getConfigValue("url");
         String method = channel.getConfigValue("method");
-        
+
         // Build request body
         Map<String, Object> body = new HashMap<>();
         body.put("notification_id", notificationId);
@@ -162,42 +162,42 @@ public class NotificationService {
         body.put("source_type", alert.getSourceType().toString());
         body.put("source_id", alert.getSourceId());
         body.put("details", alert.getDetails());
-        
+
         // Build headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
+
         // Add custom headers if configured
         String customHeaders = channel.getConfigValue("headers");
-        if (customHeaders != null) {
+        if(customHeaders != null) {
             // Parse JSON headers and add them
         }
-        
+
         // Add authentication if configured
         String authType = channel.getConfigValue("auth_type");
-        if ("bearer".equalsIgnoreCase(authType)) {
+        if("bearer".equalsIgnoreCase(authType)) {
             String token = channel.getConfigValue("auth_token");
             headers.setBearerAuth(token);
-        } else if ("api_key".equalsIgnoreCase(authType)) {
+        } else if("api_key".equalsIgnoreCase(authType)) {
             String keyHeader = channel.getConfigValue("api_key_header");
             String keyValue = channel.getConfigValue("api_key_value");
             headers.add(keyHeader, keyValue);
         }
-        
+
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-        
+
         ResponseEntity<String> response;
-        if ("PUT".equalsIgnoreCase(method)) {
+        if("PUT".equalsIgnoreCase(method)) {
             response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
         } else {
             response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
         }
-        
-        if (!response.getStatusCode().is2xxSuccessful()) {
+
+        if(!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Webhook returned status: " + response.getStatusCode());
         }
     }
-    
+
     /**
      * Send Slack notification
      */
@@ -205,35 +205,35 @@ public class NotificationService {
         String webhookUrl = channel.getConfigValue("webhook_url");
         String channelName = channel.getConfigValue("channel");
         String username = channel.getConfigValue("username");
-        
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("channel", channelName);
         payload.put("username", username != null ? username : "Integrix Alerts");
         payload.put("text", formatSlackMessage(alert, notificationId));
-        
+
         // Add color based on severity
         Map<String, Object> attachment = new HashMap<>();
         attachment.put("color", getSlackColor(alert.getSeverity()));
         attachment.put("fields", buildSlackFields(alert));
-        payload.put("attachments", new Object[]{attachment});
-        
+        payload.put("attachments", new Object[] {attachment});
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
+
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(webhookUrl, request, String.class);
-        
-        if (!response.getStatusCode().is2xxSuccessful()) {
+
+        if(!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Slack webhook returned status: " + response.getStatusCode());
         }
     }
-    
+
     /**
      * Send Teams notification
      */
     private void sendTeamsNotification(NotificationChannel channel, Alert alert, String notificationId) {
         String webhookUrl = channel.getConfigValue("webhook_url");
-        
+
         Map<String, Object> card = new HashMap<>();
         card.put("@type", "MessageCard");
         card.put("@context", "http://schema.org/extensions");
@@ -241,23 +241,23 @@ public class NotificationService {
         card.put("summary", alert.getTitle());
         card.put("title", alert.getTitle());
         card.put("text", alert.getMessage());
-        
+
         // Add sections with details
         Map<String, Object> section = new HashMap<>();
         section.put("facts", buildTeamsFacts(alert));
-        card.put("sections", new Object[]{section});
-        
+        card.put("sections", new Object[] {section});
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
+
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(card, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(webhookUrl, request, String.class);
-        
-        if (!response.getStatusCode().is2xxSuccessful()) {
+
+        if(!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Teams webhook returned status: " + response.getStatusCode());
         }
     }
-    
+
     /**
      * Send Twilio SMS
      */
@@ -266,26 +266,26 @@ public class NotificationService {
         // Placeholder implementation
         log.info("Sending SMS via Twilio for alert {}", alert.getAlertId());
     }
-    
+
     /**
      * Check rate limit for channel
      */
     private boolean checkRateLimit(NotificationChannel channel) {
-        if (channel.getRateLimitPerHour() == null) {
+        if(channel.getRateLimitPerHour() == null) {
             return true; // No rate limit
         }
-        
+
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
-        
+
         // Check if we need to reset the counter
-        if (channel.getLastNotificationAt() != null && 
+        if(channel.getLastNotificationAt() != null &&
             channel.getLastNotificationAt().isBefore(oneHourAgo)) {
             channel.setNotificationCountCurrentHour(0);
         }
-        
+
         return channel.getNotificationCountCurrentHour() < channel.getRateLimitPerHour();
     }
-    
+
     /**
      * Update channel usage statistics
      */
@@ -294,17 +294,17 @@ public class NotificationService {
         channel.setNotificationCountCurrentHour(channel.getNotificationCountCurrentHour() + 1);
         channelRepository.save(channel);
     }
-    
+
     /**
      * Format email subject
      */
     private String formatEmailSubject(Alert alert) {
-        return String.format("[%s] %s - %s", 
-                alert.getSeverity(), 
-                alert.getSourceType(), 
+        return String.format("[%s] %s - %s",
+                alert.getSeverity(),
+                alert.getSourceType(),
                 alert.getTitle());
     }
-    
+
     /**
      * Format email body
      */
@@ -318,24 +318,24 @@ public class NotificationService {
         body.append("<p><strong>Source:</strong> ").append(alert.getSourceType()).append(" - ").append(alert.getSourceName()).append("</p>");
         body.append("<hr/>");
         body.append("<p>").append(alert.getMessage()).append("</p>");
-        
-        if (!alert.getDetails().isEmpty()) {
+
+        if(!alert.getDetails().isEmpty()) {
             body.append("<h3>Details:</h3>");
             body.append("<ul>");
-            for (Map.Entry<String, String> detail : alert.getDetails().entrySet()) {
+            for(Map.Entry<String, String> detail : alert.getDetails().entrySet()) {
                 body.append("<li><strong>").append(detail.getKey()).append(":</strong> ")
                     .append(detail.getValue()).append("</li>");
             }
             body.append("</ul>");
         }
-        
+
         body.append("<hr/>");
         body.append("<p><small>Notification ID: ").append(notificationId).append("</small></p>");
         body.append("</body></html>");
-        
+
         return body.toString();
     }
-    
+
     /**
      * Format Slack message
      */
@@ -346,12 +346,12 @@ public class NotificationService {
                 alert.getMessage(),
                 alert.getAlertId());
     }
-    
+
     /**
      * Get Slack color based on severity
      */
     private String getSlackColor(AlertRule.AlertSeverity severity) {
-        switch (severity) {
+        switch(severity) {
             case CRITICAL:
                 return "#d00000"; // Red
             case HIGH:
@@ -366,36 +366,36 @@ public class NotificationService {
                 return "#808080"; // Gray
         }
     }
-    
+
     /**
      * Get Teams color based on severity
      */
     private String getTeamsColor(AlertRule.AlertSeverity severity) {
         return getSlackColor(severity); // Same colors work for Teams
     }
-    
+
     /**
      * Build Slack fields
      */
     private Object[] buildSlackFields(Alert alert) {
-        return new Object[]{
+        return new Object[] {
             Map.of("title", "Source", "value", alert.getSourceType() + " - " + alert.getSourceName(), "short", true),
             Map.of("title", "Time", "value", alert.getTriggeredAt().format(DATE_FORMAT), "short", true)
         };
     }
-    
+
     /**
      * Build Teams facts
      */
     private Object[] buildTeamsFacts(Alert alert) {
-        return new Object[]{
+        return new Object[] {
             Map.of("name", "Alert ID", "value", alert.getAlertId()),
             Map.of("name", "Severity", "value", alert.getSeverity().toString()),
             Map.of("name", "Source", "value", alert.getSourceType() + " - " + alert.getSourceName()),
             Map.of("name", "Time", "value", alert.getTriggeredAt().format(DATE_FORMAT))
         };
     }
-    
+
     /**
      * Generate unique notification ID
      */

@@ -28,7 +28,7 @@ public class OutboundRequest {
     private RetryConfig retryConfig;
     private String flowId;
     private String adapterId;
-    
+
     /**
      * Request types
      */
@@ -39,7 +39,7 @@ public class OutboundRequest {
         GRAPHQL,
         CUSTOM
     }
-    
+
     /**
      * HTTP methods
      */
@@ -52,7 +52,7 @@ public class OutboundRequest {
         HEAD,
         OPTIONS
     }
-    
+
     /**
      * Authentication configuration
      */
@@ -61,7 +61,7 @@ public class OutboundRequest {
     public static class AuthenticationConfig {
         private AuthType authType;
         private Map<String, String> credentials;
-        
+
         public enum AuthType {
             NONE,
             BASIC,
@@ -71,7 +71,7 @@ public class OutboundRequest {
             CUSTOM
         }
     }
-    
+
     /**
      * Retry configuration
      */
@@ -87,7 +87,7 @@ public class OutboundRequest {
         @Builder.Default
         private double backoffMultiplier = 2.0;
     }
-    
+
     /**
      * Generate request ID if not provided
      */
@@ -106,27 +106,27 @@ public class OutboundRequest {
         private RetryConfig retryConfig;
         private String flowId;
         private String adapterId;
-        
+
         public OutboundRequest build() {
-            if (this.requestId == null) {
+            if(this.requestId == null) {
                 this.requestId = UUID.randomUUID().toString();
             }
-            if (this.timeoutSeconds == 0) {
+            if(this.timeoutSeconds == 0) {
                 this.timeoutSeconds = 30; // Default timeout
             }
             // Ensure headers and queryParams are not null
-            if (this.headers == null) {
+            if(this.headers == null) {
                 this.headers = new HashMap<>();
             }
-            if (this.queryParams == null) {
+            if(this.queryParams == null) {
                 this.queryParams = new HashMap<>();
             }
-            return new OutboundRequest(this.requestId, this.requestType, this.targetUrl, this.httpMethod, 
-                    this.payload, this.contentType, this.headers, this.queryParams, this.authentication, 
+            return new OutboundRequest(this.requestId, this.requestType, this.targetUrl, this.httpMethod,
+                    this.payload, this.contentType, this.headers, this.queryParams, this.authentication,
                     this.timeoutSeconds, this.retryConfig, this.flowId, this.adapterId);
         }
     }
-    
+
     /**
      * Add header
      * @param key Header key
@@ -135,7 +135,7 @@ public class OutboundRequest {
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
-    
+
     /**
      * Add query parameter
      * @param key Parameter key

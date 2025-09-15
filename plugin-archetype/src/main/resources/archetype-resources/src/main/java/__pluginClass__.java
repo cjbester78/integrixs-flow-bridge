@@ -37,7 +37,7 @@ public class ${pluginClass} implements AdapterPlugin {
                 .capabilities(Map.of(
                     "streaming", false,
                     "batch", false
-                ))
+               ))
                 .documentationUrl("${pluginDocUrl}")
                 .minPlatformVersion("1.0.0")
                 .license("${pluginLicense}")
@@ -89,7 +89,7 @@ public class ${pluginClass} implements AdapterPlugin {
             return ConnectionTestResult.failure(
                 "Plugin not initialized", 
                 "Please initialize the plugin first"
-            );
+           );
         }
         
         try {
@@ -112,7 +112,7 @@ public class ${pluginClass} implements AdapterPlugin {
             return ConnectionTestResult.failure(
                 "Connection test failed",
                 e.getMessage()
-            );
+           );
         }
     }
     
@@ -207,7 +207,7 @@ public class ${pluginClass} implements AdapterPlugin {
                                                 .message("Timeout must be between 1 and 300 seconds")
                                                 .build())
                                         .build()
-                            ))
+                           ))
                             .build(),
                     ConfigurationSchema.Section.builder()
                             .id("authentication")
@@ -235,7 +235,7 @@ public class ${pluginClass} implements AdapterPlugin {
                                                     .value("oauth2")
                                                     .label("OAuth 2.0")
                                                     .build()
-                                        ))
+                                       ))
                                         .build(),
                                 ConfigurationSchema.Field.builder()
                                         .name("apiKey")
@@ -259,7 +259,7 @@ public class ${pluginClass} implements AdapterPlugin {
                                         .required(false)
                                         .conditionalOn("authType", "basic")
                                         .build()
-                            ))
+                           ))
                             .build(),
                     ConfigurationSchema.Section.builder()
                             .id("advanced")
@@ -301,9 +301,9 @@ public class ${pluginClass} implements AdapterPlugin {
                                                 .max(1000.0)
                                                 .build())
                                         .build()
-                            ))
+                           ))
                             .build()
-                ))
+               ))
                 .build();
     }
     
@@ -350,7 +350,7 @@ public class ${pluginClass} implements AdapterPlugin {
                         .details(Map.of(
                             "messagesFound", result.getMessages().size(),
                             "hasMore", result.isHasMore()
-                        ))
+                       ))
                         .build();
             } else {
                 return ConnectionTestResult.builder()
@@ -362,7 +362,7 @@ public class ${pluginClass} implements AdapterPlugin {
             return ConnectionTestResult.failure(
                 "Inbound connection test failed",
                 e.getMessage()
-            );
+           );
         }
     }
     
@@ -390,7 +390,7 @@ public class ${pluginClass} implements AdapterPlugin {
                         .details(Map.of(
                             "responseCode", responseCode,
                             "endpoint", endpoint
-                        ))
+                       ))
                         .build();
             } else {
                 return ConnectionTestResult.builder()
@@ -399,14 +399,14 @@ public class ${pluginClass} implements AdapterPlugin {
                         .details(Map.of(
                             "responseCode", responseCode,
                             "endpoint", endpoint
-                        ))
+                       ))
                         .build();
             }
         } catch (Exception e) {
             return ConnectionTestResult.failure(
                 "Outbound connection test failed",
                 e.getMessage()
-            );
+           );
         }
     }
     

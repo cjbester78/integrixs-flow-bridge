@@ -26,11 +26,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MonitoringApplicationService {
-    
+
     private final EventLoggingService eventLoggingService;
     private final MetricsCollectorService metricsCollectorService;
     private final AlertingService alertingService;
-    
+
     /**
      * Log a monitoring event
      * @param request Log event request
@@ -52,21 +52,21 @@ public class MonitoringApplicationService {
                     .metadata(request.getMetadata() != null ? request.getMetadata() : new HashMap<>())
                     .stackTrace(request.getStackTrace())
                     .build();
-            
+
             // Log the event
             eventLoggingService.logEvent(event);
-            
+
             // Evaluate for alerts
             List<Alert> triggeredAlerts = alertingService.evaluateEvent(event);
-            
+
             return LogEventResponseDTO.builder()
                     .success(true)
                     .eventId(event.getEventId())
                     .timestamp(event.getTimestamp())
                     .alertsTriggered(triggeredAlerts.size())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error logging event: {}", e.getMessage(), e);
             return LogEventResponseDTO.builder()
                     .success(false)
@@ -74,7 +74,7 @@ public class MonitoringApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Record a metric
      * @param request Record metric request
@@ -96,21 +96,21 @@ public class MonitoringApplicationService {
                     .tags(request.getTags() != null ? request.getTags() : new HashMap<>())
                     .dimensions(request.getDimensions() != null ? request.getDimensions() : new HashMap<>())
                     .build();
-            
+
             // Record the metric
             metricsCollectorService.recordMetric(metric);
-            
+
             // Evaluate for alerts
             List<Alert> triggeredAlerts = alertingService.evaluateMetric(metric);
-            
+
             return RecordMetricResponseDTO.builder()
                     .success(true)
                     .metricId(metric.getMetricId())
                     .timestamp(metric.getTimestamp())
                     .alertsTriggered(triggeredAlerts.size())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error recording metric: {}", e.getMessage(), e);
             return RecordMetricResponseDTO.builder()
                     .success(false)
@@ -118,7 +118,7 @@ public class MonitoringApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Query monitoring events
      * @param request Query request
@@ -129,10 +129,10 @@ public class MonitoringApplicationService {
         try {
             // Build query criteria
             EventLoggingService.EventQueryCriteria criteria = new EventLoggingService.EventQueryCriteria();
-            if (request.getEventType() != null) {
+            if(request.getEventType() != null) {
                 criteria.setEventType(MonitoringEvent.EventType.valueOf(request.getEventType()));
             }
-            if (request.getMinLevel() != null) {
+            if(request.getMinLevel() != null) {
                 criteria.setMinLevel(MonitoringEvent.EventLevel.valueOf(request.getMinLevel()));
             }
             criteria.setSource(request.getSource());
@@ -143,21 +143,21 @@ public class MonitoringApplicationService {
             criteria.setStartTime(request.getStartTime());
             criteria.setEndTime(request.getEndTime());
             criteria.setLimit(request.getLimit());
-            
+
             // Query events
             List<MonitoringEvent> events = eventLoggingService.queryEvents(criteria);
-            
+
             // Convert to DTOs
             return events.stream()
                     .map(this::convertToEventDTO)
                     .collect(Collectors.toList());
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error querying events: {}", e.getMessage(), e);
             return List.of();
         }
     }
-    
+
     /**
      * Query metrics
      * @param request Query request
@@ -169,7 +169,7 @@ public class MonitoringApplicationService {
             // Build query criteria
             MetricsCollectorService.MetricQueryCriteria criteria = new MetricsCollectorService.MetricQueryCriteria();
             criteria.setMetricName(request.getMetricName());
-            if (request.getMetricType() != null) {
+            if(request.getMetricType() != null) {
                 criteria.setMetricType(MetricSnapshot.MetricType.valueOf(request.getMetricType()));
             }
             criteria.setTags(request.getTags());
@@ -177,21 +177,21 @@ public class MonitoringApplicationService {
             criteria.setEndTime(request.getEndTime());
             criteria.setLimit(request.getLimit());
             criteria.setOrderBy(request.getOrderBy());
-            
+
             // Query metrics
             List<MetricSnapshot> metrics = metricsCollectorService.queryMetrics(criteria);
-            
+
             // Convert to DTOs
             return metrics.stream()
                     .map(this::convertToMetricDTO)
                     .collect(Collectors.toList());
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error querying metrics: {}", e.getMessage(), e);
             return List.of();
         }
     }
-    
+
     /**
      * Get active alerts
      * @return List of active alerts
@@ -203,12 +203,12 @@ public class MonitoringApplicationService {
             return alerts.stream()
                     .map(this::convertToAlertDTO)
                     .collect(Collectors.toList());
-        } catch (Exception e) {
+        } catch(Exception e) {
             log.error("Error getting active alerts: {}", e.getMessage(), e);
             return List.of();
         }
     }
-    
+
     /**
      * Acknowledge an alert
      * @param alertId Alert ID
@@ -219,15 +219,15 @@ public class MonitoringApplicationService {
     public AlertOperationResponseDTO acknowledgeAlert(String alertId, AcknowledgeAlertRequestDTO request) {
         try {
             Alert alert = alertingService.acknowledgeAlert(alertId, request.getUserId());
-            
+
             return AlertOperationResponseDTO.builder()
                     .success(true)
                     .alertId(alert.getAlertId())
                     .status(alert.getStatus().name())
                     .message("Alert acknowledged successfully")
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error acknowledging alert: {}", e.getMessage(), e);
             return AlertOperationResponseDTO.builder()
                     .success(false)
@@ -236,7 +236,7 @@ public class MonitoringApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Resolve an alert
      * @param alertId Alert ID
@@ -247,15 +247,15 @@ public class MonitoringApplicationService {
     public AlertOperationResponseDTO resolveAlert(String alertId, ResolveAlertRequestDTO request) {
         try {
             Alert alert = alertingService.resolveAlert(alertId, request.getResolution());
-            
+
             return AlertOperationResponseDTO.builder()
                     .success(true)
                     .alertId(alert.getAlertId())
                     .status(alert.getStatus().name())
                     .message("Alert resolved successfully")
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error resolving alert: {}", e.getMessage(), e);
             return AlertOperationResponseDTO.builder()
                     .success(false)
@@ -264,7 +264,7 @@ public class MonitoringApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Calculate metric aggregation
      * @param request Aggregation request
@@ -279,8 +279,8 @@ public class MonitoringApplicationService {
                     request.getStartTime(),
                     request.getEndTime(),
                     request.getTags()
-            );
-            
+           );
+
             return MetricAggregationResponseDTO.builder()
                     .success(true)
                     .metricName(request.getMetricName())
@@ -289,8 +289,8 @@ public class MonitoringApplicationService {
                     .startTime(request.getStartTime())
                     .endTime(request.getEndTime())
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error calculating aggregation: {}", e.getMessage(), e);
             return MetricAggregationResponseDTO.builder()
                     .success(false)
@@ -298,7 +298,7 @@ public class MonitoringApplicationService {
                     .build();
         }
     }
-    
+
     /**
      * Create alert rule
      * @param request Create rule request
@@ -318,21 +318,21 @@ public class MonitoringApplicationService {
             rule.setTargetMetric(request.getTargetMetric());
             rule.setThreshold(request.getThreshold());
             rule.setComparison(request.getComparison());
-            
-            if (request.getAction() != null) {
+
+            if(request.getAction() != null) {
                 rule.setAction(convertToAlertAction(request.getAction()));
             }
-            
+
             // Create rule
             String ruleId = alertingService.createAlertRule(rule);
-            
+
             return AlertRuleOperationResponseDTO.builder()
                     .success(true)
                     .ruleId(ruleId)
                     .message("Alert rule created successfully")
                     .build();
-                    
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Error creating alert rule: {}", e.getMessage(), e);
             return AlertRuleOperationResponseDTO.builder()
                     .success(false)
@@ -340,9 +340,9 @@ public class MonitoringApplicationService {
                     .build();
         }
     }
-    
+
     // Conversion methods
-    
+
     private MonitoringEventDTO convertToEventDTO(MonitoringEvent event) {
         return MonitoringEventDTO.builder()
                 .eventId(event.getEventId())
@@ -359,7 +359,7 @@ public class MonitoringApplicationService {
                 .stackTrace(event.getStackTrace())
                 .build();
     }
-    
+
     private MetricSnapshotDTO convertToMetricDTO(MetricSnapshot metric) {
         return MetricSnapshotDTO.builder()
                 .metricId(metric.getMetricId())
@@ -375,7 +375,7 @@ public class MonitoringApplicationService {
                 .dimensions(metric.getDimensions())
                 .build();
     }
-    
+
     private AlertDTO convertToAlertDTO(Alert alert) {
         return AlertDTO.builder()
                 .alertId(alert.getAlertId())
@@ -395,7 +395,7 @@ public class MonitoringApplicationService {
                 .metadata(alert.getMetadata())
                 .build();
     }
-    
+
     private Alert.AlertAction convertToAlertAction(AlertActionDTO dto) {
         return Alert.AlertAction.builder()
                 .type(Alert.AlertAction.ActionType.valueOf(dto.getType()))

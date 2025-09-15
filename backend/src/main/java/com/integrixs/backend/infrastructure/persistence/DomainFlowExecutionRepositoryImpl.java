@@ -20,40 +20,40 @@ import java.util.UUID;
 @Repository("domainFlowExecutionRepositoryImpl")
 @RequiredArgsConstructor
 public class DomainFlowExecutionRepositoryImpl implements DomainFlowExecutionRepository {
-    
+
     private final FlowExecutionRepository jpaRepository;
-    
+
     @Override
     public List<FlowExecution> findAll() {
         return jpaRepository.findAll();
     }
-    
+
     @Override
     public Optional<FlowExecution> findById(UUID id) {
         return jpaRepository.findById(id);
     }
-    
+
     @Override
     public FlowExecution save(FlowExecution execution) {
         return jpaRepository.save(execution);
     }
-    
+
     @Override
     public Double getAverageExecutionTimeForDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         // This would need a custom query in the JPA repository
         // For now, return a mock value
         return 250.0;
     }
-    
+
     @Override
-    public Double getAverageExecutionTimeForBusinessComponentAndDateRange(UUID businessComponentId, 
-                                                                         LocalDateTime startDate, 
+    public Double getAverageExecutionTimeForBusinessComponentAndDateRange(UUID businessComponentId,
+                                                                         LocalDateTime startDate,
                                                                          LocalDateTime endDate) {
         // This would need a custom query that joins with flow and adapter tables
         // For now, return a mock value
         return 275.0;
     }
-    
+
     @Override
     public long countByStatusAndDateRange(ExecutionStatus status, LocalDateTime startDate, LocalDateTime endDate) {
         return jpaRepository.findByStartedAtBetween(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))

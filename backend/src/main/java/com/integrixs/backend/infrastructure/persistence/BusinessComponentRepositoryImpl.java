@@ -16,45 +16,45 @@ import java.util.UUID;
 @Repository("domainBusinessComponentRepository")
 @RequiredArgsConstructor
 public class BusinessComponentRepositoryImpl implements BusinessComponentRepository {
-    
+
     private final com.integrixs.data.repository.BusinessComponentRepository jpaRepository;
     private final com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository;
-    
+
     @Override
     public List<BusinessComponent> findAll() {
         return jpaRepository.findAll();
     }
-    
+
     @Override
     public Optional<BusinessComponent> findById(UUID id) {
         return jpaRepository.findById(id);
     }
-    
+
     @Override
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
     }
-    
+
     @Override
     public boolean existsByName(String name) {
         return jpaRepository.existsByName(name);
     }
-    
+
     @Override
     public boolean existsByNameAndIdNot(String name, UUID excludeId) {
         return jpaRepository.existsByNameAndIdNot(name, excludeId);
     }
-    
+
     @Override
     public BusinessComponent save(BusinessComponent component) {
         return jpaRepository.save(component);
     }
-    
+
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
-    
+
     @Override
     public long countAssociatedAdapters(UUID componentId) {
         return adapterRepository.countByBusinessComponent_Id(componentId);

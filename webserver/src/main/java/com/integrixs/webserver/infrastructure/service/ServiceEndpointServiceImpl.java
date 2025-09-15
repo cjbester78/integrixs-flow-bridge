@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class ServiceEndpointServiceImpl implements ServiceEndpointService {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceEndpointServiceImpl.class);
-    
+
     private final ServiceEndpointRepository repository;
     private final HttpClientService httpClientService;
 
@@ -33,17 +33,17 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
     @Override
     public ServiceEndpoint registerEndpoint(ServiceEndpoint endpoint) {
         logger.info("Registering endpoint: {}", endpoint.getName());
-        
+
         // Generate ID if not provided
-        if (endpoint.getEndpointId() == null) {
+        if(endpoint.getEndpointId() == null) {
             endpoint.setEndpointId(UUID.randomUUID().toString());
         }
-        
+
         // Set default values
-        if (endpoint.getConnectionConfig() == null) {
+        if(endpoint.getConnectionConfig() == null) {
             endpoint.setConnectionConfig(ServiceEndpoint.ConnectionConfig.builder().build());
         }
-        
+
         // Save endpoint
         return repository.save(endpoint);
     }
@@ -51,12 +51,12 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
     @Override
     public ServiceEndpoint updateEndpoint(ServiceEndpoint endpoint) {
         logger.info("Updating endpoint: {}", endpoint.getEndpointId());
-        
+
         // Verify endpoint exists
-        if (!repository.existsById(endpoint.getEndpointId())) {
+        if(!repository.existsById(endpoint.getEndpointId())) {
             throw new RuntimeException("Endpoint not found: " + endpoint.getEndpointId());
         }
-        
+
         return repository.update(endpoint);
     }
 
@@ -85,9 +85,9 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
     @Override
     public boolean testEndpointConnectivity(String endpointId) {
         logger.info("Testing connectivity for endpoint: {}", endpointId);
-        
+
         ServiceEndpoint endpoint = getEndpoint(endpointId);
-        
+
         // Create test request
         OutboundRequest testRequest = OutboundRequest.builder()
                 .requestType(mapEndpointTypeToRequestType(endpoint.getType()))
@@ -95,11 +95,11 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
                 .httpMethod(OutboundRequest.HttpMethod.GET)
                 .timeoutSeconds(5) // Short timeout for connectivity test
                 .build();
-        
+
         try {
             OutboundResponse response = httpClientService.executeRestCall(testRequest);
             return response.getStatusCode() > 0 && response.getStatusCode() < 500;
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.error("Connectivity test failed for endpoint {}: {}", endpointId, e.getMessage());
             return false;
         }
@@ -108,7 +108,7 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
     @Override
     public void activateEndpoint(String endpointId) {
         logger.info("Activating endpoint: {}", endpointId);
-        
+
         ServiceEndpoint endpoint = getEndpoint(endpointId);
         endpoint.setActive(true);
         repository.update(endpoint);
@@ -117,7 +117,7 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
     @Override
     public void deactivateEndpoint(String endpointId) {
         logger.info("Deactivating endpoint: {}", endpointId);
-        
+
         ServiceEndpoint endpoint = getEndpoint(endpointId);
         endpoint.setActive(false);
         repository.update(endpoint);
@@ -131,35 +131,35 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
 
     @Override
     public boolean validateEndpointConfiguration(ServiceEndpoint endpoint) {
-        if (endpoint == null) return false;
-        if (endpoint.getName() == null || endpoint.getName().isEmpty()) return false;
-        if (endpoint.getBaseUrl() == null || endpoint.getBaseUrl().isEmpty()) return false;
-        if (endpoint.getType() == null) return false;
-        
+        if(endpoint == null) return false;
+        if(endpoint.getName() == null || endpoint.getName().isEmpty()) return false;
+        if(endpoint.getBaseUrl() == null || endpoint.getBaseUrl().isEmpty()) return false;
+        if(endpoint.getType() == null) return false;
+
         // Validate URL format
         try {
             new java.net.URL(endpoint.getBaseUrl());
-        } catch (Exception e) {
+        } catch(Exception e) {
             logger.warn("Invalid base URL: {}", endpoint.getBaseUrl());
             return false;
         }
-        
+
         // Validate authentication if present
-        if (endpoint.getDefaultAuth() != null) {
+        if(endpoint.getDefaultAuth() != null) {
             ServiceEndpoint.AuthenticationConfig auth = endpoint.getDefaultAuth();
-            if (auth.getAuthType() != ServiceEndpoint.AuthenticationConfig.AuthType.NONE) {
-                if (auth.getCredentials() == null || auth.getCredentials().isEmpty()) {
+            if(auth.getAuthType() != ServiceEndpoint.AuthenticationConfig.AuthType.NONE) {
+                if(auth.getCredentials() == null || auth.getCredentials().isEmpty()) {
                     logger.warn("Authentication configured but no credentials provided");
                     return false;
                 }
             }
         }
-        
+
         return true;
     }
 
     private OutboundRequest.RequestType mapEndpointTypeToRequestType(ServiceEndpoint.EndpointType type) {
-        switch (type) {
+        switch(type) {
             case SOAP_SERVICE:
                 return OutboundRequest.RequestType.SOAP_SERVICE;
             case GRAPHQL_API:

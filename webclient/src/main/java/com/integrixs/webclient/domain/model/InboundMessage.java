@@ -28,7 +28,7 @@ public class InboundMessage {
     private MessageStatus status;
     private String correlationId;
     private String flowId;
-    
+
     /**
      * Message types
      */
@@ -40,7 +40,7 @@ public class InboundMessage {
         FILE_UPLOAD,
         STREAM
     }
-    
+
     /**
      * Message status
      */
@@ -52,28 +52,28 @@ public class InboundMessage {
         FAILED,
         REJECTED
     }
-    
+
     /**
-     * Pre-build operations
+     * Pre - build operations
      */
     public static InboundMessageBuilder builder() {
         return new InboundMessageBuilder() {
             @Override
             public InboundMessage build() {
-                if (super.messageId == null) {
+                if(super.messageId == null) {
                     super.messageId = UUID.randomUUID().toString();
                 }
-                if (super.receivedAt == null) {
+                if(super.receivedAt == null) {
                     super.receivedAt = LocalDateTime.now();
                 }
-                if (super.status == null) {
+                if(super.status == null) {
                     super.status = MessageStatus.RECEIVED;
                 }
                 return super.build();
             }
         };
     }
-    
+
     /**
      * Add header
      * @param key Header key
@@ -82,7 +82,7 @@ public class InboundMessage {
     public void addHeader(String key, String value) {
         this.headers.put(key, value);
     }
-    
+
     /**
      * Add metadata
      * @param key Metadata key
@@ -91,7 +91,7 @@ public class InboundMessage {
     public void addMetadata(String key, String value) {
         this.metadata.put(key, value);
     }
-    
+
     /**
      * Check if message is processed
      * @return true if processed
@@ -99,7 +99,7 @@ public class InboundMessage {
     public boolean isProcessed() {
         return status == MessageStatus.PROCESSED;
     }
-    
+
     /**
      * Check if message failed
      * @return true if failed
@@ -107,7 +107,7 @@ public class InboundMessage {
     public boolean isFailed() {
         return status == MessageStatus.FAILED || status == MessageStatus.REJECTED;
     }
-    
+
     /**
      * Get payload as specific type
      * @param type Target type

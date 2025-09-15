@@ -16,7 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    
+
     private String id;
     private String username;
     private String email;

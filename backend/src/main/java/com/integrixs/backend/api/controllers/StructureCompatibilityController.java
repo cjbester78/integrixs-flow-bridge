@@ -24,14 +24,14 @@ import javax.validation.Valid;
 @Validated
 @Tag(name = "Structure Compatibility", description = "API for analyzing compatibility between data structures")
 public class StructureCompatibilityController {
-    
+
     private final StructureCompatibilityService compatibilityService;
-    
+
     @PostMapping("/analyze")
     @Operation(
             summary = "Analyze structure compatibility",
-            description = "Analyzes compatibility between source and target data structures (WSDL, JSON Schema, XSD)"
-    )
+            description = "Analyzes compatibility between source and target data structures(WSDL, JSON Schema, XSD)"
+   )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -39,49 +39,49 @@ public class StructureCompatibilityController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = StructureCompatibilityResponse.class)
-                    )
-            ),
+                   )
+           ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Invalid request data",
                     content = @Content(mediaType = "application/json")
-            ),
+           ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
                     content = @Content(mediaType = "application/json")
-            )
+           )
     })
     public ResponseEntity<StructureCompatibilityResponse> analyzeCompatibility(
             @Valid @RequestBody StructureCompatibilityRequest request) {
-        
-        log.info("Analyzing compatibility between {} and {} structures", 
+
+        log.info("Analyzing compatibility between {} and {} structures",
                 request.getSourceType(), request.getTargetType());
-        
+
         try {
             StructureCompatibilityResponse response = compatibilityService.analyzeCompatibility(request);
-            
+
             log.info("Compatibility analysis complete: {}% compatible, {} issues found",
                     response.getOverallCompatibility(), response.getIssues().size());
-            
+
             return ResponseEntity.ok(response);
-            
-        } catch (IllegalArgumentException e) {
+
+        } catch(IllegalArgumentException e) {
             log.error("Invalid request: {}", e.getMessage());
             return ResponseEntity.badRequest().body(
                     StructureCompatibilityResponse.builder()
                             .overallCompatibility(0)
                             .isCompatible(false)
                             .build()
-            );
-        } catch (Exception e) {
+           );
+        } catch(Exception e) {
             log.error("Error analyzing structure compatibility", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     StructureCompatibilityResponse.builder()
                             .overallCompatibility(0)
                             .isCompatible(false)
                             .build()
-            );
+           );
         }
     }
 }

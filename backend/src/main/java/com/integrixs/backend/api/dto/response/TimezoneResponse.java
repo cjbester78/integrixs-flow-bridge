@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimezoneResponse {
-    
+
     private String id;
     private String displayName;
 }

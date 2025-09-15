@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class AuditEncryptionConfig {
-    
+
     /**
      * Create AuditLogEncryptionService bean when encryption is enabled.
      */
@@ -23,7 +23,7 @@ public class AuditEncryptionConfig {
         name = "enabled",
         havingValue = "true",
         matchIfMissing = false
-    )
+   )
     public AuditLogEncryptionService auditLogEncryptionService(
             FieldEncryptionService fieldEncryptionService,
             ObjectMapper objectMapper) {

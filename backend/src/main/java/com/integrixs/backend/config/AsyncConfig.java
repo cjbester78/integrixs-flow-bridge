@@ -19,9 +19,9 @@ import java.util.concurrent.Executor;
 @EnableAsync
 @RequiredArgsConstructor
 public class AsyncConfig implements AsyncConfigurer {
-    
+
     private final MDCTaskDecorator mdcTaskDecorator;
-    
+
     @Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -33,15 +33,15 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();
-        
+
         log.info("Configured async executor with MDC context propagation");
         return executor;
     }
-    
+
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-        return (throwable, method, params) -> {
-            log.error("Uncaught async exception in method: {} with params: {}", 
+        return(throwable, method, params) -> {
+            log.error("Uncaught async exception in method: {} with params: {}",
                 method.getName(), params, throwable);
         };
     }

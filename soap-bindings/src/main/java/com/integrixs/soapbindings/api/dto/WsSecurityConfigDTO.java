@@ -6,14 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO for WS-Security configuration
+ * DTO for WS - Security configuration
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class WsSecurityConfigDTO {
-    
+
     private boolean enableTimestamp;
     private boolean enableSignature;
     private boolean enableEncryption;

@@ -17,9 +17,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ExecutionTraceManager {
-    
+
     private final ExecutionMetricsCalculator metricsCalculator;
-    
+
     /**
      * Creates a new execution trace
      */
@@ -30,13 +30,13 @@ public class ExecutionTraceManager {
         trace.setFlowType(flowType);
         trace.setStatus(ExecutionStatus.STARTED);
         trace.setStartTime(LocalDateTime.now());
-        
+
         // Add initial event
         trace.addEvent(createEvent("EXECUTION_STARTED", "Flow execution monitoring started"));
-        
+
         return trace;
     }
-    
+
     /**
      * Updates trace progress
      */
@@ -46,7 +46,7 @@ public class ExecutionTraceManager {
         trace.setStatus(ExecutionStatus.RUNNING);
         trace.addEvent(createEvent("STEP_PROGRESS", step + ": " + message));
     }
-    
+
     /**
      * Completes trace execution
      */
@@ -55,12 +55,12 @@ public class ExecutionTraceManager {
         trace.setEndTime(LocalDateTime.now());
         trace.setCompletionMessage(message);
         trace.addEvent(createEvent("EXECUTION_COMPLETED", message));
-        
+
         // Calculate duration
         long duration = metricsCalculator.calculateDuration(trace.getStartTime(), trace.getEndTime());
         trace.setExecutionDurationMs(duration);
     }
-    
+
     /**
      * Records an error in the trace
      */
@@ -68,18 +68,18 @@ public class ExecutionTraceManager {
         trace.setStatus(ExecutionStatus.ERROR);
         trace.setEndTime(LocalDateTime.now());
         trace.setErrorMessage(errorMessage);
-        
-        if (exception != null) {
+
+        if(exception != null) {
             trace.setExceptionDetails(getStackTrace(exception));
         }
-        
+
         trace.addEvent(createEvent("EXECUTION_ERROR", errorMessage));
-        
+
         // Calculate duration
         long duration = metricsCalculator.calculateDuration(trace.getStartTime(), trace.getEndTime());
         trace.setExecutionDurationMs(duration);
     }
-    
+
     /**
      * Cancels a trace
      */
@@ -87,12 +87,12 @@ public class ExecutionTraceManager {
         trace.setStatus(ExecutionStatus.CANCELLED);
         trace.setEndTime(LocalDateTime.now());
         trace.addEvent(createEvent("EXECUTION_CANCELLED", "Execution cancelled by user"));
-        
+
         // Calculate duration
         long duration = metricsCalculator.calculateDuration(trace.getStartTime(), trace.getEndTime());
         trace.setExecutionDurationMs(duration);
     }
-    
+
     /**
      * Creates a new trace event
      */
@@ -103,7 +103,7 @@ public class ExecutionTraceManager {
         event.setTimestamp(LocalDateTime.now());
         return event;
     }
-    
+
     /**
      * Gets stack trace as string
      */

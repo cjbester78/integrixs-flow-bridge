@@ -16,6 +16,17 @@ public class AdapterOperationResponseDTO {
 
     public AdapterOperationResponseDTO() {
     }
+    
+    public AdapterOperationResponseDTO(String adapterId, boolean success, String message, String errorMessage,
+                                       Object data, Map<String, Object> metadata, int recordsProcessed) {
+        this.adapterId = adapterId;
+        this.success = success;
+        this.message = message;
+        this.errorMessage = errorMessage;
+        this.data = data;
+        this.metadata = metadata;
+        this.recordsProcessed = recordsProcessed;
+    }
 
 
     // Getters and Setters

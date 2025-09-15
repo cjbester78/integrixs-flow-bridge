@@ -24,7 +24,7 @@ public class ProcessingResult {
     private long processingTimeMillis;
     @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
-    
+
     /**
      * Create success result
      * @param messageId Message ID
@@ -41,7 +41,7 @@ public class ProcessingResult {
                 .processedAt(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Create success result with response data
      * @param messageId Message ID
@@ -50,7 +50,7 @@ public class ProcessingResult {
      * @param responseData Response data
      * @return Success result
      */
-    public static ProcessingResult successWithData(String messageId, String flowId, 
+    public static ProcessingResult successWithData(String messageId, String flowId,
                                                   String executionId, Object responseData) {
         return ProcessingResult.builder()
                 .messageId(messageId)
@@ -61,7 +61,7 @@ public class ProcessingResult {
                 .processedAt(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Create failure result
      * @param messageId Message ID
@@ -76,7 +76,7 @@ public class ProcessingResult {
                 .processedAt(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Create failure result with error code
      * @param messageId Message ID
@@ -93,7 +93,7 @@ public class ProcessingResult {
                 .processedAt(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * Add metadata
      * @param key Metadata key
@@ -104,7 +104,7 @@ public class ProcessingResult {
         this.metadata.put(key, value);
         return this;
     }
-    
+
     /**
      * Set processing time
      * @param startTime Start time

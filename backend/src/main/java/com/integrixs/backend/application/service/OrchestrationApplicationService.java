@@ -28,14 +28,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrchestrationApplicationService {
-    
+
     private final OrchestrationManagementService orchestrationManagementService;
     private final OrchestrationExecutor orchestrationExecutor;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final TransformationExecutionService transformationService;
-    
+
     private final Map<String, OrchestrationExecution> activeExecutions = new ConcurrentHashMap<>();
-    
+
     /**
      * Execute an orchestration flow synchronously
      */
@@ -44,26 +44,26 @@ public class OrchestrationApplicationService {
         try {
             // Validate input
             orchestrationManagementService.validateInputData(inputData);
-            
+
             // Get and validate flow
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(flowId))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-            
+
             orchestrationManagementService.validateOrchestrationFlow(flow);
-            
+
             // Create execution
             OrchestrationExecution execution = createExecution(flow, inputData);
             activeExecutions.put(execution.getExecutionId(), execution);
-            
+
             // Execute workflow
             return executeWorkflow(execution, flow);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Orchestration execution failed for flow {}", flowId, e);
             throw new RuntimeException("Orchestration execution failed: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * Execute an orchestration flow asynchronously
      */
@@ -72,7 +72,7 @@ public class OrchestrationApplicationService {
     public CompletableFuture<OrchestrationDTO> executeOrchestrationFlowAsync(String flowId, Object inputData) {
         return CompletableFuture.supplyAsync(() -> executeOrchestrationFlow(flowId, inputData));
     }
-    
+
     /**
      * Get current execution status
      */
@@ -80,46 +80,46 @@ public class OrchestrationApplicationService {
         return Optional.ofNullable(activeExecutions.get(executionId))
                 .map(this::convertToExecutionDTO);
     }
-    
+
     /**
      * Cancel an active orchestration execution
      */
     public boolean cancelExecution(String executionId) {
         OrchestrationExecution execution = activeExecutions.get(executionId);
-        if (execution != null && orchestrationManagementService.canCancelExecution(execution.getStatus())) {
+        if(execution != null && orchestrationManagementService.canCancelExecution(execution.getStatus())) {
             execution.updateStatus("CANCELLED");
             execution.addLog("Execution cancelled by user");
             return true;
         }
         return false;
     }
-    
+
     /**
      * Validate orchestration flow configuration
      */
     @Transactional(readOnly = true)
     public ValidationResultDTO validateOrchestrationFlow(String flowId) {
         ValidationResultDTO result = new ValidationResultDTO();
-        
+
         try {
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(flowId))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-            
+
             orchestrationManagementService.validateOrchestrationFlow(flow);
             result.setValid(true);
             result.addInfo("Flow validation successful");
-            
-        } catch (IllegalStateException e) {
+
+        } catch(IllegalStateException e) {
             result.setValid(false);
             result.addError(e.getMessage());
-        } catch (Exception e) {
+        } catch(Exception e) {
             result.setValid(false);
             result.addError("Validation failed: " + e.getMessage());
         }
-        
+
         return result;
     }
-    
+
     /**
      * Get orchestration execution history
      */
@@ -136,7 +136,7 @@ public class OrchestrationApplicationService {
                 .map(this::convertToExecutionDTO)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Get all active executions
      */
@@ -146,7 +146,7 @@ public class OrchestrationApplicationService {
                 .map(this::convertToExecutionDTO)
                 .collect(Collectors.toList());
     }
-    
+
     private OrchestrationExecution createExecution(IntegrationFlow flow, Object inputData) {
         OrchestrationExecution execution = new OrchestrationExecution();
         execution.setExecutionId(orchestrationManagementService.generateExecutionId());
@@ -155,62 +155,62 @@ public class OrchestrationApplicationService {
         execution.updateStatus("PENDING");
         execution.setInputData(inputData);
         execution.addLog("Orchestration execution created");
-        
+
         return execution;
     }
-    
+
     private OrchestrationDTO executeWorkflow(OrchestrationExecution execution, IntegrationFlow flow) {
         try {
             execution.updateStatus("RUNNING");
             execution.addLog("Beginning workflow execution");
-            
+
             // Step 1: Initialize process
             execution.setCurrentStep("INITIALIZE");
             execution.addLog(orchestrationManagementService.formatLogMessage("Process initialized"));
-            
+
             // Step 2: Initialize adapters
             execution.setCurrentStep("INITIALIZE_ADAPTERS");
-            if (!orchestrationExecutor.initializeAdapters(execution, flow)) {
+            if(!orchestrationExecutor.initializeAdapters(execution, flow)) {
                 return createErrorResult(execution, "Failed to initialize adapters");
             }
-            
-            // Step 3: Fetch data from source adapter (if needed)
-            if (execution.getInputData() == null) {
+
+            // Step 3: Fetch data from source adapter(if needed)
+            if(execution.getInputData() == null) {
                 execution.setCurrentStep("FETCH_SOURCE_DATA");
                 String inboundAdapterId = flow.getInboundAdapterId().toString();
-                if (!orchestrationExecutor.fetchFromSourceAdapter(execution, inboundAdapterId)) {
+                if(!orchestrationExecutor.fetchFromSourceAdapter(execution, inboundAdapterId)) {
                     return createErrorResult(execution, "Failed to fetch data from source adapter");
                 }
             }
-            
+
             // Step 4: Execute transformations
             execution.setCurrentStep("EXECUTE_TRANSFORMATIONS");
-            if (!orchestrationExecutor.executeTransformations(execution, flow.getId().toString())) {
+            if(!orchestrationExecutor.executeTransformations(execution, flow.getId().toString())) {
                 return createErrorResult(execution, "Failed to execute transformations");
             }
-            
+
             // Step 5: Send to target adapter
             execution.setCurrentStep("PROCESS_TARGETS");
             String outboundAdapterId = flow.getOutboundAdapterId().toString();
-            if (!orchestrationExecutor.sendToTargetAdapter(execution, outboundAdapterId)) {
+            if(!orchestrationExecutor.sendToTargetAdapter(execution, outboundAdapterId)) {
                 return createErrorResult(execution, "Failed to send data to target adapter");
             }
-            
+
             // Step 6: Complete process
             execution.setCurrentStep("COMPLETE");
             execution.updateStatus("COMPLETED");
             execution.addLog("Orchestration execution completed successfully");
-            
+
             return createSuccessResult(execution);
-            
-        } catch (Exception e) {
+
+        } catch(Exception e) {
             log.error("Workflow execution failed", e);
             execution.updateStatus("FAILED");
             execution.addLog("Execution failed: " + e.getMessage());
             return createErrorResult(execution, "Workflow execution failed: " + e.getMessage());
         }
     }
-    
+
     private OrchestrationDTO createSuccessResult(OrchestrationExecution execution) {
         OrchestrationDTO dto = new OrchestrationDTO();
         dto.setSuccess(true);
@@ -221,11 +221,11 @@ public class OrchestrationApplicationService {
                 execution.getStartTime(), execution.getEndTime()));
         return dto;
     }
-    
+
     private OrchestrationDTO createErrorResult(OrchestrationExecution execution, String message) {
         execution.updateStatus("FAILED");
         execution.addLog(message);
-        
+
         OrchestrationDTO dto = new OrchestrationDTO();
         dto.setSuccess(false);
         dto.setExecutionId(execution.getExecutionId());
@@ -235,7 +235,7 @@ public class OrchestrationApplicationService {
                 execution.getStartTime(), execution.getEndTime()));
         return dto;
     }
-    
+
     private OrchestrationExecutionDTO convertToExecutionDTO(OrchestrationExecution execution) {
         OrchestrationExecutionDTO dto = new OrchestrationExecutionDTO();
         dto.setExecutionId(execution.getExecutionId());

@@ -8,14 +8,14 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.tiktok.business")
 public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
-    
+
     private String appId;
     private String appSecret;
     private String advertiserId;
     private String businessId;
     private TikTokBusinessFeatures features = new TikTokBusinessFeatures();
     private TikTokBusinessLimits limits = new TikTokBusinessLimits();
-    
+
         public static class TikTokBusinessFeatures {
         private boolean enableCampaignManagement = true;
         private boolean enableAdGroupManagement = true;
@@ -38,7 +38,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         private boolean enableAnalyticsExport = true;
         private boolean enableAutomatedRules = true;
     }
-    
+
         public static class TikTokBusinessLimits {
         private int maxCampaignsPerAccount = 500;
         private int maxAdGroupsPerCampaign = 1000;
@@ -53,7 +53,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         private int maxBulkOperations = 100;
         private int reportingDelayHours = 3;
     }
-    
+
     // Campaign objectives
     public enum CampaignObjective {
         REACH,
@@ -66,7 +66,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         CATALOG_SALES,
         BRAND_AWARENESS
     }
-    
+
     // Ad formats
     public enum AdFormat {
         SINGLE_VIDEO,
@@ -82,7 +82,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         IN_FEED_VIDEO,
         BRANDED_MISSION
     }
-    
+
     // Placement options
     public enum Placement {
         TIKTOK_AUTOMATIC,
@@ -99,7 +99,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         TIKTOK_LITE,
         TIKTOK_NOW
     }
-    
+
     // Targeting options
     public enum TargetingDimension {
         LOCATION,
@@ -120,7 +120,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         CUSTOM_AUDIENCE,
         LOOKALIKE_AUDIENCE
     }
-    
+
     // Age ranges
     public enum AgeRange {
         AGE_13_17("13-17"),
@@ -128,31 +128,31 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         AGE_25_34("25-34"),
         AGE_35_44("35-44"),
         AGE_45_54("45-54"),
-        AGE_55_PLUS("55+");
-        
+        AGE_55_PLUS("55 + ");
+
         private final String range;
-        
+
         AgeRange(String range) {
             this.range = range;
         }
-        
+
         public String getRange() { return range; }
     }
-    
+
     // Gender options
     public enum Gender {
         MALE,
         FEMALE,
         ALL
     }
-    
+
     // Budget types
     public enum BudgetType {
         DAILY,
         LIFETIME,
         NO_LIMIT
     }
-    
+
     // Bid strategies
     public enum BidStrategy {
         LOWEST_COST,
@@ -162,7 +162,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         MAXIMUM_CONVERSIONS,
         TARGET_COST
     }
-    
+
     // Billing events
     public enum BillingEvent {
         IMPRESSION,
@@ -174,7 +174,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         CONVERSION,
         VIDEO_VIEW
     }
-    
+
     // Creative types
     public enum CreativeType {
         VIDEO,
@@ -186,23 +186,23 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         SPARK_AD_POST,
         BRANDED_CONTENT
     }
-    
+
     // Video resolutions
     public enum VideoResolution {
         RESOLUTION_540_960("540x960"),
         RESOLUTION_640_640("640x640"),
         RESOLUTION_720_1280("720x1280"),
         RESOLUTION_1080_1920("1080x1920");
-        
+
         private final String resolution;
-        
+
         VideoResolution(String resolution) {
             this.resolution = resolution;
         }
-        
+
         public String getResolution() { return resolution; }
     }
-    
+
     // Conversion events
     public enum ConversionEvent {
         REGISTRATION,
@@ -223,7 +223,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         SUBSCRIBE,
         CUSTOM_EVENT
     }
-    
+
     // Report types
     public enum ReportType {
         BASIC,
@@ -237,7 +237,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         CONVERSION,
         CUSTOM
     }
-    
+
     // Report dimensions
     public enum ReportDimension {
         ADVERTISER_ID,
@@ -258,7 +258,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         DEVICE_MODEL,
         CONNECTION_TYPE
     }
-    
+
     // Report metrics
     public enum ReportMetric {
         // Basic metrics
@@ -270,7 +270,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         SPEND,
         REACH,
         FREQUENCY,
-        
+
         // Video metrics
         VIDEO_VIEWS,
         VIDEO_VIEWS_2S,
@@ -280,21 +280,21 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         VIDEO_WATCHED_6S,
         AVERAGE_VIDEO_PLAY_TIME,
         VIDEO_PLAY_ACTIONS,
-        
+
         // Engagement metrics
         LIKES,
         COMMENTS,
         SHARES,
         FOLLOWS,
         PROFILE_VISITS,
-        
+
         // Conversion metrics
         CONVERSIONS,
         CONVERSION_RATE,
         COST_PER_CONVERSION,
         CONVERSION_VALUE,
         ROAS,
-        
+
         // App metrics
         APP_INSTALL,
         APP_EVENT,
@@ -302,13 +302,13 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         PURCHASE,
         RETENTION_DAY_1,
         RETENTION_DAY_7,
-        
+
         // Interactive metrics
         INTERACTIVE_ADD_ON_IMPRESSIONS,
         INTERACTIVE_ADD_ON_CLICKS,
         INTERACTIVE_ADD_ON_CTR
     }
-    
+
     // Creative optimization modes
     public enum CreativeOptimizationMode {
         DISABLE,
@@ -316,7 +316,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         DYNAMIC_CREATIVE,
         AUTOMATED_CREATIVE_OPTIMIZATION
     }
-    
+
     // Pixel events
     public enum PixelEvent {
         PAGE_VIEW,
@@ -332,7 +332,7 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         COMPLETE_REGISTRATION,
         SUBSCRIBE
     }
-    
+
     // Audience types
     public enum AudienceType {
         CUSTOM,
@@ -346,14 +346,14 @@ public class TikTokBusinessApiConfig extends SocialMediaAdapterConfig {
         LEAD_GENERATION,
         VIDEO_ENGAGEMENT
     }
-    
+
     // Campaign status
     public enum CampaignStatus {
         ENABLE,
         DISABLE,
         DELETE
     }
-    
+
     // Ad review status
     public enum AdReviewStatus {
         PENDING,

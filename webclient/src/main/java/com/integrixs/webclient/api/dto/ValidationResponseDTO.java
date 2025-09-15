@@ -16,12 +16,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ValidationResponseDTO {
-    
+
     private boolean valid;
-    
+
     @Builder.Default
     private List<ValidationErrorDTO> errors = new ArrayList<>();
-    
+
     @Builder.Default
     private List<String> warnings = new ArrayList<>();
 }

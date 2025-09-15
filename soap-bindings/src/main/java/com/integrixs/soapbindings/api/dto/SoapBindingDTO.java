@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SoapBindingDTO {
-    
+
     private String bindingId;
     private String bindingName;
     private String wsdlId;

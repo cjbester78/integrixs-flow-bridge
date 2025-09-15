@@ -9,7 +9,7 @@ import java.util.Map;
  * Domain service for adapter execution business logic
  */
 public interface AdapterExecutionService {
-    
+
     /**
      * Execute adapter to fetch data
      * @param adapterId The adapter identifier
@@ -17,7 +17,7 @@ public interface AdapterExecutionService {
      * @return Execution result containing data
      */
     AdapterExecutionResult fetchData(String adapterId, AdapterExecutionContext context);
-    
+
     /**
      * Execute adapter to send data
      * @param adapterId The adapter identifier
@@ -26,7 +26,7 @@ public interface AdapterExecutionService {
      * @return Execution result
      */
     AdapterExecutionResult sendData(String adapterId, Object data, AdapterExecutionContext context);
-    
+
     /**
      * Validate adapter configuration
      * @param adapterId The adapter identifier
@@ -34,14 +34,14 @@ public interface AdapterExecutionService {
      * @throws IllegalArgumentException if configuration is invalid
      */
     void validateAdapterConfig(String adapterId, Map<String, Object> config);
-    
+
     /**
      * Check if adapter is available and ready
      * @param adapterId The adapter identifier
      * @return true if adapter is ready
      */
     boolean isAdapterReady(String adapterId);
-    
+
     /**
      * Get adapter capabilities
      * @param adapterId The adapter identifier

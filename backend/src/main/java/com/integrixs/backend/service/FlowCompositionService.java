@@ -27,34 +27,34 @@ public class FlowCompositionService {
 
     @Autowired
     private IntegrationFlowRepository flowRepository;
-    
+
     @Autowired
     private BusinessComponentRepository businessComponentRepository;
-    
+
     @Autowired
     private CommunicationAdapterRepository adapterRepository;
-    
+
     @Autowired
     private FlowTransformationRepository transformationRepository;
-    
+
     @Autowired
     private FieldMappingRepository fieldMappingRepository;
-    
+
     @Autowired
     private FlowTransformationApplicationService transformationService;
-    
+
     @Autowired
     private FieldMappingApplicationService fieldMappingService;
-    
+
     @Autowired
     private FieldMappingServiceAdapter fieldMappingServiceAdapter;
-    
+
     @Autowired
     private FlowOrchestrationStepRepository orchestrationStepRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -62,52 +62,52 @@ public class FlowCompositionService {
      */
     public IntegrationFlow createDirectMappingFlow(DirectMappingFlowRequest request) {
         // Check if flow name already exists
-        if (flowRepository.existsByName(request.getFlowName())) {
+        if(flowRepository.existsByName(request.getFlowName())) {
             throw new IllegalArgumentException("A flow with the name '" + request.getFlowName() + "' already exists");
         }
-        
-        // Validate business components exist (only if provided)
-        if (request.getSourceBusinessComponentId() != null) {
+
+        // Validate business components exist(only if provided)
+        if(request.getSourceBusinessComponentId() != null) {
             validateBusinessComponent(request.getSourceBusinessComponentId());
         }
-        if (request.getTargetBusinessComponentId() != null) {
+        if(request.getTargetBusinessComponentId() != null) {
             validateBusinessComponent(request.getTargetBusinessComponentId());
         }
-        
+
         // Validate adapters exist
         validateAdapter(request.getInboundAdapterId());
         validateAdapter(request.getOutboundAdapterId());
-        
+
         // Create the integration flow
         IntegrationFlow flow = new IntegrationFlow();
         flow.setName(request.getFlowName());
         flow.setDescription(request.getDescription());
         // Convert String adapter IDs to UUID
-        if (request.getInboundAdapterId() != null) {
+        if(request.getInboundAdapterId() != null) {
             flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getOutboundAdapterId() != null) {
+        if(request.getOutboundAdapterId() != null) {
             flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
         // Convert String structure IDs to UUID
-        if (request.getSourceFlowStructureId() != null) {
+        if(request.getSourceFlowStructureId() != null) {
             flow.setSourceFlowStructureId(UUID.fromString(request.getSourceFlowStructureId()));
         }
-        if (request.getTargetFlowStructureId() != null) {
+        if(request.getTargetFlowStructureId() != null) {
             flow.setTargetFlowStructureId(UUID.fromString(request.getTargetFlowStructureId()));
         }
         // Deprecated fields - no longer used
         // Source and target structures are now handled through flow structures
         flow.setStatus(FlowStatus.DEVELOPED_INACTIVE);
         // Load user from createdBy string
-        if (request.getCreatedBy() != null) {
+        if(request.getCreatedBy() != null) {
             User createdByUser = userRepository.findById(UUID.fromString(request.getCreatedBy()))
                 .orElseThrow(() -> new RuntimeException("User not found: " + request.getCreatedBy()));
             flow.setCreatedBy(createdByUser);
         }
-        
+
         // Use mapping mode from request if provided, otherwise determine based on field mappings
-        if (request.getMappingMode() != null) {
+        if(request.getMappingMode() != null) {
             flow.setMappingMode(MappingMode.valueOf(request.getMappingMode()));
         } else {
             // Fallback to determining based on field mappings
@@ -115,25 +115,25 @@ public class FlowCompositionService {
                                  (request.getAdditionalMappings() != null && !request.getAdditionalMappings().isEmpty());
             flow.setMappingMode(hasMappings ? MappingMode.WITH_MAPPING : MappingMode.PASS_THROUGH);
         }
-        
+
         flow.setSkipXmlConversion(request.isSkipXmlConversion());
-        
+
         // Set the source business component as the primary business component
-        if (request.getSourceBusinessComponentId() != null) {
+        if(request.getSourceBusinessComponentId() != null) {
             BusinessComponent businessComponent = businessComponentRepository.findById(UUID.fromString(request.getSourceBusinessComponentId())).orElse(null);
-            if (businessComponent != null) {
+            if(businessComponent != null) {
                 flow.setBusinessComponent(businessComponent);
             }
         }
-        
+
         // Set flow type
         flow.setFlowType(FlowType.DIRECT_MAPPING);
-        
+
         // Save the flow
         IntegrationFlow savedFlow = flowRepository.save(flow);
-        
+
         // Create transformation if field mappings are provided
-        if (request.getFieldMappings() != null && !request.getFieldMappings().isEmpty()) {
+        if(request.getFieldMappings() != null && !request.getFieldMappings().isEmpty()) {
             FlowTransformationDTO transformation = new FlowTransformationDTO();
             transformation.setFlowId(savedFlow.getId().toString());
             transformation.setType("FIELD_MAPPING");
@@ -141,76 +141,76 @@ public class FlowCompositionService {
             // Build configuration with mapping type and WSDL operations
             Map<String, Object> configMap = new HashMap<>();
             configMap.put("mappingType", "request");
-            if (request.getSourceWsdlOperation() != null) {
+            if(request.getSourceWsdlOperation() != null) {
                 configMap.put("sourceWsdlOperation", request.getSourceWsdlOperation());
             }
-            if (request.getTargetWsdlOperation() != null) {
+            if(request.getTargetWsdlOperation() != null) {
                 configMap.put("targetWsdlOperation", request.getTargetWsdlOperation());
             }
             try {
                 transformation.setConfiguration(objectMapper.writeValueAsString(configMap));
-            } catch (JsonProcessingException e) {
-                transformation.setConfiguration("{\"mappingType\":\"request\"}");
+            } catch(JsonProcessingException e) {
+                transformation.setConfiguration(" {\"mappingType\":\"request\"}");
             }
             transformation.setExecutionOrder(1);
             transformation.setActive(true);
-            
+
             FlowTransformationDTO savedTransformation = transformationService.save(transformation);
-            
+
             // Save field mappings
             int mappingOrder = 1;
-            for (FieldMappingDTO mapping : request.getFieldMappings()) {
+            for(FieldMappingDTO mapping : request.getFieldMappings()) {
                 mapping.setTransformationId(savedTransformation.getId().toString());
                 mapping.setMappingOrder(mappingOrder++);
                 fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
             }
         }
-        
-        // Handle additional mappings for synchronous flows (response, fault mappings)
-        if (request.getAdditionalMappings() != null && !request.getAdditionalMappings().isEmpty()) {
+
+        // Handle additional mappings for synchronous flows(response, fault mappings)
+        if(request.getAdditionalMappings() != null && !request.getAdditionalMappings().isEmpty()) {
             int order = 2;
-            for (AdditionalMapping additionalMapping : request.getAdditionalMappings()) {
-                if (additionalMapping.getFieldMappings() != null && !additionalMapping.getFieldMappings().isEmpty()) {
+            for(AdditionalMapping additionalMapping : request.getAdditionalMappings()) {
+                if(additionalMapping.getFieldMappings() != null && !additionalMapping.getFieldMappings().isEmpty()) {
                     FlowTransformationDTO transformation = new FlowTransformationDTO();
                     transformation.setFlowId(savedFlow.getId().toString());
                     transformation.setType("FIELD_MAPPING");
-                    transformation.setName(additionalMapping.getName()); // Save the user-entered name
-                    
+                    transformation.setName(additionalMapping.getName()); // Save the user - entered name
+
                     // Determine message type based on order and flow mode
                     String messageType;
-                    if (savedFlow.getMappingMode() == MappingMode.PASS_THROUGH) {
+                    if(savedFlow.getMappingMode() == MappingMode.PASS_THROUGH) {
                         // Async mode: second mapping is fault
                         messageType = "fault";
                     } else {
                         // Sync mode: second is response, third is fault
                         messageType = order == 2 ? "response" : "fault";
                     }
-                    
+
                     // Store mapping type and WSDL operations in configuration
                     try {
                         ObjectMapper mapper = new ObjectMapper();
                         Map<String, Object> configMap = new HashMap<>();
                         configMap.put("mappingType", messageType);
-                        if (additionalMapping.getSourceWsdlOperation() != null) {
+                        if(additionalMapping.getSourceWsdlOperation() != null) {
                             configMap.put("sourceWsdlOperation", additionalMapping.getSourceWsdlOperation());
                         }
-                        if (additionalMapping.getTargetWsdlOperation() != null) {
+                        if(additionalMapping.getTargetWsdlOperation() != null) {
                             configMap.put("targetWsdlOperation", additionalMapping.getTargetWsdlOperation());
                         }
                         String config = mapper.writeValueAsString(configMap);
                         transformation.setConfiguration(config);
-                    } catch (Exception e) {
-                        transformation.setConfiguration("{\"mappingType\":\"" + messageType + "\"}");
+                    } catch(Exception e) {
+                        transformation.setConfiguration(" {\"mappingType\":\"" + messageType + "\"}");
                     }
-                    
+
                     transformation.setExecutionOrder(order++);
                     transformation.setActive(true);
-                    
+
                     FlowTransformationDTO savedTransformation = transformationService.save(transformation);
-                    
+
                     // Save field mappings for this additional mapping
                     int fieldMappingOrder = 1;
-                    for (FieldMappingDTO mapping : additionalMapping.getFieldMappings()) {
+                    for(FieldMappingDTO mapping : additionalMapping.getFieldMappings()) {
                         mapping.setTransformationId(savedTransformation.getId().toString());
                         mapping.setMappingOrder(fieldMappingOrder++);
                         fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
@@ -218,7 +218,7 @@ public class FlowCompositionService {
                 }
             }
         }
-        
+
         return savedFlow;
     }
 
@@ -230,69 +230,69 @@ public class FlowCompositionService {
         // Find existing flow
         IntegrationFlow existingFlow = flowRepository.findById(UUID.fromString(flowId))
             .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
-        
+
         // Validate that we're not creating a duplicate name
-        if (flowRepository.existsByNameAndIdNot(request.getFlowName(), UUID.fromString(flowId))) {
+        if(flowRepository.existsByNameAndIdNot(request.getFlowName(), UUID.fromString(flowId))) {
             throw new IllegalArgumentException("A flow with the name '" + request.getFlowName() + "' already exists");
         }
-        
+
         // Update basic flow properties
         existingFlow.setName(request.getFlowName());
         existingFlow.setDescription(request.getDescription());
-        
-        // Update business component (IntegrationFlow has a single businessComponent field)
-        if (request.getSourceBusinessComponentId() != null) {
+
+        // Update business component(IntegrationFlow has a single businessComponent field)
+        if(request.getSourceBusinessComponentId() != null) {
             BusinessComponent businessComponent = businessComponentRepository.findById(UUID.fromString(request.getSourceBusinessComponentId())).orElse(null);
-            if (businessComponent != null) {
+            if(businessComponent != null) {
                 existingFlow.setBusinessComponent(businessComponent);
             }
         }
-        
+
         // Update adapters
-        if (request.getInboundAdapterId() != null) {
+        if(request.getInboundAdapterId() != null) {
             validateAdapter(request.getInboundAdapterId());
             existingFlow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getOutboundAdapterId() != null) {
+        if(request.getOutboundAdapterId() != null) {
             validateAdapter(request.getOutboundAdapterId());
             existingFlow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
-        
+
         // Update flow structures
-        if (request.getSourceFlowStructureId() != null) {
+        if(request.getSourceFlowStructureId() != null) {
             existingFlow.setSourceFlowStructureId(UUID.fromString(request.getSourceFlowStructureId()));
         }
-        if (request.getTargetFlowStructureId() != null) {
+        if(request.getTargetFlowStructureId() != null) {
             existingFlow.setTargetFlowStructureId(UUID.fromString(request.getTargetFlowStructureId()));
         }
-        
+
         // Note: IntegrationFlow entity doesn't have sourceStructureId/targetStructureId fields
         // Those would need to be added to the entity if required
-        
+
         // Update mapping mode
-        if (request.getMappingMode() != null) {
+        if(request.getMappingMode() != null) {
             existingFlow.setMappingMode(MappingMode.valueOf(request.getMappingMode()));
         }
-        
+
         existingFlow.setSkipXmlConversion(request.isSkipXmlConversion());
-        
+
         // Save the updated flow
         IntegrationFlow savedFlow = flowRepository.save(existingFlow);
-        
+
         // Delete existing transformations and mappings
         List<FlowTransformationDTO> existingTransformations = transformationService.getByFlowId(flowId);
-        for (FlowTransformationDTO transformation : existingTransformations) {
+        for(FlowTransformationDTO transformation : existingTransformations) {
             // Delete field mappings for this transformation
             List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(UUID.fromString(transformation.getId()));
-            for (FieldMapping mapping : mappings) {
+            for(FieldMapping mapping : mappings) {
                 fieldMappingRepository.delete(mapping);
             }
             // Delete the transformation
             transformationService.delete(transformation.getId());
         }
-        
+
         // Recreate transformations and mappings if mapping is required
-        if (existingFlow.getMappingMode() == MappingMode.WITH_MAPPING && request.getFieldMappings() != null) {
+        if(existingFlow.getMappingMode() == MappingMode.WITH_MAPPING && request.getFieldMappings() != null) {
             // Create request transformation
             FlowTransformationDTO requestTransformation = new FlowTransformationDTO();
             requestTransformation.setFlowId(savedFlow.getId().toString());
@@ -300,57 +300,57 @@ public class FlowCompositionService {
             requestTransformation.setType("FIELD_MAPPING");
             requestTransformation.setExecutionOrder(1);
             requestTransformation.setActive(true);
-            
+
             // Set WSDL operations
-            if (request.getSourceWsdlOperation() != null) {
+            if(request.getSourceWsdlOperation() != null) {
                 Map<String, Object> config = new HashMap<>();
                 config.put("sourceWsdlOperation", request.getSourceWsdlOperation());
                 config.put("targetWsdlOperation", request.getTargetWsdlOperation());
                 try {
                     requestTransformation.setConfiguration(objectMapper.writeValueAsString(config));
-                } catch (JsonProcessingException e) {
+                } catch(JsonProcessingException e) {
                     log.error("Error serializing configuration", e);
                 }
             }
-            
+
             FlowTransformationDTO savedRequestTransformation = transformationService.save(requestTransformation);
-            
+
             // Save field mappings for request
             int mappingOrder = 1;
-            for (FieldMappingDTO mapping : request.getFieldMappings()) {
+            for(FieldMappingDTO mapping : request.getFieldMappings()) {
                 mapping.setTransformationId(savedRequestTransformation.getId().toString());
                 mapping.setMappingOrder(mappingOrder++);
                 fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
             }
-            
-            // Handle additional mappings (e.g., response mappings for synchronous flows)
-            if (request.getAdditionalMappings() != null) {
+
+            // Handle additional mappings(e.g., response mappings for synchronous flows)
+            if(request.getAdditionalMappings() != null) {
                 int transformationOrder = 2;
-                for (AdditionalMapping additionalMapping : request.getAdditionalMappings()) {
+                for(AdditionalMapping additionalMapping : request.getAdditionalMappings()) {
                     FlowTransformationDTO transformation = new FlowTransformationDTO();
                     transformation.setFlowId(savedFlow.getId().toString());
                     transformation.setName(additionalMapping.getName());
                     transformation.setType("FIELD_MAPPING");
                     transformation.setExecutionOrder(transformationOrder++);
                     transformation.setActive(true);
-                    
+
                     // Set WSDL operations for additional mapping
-                    if (additionalMapping.getSourceWsdlOperation() != null) {
+                    if(additionalMapping.getSourceWsdlOperation() != null) {
                         Map<String, Object> config = new HashMap<>();
                         config.put("sourceWsdlOperation", additionalMapping.getSourceWsdlOperation());
                         config.put("targetWsdlOperation", additionalMapping.getTargetWsdlOperation());
                         try {
                             transformation.setConfiguration(objectMapper.writeValueAsString(config));
-                        } catch (JsonProcessingException e) {
+                        } catch(JsonProcessingException e) {
                             log.error("Error serializing configuration", e);
                         }
                     }
-                    
+
                     FlowTransformationDTO savedTransformation = transformationService.save(transformation);
-                    
+
                     // Save field mappings for this additional mapping
                     int fieldMappingOrder = 1;
-                    for (FieldMappingDTO mapping : additionalMapping.getFieldMappings()) {
+                    for(FieldMappingDTO mapping : additionalMapping.getFieldMappings()) {
                         mapping.setTransformationId(savedTransformation.getId().toString());
                         mapping.setMappingOrder(fieldMappingOrder++);
                         fieldMappingServiceAdapter.createMapping(mapping, request.getCreatedBy());
@@ -358,7 +358,7 @@ public class FlowCompositionService {
                 }
             }
         }
-        
+
         return savedFlow;
     }
 
@@ -367,117 +367,117 @@ public class FlowCompositionService {
      */
     public IntegrationFlow createOrchestrationFlow(OrchestrationFlowRequest request) {
         // Validate business components
-        for (String componentId : request.getBusinessComponentIds()) {
+        for(String componentId : request.getBusinessComponentIds()) {
             validateBusinessComponent(componentId);
         }
-        
+
         // Validate adapters
-        for (String adapterId : request.getAdapterIds()) {
+        for(String adapterId : request.getAdapterIds()) {
             validateAdapter(adapterId);
         }
-        
+
         // Create the integration flow
         IntegrationFlow flow = new IntegrationFlow();
         flow.setName(request.getFlowName());
         flow.setDescription(request.getDescription());
         // Convert String adapter IDs to UUID
-        if (request.getInboundAdapterId() != null) {
+        if(request.getInboundAdapterId() != null) {
             flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
         }
-        if (request.getOutboundAdapterId() != null) {
+        if(request.getOutboundAdapterId() != null) {
             flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
         }
         flow.setStatus(FlowStatus.DEVELOPED_INACTIVE);
         // Load user from createdBy string
-        if (request.getCreatedBy() != null) {
+        if(request.getCreatedBy() != null) {
             User createdByUser = userRepository.findById(UUID.fromString(request.getCreatedBy()))
                 .orElseThrow(() -> new RuntimeException("User not found: " + request.getCreatedBy()));
             flow.setCreatedBy(createdByUser);
         }
-        
+
         // Set flow type to orchestration
         flow.setFlowType(FlowType.ORCHESTRATION);
-        
+
         // Save the flow
         IntegrationFlow savedFlow = flowRepository.save(flow);
-        
+
         // Store orchestration steps in the proper table structure
-        if (request.getOrchestrationSteps() != null) {
+        if(request.getOrchestrationSteps() != null) {
             int order = 1;
-            for (OrchestrationStep step : request.getOrchestrationSteps()) {
+            for(OrchestrationStep step : request.getOrchestrationSteps()) {
                 // Create orchestration step entity
                 FlowOrchestrationStep orchestrationStep = FlowOrchestrationStep.builder()
                     .flow(savedFlow)
                     .stepType(step.getType())
                     .stepName(step.getType() + "_" + order)
                     .executionOrder(order++)
-                    .configuration(step.getConfiguration() instanceof Map ? 
-                        (Map<String, Object>) step.getConfiguration() : 
+                    .configuration(step.getConfiguration() instanceof Map ?
+                        (Map<String, Object>) step.getConfiguration() :
                         Map.of("data", step.getConfiguration()))
                     .isActive(true)
                     .build();
-                
+
                 // Extract specific fields based on configuration
-                if (step.getConfiguration() instanceof Map) {
+                if(step.getConfiguration() instanceof Map) {
                     Map<String, Object> config = (Map<String, Object>) step.getConfiguration();
-                    
+
                     // Extract common fields
                     orchestrationStep.setStepName((String) config.getOrDefault("name", orchestrationStep.getStepName()));
                     orchestrationStep.setDescription((String) config.get("description"));
                     orchestrationStep.setConditionExpression((String) config.get("condition"));
                     orchestrationStep.setIsConditional(config.containsKey("condition"));
-                    
+
                     // Extract routing specific fields
-                    if ("ROUTE".equalsIgnoreCase(step.getType())) {
+                    if("ROUTE".equalsIgnoreCase(step.getType())) {
                         String targetAdapterId = (String) config.get("targetAdapterId");
-                        if (targetAdapterId != null) {
+                        if(targetAdapterId != null) {
                             orchestrationStep.setTargetAdapterId(UUID.fromString(targetAdapterId));
                         }
                         String targetFlowStructureId = (String) config.get("targetFlowStructureId");
-                        if (targetFlowStructureId != null) {
+                        if(targetFlowStructureId != null) {
                             orchestrationStep.setTargetFlowStructureId(UUID.fromString(targetFlowStructureId));
                         }
                     }
-                    
+
                     // Extract transformation specific fields
-                    if ("TRANSFORM".equalsIgnoreCase(step.getType())) {
+                    if("TRANSFORM".equalsIgnoreCase(step.getType())) {
                         String transformationId = (String) config.get("transformationId");
-                        if (transformationId != null) {
+                        if(transformationId != null) {
                             orchestrationStep.setTransformationId(UUID.fromString(transformationId));
                         }
                     }
-                    
+
                     // Extract timeout and retry settings
-                    if (config.containsKey("timeout")) {
+                    if(config.containsKey("timeout")) {
                         orchestrationStep.setTimeoutSeconds(((Number) config.get("timeout")).intValue());
                     }
-                    if (config.containsKey("retryAttempts")) {
+                    if(config.containsKey("retryAttempts")) {
                         orchestrationStep.setRetryAttempts(((Number) config.get("retryAttempts")).intValue());
                     }
-                    if (config.containsKey("retryDelay")) {
+                    if(config.containsKey("retryDelay")) {
                         orchestrationStep.setRetryDelaySeconds(((Number) config.get("retryDelay")).intValue());
                     }
                 }
-                
+
                 orchestrationStepRepository.save(orchestrationStep);
-                
+
                 // Also create transformations for backward compatibility if needed
                 FlowTransformationDTO transformation = new FlowTransformationDTO();
                 transformation.setFlowId(savedFlow.getId().toString());
                 transformation.setType(step.getType());
                 try {
                     transformation.setConfiguration(objectMapper.writeValueAsString(step.getConfiguration()));
-                } catch (JsonProcessingException e) {
+                } catch(JsonProcessingException e) {
                     log.error("Error serializing orchestration step configuration", e);
-                    transformation.setConfiguration("{}");
+                    transformation.setConfiguration(" {}");
                 }
                 transformation.setExecutionOrder(orchestrationStep.getExecutionOrder());
                 transformation.setActive(true);
-                
+
                 transformationService.save(transformation);
             }
         }
-        
+
         return savedFlow;
     }
 
@@ -488,27 +488,27 @@ public class FlowCompositionService {
         return flowRepository.findById(UUID.fromString(flowId)).map(flow -> {
             flow.setName(request.getFlowName());
             flow.setDescription(request.getDescription());
-            
-            if (request.getInboundAdapterId() != null) {
+
+            if(request.getInboundAdapterId() != null) {
                 validateAdapter(request.getInboundAdapterId());
                 flow.setInboundAdapterId(UUID.fromString(request.getInboundAdapterId()));
             }
-            
-            if (request.getOutboundAdapterId() != null) {
+
+            if(request.getOutboundAdapterId() != null) {
                 validateAdapter(request.getOutboundAdapterId());
                 flow.setOutboundAdapterId(UUID.fromString(request.getOutboundAdapterId()));
             }
-            
+
             // Convert String structure IDs to UUID
-            if (request.getSourceFlowStructureId() != null) {
+            if(request.getSourceFlowStructureId() != null) {
                 flow.setSourceFlowStructureId(UUID.fromString(request.getSourceFlowStructureId()));
             }
-            if (request.getTargetFlowStructureId() != null) {
+            if(request.getTargetFlowStructureId() != null) {
                 flow.setTargetFlowStructureId(UUID.fromString(request.getTargetFlowStructureId()));
             }
             // Deprecated fields - no longer used
             // Source and target structures are now handled through flow structures
-            
+
             return flowRepository.save(flow);
         });
     }
@@ -520,17 +520,17 @@ public class FlowCompositionService {
         return flowRepository.findById(UUID.fromString(flowId)).map(flow -> {
             CompleteFlowComposition composition = new CompleteFlowComposition();
             composition.setFlow(flow);
-            
+
             // Business components are now stored directly in the flow
             // No need to parse JSON configuration anymore
-            
+
             // Get adapters
             composition.setInboundAdapter(adapterRepository.findById(flow.getInboundAdapterId()).orElse(null));
             composition.setOutboundAdapter(adapterRepository.findById(flow.getOutboundAdapterId()).orElse(null));
-            
+
             // Get transformations
             composition.setTransformations(transformationService.getByFlowId(flowId));
-            
+
             return composition;
         });
     }
@@ -540,30 +540,30 @@ public class FlowCompositionService {
      */
     public boolean deleteFlowComposition(String flowId) {
         return flowRepository.findById(UUID.fromString(flowId)).map(flow -> {
-            // Delete field mappings first (cascade should handle this, but being explicit)
+            // Delete field mappings first(cascade should handle this, but being explicit)
             List<FlowTransformation> transformations = transformationRepository.findByFlowId(flow.getId());
-            for (FlowTransformation transformation : transformations) {
+            for(FlowTransformation transformation : transformations) {
                 fieldMappingRepository.deleteByTransformationId(transformation.getId());
             }
-            
+
             // Delete transformations
             transformationRepository.deleteByFlowId(flow.getId());
-            
+
             // Delete the flow
             flowRepository.delete(flow);
-            
+
             return true;
         }).orElse(false);
     }
 
     private void validateBusinessComponent(String componentId) {
-        if (componentId != null && !businessComponentRepository.existsById(UUID.fromString(componentId))) {
+        if(componentId != null && !businessComponentRepository.existsById(UUID.fromString(componentId))) {
             throw new IllegalArgumentException("Business component not found: " + componentId);
         }
     }
 
     private void validateAdapter(String adapterId) {
-        if (adapterId != null && !adapterRepository.existsById(UUID.fromString(adapterId))) {
+        if(adapterId != null && !adapterRepository.existsById(UUID.fromString(adapterId))) {
             throw new IllegalArgumentException("Communication adapter not found: " + adapterId);
         }
     }
@@ -739,13 +739,13 @@ public class FlowCompositionService {
         public int getOrder() { return order; }
         public void setOrder(int order) { this.order = order; }
     }
-    
+
     public static class AdditionalMapping {
         private String name;
         private List<FieldMappingDTO> fieldMappings;
         private String sourceWsdlOperation; // Selected WSDL operation for source
         private String targetWsdlOperation; // Selected WSDL operation for target
-        
+
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
         public List<FieldMappingDTO> getFieldMappings() { return fieldMappings; }

@@ -36,40 +36,40 @@ public class ValidationTransformationService {
             List<String> rules = config.getValidationRules();
             List<String> messages = config.getErrorMessages();
 
-            if (rules == null || rules.isEmpty()) {
+            if(rules == null || rules.isEmpty()) {
                 return inputJson; // No rules to validate
             }
 
-            for (int i = 0; i < rules.size(); i++) {
+            for(int i = 0; i < rules.size(); i++) {
                 String rule = rules.get(i);
                 String errorMessage = (messages != null && i < messages.size()) ? messages.get(i) : "Validation failed";
 
                 // Run the JS validation rule; it should return boolean
                 Object result = JavaFunctionRunner.run(rule, List.of("record"), Map.of("record", record));
                 boolean valid;
-                if (result instanceof Boolean) {
+                if(result instanceof Boolean) {
                     valid = (Boolean) result;
-                } else if (result instanceof String) {
+                } else if(result instanceof String) {
                     valid = Boolean.parseBoolean((String) result);
                 } else {
                     valid = false; // Unexpected type means invalid
                 }
 
-                if (!valid) {
+                if(!valid) {
                     errors.add(errorMessage);
-                    if (config.isFailFast()) {
+                    if(config.isFailFast()) {
                         break;
                     }
                 }
             }
 
-            if (!errors.isEmpty()) {
+            if(!errors.isEmpty()) {
                 throw new RuntimeException("Validation failed: " + String.join("; ", errors));
             }
 
             return inputJson;
 
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new RuntimeException("Failed to apply validation transformation", e);
         }
     }

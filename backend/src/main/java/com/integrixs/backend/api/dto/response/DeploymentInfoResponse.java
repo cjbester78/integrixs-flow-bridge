@@ -16,7 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeploymentInfoResponse {
-    
+
     private String flowId;
     private String endpoint;
     private LocalDateTime deployedAt;

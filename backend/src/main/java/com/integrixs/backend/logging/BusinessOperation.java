@@ -11,27 +11,27 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BusinessOperation {
-    
+
     /**
      * The type of business operation being performed
      */
     String value();
-    
+
     /**
      * Module or component performing the operation
      */
     String module() default "";
-    
+
     /**
      * Whether to log input parameters
      */
     boolean logInput() default true;
-    
+
     /**
      * Whether to log output/result
      */
     boolean logOutput() default true;
-    
+
     /**
      * Whether to include performance metrics
      */

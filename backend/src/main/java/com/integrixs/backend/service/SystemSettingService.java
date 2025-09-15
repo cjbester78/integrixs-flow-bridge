@@ -54,7 +54,7 @@ public class SystemSettingService {
     }
 
     /**
-     * Get setting value by key (returns null if not found)
+     * Get setting value by key(returns null if not found)
      */
     public String getSettingValue(String settingKey) {
         return systemSettingRepository.findBySettingKey(settingKey)
@@ -75,13 +75,13 @@ public class SystemSettingService {
      */
     public SystemSettingDTO saveSetting(SystemSettingDTO dto) {
         logger.info("Saving system setting: {}", dto.getSettingKey());
-        
+
         SystemSetting setting;
         Optional<SystemSetting> existing = systemSettingRepository.findBySettingKey(dto.getSettingKey());
-        
-        if (existing.isPresent()) {
+
+        if(existing.isPresent()) {
             setting = existing.get();
-            if (setting.isReadonly()) {
+            if(setting.isReadonly()) {
                 throw new IllegalArgumentException("Cannot modify readonly setting: " + dto.getSettingKey());
             }
             setting.setSettingValue(dto.getSettingValue());
@@ -93,7 +93,7 @@ public class SystemSettingService {
         } else {
             setting = fromDTO(dto);
         }
-        
+
         SystemSetting saved = systemSettingRepository.save(setting);
         logger.info("Successfully saved system setting: {}", saved.getSettingKey());
         return toDTO(saved);
@@ -104,10 +104,10 @@ public class SystemSettingService {
      */
     public void deleteSetting(String settingKey) {
         logger.info("Deleting system setting: {}", settingKey);
-        
+
         Optional<SystemSetting> setting = systemSettingRepository.findBySettingKey(settingKey);
-        if (setting.isPresent()) {
-            if (setting.get().isReadonly()) {
+        if(setting.isPresent()) {
+            if(setting.get().isReadonly()) {
                 throw new IllegalArgumentException("Cannot delete readonly setting: " + settingKey);
             }
             systemSettingRepository.delete(setting.get());
@@ -133,19 +133,19 @@ public class SystemSettingService {
      */
     public void initializeDefaultSettings() {
         logger.info("Initializing default system settings");
-        
-        createSettingIfNotExists("base_domain", "http://localhost:8080", 
+
+        createSettingIfNotExists("base_domain", "http://localhost:8080",
                 "Base domain URL for generating endpoint URLs", "integration");
-        
-        createSettingIfNotExists("default_timeout", "30", 
+
+        createSettingIfNotExists("default_timeout", "30",
                 "Default timeout in seconds for adapter connections", "integration");
-        
-        createSettingIfNotExists("log_level", "INFO", 
-                "Application log level (DEBUG, INFO, WARN, ERROR)", "system");
-        
-        createSettingIfNotExists("enable_ssl", "false", 
+
+        createSettingIfNotExists("log_level", "INFO",
+                "Application log level(DEBUG, INFO, WARN, ERROR)", "system");
+
+        createSettingIfNotExists("enable_ssl", "false",
                 "Enable SSL/TLS for secure connections", "security");
-        
+
         logger.info("Default system settings initialization completed");
     }
 
@@ -153,7 +153,7 @@ public class SystemSettingService {
      * Create a setting if it doesn't already exist
      */
     private void createSettingIfNotExists(String key, String value, String description, String category) {
-        if (!systemSettingRepository.existsBySettingKey(key)) {
+        if(!systemSettingRepository.existsBySettingKey(key)) {
             SystemSetting setting = new SystemSetting(key, value, description, category);
             systemSettingRepository.save(setting);
             logger.debug("Created default setting: {} = {}", key, value);
@@ -202,25 +202,25 @@ public class SystemSettingService {
      */
     public GlobalRetrySettingsDTO getGlobalRetrySettings() {
         logger.debug("Retrieving global retry settings");
-        
+
         GlobalRetrySettingsDTO settings = new GlobalRetrySettingsDTO();
-        
+
         // Get retry enabled setting
         String retryEnabled = getSettingValue("global_retry_enabled", "true");
         settings.setEnabled(Boolean.parseBoolean(retryEnabled));
-        
+
         // Get max retries
         String maxRetries = getSettingValue("global_max_retries", "3");
         settings.setMaxRetries(Integer.parseInt(maxRetries));
-        
+
         // Get retry interval
         String retryInterval = getSettingValue("global_retry_interval", "30");
         settings.setRetryInterval(Integer.parseInt(retryInterval));
-        
+
         // Get retry interval unit
         String retryIntervalUnit = getSettingValue("global_retry_interval_unit", "seconds");
         settings.setRetryIntervalUnit(retryIntervalUnit);
-        
+
         return settings;
     }
 
@@ -229,28 +229,28 @@ public class SystemSettingService {
      */
     public GlobalRetrySettingsDTO updateGlobalRetrySettings(GlobalRetrySettingsDTO dto) {
         logger.info("Updating global retry settings");
-        
+
         // Save each setting
-        saveSetting(createSettingDTO("global_retry_enabled", 
-            String.valueOf(dto.isEnabled()), 
-            "Enable/disable automatic retries globally", 
+        saveSetting(createSettingDTO("global_retry_enabled",
+            String.valueOf(dto.isEnabled()),
+            "Enable/disable automatic retries globally",
             "retry"));
-            
-        saveSetting(createSettingDTO("global_max_retries", 
-            String.valueOf(dto.getMaxRetries()), 
-            "Maximum number of retry attempts", 
+
+        saveSetting(createSettingDTO("global_max_retries",
+            String.valueOf(dto.getMaxRetries()),
+            "Maximum number of retry attempts",
             "retry"));
-            
-        saveSetting(createSettingDTO("global_retry_interval", 
-            String.valueOf(dto.getRetryInterval()), 
-            "Interval between retry attempts", 
+
+        saveSetting(createSettingDTO("global_retry_interval",
+            String.valueOf(dto.getRetryInterval()),
+            "Interval between retry attempts",
             "retry"));
-            
-        saveSetting(createSettingDTO("global_retry_interval_unit", 
-            dto.getRetryIntervalUnit(), 
-            "Unit for retry interval (seconds, minutes, hours)", 
+
+        saveSetting(createSettingDTO("global_retry_interval_unit",
+            dto.getRetryIntervalUnit(),
+            "Unit for retry interval(seconds, minutes, hours)",
             "retry"));
-        
+
         logger.info("Successfully updated global retry settings");
         return getGlobalRetrySettings();
     }

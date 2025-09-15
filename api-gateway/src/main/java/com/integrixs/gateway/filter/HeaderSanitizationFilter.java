@@ -26,13 +26,13 @@ public class HeaderSanitizationFilter implements GlobalFilter, Ordered {
         "x-auth-tenant",
         "x-internal-request",
         "x-forwarded-prefix"
-    ));
+   ));
     
     private static final Set<String> HEADERS_TO_SANITIZE = new HashSet<>(Arrays.asList(
         "user-agent",
         "referer",
         "x-forwarded-for"
-    ));
+   ));
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

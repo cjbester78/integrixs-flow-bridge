@@ -11,47 +11,47 @@ import java.util.Optional;
  * Repository interface for request history
  */
 public interface RequestHistoryRepository {
-    
+
     /**
      * Save request
      * @param request Request to save
      */
     void saveRequest(OutboundRequest request);
-    
+
     /**
      * Save response
      * @param response Response to save
      */
     void saveResponse(OutboundResponse response);
-    
+
     /**
      * Find request by ID
      * @param requestId Request ID
      * @return Request if found
      */
     Optional<OutboundRequest> findRequestById(String requestId);
-    
+
     /**
      * Find response by request ID
      * @param requestId Request ID
      * @return Response if found
      */
     Optional<OutboundResponse> findResponseByRequestId(String requestId);
-    
+
     /**
      * Find requests by flow ID
      * @param flowId Flow ID
      * @return List of requests
      */
     List<OutboundRequest> findRequestsByFlowId(String flowId);
-    
+
     /**
      * Find requests by adapter ID
      * @param adapterId Adapter ID
      * @return List of requests
      */
     List<OutboundRequest> findRequestsByAdapterId(String adapterId);
-    
+
     /**
      * Find requests by date range
      * @param start Start date
@@ -59,7 +59,7 @@ public interface RequestHistoryRepository {
      * @return List of requests
      */
     List<OutboundRequest> findRequestsByDateRange(LocalDateTime start, LocalDateTime end);
-    
+
     /**
      * Find failed requests
      * @param start Start date
@@ -67,7 +67,7 @@ public interface RequestHistoryRepository {
      * @return List of failed requests
      */
     List<OutboundRequest> findFailedRequests(LocalDateTime start, LocalDateTime end);
-    
+
     /**
      * Get request statistics
      * @param endpointId Endpoint ID
@@ -76,14 +76,14 @@ public interface RequestHistoryRepository {
      * @return Request statistics
      */
     RequestStatistics getRequestStatistics(String endpointId, LocalDateTime start, LocalDateTime end);
-    
+
     /**
      * Clean up old history
      * @param before Delete records before this date
      * @return Number of deleted records
      */
     int cleanupOldHistory(LocalDateTime before);
-    
+
     /**
      * Request statistics
      */
