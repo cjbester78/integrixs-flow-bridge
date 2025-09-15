@@ -14,6 +14,7 @@ import com.integrixs.shared.exceptions.AdapterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -155,10 +156,20 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
 
     @Override
     public void initialize() {
-        super.initialize();
+        try {
+            super.initialize();
+        } catch (AdapterException e) {
+            log.error("Failed to initialize MicrosoftTeamsInboundAdapter", e);
+            throw new RuntimeException("Failed to initialize adapter", e);
+        }
 
         // Get initial access token
-        refreshAccessToken();
+        try {
+            refreshAccessToken();
+        } catch (AdapterException e) {
+            log.error("Failed to refresh access token during initialization", e);
+            throw new RuntimeException("Failed to refresh access token", e);
+        }
 
         // Setup webhook subscriptions if enabled
         if(config.getFeatures().isEnableWebhooks()) {
@@ -176,7 +187,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
     }
 
     // OAuth2 token management
-    private void refreshAccessToken() {
+    private void refreshAccessToken() throws AdapterException {
         try {
             synchronized(tokenLock) {
                 log.info("Refreshing Microsoft Teams access token");
@@ -207,14 +218,19 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
             }
         } catch(Exception e) {
             log.error("Error refreshing access token", e);
-            throw new AdapterException("Failed to refresh Microsoft Teams access token", e);
+            throw new AdapterException("Failed to refresh Microsoft Teams access token: " + e.getMessage());
         }
     }
 
     private void checkAndRefreshToken() {
         synchronized(tokenLock) {
             if(accessToken == null || System.currentTimeMillis() >(tokenExpiry - TOKEN_REFRESH_BUFFER)) {
-                refreshAccessToken();
+                try {
+                    refreshAccessToken();
+                } catch (AdapterException e) {
+                    log.error("Failed to refresh access token", e);
+                    // Don't rethrow to avoid breaking scheduled tasks
+                }
             }
         }
     }
@@ -727,11 +743,11 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
     }
 
     // Microsoft Graph API request helper
-    private JsonNode makeGraphApiRequest(String path, HttpMethod method, Object body) {
+    private JsonNode makeGraphApiRequest(String path, HttpMethod method, Object body) throws AdapterException {
         return makeGraphApiRequestUrl(config.getGraphApiUrl() + path, method, body);
     }
 
-    private JsonNode makeGraphApiRequestUrl(String url, HttpMethod method, Object body) {
+    private JsonNode makeGraphApiRequestUrl(String url, HttpMethod method, Object body) throws AdapterException {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(getValidAccessToken());
@@ -745,6 +761,9 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
            );
 
             return objectMapper.readTree(response.getBody());
+        } catch(JsonProcessingException e) {
+            log.error("Error parsing JSON response", e);
+            throw new AdapterException("Failed to parse API response: " + e.getMessage());
         } catch(HttpClientErrorException e) {
             log.error("Graph API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
 
@@ -755,7 +774,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
                 }
             }
 
-            throw new AdapterException("Graph API request failed", e);
+            throw new AdapterException("Graph API request failed: " + e.getMessage());
         }
     }
 
@@ -768,7 +787,12 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
 
     @Override
     public void destroy() {
-        super.destroy();
+        try {
+            super.destroy();
+        } catch (AdapterException e) {
+            log.error("Failed to destroy MicrosoftTeamsInboundAdapter", e);
+            // Don't rethrow as destroy should not fail
+        }
 
         // Cancel all subscriptions
         for(String subscriptionId : activeSubscriptions.keySet()) {

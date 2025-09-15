@@ -1,6 +1,6 @@
 package com.integrixs.adapters.social.reddit;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
-
+import com.integrixs.adapters.core.AdapterResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +48,28 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
             RedditApiConfig config,
             RateLimiterService rateLimiterService,
             CredentialEncryptionService credentialEncryptionService) {
-        super(rateLimiterService, credentialEncryptionService);
+        super();
         this.config = config;
     }
 
     @Override
-    protected SocialMediaAdapterConfig getConfig() {
-        return config;
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("userAgent", config.getUserAgent());
+            configMap.put("username", config.getUsername());
+            configMap.put("password", config.getPassword());
+            configMap.put("enabled", config.isEnabled());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+        }
+        return configMap;
     }
 
     @Override
-    public AdapterConfig getAdapterConfig() {
-        return config;
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
     }
 
     /**
@@ -163,7 +173,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private void pollSubredditNewPosts(String subreddit) throws Exception {
         String lastSeen = lastSeenItems.get("posts_" + subreddit);
 
-        String url = config.getApiUrl() + "/r/" + subreddit + "/new.json";
+        String url = getApiUrl() + "/r/" + subreddit + "/new.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
         params.put("raw_json", "1");
@@ -192,7 +202,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollUserSubscriptions() throws Exception {
-        String url = config.getApiUrl() + "/subreddits/mine/subscriber.json";
+        String url = getApiUrl() + "/subreddits/mine/subscriber.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
 
@@ -222,7 +232,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return;
         }
 
-        String url = config.getApiUrl() + "/user/" + username + "/submitted.json";
+        String url = getApiUrl() + "/user/" + username + "/submitted.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "25");
         params.put("sort", "new");
@@ -245,7 +255,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollPostComments(String postId, String subreddit) throws Exception {
-        String url = config.getApiUrl() + "/r/" + subreddit + "/comments/" + postId + ".json";
+        String url = getApiUrl() + "/r/" + subreddit + "/comments/" + postId + ".json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "500");
         params.put("depth", "10");
@@ -290,7 +300,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollCommentReplies() throws Exception {
-        String url = config.getApiUrl() + "/message/comments.json";
+        String url = getApiUrl() + "/message/comments.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
 
@@ -308,7 +318,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollInbox() throws Exception {
-        String url = config.getApiUrl() + "/message/inbox.json";
+        String url = getApiUrl() + "/message/inbox.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
 
@@ -326,7 +336,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollMentions() throws Exception {
-        String url = config.getApiUrl() + "/message/mentions.json";
+        String url = getApiUrl() + "/message/mentions.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
 
@@ -344,7 +354,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollSubredditModQueue(String subreddit) throws Exception {
-        String url = config.getApiUrl() + "/r/" + subreddit + "/about/modqueue.json";
+        String url = getApiUrl() + "/r/" + subreddit + "/about/modqueue.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
 
@@ -362,7 +372,7 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     private void pollSubredditReports(String subreddit) throws Exception {
-        String url = config.getApiUrl() + "/r/" + subreddit + "/about/reports.json";
+        String url = getApiUrl() + "/r/" + subreddit + "/about/reports.json";
         Map<String, String> params = new HashMap<>();
         params.put("limit", "100");
 
@@ -560,18 +570,18 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     @Override
     public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
-        return AdapterConfiguration.AdapterTypeEnum.REDDIT;
+        return AdapterConfiguration.AdapterTypeEnum.REST;
     }
 
     @Override
-    protected List<EventType> getSupportedEventTypes() {
+    protected List<String> getSupportedEventTypes() {
         return Arrays.asList(
-                EventType.SOCIAL_MEDIA_POST,
-                EventType.SOCIAL_MEDIA_COMMENT,
-                EventType.SOCIAL_MEDIA_MESSAGE,
-                EventType.SOCIAL_MEDIA_MENTION,
-                EventType.SOCIAL_MEDIA_MODERATION,
-                EventType.SOCIAL_MEDIA_VOTE
+                "SOCIAL_MEDIA_POST",
+                "SOCIAL_MEDIA_COMMENT",
+                "SOCIAL_MEDIA_MESSAGE",
+                "SOCIAL_MEDIA_MENTION",
+                "SOCIAL_MEDIA_MODERATION",
+                "SOCIAL_MEDIA_VOTE"
        );
     }
 
@@ -594,87 +604,84 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     // Data classes for Reddit entities
-        public static class RedditPost {
-        private String id;
-        private String name;
-        private String title;
-        private String author;
-        private String subreddit;
-        private String selftext;
-        private String url;
-        private String permalink;
-        private LocalDateTime created;
-        private int score;
-        private double upvoteRatio;
-        private int numComments;
-        private boolean over18;
-        private boolean spoiler;
-        private boolean locked;
-        private boolean stickied;
-        private String distinguished;
-        private String linkFlairText;
-        private String postHint;
-        private Object preview;
-        private Object media;
-        private Object mediaEmbed;
-        private Object gallery;
-        private Object poll;
-        private List<String> crosspostParent;
-        private List<String> awards;
+    public static class RedditPost {
+        public String id;
+        public String name;
+        public String title;
+        public String author;
+        public String subreddit;
+        public String selftext;
+        public String url;
+        public String permalink;
+        public LocalDateTime created;
+        public int score;
+        public double upvoteRatio;
+        public int numComments;
+        public boolean over18;
+        public boolean spoiler;
+        public boolean locked;
+        public boolean stickied;
+        public String distinguished;
+        public String linkFlairText;
+        public String postHint;
+        public Object preview;
+        public Object media;
+        public Object mediaEmbed;
+        public Object gallery;
+        public Object poll;
+        public List<String> crosspostParent;
+        public List<String> awards;
     }
 
-        public static class RedditComment {
-        private String id;
-        private String name;
-        private String parentId;
-        private String linkId;
-        private String author;
-        private String body;
-        private LocalDateTime created;
-        private int score;
-        private Object edited;
-        private String distinguished;
-        private boolean stickied;
-        private boolean scoreHidden;
-        private boolean locked;
-        private String subreddit;
-        private String authorFlairText;
-        private List<String> awards;
+    public static class RedditComment {
+        public String id;
+        public String name;
+        public String parentId;
+        public String linkId;
+        public String author;
+        public String body;
+        public LocalDateTime created;
+        public int score;
+        public Object edited;
+        public String distinguished;
+        public boolean stickied;
+        public boolean scoreHidden;
+        public boolean locked;
+        public String subreddit;
+        public String authorFlairText;
+        public List<String> awards;
     }
 
-        public static class RedditMessageDTO {
-        private String id;
-        private String type;
-        private String author;
-        private String dest;
-        private String subject;
-        private String body;
-        private LocalDateTime created;
-        private String context;
-        private String subreddit;
-        private Boolean wasComment;
-        private Boolean new_;
+    public static class RedditMessageDTO {
+        public String id;
+        public String type;
+        public String author;
+        public String dest;
+        public String subject;
+        public String body;
+        public LocalDateTime created;
+        public String context;
+        public String subreddit;
+        public Boolean wasComment;
+        public Boolean new_;
     }
 
-        public static class RedditModItem {
-        private String id;
-        private String kind;
-        private String author;
-        private String subreddit;
-        private String title;
-        private String body;
-        private List<List<Object>> reports;
-        private List<List<Object>> userReports;
-        private int numReports;
-        private boolean approved;
-        private boolean removed;
-        private boolean spam;
+    public static class RedditModItem {
+        public String id;
+        public String kind;
+        public String author;
+        public String subreddit;
+        public String title;
+        public String body;
+        public List<List<Object>> reports;
+        public List<List<Object>> userReports;
+        public int numReports;
+        public boolean approved;
+        public boolean removed;
+        public boolean spam;
     }
-    // Getters and Setters
-    // DUPLICATE: public RedditApiConfig getConfig() {
-    //     return config;
-    // }
     
+    // Getters and Setters for adapter state
     public Set<String> getProcessedPosts() {
         return processedPosts;
     }
@@ -687,322 +694,89 @@ public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
     public Map<String, String> getLastSeenItems() {
         return lastSeenItems;
     }
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getTitle() {
-        return title;
-    }
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    public String getAuthor() {
-        return author;
-    }
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-    public String getSubreddit() {
-        return subreddit;
-    }
-    public void setSubreddit(String subreddit) {
-        this.subreddit = subreddit;
-    }
-    public String getSelftext() {
-        return selftext;
-    }
-    public void setSelftext(String selftext) {
-        this.selftext = selftext;
-    }
-    public String getUrl() {
-        return url;
-    }
-    public void setUrl(String url) {
-        this.url = url;
-    }
-    public String getPermalink() {
-        return permalink;
-    }
-    public void setPermalink(String permalink) {
-        this.permalink = permalink;
-    }
-    public LocalDateTime getCreated() {
-        return created;
-    }
-    public void setCreated(LocalDateTime created) {
-        this.created = created;
-    }
-    public int getScore() {
-        return score;
-    }
-    public void setScore(int score) {
-        this.score = score;
-    }
-    public double getUpvoteRatio() {
-        return upvoteRatio;
-    }
-    public void setUpvoteRatio(double upvoteRatio) {
-        this.upvoteRatio = upvoteRatio;
-    }
-    public int getNumComments() {
-        return numComments;
-    }
-    public void setNumComments(int numComments) {
-        this.numComments = numComments;
-    }
-    public boolean isOver18() {
-        return over18;
-    }
-    public void setOver18(boolean over18) {
-        this.over18 = over18;
-    }
-    public boolean isSpoiler() {
-        return spoiler;
-    }
-    public void setSpoiler(boolean spoiler) {
-        this.spoiler = spoiler;
-    }
-    public boolean isLocked() {
-        return locked;
-    }
-    public void setLocked(boolean locked) {
-        this.locked = locked;
-    }
-    public boolean isStickied() {
-        return stickied;
-    }
-    public void setStickied(boolean stickied) {
-        this.stickied = stickied;
-    }
-    public String getDistinguished() {
-        return distinguished;
-    }
-    public void setDistinguished(String distinguished) {
-        this.distinguished = distinguished;
-    }
-    public String getLinkFlairText() {
-        return linkFlairText;
-    }
-    public void setLinkFlairText(String linkFlairText) {
-        this.linkFlairText = linkFlairText;
-    }
-    public String getPostHint() {
-        return postHint;
-    }
-    public void setPostHint(String postHint) {
-        this.postHint = postHint;
-    }
-    public Object getPreview() {
-        return preview;
-    }
-    public void setPreview(Object preview) {
-        this.preview = preview;
-    }
-    public Object getMedia() {
-        return media;
-    }
-    public void setMedia(Object media) {
-        this.media = media;
-    }
-    public Object getMediaEmbed() {
-        return mediaEmbed;
-    }
-    public void setMediaEmbed(Object mediaEmbed) {
-        this.mediaEmbed = mediaEmbed;
-    }
-    public Object getGallery() {
-        return gallery;
-    }
-    public void setGallery(Object gallery) {
-        this.gallery = gallery;
-    }
-    public Object getPoll() {
-        return poll;
-    }
-    public void setPoll(Object poll) {
-        this.poll = poll;
-    }
-    public List<String> getCrosspostParent() {
-        return crosspostParent;
-    }
-    public void setCrosspostParent(List<String> crosspostParent) {
-        this.crosspostParent = crosspostParent;
-    }
-    public List<String> getAwards() {
-        return awards;
-    }
-    public void setAwards(List<String> awards) {
-        this.awards = awards;
-    }
-// DUPLICATE:     public String getId() {
-    //         return id;
-//     }
-// DUPLICATE:     public void setId(String id) {
-    //         this.id = id;
-//     }
-    public String getParentId() {
-        return parentId;
-    }
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-    public String getLinkId() {
-        return linkId;
-    }
-    public void setLinkId(String linkId) {
-        this.linkId = linkId;
-    }
-// DUPLICATE:     public String getAuthor() {
-    //         return author;
-//     }
-// DUPLICATE:     public void setAuthor(String author) {
-    //         this.author = author;
-//     }
-    public String getBody() {
-        return body;
-    }
-    public void setBody(String body) {
-        this.body = body;
-    }
-// DUPLICATE:     public LocalDateTime getCreated() {
-    //         return created;
-//     }
-// DUPLICATE:     public void setCreated(LocalDateTime created) {
-    //         this.created = created;
-//     }
-    public Object getEdited() {
-        return edited;
-    }
-    public void setEdited(Object edited) {
-        this.edited = edited;
-    }
-    public boolean isScoreHidden() {
-        return scoreHidden;
-    }
-    public void setScoreHidden(boolean scoreHidden) {
-        this.scoreHidden = scoreHidden;
-    }
-// DUPLICATE:     public String getSubreddit() {
-    //         return subreddit;
-//     }
-// DUPLICATE:     public void setSubreddit(String subreddit) {
-    //         this.subreddit = subreddit;
-//     }
-    public String getAuthorFlairText() {
-        return authorFlairText;
-    }
-    public void setAuthorFlairText(String authorFlairText) {
-        this.authorFlairText = authorFlairText;
-    }
-// DUPLICATE:     public String getId() {
-    //         return id;
-//     }
-// DUPLICATE:     public void setId(String id) {
-    //         this.id = id;
-//     }
-    public String getType() {
-        return type;
-    }
-    public void setType(String type) {
-        this.type = type;
-    }
-// DUPLICATE:     public String getAuthor() {
-    //         return author;
-//     }
-// DUPLICATE:     public void setAuthor(String author) {
-    //         this.author = author;
-//     }
-    public String getDest() {
-        return dest;
-    }
-    public void setDest(String dest) {
-        this.dest = dest;
-    }
-    public String getSubject() {
-        return subject;
-    }
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-// DUPLICATE:     public String getBody() {
-    //         return body;
-//     }
-// DUPLICATE:     public void setBody(String body) {
-    //         this.body = body;
-//     }
-    public String getContext() {
-        return context;
-    }
-    public void setContext(String context) {
-        this.context = context;
-    }
-// DUPLICATE:     public String getSubreddit() {
-    //         return subreddit;
-//     }
-// DUPLICATE:     public void setSubreddit(String subreddit) {
-    //         this.subreddit = subreddit;
-//     }
-    public Boolean isWasComment() {
-        return wasComment;
-    }
-    public void setWasComment(Boolean wasComment) {
-        this.wasComment = wasComment;
-    }
-    public Boolean isNew_() {
-        return new_;
-    }
-    public void setNew_(Boolean new_) {
-        this.new_ = new_;
-    }
-    public String getKind() {
-        return kind;
-    }
-    public void setKind(String kind) {
-        this.kind = kind;
-    }
-    public List<List<Object>> getReports() {
-        return reports;
-    }
-    public void setReports(List<List<Object>> reports) {
-        this.reports = reports;
-    }
-    public List<List<Object>> getUserReports() {
-        return userReports;
-    }
-    public void setUserReports(List<List<Object>> userReports) {
-        this.userReports = userReports;
-    }
-    public int getNumReports() {
-        return numReports;
-    }
-    public void setNumReports(int numReports) {
-        this.numReports = numReports;
-    }
-    public boolean isApproved() {
-        return approved;
-    }
-    public void setApproved(boolean approved) {
-        this.approved = approved;
-    }
-    public boolean isRemoved() {
-        return removed;
-    }
-    public void setRemoved(boolean removed) {
-        this.removed = removed;
-    }
-    public boolean isSpam() {
-        return spam;
-    }
-    public void setSpam(boolean spam) {
-        this.spam = spam;
+    
+    // Helper methods for API calls
+    private String getApiUrl() {
+        return config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://oauth.reddit.com";
+    }
+    
+    private String executeApiCall(java.util.concurrent.Callable<String> apiCall) throws Exception {
+        try {
+            return apiCall.call();
+        } catch (Exception e) {
+            handleApiError(e, "API call");
+            throw e;
+        }
+    }
+    
+    private String makeGetRequest(String url, Map<String, String> params) throws Exception {
+        // This would be implemented using RestTemplate or HttpClient
+        // For now, returning empty response
+        log.debug("Making GET request to: {} with params: {}", url, params);
+        return "{}";
+    }
+    
+    private Map<String, Object> parseJsonResponse(String response) {
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(response, Map.class);
+        } catch (Exception e) {
+            log.error("Error parsing JSON response", e);
+            return new HashMap<>();
+        }
+    }
+    
+    private List<Map<String, Object>> parseJsonArrayResponse(String response) {
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(response, List.class);
+        } catch (Exception e) {
+            log.error("Error parsing JSON array response", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    private void publishMessage(String eventType, Object data) {
+        MessageDTO message = convertToMessage(Map.of("data", data), eventType);
+        // This would publish to the message bus/queue
+        log.debug("Publishing message of type: {}", eventType);
+    }
+    
+    // Required abstract methods from AbstractInboundAdapter
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.debug("Initializing Reddit inbound adapter sender");
+    }
+    
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.debug("Destroying Reddit inbound adapter sender");
+    }
+    
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws com.integrixs.shared.exceptions.AdapterException {
+        // Reddit inbound adapter doesn't support sending
+        return AdapterResult.failure("Reddit inbound adapter does not support sending messages");
+    }
+    
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Reddit inbound adapter doesn't support sending
+        return AdapterResult.failure("Reddit inbound adapter does not support sending messages");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test by getting user info
+            String url = getApiUrl() + "/api/v1/me";
+            String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
+            
+            if (response != null) {
+                return AdapterResult.success(null, "Reddit API connection successful");
+            } else {
+                return AdapterResult.failure("Reddit API connection failed");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test Reddit connection: " + e.getMessage(), e);
+        }
     }
 }

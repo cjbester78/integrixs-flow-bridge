@@ -19,6 +19,20 @@ public class FacebookInsights {
                     public static class InsightValue {
         private Object value;
         private String endTime;
+        
+        // Getters and Setters
+        public Object getValue() {
+            return value;
+        }
+        public void setValue(Object value) {
+            this.value = value;
+        }
+        public String getEndTime() {
+            return endTime;
+        }
+        public void setEndTime(String endTime) {
+            this.endTime = endTime;
+        }
     }
     // Getters and Setters
     public String getName() {
@@ -51,18 +65,6 @@ public class FacebookInsights {
     public void setDescription(String description) {
         this.description = description;
     }
-    public Object getValue() {
-        return value;
-    }
-    public void setValue(Object value) {
-        this.value = value;
-    }
-    public String getEndTime() {
-        return endTime;
-    }
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
     // Builder pattern
     public static Builder builder() {
         return new Builder();
@@ -74,8 +76,6 @@ public class FacebookInsights {
         private List<InsightValue> values;
         private String title;
         private String description;
-        private Object value;
-        private String endTime;
 
         public Builder name(String name) {
             this.name = name;
@@ -102,15 +102,6 @@ public class FacebookInsights {
             return this;
         }
 
-        public Builder value(Object value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder endTime(String endTime) {
-            this.endTime = endTime;
-            return this;
-        }
 
         public FacebookInsights build() {
             FacebookInsights obj = new FacebookInsights();
@@ -119,8 +110,6 @@ public class FacebookInsights {
             obj.values = this.values;
             obj.title = this.title;
             obj.description = this.description;
-            obj.value = this.value;
-            obj.endTime = this.endTime;
             return obj;
         }
     }

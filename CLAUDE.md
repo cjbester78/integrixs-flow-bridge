@@ -10,6 +10,9 @@ Integrix Flow Bridge is an enterprise integration platform built with:
 - **Architecture**: Multi-module Maven project with microservices
 
 
+**CRITICAL**: Do stop untill all errors are fixed in the class.
+
+
 This prevents misunderstandings, wasted work, and ensures alignment between user expectations and implementation.
 
 ## Standard Workflow

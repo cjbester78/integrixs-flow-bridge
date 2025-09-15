@@ -207,214 +207,25 @@ public class LinkedInApiConfig extends SocialMediaAdapterConfig {
     public void setFeatures(LinkedInFeatures features) {
         this.features = features;
     }
+    @Override
+    public String getPlatformName() {
+        return "linkedin";
+    }
+
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://www.linkedin.com/oauth/v2/authorization";
+    }
+
+    @Override
+    public String getTokenUrl() {
+        return "https://www.linkedin.com/oauth/v2/accessToken";
+    }
+
     public LinkedInLimits getLimits() {
         return limits;
     }
     public void setLimits(LinkedInLimits limits) {
         this.limits = limits;
-    }
-    public boolean isEnableProfileAccess() {
-        return enableProfileAccess;
-    }
-    public void setEnableProfileAccess(boolean enableProfileAccess) {
-        this.enableProfileAccess = enableProfileAccess;
-    }
-    public boolean isEnableCompanyPageManagement() {
-        return enableCompanyPageManagement;
-    }
-    public void setEnableCompanyPageManagement(boolean enableCompanyPageManagement) {
-        this.enableCompanyPageManagement = enableCompanyPageManagement;
-    }
-    public boolean isEnableArticlePublishing() {
-        return enableArticlePublishing;
-    }
-    public void setEnableArticlePublishing(boolean enableArticlePublishing) {
-        this.enableArticlePublishing = enableArticlePublishing;
-    }
-    public boolean isEnablePostSharing() {
-        return enablePostSharing;
-    }
-    public void setEnablePostSharing(boolean enablePostSharing) {
-        this.enablePostSharing = enablePostSharing;
-    }
-    public boolean isEnableVideoSharing() {
-        return enableVideoSharing;
-    }
-    public void setEnableVideoSharing(boolean enableVideoSharing) {
-        this.enableVideoSharing = enableVideoSharing;
-    }
-    public boolean isEnableImageSharing() {
-        return enableImageSharing;
-    }
-    public void setEnableImageSharing(boolean enableImageSharing) {
-        this.enableImageSharing = enableImageSharing;
-    }
-    public boolean isEnableDocumentSharing() {
-        return enableDocumentSharing;
-    }
-    public void setEnableDocumentSharing(boolean enableDocumentSharing) {
-        this.enableDocumentSharing = enableDocumentSharing;
-    }
-    public boolean isEnableCommentManagement() {
-        return enableCommentManagement;
-    }
-    public void setEnableCommentManagement(boolean enableCommentManagement) {
-        this.enableCommentManagement = enableCommentManagement;
-    }
-    public boolean isEnableMessaging() {
-        return enableMessaging;
-    }
-    public void setEnableMessaging(boolean enableMessaging) {
-        this.enableMessaging = enableMessaging;
-    }
-    public boolean isEnableConnectionManagement() {
-        return enableConnectionManagement;
-    }
-    public void setEnableConnectionManagement(boolean enableConnectionManagement) {
-        this.enableConnectionManagement = enableConnectionManagement;
-    }
-    public boolean isEnableAnalytics() {
-        return enableAnalytics;
-    }
-    public void setEnableAnalytics(boolean enableAnalytics) {
-        this.enableAnalytics = enableAnalytics;
-    }
-    public boolean isEnableEventCreation() {
-        return enableEventCreation;
-    }
-    public void setEnableEventCreation(boolean enableEventCreation) {
-        this.enableEventCreation = enableEventCreation;
-    }
-    public boolean isEnableGroupManagement() {
-        return enableGroupManagement;
-    }
-    public void setEnableGroupManagement(boolean enableGroupManagement) {
-        this.enableGroupManagement = enableGroupManagement;
-    }
-    public boolean isEnableLiveVideo() {
-        return enableLiveVideo;
-    }
-    public void setEnableLiveVideo(boolean enableLiveVideo) {
-        this.enableLiveVideo = enableLiveVideo;
-    }
-    public boolean isEnableNewsletters() {
-        return enableNewsletters;
-    }
-    public void setEnableNewsletters(boolean enableNewsletters) {
-        this.enableNewsletters = enableNewsletters;
-    }
-    public boolean isEnableHashtagTracking() {
-        return enableHashtagTracking;
-    }
-    public void setEnableHashtagTracking(boolean enableHashtagTracking) {
-        this.enableHashtagTracking = enableHashtagTracking;
-    }
-    public boolean isEnableEmployeeAdvocacy() {
-        return enableEmployeeAdvocacy;
-    }
-    public void setEnableEmployeeAdvocacy(boolean enableEmployeeAdvocacy) {
-        this.enableEmployeeAdvocacy = enableEmployeeAdvocacy;
-    }
-    public boolean isEnableContentSuggestions() {
-        return enableContentSuggestions;
-    }
-    public void setEnableContentSuggestions(boolean enableContentSuggestions) {
-        this.enableContentSuggestions = enableContentSuggestions;
-    }
-    public boolean isEnableAudienceTargeting() {
-        return enableAudienceTargeting;
-    }
-    public void setEnableAudienceTargeting(boolean enableAudienceTargeting) {
-        this.enableAudienceTargeting = enableAudienceTargeting;
-    }
-    public boolean isEnableScheduledPosts() {
-        return enableScheduledPosts;
-    }
-    public void setEnableScheduledPosts(boolean enableScheduledPosts) {
-        this.enableScheduledPosts = enableScheduledPosts;
-    }
-    public int getMaxPostLength() {
-        return maxPostLength;
-    }
-    public void setMaxPostLength(int maxPostLength) {
-        this.maxPostLength = maxPostLength;
-    }
-    public int getMaxArticleLength() {
-        return maxArticleLength;
-    }
-    public void setMaxArticleLength(int maxArticleLength) {
-        this.maxArticleLength = maxArticleLength;
-    }
-    public int getMaxCommentLength() {
-        return maxCommentLength;
-    }
-    public void setMaxCommentLength(int maxCommentLength) {
-        this.maxCommentLength = maxCommentLength;
-    }
-    public int getMaxHashtagsPerPost() {
-        return maxHashtagsPerPost;
-    }
-    public void setMaxHashtagsPerPost(int maxHashtagsPerPost) {
-        this.maxHashtagsPerPost = maxHashtagsPerPost;
-    }
-    public int getMaxMentionsPerPost() {
-        return maxMentionsPerPost;
-    }
-    public void setMaxMentionsPerPost(int maxMentionsPerPost) {
-        this.maxMentionsPerPost = maxMentionsPerPost;
-    }
-    public int getMaxImagesPerPost() {
-        return maxImagesPerPost;
-    }
-    public void setMaxImagesPerPost(int maxImagesPerPost) {
-        this.maxImagesPerPost = maxImagesPerPost;
-    }
-    public int getMaxVideoSizeMB() {
-        return maxVideoSizeMB;
-    }
-    public void setMaxVideoSizeMB(int maxVideoSizeMB) {
-        this.maxVideoSizeMB = maxVideoSizeMB;
-    }
-    public int getMaxVideoLength() {
-        return maxVideoLength;
-    }
-    public void setMaxVideoLength(int maxVideoLength) {
-        this.maxVideoLength = maxVideoLength;
-    }
-    public int getMaxImageSizeMB() {
-        return maxImageSizeMB;
-    }
-    public void setMaxImageSizeMB(int maxImageSizeMB) {
-        this.maxImageSizeMB = maxImageSizeMB;
-    }
-    public int getMaxDocumentSizeMB() {
-        return maxDocumentSizeMB;
-    }
-    public void setMaxDocumentSizeMB(int maxDocumentSizeMB) {
-        this.maxDocumentSizeMB = maxDocumentSizeMB;
-    }
-    public int getMaxConnectionsPerDay() {
-        return maxConnectionsPerDay;
-    }
-    public void setMaxConnectionsPerDay(int maxConnectionsPerDay) {
-        this.maxConnectionsPerDay = maxConnectionsPerDay;
-    }
-    public int getMaxMessagesPerDay() {
-        return maxMessagesPerDay;
-    }
-    public void setMaxMessagesPerDay(int maxMessagesPerDay) {
-        this.maxMessagesPerDay = maxMessagesPerDay;
-    }
-    public int getMaxPostsPerDay() {
-        return maxPostsPerDay;
-    }
-    public void setMaxPostsPerDay(int maxPostsPerDay) {
-        this.maxPostsPerDay = maxPostsPerDay;
-    }
-    public int getMaxBatchSize() {
-        return maxBatchSize;
-    }
-    public void setMaxBatchSize(int maxBatchSize) {
-        this.maxBatchSize = maxBatchSize;
     }
 }

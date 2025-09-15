@@ -11,6 +11,9 @@ import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -49,6 +52,7 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super(rateLimiterService, credentialEncryptionService);
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -57,7 +61,7 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     }
 
     @Override
-    public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
+    public MessageDTO processMessage(MessageDTO message) {
         try {
             validateConfiguration();
 
@@ -146,6 +150,7 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
         } catch(Exception e) {
             log.error("Error in LinkedIn Ads outbound adapter", e);
+            throw new AdapterException("Error processing LinkedIn Ads message", e);
         }
     }
 
@@ -407,8 +412,9 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         campaignPayload.put("dailyBudget", payload.path("dailyBudget").asText());
         campaignPayload.put("bidType", BidType.CPM.name());
 
-        MessageDTO campaignMessageDTO = new MessageDTO();
+        MessageDTO campaignMessage = new MessageDTO();
         campaignMessage.setPayload(campaignPayload.toString());
+        campaignMessage.setHeaders(message.getHeaders());
         MessageDTO campaignResponse = createCampaign(campaignMessage);
 
         // Extract campaign ID from response
@@ -420,8 +426,9 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         creativePayload.put("campaignId", campaignId);
         creativePayload.put("shareUrn", payload.path("shareUrn").asText());
 
-        MessageDTO creativeMessageDTO = new MessageDTO();
+        MessageDTO creativeMessage = new MessageDTO();
         creativeMessage.setPayload(creativePayload.toString());
+        creativeMessage.setHeaders(message.getHeaders());
 
         return createCreative(creativeMessage);
     }
@@ -775,6 +782,26 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body) {
         return makeApiCall(url, method, body, null);
     }
+    
+    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(getAccessToken());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("LinkedIn-Version", "202401");
+        headers.set("X-Restli-Protocol-Version", "2.0.0");
+
+        // Build URL with params
+        StringBuilder urlBuilder = new StringBuilder(url);
+        if (params != null && !params.isEmpty()) {
+            urlBuilder.append("?");
+            params.forEach((key, value) -> 
+                urlBuilder.append(key).append("=").append(value).append("&"));
+            urlBuilder.setLength(urlBuilder.length() - 1);
+        }
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
+    }
 
 
     private String getAccessToken() {
@@ -814,6 +841,68 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
 
     public void setConfiguration(LinkedInAdsApiConfig config) {
         this.config = config;
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("adAccountId", config.getAdAccountId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("apiUrl", LINKEDIN_ADS_API_BASE);
+        }
+        return configMap;
+    }
+    
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+    
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.debug("Initializing LinkedIn Ads receiver");
+    }
+    
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.debug("Destroying LinkedIn Ads receiver");
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // LinkedIn Ads doesn't support inbound receiving
+        return AdapterResult.failure("LinkedIn Ads adapter does not support receiving messages");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            validateConfiguration();
+            String url = LINKEDIN_ADS_REST_BASE + "/me";
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "LinkedIn Ads API connection successful");
+            } else {
+                return AdapterResult.failure("LinkedIn Ads API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("Error testing LinkedIn Ads connection", e);
+            return AdapterResult.failure("Failed to test LinkedIn Ads connection: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public long getPollingIntervalMs() {
+        // LinkedIn Ads doesn't support polling
+        return 0;
     }
 
     // LinkedIn Ads API Enums
@@ -866,12 +955,46 @@ public class LinkedInAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         LEAD_GENERATION_FORMS,
         ENGAGEMENT
     }
+    
+    private enum AdFormat {
+        SINGLE_IMAGE,
+        CAROUSEL,
+        VIDEO,
+        TEXT_AD,
+        FOLLOWER_AD,
+        MESSAGE_AD,
+        CONVERSATION_AD
+    }
+    
+    private enum CreativeStatus {
+        DRAFT,
+        ACTIVE,
+        PAUSED,
+        CANCELED,
+        ARCHIVED
+    }
+    
+    private enum TimeGranularity {
+        DAILY,
+        MONTHLY,
+        ALL
+    }
+    
+    private enum ConversionType {
+        LEAD,
+        PURCHASE,
+        SIGN_UP,
+        DOWNLOAD,
+        ADD_TO_CART,
+        VIEW_CONTENT,
+        OTHER
+    }
 
     private MessageDTO createResponseMessage(ResponseEntity<String> response, String operationType) {
         MessageDTO responseMessage = new MessageDTO();
         responseMessage.setCorrelationId(UUID.randomUUID().toString());
-        responseMessage.setMessageTimestamp(Instant.now());
-        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+        responseMessage.setTimestamp(LocalDateTime.now());
+        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.SUCCESS : MessageStatus.FAILED);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("operation", operationType);

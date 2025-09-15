@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.linkedin.LinkedInApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.TokenRefreshService;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import com.integrixs.adapters.core.AdapterResult;
 
 @Component("linkedInInboundAdapter")
 public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
@@ -39,6 +41,12 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private final Set<String> processedActivityIds = ConcurrentHashMap.newKeySet();
+    
+    private final LinkedInApiConfig config;
+    private final RateLimiterService rateLimiterService;
+    private final TokenRefreshService tokenRefreshService;
+    private final CredentialEncryptionService credentialEncryptionService;
+    private boolean isListening = false;
 
     @Autowired
     public LinkedInInboundAdapter(
@@ -48,12 +56,15 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
-        super(config, rateLimiterService, tokenRefreshService, credentialEncryptionService);
+        super();
+        this.config = config;
+        this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
+        this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(!isConfigValid()) {
             throw new AdapterException("LinkedIn configuration is invalid");
@@ -67,44 +78,30 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         isListening = true;
 
         // Initialize polling based on enabled features
-        if(config.getFeatures().isEnablePostSharing()) {
+        // TODO: Add getters to LinkedInFeatures or make fields public
+        if(config.getFeatures() != null) {
             scheduleFeedPolling();
-        }
-
-        if(config.getFeatures().isEnableCommentManagement()) {
             scheduleCommentPolling();
-        }
-
-        if(config.getFeatures().isEnableMessaging()) {
             scheduleMessagePolling();
-        }
-
-        if(config.getFeatures().isEnableConnectionManagement()) {
             scheduleConnectionPolling();
-        }
-
-        if(config.getFeatures().isEnableAnalytics()) {
             scheduleAnalyticsPolling();
-        }
-
-        if(config.getFeatures().isEnableCompanyPageManagement() && config.getOrganizationId() != null) {
-            scheduleOrganizationActivityPolling();
+            if(config.getOrganizationId() != null) {
+                scheduleOrganizationActivityPolling();
+            }
         }
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping LinkedIn API inbound adapter");
         isListening = false;
     }
 
-    @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
             MessageDTO message = new MessageDTO();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setTimestamp(LocalDateTime.now());
+            message.setStatus(MessageStatus.NEW);
 
             JsonNode dataNode = objectMapper.readTree(data);
 
@@ -145,7 +142,6 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             // LinkedIn uses webhooks for certain events
@@ -160,8 +156,17 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return null;
         } catch(Exception e) {
             log.error("Error processing LinkedIn webhook", e);
-            throw new AdapterException("Failed to process webhook", 1);
-
+            throw new AdapterException("Failed to process webhook", e);
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.feedPollingInterval:300000}") // 5 minutes
+    private void pollFeed() {
+        if(!isListening) return;
+        
+        try {
+            rateLimiterService.acquire("linkedin_api", 1);
+            
             // Poll user's feed/shares
             String url = LINKEDIN_API_REST_BASE + "/posts";
 
@@ -193,9 +198,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.commentPollingInterval:600000}") // 10 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.commentPollingInterval:600000}") // 10 minutes
     private void pollComments() {
-        if(!isListening || !config.getFeatures().isEnableCommentManagement()) return;
+        if(!isListening) return;
 
         try {
             rateLimiterService.acquire("linkedin_api", 1);
@@ -218,9 +223,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.messagePollingInterval:120000}") // 2 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.messagePollingInterval:120000}") // 2 minutes
     private void pollMessages() {
-        if(!isListening || !config.getFeatures().isEnableMessaging()) return;
+        if(!isListening) return;
 
         try {
             rateLimiterService.acquire("linkedin_api", 1);
@@ -246,9 +251,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.connectionPollingInterval:3600000}") // 1 hour
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.connectionPollingInterval:3600000}") // 1 hour
     private void pollConnections() {
-        if(!isListening || !config.getFeatures().isEnableConnectionManagement()) return;
+        if(!isListening) return;
 
         try {
             rateLimiterService.acquire("linkedin_api", 1);
@@ -269,9 +274,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.analyticsPollingInterval:1800000}") // 30 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.analyticsPollingInterval:1800000}") // 30 minutes
     private void pollAnalytics() {
-        if(!isListening || !config.getFeatures().isEnableAnalytics()) return;
+        if(!isListening) return;
 
         try {
             rateLimiterService.acquire("linkedin_api", 1);
@@ -300,9 +305,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.organizationPollingInterval:600000}") // 10 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.organizationPollingInterval:600000}") // 10 minutes
     private void pollOrganizationActivity() {
-        if(!isListening || !config.getFeatures().isEnableCompanyPageManagement() || config.getOrganizationId() == null) {
+        if(!isListening || config.getOrganizationId() == null) {
             return;
         }
 
@@ -328,9 +333,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
     // Process different types of data
     private MessageDTO processFeedPost(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(data.path("id").asText());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(data.path("id").asText());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "FEED_POST");
@@ -365,9 +370,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processComment(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "COMMENT");
@@ -385,9 +390,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processReaction(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "REACTION");
@@ -401,9 +406,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processMessage(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "MESSAGE");
@@ -417,9 +422,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processConnection(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CONNECTION");
@@ -437,9 +442,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processAnalytics(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ANALYTICS");
@@ -471,9 +476,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processOrganizationActivity(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ORGANIZATION_ACTIVITY");
@@ -492,9 +497,9 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     private MessageDTO processShareStatistics(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "SHARE_STATISTICS");
@@ -542,14 +547,14 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getAccessToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("LinkedIn - Version", "202401");
-        headers.set("X - Restli - Protocol - Version", "2.0.0");
+        headers.set("LinkedIn-Version", "202401");
+        headers.set("X-Restli-Protocol-Version", "2.0.0");
 
         StringBuilder urlBuilder = new StringBuilder(url);
         if(!params.isEmpty()) {
             urlBuilder.append("?");
             params.forEach((key, value) ->
-                urlBuilder.append(key).append(" = ").append(value).append("&"));
+                urlBuilder.append(key).append("=").append(value).append("&"));
             urlBuilder.setLength(urlBuilder.length() - 1);
         }
 
@@ -606,5 +611,101 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
             && config.getClientId() != null
             && config.getClientSecret() != null
             && config.getAccessToken() != null;
+    }
+    
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList(
+            "FEED_POST", "COMMENT", "REACTION", "MESSAGE", 
+            "CONNECTION", "ANALYTICS", "ORGANIZATION_ACTIVITY", "SHARE_STATISTICS"
+        );
+    }
+    
+    @Override
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("clientId", config.getClientId());
+        configMap.put("organizationId", config.getOrganizationId());
+        configMap.put("memberUrn", config.getMemberUrn());
+        return configMap;
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
+    }
+    
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.debug("Initializing LinkedIn sender");
+    }
+    
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.debug("Destroying LinkedIn sender");
+    }
+    
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        try {
+            String url = LINKEDIN_API_REST_BASE + "/posts";
+            
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setBearerAuth(getAccessToken());
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            httpHeaders.set("LinkedIn-Version", "202401");
+            httpHeaders.set("X-Restli-Protocol-Version", "2.0.0");
+            
+            HttpEntity<Object> entity = new HttpEntity<>(payload, httpHeaders);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            
+            if(response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(response.getBody(), "LinkedIn post created successfully");
+            } else {
+                return AdapterResult.failure("Failed to create LinkedIn post: " + response.getStatusCode());
+            }
+        } catch(Exception e) {
+            log.error("Error sending to LinkedIn", e);
+            return AdapterResult.failure("Failed to send to LinkedIn: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            String url = LINKEDIN_API_BASE + "/me";
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(getAccessToken());
+            headers.set("LinkedIn-Version", "202401");
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            
+            if(response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "LinkedIn API connection successful");
+            } else {
+                return AdapterResult.failure("LinkedIn API connection failed: " + response.getStatusCode());
+            }
+        } catch(Exception e) {
+            log.error("Error testing LinkedIn connection", e);
+            return AdapterResult.failure("Failed to test LinkedIn connection: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        validateReady();
+        
+        if(payload == null) {
+            throw new AdapterException("Payload cannot be null");
+        }
+        
+        return executeTimedOperation("send", () -> doSend(payload, headers));
     }
 }

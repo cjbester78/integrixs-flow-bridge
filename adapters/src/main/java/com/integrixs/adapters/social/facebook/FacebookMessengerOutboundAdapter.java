@@ -5,7 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.shared.dto.MessageDTO;
-import com.integrixs.shared.config.AdapterConfig;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.shared.exceptions.AdapterException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Outbound adapter for Facebook Messenger Platform integration.
@@ -28,31 +32,41 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
     private final FacebookMessengerApiConfig config;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public FacebookMessengerOutboundAdapter(
             FacebookMessengerApiConfig config,
             RateLimiterService rateLimiterService,
             CredentialEncryptionService credentialEncryptionService,
-            RestTemplate restTemplate) {
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper) {
         super(rateLimiterService, credentialEncryptionService);
         this.config = config;
         this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    protected FacebookMessengerApiConfig getConfig() {
+    protected SocialMediaAdapterConfig getConfig() {
         return config;
     }
 
     @Override
-    public AdapterConfig getAdapterConfig() {
-        return config;
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("pageId", config.getPageId());
+        configMap.put("apiUrl", config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com");
+        configMap.put("apiVersion", config.getApiVersion() != null ? config.getApiVersion() : "v18.0");
+        configMap.put("pageAccessToken", config.getPageAccessToken());
+        configMap.put("appSecret", config.getAppSecret());
+        return configMap;
     }
 
     @Override
     public MessageDTO processMessage(MessageDTO message) {
-        String action = message.getHeader("action");
+        Map<String, Object> headers = message.getHeaders();
+        String action = headers != null ? (String) headers.get("action") : null;
 
         try {
             switch(action) {
@@ -129,11 +143,12 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     private MessageDTO sendTextMessage(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String text = message.getPayloadAsString();
-        String messagingType = message.getHeader("messagingType", "RESPONSE");
-        String messageTag = message.getHeader("messageTag");
-        String personaId = message.getHeader("personaId");
+        Map<String, Object> headers = message.getHeaders();
+        String recipientId = headers != null ? (String) headers.get("recipientId") : null;
+        String text = message.getPayload();
+        String messagingType = headers != null ? (String) headers.getOrDefault("messagingType", "RESPONSE") : "RESPONSE";
+        String messageTag = headers != null ? (String) headers.get("messageTag") : null;
+        String personaId = headers != null ? (String) headers.get("personaId") : null;
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
@@ -152,10 +167,10 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
             request.put("tag", messageTag);
         }
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendImage(MessageDTO message) throws Exception {
@@ -175,13 +190,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     private MessageDTO sendMediaMessage(MessageDTO message, String type) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String url = message.getHeader("mediaUrl");
-        boolean isReusable = Boolean.parseBoolean(message.getHeader("isReusable", "false"));
+        Map<String, Object> headers = message.getHeaders();
+        String recipientId = headers != null ? (String) headers.get("recipientId") : null;
+        String url = headers != null ? (String) headers.get("mediaUrl") : null;
+        boolean isReusable = Boolean.parseBoolean(headers != null ? (String) headers.getOrDefault("isReusable", "false") : "false");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", headers != null ? (String) headers.getOrDefault("messagingType", "RESPONSE") : "RESPONSE");
 
         Map<String, Object> attachment = new HashMap<>();
         attachment.put("type", type);
@@ -192,20 +208,20 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String apiUrl = config.getApiUrl() + "/me/messages";
+        String apiUrl = getApiUrl() + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(apiUrl, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendTemplate(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String templateType = message.getHeader("templateType");
-        Map<String, Object> templateData = message.getPayloadAsMap();
+        String recipientId = getHeader(message, "recipientId");
+        String templateType = getHeader(message, "templateType");
+        Map<String, Object> templateData = getPayloadAsMap(message);
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> attachment = new HashMap<>();
         attachment.put("type", "template");
@@ -216,20 +232,20 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendButtonTemplate(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String text = message.getHeader("text");
-        List<Map<String, Object>> buttons = (List<Map<String, Object>>) message.getPayloadAsMap().get("buttons");
+        String recipientId = getHeader(message, "recipientId");
+        String text = getHeader(message, "text");
+        List<Map<String, Object>> buttons = (List<Map<String, Object>>) getPayloadAsMap(message).get("buttons");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("template_type", "button");
@@ -243,19 +259,19 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendGenericTemplate(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        List<Map<String, Object>> elements = (List<Map<String, Object>>) message.getPayloadAsMap().get("elements");
+        String recipientId = getHeader(message, "recipientId");
+        List<Map<String, Object>> elements = (List<Map<String, Object>>) getPayloadAsMap(message).get("elements");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("template_type", "generic");
@@ -268,19 +284,19 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendListTemplate(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        Map<String, Object> listData = message.getPayloadAsMap();
+        String recipientId = getHeader(message, "recipientId");
+        Map<String, Object> listData = getPayloadAsMap(message);
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("template_type", "list");
@@ -298,19 +314,19 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendReceiptTemplate(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        Map<String, Object> receiptData = message.getPayloadAsMap();
+        String recipientId = getHeader(message, "recipientId");
+        Map<String, Object> receiptData = getPayloadAsMap(message);
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> payload = new HashMap<>(receiptData);
         payload.put("template_type", "receipt");
@@ -322,22 +338,22 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendMediaTemplate(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String mediaType = message.getHeader("mediaType");
-        String attachmentId = message.getHeader("attachmentId");
-        String mediaUrl = message.getHeader("mediaUrl");
-        List<Map<String, Object>> buttons = (List<Map<String, Object>>) message.getPayloadAsMap().get("buttons");
+        String recipientId = getHeader(message, "recipientId");
+        String mediaType = getHeader(message, "mediaType");
+        String attachmentId = getHeader(message, "attachmentId");
+        String mediaUrl = getHeader(message, "mediaUrl");
+        List<Map<String, Object>> buttons = (List<Map<String, Object>>) getPayloadAsMap(message).get("buttons");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> element = new HashMap<>();
         element.put("media_type", mediaType);
@@ -364,10 +380,10 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendCarousel(MessageDTO message) throws Exception {
@@ -375,13 +391,13 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     private MessageDTO sendQuickReplies(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String text = message.getHeader("text");
-        List<Map<String, Object>> quickReplies = (List<Map<String, Object>>) message.getPayloadAsMap().get("quickReplies");
+        String recipientId = getHeader(message, "recipientId");
+        String text = getHeader(message, "text");
+        List<Map<String, Object>> quickReplies = (List<Map<String, Object>>) getPayloadAsMap(message).get("quickReplies");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("text", text);
@@ -389,20 +405,20 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", messageData);
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendLocation(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        double latitude = Double.parseDouble(message.getHeader("latitude"));
-        double longitude = Double.parseDouble(message.getHeader("longitude"));
+        String recipientId = getHeader(message, "recipientId");
+        double latitude = Double.parseDouble(getHeader(message, "latitude"));
+        double longitude = Double.parseDouble(getHeader(message, "longitude"));
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
-        request.put("messaging_type", message.getHeader("messagingType", "RESPONSE"));
+        request.put("messaging_type", getHeader(message, "messagingType", "RESPONSE"));
 
         Map<String, Object> coordinates = Map.of(
                 "lat", latitude,
@@ -421,10 +437,10 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendTypingIndicator(MessageDTO message) throws Exception {
@@ -436,102 +452,102 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     private MessageDTO sendSenderAction(MessageDTO message, String action) throws Exception {
-        String recipientId = message.getHeader("recipientId");
+        String recipientId = getHeader(message, "recipientId");
 
         Map<String, Object> request = Map.of(
                 "recipient", Map.of("id", recipientId),
                 "sender_action", action
        );
 
-        String url = config.getApiUrl() + "/me/messages";
+        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO setPersistentMenu(MessageDTO message) throws Exception {
-        List<Map<String, Object>> menuItems = (List<Map<String, Object>>) message.getPayloadAsMap().get("menuItems");
-        String locale = message.getHeader("locale", "default");
+        List<Map<String, Object>> menuItems = (List<Map<String, Object>>) getPayloadAsMap(message).get("menuItems");
+        String locale = getHeader(message, "locale", "default");
 
         Map<String, Object> persistentMenu = Map.of(
                 "locale", locale,
-                "composer_input_disabled", Boolean.parseBoolean(message.getHeader("composerInputDisabled", "false")),
+                "composer_input_disabled", Boolean.parseBoolean(getHeader(message, "composerInputDisabled", "false")),
                 "call_to_actions", menuItems
        );
 
         Map<String, Object> request = Map.of("persistent_menu", List.of(persistentMenu));
 
-        String url = config.getApiUrl() + "/me/messenger_profile";
+        String url = getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO setGetStarted(MessageDTO message) throws Exception {
-        String payload = message.getPayloadAsString();
+        String payload = message.getPayload();
 
         Map<String, Object> request = Map.of("get_started", Map.of("payload", payload));
 
-        String url = config.getApiUrl() + "/me/messenger_profile";
+        String url = getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO setGreeting(MessageDTO message) throws Exception {
-        List<Map<String, Object>> greetings = (List<Map<String, Object>>) message.getPayloadAsMap().get("greetings");
+        List<Map<String, Object>> greetings = (List<Map<String, Object>>) getPayloadAsMap(message).get("greetings");
 
         Map<String, Object> request = Map.of("greeting", greetings);
 
-        String url = config.getApiUrl() + "/me/messenger_profile";
+        String url = getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO setIceBreakers(MessageDTO message) throws Exception {
-        List<Map<String, Object>> iceBreakers = (List<Map<String, Object>>) message.getPayloadAsMap().get("iceBreakers");
+        List<Map<String, Object>> iceBreakers = (List<Map<String, Object>>) getPayloadAsMap(message).get("iceBreakers");
 
         Map<String, Object> request = Map.of("ice_breakers", iceBreakers);
 
-        String url = config.getApiUrl() + "/me/messenger_profile";
+        String url = getApiUrl() + "/me/messenger_profile";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO createPersona(MessageDTO message) throws Exception {
-        Map<String, Object> personaData = message.getPayloadAsMap();
+        Map<String, Object> personaData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/me/personas";
+        String url = getApiUrl() + "/me/personas";
         String response = executeApiCall(() -> makePostRequest(url, personaData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO updatePersona(MessageDTO message) throws Exception {
-        String personaId = message.getHeader("personaId");
-        Map<String, Object> personaData = message.getPayloadAsMap();
+        String personaId = getHeader(message, "personaId");
+        Map<String, Object> personaData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/" + personaId;
+        String url = getApiUrl() + "/" + personaId;
         String response = executeApiCall(() -> makePostRequest(url, personaData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO deletePersona(MessageDTO message) throws Exception {
-        String personaId = message.getHeader("personaId");
+        String personaId = getHeader(message, "personaId");
 
-        String url = config.getApiUrl() + "/" + personaId;
+        String url = getApiUrl() + "/" + personaId;
         String response = executeApiCall(() -> makeDeleteRequest(url));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO passThreadControl(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String targetAppId = message.getHeader("targetAppId");
-        String metadata = message.getHeader("metadata");
+        String recipientId = getHeader(message, "recipientId");
+        String targetAppId = getHeader(message, "targetAppId");
+        String metadata = getHeader(message, "metadata");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
@@ -541,15 +557,15 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
             request.put("metadata", metadata);
         }
 
-        String url = config.getApiUrl() + "/me/pass_thread_control";
+        String url = getApiUrl() + "/me/pass_thread_control";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO takeThreadControl(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String metadata = message.getHeader("metadata");
+        String recipientId = getHeader(message, "recipientId");
+        String metadata = getHeader(message, "metadata");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
@@ -558,15 +574,15 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
             request.put("metadata", metadata);
         }
 
-        String url = config.getApiUrl() + "/me/take_thread_control";
+        String url = getApiUrl() + "/me/take_thread_control";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO requestThreadControl(MessageDTO message) throws Exception {
-        String recipientId = message.getHeader("recipientId");
-        String metadata = message.getHeader("metadata");
+        String recipientId = getHeader(message, "recipientId");
+        String metadata = getHeader(message, "metadata");
 
         Map<String, Object> request = new HashMap<>();
         request.put("recipient", Map.of("id", recipientId));
@@ -575,18 +591,18 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
             request.put("metadata", metadata);
         }
 
-        String url = config.getApiUrl() + "/me/request_thread_control";
+        String url = getApiUrl() + "/me/request_thread_control";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendBroadcast(MessageDTO message) throws Exception {
-        String messageCreativeId = message.getHeader("messageCreativeId");
-        String customLabelId = message.getHeader("customLabelId");
-        String notificationType = message.getHeader("notificationType", "REGULAR");
-        String messagingType = message.getHeader("messagingType", "MESSAGE_TAG");
-        String tag = message.getHeader("tag", "NON_PROMOTIONAL_SUBSCRIPTION");
+        String messageCreativeId = getHeader(message, "messageCreativeId");
+        String customLabelId = getHeader(message, "customLabelId");
+        String notificationType = getHeader(message, "notificationType", "REGULAR");
+        String messagingType = getHeader(message, "messagingType", "MESSAGE_TAG");
+        String tag = getHeader(message, "tag", "NON_PROMOTIONAL_SUBSCRIPTION");
 
         Map<String, Object> request = new HashMap<>();
         request.put("message_creative_id", messageCreativeId);
@@ -598,68 +614,68 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
             request.put("custom_label_id", customLabelId);
         }
 
-        String url = config.getApiUrl() + "/me/broadcast_messages";
+        String url = getApiUrl() + "/me/broadcast_messages";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO createBroadcastMessage(MessageDTO message) throws Exception {
-        Map<String, Object> messageData = message.getPayloadAsMap();
+        Map<String, Object> messageData = getPayloadAsMap(message);
 
         Map<String, Object> request = Map.of("messages", List.of(messageData));
 
-        String url = config.getApiUrl() + "/me/message_creatives";
+        String url = getApiUrl() + "/me/message_creatives";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendSponsoredMessage(MessageDTO message) throws Exception {
-        String adAccountId = message.getHeader("adAccountId");
-        String targetingSpec = message.getHeader("targetingSpec");
-        Map<String, Object> messageData = message.getPayloadAsMap();
+        String adAccountId = getHeader(message, "adAccountId");
+        String targetingSpec = getHeader(message, "targetingSpec");
+        Map<String, Object> messageData = getPayloadAsMap(message);
 
         Map<String, Object> request = new HashMap<>();
         request.put("message", messageData);
         request.put("targeting", parseJsonString(targetingSpec));
 
-        String url = config.getApiUrl() + "/act_" + adAccountId + "/sponsored_message_ads";
+        String url = getApiUrl() + "/act_" + adAccountId + "/sponsored_message_ads";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO sendPrivateReply(MessageDTO message) throws Exception {
-        String commentId = message.getHeader("commentId");
-        String text = message.getPayloadAsString();
+        String commentId = getHeader(message, "commentId");
+        String text = message.getPayload();
 
         Map<String, Object> request = Map.of("message", text);
 
-        String url = config.getApiUrl() + "/" + commentId + "/private_replies";
+        String url = getApiUrl() + "/" + commentId + "/private_replies";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO getUserProfile(MessageDTO message) throws Exception {
-        String userId = message.getHeader("userId");
-        String fields = message.getHeader("fields", "first_name,last_name,profile_pic");
+        String userId = getHeader(message, "userId");
+        String fields = getHeader(message, "fields", "first_name,last_name,profile_pic");
 
         Map<String, String> params = new HashMap<>();
         params.put("fields", fields);
         params.put("access_token", getDecryptedCredential("pageAccessToken"));
 
-        String url = config.getApiUrl() + "/" + userId;
+        String url = getApiUrl() + "/" + userId;
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private MessageDTO uploadAttachment(MessageDTO message) throws Exception {
-        String type = message.getHeader("attachmentType");
-        String url = message.getHeader("attachmentUrl");
-        boolean isReusable = Boolean.parseBoolean(message.getHeader("isReusable", "true"));
+        String type = getHeader(message, "attachmentType");
+        String url = getHeader(message, "attachmentUrl");
+        boolean isReusable = Boolean.parseBoolean(getHeader(message, "isReusable", "true"));
 
         Map<String, Object> attachment = Map.of(
                 "type", type,
@@ -671,10 +687,10 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         Map<String, Object> request = Map.of("message", Map.of("attachment", attachment));
 
-        String apiUrl = config.getApiUrl() + "/me/message_attachments";
+        String apiUrl = getApiUrl() + "/me/message_attachments";
         String response = executeApiCall(() -> makePostRequest(apiUrl, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
     }
 
     private String makePostRequest(String url, Map<String, Object> data) throws Exception {
@@ -716,7 +732,102 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     }
 
     @Override
-    protected String getAdapterType() {
-        return "FACEBOOK_MESSENGER";
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Convert the payload to MessageDTO for processing
+        MessageDTO message = new MessageDTO();
+        message.setPayload(payload.toString());
+        message.setHeaders(headers);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        
+        MessageDTO result = processMessage(message);
+        return AdapterResult.success(result.getPayload(), "Message sent successfully");
+    }
+    
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.debug("Initializing Facebook Messenger sender");
+    }
+    
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.debug("Destroying Facebook Messenger sender");
+    }
+    
+    private String getApiUrl() {
+        return (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + 
+               (config.getApiVersion() != null ? config.getApiVersion() : "v18.0");
+    }
+    
+    private Map<String, Object> getPayloadAsMap(MessageDTO message) {
+        try {
+            String payload = message.getPayload();
+            if (payload == null || payload.isEmpty()) {
+                return new HashMap<>();
+            }
+            return objectMapper.readValue(payload, Map.class);
+        } catch (Exception e) {
+            log.error("Error parsing payload as map", e);
+            return new HashMap<>();
+        }
+    }
+    
+    private String getHeader(MessageDTO message, String key) {
+        Map<String, Object> headers = message.getHeaders();
+        return headers != null ? (String) headers.get(key) : null;
+    }
+    
+    private String getHeader(MessageDTO message, String key, String defaultValue) {
+        Map<String, Object> headers = message.getHeaders();
+        return headers != null ? (String) headers.getOrDefault(key, defaultValue) : defaultValue;
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Outbound adapter does not support receiving
+        return AdapterResult.success(null, "Outbound adapter does not support receiving");
+    }
+    
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.debug("Initializing Facebook Messenger receiver");
+    }
+    
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.debug("Destroying Facebook Messenger receiver");
+    }
+    
+    @Override
+    protected long getPollingIntervalMs() {
+        return 60000L; // Default to 60 seconds
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + 
+                        (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me";
+            
+            Map<String, String> params = new HashMap<>();
+            params.put("access_token", config.getPageAccessToken());
+            params.put("fields", "id,name");
+            
+            String response = makeGetRequest(url, params);
+            
+            if (response != null) {
+                return AdapterResult.success(null, "Facebook Messenger API connection successful");
+            } else {
+                return AdapterResult.failure("Facebook Messenger API connection failed");
+            }
+        } catch (Exception e) {
+            log.error("Error testing Facebook Messenger connection", e);
+            return AdapterResult.failure("Failed to test Facebook Messenger connection: " + e.getMessage());
+        }
     }
 }

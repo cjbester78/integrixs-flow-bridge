@@ -214,7 +214,12 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
 
             public void initialize() {
-        super.initialize();
+        try {
+            super.initialize();
+        } catch (AdapterException e) {
+            log.error("Failed to initialize SlackInboundAdapter", e);
+            throw new RuntimeException("Failed to initialize adapter", e);
+        }
 
         // Start Socket Mode if enabled
         if(config.getFeatures().isEnableSocketMode()) {
@@ -852,7 +857,7 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
     }
 
     // API request helper with rate limiting
-    private JsonNode makeApiRequest(String method, Map<String, Object> params) {
+    private JsonNode makeApiRequest(String method, Map<String, Object> params) throws AdapterException {
         try {
             // Check rate limit
             if(isRateLimited(method)) {
@@ -941,7 +946,11 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
 
     public void destroy() {
-        super.destroy();
+        try {
+            super.destroy();
+        } catch (AdapterException e) {
+            log.error("Error during SlackInboundAdapter destroy", e);
+        }
 
         // Close Socket Mode connection
         if(socketSession != null && socketSession.isOpen()) {

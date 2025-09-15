@@ -1,13 +1,14 @@
 package com.integrixs.adapters.social.pinterest;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
-
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.shared.exceptions.AdapterException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 import com.integrixs.shared.dto.MessageDTO;
-import com.integrixs.shared.config.AdapterConfig;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
 
     private final PinterestApiConfig config;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public PinterestOutboundAdapter(
@@ -52,13 +54,23 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     @Override
-    public AdapterConfig getAdapterConfig() {
-        return config;
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("appId", config.getAppId());
+            configMap.put("appSecret", config.getAppSecret());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("apiVersion", config.getApiVersion());
+            configMap.put("enabled", config.isEnabled());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+            configMap.put("advertiserId", config.getAdvertiserId());
+        }
+        return configMap;
     }
 
     @Override
     public MessageDTO processMessage(MessageDTO message) {
-        String action = message.getHeader("action");
+        String action = getHeader(message, "action");
 
         try {
             switch(action) {
@@ -175,7 +187,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     private MessageDTO createPin(MessageDTO message) throws Exception {
-        Map<String, Object> pinData = message.getPayloadAsMap();
+        Map<String, Object> pinData = getPayloadAsMap(message);
 
         // Validate required fields
         validateRequiredFields(pinData, Arrays.asList("board_id", "media_source"));
@@ -192,48 +204,48 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         addOptionalField(request, pinData, "board_section_id");
         addOptionalField(request, pinData, "dominant_color");
 
-        String url = config.getApiUrl() + "/v5/pins";
+        String url = getApiUrl() + "/v5/pins";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "CREATE_PIN");
     }
 
     private MessageDTO updatePin(MessageDTO message) throws Exception {
-        String pinId = message.getHeader("pinId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String pinId = getHeader(message, "pinId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/pins/" + pinId;
+        String url = getApiUrl() + "/v5/pins/" + pinId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "UPDATE_PIN");
     }
 
     private MessageDTO deletePin(MessageDTO message) throws Exception {
-        String pinId = message.getHeader("pinId");
+        String pinId = getHeader(message, "pinId");
 
-        String url = config.getApiUrl() + "/v5/pins/" + pinId;
+        String url = getApiUrl() + "/v5/pins/" + pinId;
         String response = executeApiCall(() -> makeDeleteRequest(url));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "DELETE_PIN");
     }
 
     private MessageDTO getPin(MessageDTO message) throws Exception {
-        String pinId = message.getHeader("pinId");
+        String pinId = getHeader(message, "pinId");
 
-        String url = config.getApiUrl() + "/v5/pins/" + pinId;
+        String url = getApiUrl() + "/v5/pins/" + pinId;
         Map<String, String> params = new HashMap<>();
         params.put("pin_metrics", "true");
         params.put("ad_account_id", config.getAdvertiserId());
 
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "GET_PIN");
     }
 
     private MessageDTO savePin(MessageDTO message) throws Exception {
-        String pinId = message.getHeader("pinId");
-        String boardId = message.getHeader("boardId");
-        String boardSectionId = message.getHeader("boardSectionId");
+        String pinId = getHeader(message, "pinId");
+        String boardId = getHeader(message, "boardId");
+        String boardSectionId = getHeader(message, "boardSectionId");
 
         Map<String, Object> request = new HashMap<>();
         request.put("board_id", boardId);
@@ -241,14 +253,14 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
             request.put("board_section_id", boardSectionId);
         }
 
-        String url = config.getApiUrl() + "/v5/pins/" + pinId + "/save";
+        String url = getApiUrl() + "/v5/pins/" + pinId + "/save";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "SAVE_PIN");
     }
 
     private MessageDTO createBoard(MessageDTO message) throws Exception {
-        Map<String, Object> boardData = message.getPayloadAsMap();
+        Map<String, Object> boardData = getPayloadAsMap(message);
 
         validateRequiredFields(boardData, Arrays.asList("name"));
 
@@ -258,255 +270,255 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         addOptionalField(request, boardData, "description");
         addOptionalField(request, boardData, "privacy");
 
-        String url = config.getApiUrl() + "/v5/boards";
+        String url = getApiUrl() + "/v5/boards";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "CREATE_BOARD");
     }
 
     private MessageDTO updateBoard(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String boardId = getHeader(message, "boardId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId;
+        String url = getApiUrl() + "/v5/boards/" + boardId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO deleteBoard(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
+        String boardId = getHeader(message, "boardId");
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId;
+        String url = getApiUrl() + "/v5/boards/" + boardId;
         String response = executeApiCall(() -> makeDeleteRequest(url));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getBoard(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
+        String boardId = getHeader(message, "boardId");
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId;
+        String url = getApiUrl() + "/v5/boards/" + boardId;
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createBoardSection(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
-        Map<String, Object> sectionData = message.getPayloadAsMap();
+        String boardId = getHeader(message, "boardId");
+        Map<String, Object> sectionData = getPayloadAsMap(message);
 
         validateRequiredFields(sectionData, Arrays.asList("name"));
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId + "/sections";
+        String url = getApiUrl() + "/v5/boards/" + boardId + "/sections";
         String response = executeApiCall(() -> makePostRequest(url, sectionData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateBoardSection(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
-        String sectionId = message.getHeader("sectionId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String boardId = getHeader(message, "boardId");
+        String sectionId = getHeader(message, "sectionId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId + "/sections/" + sectionId;
+        String url = getApiUrl() + "/v5/boards/" + boardId + "/sections/" + sectionId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO deleteBoardSection(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
-        String sectionId = message.getHeader("sectionId");
+        String boardId = getHeader(message, "boardId");
+        String sectionId = getHeader(message, "sectionId");
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId + "/sections/" + sectionId;
+        String url = getApiUrl() + "/v5/boards/" + boardId + "/sections/" + sectionId;
         String response = executeApiCall(() -> makeDeleteRequest(url));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createProductPin(MessageDTO message) throws Exception {
-        Map<String, Object> productPinData = message.getPayloadAsMap();
+        Map<String, Object> productPinData = getPayloadAsMap(message);
 
         validateRequiredFields(productPinData, Arrays.asList("board_id", "media_source", "product_tags"));
 
         // Create pin with product tags
-        String url = config.getApiUrl() + "/v5/pins";
+        String url = getApiUrl() + "/v5/pins";
         String response = executeApiCall(() -> makePostRequest(url, productPinData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO tagProducts(MessageDTO message) throws Exception {
-        String pinId = message.getHeader("pinId");
-        List<Map<String, Object>> productTags = (List<Map<String, Object>>) message.getPayloadAsMap().get("product_tags");
+        String pinId = getHeader(message, "pinId");
+        List<Map<String, Object>> productTags = (List<Map<String, Object>>) getPayloadAsMap(message).get("product_tags");
 
         Map<String, Object> request = Map.of("product_tags", productTags);
 
-        String url = config.getApiUrl() + "/v5/pins/" + pinId;
+        String url = getApiUrl() + "/v5/pins/" + pinId;
         String response = executeApiCall(() -> makePatchRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createCatalog(MessageDTO message) throws Exception {
-        Map<String, Object> catalogData = message.getPayloadAsMap();
+        Map<String, Object> catalogData = getPayloadAsMap(message);
 
         validateRequiredFields(catalogData, Arrays.asList("name", "format"));
 
-        String url = config.getApiUrl() + "/v5/catalogs";
+        String url = getApiUrl() + "/v5/catalogs";
         String response = executeApiCall(() -> makePostRequest(url, catalogData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateCatalog(MessageDTO message) throws Exception {
-        String catalogId = message.getHeader("catalogId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String catalogId = getHeader(message, "catalogId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/catalogs/" + catalogId;
+        String url = getApiUrl() + "/v5/catalogs/" + catalogId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO uploadProductFeed(MessageDTO message) throws Exception {
-        String catalogId = message.getHeader("catalogId");
-        Map<String, Object> feedData = message.getPayloadAsMap();
+        String catalogId = getHeader(message, "catalogId");
+        Map<String, Object> feedData = getPayloadAsMap(message);
 
         validateRequiredFields(feedData, Arrays.asList("format", "location"));
 
-        String url = config.getApiUrl() + "/v5/catalogs/" + catalogId + "/feeds";
+        String url = getApiUrl() + "/v5/catalogs/" + catalogId + "/feeds";
         String response = executeApiCall(() -> makePostRequest(url, feedData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getUserAnalytics(MessageDTO message) throws Exception {
         Map<String, String> params = buildAnalyticsParams(message);
 
-        String url = config.getApiUrl() + "/v5/user_account/analytics";
+        String url = getApiUrl() + "/v5/user_account/analytics";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getPinAnalytics(MessageDTO message) throws Exception {
-        String pinId = message.getHeader("pinId");
+        String pinId = getHeader(message, "pinId");
         Map<String, String> params = buildAnalyticsParams(message);
 
-        String url = config.getApiUrl() + "/v5/pins/" + pinId + "/analytics";
+        String url = getApiUrl() + "/v5/pins/" + pinId + "/analytics";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getBoardAnalytics(MessageDTO message) throws Exception {
-        String boardId = message.getHeader("boardId");
+        String boardId = getHeader(message, "boardId");
         Map<String, String> params = buildAnalyticsParams(message);
 
-        String url = config.getApiUrl() + "/v5/boards/" + boardId + "/analytics";
+        String url = getApiUrl() + "/v5/boards/" + boardId + "/analytics";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO generateReport(MessageDTO message) throws Exception {
-        String reportType = message.getHeader("reportType");
-        Map<String, Object> reportParams = message.getPayloadAsMap();
+        String reportType = getHeader(message, "reportType");
+        Map<String, Object> reportParams = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/reports";
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/reports";
         String response = executeApiCall(() -> makePostRequest(url, reportParams));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createCampaign(MessageDTO message) throws Exception {
-        Map<String, Object> campaignData = message.getPayloadAsMap();
+        Map<String, Object> campaignData = getPayloadAsMap(message);
 
         validateRequiredFields(campaignData, Arrays.asList("name", "objective_type", "daily_spend_cap"));
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/campaigns";
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/campaigns";
         String response = executeApiCall(() -> makePostRequest(url, campaignData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateCampaign(MessageDTO message) throws Exception {
-        String campaignId = message.getHeader("campaignId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String campaignId = getHeader(message, "campaignId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/campaigns/" + campaignId;
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/campaigns/" + campaignId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createAdGroup(MessageDTO message) throws Exception {
-        Map<String, Object> adGroupData = message.getPayloadAsMap();
+        Map<String, Object> adGroupData = getPayloadAsMap(message);
 
         validateRequiredFields(adGroupData, Arrays.asList("campaign_id", "name", "budget_in_micro_currency", "bid_in_micro_currency"));
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ad_groups";
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ad_groups";
         String response = executeApiCall(() -> makePostRequest(url, adGroupData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateAdGroup(MessageDTO message) throws Exception {
-        String adGroupId = message.getHeader("adGroupId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String adGroupId = getHeader(message, "adGroupId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ad_groups/" + adGroupId;
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ad_groups/" + adGroupId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createAd(MessageDTO message) throws Exception {
-        Map<String, Object> adData = message.getPayloadAsMap();
+        Map<String, Object> adData = getPayloadAsMap(message);
 
         validateRequiredFields(adData, Arrays.asList("ad_group_id", "creative_type", "pin_id"));
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ads";
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ads";
         String response = executeApiCall(() -> makePostRequest(url, adData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateAd(MessageDTO message) throws Exception {
-        String adId = message.getHeader("adId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String adId = getHeader(message, "adId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ads/" + adId;
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/ads/" + adId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO createAudience(MessageDTO message) throws Exception {
-        Map<String, Object> audienceData = message.getPayloadAsMap();
+        Map<String, Object> audienceData = getPayloadAsMap(message);
 
         validateRequiredFields(audienceData, Arrays.asList("name", "rule"));
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/audiences";
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/audiences";
         String response = executeApiCall(() -> makePostRequest(url, audienceData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateAudience(MessageDTO message) throws Exception {
-        String audienceId = message.getHeader("audienceId");
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        String audienceId = getHeader(message, "audienceId");
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/audiences/" + audienceId;
+        String url = getApiUrl() + "/v5/ad_accounts/" + config.getAdvertiserId() + "/audiences/" + audienceId;
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO bulkCreatePins(MessageDTO message) throws Exception {
-        List<Map<String, Object>> pins = (List<Map<String, Object>>) message.getPayloadAsMap().get("pins");
+        List<Map<String, Object>> pins = (List<Map<String, Object>>) getPayloadAsMap(message).get("pins");
 
         if(pins.size() > config.getLimits().getMaxBulkPinsPerRequest()) {
             throw new IllegalArgumentException("Too many pins. Maximum allowed: " + config.getLimits().getMaxBulkPinsPerRequest());
@@ -514,133 +526,133 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
 
         Map<String, Object> request = Map.of("pins", pins);
 
-        String url = config.getApiUrl() + "/v5/pins/bulk";
+        String url = getApiUrl() + "/v5/pins/bulk";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO bulkDeletePins(MessageDTO message) throws Exception {
-        List<String> pinIds = (List<String>) message.getPayloadAsMap().get("pin_ids");
+        List<String> pinIds = (List<String>) getPayloadAsMap(message).get("pin_ids");
 
         Map<String, Object> request = Map.of("pin_ids", pinIds);
 
-        String url = config.getApiUrl() + "/v5/pins/bulk/delete";
+        String url = getApiUrl() + "/v5/pins/bulk/delete";
         String response = executeApiCall(() -> makePostRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO searchPins(MessageDTO message) throws Exception {
-        String query = message.getHeader("query");
+        String query = getHeader(message, "query");
         Map<String, String> params = new HashMap<>();
         params.put("query", query);
-        params.put("page_size", message.getHeader("pageSize", "25"));
+        params.put("page_size", getHeader(message, "pageSize", "25"));
 
         addOptionalParam(params, message, "bookmark");
 
-        String url = config.getApiUrl() + "/v5/search/pins";
+        String url = getApiUrl() + "/v5/search/pins";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO searchBoards(MessageDTO message) throws Exception {
-        String query = message.getHeader("query");
+        String query = getHeader(message, "query");
         Map<String, String> params = new HashMap<>();
         params.put("query", query);
-        params.put("page_size", message.getHeader("pageSize", "25"));
+        params.put("page_size", getHeader(message, "pageSize", "25"));
 
-        String url = config.getApiUrl() + "/v5/search/boards";
+        String url = getApiUrl() + "/v5/search/boards";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO searchUsers(MessageDTO message) throws Exception {
-        String query = message.getHeader("query");
+        String query = getHeader(message, "query");
         Map<String, String> params = new HashMap<>();
         params.put("query", query);
 
-        String url = config.getApiUrl() + "/v5/search/user_account";
+        String url = getApiUrl() + "/v5/search/user_account";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getTrending(MessageDTO message) throws Exception {
-        String trendingType = message.getHeader("trendingType", "searches");
-        String region = message.getHeader("region", "US");
+        String trendingType = getHeader(message, "trendingType", "searches");
+        String region = getHeader(message, "region", "US");
 
-        String url = config.getApiUrl() + "/v5/trends/" + trendingType + "/" + region;
+        String url = getApiUrl() + "/v5/trends/" + trendingType + "/" + region;
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getUserInfo(MessageDTO message) throws Exception {
-        String url = config.getApiUrl() + "/v5/user_account";
+        String url = getApiUrl() + "/v5/user_account";
         String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO updateUserInfo(MessageDTO message) throws Exception {
-        Map<String, Object> updateData = message.getPayloadAsMap();
+        Map<String, Object> updateData = getPayloadAsMap(message);
 
-        String url = config.getApiUrl() + "/v5/user_account";
+        String url = getApiUrl() + "/v5/user_account";
         String response = executeApiCall(() -> makePatchRequest(url, updateData));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO followUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
+        String username = getHeader(message, "username");
 
         Map<String, Object> request = Map.of("auto_follow", false);
 
-        String url = config.getApiUrl() + "/v5/user_account/following/" + username;
+        String url = getApiUrl() + "/v5/user_account/following/" + username;
         String response = executeApiCall(() -> makePutRequest(url, request));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO unfollowUser(MessageDTO message) throws Exception {
-        String username = message.getHeader("username");
+        String username = getHeader(message, "username");
 
-        String url = config.getApiUrl() + "/v5/user_account/following/" + username;
+        String url = getApiUrl() + "/v5/user_account/following/" + username;
         String response = executeApiCall(() -> makeDeleteRequest(url));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getFollowers(MessageDTO message) throws Exception {
         Map<String, String> params = new HashMap<>();
-        params.put("page_size", message.getHeader("pageSize", "25"));
+        params.put("page_size", getHeader(message, "pageSize", "25"));
         addOptionalParam(params, message, "bookmark");
 
-        String url = config.getApiUrl() + "/v5/user_account/followers";
+        String url = getApiUrl() + "/v5/user_account/followers";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO getFollowing(MessageDTO message) throws Exception {
-        String followingType = message.getHeader("followingType", "USERS");
+        String followingType = getHeader(message, "followingType", "USERS");
         Map<String, String> params = new HashMap<>();
         params.put("feed_type", followingType);
-        params.put("page_size", message.getHeader("pageSize", "25"));
+        params.put("page_size", getHeader(message, "pageSize", "25"));
         addOptionalParam(params, message, "bookmark");
 
-        String url = config.getApiUrl() + "/v5/user_account/following";
+        String url = getApiUrl() + "/v5/user_account/following";
         String response = executeApiCall(() -> makeGetRequest(url, params));
 
-        return createSuccessResponse(message, response);
+        return createSuccessResponse(message.getCorrelationId(), response, "OPERATION");
     }
 
     private MessageDTO uploadImage(MessageDTO message) throws Exception {
-        byte[] imageData = message.getPayloadAsBytes();
-        String mediaType = message.getHeader("mediaType", "image/jpeg");
+        byte[] imageData = getPayloadAsBytes(message);
+        String mediaType = getHeader(message, "mediaType", "image/jpeg");
 
         // Validate image size
         if(imageData.length > config.getLimits().getMaxImageSizeMB() * 1024 * 1024) {
@@ -649,7 +661,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
 
         // Register media upload
         Map<String, Object> registerRequest = Map.of("media_type", mediaType);
-        String registerUrl = config.getApiUrl() + "/v5/media";
+        String registerUrl = getApiUrl() + "/v5/media";
         String registerResponse = executeApiCall(() -> makePostRequest(registerUrl, registerRequest));
         Map<String, Object> uploadData = parseJsonResponse(registerResponse);
 
@@ -671,8 +683,8 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     private MessageDTO uploadVideo(MessageDTO message) throws Exception {
-        byte[] videoData = message.getPayloadAsBytes();
-        String mediaType = message.getHeader("mediaType", "video/mp4");
+        byte[] videoData = getPayloadAsBytes(message);
+        String mediaType = getHeader(message, "mediaType", "video/mp4");
 
         // Validate video size
         if(videoData.length > config.getLimits().getMaxVideoSizeMB() * 1024 * 1024) {
@@ -681,7 +693,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
 
         // Similar upload process as image
         Map<String, Object> registerRequest = Map.of("media_type", mediaType);
-        String registerUrl = config.getApiUrl() + "/v5/media";
+        String registerUrl = getApiUrl() + "/v5/media";
         String registerResponse = executeApiCall(() -> makePostRequest(registerUrl, registerRequest));
         Map<String, Object> uploadData = parseJsonResponse(registerResponse);
 
@@ -705,15 +717,15 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     // Helper methods
     private Map<String, String> buildAnalyticsParams(MessageDTO message) {
         Map<String, String> params = new HashMap<>();
-        params.put("start_date", message.getHeader("startDate"));
-        params.put("end_date", message.getHeader("endDate"));
+        params.put("start_date", getHeader(message, "startDate"));
+        params.put("end_date", getHeader(message, "endDate"));
 
-        String metrics = message.getHeader("metrics");
+        String metrics = getHeader(message, "metrics");
         if(metrics != null) {
             params.put("metric_types", metrics);
         }
 
-        String granularity = message.getHeader("granularity");
+        String granularity = getHeader(message, "granularity");
         if(granularity != null) {
             params.put("granularity", granularity);
         }
@@ -736,7 +748,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
     }
 
     private void addOptionalParam(Map<String, String> params, MessageDTO message, String param) {
-        String value = message.getHeader(param);
+        String value = getHeader(message, param);
         if(value != null) {
             params.put(param, value);
         }
@@ -769,7 +781,7 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
         StringBuilder urlWithParams = new StringBuilder(url);
         if(!params.isEmpty()) {
             urlWithParams.append("?");
-            params.forEach((key, value) -> urlWithParams.append(key).append(" = ").append(value).append("&"));
+            params.forEach((key, value) -> urlWithParams.append(key).append("=").append(value).append("&"));
             urlWithParams.deleteCharAt(urlWithParams.length() - 1);
         }
 
@@ -794,6 +806,97 @@ public class PinterestOutboundAdapter extends AbstractSocialMediaOutboundAdapter
 
     @Override
     public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
-        return AdapterConfiguration.AdapterTypeEnum.PINTEREST;
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    // Required abstract methods from AbstractOutboundAdapter
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.debug("Initializing Pinterest outbound adapter receiver");
+    }
+    
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.debug("Destroying Pinterest outbound adapter receiver");
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Pinterest outbound adapter doesn't support receiving
+        return AdapterResult.failure("Pinterest outbound adapter does not support receiving messages");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test by getting user info
+            String url = getApiUrl() + "/v5/user_account";
+            String response = executeApiCall(() -> makeGetRequest(url, new HashMap<>()));
+            
+            if (response != null) {
+                return AdapterResult.success(null, "Pinterest API connection successful");
+            } else {
+                return AdapterResult.failure("Pinterest API connection failed");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test Pinterest connection: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    protected long getPollingIntervalMs() {
+        // Pinterest outbound adapter doesn't support polling
+        return 0;
+    }
+    
+    // Helper methods for MessageDTO access
+    private String getHeader(MessageDTO message, String key) {
+        return message.getHeaders() != null ? 
+            (String) message.getHeaders().get(key) : null;
+    }
+    
+    private String getHeader(MessageDTO message, String key, String defaultValue) {
+        String value = getHeader(message, key);
+        return value != null ? value : defaultValue;
+    }
+    
+    private Map<String, Object> getPayloadAsMap(MessageDTO message) {
+        try {
+            if (message.getPayload() != null) {
+                return objectMapper.readValue(message.getPayload(), Map.class);
+            }
+        } catch (Exception e) {
+            log.error("Error parsing payload as map", e);
+        }
+        return new HashMap<>();
+    }
+    
+    private byte[] getPayloadAsBytes(MessageDTO message) {
+        if (message.getPayload() != null) {
+            return message.getPayload().getBytes();
+        }
+        return new byte[0];
+    }
+    
+    private String getApiUrl() {
+        return config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://api.pinterest.com";
+    }
+    
+    private Map<String, Object> parseJsonResponse(String response) {
+        try {
+            return objectMapper.readValue(response, Map.class);
+        } catch (Exception e) {
+            log.error("Error parsing JSON response", e);
+            return new HashMap<>();
+        }
+    }
+    
+    private MessageDTO createSuccessResponse(MessageDTO message, Map<String, Object> data) {
+        try {
+            String payload = objectMapper.writeValueAsString(data);
+            return createSuccessResponse(message.getCorrelationId(), payload, "RESPONSE");
+        } catch (Exception e) {
+            return createErrorResponse(message, "Failed to serialize response: " + e.getMessage());
+        }
     }
 }

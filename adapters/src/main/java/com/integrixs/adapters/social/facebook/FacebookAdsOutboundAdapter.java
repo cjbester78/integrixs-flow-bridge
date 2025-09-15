@@ -8,6 +8,8 @@ import com.integrixs.adapters.social.facebook.FacebookAdsApiConfig;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.enums.AdapterType;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,18 +43,17 @@ public class FacebookAdsOutboundAdapter extends AbstractOutboundAdapter {
     public FacebookAdsOutboundAdapter(
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super(AdapterConfiguration.AdapterTypeEnum.REST);
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public AdapterType getType() {
         return AdapterType.REST;
     }
 
-    @Override
     public void send(MessageDTO message, String flowId, Map<String, Object> configuration) {
-        String operation = message.getHeaders().get("operation");
+        String operation = (String) message.getHeaders().get("operation");
         if(operation == null) {
             throw new RuntimeException("Operation header is required");
         }
@@ -745,7 +746,7 @@ public class FacebookAdsOutboundAdapter extends AbstractOutboundAdapter {
         MessageDTO response = new MessageDTO();
         response.setCorrelationId(messageId);
         response.setStatus(MessageStatus.SUCCESS);
-        response.setTimestamp(Instant.now());
+        response.setTimestamp(LocalDateTime.now());
         response.setHeaders(Map.of(
             "operation", operation,
             "source", "facebook_ads"
@@ -771,5 +772,74 @@ public class FacebookAdsOutboundAdapter extends AbstractOutboundAdapter {
         if(configuration.get("accessToken") == null || configuration.get("accessToken").toString().isEmpty()) {
             throw new AdapterException("Access token is required");
         }
+    }
+    
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.debug("Initializing Facebook Ads receiver");
+    }
+    
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.debug("Destroying Facebook Ads receiver");
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Facebook Ads doesn't support inbound receiving
+        return AdapterResult.failure("Facebook Ads adapter does not support receiving messages");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by getting ad account info
+            Map<String, Object> configuration = new HashMap<>();
+            // Configuration would be provided by the framework
+            
+            String baseUrl = (String) configuration.getOrDefault("baseUrl", "https://graph.facebook.com");
+            String apiVersion = (String) configuration.getOrDefault("apiVersion", "v18.0");
+            String adAccountId = (String) configuration.get("adAccountId");
+            
+            if (adAccountId == null) {
+                return AdapterResult.failure("Ad Account ID not configured");
+            }
+            
+            String url = String.format("%s/%s/act_%s", baseUrl, apiVersion, adAccountId);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + getAccessToken(configuration));
+            
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "Facebook Ads API connection successful");
+            } else {
+                return AdapterResult.failure("Facebook Ads API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("Error testing Facebook Ads connection", e);
+            return AdapterResult.failure("Failed to test Facebook Ads connection: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public long getPollingIntervalMs() {
+        // Facebook Ads doesn't support polling
+        return 0;
+    }
+    
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        // Return default configuration
+        configMap.put("baseUrl", "https://graph.facebook.com");
+        configMap.put("apiVersion", "v18.0");
+        return configMap;
     }
 }

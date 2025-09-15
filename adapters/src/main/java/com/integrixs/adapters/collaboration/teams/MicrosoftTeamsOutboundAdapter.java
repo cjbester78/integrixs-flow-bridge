@@ -9,7 +9,6 @@ import com.integrixs.adapters.collaboration.teams.MicrosoftTeamsApiConfig.*;
 import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.dto.MessageDTO;
-import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.CredentialEncryptionService;
@@ -26,7 +25,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,7 +62,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
 
     @Override
     public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
-        return AdapterConfiguration.AdapterTypeEnum.TEAMS;
+        return AdapterConfiguration.AdapterTypeEnum.REST;
     }
 
     @Override
@@ -297,7 +295,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             }
         } catch(Exception e) {
             log.error("Error refreshing access token", e);
-            throw new AdapterException("Failed to refresh access token", e);
+            throw new RuntimeException("Failed to refresh access token", e);
         }
     }
 
@@ -353,7 +351,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, message);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO replyToMessage(JsonNode content) throws Exception {
@@ -371,7 +369,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         reply.put("body", body);
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, reply);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO updateMessage(JsonNode content) throws Exception {
@@ -403,7 +401,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         update.put("body", body);
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.PATCH, update);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO deleteMessage(JsonNode content) throws Exception {
@@ -422,7 +420,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("deleted", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("deleted", true));
     }
 
     private MessageDTO sendActivityNotification(JsonNode content) throws Exception {
@@ -441,7 +439,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         makeGraphApiRequest(endpoint, HttpMethod.POST, notification);
-        return createSuccessResponse(Map.of("sent", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("sent", true));
     }
 
     // Chat management methods
@@ -470,7 +468,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         chat.put("members", members);
 
         JsonNode response = makeGraphApiRequest("/chats", HttpMethod.POST, chat);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO getChat(JsonNode content) throws Exception {
@@ -481,7 +479,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.GET, null);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO updateChat(JsonNode content) throws Exception {
@@ -493,7 +491,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.PATCH, update);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO addChatMembers(JsonNode content) throws Exception {
@@ -514,7 +512,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             makeGraphApiRequest(endpoint, HttpMethod.POST, memberData);
         }
 
-        return createSuccessResponse(Map.of("membersAdded", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("membersAdded", true));
     }
 
     private MessageDTO removeChatMember(JsonNode content) throws Exception {
@@ -523,7 +521,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("membershipId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("memberRemoved", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("memberRemoved", true));
     }
 
     // Team management methods
@@ -591,7 +589,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             return createSuccessResponse(result);
         }
 
-        return createSuccessResponse(Map.of("created", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("created", true));
     }
 
     private MessageDTO updateTeam(JsonNode content) throws Exception {
@@ -624,7 +622,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.PATCH, update);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO archiveTeam(JsonNode content) throws Exception {
@@ -637,14 +635,14 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         makeGraphApiRequest(endpoint, HttpMethod.POST, params);
-        return createSuccessResponse(Map.of("archived", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("archived", true));
     }
 
     private MessageDTO unarchiveTeam(JsonNode content) throws Exception {
         String endpoint = String.format("/teams/%s/unarchive", content.get("teamId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.POST, null);
-        return createSuccessResponse(Map.of("unarchived", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("unarchived", true));
     }
 
     private MessageDTO addTeamMember(JsonNode content) throws Exception {
@@ -660,7 +658,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             Arrays.asList("member"));
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, member);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO removeTeamMember(JsonNode content) throws Exception {
@@ -669,7 +667,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("membershipId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("removed", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("removed", true));
     }
 
     // Channel management methods
@@ -704,7 +702,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, channel);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO updateChannel(JsonNode content) throws Exception {
@@ -722,7 +720,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.PATCH, update);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO deleteChannel(JsonNode content) throws Exception {
@@ -731,7 +729,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("channelId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("deleted", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("deleted", true));
     }
 
     private MessageDTO addChannelMember(JsonNode content) throws Exception {
@@ -749,7 +747,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             Arrays.asList("member"));
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, member);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO removeChannelMember(JsonNode content) throws Exception {
@@ -759,7 +757,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("membershipId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("removed", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("removed", true));
     }
 
     // Meeting methods
@@ -803,7 +801,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest("/me/onlineMeetings", HttpMethod.POST, meeting);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO updateOnlineMeeting(JsonNode content) throws Exception {
@@ -823,7 +821,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.PATCH, update);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO deleteOnlineMeeting(JsonNode content) throws Exception {
@@ -831,7 +829,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("meetingId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("deleted", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("deleted", true));
     }
 
     private MessageDTO getMeetingAttendance(JsonNode content) throws Exception {
@@ -839,7 +837,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("meetingId").asText());
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.GET, null);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     // File methods
@@ -890,7 +888,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("scope").asText() : "organization");
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, shareRequest);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     // Tab methods
@@ -913,7 +911,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, tab);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO updateChannelTab(JsonNode content) throws Exception {
@@ -932,7 +930,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.PATCH, update);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO deleteChannelTab(JsonNode content) throws Exception {
@@ -942,7 +940,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             content.get("tabId").asText());
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("deleted", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("deleted", true));
     }
 
     // Bot methods
@@ -1093,7 +1091,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.POST, installation);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO uninstallApp(JsonNode content) throws Exception {
@@ -1112,7 +1110,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         makeGraphApiRequest(endpoint, HttpMethod.DELETE, null);
-        return createSuccessResponse(Map.of("uninstalled", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("uninstalled", true));
     }
 
     private MessageDTO updateApp(JsonNode content) throws Exception {
@@ -1136,7 +1134,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         makeGraphApiRequest(endpoint, HttpMethod.POST, upgrade);
-        return createSuccessResponse(Map.of("upgraded", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("upgraded", true));
     }
 
     // Batch operations
@@ -1169,7 +1167,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         Map<String, Object> batch = Map.of("requests", requests);
 
         JsonNode response = makeGraphApiRequest("/$batch", HttpMethod.POST, batch);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     // Search methods
@@ -1192,7 +1190,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         searchRequest.put("requests", requests);
 
         JsonNode response = makeGraphApiRequest("/search/query", HttpMethod.POST, searchRequest);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO searchTeams(JsonNode content) throws Exception {
@@ -1204,7 +1202,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             "resourceProvisioningOptions/Any(x:x eq 'Team') and(" + filter + ")";
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.GET, null);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     // Presence methods
@@ -1212,7 +1210,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         String endpoint = String.format("/users/%s/presence", content.get("userId").asText());
 
         JsonNode response = makeGraphApiRequest(endpoint, HttpMethod.GET, null);
-        return createSuccessResponse(response);
+        return createSuccessResponse(objectMapper.valueToTree(response));
     }
 
     private MessageDTO setUserPresence(JsonNode content) throws Exception {
@@ -1230,7 +1228,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         makeGraphApiRequest(endpoint, HttpMethod.POST, presence);
-        return createSuccessResponse(Map.of("presenceSet", true));
+        return createSuccessResponse(objectMapper.createObjectNode().put("presenceSet", true));
     }
 
     // Helper methods
@@ -1408,7 +1406,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         } catch(Exception e) {
             message.setPayload(result.toString());
         }
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         return message;
     }
     
@@ -1421,7 +1419,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         } catch(Exception e) {
             response.setPayload(data.toString());
         }
-        response.setMessageTimestamp(Instant.now());
+        response.setTimestamp(LocalDateTime.now());
         return response;
     }
 
@@ -1438,7 +1436,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
         } catch(Exception e) {
             message.setPayload(result.toString());
         }
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         return message;
     }
     
@@ -1498,7 +1496,7 @@ public class MicrosoftTeamsOutboundAdapter extends AbstractSocialMediaOutboundAd
             );
             
             if (response.getStatusCode().is2xxSuccessful()) {
-                return AdapterResult.success("Connected to Microsoft Teams successfully");
+                return AdapterResult.success(null, "Connected to Microsoft Teams successfully");
             } else {
                 return AdapterResult.failure("Failed to connect to Microsoft Teams");
             }

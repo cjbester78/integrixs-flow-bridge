@@ -599,6 +599,16 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     public String getPlatformName() {
         return "discord";
     }
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://discord.com/api/oauth2/authorize";
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return "https://discord.com/api/oauth2/token";
+    }
 
     // Getters and Setters
     public String getClientId() {

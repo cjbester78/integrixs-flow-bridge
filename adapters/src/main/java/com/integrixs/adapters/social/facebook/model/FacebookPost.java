@@ -46,6 +46,114 @@ public class FacebookPost {
         private List<String> behaviors;
         private Map<String, Object> customAudiences;
         private String audienceOptimization; // "NONE", "INTEREST_BASED", "CUSTOM"
+        
+        public static Builder builder() {
+            return new Builder();
+        }
+        
+        public static class Builder {
+            private List<String> countries;
+            private Integer ageMin;
+            private Integer ageMax;
+            private List<String> interests;
+            
+            public Builder countries(List<String> countries) {
+                this.countries = countries;
+                return this;
+            }
+            
+            public Builder ageMin(Integer ageMin) {
+                this.ageMin = ageMin;
+                return this;
+            }
+            
+            public Builder ageMax(Integer ageMax) {
+                this.ageMax = ageMax;
+                return this;
+            }
+            
+            public Builder interests(List<String> interests) {
+                this.interests = interests;
+                return this;
+            }
+            
+            public FacebookTargeting build() {
+                FacebookTargeting targeting = new FacebookTargeting();
+                targeting.countries = this.countries;
+                targeting.ageMin = this.ageMin;
+                targeting.ageMax = this.ageMax;
+                targeting.interests = this.interests;
+                return targeting;
+            }
+        }
+        
+        // Getters and Setters for FacebookTargeting
+        public List<String> getCountries() {
+            return countries;
+        }
+        public void setCountries(List<String> countries) {
+            this.countries = countries;
+        }
+        public List<String> getCities() {
+            return cities;
+        }
+        public void setCities(List<String> cities) {
+            this.cities = cities;
+        }
+        public List<String> getRegions() {
+            return regions;
+        }
+        public void setRegions(List<String> regions) {
+            this.regions = regions;
+        }
+        public List<String> getLocales() {
+            return locales;
+        }
+        public void setLocales(List<String> locales) {
+            this.locales = locales;
+        }
+        public Integer getAgeMin() {
+            return ageMin;
+        }
+        public void setAgeMin(Integer ageMin) {
+            this.ageMin = ageMin;
+        }
+        public Integer getAgeMax() {
+            return ageMax;
+        }
+        public void setAgeMax(Integer ageMax) {
+            this.ageMax = ageMax;
+        }
+        public List<Integer> getGenders() {
+            return genders;
+        }
+        public void setGenders(List<Integer> genders) {
+            this.genders = genders;
+        }
+        public List<String> getInterests() {
+            return interests;
+        }
+        public void setInterests(List<String> interests) {
+            this.interests = interests;
+        }
+        public List<String> getBehaviors() {
+            return behaviors;
+        }
+        public void setBehaviors(List<String> behaviors) {
+            this.behaviors = behaviors;
+        }
+        public Map<String, Object> getCustomAudiences() {
+            return customAudiences;
+        }
+        public void setCustomAudiences(Map<String, Object> customAudiences) {
+            this.customAudiences = customAudiences;
+        }
+        public String getAudienceOptimization() {
+            return audienceOptimization;
+        }
+        public void setAudienceOptimization(String audienceOptimization) {
+            this.audienceOptimization = audienceOptimization;
+        }
     }
     // Getters and Setters
     public String getMessage() {
@@ -144,72 +252,6 @@ public class FacebookPost {
     public void setLiveVideoDescription(String liveVideoDescription) {
         this.liveVideoDescription = liveVideoDescription;
     }
-    public List<String> getCountries() {
-        return countries;
-    }
-    public void setCountries(List<String> countries) {
-        this.countries = countries;
-    }
-    public List<String> getCities() {
-        return cities;
-    }
-    public void setCities(List<String> cities) {
-        this.cities = cities;
-    }
-    public List<String> getRegions() {
-        return regions;
-    }
-    public void setRegions(List<String> regions) {
-        this.regions = regions;
-    }
-    public List<String> getLocales() {
-        return locales;
-    }
-    public void setLocales(List<String> locales) {
-        this.locales = locales;
-    }
-    public Integer getAgeMin() {
-        return ageMin;
-    }
-    public void setAgeMin(Integer ageMin) {
-        this.ageMin = ageMin;
-    }
-    public Integer getAgeMax() {
-        return ageMax;
-    }
-    public void setAgeMax(Integer ageMax) {
-        this.ageMax = ageMax;
-    }
-    public List<Integer> getGenders() {
-        return genders;
-    }
-    public void setGenders(List<Integer> genders) {
-        this.genders = genders;
-    }
-    public List<String> getInterests() {
-        return interests;
-    }
-    public void setInterests(List<String> interests) {
-        this.interests = interests;
-    }
-    public List<String> getBehaviors() {
-        return behaviors;
-    }
-    public void setBehaviors(List<String> behaviors) {
-        this.behaviors = behaviors;
-    }
-    public Map<String, Object> getCustomAudiences() {
-        return customAudiences;
-    }
-    public void setCustomAudiences(Map<String, Object> customAudiences) {
-        this.customAudiences = customAudiences;
-    }
-    public String getAudienceOptimization() {
-        return audienceOptimization;
-    }
-    public void setAudienceOptimization(String audienceOptimization) {
-        this.audienceOptimization = audienceOptimization;
-    }
     // Builder pattern
     public static Builder builder() {
         return new Builder();
@@ -232,17 +274,6 @@ public class FacebookPost {
         private boolean isLiveVideo;
         private String liveVideoTitle;
         private String liveVideoDescription;
-        private List<String> countries;
-        private List<String> cities;
-        private List<String> regions;
-        private List<String> locales;
-        private Integer ageMin;
-        private Integer ageMax;
-        private List<Integer> genders;
-        private List<String> interests;
-        private List<String> behaviors;
-        private Map<String, Object> customAudiences;
-        private String audienceOptimization;
 
         public Builder message(String message) {
             this.message = message;
@@ -324,61 +355,6 @@ public class FacebookPost {
             return this;
         }
 
-        public Builder countries(List<String> countries) {
-            this.countries = countries;
-            return this;
-        }
-
-        public Builder cities(List<String> cities) {
-            this.cities = cities;
-            return this;
-        }
-
-        public Builder regions(List<String> regions) {
-            this.regions = regions;
-            return this;
-        }
-
-        public Builder locales(List<String> locales) {
-            this.locales = locales;
-            return this;
-        }
-
-        public Builder ageMin(Integer ageMin) {
-            this.ageMin = ageMin;
-            return this;
-        }
-
-        public Builder ageMax(Integer ageMax) {
-            this.ageMax = ageMax;
-            return this;
-        }
-
-        public Builder genders(List<Integer> genders) {
-            this.genders = genders;
-            return this;
-        }
-
-        public Builder interests(List<String> interests) {
-            this.interests = interests;
-            return this;
-        }
-
-        public Builder behaviors(List<String> behaviors) {
-            this.behaviors = behaviors;
-            return this;
-        }
-
-        public Builder customAudiences(Map<String, Object> customAudiences) {
-            this.customAudiences = customAudiences;
-            return this;
-        }
-
-        public Builder audienceOptimization(String audienceOptimization) {
-            this.audienceOptimization = audienceOptimization;
-            return this;
-        }
-
         public FacebookPost build() {
             FacebookPost obj = new FacebookPost();
             obj.message = this.message;
@@ -397,17 +373,6 @@ public class FacebookPost {
             obj.isLiveVideo = this.isLiveVideo;
             obj.liveVideoTitle = this.liveVideoTitle;
             obj.liveVideoDescription = this.liveVideoDescription;
-            obj.countries = this.countries;
-            obj.cities = this.cities;
-            obj.regions = this.regions;
-            obj.locales = this.locales;
-            obj.ageMin = this.ageMin;
-            obj.ageMax = this.ageMax;
-            obj.genders = this.genders;
-            obj.interests = this.interests;
-            obj.behaviors = this.behaviors;
-            obj.customAudiences = this.customAudiences;
-            obj.audienceOptimization = this.audienceOptimization;
             return obj;
         }
     }

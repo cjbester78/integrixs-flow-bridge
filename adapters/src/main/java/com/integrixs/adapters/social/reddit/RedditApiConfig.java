@@ -9,15 +9,29 @@ import java.util.List;
 @ConfigurationProperties(prefix = "integrixs.adapters.reddit")
 public class RedditApiConfig extends SocialMediaAdapterConfig {
 
-    private String clientId;
-    private String clientSecret;
     private String userAgent;
     private String username;
     private String password;
     private RedditFeatures features = new RedditFeatures();
     private RedditLimits limits = new RedditLimits();
+    private RedditPollingConfig pollingConfig = new RedditPollingConfig();
 
-        public static class RedditFeatures {
+    @Override
+    public String getPlatformName() {
+        return "reddit";
+    }
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://www.reddit.com/api/v1/authorize";
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return "https://www.reddit.com/api/v1/access_token";
+    }
+
+    public static class RedditFeatures {
         private boolean enablePostManagement = true;
         private boolean enableCommentManagement = true;
         private boolean enableSubredditMonitoring = true;
@@ -36,6 +50,44 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         private boolean enableCrossposting = true;
         private boolean enableScheduledPosts = true;
         private boolean enableAnalytics = true;
+        
+        // Getters and Setters for RedditFeatures
+        public boolean isEnablePostManagement() { return enablePostManagement; }
+        public void setEnablePostManagement(boolean enablePostManagement) { this.enablePostManagement = enablePostManagement; }
+        public boolean isEnableCommentManagement() { return enableCommentManagement; }
+        public void setEnableCommentManagement(boolean enableCommentManagement) { this.enableCommentManagement = enableCommentManagement; }
+        public boolean isEnableSubredditMonitoring() { return enableSubredditMonitoring; }
+        public void setEnableSubredditMonitoring(boolean enableSubredditMonitoring) { this.enableSubredditMonitoring = enableSubredditMonitoring; }
+        public boolean isEnableUserTracking() { return enableUserTracking; }
+        public void setEnableUserTracking(boolean enableUserTracking) { this.enableUserTracking = enableUserTracking; }
+        public boolean isEnableModeration() { return enableModeration; }
+        public void setEnableModeration(boolean enableModeration) { this.enableModeration = enableModeration; }
+        public boolean isEnableWikiManagement() { return enableWikiManagement; }
+        public void setEnableWikiManagement(boolean enableWikiManagement) { this.enableWikiManagement = enableWikiManagement; }
+        public boolean isEnableFlairManagement() { return enableFlairManagement; }
+        public void setEnableFlairManagement(boolean enableFlairManagement) { this.enableFlairManagement = enableFlairManagement; }
+        public boolean isEnableMultireddit() { return enableMultireddit; }
+        public void setEnableMultireddit(boolean enableMultireddit) { this.enableMultireddit = enableMultireddit; }
+        public boolean isEnableLiveThreads() { return enableLiveThreads; }
+        public void setEnableLiveThreads(boolean enableLiveThreads) { this.enableLiveThreads = enableLiveThreads; }
+        public boolean isEnablePrivateMessages() { return enablePrivateMessages; }
+        public void setEnablePrivateMessages(boolean enablePrivateMessages) { this.enablePrivateMessages = enablePrivateMessages; }
+        public boolean isEnableSearch() { return enableSearch; }
+        public void setEnableSearch(boolean enableSearch) { this.enableSearch = enableSearch; }
+        public boolean isEnableVoting() { return enableVoting; }
+        public void setEnableVoting(boolean enableVoting) { this.enableVoting = enableVoting; }
+        public boolean isEnableAwards() { return enableAwards; }
+        public void setEnableAwards(boolean enableAwards) { this.enableAwards = enableAwards; }
+        public boolean isEnablePolls() { return enablePolls; }
+        public void setEnablePolls(boolean enablePolls) { this.enablePolls = enablePolls; }
+        public boolean isEnableCollections() { return enableCollections; }
+        public void setEnableCollections(boolean enableCollections) { this.enableCollections = enableCollections; }
+        public boolean isEnableCrossposting() { return enableCrossposting; }
+        public void setEnableCrossposting(boolean enableCrossposting) { this.enableCrossposting = enableCrossposting; }
+        public boolean isEnableScheduledPosts() { return enableScheduledPosts; }
+        public void setEnableScheduledPosts(boolean enableScheduledPosts) { this.enableScheduledPosts = enableScheduledPosts; }
+        public boolean isEnableAnalytics() { return enableAnalytics; }
+        public void setEnableAnalytics(boolean enableAnalytics) { this.enableAnalytics = enableAnalytics; }
     }
 
         public static class RedditLimits {
@@ -54,6 +106,61 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         private int maxGifSizeMB = 200;
         private int maxPollOptions = 6;
         private int maxPollDurationDays = 7;
+        
+        // Getters and Setters for RedditLimits
+        public int getMaxTitleLength() { return maxTitleLength; }
+        public void setMaxTitleLength(int maxTitleLength) { this.maxTitleLength = maxTitleLength; }
+        public int getMaxTextLength() { return maxTextLength; }
+        public void setMaxTextLength(int maxTextLength) { this.maxTextLength = maxTextLength; }
+        public int getMaxCommentLength() { return maxCommentLength; }
+        public void setMaxCommentLength(int maxCommentLength) { this.maxCommentLength = maxCommentLength; }
+        public int getMaxSubredditsPerMulti() { return maxSubredditsPerMulti; }
+        public void setMaxSubredditsPerMulti(int maxSubredditsPerMulti) { this.maxSubredditsPerMulti = maxSubredditsPerMulti; }
+        public int getMaxFlairLength() { return maxFlairLength; }
+        public void setMaxFlairLength(int maxFlairLength) { this.maxFlairLength = maxFlairLength; }
+        public int getMaxWikiPageSize() { return maxWikiPageSize; }
+        public void setMaxWikiPageSize(int maxWikiPageSize) { this.maxWikiPageSize = maxWikiPageSize; }
+        public int getMaxSearchResults() { return maxSearchResults; }
+        public void setMaxSearchResults(int maxSearchResults) { this.maxSearchResults = maxSearchResults; }
+        public int getMaxListingItems() { return maxListingItems; }
+        public void setMaxListingItems(int maxListingItems) { this.maxListingItems = maxListingItems; }
+        public int getRateLimitPerMinute() { return rateLimitPerMinute; }
+        public void setRateLimitPerMinute(int rateLimitPerMinute) { this.rateLimitPerMinute = rateLimitPerMinute; }
+        public int getOauthRateLimitPerMinute() { return oauthRateLimitPerMinute; }
+        public void setOauthRateLimitPerMinute(int oauthRateLimitPerMinute) { this.oauthRateLimitPerMinute = oauthRateLimitPerMinute; }
+        public int getMaxImageSizeMB() { return maxImageSizeMB; }
+        public void setMaxImageSizeMB(int maxImageSizeMB) { this.maxImageSizeMB = maxImageSizeMB; }
+        public int getMaxVideoSizeMB() { return maxVideoSizeMB; }
+        public void setMaxVideoSizeMB(int maxVideoSizeMB) { this.maxVideoSizeMB = maxVideoSizeMB; }
+        public int getMaxGifSizeMB() { return maxGifSizeMB; }
+        public void setMaxGifSizeMB(int maxGifSizeMB) { this.maxGifSizeMB = maxGifSizeMB; }
+        public int getMaxPollOptions() { return maxPollOptions; }
+        public void setMaxPollOptions(int maxPollOptions) { this.maxPollOptions = maxPollOptions; }
+        public int getMaxPollDurationDays() { return maxPollDurationDays; }
+        public void setMaxPollDurationDays(int maxPollDurationDays) { this.maxPollDurationDays = maxPollDurationDays; }
+    }
+    
+    public static class RedditPollingConfig {
+        private boolean enabled = true;
+        private List<String> monitoredSubreddits;
+        private List<String> moderatedSubreddits;
+        private boolean pollSubscribedSubreddits = true;
+        private boolean pollUserComments = true;
+        private boolean pollCommentReplies = true;
+        
+        // Getters and Setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public List<String> getMonitoredSubreddits() { return monitoredSubreddits; }
+        public void setMonitoredSubreddits(List<String> monitoredSubreddits) { this.monitoredSubreddits = monitoredSubreddits; }
+        public List<String> getModeratedSubreddits() { return moderatedSubreddits; }
+        public void setModeratedSubreddits(List<String> moderatedSubreddits) { this.moderatedSubreddits = moderatedSubreddits; }
+        public boolean isPollSubscribedSubreddits() { return pollSubscribedSubreddits; }
+        public void setPollSubscribedSubreddits(boolean pollSubscribedSubreddits) { this.pollSubscribedSubreddits = pollSubscribedSubreddits; }
+        public boolean isPollUserComments() { return pollUserComments; }
+        public void setPollUserComments(boolean pollUserComments) { this.pollUserComments = pollUserComments; }
+        public boolean isPollCommentReplies() { return pollCommentReplies; }
+        public void setPollCommentReplies(boolean pollCommentReplies) { this.pollCommentReplies = pollCommentReplies; }
     }
 
     // Post types
@@ -320,18 +427,6 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
         public int getCode() { return code; }
     }
     // Getters and Setters
-    public String getClientId() {
-        return clientId;
-    }
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-    public String getClientSecret() {
-        return clientSecret;
-    }
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
     public String getUserAgent() {
         return userAgent;
     }
@@ -362,202 +457,207 @@ public class RedditApiConfig extends SocialMediaAdapterConfig {
     public void setLimits(RedditLimits limits) {
         this.limits = limits;
     }
+    // Delegate methods to access feature flags
     public boolean isEnablePostManagement() {
-        return enablePostManagement;
+        return features.isEnablePostManagement();
     }
     public void setEnablePostManagement(boolean enablePostManagement) {
-        this.enablePostManagement = enablePostManagement;
+        features.setEnablePostManagement(enablePostManagement);
     }
     public boolean isEnableCommentManagement() {
-        return enableCommentManagement;
+        return features.isEnableCommentManagement();
     }
     public void setEnableCommentManagement(boolean enableCommentManagement) {
-        this.enableCommentManagement = enableCommentManagement;
+        features.setEnableCommentManagement(enableCommentManagement);
     }
     public boolean isEnableSubredditMonitoring() {
-        return enableSubredditMonitoring;
+        return features.isEnableSubredditMonitoring();
     }
     public void setEnableSubredditMonitoring(boolean enableSubredditMonitoring) {
-        this.enableSubredditMonitoring = enableSubredditMonitoring;
+        features.setEnableSubredditMonitoring(enableSubredditMonitoring);
     }
     public boolean isEnableUserTracking() {
-        return enableUserTracking;
+        return features.isEnableUserTracking();
     }
     public void setEnableUserTracking(boolean enableUserTracking) {
-        this.enableUserTracking = enableUserTracking;
+        features.setEnableUserTracking(enableUserTracking);
     }
     public boolean isEnableModeration() {
-        return enableModeration;
+        return features.isEnableModeration();
     }
     public void setEnableModeration(boolean enableModeration) {
-        this.enableModeration = enableModeration;
+        features.setEnableModeration(enableModeration);
     }
     public boolean isEnableWikiManagement() {
-        return enableWikiManagement;
+        return features.isEnableWikiManagement();
     }
     public void setEnableWikiManagement(boolean enableWikiManagement) {
-        this.enableWikiManagement = enableWikiManagement;
+        features.setEnableWikiManagement(enableWikiManagement);
     }
     public boolean isEnableFlairManagement() {
-        return enableFlairManagement;
+        return features.isEnableFlairManagement();
     }
     public void setEnableFlairManagement(boolean enableFlairManagement) {
-        this.enableFlairManagement = enableFlairManagement;
+        features.setEnableFlairManagement(enableFlairManagement);
     }
     public boolean isEnableMultireddit() {
-        return enableMultireddit;
+        return features.isEnableMultireddit();
     }
     public void setEnableMultireddit(boolean enableMultireddit) {
-        this.enableMultireddit = enableMultireddit;
+        features.setEnableMultireddit(enableMultireddit);
     }
     public boolean isEnableLiveThreads() {
-        return enableLiveThreads;
+        return features.isEnableLiveThreads();
     }
     public void setEnableLiveThreads(boolean enableLiveThreads) {
-        this.enableLiveThreads = enableLiveThreads;
+        features.setEnableLiveThreads(enableLiveThreads);
     }
     public boolean isEnablePrivateMessages() {
-        return enablePrivateMessages;
+        return features.isEnablePrivateMessages();
     }
     public void setEnablePrivateMessages(boolean enablePrivateMessages) {
-        this.enablePrivateMessages = enablePrivateMessages;
+        features.setEnablePrivateMessages(enablePrivateMessages);
     }
     public boolean isEnableSearch() {
-        return enableSearch;
+        return features.isEnableSearch();
     }
     public void setEnableSearch(boolean enableSearch) {
-        this.enableSearch = enableSearch;
+        features.setEnableSearch(enableSearch);
     }
     public boolean isEnableVoting() {
-        return enableVoting;
+        return features.isEnableVoting();
     }
     public void setEnableVoting(boolean enableVoting) {
-        this.enableVoting = enableVoting;
+        features.setEnableVoting(enableVoting);
     }
     public boolean isEnableAwards() {
-        return enableAwards;
+        return features.isEnableAwards();
     }
     public void setEnableAwards(boolean enableAwards) {
-        this.enableAwards = enableAwards;
+        features.setEnableAwards(enableAwards);
     }
     public boolean isEnablePolls() {
-        return enablePolls;
+        return features.isEnablePolls();
     }
     public void setEnablePolls(boolean enablePolls) {
-        this.enablePolls = enablePolls;
+        features.setEnablePolls(enablePolls);
     }
     public boolean isEnableCollections() {
-        return enableCollections;
+        return features.isEnableCollections();
     }
     public void setEnableCollections(boolean enableCollections) {
-        this.enableCollections = enableCollections;
+        features.setEnableCollections(enableCollections);
     }
     public boolean isEnableCrossposting() {
-        return enableCrossposting;
+        return features.isEnableCrossposting();
     }
     public void setEnableCrossposting(boolean enableCrossposting) {
-        this.enableCrossposting = enableCrossposting;
+        features.setEnableCrossposting(enableCrossposting);
     }
     public boolean isEnableScheduledPosts() {
-        return enableScheduledPosts;
+        return features.isEnableScheduledPosts();
     }
     public void setEnableScheduledPosts(boolean enableScheduledPosts) {
-        this.enableScheduledPosts = enableScheduledPosts;
+        features.setEnableScheduledPosts(enableScheduledPosts);
     }
     public boolean isEnableAnalytics() {
-        return enableAnalytics;
+        return features.isEnableAnalytics();
     }
     public void setEnableAnalytics(boolean enableAnalytics) {
-        this.enableAnalytics = enableAnalytics;
+        features.setEnableAnalytics(enableAnalytics);
     }
+    
+    // Delegate methods to access limits
     public int getMaxTitleLength() {
-        return maxTitleLength;
+        return limits.getMaxTitleLength();
     }
     public void setMaxTitleLength(int maxTitleLength) {
-        this.maxTitleLength = maxTitleLength;
+        limits.setMaxTitleLength(maxTitleLength);
     }
     public int getMaxTextLength() {
-        return maxTextLength;
+        return limits.getMaxTextLength();
     }
     public void setMaxTextLength(int maxTextLength) {
-        this.maxTextLength = maxTextLength;
+        limits.setMaxTextLength(maxTextLength);
     }
     public int getMaxCommentLength() {
-        return maxCommentLength;
+        return limits.getMaxCommentLength();
     }
     public void setMaxCommentLength(int maxCommentLength) {
-        this.maxCommentLength = maxCommentLength;
+        limits.setMaxCommentLength(maxCommentLength);
     }
     public int getMaxSubredditsPerMulti() {
-        return maxSubredditsPerMulti;
+        return limits.getMaxSubredditsPerMulti();
     }
     public void setMaxSubredditsPerMulti(int maxSubredditsPerMulti) {
-        this.maxSubredditsPerMulti = maxSubredditsPerMulti;
+        limits.setMaxSubredditsPerMulti(maxSubredditsPerMulti);
     }
     public int getMaxFlairLength() {
-        return maxFlairLength;
+        return limits.getMaxFlairLength();
     }
     public void setMaxFlairLength(int maxFlairLength) {
-        this.maxFlairLength = maxFlairLength;
+        limits.setMaxFlairLength(maxFlairLength);
     }
     public int getMaxWikiPageSize() {
-        return maxWikiPageSize;
+        return limits.getMaxWikiPageSize();
     }
     public void setMaxWikiPageSize(int maxWikiPageSize) {
-        this.maxWikiPageSize = maxWikiPageSize;
+        limits.setMaxWikiPageSize(maxWikiPageSize);
     }
     public int getMaxSearchResults() {
-        return maxSearchResults;
+        return limits.getMaxSearchResults();
     }
     public void setMaxSearchResults(int maxSearchResults) {
-        this.maxSearchResults = maxSearchResults;
+        limits.setMaxSearchResults(maxSearchResults);
     }
     public int getMaxListingItems() {
-        return maxListingItems;
+        return limits.getMaxListingItems();
     }
     public void setMaxListingItems(int maxListingItems) {
-        this.maxListingItems = maxListingItems;
-    }
-    public int getRateLimitPerMinute() {
-        return rateLimitPerMinute;
-    }
-    public void setRateLimitPerMinute(int rateLimitPerMinute) {
-        this.rateLimitPerMinute = rateLimitPerMinute;
+        limits.setMaxListingItems(maxListingItems);
     }
     public int getOauthRateLimitPerMinute() {
-        return oauthRateLimitPerMinute;
+        return limits.getOauthRateLimitPerMinute();
     }
     public void setOauthRateLimitPerMinute(int oauthRateLimitPerMinute) {
-        this.oauthRateLimitPerMinute = oauthRateLimitPerMinute;
+        limits.setOauthRateLimitPerMinute(oauthRateLimitPerMinute);
     }
     public int getMaxImageSizeMB() {
-        return maxImageSizeMB;
+        return limits.getMaxImageSizeMB();
     }
     public void setMaxImageSizeMB(int maxImageSizeMB) {
-        this.maxImageSizeMB = maxImageSizeMB;
+        limits.setMaxImageSizeMB(maxImageSizeMB);
     }
     public int getMaxVideoSizeMB() {
-        return maxVideoSizeMB;
+        return limits.getMaxVideoSizeMB();
     }
     public void setMaxVideoSizeMB(int maxVideoSizeMB) {
-        this.maxVideoSizeMB = maxVideoSizeMB;
+        limits.setMaxVideoSizeMB(maxVideoSizeMB);
     }
     public int getMaxGifSizeMB() {
-        return maxGifSizeMB;
+        return limits.getMaxGifSizeMB();
     }
     public void setMaxGifSizeMB(int maxGifSizeMB) {
-        this.maxGifSizeMB = maxGifSizeMB;
+        limits.setMaxGifSizeMB(maxGifSizeMB);
     }
     public int getMaxPollOptions() {
-        return maxPollOptions;
+        return limits.getMaxPollOptions();
     }
     public void setMaxPollOptions(int maxPollOptions) {
-        this.maxPollOptions = maxPollOptions;
+        limits.setMaxPollOptions(maxPollOptions);
     }
     public int getMaxPollDurationDays() {
-        return maxPollDurationDays;
+        return limits.getMaxPollDurationDays();
     }
     public void setMaxPollDurationDays(int maxPollDurationDays) {
-        this.maxPollDurationDays = maxPollDurationDays;
+        limits.setMaxPollDurationDays(maxPollDurationDays);
+    }
+    
+    public RedditPollingConfig getPollingConfig() {
+        return pollingConfig;
+    }
+    
+    public void setPollingConfig(RedditPollingConfig pollingConfig) {
+        this.pollingConfig = pollingConfig;
     }
 }

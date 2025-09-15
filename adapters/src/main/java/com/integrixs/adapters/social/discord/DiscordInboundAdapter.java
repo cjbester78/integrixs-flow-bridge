@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.discord.DiscordApiConfig.*;
 import com.integrixs.adapters.social.base.EventType;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.shared.exceptions.AdapterException;
@@ -31,6 +32,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -83,19 +85,83 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
         return "Discord API Adapter";
     }
     
-    @Override
-    public DiscordApiConfig getConfig() {
+    public DiscordApiConfig getDiscordConfig() {
         return config;
     }
     
     @Override
-    public Map<String, Object> getAdapterConfig() {
+    protected Map<String, Object> getConfig() {
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("botToken", config.getBotToken());
         configMap.put("applicationId", config.getApplicationId());
         configMap.put("guildId", config.getGuildId());
+        configMap.put("clientId", config.getClientId());
+        configMap.put("clientSecret", config.getClientSecret());
+        configMap.put("publicKey", config.getPublicKey());
         configMap.put("apiVersion", "v10");
         return configMap;
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
+    }
+    
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList(
+            "READY", "RESUMED", "GUILD_CREATE", "GUILD_UPDATE", "GUILD_DELETE",
+            "CHANNEL_CREATE", "CHANNEL_UPDATE", "CHANNEL_DELETE",
+            "MESSAGE_CREATE", "MESSAGE_UPDATE", "MESSAGE_DELETE",
+            "GUILD_MEMBER_ADD", "GUILD_MEMBER_UPDATE", "GUILD_MEMBER_REMOVE",
+            "PRESENCE_UPDATE", "VOICE_STATE_UPDATE", "INTERACTION_CREATE"
+        );
+    }
+    
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Inbound adapters typically don't send data, they receive it
+        // This is a no-op implementation as Discord inbound adapter only polls/receives data
+        log.debug("doSend called on DiscordInboundAdapter - this is an inbound adapter, ignoring send request");
+        return AdapterResult.success("Discord inbound adapter does not support sending");
+    }
+    
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        // No sender initialization needed for inbound adapter
+    }
+    
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        // No sender cleanup needed for inbound adapter
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test Discord API connection by getting current user info
+            JsonNode response = makeAuthenticatedRequest("/users/@me", HttpMethod.GET);
+            if (response != null) {
+                String username = response.path("username").asText();
+                String discriminator = response.path("discriminator").asText();
+                return AdapterResult.success("Connected to Discord as " + username + "#" + discriminator);
+            } else {
+                return AdapterResult.failure("Failed to connect to Discord API");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) {
+        // Delegate to the doSend method
+        try {
+            return doSend(payload, headers);
+        } catch (Exception e) {
+            log.error("Error sending message", e);
+            return AdapterResult.failure("Failed to send: " + e.getMessage());
+        }
     }
 
     // Initialize Gateway connection(for real - time events)
@@ -219,7 +285,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     // Voice states polling
     @Scheduled(fixedDelayString = "$ {integrixs.adapters.discord.polling.voice:60000}")
     public void pollVoiceStates() {
-        if(!config.getFeatures().isEnableVoiceSupport()) {
+        if(!config.isEnableVoiceSupport()) {
             return;
         }
 

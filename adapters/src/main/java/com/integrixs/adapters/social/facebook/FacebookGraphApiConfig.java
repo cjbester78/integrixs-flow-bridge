@@ -30,6 +30,33 @@ public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
     // Content settings
     private ContentSettings contentSettings = new ContentSettings();
 
+    // OAuth scopes
+    private String[] scopes;
+    
+    // Webhook configuration
+    private boolean webhookEnabled = false;
+    
+    // Missing fields that have getters/setters
+    private boolean enablePageManagement;
+    private boolean enableInsights;
+    private boolean enableComments;
+    private boolean enableMessaging;
+    private boolean enableLiveVideo;
+    private boolean enableStories;
+    private boolean enableReels;
+    private boolean enableScheduling;
+    private boolean enableAudienceTargeting;
+    private int maxTextLength;
+    private int maxHashtags;
+    private int maxMentions;
+    private int maxMediaItems;
+    private long maxVideoSizeMb;
+    private int maxVideoDurationMinutes;
+    private List<String> supportedImageFormats;
+    private List<String> supportedVideoFormats;
+    private boolean autoHashtagGeneration;
+    private boolean profanityFilter;
+    
     // Permissions required
     private List<String> requiredPermissions = List.of(
         "pages_show_list",
@@ -51,6 +78,18 @@ public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
         private boolean enableReels = true;
         private boolean enableScheduling = true;
         private boolean enableAudienceTargeting = true;
+        
+        public boolean isStoriesEnabled() {
+            return enableStories;
+        }
+        
+        public boolean isReelsEnabled() {
+            return enableReels;
+        }
+        
+        public boolean isEnableWebhooks() {
+            return false; // Default implementation
+        }
     }
 
         public static class ContentSettings {
@@ -72,23 +111,49 @@ public class FacebookGraphApiConfig extends SocialMediaAdapterConfig {
     public String getApiUrl(String endpoint) {
         return String.format("%s/%s/%s", baseUrl, graphApiVersion, endpoint);
     }
-
+    
     /**
-     * Check if we have valid page access token
+     * Check if a valid page access token is available
      */
     public boolean hasValidPageToken() {
         return pageAccessToken != null && !pageAccessToken.isEmpty();
     }
+    
+    /**
+     * Check if webhooks are enabled
+     */
+    public boolean isWebhookEnabled() {
+        return webhookEnabled;
+    }
+
 
     /**
      * Get configured scopes for OAuth2
      */
-    @Override
     public String[] getScopes() {
-        if(super.getScopes() == null || super.getScopes().length == 0) {
+        if(scopes == null || scopes.length == 0) {
             return requiredPermissions.toArray(new String[0]);
         }
-        return super.getScopes();
+        return scopes;
+    }
+    
+    public void setScopes(String[] scopes) {
+        this.scopes = scopes;
+    }
+    
+    @Override
+    public String getPlatformName() {
+        return "facebook";
+    }
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://www.facebook.com/v18.0/dialog/oauth";
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return "https://graph.facebook.com/v18.0/oauth/access_token";
     }
     // Getters and Setters
     public String getPageId() {
