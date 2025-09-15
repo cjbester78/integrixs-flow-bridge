@@ -434,6 +434,18 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         throw new UnsupportedOperationException("SMS Outbound adapter only sends messages");
     }
 
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        // Initialize SMS provider clients
+        initialize();
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        // Cleanup SMS provider resources
+        destroy();
+    }
+
     @PreDestroy
     public void destroy() {
         log.info("Shutting down SMS Outbound Adapter");

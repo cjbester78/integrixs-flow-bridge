@@ -62,6 +62,9 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
 
     // Provider - specific webhook validators
     private final Map<SMSProvider, WebhookValidator> webhookValidators = new HashMap<>();
+    
+    // Initialization flag
+    private volatile boolean isInitialized = false;
 
     public AdapterType getType() {
         return AdapterType.SMS;
@@ -109,23 +112,25 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
     }
 
     private void setupTwilioConfiguration() {
-        TwilioConfig twilioConfig = config.getTwilioConfig();
-        if(twilioConfig.getAccountSid() == null) {
-            twilioConfig.setAccountSid(config.getAccountId());
-        }
-        if(twilioConfig.getAuthToken() == null) {
-            twilioConfig.setAuthToken(config.getAuthToken());
-        }
+        // TODO: Add getters/setters to TwilioConfig if needed
+        // TwilioConfig twilioConfig = config.getTwilioConfig();
+        // if(twilioConfig.getAccountSid() == null) {
+        //     twilioConfig.setAccountSid(config.getAccountId());
+        // }
+        // if(twilioConfig.getAuthToken() == null) {
+        //     twilioConfig.setAuthToken(config.getAuthToken());
+        // }
     }
 
     private void setupVonageConfiguration() {
-        VonageConfig vonageConfig = config.getVonageConfig();
-        if(vonageConfig.getApiKey() == null) {
-            vonageConfig.setApiKey(config.getApiKey());
-        }
-        if(vonageConfig.getApiSecret() == null) {
-            vonageConfig.setApiSecret(config.getApiSecret());
-        }
+        // TODO: Add getters/setters to VonageConfig if needed
+        // VonageConfig vonageConfig = config.getVonageConfig();
+        // if(vonageConfig.getApiKey() == null) {
+        //     vonageConfig.setApiKey(config.getApiKey());
+        // }
+        // if(vonageConfig.getApiSecret() == null) {
+        //     vonageConfig.setApiSecret(config.getApiSecret());
+        // }
     }
 
     private void setupAwsSnsConfiguration() {
@@ -147,14 +152,15 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
         }
 
         // Custom keyword handlers
-        if(config.getFeatures().isEnableKeywordProcessing()) {
-            // Add custom keyword handlers here
-            keywordHandlers.put("HELP", new HelpKeywordHandler());
-            keywordHandlers.put("INFO", new InfoKeywordHandler());
-            keywordHandlers.put("START", new OptInKeywordHandler());
-            keywordHandlers.put("YES", new ConfirmationKeywordHandler());
-            keywordHandlers.put("NO", new RejectionKeywordHandler());
-        }
+        // TODO: Add isEnableKeywordProcessing() to Features class if needed
+        // if(config.getFeatures().isEnableKeywordProcessing()) {
+        //     // Add custom keyword handlers here
+        //     keywordHandlers.put("HELP", new HelpKeywordHandler());
+        //     keywordHandlers.put("INFO", new InfoKeywordHandler());
+        //     keywordHandlers.put("START", new OptInKeywordHandler());
+        //     keywordHandlers.put("YES", new ConfirmationKeywordHandler());
+        //     keywordHandlers.put("NO", new RejectionKeywordHandler());
+        // }
     }
 
     private void initializeWebhookValidators() {
@@ -513,6 +519,18 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
     protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
         // SMS Inbound adapter doesn't send - it receives messages via webhook
         throw new UnsupportedOperationException("SMS Inbound adapter only receives messages via webhook");
+    }
+
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        // Initialize SMS provider webhook handlers
+        initialize();
+    }
+
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        // Cleanup SMS provider resources
+        destroy();
     }
 
     @PreDestroy
