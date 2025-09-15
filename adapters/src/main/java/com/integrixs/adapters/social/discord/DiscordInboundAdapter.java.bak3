@@ -523,15 +523,13 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 messageData.put("type", message.get("type").asInt());
 
                 MessageDTO msg = new MessageDTO();
-                msg.setCorrelationId(UUID.randomUUID().toString());
+                msg.setType("message");
+                msg.setSource("discord");
+                msg.setTarget(getQueueName());
                 msg.setPayload(objectMapper.writeValueAsString(messageData));
-                Map<String, Object> msgHeaders = new HashMap<>();
-                msgHeaders.put("type", "message");
-                msgHeaders.put("source", "discord");
-                msgHeaders.put("timestamp", LocalDateTime.now().toString());
-                msg.setHeaders(msgHeaders);
+                msg.setTimestamp(LocalDateTime.now());
 
-                processDiscordEvent(msg);
+                publishToQueue(msg);
             } catch(Exception e) {
                 log.error("Error processing message", e);
             }
@@ -552,13 +550,11 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 memberData.put("mute", member.get("mute").asBoolean());
 
                 MessageDTO message = new MessageDTO();
-                message.setCorrelationId(UUID.randomUUID().toString());
+                message.setType("member");
+                message.setSource("discord");
+                message.setTarget(getQueueName());
                 message.setPayload(objectMapper.writeValueAsString(memberData));
-                Map<String, Object> headers = new HashMap<>();
-                headers.put("type", "member");
-                headers.put("source", "discord");
-                headers.put("timestamp", LocalDateTime.now().toString());
-                message.setHeaders(headers);
+                message.setTimestamp(LocalDateTime.now());
 
                 processDiscordEvent(message);
             } catch(Exception e) {
@@ -588,13 +584,11 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 eventData.put("user_count", event.has("user_count") ? event.get("user_count").asInt() : 0);
 
                 MessageDTO message = new MessageDTO();
-                message.setCorrelationId(UUID.randomUUID().toString());
+                message.setType("scheduled_event");
+                message.setSource("discord");
+                message.setTarget(getQueueName());
                 message.setPayload(objectMapper.writeValueAsString(eventData));
-                Map<String, Object> headers = new HashMap<>();
-                headers.put("type", "scheduled_event");
-                headers.put("source", "discord");
-                headers.put("timestamp", LocalDateTime.now().toString());
-                message.setHeaders(headers);
+                message.setTimestamp(LocalDateTime.now());
 
                 processDiscordEvent(message);
             } catch(Exception e) {
@@ -621,13 +615,11 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
                 voiceData.put("suppress", state.get("suppress").asBoolean());
 
                 MessageDTO message = new MessageDTO();
-                message.setCorrelationId(UUID.randomUUID().toString());
+                message.setType("voice_state");
+                message.setSource("discord");
+                message.setTarget(getQueueName());
                 message.setPayload(objectMapper.writeValueAsString(voiceData));
-                Map<String, Object> headers = new HashMap<>();
-                headers.put("type", "voice_state");
-                headers.put("source", "discord");
-                headers.put("timestamp", LocalDateTime.now().toString());
-                message.setHeaders(headers);
+                message.setTimestamp(LocalDateTime.now());
 
                 processDiscordEvent(message);
             } catch(Exception e) {
