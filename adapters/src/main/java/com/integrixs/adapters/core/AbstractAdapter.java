@@ -246,22 +246,29 @@ public abstract class AbstractAdapter implements BaseAdapter {
 
             // Core operation wrapped with retry
             Supplier<AdapterResult> baseOperation = () -> {
-                return RetryExecutor.executeWithRetry(
-                        getAdapterType(),
-                        getAdapterMode(),
-                        adapterId,
-                        () -> {
-                            try {
-                                return operation.execute();
-                            } catch(Exception e) {
-                                if(e instanceof RuntimeException) {
-                                    throw(RuntimeException) e;
+                try {
+                    return RetryExecutor.executeWithRetry(
+                            getAdapterType(),
+                            getAdapterMode(),
+                            adapterId,
+                            () -> {
+                                try {
+                                    return operation.execute();
+                                } catch(Exception e) {
+                                    if(e instanceof RuntimeException) {
+                                        throw(RuntimeException) e;
+                                    }
+                                    throw new RuntimeException(e);
                                 }
-                                throw new RuntimeException(e);
-                            }
-                        },
-                        context
-               );
+                            },
+                            context
+                   );
+                } catch(Exception e) {
+                    if(e instanceof RuntimeException) {
+                        throw(RuntimeException) e;
+                    }
+                    throw new RuntimeException("Retry execution failed", e);
+                }
             };
 
             // Wrap with bulkhead if available

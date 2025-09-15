@@ -1,100 +1,100 @@
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/linkedin/LinkedInOutboundAdapter.java:[181,4] error: illegal start of expression
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/tiktok/TikTokContentOutboundAdapter.java:[151,4] error: illegal start of expression
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/tiktok/TikTokContentOutboundAdapter.java:[69,8] error: 'try' without 'catch', 'finally' or resource declarations
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[100,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[102,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[103,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[108,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[113,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[118,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[121,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[122,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[124,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[125,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[125,95] error: <identifier> expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[127,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[128,4] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[132,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[134,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[137,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[140,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[142,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[144,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[145,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[150,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[154,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[155,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[156,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[158,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[159,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[159,99] error: <identifier> expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[161,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[163,16] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[164,16] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[165,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[167,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[171,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[173,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[174,4] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[179,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[181,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[182,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[184,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[185,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[186,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[189,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[191,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[194,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[195,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[197,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[198,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[198,95] error: <identifier> expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[200,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[201,4] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[206,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[208,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[209,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[210,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[212,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[213,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[214,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[216,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[217,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[217,95] error: <identifier> expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[219,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[220,4] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[225,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[227,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[228,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[230,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[231,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[232,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[233,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[235,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[237,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[238,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[240,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[241,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[242,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[244,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[245,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[245,95] error: <identifier> expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[247,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[248,4] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[252,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[254,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[256,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[257,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[258,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[260,109] error: <identifier> expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[260,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[262,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[263,4] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[85,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[88,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[90,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[91,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[94,8] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[96,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[97,12] error: class, interface, enum, or record expected
-22:08:59 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/twitter/TwitterApiV2OutboundAdapter.java:[98,12] error: class, interface, enum, or record expected
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/core/AbstractAdapter.java:[249,53] error: unreported exception Exception; must be caught or declared to be thrown
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[10,7] error: DiscordApiConfig is not abstract and does not override abstract method getPlatformName() in SocialMediaAdapterConfig
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[609,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[612,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[615,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[618,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[621,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[624,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[627,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[630,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[633,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[636,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[639,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[642,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[645,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[648,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[651,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[654,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[657,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[660,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[663,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[666,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[669,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[672,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[675,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[678,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[681,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[684,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[687,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[690,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[693,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[696,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[699,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[702,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[705,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[708,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[711,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[714,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[717,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[720,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[723,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[726,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[729,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[732,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[735,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[738,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[741,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[744,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[747,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[750,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[753,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[756,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[759,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[762,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[765,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[768,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[771,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[774,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[777,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[780,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[783,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[786,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[789,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[792,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[794,15] error: getRateLimitPerMinute() in DiscordApiConfig cannot override getRateLimitPerMinute() in SocialMediaAdapterConfig
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[795,15] error: rateLimitPerMinute has private access in SocialMediaAdapterConfig
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[798,12] error: rateLimitPerMinute has private access in SocialMediaAdapterConfig
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[801,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[804,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[807,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[810,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[813,15] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordApiConfig.java:[816,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[106,32] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[126,32] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[152,32] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[172,32] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[192,32] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[307,26] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[311,8] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[331,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[334,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[338,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[356,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[359,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[37,7] error: DiscordInboundAdapter is not abstract and does not override abstract method getAdapterType() in AbstractSocialMediaInboundAdapter
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[385,12] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[400,31] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[403,31] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[406,31] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[411,31] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[414,31] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[437,34] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[441,16] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[465,34] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[469,16] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[498,30] error: cannot find symbol
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[65,4] error: method does not override or implement a method from a supertype
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[70,4] error: method does not override or implement a method from a supertype
+10:06:23 [ERROR] /Users/cjbester/git/Integrixs-Flow-Bridge/adapters/src/main/java/com/integrixs/adapters/social/discord/DiscordInboundAdapter.java:[87,32] error: cannot find symbol
