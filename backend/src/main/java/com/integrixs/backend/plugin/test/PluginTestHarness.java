@@ -1,17 +1,19 @@
 package com.integrixs.backend.plugin.test;
 
 import com.integrixs.backend.plugin.api.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test harness for plugin development and testing
  */
-@Slf4j
 public class PluginTestHarness {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginTestHarness.class);
+
 
     private final Class<? extends AdapterPlugin> pluginClass;
     private AdapterPlugin pluginInstance;

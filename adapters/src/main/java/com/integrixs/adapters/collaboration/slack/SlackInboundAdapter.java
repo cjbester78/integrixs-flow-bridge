@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -174,9 +175,14 @@ public class SlackInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(SlackInboundAdapter.class);
 
 
-    private static final String API_URL = "https://slack.com/api/";
-    private static final int SOCKET_MODE_RECONNECT_DELAY = 5000; // 5 seconds
-    private static final int PING_INTERVAL = 30000; // 30 seconds
+    @Value("${integrixs.adapters.slack.api-url:https://slack.com/api/}")
+    private String API_URL;
+    
+    @Value("${integrixs.adapters.slack.socket-mode-reconnect-delay:5000}")
+    private int SOCKET_MODE_RECONNECT_DELAY;
+    
+    @Value("${integrixs.adapters.slack.ping-interval:30000}")
+    private int PING_INTERVAL;
 
     @Autowired
     private SlackApiConfig config;

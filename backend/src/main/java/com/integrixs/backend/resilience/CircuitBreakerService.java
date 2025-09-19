@@ -5,24 +5,25 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.circuitbreaker.event.CircuitBreakerOnStateTransitionEvent;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing circuit breakers across adapters.
  * Provides centralized circuit breaker operations with monitoring.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CircuitBreakerService {
+
+    private static final Logger log = LoggerFactory.getLogger(CircuitBreakerService.class);
+
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final CircuitBreakerConfiguration configuration;

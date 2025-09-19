@@ -5,22 +5,23 @@ import com.integrixs.backend.application.service.FieldMappingApplicationService;
 import com.integrixs.data.model.User;
 import com.integrixs.data.repository.UserRepository;
 import com.integrixs.shared.dto.FieldMappingDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service adapter to bridge between FlowCompositionService(using DTOs)
  * and FieldMappingApplicationService(using domain requests)
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FieldMappingServiceAdapter {
+
+    private static final Logger log = LoggerFactory.getLogger(FieldMappingServiceAdapter.class);
+
 
     private final FieldMappingApplicationService fieldMappingApplicationService;
     private final UserRepository userRepository;

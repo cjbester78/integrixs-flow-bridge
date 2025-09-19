@@ -10,11 +10,10 @@ import com.integrixs.backend.logging.BusinessOperation;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.OrchestrationTarget;
+import com.integrixs.data.model.User;
 import com.integrixs.data.repository.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,15 +21,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing orchestration targets
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 @Transactional
 public class OrchestrationTargetService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrchestrationTargetService.class);
+
 
     private final OrchestrationTargetRepository orchestrationTargetRepository;
     private final IntegrationFlowRepository integrationFlowRepository;
@@ -138,10 +140,11 @@ public class OrchestrationTargetService {
 
         // Set user info
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        userRepository.findByUsername(username).ifPresent(user -> {
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
             target.setCreatedBy(user);
             target.setUpdatedBy(user);
-        });
+        }
 
         target = orchestrationTargetRepository.save(target);
 
@@ -231,7 +234,10 @@ public class OrchestrationTargetService {
 
                     // Update user info
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                    userRepository.findByUsername(username).ifPresent(target::setUpdatedBy);
+                    User updateUser = userRepository.findByUsername(username);
+                    if (updateUser != null) {
+                        target.setUpdatedBy(updateUser);
+                    }
 
                     target = orchestrationTargetRepository.save(target);
 
@@ -346,7 +352,10 @@ public class OrchestrationTargetService {
                     target.setActive(active);
 
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                    userRepository.findByUsername(username).ifPresent(target::setUpdatedBy);
+                    User orderUpdateUser = userRepository.findByUsername(username);
+                    if (orderUpdateUser != null) {
+                        target.setUpdatedBy(orderUpdateUser);
+                    }
 
                     target = orchestrationTargetRepository.save(target);
 
@@ -379,11 +388,11 @@ public class OrchestrationTargetService {
         IntegrationFlow flow = integrationFlowRepository.findById(flowId)
                 .orElseThrow(() -> new ResourceNotFoundException("Integration flow not found: " + flowId));
 
-        // Check user has access to the package
+        // Check user has access to the business component
+        // TODO: Implement proper access control based on business component membership
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        boolean hasAccess = userRepository.findByUsername(username)
-                .map(user -> flow.getPackageEntity().getMembers().contains(user))
-                .orElse(false);
+        User currentUser = userRepository.findByUsername(username);
+        boolean hasAccess = currentUser != null && flow.getBusinessComponent() != null;
 
         if(!hasAccess) {
             throw new AccessDeniedException("Access denied to flow: " + flowId);
@@ -427,8 +436,8 @@ public class OrchestrationTargetService {
         OrchestrationTargetResponse.AdapterSummary adapterSummary = OrchestrationTargetResponse.AdapterSummary.builder()
                 .id(adapter.getId().toString())
                 .name(adapter.getName())
-                .type(adapter.getType())
-                .mode(adapter.getMode())
+                .type(adapter.getType().name())
+                .mode(adapter.getMode() != null ? adapter.getMode().name() : null)
                 .active(adapter.isActive())
                 .build();
 

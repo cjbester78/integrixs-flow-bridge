@@ -6,7 +6,6 @@ import com.integrixs.data.model.IntegrationFlow;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -14,16 +13,20 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
  * Optimized repository implementation for IntegrationFlow entities.
  * Provides efficient query methods with proper fetching strategies.
  */
-@Slf4j
 @Repository
 @Transactional(readOnly = true)
 public class OptimizedIntegrationFlowRepository extends OptimizedRepositoryImpl<IntegrationFlow, UUID> {
+
+    private static final Logger log = LoggerFactory.getLogger(OptimizedIntegrationFlowRepository.class);
+
 
     public OptimizedIntegrationFlowRepository() {
         super(IntegrationFlow.class);

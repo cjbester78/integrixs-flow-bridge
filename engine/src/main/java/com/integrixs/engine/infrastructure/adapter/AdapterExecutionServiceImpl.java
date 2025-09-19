@@ -6,8 +6,6 @@ import com.integrixs.engine.domain.model.AdapterExecutionResult;
 import com.integrixs.engine.domain.service.AdapterExecutionService;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.CommunicationAdapter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -16,15 +14,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure implementation of AdapterExecutionService
  * Bridges clean architecture with existing AdapterExecutor
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterExecutionServiceImpl implements AdapterExecutionService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterExecutionServiceImpl.class);
+
 
     private final AdapterExecutor adapterExecutor;
     private final CommunicationAdapterRepository communicationAdapterRepository;
@@ -32,7 +33,11 @@ public class AdapterExecutionServiceImpl implements AdapterExecutionService {
     // Cache adapter capabilities
     private final Map<String, Map<String, Object>> capabilitiesCache = new ConcurrentHashMap<>();
 
-    @Override
+    public AdapterExecutionServiceImpl(AdapterExecutor adapterExecutor, CommunicationAdapterRepository communicationAdapterRepository) {
+        this.adapterExecutor = adapterExecutor;
+        this.communicationAdapterRepository = communicationAdapterRepository;
+    }
+
     public AdapterExecutionResult fetchData(String adapterId, AdapterExecutionContext context) {
         LocalDateTime startTime = LocalDateTime.now();
         log.info("Fetching data from adapter {} with context {}", adapterId, context);
@@ -173,7 +178,7 @@ public class AdapterExecutionServiceImpl implements AdapterExecutionService {
                 case FTP, SFTP:
                     validateFtpConfig(config);
                     break;
-                case JMS:
+                case IBMMQ, RABBITMQ, AMQP:
                     validateJmsConfig(config);
                     break;
                 case SOAP:
@@ -256,7 +261,7 @@ public class AdapterExecutionServiceImpl implements AdapterExecutionService {
                     capabilities.put("supportsRecursive", true);
                     capabilities.put("supportsBinaryTransfer", true);
                     break;
-                case JMS:
+                case IBMMQ, RABBITMQ, AMQP:
                     capabilities.put("supportsTopics", true);
                     capabilities.put("supportsQueues", true);
                     capabilities.put("supportsDurableSubscriptions", true);
@@ -305,7 +310,7 @@ public class AdapterExecutionServiceImpl implements AdapterExecutionService {
 
     private boolean supportsAsync(com.integrixs.shared.enums.AdapterType type) {
         return switch(type) {
-            case JMS, KAFKA -> true;
+            case IBMMQ, RABBITMQ, AMQP, KAFKA -> true;
             default -> false;
         };
     }
@@ -379,6 +384,30 @@ public class AdapterExecutionServiceImpl implements AdapterExecutionService {
         }
         if(config.get("port") == null) {
             throw new IllegalArgumentException("Mail adapter requires 'port' configuration");
+        }
+    }
+
+    // Builder
+    public static AdapterExecutionServiceImplBuilder builder() {
+        return new AdapterExecutionServiceImplBuilder();
+    }
+
+    public static class AdapterExecutionServiceImplBuilder {
+        private AdapterExecutor adapterExecutor;
+        private CommunicationAdapterRepository communicationAdapterRepository;
+
+        public AdapterExecutionServiceImplBuilder adapterExecutor(AdapterExecutor adapterExecutor) {
+            this.adapterExecutor = adapterExecutor;
+            return this;
+        }
+
+        public AdapterExecutionServiceImplBuilder communicationAdapterRepository(CommunicationAdapterRepository communicationAdapterRepository) {
+            this.communicationAdapterRepository = communicationAdapterRepository;
+            return this;
+        }
+
+        public AdapterExecutionServiceImpl build() {
+            return new AdapterExecutionServiceImpl(this.adapterExecutor, this.communicationAdapterRepository);
         }
     }
 }

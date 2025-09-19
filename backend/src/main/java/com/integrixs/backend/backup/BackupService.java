@@ -88,7 +88,7 @@ public class BackupService {
             }
 
             // Log audit event
-            auditService.logSystemEvent(
+            auditService.logSecurityEvent(
                 AuditEvent.AuditEventType.SYSTEM_START,
                 "Database backup completed",
                 Map.of(
@@ -101,10 +101,10 @@ public class BackupService {
         } catch(Exception e) {
             logger.error("Database backup failed", e);
 
-            auditService.logSystemEvent(
-                AuditEvent.AuditEventType.SYSTEM_START,
-                "Database backup failed",
-                Map.of("error", e.getMessage())
+            auditService.logSecurityEvent(
+                AuditEvent.AuditEventType.MAINTENANCE_PERFORMED,
+                "Database backup failed: " + e.getMessage(),
+                Map.of("error", e.getMessage(), "type", "backup_failure")
            );
 
             sendAlert("Database backup failed: " + e.getMessage());

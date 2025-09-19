@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,14 +20,17 @@ import java.util.List;
 /**
  * REST controller for monitoring operations
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/monitoring")
-@RequiredArgsConstructor
 @Tag(name = "Monitoring", description = "APIs for system monitoring, metrics, and alerts")
 public class MonitoringController {
 
+    private static final Logger log = LoggerFactory.getLogger(MonitoringController.class);
     private final MonitoringApplicationService monitoringApplicationService;
+    
+    public MonitoringController(MonitoringApplicationService monitoringApplicationService) {
+        this.monitoringApplicationService = monitoringApplicationService;
+    }
 
     /**
      * Log a monitoring event

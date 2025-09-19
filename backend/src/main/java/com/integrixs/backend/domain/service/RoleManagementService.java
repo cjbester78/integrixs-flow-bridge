@@ -1,17 +1,13 @@
 package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.Role;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  * Domain service for role management
  * Contains core business logic for role operations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RoleManagementService {
 
     /**

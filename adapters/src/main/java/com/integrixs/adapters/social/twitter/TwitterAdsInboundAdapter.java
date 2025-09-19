@@ -5,10 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.twitter.TwitterAdsApiConfig.*;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.TokenRefreshService;
+import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,10 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.time.Instant;
@@ -31,31 +35,40 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(TwitterAdsInboundAdapter.class);
 
-
-    private static final String TWITTER_ADS_API_BASE = "https://ads - api.twitter.com/12";
+    @Value("${integrixs.adapters.twitter.ads.api-base-url:https://ads-api.twitter.com/12}")
+    private String twitterAdsApiBase;
+    
+    @Value("${integrixs.adapters.twitter.ads.default-count:200}")
+    private int defaultCount;
+    
+    @Value("${integrixs.adapters.twitter.ads.max-job-wait-time-ms:300000}")
+    private long maxJobWaitTimeMs;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private final TwitterAdsApiConfig config;
     private final RateLimiterService rateLimiterService;
+    private final OAuth2TokenRefreshService tokenRefreshService;
     private final CredentialEncryptionService credentialEncryptionService;
+    private boolean isListening = false;
 
     @Autowired
     public TwitterAdsInboundAdapter(
             TwitterAdsApiConfig config,
             RateLimiterService rateLimiterService,
+            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
         super();
         this.config = config;
         this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(!isConfigValid()) {
             throw new AdapterException("Twitter Ads configuration is invalid");
@@ -73,19 +86,17 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         scheduleBudgetAlertsPolling();
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping Twitter Ads API inbound adapter");
         isListening = false;
     }
 
-    @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
             MessageDTO message = new MessageDTO();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setTimestamp(LocalDateTime.now());
+            message.setStatus(MessageStatus.SUCCESS);
 
             JsonNode dataNode = objectMapper.readTree(data);
 
@@ -119,11 +130,15 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
             return message;
         } catch(Exception e) {
             log.error("Error processing Twitter Ads inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setPayload("Error: " + e.getMessage());
+            errorMessage.setHeaders(Map.of("error", "true", "errorMessage", e.getMessage()));
+            return errorMessage;
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // Twitter Ads API doesn't typically use webhooks, mostly polling
         // This is here for future extensibility
@@ -131,7 +146,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
     }
 
     // Scheduled polling methods
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.twitter.ads.campaignPollingInterval:300000}") // 5 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.ads.campaignPollingInterval:300000}") // 5 minutes
     private void pollCampaignPerformance() {
         if(!isListening || !config.getFeatures().isEnableAnalytics()) return;
 
@@ -139,7 +154,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
             rateLimiterService.acquire("twitter_ads_api", 1);
 
             String url = String.format("%s/accounts/%s/stats/jobs",
-                TWITTER_ADS_API_BASE, config.getAdsAccountId());
+                twitterAdsApiBase, config.getAdsAccountId());
 
             // Create stats job for campaigns
             ObjectNode requestBody = objectMapper.createObjectNode();
@@ -161,7 +176,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.twitter.ads.adGroupPollingInterval:600000}") // 10 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.ads.adGroupPollingInterval:600000}") // 10 minutes
     private void pollAdGroupPerformance() {
         if(!isListening || !config.getFeatures().isEnableAnalytics()) return;
 
@@ -169,10 +184,10 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
             rateLimiterService.acquire("twitter_ads_api", 1);
 
             String url = String.format("%s/accounts/%s/line_items",
-                TWITTER_ADS_API_BASE, config.getAdsAccountId());
+                twitterAdsApiBase, config.getAdsAccountId());
 
             Map<String, String> params = new HashMap<>();
-            params.put("count", "200");
+            params.put("count", String.valueOf(defaultCount));
             params.put("with_deleted", "false");
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null, params);
@@ -184,7 +199,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.twitter.ads.creativePollingInterval:900000}") // 15 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.ads.creativePollingInterval:900000}") // 15 minutes
     private void pollCreativePerformance() {
         if(!isListening || !config.getFeatures().isEnableAnalytics()) return;
 
@@ -193,7 +208,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
             // Poll promoted tweets performance
             String url = String.format("%s/accounts/%s/promoted_tweets",
-                TWITTER_ADS_API_BASE, config.getAdsAccountId());
+                twitterAdsApiBase, config.getAdsAccountId());
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
             if(response.getStatusCode().is2xxSuccessful()) {
@@ -204,7 +219,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.twitter.ads.audiencePollingInterval:3600000}") // 1 hour
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.ads.audiencePollingInterval:3600000}") // 1 hour
     private void pollAudienceInsights() {
         if(!isListening || !config.getFeatures().isEnableAudienceTargeting()) return;
 
@@ -213,7 +228,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
             // Poll custom audiences
             String url = String.format("%s/accounts/%s/custom_audiences",
-                TWITTER_ADS_API_BASE, config.getAdsAccountId());
+                twitterAdsApiBase, config.getAdsAccountId());
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
             if(response.getStatusCode().is2xxSuccessful()) {
@@ -224,7 +239,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.twitter.ads.conversionPollingInterval:1800000}") // 30 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.ads.conversionPollingInterval:1800000}") // 30 minutes
     private void pollConversionEvents() {
         if(!isListening || !config.getFeatures().isEnableConversionTracking()) return;
 
@@ -233,7 +248,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
             // Poll web event tags
             String url = String.format("%s/accounts/%s/web_event_tags",
-                TWITTER_ADS_API_BASE, config.getAdsAccountId());
+                twitterAdsApiBase, config.getAdsAccountId());
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
             if(response.getStatusCode().is2xxSuccessful()) {
@@ -251,7 +266,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.twitter.ads.budgetCheckInterval:600000}") // 10 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.ads.budgetCheckInterval:600000}") // 10 minutes
     private void checkBudgetAlerts() {
         if(!isListening || !config.getFeatures().isEnableBudgetManagement()) return;
 
@@ -260,7 +275,7 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
             // Check funding instruments
             String url = String.format("%s/accounts/%s/funding_instruments",
-                TWITTER_ADS_API_BASE, config.getAdsAccountId());
+                twitterAdsApiBase, config.getAdsAccountId());
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
             if(response.getStatusCode().is2xxSuccessful()) {
@@ -275,9 +290,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
     // Process different types of data
     private MessageDTO processCampaignPerformance(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CAMPAIGN_PERFORMANCE");
@@ -315,9 +330,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private MessageDTO processAdGroupPerformance(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "AD_GROUP_PERFORMANCE");
@@ -332,9 +347,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private MessageDTO processCreativePerformance(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CREATIVE_PERFORMANCE");
@@ -348,9 +363,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private MessageDTO processAudienceInsights(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "AUDIENCE_INSIGHTS");
@@ -368,9 +383,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private MessageDTO processConversionEvent(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "CONVERSION_EVENT");
@@ -384,9 +399,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private MessageDTO processBudgetAlert(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUDGET_ALERT");
@@ -401,9 +416,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private MessageDTO processApprovalStatus(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "APPROVAL_STATUS");
@@ -420,6 +435,19 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         return makeApiCall(url, method, body, null);
     }
 
+    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", generateOAuth1Header(url, method.name()));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+        if(params != null && method == HttpMethod.GET) {
+            params.forEach(builder::queryParam);
+        }
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        return restTemplate.exchange(builder.toUriString(), method, entity, String.class);
+    }
 
     private String generateOAuth1Header(String url, String method) {
         // Simplified OAuth 1.0a header generation
@@ -427,9 +455,9 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
         String consumerKey = credentialEncryptionService.decrypt(config.getApiKey());
         String token = credentialEncryptionService.decrypt(config.getAccessToken());
 
-        return String.format("OAuth oauth_consumer_key = \"%s\", oauth_token = \"%s\", " +
-            "oauth_signature_method = \"HMAC - SHA1\", oauth_timestamp = \"%d\", " +
-            "oauth_nonce = \"%s\", oauth_version = \"1.0\", oauth_signature = \"%s\"",
+        return String.format("OAuth oauth_consumer_key=\"%s\", oauth_token=\"%s\", " +
+            "oauth_signature_method=\"HMAC-SHA1\", oauth_timestamp=\"%d\", " +
+            "oauth_nonce=\"%s\", oauth_version=\"1.0\", oauth_signature=\"%s\"",
             consumerKey, token, System.currentTimeMillis() / 1000,
             UUID.randomUUID().toString(), "signature_placeholder");
     }
@@ -473,11 +501,11 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
     }
 
     private String getStartTime() {
-        return LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT);
+        return LocalDateTime.now().minusDays(7).atZone(java.time.ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
     }
 
     private String getEndTime() {
-        return LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        return LocalDateTime.now().atZone(java.time.ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
     }
 
     private String extractJobId(String response) {
@@ -499,5 +527,74 @@ public class TwitterAdsInboundAdapter extends AbstractSocialMediaInboundAdapter 
 
     private void checkBudgetThresholds(JsonNode instruments) {
         // Check budget thresholds and generate alerts
+    }
+
+    // Implementation of abstract methods from AbstractSocialMediaInboundAdapter
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList(
+            "CAMPAIGN_PERFORMANCE",
+            "AD_GROUP_PERFORMANCE", 
+            "CREATIVE_PERFORMANCE",
+            "AUDIENCE_INSIGHTS",
+            "CONVERSION_EVENT",
+            "BUDGET_ALERT",
+            "APPROVAL_STATUS"
+        );
+    }
+
+    @Override
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("adsAccountId", config.getAdsAccountId());
+        configMap.put("apiKey", config.getApiKey());
+        configMap.put("enabled", config.isEnabled());
+        return configMap;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
+    }
+
+    // Implementation of abstract methods from AbstractInboundAdapter
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.debug("Initializing Twitter Ads sender");
+    }
+
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.debug("Destroying Twitter Ads sender");
+    }
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        log.debug("Twitter Ads adapter is inbound only - send operation not supported");
+        return AdapterResult.failure("Send operation not supported for inbound adapter");
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        throw new AdapterException("Twitter Ads adapter is inbound only - send operation not supported");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        // Test connection by getting account info
+        String url = twitterAdsApiBase + "/accounts/" + config.getAdsAccountId();
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
+        
+        if(response.getStatusCode().is2xxSuccessful()) {
+            return AdapterResult.success(null, "Twitter Ads API connection successful");
+        } else {
+            return AdapterResult.failure("Twitter Ads API connection failed: " + response.getStatusCode());
+        }
     }
 }

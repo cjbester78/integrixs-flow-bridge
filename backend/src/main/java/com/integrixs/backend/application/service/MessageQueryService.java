@@ -9,8 +9,6 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.AdapterPayloadRepository;
 import com.integrixs.data.repository.SystemLogRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,14 +20,17 @@ import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for querying and retrieving messages
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MessageQueryService {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageQueryService.class);
+
 
     private final SystemLogRepository systemLogRepository;
     private final AdapterPayloadRepository payloadRepository;

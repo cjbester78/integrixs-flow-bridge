@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.EventStore;
 import com.integrixs.data.repository.EventStoreRepository;
 import com.integrixs.shared.events.DomainEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for event sourcing - stores all domain events.
@@ -24,10 +24,11 @@ import java.util.stream.Collectors;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class EventSourcingService {
+
+    private static final Logger log = LoggerFactory.getLogger(EventSourcingService.class);
+
 
     private final EventStoreRepository eventStoreRepository;
     private final ObjectMapper objectMapper;

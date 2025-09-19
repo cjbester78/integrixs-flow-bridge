@@ -6,8 +6,6 @@ import com.integrixs.shared.dto.export.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -23,17 +21,20 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for flow export/import operations.
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/flows/export - import")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequiredArgsConstructor
 @Tag(name = "Flow Export/Import", description = "Export and import integration flows")
 public class FlowExportImportController {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExportImportController.class);
+
 
     private final FlowExportService exportService;
     private final FlowImportService importService;

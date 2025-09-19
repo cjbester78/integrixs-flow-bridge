@@ -2,8 +2,6 @@ package com.integrixs.backend.logging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,15 +11,18 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Audit logger for tracking data changes and sensitive operations.
  * Provides tamper - evident logging for compliance and security.
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class AuditLogger {
+
+    private static final Logger log = LoggerFactory.getLogger(AuditLogger.class);
+
 
     private final ObjectMapper objectMapper;
 

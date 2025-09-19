@@ -1,7 +1,5 @@
 package com.integrixs.backend.domain.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,9 +10,7 @@ import java.util.Map;
  * Domain service for notification management
  * Contains core business logic for notification handling
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class NotificationManagementService {
 
     /**

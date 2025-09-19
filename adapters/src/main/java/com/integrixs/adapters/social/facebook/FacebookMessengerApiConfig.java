@@ -1,9 +1,14 @@
 package com.integrixs.adapters.social.facebook;
 
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
 /**
  * Configuration class for Facebook Messenger API
  */
+@Configuration
+@ConfigurationProperties(prefix = "adapters.facebook.messenger")
 public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
     public FacebookMessengerApiConfig() {
     }
@@ -21,22 +26,23 @@ public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
     private boolean enableReadReceipts;
     private boolean enableQuickReplies;
     private Integer messageTimeout;
+    private Long pollingInterval;
 
-    // Default values
-    private static final String DEFAULT_API_VERSION = "v18.0";
-    private static final String DEFAULT_API_BASE_URL = "https://graph.facebook.com";
+    // Default values configured in application.yml
+    private String defaultApiVersion;
+    private String defaultApiBaseUrl;
 
     @Override
     public String getAuthorizationUrl() {
         return String.format("https://www.facebook.com/%s/dialog/oauth",
-                            getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
+                            getApiVersion() != null ? getApiVersion() : defaultApiVersion);
     }
 
     @Override
     public String getTokenUrl() {
         return String.format("%s/%s/oauth/access_token",
-                            getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
-                            getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
+                            getApiBaseUrl() != null ? getApiBaseUrl() : defaultApiBaseUrl,
+                            getApiVersion() != null ? getApiVersion() : defaultApiVersion);
     }
 
     @Override
@@ -49,8 +55,8 @@ public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
      */
     public String getMessagesEndpoint() {
         return String.format("%s/%s/me/messages",
-                            getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
-                            getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION);
+                            getApiBaseUrl() != null ? getApiBaseUrl() : defaultApiBaseUrl,
+                            getApiVersion() != null ? getApiVersion() : defaultApiVersion);
     }
 
     /**
@@ -58,8 +64,8 @@ public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
      */
     public String getUserProfileEndpoint(String userId) {
         return String.format("%s/%s/%s",
-                            getApiBaseUrl() != null ? getApiBaseUrl() : DEFAULT_API_BASE_URL,
-                            getApiVersion() != null ? getApiVersion() : DEFAULT_API_VERSION,
+                            getApiBaseUrl() != null ? getApiBaseUrl() : defaultApiBaseUrl,
+                            getApiVersion() != null ? getApiVersion() : defaultApiVersion,
                             userId);
     }
     // Getters and Setters
@@ -116,5 +122,23 @@ public class FacebookMessengerApiConfig extends SocialMediaAdapterConfig {
     }
     public void setMessageTimeout(Integer messageTimeout) {
         this.messageTimeout = messageTimeout;
+    }
+    public Long getPollingInterval() {
+        return pollingInterval;
+    }
+    public void setPollingInterval(Long pollingInterval) {
+        this.pollingInterval = pollingInterval;
+    }
+    public String getDefaultApiVersion() {
+        return defaultApiVersion;
+    }
+    public void setDefaultApiVersion(String defaultApiVersion) {
+        this.defaultApiVersion = defaultApiVersion;
+    }
+    public String getDefaultApiBaseUrl() {
+        return defaultApiBaseUrl;
+    }
+    public void setDefaultApiBaseUrl(String defaultApiBaseUrl) {
+        this.defaultApiBaseUrl = defaultApiBaseUrl;
     }
 }

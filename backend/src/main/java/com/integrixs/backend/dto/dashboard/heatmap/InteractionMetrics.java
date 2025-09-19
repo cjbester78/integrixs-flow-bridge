@@ -1,11 +1,8 @@
 package com.integrixs.backend.dto.dashboard.heatmap;
 
-import lombok.Data;
-
 /**
  * Metrics for component interactions.
  */
-@Data
 public class InteractionMetrics {
     private int count = 0;
     private long totalDuration = 0;
@@ -25,5 +22,33 @@ public class InteractionMetrics {
 
     public double getSuccessRate() {
         return count > 0 ? (double) successCount / count * 100 : 0;
+    }
+
+    // Default constructor
+    public InteractionMetrics() {
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public long getTotalDuration() {
+        return totalDuration;
+    }
+
+    public void setTotalDuration(long totalDuration) {
+        this.totalDuration = totalDuration;
+    }
+
+    public int getSuccessCount() {
+        return successCount;
+    }
+
+    public void setSuccessCount(int successCount) {
+        this.successCount = successCount;
     }
 }

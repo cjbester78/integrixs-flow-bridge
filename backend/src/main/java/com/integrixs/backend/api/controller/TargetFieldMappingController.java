@@ -9,24 +9,25 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for target - specific field mapping management
  */
 @RestController
 @RequestMapping("/api/flows/ {flowId}/targets/ {targetId}/mappings")
-@RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Target Field Mappings", description = "Manage field mappings for orchestration targets")
 public class TargetFieldMappingController {
+
+    private static final Logger log = LoggerFactory.getLogger(TargetFieldMappingController.class);
+
 
     private final TargetFieldMappingService mappingService;
 
@@ -190,21 +191,38 @@ public class TargetFieldMappingController {
     /**
      * Request for updating mapping order
      */
-    @lombok.Data
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
     public static class MappingOrderRequest {
         private String mappingId;
         private Integer mappingOrder;
+
+        public MappingOrderRequest() {
+        }
+
+        public MappingOrderRequest(String mappingId, Integer mappingOrder) {
+            this.mappingId = mappingId;
+            this.mappingOrder = mappingOrder;
+        }
+
+        public String getMappingId() {
+            return mappingId;
+        }
+
+        public void setMappingId(String mappingId) {
+            this.mappingId = mappingId;
+        }
+
+        public Integer getMappingOrder() {
+            return mappingOrder;
+        }
+
+        public void setMappingOrder(Integer mappingOrder) {
+            this.mappingOrder = mappingOrder;
+        }
     }
 
     /**
      * Mapping validation result
      */
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
     public static class MappingValidationResult {
         private boolean valid;
         private List<String> errors;
@@ -213,5 +231,132 @@ public class TargetFieldMappingController {
         private Integer validMappings;
         private Integer requiredMappings;
         private Integer missingRequiredMappings;
+
+        public MappingValidationResult() {
+        }
+
+        public MappingValidationResult(boolean valid, List<String> errors, List<String> warnings, 
+                                      Integer totalMappings, Integer validMappings, 
+                                      Integer requiredMappings, Integer missingRequiredMappings) {
+            this.valid = valid;
+            this.errors = errors;
+            this.warnings = warnings;
+            this.totalMappings = totalMappings;
+            this.validMappings = validMappings;
+            this.requiredMappings = requiredMappings;
+            this.missingRequiredMappings = missingRequiredMappings;
+        }
+
+        // Getters and setters
+        public boolean isValid() {
+            return valid;
+        }
+
+        public void setValid(boolean valid) {
+            this.valid = valid;
+        }
+
+        public List<String> getErrors() {
+            return errors;
+        }
+
+        public void setErrors(List<String> errors) {
+            this.errors = errors;
+        }
+
+        public List<String> getWarnings() {
+            return warnings;
+        }
+
+        public void setWarnings(List<String> warnings) {
+            this.warnings = warnings;
+        }
+
+        public Integer getTotalMappings() {
+            return totalMappings;
+        }
+
+        public void setTotalMappings(Integer totalMappings) {
+            this.totalMappings = totalMappings;
+        }
+
+        public Integer getValidMappings() {
+            return validMappings;
+        }
+
+        public void setValidMappings(Integer validMappings) {
+            this.validMappings = validMappings;
+        }
+
+        public Integer getRequiredMappings() {
+            return requiredMappings;
+        }
+
+        public void setRequiredMappings(Integer requiredMappings) {
+            this.requiredMappings = requiredMappings;
+        }
+
+        public Integer getMissingRequiredMappings() {
+            return missingRequiredMappings;
+        }
+
+        public void setMissingRequiredMappings(Integer missingRequiredMappings) {
+            this.missingRequiredMappings = missingRequiredMappings;
+        }
+
+        // Builder
+        public static MappingValidationResultBuilder builder() {
+            return new MappingValidationResultBuilder();
+        }
+
+        public static class MappingValidationResultBuilder {
+            private boolean valid;
+            private List<String> errors;
+            private List<String> warnings;
+            private Integer totalMappings;
+            private Integer validMappings;
+            private Integer requiredMappings;
+            private Integer missingRequiredMappings;
+
+            public MappingValidationResultBuilder valid(boolean valid) {
+                this.valid = valid;
+                return this;
+            }
+
+            public MappingValidationResultBuilder errors(List<String> errors) {
+                this.errors = errors;
+                return this;
+            }
+
+            public MappingValidationResultBuilder warnings(List<String> warnings) {
+                this.warnings = warnings;
+                return this;
+            }
+
+            public MappingValidationResultBuilder totalMappings(Integer totalMappings) {
+                this.totalMappings = totalMappings;
+                return this;
+            }
+
+            public MappingValidationResultBuilder validMappings(Integer validMappings) {
+                this.validMappings = validMappings;
+                return this;
+            }
+
+            public MappingValidationResultBuilder requiredMappings(Integer requiredMappings) {
+                this.requiredMappings = requiredMappings;
+                return this;
+            }
+
+            public MappingValidationResultBuilder missingRequiredMappings(Integer missingRequiredMappings) {
+                this.missingRequiredMappings = missingRequiredMappings;
+                return this;
+            }
+
+            public MappingValidationResult build() {
+                return new MappingValidationResult(valid, errors, warnings, totalMappings, 
+                                                  validMappings, requiredMappings, missingRequiredMappings);
+            }
+        }
     }
 }

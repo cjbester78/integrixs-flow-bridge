@@ -321,6 +321,7 @@ public class TransformationExecutionService {
         private Object data;
         private String message;
         private List<String> logs;
+        private String stackTrace;
 
         public static TransformationResult success(Object data, List<String> logs) {
             TransformationResult result = new TransformationResult();
@@ -364,6 +365,8 @@ public class TransformationExecutionService {
         public void setMessage(String message) { this.message = message; }
         public List<String> getLogs() { return logs; }
         public void setLogs(List<String> logs) { this.logs = logs; }
+        public String getStackTrace() { return stackTrace; }
+        public void setStackTrace(String stackTrace) { this.stackTrace = stackTrace; }
     }
 
     public static class ValidationResult {

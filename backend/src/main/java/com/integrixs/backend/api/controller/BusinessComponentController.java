@@ -10,8 +10,6 @@ import com.integrixs.data.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,13 +20,13 @@ import java.util.List;
 /**
  * REST controller for business component management
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/business - components")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequiredArgsConstructor
 @Tag(name = "Business Components", description = "Business component management")
 public class BusinessComponentController {
+    
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BusinessComponentController.class);
 
     private final BusinessComponentApplicationService businessComponentService;
     private final UserRepository userRepository;

@@ -83,4 +83,53 @@ public class FlowExecutionWebSocketHandler implements WebSocketHandler {
                 }
             });
     }
+
+    /**
+     * Broadcast flow execution started event
+     */
+    public void broadcastFlowExecutionStarted(String flowId, String executionId) {
+        Map<String, Object> details = new ConcurrentHashMap<>();
+        details.put("executionId", executionId);
+        sendFlowUpdate(UUID.fromString(flowId), "STARTED", details);
+    }
+
+    /**
+     * Broadcast flow execution progress event
+     */
+    public void broadcastFlowExecutionProgress(String flowId, String executionId, String step, String message) {
+        Map<String, Object> details = new ConcurrentHashMap<>();
+        details.put("executionId", executionId);
+        details.put("step", step);
+        details.put("message", message);
+        sendFlowUpdate(UUID.fromString(flowId), "IN_PROGRESS", details);
+    }
+
+    /**
+     * Broadcast flow execution completed event
+     */
+    public void broadcastFlowExecutionCompleted(String flowId, String executionId, boolean success) {
+        Map<String, Object> details = new ConcurrentHashMap<>();
+        details.put("executionId", executionId);
+        details.put("success", success);
+        sendFlowUpdate(UUID.fromString(flowId), success ? "COMPLETED" : "FAILED", details);
+    }
+
+    /**
+     * Broadcast flow execution error event
+     */
+    public void broadcastFlowExecutionError(String flowId, String executionId, String errorMessage) {
+        Map<String, Object> details = new ConcurrentHashMap<>();
+        details.put("executionId", executionId);
+        details.put("errorMessage", errorMessage);
+        sendFlowUpdate(UUID.fromString(flowId), "ERROR", details);
+    }
+
+    /**
+     * Broadcast flow execution cancelled event
+     */
+    public void broadcastFlowExecutionCancelled(String flowId, String executionId) {
+        Map<String, Object> details = new ConcurrentHashMap<>();
+        details.put("executionId", executionId);
+        sendFlowUpdate(UUID.fromString(flowId), "CANCELLED", details);
+    }
 }

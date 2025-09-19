@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,16 +17,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for conditional routing operations
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/routing")
-@RequiredArgsConstructor
 @Tag(name = "Routing", description = "Conditional routing and decision endpoints")
 public class RoutingController {
+
+    private static final Logger log = LoggerFactory.getLogger(RoutingController.class);
+
 
     private final RoutingApplicationService routingApplicationService;
 

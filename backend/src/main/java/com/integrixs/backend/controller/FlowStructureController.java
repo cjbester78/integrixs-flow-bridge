@@ -8,8 +8,6 @@ import com.integrixs.shared.dto.structure.FlowStructureDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,13 +16,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/flow - structures")
-@RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Flow Structures", description = "Flow structure management endpoints")
 public class FlowStructureController {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowStructureController.class);
+
 
     private final FlowStructureService flowStructureService;
 

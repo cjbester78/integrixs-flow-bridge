@@ -1,6 +1,7 @@
 package com.integrixs.soapbindings.infrastructure.wsdl;
 
-import com.integrixs.soapbindings.domain.model.WsdlDefinition;
+import com.integrixs.soapbindings.domain.model.*;
+import com.integrixs.soapbindings.domain.enums.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -73,7 +75,7 @@ public class WsdlParser {
         }
     }
 
-    private WsdlDefinition.WsdlType determineWsdlType(Document document) {
+    private WsdlType determineWsdlType(Document document) {
         // Check for document/literal style
         NodeList bindings = document.getElementsByTagNameNS(WSDL_NS, "binding");
         for(int i = 0; i < bindings.getLength(); i++) {
@@ -83,13 +85,13 @@ public class WsdlParser {
                 Element soapBinding = (Element) soapBindings.item(0);
                 String style = soapBinding.getAttribute("style");
                 if("document".equalsIgnoreCase(style)) {
-                    return WsdlDefinition.WsdlType.DOCUMENT_LITERAL;
+                    return WsdlType.IMPORTED;
                 } else if("rpc".equalsIgnoreCase(style)) {
-                    return WsdlDefinition.WsdlType.RPC_LITERAL;
+                    return WsdlType.GENERATED;
                 }
             }
         }
-        return WsdlDefinition.WsdlType.DOCUMENT_LITERAL; // Default
+        return WsdlType.IMPORTED; // Default
     }
 
     private Map<String, String> extractNamespaces(Element root) {
@@ -115,26 +117,25 @@ public class WsdlParser {
             Element serviceElement = (Element) services.item(i);
             String serviceName = serviceElement.getAttribute("name");
 
-            WsdlDefinition.ServiceDefinition service = WsdlDefinition.ServiceDefinition.builder()
+            ServiceDefinition service = ServiceDefinition.builder()
                     .serviceName(serviceName)
-                    .serviceNamespace(wsdl.getNamespace())
-                    .ports(new HashMap<>())
-                    .documentation(extractDocumentation(serviceElement))
+                    .namespace(wsdl.getNamespace())
+                    .ports(new ArrayList<>())
                     .build();
 
             // Parse ports
             NodeList ports = serviceElement.getElementsByTagNameNS(WSDL_NS, "port");
             for(int j = 0; j < ports.getLength(); j++) {
                 Element portElement = (Element) ports.item(j);
-                WsdlDefinition.PortDefinition port = parsePort(document, portElement);
-                service.getPorts().put(port.getPortName(), port);
+                PortDefinition port = parsePort(document, portElement);
+                service.getPorts().add(port);
             }
 
             wsdl.addService(service);
         }
     }
 
-    private WsdlDefinition.PortDefinition parsePort(Document document, Element portElement) {
+    private PortDefinition parsePort(Document document, Element portElement) {
         String portName = portElement.getAttribute("name");
         String bindingName = portElement.getAttribute("binding");
 
@@ -145,11 +146,11 @@ public class WsdlParser {
             address = ((Element) soapAddresses.item(0)).getAttribute("location");
         }
 
-        WsdlDefinition.PortDefinition port = WsdlDefinition.PortDefinition.builder()
+        PortDefinition port = PortDefinition.builder()
                 .portName(portName)
-                .bindingName(bindingName)
+                .binding(bindingName)
                 .address(address)
-                .operations(new HashMap<>())
+                .operations(new ArrayList<>())
                 .build();
 
         // Parse operations from binding
@@ -158,7 +159,7 @@ public class WsdlParser {
         return port;
     }
 
-    private void parseOperations(Document document, String bindingName, WsdlDefinition.PortDefinition port) {
+    private void parseOperations(Document document, String bindingName, PortDefinition port) {
         // Find binding element
         NodeList bindings = document.getElementsByTagNameNS(WSDL_NS, "binding");
         for(int i = 0; i < bindings.getLength(); i++) {
@@ -168,15 +169,15 @@ public class WsdlParser {
                 NodeList operations = binding.getElementsByTagNameNS(WSDL_NS, "operation");
                 for(int j = 0; j < operations.getLength(); j++) {
                     Element operationElement = (Element) operations.item(j);
-                    WsdlDefinition.OperationDefinition operation = parseOperation(operationElement);
-                    port.getOperations().put(operation.getOperationName(), operation);
+                    OperationDefinition operation = parseOperation(operationElement);
+                    port.getOperations().add(operation);
                 }
                 break;
             }
         }
     }
 
-    private WsdlDefinition.OperationDefinition parseOperation(Element operationElement) {
+    private OperationDefinition parseOperation(Element operationElement) {
         String operationName = operationElement.getAttribute("name");
 
         // Get SOAP action
@@ -186,10 +187,10 @@ public class WsdlParser {
             soapAction = ((Element) soapOperations.item(0)).getAttribute("soapAction");
         }
 
-        return WsdlDefinition.OperationDefinition.builder()
+        return OperationDefinition.builder()
                 .operationName(operationName)
                 .soapAction(soapAction)
-                .style(WsdlDefinition.OperationDefinition.OperationStyle.REQUEST_RESPONSE)
+                .documentation(null)
                 .build();
     }
 

@@ -12,8 +12,6 @@ import com.integrixs.engine.domain.repository.WorkflowRepository;
 import com.integrixs.engine.domain.service.AdapterExecutionService;
 import com.integrixs.engine.domain.service.FlowExecutionService;
 import com.integrixs.engine.domain.service.WorkflowOrchestrationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,15 +21,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure implementation of WorkflowOrchestrationService
  * Handles complex workflow execution and coordination
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationService {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkflowOrchestrationServiceImpl.class);
+
 
     private final FlowExecutionService flowExecutionService;
     private final AdapterExecutionService adapterExecutionService;
@@ -41,6 +42,14 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
 
     // Track active workflows
     private final Map<String, WorkflowContext> activeWorkflows = new ConcurrentHashMap<>();
+
+    public WorkflowOrchestrationServiceImpl(FlowExecutionService flowExecutionService, AdapterExecutionService adapterExecutionService, FieldMappingRepository fieldMappingRepository, WorkflowRepository workflowRepository, WorkflowEventRepository workflowEventRepository) {
+        this.flowExecutionService = flowExecutionService;
+        this.adapterExecutionService = adapterExecutionService;
+        this.fieldMappingRepository = fieldMappingRepository;
+        this.workflowRepository = workflowRepository;
+        this.workflowEventRepository = workflowEventRepository;
+    }
 
     @Override
     public WorkflowContext executeWorkflow(IntegrationFlow flow, Object inputData) {
@@ -241,15 +250,16 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
         saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_RESUMED, "Workflow resumed from suspended state");
 
         // Execute resume logic asynchronously
+        final WorkflowContext finalContext = context;
         CompletableFuture.runAsync(() -> {
             try {
-                resumeWorkflowExecution(context);
+                resumeWorkflowExecution(finalContext);
             } catch(Exception e) {
                 log.error("Failed to resume workflow {}: {}", workflowId, e.getMessage(), e);
-                context.setState(WorkflowContext.WorkflowState.FAILED);
-                context.addMetadata("resumeError", e.getMessage());
-                workflowRepository.save(context);
-                saveWorkflowEvent(context, WorkflowEvent.EventType.WORKFLOW_FAILED,
+                finalContext.setState(WorkflowContext.WorkflowState.FAILED);
+                finalContext.addMetadata("resumeError", e.getMessage());
+                workflowRepository.save(finalContext);
+                saveWorkflowEvent(finalContext, WorkflowEvent.EventType.WORKFLOW_FAILED,
                     "Workflow failed during resume: " + e.getMessage());
             }
         });

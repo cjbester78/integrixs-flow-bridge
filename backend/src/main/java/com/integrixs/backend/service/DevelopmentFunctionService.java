@@ -3,9 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.exception.BusinessException;
 import com.integrixs.data.model.TransformationCustomFunction;
 import com.integrixs.data.repository.TransformationCustomFunctionRepository;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,15 +23,26 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class DevelopmentFunctionService {
+
+    private static final Logger log = LoggerFactory.getLogger(DevelopmentFunctionService.class);
+
 
     private final TransformationCustomFunctionRepository functionRepository;
     private final JavaCompilationService compilationService;
     private final org.springframework.core.env.Environment environment;
+
+    public DevelopmentFunctionService(TransformationCustomFunctionRepository functionRepository,
+                                      JavaCompilationService compilationService,
+                                      org.springframework.core.env.Environment environment) {
+        this.functionRepository = functionRepository;
+        this.compilationService = compilationService;
+        this.environment = environment;
+    }
 
     /**
      * Check if development mode is enabled
@@ -604,15 +612,35 @@ public class DevelopmentFunctionService {
     }
 
     // DTOs
-    @Data
-    public static class DevelopmentFunctionsResponse {
+        public static class DevelopmentFunctionsResponse {
         private boolean developmentMode;
         private List<BuiltInFunction> builtInFunctions;
         private CustomFunctionsPage customFunctions;
+
+        public boolean isDevelopmentMode() {
+            return developmentMode;
+        }
+
+        public void setDevelopmentMode(boolean developmentMode) {
+            this.developmentMode = developmentMode;
+        }
+        public List<BuiltInFunction> getBuiltInFunctions() {
+            return builtInFunctions;
+        }
+
+        public void setBuiltInFunctions(List<BuiltInFunction> builtInFunctions) {
+            this.builtInFunctions = builtInFunctions;
+        }
+        public CustomFunctionsPage getCustomFunctions() {
+            return customFunctions;
+        }
+
+        public void setCustomFunctions(CustomFunctionsPage customFunctions) {
+            this.customFunctions = customFunctions;
+        }
     }
 
-    @Data
-    public static class CustomFunctionsPage {
+        public static class CustomFunctionsPage {
         private List<TransformationCustomFunction> content;
         private long totalElements;
         private int totalPages;
@@ -626,10 +654,41 @@ public class DevelopmentFunctionService {
             result.number = page.getNumber();
             return result;
         }
+
+        public List<TransformationCustomFunction> getContent() {
+            return content;
+        }
+
+        public void setContent(List<TransformationCustomFunction> content) {
+            this.content = content;
+        }
+
+        public long getTotalElements() {
+            return totalElements;
+        }
+
+        public void setTotalElements(long totalElements) {
+            this.totalElements = totalElements;
+        }
+
+        public int getTotalPages() {
+            return totalPages;
+        }
+
+        public void setTotalPages(int totalPages) {
+            this.totalPages = totalPages;
+        }
+
+        public int getNumber() {
+            return number;
+        }
+
+        public void setNumber(int number) {
+            this.number = number;
+        }
     }
 
-    @Data
-    public static class BuiltInFunction {
+        public static class BuiltInFunction {
         private String name;
         private String category;
         private String description;
@@ -650,10 +709,49 @@ public class DevelopmentFunctionService {
             this.signature = signature;
             this.parameters = parameters;
         }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getSignature() {
+            return signature;
+        }
+
+        public void setSignature(String signature) {
+            this.signature = signature;
+        }
+
+        public String getParameters() {
+            return parameters;
+        }
+
+        public void setParameters(String parameters) {
+            this.parameters = parameters;
+        }
     }
 
-    @Data
-    public static class FunctionCreateRequest {
+        public static class FunctionCreateRequest {
         private String name;
         private String description;
         private String category;
@@ -666,10 +764,94 @@ public class DevelopmentFunctionService {
         private Boolean isPublic;
         private TransformationCustomFunction.PerformanceClass performanceClass;
         private String createdBy;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+        public TransformationCustomFunction.FunctionLanguage getLanguage() {
+            return language;
+        }
+
+        public void setLanguage(TransformationCustomFunction.FunctionLanguage language) {
+            this.language = language;
+        }
+        public String getFunctionSignature() {
+            return functionSignature;
+        }
+
+        public void setFunctionSignature(String functionSignature) {
+            this.functionSignature = functionSignature;
+        }
+        public String getFunctionBody() {
+            return functionBody;
+        }
+
+        public void setFunctionBody(String functionBody) {
+            this.functionBody = functionBody;
+        }
+        public List<String> getDependencies() {
+            return dependencies;
+        }
+
+        public void setDependencies(List<String> dependencies) {
+            this.dependencies = dependencies;
+        }
+        public List<TransformationCustomFunction.TestCase> getTestCases() {
+            return testCases;
+        }
+
+        public void setTestCases(List<TransformationCustomFunction.TestCase> testCases) {
+            this.testCases = testCases;
+        }
+        public Boolean getIsSafe() {
+            return isSafe;
+        }
+
+        public void setIsSafe(Boolean isSafe) {
+            this.isSafe = isSafe;
+        }
+        public Boolean getIsPublic() {
+            return isPublic;
+        }
+
+        public void setIsPublic(Boolean isPublic) {
+            this.isPublic = isPublic;
+        }
+        public TransformationCustomFunction.PerformanceClass getPerformanceClass() {
+            return performanceClass;
+        }
+
+        public void setPerformanceClass(TransformationCustomFunction.PerformanceClass performanceClass) {
+            this.performanceClass = performanceClass;
+        }
+        public String getCreatedBy() {
+            return createdBy;
+        }
+
+        public void setCreatedBy(String createdBy) {
+            this.createdBy = createdBy;
+        }
     }
 
-    @Data
-    public static class FunctionUpdateRequest {
+        public static class FunctionUpdateRequest {
         private String name;
         private String description;
         private String category;
@@ -681,14 +863,141 @@ public class DevelopmentFunctionService {
         private Boolean isSafe;
         private Boolean isPublic;
         private TransformationCustomFunction.PerformanceClass performanceClass;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+
+        public String getFunctionSignature() {
+            return functionSignature;
+        }
+
+        public void setFunctionSignature(String functionSignature) {
+            this.functionSignature = functionSignature;
+        }
+
+        public String getFunctionBody() {
+            return functionBody;
+        }
+
+        public void setFunctionBody(String functionBody) {
+            this.functionBody = functionBody;
+        }
+
+        public List<Map<String, Object>> getParameters() {
+            return parameters;
+        }
+
+        public void setParameters(List<Map<String, Object>> parameters) {
+            this.parameters = parameters;
+        }
+
+        public List<String> getDependencies() {
+            return dependencies;
+        }
+
+        public void setDependencies(List<String> dependencies) {
+            this.dependencies = dependencies;
+        }
+
+        public List<TransformationCustomFunction.TestCase> getTestCases() {
+            return testCases;
+        }
+
+        public void setTestCases(List<TransformationCustomFunction.TestCase> testCases) {
+            this.testCases = testCases;
+        }
+
+        public Boolean getIsSafe() {
+            return isSafe;
+        }
+
+        public void setIsSafe(Boolean isSafe) {
+            this.isSafe = isSafe;
+        }
+
+        public Boolean getIsPublic() {
+            return isPublic;
+        }
+
+        public void setIsPublic(Boolean isPublic) {
+            this.isPublic = isPublic;
+        }
+
+        public TransformationCustomFunction.PerformanceClass getPerformanceClass() {
+            return performanceClass;
+        }
+
+        public void setPerformanceClass(TransformationCustomFunction.PerformanceClass performanceClass) {
+            this.performanceClass = performanceClass;
+        }
     }
 
-    @Data
-    public static class FunctionTestResult {
+        public static class FunctionTestResult {
         private String functionId;
         private String functionName;
         private boolean success;
         private Object output;
         private String error;
+
+        public String getFunctionId() {
+            return functionId;
+        }
+
+        public void setFunctionId(String functionId) {
+            this.functionId = functionId;
+        }
+
+        public String getFunctionName() {
+            return functionName;
+        }
+
+        public void setFunctionName(String functionName) {
+            this.functionName = functionName;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public Object getOutput() {
+            return output;
+        }
+
+        public void setOutput(Object output) {
+            this.output = output;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        public void setError(String error) {
+            this.error = error;
+        }
     }
 }

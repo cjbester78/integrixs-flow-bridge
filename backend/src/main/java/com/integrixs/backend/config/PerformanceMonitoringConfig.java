@@ -3,7 +3,6 @@ package com.integrixs.backend.config;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,6 +13,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Performance monitoring configuration.
@@ -24,7 +25,6 @@ import java.util.concurrent.TimeUnit;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Configuration
 @EnableAspectJAutoProxy
 public class PerformanceMonitoringConfig {
@@ -32,6 +32,9 @@ public class PerformanceMonitoringConfig {
     /**
      * Customizes the meter registry with application - specific tags.
      */
+
+    private static final Logger log = LoggerFactory.getLogger(PerformanceMonitoringConfig.class);
+
     @Bean
     public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
         return registry -> registry.config()

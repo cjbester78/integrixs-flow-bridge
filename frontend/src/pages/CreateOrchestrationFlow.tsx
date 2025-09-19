@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { usePageReset } from '@/hooks/usePageReset';
 import { Alert, AlertDescription } from '@/components/ui/alert';

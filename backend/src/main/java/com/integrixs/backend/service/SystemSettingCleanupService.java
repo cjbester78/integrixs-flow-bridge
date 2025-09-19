@@ -2,15 +2,16 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.repository.SystemSettingRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class SystemSettingCleanupService {
+
+    private static final Logger log = LoggerFactory.getLogger(SystemSettingCleanupService.class);
+
 
     private final SystemSettingRepository systemSettingRepository;
 

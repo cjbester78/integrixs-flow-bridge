@@ -4,12 +4,12 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Interceptor for rate limiting API requests.
@@ -20,9 +20,10 @@ import java.time.Duration;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
-@RequiredArgsConstructor
 public class RateLimitingInterceptor implements HandlerInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(RateLimitingInterceptor.class);
+
 
     private final RateLimitingConfig.RateLimiterService rateLimiterService;
 

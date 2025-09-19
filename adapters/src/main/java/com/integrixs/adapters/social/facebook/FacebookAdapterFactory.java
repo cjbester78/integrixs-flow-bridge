@@ -104,6 +104,7 @@ public class FacebookAdapterFactory implements AdapterFactory {
      * Wrapper class to adapt FacebookGraphInboundAdapter to InboundAdapterPort
      */
     private static class InboundAdapterWrapper implements InboundAdapterPort {
+        private static final Logger log = LoggerFactory.getLogger(InboundAdapterWrapper.class);
         private final FacebookGraphInboundAdapter adapter;
         
         public InboundAdapterWrapper(FacebookGraphInboundAdapter adapter) {
@@ -144,12 +145,22 @@ public class FacebookAdapterFactory implements AdapterFactory {
         
         @Override
         public void initialize(AdapterConfiguration configuration) {
-            adapter.initialize();
+            try {
+                adapter.initialize();
+            } catch (AdapterException e) {
+                log.error("Error initializing adapter", e);
+                throw new RuntimeException("Failed to initialize adapter", e);
+            }
         }
         
         @Override
         public void shutdown() {
-            adapter.destroy();
+            try {
+                adapter.destroy();
+            } catch (AdapterException e) {
+                log.error("Error destroying adapter", e);
+                throw new RuntimeException("Failed to destroy adapter", e);
+            }
         }
         
         @Override
@@ -194,6 +205,7 @@ public class FacebookAdapterFactory implements AdapterFactory {
      * Wrapper class to adapt FacebookGraphOutboundAdapter to OutboundAdapterPort
      */
     private static class OutboundAdapterWrapper implements OutboundAdapterPort {
+        private static final Logger log = LoggerFactory.getLogger(OutboundAdapterWrapper.class);
         private final FacebookGraphOutboundAdapter adapter;
         
         public OutboundAdapterWrapper(FacebookGraphOutboundAdapter adapter) {
@@ -231,12 +243,22 @@ public class FacebookAdapterFactory implements AdapterFactory {
         
         @Override
         public void initialize(AdapterConfiguration configuration) {
-            adapter.initialize();
+            try {
+                adapter.initialize();
+            } catch (AdapterException e) {
+                log.error("Error initializing adapter", e);
+                throw new RuntimeException("Failed to initialize adapter", e);
+            }
         }
         
         @Override
         public void shutdown() {
-            adapter.destroy();
+            try {
+                adapter.destroy();
+            } catch (AdapterException e) {
+                log.error("Error destroying adapter", e);
+                throw new RuntimeException("Failed to destroy adapter", e);
+            }
         }
         
         @Override

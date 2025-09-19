@@ -1,8 +1,6 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.backend.exception.BusinessException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
@@ -25,12 +23,15 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.StringReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class WsdlValidationService {
+
+    private static final Logger log = LoggerFactory.getLogger(WsdlValidationService.class);
+
 
     public static class ValidationResult {
         private boolean valid;

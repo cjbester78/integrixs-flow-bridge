@@ -9,8 +9,6 @@ import com.integrixs.backend.infrastructure.orchestration.OrchestrationExecutor;
 import com.integrixs.backend.service.TransformationExecutionService;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.repository.IntegrationFlowRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +18,17 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for orchestrating integration flows
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class OrchestrationApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrchestrationApplicationService.class);
+
 
     private final OrchestrationManagementService orchestrationManagementService;
     private final OrchestrationExecutor orchestrationExecutor;

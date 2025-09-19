@@ -1,9 +1,7 @@
 package com.integrixs.backend.security;
 
 import com.integrixs.data.model.User;
-import com.integrixs.data.model.UserRole;
 import com.integrixs.data.repository.UserRepository;
-import com.integrixs.data.repository.UserRoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +24,6 @@ public class ResourceAccessService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private UserRoleRepository userRoleRepository;
 
     /**
      * Check if current user has permission
@@ -60,19 +56,14 @@ public class ResourceAccessService {
                 return false;
             }
 
-            // Get user roles
-            List<UserRole> userRoles = userRoleRepository.findByUserId(user.getId());
-
-            // Check each role for permission
-            for(UserRole userRole : userRoles) {
-                RoleDefinitions.Role role = RoleDefinitions.getRole(userRole.getRole());
-                if(role != null && role.hasPermission(permission)) {
-                    // Additional tenant check if needed
-                    if(requiresTenantCheck(permission)) {
-                        return checkTenantAccess(user, userRole);
-                    }
-                    return true;
+            // Check user role for permission
+            RoleDefinitions.Role role = RoleDefinitions.getRole(user.getRole());
+            if(role != null && role.hasPermission(permission)) {
+                // Additional tenant check if needed
+                if(requiresTenantCheck(permission)) {
+                    return checkTenantAccess(user, user.getRole());
                 }
+                return true;
             }
 
             return false;
@@ -135,15 +126,10 @@ public class ResourceAccessService {
 
             User user = userOpt.get();
 
-            // Get user roles
-            List<UserRole> userRoles = userRoleRepository.findByUserId(user.getId());
-
-            // Collect all permissions from roles
-            for(UserRole userRole : userRoles) {
-                RoleDefinitions.Role role = RoleDefinitions.getRole(userRole.getRole());
-                if(role != null) {
-                    permissions.addAll(role.getPermissions());
-                }
+            // Get permissions from user's role
+            RoleDefinitions.Role role = RoleDefinitions.getRole(user.getRole());
+            if(role != null) {
+                permissions.addAll(role.getPermissions());
             }
 
         } catch(Exception e) {
@@ -253,7 +239,7 @@ public class ResourceAccessService {
     /**
      * Check tenant access for user
      */
-    private boolean checkTenantAccess(User user, UserRole userRole) {
+    private boolean checkTenantAccess(User user, String userRole) {
         UUID currentTenant = TenantContext.getCurrentTenant();
 
         // No tenant context means no restriction
@@ -267,6 +253,6 @@ public class ResourceAccessService {
         }
 
         // System admins have cross - tenant access
-        return "SYSTEM_ADMIN".equals(userRole.getRole());
+        return "SYSTEM_ADMIN".equals(userRole);
     }
 }

@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.twitter.TwitterApiV2Config;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
@@ -26,7 +28,6 @@ import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -38,7 +39,6 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private static final Logger log = LoggerFactory.getLogger(TwitterApiV2InboundAdapter.class);
 
 
-    private static final String TWITTER_API_BASE = "https://api.twitter.com/2";
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
@@ -58,6 +58,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super();
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -65,7 +66,6 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(!isConfigValid()) {
             throw new AdapterException("Twitter configuration is invalid");
@@ -97,18 +97,16 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
         }
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping Twitter API v2 inbound adapter");
         isListening = false;
     }
 
-    @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
             MessageDTO message = new MessageDTO();
             message.setCorrelationId(UUID.randomUUID().toString());
-            message.setMessageTimestamp(Instant.now());
+            message.setTimestamp(LocalDateTime.now());
             message.setStatus(MessageStatus.NEW);
 
             JsonNode dataNode = objectMapper.readTree(data);
@@ -146,11 +144,15 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
             return message;
         } catch(Exception e) {
             log.error("Error processing Twitter inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setPayload("Error: " + e.getMessage());
+            errorMessage.setHeaders(Map.of("error", "true", "errorMessage", e.getMessage()));
+            return errorMessage;
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             // Twitter v2 uses Account Activity API for webhooks
@@ -173,12 +175,21 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
             return null;
         } catch(Exception e) {
             log.error("Error processing Twitter webhook", e);
-            throw new AdapterException("Failed to process webhook", 1);
+            return null;
+        }
+    }
+    
+    @Scheduled(fixedDelayString = "${integrixs.adapters.twitter.mentionPollingInterval:60000}") // 1 minute
+    private void pollMentions() {
+        if(!isListening || !config.getFeatures().isEnableMentionMonitoring()) return;
+        
+        try {
+            rateLimiterService.acquire("twitter_api", 1);
 
-            String url = TWITTER_API_BASE + "/users/" + authenticatedUserId + "/mentions";
+            String url = config.getApiBaseUrl() + "/users/" + authenticatedUserId + "/mentions";
 
             Map<String, String> params = new HashMap<>();
-            params.put("max_results", "100");
+            params.put("max_results", String.valueOf(config.getDefaultMaxResults()));
             params.put("tweet.fields", "id,text,created_at,author_id,conversation_id,public_metrics,entities");
             params.put("user.fields", "id,name,username,profile_image_url,verified");
             params.put("expansions", "author_id,referenced_tweets.id");
@@ -203,10 +214,10 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
         try {
             rateLimiterService.acquire("twitter_api", 1);
 
-            String url = TWITTER_API_BASE + "/users/" + authenticatedUserId + "/timelines/reverse_chronological";
+            String url = config.getApiBaseUrl() + "/users/" + authenticatedUserId + "/timelines/reverse_chronological";
 
             Map<String, String> params = new HashMap<>();
-            params.put("max_results", "100");
+            params.put("max_results", String.valueOf(config.getDefaultMaxResults()));
             params.put("tweet.fields", "id,text,created_at,author_id,public_metrics,entities,attachments");
             params.put("user.fields", "id,name,username,profile_image_url,verified");
             params.put("media.fields", "type,url,preview_image_url,duration_ms");
@@ -238,10 +249,10 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
         try {
             rateLimiterService.acquire("twitter_api", 1);
 
-            String url = TWITTER_API_BASE + "/dm_events";
+            String url = config.getApiBaseUrl() + "/dm_events";
 
             Map<String, String> params = new HashMap<>();
-            params.put("max_results", "100");
+            params.put("max_results", String.valueOf(config.getDefaultMaxResults()));
             params.put("dm_event.fields", "id,text,created_at,sender_id,attachments");
             params.put("user.fields", "id,name,username,profile_image_url");
             params.put("media.fields", "type,url,preview_image_url");
@@ -264,11 +275,11 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
             rateLimiterService.acquire("twitter_api", 1);
 
             // Search for live spaces from followed users
-            String url = TWITTER_API_BASE + "/spaces/search";
+            String url = config.getApiBaseUrl() + "/spaces/search";
 
             Map<String, String> params = new HashMap<>();
             params.put("state", "live");
-            params.put("max_results", "100");
+            params.put("max_results", String.valueOf(config.getDefaultMaxResults()));
             params.put("space.fields", "id,state,title,created_at,started_at,participant_count,host_ids");
             params.put("user.fields", "id,name,username,profile_image_url");
             params.put("expansions", "host_ids,speaker_ids");
@@ -286,7 +297,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processTweet(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(data.path("id").asText());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -312,7 +323,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processMention(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -332,7 +343,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processDirectMessage(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -348,7 +359,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processFollowerUpdate(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -364,7 +375,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processSpaceUpdate(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -384,7 +395,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processListUpdate(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -400,7 +411,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processLikeEvent(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -416,7 +427,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
     private MessageDTO processRetweetEvent(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -500,7 +511,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
 
     private String getAuthenticatedUserId() {
         try {
-            String url = TWITTER_API_BASE + "/users/me";
+            String url = config.getApiBaseUrl() + "/users/me";
 
             Map<String, String> params = new HashMap<>();
             params.put("user.fields", "id");
@@ -543,7 +554,7 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
             mac.init(secret);
 
             byte[] hash = mac.doFinal(crcToken.getBytes("UTF-8"));
-            String responseToken = "sha256 = " + Base64.getEncoder().encodeToString(hash);
+            String responseToken = config.getCrcPrefix() + Base64.getEncoder().encodeToString(hash);
 
             return responseToken;
         } catch(Exception e) {
@@ -568,5 +579,85 @@ public class TwitterApiV2InboundAdapter extends AbstractSocialMediaInboundAdapte
         DAY,
         HOUR,
         TOTAL
+    }
+    
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return List.of(
+            "TWEET",
+            "MENTION", 
+            "DIRECT_MESSAGE",
+            "FOLLOWER_UPDATE",
+            "SPACE_UPDATE",
+            "LIST_UPDATE",
+            "LIKE_EVENT",
+            "RETWEET_EVENT"
+        );
+    }
+    
+    @Override
+    protected Map<String, Object> getConfig() {
+        return getAdapterConfig();
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("apiKey", config.getApiKey());
+            configMap.put("apiKeySecret", config.getApiKeySecret());
+            configMap.put("bearerToken", config.getBearerToken());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("accessTokenSecret", config.getAccessTokenSecret());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+            configMap.put("apiVersion", config.getApiVersion());
+        }
+        return configMap;
+    }
+    
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+    
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        // Inbound adapters typically don't send data
+        throw new UnsupportedOperationException("Twitter inbound adapter does not support sending data");
+    }
+    
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        // Initialize any sender-specific resources
+        log.debug("Initializing Twitter V2 inbound adapter");
+    }
+    
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        // Clean up any sender-specific resources
+        log.debug("Destroying Twitter V2 inbound adapter");
+    }
+    
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Inbound adapters typically don't send data
+        throw new UnsupportedOperationException("Twitter inbound adapter does not support sending data");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by getting authenticated user
+            String userId = getAuthenticatedUserId();
+            if (userId != null) {
+                return AdapterResult.success(null, "Twitter API V2 connection successful");
+            } else {
+                return AdapterResult.failure("Failed to authenticate with Twitter API");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test Twitter connection: " + e.getMessage());
+        }
     }
 }

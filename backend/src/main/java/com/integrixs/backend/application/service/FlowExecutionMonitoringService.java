@@ -9,8 +9,6 @@ import com.integrixs.backend.infrastructure.websocket.FlowExecutionWebSocketServ
 import com.integrixs.backend.infrastructure.notification.AlertNotificationService;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.repository.IntegrationFlowRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,14 +18,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for flow execution monitoring
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class FlowExecutionMonitoringService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionMonitoringService.class);
+
 
     private final ExecutionTraceManager traceManager;
     private final ExecutionMetricsCalculator metricsCalculator;

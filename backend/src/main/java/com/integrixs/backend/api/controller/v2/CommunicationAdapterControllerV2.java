@@ -7,8 +7,6 @@ import com.integrixs.backend.api.dto.response.AdapterResponse;
 import com.integrixs.backend.api.dto.response.AdapterTestResponse;
 import com.integrixs.backend.application.service.AdapterTestingService;
 import com.integrixs.backend.application.service.CommunicationAdapterService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for communication adapter management - API v2
@@ -24,10 +24,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v2/communication - adapters")
-@RequiredArgsConstructor
 @Validated
-@Slf4j
 public class CommunicationAdapterControllerV2 {
+
+    private static final Logger log = LoggerFactory.getLogger(CommunicationAdapterControllerV2.class);
+
 
     private final CommunicationAdapterService adapterService;
     private final AdapterTestingService testingService;

@@ -109,7 +109,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
             log.info("RabbitMQ Inbound Adapter initialized successfully");
         } catch(Exception e) {
             log.error("Failed to initialize RabbitMQ Inbound Adapter", e);
-            throw new AdapterException("Failed to initialize RabbitMQ adapter", e);
+            throw new RuntimeException("Failed to initialize RabbitMQ adapter", e);
         }
     }
 
@@ -126,7 +126,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
 
         // Connection recovery
         connectionFactory.setAutomaticRecoveryEnabled(true);
-        connectionFactory.setNetworkRecoveryInterval(5000);
+        connectionFactory.setNetworkRecoveryInterval((int) config.getNetworkRecoveryInterval());
 
         // Connection timeout
         connectionFactory.setConnectionTimeout(config.getConnectionTimeout());
@@ -144,7 +144,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
                 log.info("SSL enabled for RabbitMQ connection");
             } catch(Exception e) {
                 log.error("Failed to enable SSL", e);
-                throw new AdapterException("Failed to configure SSL", e);
+                throw new RuntimeException("Failed to configure SSL", e);
             }
         }
     }
@@ -156,7 +156,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
                 Address[] addresses = Arrays.stream(config.getClusterAddresses())
                     .map(addr -> {
                         String[] parts = addr.split(":");
-                        return new Address(parts[0], parts.length > 1 ? Integer.parseInt(parts[1]) : 5672);
+                        return new Address(parts[0], parts.length > 1 ? Integer.parseInt(parts[1]) : config.getPort());
                     })
                     .toArray(Address[]::new);
                 connection = connectionFactory.newConnection(addresses);
@@ -185,7 +185,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
 
         } catch(Exception e) {
             connectionFailures.incrementAndGet();
-            throw new AdapterException("Failed to connect to RabbitMQ", e);
+            throw new RuntimeException("Failed to connect to RabbitMQ", e);
         }
     }
 
@@ -273,7 +273,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
 
             // Priority queue configuration
             if(config.isEnablePriorityQueues()) {
-                queueArgs.put(QueueArguments.MAX_PRIORITY, 10);
+                queueArgs.put(QueueArguments.MAX_PRIORITY, config.getMaxPriority());
             }
 
             // Declare queue
@@ -300,7 +300,7 @@ public class RabbitMQInboundAdapter extends AbstractInboundAdapter {
             }
         } catch(Exception e) {
             log.error("Failed to declare exchange/queue", e);
-            throw new AdapterException("Failed to setup RabbitMQ topology", e);
+            throw new RuntimeException("Failed to setup RabbitMQ topology", e);
         }
     }
 

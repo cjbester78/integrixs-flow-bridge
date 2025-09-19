@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +14,25 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for flow execution operations
  */
-@Slf4j
 @RestController("engineFlowExecutionController")
-@RequestMapping("/api/engine/flow - execution")
-@RequiredArgsConstructor
+@RequestMapping("/api/engine/flow-execution")
 @Tag(name = "Flow Execution", description = "Operations for executing integration flows")
 public class FlowExecutionController {
 
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionController.class);
+
+
     private final FlowExecutionApplicationService flowExecutionApplicationService;
+
+    public FlowExecutionController(FlowExecutionApplicationService flowExecutionApplicationService) {
+        this.flowExecutionApplicationService = flowExecutionApplicationService;
+    }
 
     /**
      * Execute a flow
@@ -112,7 +117,7 @@ public class FlowExecutionController {
      * @param flowId Flow ID
      * @return Readiness status
      */
-    @GetMapping("/ {flowId}/ready")
+    @GetMapping("/{flowId}/ready")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Check if a flow is ready for execution")
     public ResponseEntity<Map<String, Object>> checkFlowReady(
@@ -136,7 +141,7 @@ public class FlowExecutionController {
      * @param testData Test data
      * @return Test result
      */
-    @PostMapping("/ {flowId}/test")
+    @PostMapping("/{flowId}/test")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     @Operation(summary = "Test flow execution with sample data")
     public ResponseEntity<FlowExecutionResponseDTO> testFlow(

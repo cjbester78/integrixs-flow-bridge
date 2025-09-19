@@ -25,7 +25,8 @@ import {
  ApiKeyRequest
 } from '@/types/externalAuth';
 import { Shield, Key, UserCheck, ShieldAlert } from 'lucide-react';
-import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
+import { isApiResponse } from '@/lib/api-response-utils';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface CreateExternalAuthDialogProps {
  open: boolean;

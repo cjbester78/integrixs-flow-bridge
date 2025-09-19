@@ -41,7 +41,7 @@ public class SoapClientWrapper {
                 case BASIC_AUTH:
                     configureBasicAuth();
                     break;
-                case OAUTH2:
+                case OAUTH:
                     configureOAuth2();
                     break;
                 case NONE:

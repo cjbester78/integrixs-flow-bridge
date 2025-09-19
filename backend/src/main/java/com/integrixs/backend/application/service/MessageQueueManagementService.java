@@ -10,8 +10,6 @@ import com.integrixs.data.model.Message;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.data.repository.SystemLogRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +17,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for message queue management and processing
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MessageQueueManagementService {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageQueueManagementService.class);
+
 
     private final MessageRepository messageRepository;
     private final IntegrationFlowRepository flowRepository;

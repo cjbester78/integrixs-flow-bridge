@@ -9,8 +9,6 @@ import com.integrixs.shared.dto.flow.FlowCreateRequestDTO;
 import com.integrixs.shared.dto.flow.IntegrationFlowDTO;
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -23,6 +21,8 @@ import org.springframework.data.domain.PageImpl;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for integration flows - API Version 1.
@@ -32,13 +32,14 @@ import java.util.UUID;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @RestController
 @RequestMapping("/flows")
 @ApiV1 // This annotation marks it for v1 versioning
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class FlowControllerV1 {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowControllerV1.class);
+
 
     private final FlowCompositionService flowCompositionService;
     private final IntegrationFlowService integrationFlowService;

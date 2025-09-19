@@ -11,8 +11,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,16 +18,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for orchestration operations
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/orchestration")
-@RequiredArgsConstructor
 @Tag(name = "Orchestration", description = "Orchestration flow execution endpoints")
 public class OrchestrationController {
+
+    private static final Logger log = LoggerFactory.getLogger(OrchestrationController.class);
+
 
     private final OrchestrationApplicationService orchestrationApplicationService;
 

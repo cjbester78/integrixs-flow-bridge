@@ -3,10 +3,9 @@ package com.integrixs.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.api.dto.response.TestConditionResponse;
 import com.integrixs.backend.exception.BusinessException;
-import com.integrixs.data.model.ConditionType;
+import com.integrixs.data.model.RouteCondition;
+import static com.integrixs.data.model.RouteCondition.ConditionType.*;
 import com.jayway.jsonpath.JsonPath;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -27,16 +26,19 @@ import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ConditionEvaluationService {
+
+    private static final Logger log = LoggerFactory.getLogger(ConditionEvaluationService.class);
+
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ExpressionParser parser = new SpelExpressionParser();
 
-    public TestConditionResponse evaluateCondition(String condition, ConditionType conditionType, Map<String, Object> payload) {
+    public TestConditionResponse evaluateCondition(String condition, RouteCondition.ConditionType conditionType, Map<String, Object> payload) {
         String testId = UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
         List<TestConditionResponse.ExecutionStep> steps = new ArrayList<>();
@@ -123,7 +125,7 @@ public class ConditionEvaluationService {
         }
     }
 
-    public TestConditionResponse validateCondition(String condition, ConditionType conditionType) {
+    public TestConditionResponse validateCondition(String condition, RouteCondition.ConditionType conditionType) {
         String testId = UUID.randomUUID().toString();
         List<TestConditionResponse.ExecutionStep> steps = new ArrayList<>();
 

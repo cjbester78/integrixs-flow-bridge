@@ -3,8 +3,6 @@ package com.integrixs.backend.domain.service;
 import com.integrixs.backend.domain.model.ExecutionTrace;
 import com.integrixs.backend.domain.model.TraceEvent;
 import com.integrixs.backend.domain.model.ExecutionStatus;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,8 +12,6 @@ import java.util.UUID;
  * Domain service for managing execution traces
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class ExecutionTraceManager {
 
     private final ExecutionMetricsCalculator metricsCalculator;

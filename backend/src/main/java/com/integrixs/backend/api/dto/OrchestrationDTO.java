@@ -1,16 +1,11 @@
 package com.integrixs.backend.api.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * DTO for orchestration execution results
  */
-@Data
-@NoArgsConstructor
 public class OrchestrationDTO {
     private boolean success;
     private String executionId;
@@ -32,5 +27,57 @@ public class OrchestrationDTO {
         dto.setSuccess(false);
         dto.setMessage(message);
         return dto;
+    }
+
+    // Default constructor
+    public OrchestrationDTO() {
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getExecutionId() {
+        return executionId;
+    }
+
+    public void setExecutionId(String executionId) {
+        this.executionId = executionId;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public List<String> getLogs() {
+        return logs;
+    }
+
+    public void setLogs(List<String> logs) {
+        this.logs = logs;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 }

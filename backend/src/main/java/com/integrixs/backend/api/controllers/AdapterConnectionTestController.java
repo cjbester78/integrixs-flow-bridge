@@ -9,21 +9,22 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/adapters/connection")
-@RequiredArgsConstructor
 @Validated
 @Tag(name = "Adapter Connection Testing", description = "API for testing adapter connections")
 public class AdapterConnectionTestController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterConnectionTestController.class);
+
 
     private final AdapterConnectionTestService connectionTestService;
 

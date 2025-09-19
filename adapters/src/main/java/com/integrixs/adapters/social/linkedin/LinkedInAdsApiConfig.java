@@ -4,30 +4,50 @@ import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 public class LinkedInAdsApiConfig extends SocialMediaAdapterConfig {
     private String adAccountId;
     private String organizationId;
-    private String baseUrl = "https://api.linkedin.com";
-    private String apiVersion = "v2";
 
     // Feature flags
-    private boolean enableAnalytics = true;
-    private boolean enableAudienceTargeting = false;
-    private boolean enableConversionTracking = false;
-    private boolean enableBudgetManagement = true;
-    private boolean enableLeadGenForms = false;
-    private boolean enableVideoAnalytics = false;
+    private boolean enableAnalytics;
+    private boolean enableAudienceTargeting;
+    private boolean enableConversionTracking;
+    private boolean enableBudgetManagement;
+    private boolean enableLeadGenForms;
+    private boolean enableVideoAnalytics;
 
     // API limits
-    private int maxCampaignsPerRequest = 100;
-    private int maxCreativesPerRequest = 100;
-    private int maxAudiencesPerRequest = 50;
+    private int maxCampaignsPerRequest;
+    private int maxCreativesPerRequest;
+    private int maxAudiencesPerRequest;
 
     // Polling intervals(in milliseconds)
-    private long campaignPollingInterval = 300000; // 5 minutes
-    private long adGroupPollingInterval = 600000; // 10 minutes
-    private long creativePollingInterval = 900000; // 15 minutes
-    private long audiencePollingInterval = 3600000; // 1 hour
-    private long conversionPollingInterval = 1800000; // 30 minutes
-    private long budgetCheckInterval = 600000; // 10 minutes
-    private long leadGenPollingInterval = 300000; // 5 minutes
+    private long campaignPollingInterval;
+    private long adGroupPollingInterval;
+    private long creativePollingInterval;
+    private long audiencePollingInterval;
+    private long conversionPollingInterval;
+    private long budgetCheckInterval;
+    private long leadGenPollingInterval;
+    
+    private String authorizationUrl;
+    private String tokenUrl;
+    private String platformName;
+    private String linkedInApiVersion;
+    private String restliProtocolVersion;
+    private String defaultAlertLevel;
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return authorizationUrl;
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return tokenUrl;
+    }
+    
+    @Override
+    public String getPlatformName() {
+        return platformName;
+    }
     // Getters and Setters
     public String getAdAccountId() {
         return adAccountId;
@@ -41,18 +61,7 @@ public class LinkedInAdsApiConfig extends SocialMediaAdapterConfig {
     public void setOrganizationId(String organizationId) {
         this.organizationId = organizationId;
     }
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-    public String getApiVersion() {
-        return apiVersion;
-    }
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
-    }
+    // No overrides with defaults - all values must come from configuration
     public boolean isEnableAnalytics() {
         return enableAnalytics;
     }
@@ -148,5 +157,32 @@ public class LinkedInAdsApiConfig extends SocialMediaAdapterConfig {
     }
     public void setLeadGenPollingInterval(long leadGenPollingInterval) {
         this.leadGenPollingInterval = leadGenPollingInterval;
+    }
+    public void setAuthorizationUrl(String authorizationUrl) {
+        this.authorizationUrl = authorizationUrl;
+    }
+    public void setTokenUrl(String tokenUrl) {
+        this.tokenUrl = tokenUrl;
+    }
+    public void setPlatformName(String platformName) {
+        this.platformName = platformName;
+    }
+    public String getLinkedInApiVersion() {
+        return linkedInApiVersion;
+    }
+    public void setLinkedInApiVersion(String linkedInApiVersion) {
+        this.linkedInApiVersion = linkedInApiVersion;
+    }
+    public String getRestliProtocolVersion() {
+        return restliProtocolVersion;
+    }
+    public void setRestliProtocolVersion(String restliProtocolVersion) {
+        this.restliProtocolVersion = restliProtocolVersion;
+    }
+    public String getDefaultAlertLevel() {
+        return defaultAlertLevel;
+    }
+    public void setDefaultAlertLevel(String defaultAlertLevel) {
+        this.defaultAlertLevel = defaultAlertLevel;
     }
 }

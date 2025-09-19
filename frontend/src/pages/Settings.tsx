@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PageContainer } from '@/components/ui/page-container';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMetaDescription } from '@/hooks/useMetaDescription';
 import { useUIStore } from '@/stores/ui-store';

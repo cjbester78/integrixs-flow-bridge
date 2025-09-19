@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.youtube.YouTubeAnalyticsApiConfig.*;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
@@ -23,7 +25,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -34,12 +35,12 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private static final Logger log = LoggerFactory.getLogger(YouTubeAnalyticsInboundAdapter.class);
 
 
-    private static final String YOUTUBE_ANALYTICS_API_BASE = "https://youtubeanalytics.googleapis.com/v2";
-    private static final String YOUTUBE_DATA_API_BASE = "https://www.googleapis.com/youtube/v3";
+    // API URLs are configured in application.yml
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastReportTime = new ConcurrentHashMap<>();
 
+    @Autowired
     private YouTubeAnalyticsApiConfig config;
     private final RateLimiterService rateLimiterService;
     private final TokenRefreshService tokenRefreshService;
@@ -53,6 +54,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super();
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -60,7 +62,6 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(!isConfigValid()) {
             throw new AdapterException("YouTube Analytics configuration is invalid");
@@ -83,18 +84,16 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
         scheduleRealtimeReports();
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping YouTube Analytics inbound adapter");
         isListening = false;
     }
 
-    @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
             MessageDTO message = new MessageDTO();
             message.setCorrelationId(UUID.randomUUID().toString());
-            message.setMessageTimestamp(Instant.now());
+            message.setTimestamp(LocalDateTime.now());
             message.setStatus(MessageStatus.NEW);
 
             JsonNode dataNode = objectMapper.readTree(data);
@@ -135,11 +134,15 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
             return message;
         } catch(Exception e) {
             log.error("Error processing YouTube Analytics inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setPayload("Error: " + e.getMessage());
+            errorMessage.setHeaders(Map.of("error", "true", "errorMessage", e.getMessage()));
+            return errorMessage;
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // YouTube Analytics doesn't use webhooks - all data is pulled via API
         return null;
@@ -386,7 +389,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processChannelReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -421,7 +424,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processVideoReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -442,7 +445,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processRevenueReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -474,7 +477,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processEngagementReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -491,7 +494,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processAudienceReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -508,7 +511,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processTrafficSourceReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -525,7 +528,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processRealtimeReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -542,7 +545,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processDeviceReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -559,7 +562,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     private MessageDTO processGeographyReport(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -576,7 +579,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
     // Helper methods
     private String buildReportUrl(LocalDate startDate, LocalDate endDate, String filters,
                                   List<Metric> metrics, List<Dimension> dimensions, String sort) {
-        StringBuilder url = new StringBuilder(YOUTUBE_ANALYTICS_API_BASE + "/reports?");
+        StringBuilder url = new StringBuilder(config.getApiBaseUrl() + "/v2/reports?");
 
         url.append("startDate = ").append(startDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
         url.append("&endDate = ").append(endDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -612,7 +615,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
 
     private List<String> getTopVideos(int count) throws Exception {
         // Get channel's uploaded videos playlist
-        String channelUrl = YOUTUBE_DATA_API_BASE + "/channels?part = contentDetails&id = " + config.getChannelId();
+        String channelUrl = config.getDataApiBaseUrl() + "/channels?part = contentDetails&id = " + config.getChannelId();
         ResponseEntity<String> channelResponse = makeApiCall(channelUrl, HttpMethod.GET);
 
         if(!channelResponse.getStatusCode().is2xxSuccessful()) {
@@ -624,7 +627,7 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
             .path("contentDetails").path("relatedPlaylists").path("uploads").asText();
 
         // Get recent videos from uploads playlist
-        String videosUrl = YOUTUBE_DATA_API_BASE + "/playlistItems?part = contentDetails" +
+        String videosUrl = config.getDataApiBaseUrl() + "/playlistItems?part = contentDetails" +
             "&playlistId = " + uploadsPlaylistId + "&maxResults = " + count;
 
         ResponseEntity<String> videosResponse = makeApiCall(videosUrl, HttpMethod.GET);
@@ -709,5 +712,90 @@ public class YouTubeAnalyticsInboundAdapter extends AbstractSocialMediaInboundAd
 
     public void setConfiguration(YouTubeAnalyticsApiConfig config) {
         this.config = config;
+    }
+
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return List.of(
+            "CHANNEL_REPORT",
+            "VIDEO_REPORT",
+            "REVENUE_REPORT",
+            "ENGAGEMENT_REPORT",
+            "AUDIENCE_REPORT",
+            "TRAFFIC_SOURCE_REPORT",
+            "REALTIME_REPORT",
+            "DEVICE_REPORT",
+            "GEOGRAPHY_REPORT"
+        );
+    }
+
+    @Override
+    protected Map<String, Object> getConfig() {
+        return getAdapterConfig();
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("channelId", config.getChannelId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("refreshToken", config.getRefreshToken());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+            configMap.put("apiVersion", config.getApiVersion());
+        }
+        return configMap;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        // Inbound adapters typically don't send data
+        throw new UnsupportedOperationException("YouTube Analytics inbound adapter does not support sending data");
+    }
+
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        // Initialize any sender-specific resources
+        log.debug("Initializing YouTube Analytics inbound adapter");
+    }
+
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        // Clean up any sender-specific resources
+        log.debug("Destroying YouTube Analytics inbound adapter");
+    }
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Inbound adapters typically don't send data
+        throw new UnsupportedOperationException("YouTube Analytics inbound adapter does not support sending data");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String url = config.getApiBaseUrl() + "/v2/reports?ids=channel==" + config.getChannelId() + 
+                        "&startDate=" + LocalDate.now().minusDays(7) + 
+                        "&endDate=" + LocalDate.now().minusDays(1) + 
+                        "&metrics=views&maxResults=1";
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "YouTube Analytics API connection successful");
+            } else {
+                return AdapterResult.failure("YouTube Analytics API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test YouTube Analytics connection: " + e.getMessage());
+        }
     }
 }

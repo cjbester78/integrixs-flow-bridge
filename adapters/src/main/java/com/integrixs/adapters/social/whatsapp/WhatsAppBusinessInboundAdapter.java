@@ -7,8 +7,10 @@ import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.whatsapp.WhatsAppBusinessApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.TokenRefreshService;
+import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,17 +46,18 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
 
     private WhatsAppBusinessApiConfig config;
     private final RateLimiterService rateLimiterService;
-    private final TokenRefreshService tokenRefreshService;
+    private final OAuth2TokenRefreshService tokenRefreshService;
     private final CredentialEncryptionService credentialEncryptionService;
     private volatile boolean isListening = false;
 
     @Autowired
     public WhatsAppBusinessInboundAdapter(
             RateLimiterService rateLimiterService,
-            TokenRefreshService tokenRefreshService,
+            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super();
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -62,7 +65,6 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(!isConfigValid()) {
             throw new AdapterException("WhatsApp Business configuration is invalid");
@@ -83,18 +85,16 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         }
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping WhatsApp Business inbound adapter");
         isListening = false;
     }
 
-    @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
             MessageDTO message = new MessageDTO();
             message.setCorrelationId(UUID.randomUUID().toString());
-            message.setMessageTimestamp(Instant.now());
+            message.setTimestamp(LocalDateTime.now());
             message.setStatus(MessageStatus.NEW);
 
             JsonNode dataNode = objectMapper.readTree(data);
@@ -123,11 +123,15 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
             return message;
         } catch(Exception e) {
             log.error("Error processing WhatsApp inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setPayload("Error: " + e.getMessage());
+            errorMessage.setHeaders(Map.of("error", "true", "errorMessage", e.getMessage()));
+            return errorMessage;
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         try {
             String object = (String) webhookData.get("object");
@@ -162,7 +166,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
             return null;
         } catch(Exception e) {
             log.error("Error processing WhatsApp webhook", e);
-            throw new AdapterException("Failed to process webhook", e);
+            return null;
         }
     }
 
@@ -389,7 +393,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         try {
             // Get media URL
             String url = String.format("%s/%s/%s",
-                config.getBaseUrl(),
+                config.getApiBaseUrl(),
                 config.getApiVersion(),
                 mediaId);
 
@@ -458,7 +462,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.whatsapp.statusPollingInterval:60000}") // 1 minute
+    @Scheduled(fixedDelayString = "${integrixs.adapters.whatsapp.business.status-polling-interval:60000}")
     private void pollMessageStatuses() {
         if(!isListening) return;
 
@@ -481,9 +485,7 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
     private boolean isConfigValid() {
         return config != null
             && config.getPhoneNumberId() != null
-            && (config.getSystemUserAccessToken() != null || config.getAccessToken() != null)
-            && config.getAppId() != null
-            && config.getAppSecret() != null;
+            && (config.getSystemUserAccessToken() != null || config.getAccessToken() != null);
     }
 
     // Verify webhook challenge(required by WhatsApp)
@@ -498,5 +500,123 @@ public class WhatsAppBusinessInboundAdapter extends AbstractSocialMediaInboundAd
 
     public void setConfiguration(WhatsAppBusinessApiConfig config) {
         this.config = config;
+    }
+    
+    // Abstract methods implementation
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList(
+            "MESSAGE",
+            "STATUS_UPDATE",
+            "TEMPLATE_STATUS",
+            "BUSINESS_UPDATE",
+            "FLOW_UPDATE"
+        );
+    }
+    
+    @Override
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("phoneNumberId", config.getPhoneNumberId());
+            configMap.put("businessAccountId", config.getBusinessAccountId());
+            configMap.put("verifyToken", config.getVerifyToken());
+            configMap.put("apiVersion", config.getApiVersion());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+        }
+        return configMap;
+    }
+    
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
+    }
+    
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.WHATSAPP;
+    }
+    
+    @Override
+    protected void doInitialize() {
+        // Initialization logic if needed
+        if (config != null) {
+            log.info("WhatsApp Business adapter initialized with phone number: {}", 
+                config.getPhoneNumberId());
+        }
+    }
+    
+    @Override
+    protected void doDestroy() {
+        // Cleanup logic if needed
+        stopListening();
+        processedMessageIds.clear();
+        messageTimestamps.clear();
+    }
+    
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // This is an inbound adapter, sending is not supported
+        throw new UnsupportedOperationException("WhatsApp inbound adapter does not support sending");
+    }
+    
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        if (!isConfigValid()) {
+            return AdapterResult.failure("Invalid configuration", null);
+        }
+        
+        try {
+            // Test API connection
+            String url = String.format("%s/%s/me",
+                config.getApiBaseUrl(),
+                config.getApiVersion());
+                
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(getAccessToken());
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, String.class);
+                
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "Connection successful");
+            } else {
+                return AdapterResult.failure("Connection failed with status: " + response.getStatusCode(), null);
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public String getConfigurationSummary() {
+        if (config != null) {
+            return String.format("WhatsApp Business: %s", config.getPhoneNumberId());
+        }
+        return "WhatsApp Business: Not configured";
+    }
+    
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        // Not used for inbound adapter
+    }
+    
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        // Not used for inbound adapter
+    }
+    
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        // This is an inbound adapter, sending is not supported
+        throw new UnsupportedOperationException("WhatsApp inbound adapter does not support sending");
+    }
+    
+    protected long getPollingIntervalMs() {
+        // Return polling interval from configuration or default
+        return config != null && config.getStatusPollingInterval() != null 
+            ? config.getStatusPollingInterval() 
+            : 60000L;
     }
 }

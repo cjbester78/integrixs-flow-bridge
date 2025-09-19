@@ -1,15 +1,11 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Result of validation operation
  */
-@Data
-@AllArgsConstructor
 public class ValidationResult {
 
     private boolean valid;

@@ -6,21 +6,22 @@ import com.integrixs.engine.domain.model.AdapterExecutionContext;
 import com.integrixs.engine.domain.model.AdapterExecutionResult;
 import com.integrixs.engine.domain.service.AdapterExecutionService;
 import com.integrixs.engine.infrastructure.adapter.AdapterRegistry;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for orchestrating adapter executions
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterExecutionApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterExecutionApplicationService.class);
+
 
     private final AdapterExecutionService adapterExecutionService;
     private final AdapterRegistry adapterRegistry;
@@ -30,6 +31,11 @@ public class AdapterExecutionApplicationService {
      * @param request Execution request
      * @return Execution response
      */
+    public AdapterExecutionApplicationService(AdapterExecutionService adapterExecutionService, AdapterRegistry adapterRegistry) {
+        this.adapterExecutionService = adapterExecutionService;
+        this.adapterRegistry = adapterRegistry;
+    }
+
     public AdapterExecutionResponseDTO fetchData(AdapterExecutionRequestDTO request) {
         log.info("Fetching data from adapter: {}", request.getAdapterId());
 
@@ -164,5 +170,32 @@ public class AdapterExecutionApplicationService {
         dto.setErrorMessage(e.getMessage());
         dto.setErrorCode("ADAPTER_EXECUTION_ERROR");
         return dto;
+    }
+
+    // Builder
+    public static AdapterExecutionApplicationServiceBuilder builder() {
+        return new AdapterExecutionApplicationServiceBuilder();
+    }
+
+    public static class AdapterExecutionApplicationServiceBuilder {
+        private AdapterExecutionService adapterExecutionService;
+        private AdapterRegistry adapterRegistry;
+
+        public AdapterExecutionApplicationServiceBuilder adapterExecutionService(AdapterExecutionService adapterExecutionService) {
+            this.adapterExecutionService = adapterExecutionService;
+            return this;
+        }
+
+        public AdapterExecutionApplicationServiceBuilder adapterRegistry(AdapterRegistry adapterRegistry) {
+            this.adapterRegistry = adapterRegistry;
+            return this;
+        }
+
+        public AdapterExecutionApplicationService build() {
+            return new AdapterExecutionApplicationService(
+                this.adapterExecutionService,
+                this.adapterRegistry
+            );
+        }
     }
 }

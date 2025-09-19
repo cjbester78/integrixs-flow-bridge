@@ -1,132 +1,207 @@
 package com.integrixs.shared.dto.export;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * DTO for importing an integration flow with configuration options.
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class FlowImportRequestDTO {
 
-    /**
-     * The exported flow data
-     */
-    @NotNull(message = "Flow export data is required")
     private FlowExportDTO flowExport;
+    private ImportOptions options;
+    private Map<String, String> idMappings;
+    private ConflictStrategy conflictStrategy = ConflictStrategy.FAIL;
+    private boolean importBusinessComponent = true;
+    private boolean importAdapters = true;
+    private boolean importCertificateReferences = true;
+    private boolean validateReferences = true;
+    private boolean activateAfterImport = false;
+    private String namePrefix;
+    private String nameSuffix;
+    private String targetBusinessComponentId;
+    private Map<String, Object> configOverrides;
 
+    // Default constructor
+    public FlowImportRequestDTO() {
+        this.idMappings = new HashMap<>();
+        this.configOverrides = new HashMap<>();
+    }
+
+    // All args constructor
+    public FlowImportRequestDTO(FlowExportDTO flowExport, ImportOptions options, Map<String, String> idMappings, ConflictStrategy conflictStrategy, boolean importBusinessComponent, boolean importAdapters, boolean importCertificateReferences, boolean validateReferences, boolean activateAfterImport, String namePrefix, String nameSuffix, String targetBusinessComponentId, Map<String, Object> configOverrides) {
+        this.flowExport = flowExport;
+        this.options = options;
+        this.idMappings = idMappings != null ? idMappings : new HashMap<>();
+        this.conflictStrategy = conflictStrategy;
+        this.importBusinessComponent = importBusinessComponent;
+        this.importAdapters = importAdapters;
+        this.importCertificateReferences = importCertificateReferences;
+        this.validateReferences = validateReferences;
+        this.activateAfterImport = activateAfterImport;
+        this.namePrefix = namePrefix;
+        this.nameSuffix = nameSuffix;
+        this.targetBusinessComponentId = targetBusinessComponentId;
+        this.configOverrides = configOverrides != null ? configOverrides : new HashMap<>();
+    }
+
+    // Getters
+    public FlowExportDTO getFlowExport() { return flowExport; }
+    public ImportOptions getOptions() { return options; }
+    public Map<String, String> getIdMappings() { return idMappings; }
+    public ConflictStrategy getConflictStrategy() { return conflictStrategy; }
+    public boolean isImportBusinessComponent() { return importBusinessComponent; }
+    public boolean isImportAdapters() { return importAdapters; }
+    public boolean isImportCertificateReferences() { return importCertificateReferences; }
+    public boolean isValidateReferences() { return validateReferences; }
+    public boolean isActivateAfterImport() { return activateAfterImport; }
+    public String getNamePrefix() { return namePrefix; }
+    public String getNameSuffix() { return nameSuffix; }
+    public String getTargetBusinessComponentId() { return targetBusinessComponentId; }
+    public Map<String, Object> getConfigOverrides() { return configOverrides; }
+
+    // Setters
+    public void setFlowExport(FlowExportDTO flowExport) { this.flowExport = flowExport; }
+    public void setOptions(ImportOptions options) { this.options = options; }
+    public void setIdMappings(Map<String, String> idMappings) { this.idMappings = idMappings; }
+    public void setConflictStrategy(ConflictStrategy conflictStrategy) { this.conflictStrategy = conflictStrategy; }
+    public void setImportBusinessComponent(boolean importBusinessComponent) { this.importBusinessComponent = importBusinessComponent; }
+    public void setImportAdapters(boolean importAdapters) { this.importAdapters = importAdapters; }
+    public void setImportCertificateReferences(boolean importCertificateReferences) { this.importCertificateReferences = importCertificateReferences; }
+    public void setValidateReferences(boolean validateReferences) { this.validateReferences = validateReferences; }
+    public void setActivateAfterImport(boolean activateAfterImport) { this.activateAfterImport = activateAfterImport; }
+    public void setNamePrefix(String namePrefix) { this.namePrefix = namePrefix; }
+    public void setNameSuffix(String nameSuffix) { this.nameSuffix = nameSuffix; }
+    public void setTargetBusinessComponentId(String targetBusinessComponentId) { this.targetBusinessComponentId = targetBusinessComponentId; }
+    public void setConfigOverrides(Map<String, Object> configOverrides) { this.configOverrides = configOverrides; }
+
+    // Builder
+    public static FlowImportRequestDTOBuilder builder() {
+        return new FlowImportRequestDTOBuilder();
+    }
+
+    public static class FlowImportRequestDTOBuilder {
+        private FlowExportDTO flowExport;
+        private ImportOptions options;
+        private Map<String, String> idMappings = new HashMap<>();
+        private ConflictStrategy conflictStrategy = ConflictStrategy.FAIL;
+        private boolean importBusinessComponent = true;
+        private boolean importAdapters = true;
+        private boolean importCertificateReferences = true;
+        private boolean validateReferences = true;
+        private boolean activateAfterImport = false;
+        private String namePrefix;
+        private String nameSuffix;
+        private String targetBusinessComponentId;
+        private Map<String, Object> configOverrides = new HashMap<>();
+
+        public FlowImportRequestDTOBuilder flowExport(FlowExportDTO flowExport) {
+            this.flowExport = flowExport;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder options(ImportOptions options) {
+            this.options = options;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder idMappings(Map<String, String> idMappings) {
+            this.idMappings = idMappings;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder conflictStrategy(ConflictStrategy conflictStrategy) {
+            this.conflictStrategy = conflictStrategy;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder importBusinessComponent(boolean importBusinessComponent) {
+            this.importBusinessComponent = importBusinessComponent;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder importAdapters(boolean importAdapters) {
+            this.importAdapters = importAdapters;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder importCertificateReferences(boolean importCertificateReferences) {
+            this.importCertificateReferences = importCertificateReferences;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder validateReferences(boolean validateReferences) {
+            this.validateReferences = validateReferences;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder activateAfterImport(boolean activateAfterImport) {
+            this.activateAfterImport = activateAfterImport;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder namePrefix(String namePrefix) {
+            this.namePrefix = namePrefix;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder nameSuffix(String nameSuffix) {
+            this.nameSuffix = nameSuffix;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder targetBusinessComponentId(String targetBusinessComponentId) {
+            this.targetBusinessComponentId = targetBusinessComponentId;
+            return this;
+        }
+
+        public FlowImportRequestDTOBuilder configOverrides(Map<String, Object> configOverrides) {
+            this.configOverrides = configOverrides;
+            return this;
+        }
+
+        public FlowImportRequestDTO build() {
+            return new FlowImportRequestDTO(flowExport, options, idMappings, conflictStrategy, importBusinessComponent, importAdapters, importCertificateReferences, validateReferences, activateAfterImport, namePrefix, nameSuffix, targetBusinessComponentId, configOverrides);
+        }
+    }
+    
     /**
      * Import options
      */
-    @NotNull(message = "Import options are required")
-    private ImportOptions options;
-
-    /**
-     * Mapping of old IDs to new IDs for conflict resolution
-     */
-    private Map<String, String> idMappings;
-
-    /**
-     * Import configuration options
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class ImportOptions {
-
-        /**
-         * Strategy for handling conflicts
-         */
-        @Builder.Default
-        private ConflictStrategy conflictStrategy = ConflictStrategy.FAIL;
-
-        /**
-         * Whether to import the business component
-         */
-        @Builder.Default
         private boolean importBusinessComponent = true;
-
-        /**
-         * Whether to import adapters
-         */
-        @Builder.Default
         private boolean importAdapters = true;
-
-        /**
-         * Whether to import certificates(references only)
-         */
-        @Builder.Default
         private boolean importCertificateReferences = true;
-
-        /**
-         * Whether to validate all references exist
-         */
-        @Builder.Default
         private boolean validateReferences = true;
-
-        /**
-         * Whether to activate the flow after import
-         */
-        @Builder.Default
         private boolean activateAfterImport = false;
-
-        /**
-         * Prefix to add to imported object names
-         */
-        private String namePrefix;
-
-        /**
-         * Suffix to add to imported object names
-         */
-        private String nameSuffix;
-
-        /**
-         * Target business component ID(if different from export)
-         */
-        private String targetBusinessComponentId;
-
-        /**
-         * Environment - specific configuration overrides
-         */
-        private Map<String, Object> configOverrides;
+        
+        // Default constructor
+        public ImportOptions() {
+        }
+        
+        // Getters
+        public boolean isImportBusinessComponent() { return importBusinessComponent; }
+        public boolean isImportAdapters() { return importAdapters; }
+        public boolean isImportCertificateReferences() { return importCertificateReferences; }
+        public boolean isValidateReferences() { return validateReferences; }
+        public boolean isActivateAfterImport() { return activateAfterImport; }
+        
+        // Setters
+        public void setImportBusinessComponent(boolean importBusinessComponent) { this.importBusinessComponent = importBusinessComponent; }
+        public void setImportAdapters(boolean importAdapters) { this.importAdapters = importAdapters; }
+        public void setImportCertificateReferences(boolean importCertificateReferences) { this.importCertificateReferences = importCertificateReferences; }
+        public void setValidateReferences(boolean validateReferences) { this.validateReferences = validateReferences; }
+        public void setActivateAfterImport(boolean activateAfterImport) { this.activateAfterImport = activateAfterImport; }
     }
-
+    
     /**
-     * Strategy for handling conflicts during import
+     * Conflict resolution strategy
      */
     public enum ConflictStrategy {
-        /**
-         * Fail the import if any conflicts are found
-         */
-        FAIL,
-
-        /**
-         * Skip conflicting objects and continue
-         */
-        SKIP,
-
-        /**
-         * Create new objects with modified names
-         */
-        CREATE_NEW,
-
-        /**
-         * Update existing objects(requires permissions)
-         */
-        UPDATE_EXISTING,
-
-        /**
-         * Prompt user for each conflict(interactive mode)
-         */
-        PROMPT
+        FAIL,        // Fail on any conflict
+        SKIP,        // Skip conflicting items
+        OVERWRITE,   // Overwrite existing items
+        RENAME       // Rename conflicting items
     }
 }

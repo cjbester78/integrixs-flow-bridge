@@ -1,10 +1,6 @@
 package com.integrixs.shared.events.flow;
 
 import com.integrixs.shared.events.AbstractDomainEvent;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -15,10 +11,6 @@ import java.time.LocalDateTime;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class FlowExecutedEvent extends AbstractDomainEvent {
 
     private String flowId;
@@ -30,6 +22,12 @@ public class FlowExecutedEvent extends AbstractDomainEvent {
     private Long recordsProcessed;
     private String triggeredBy;
 
+    // Default constructor
+    public FlowExecutedEvent() {
+        super();
+    }
+
+    // All args constructor
     public FlowExecutedEvent(String flowId, String executionId, LocalDateTime startTime,
                             LocalDateTime endTime, boolean success, String triggeredBy) {
         super(flowId, triggeredBy);
@@ -51,5 +49,71 @@ public class FlowExecutedEvent extends AbstractDomainEvent {
             return Duration.between(startTime, endTime);
         }
         return Duration.ZERO;
+    }
+
+    // Getters
+    public String getFlowId() {
+        return flowId;
+    }
+
+    public String getExecutionId() {
+        return executionId;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public Long getRecordsProcessed() {
+        return recordsProcessed;
+    }
+
+    public String getTriggeredBy() {
+        return triggeredBy;
+    }
+
+    // Setters
+    public void setFlowId(String flowId) {
+        this.flowId = flowId;
+    }
+
+    public void setExecutionId(String executionId) {
+        this.executionId = executionId;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public void setRecordsProcessed(Long recordsProcessed) {
+        this.recordsProcessed = recordsProcessed;
+    }
+
+    public void setTriggeredBy(String triggeredBy) {
+        this.triggeredBy = triggeredBy;
     }
 }

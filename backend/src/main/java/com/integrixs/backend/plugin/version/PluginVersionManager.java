@@ -1,9 +1,6 @@
 package com.integrixs.backend.plugin.version;
 
 import com.integrixs.backend.plugin.api.AdapterMetadata;
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -12,13 +9,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages plugin versions and updates
  */
 @Component
-@Slf4j
 public class PluginVersionManager {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginVersionManager.class);
+
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^(\\d + )\\.(\\d + )\\.(\\d + )(?:-(. + ))?$");
 
@@ -191,9 +192,7 @@ public class PluginVersionManager {
     /**
      * Plugin version information
      */
-    @Data
-    @Builder
-    public static class PluginVersion {
+            public static class PluginVersion {
         private String pluginId;
         private String version;
         private AdapterMetadata metadata;
@@ -207,9 +206,7 @@ public class PluginVersionManager {
     /**
      * Semantic version representation
      */
-    @Data
-    @Builder
-    private static class SemanticVersion {
+            private static class SemanticVersion {
         private int major;
         private int minor;
         private int patch;
@@ -219,9 +216,7 @@ public class PluginVersionManager {
     /**
      * Update check result
      */
-    @Data
-    @Builder
-    public static class UpdateCheckResult {
+            public static class UpdateCheckResult {
         private boolean updateAvailable;
         private String currentVersion;
         private String latestVersion;
@@ -234,9 +229,7 @@ public class PluginVersionManager {
     /**
      * Update information
      */
-    @Data
-    @Builder
-    public static class UpdateInfo {
+            public static class UpdateInfo {
         private String pluginId;
         private String currentVersion;
         private String latestVersion;

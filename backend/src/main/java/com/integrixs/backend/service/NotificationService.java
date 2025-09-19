@@ -1,10 +1,9 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.Alert;
+import com.integrixs.data.model.AlertRule;
 import com.integrixs.data.model.NotificationChannel;
 import com.integrixs.data.repository.NotificationChannelRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,14 +17,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for sending notifications through various channels
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+
 
     private final NotificationChannelRepository channelRepository;
     private final JavaMailSender mailSender;

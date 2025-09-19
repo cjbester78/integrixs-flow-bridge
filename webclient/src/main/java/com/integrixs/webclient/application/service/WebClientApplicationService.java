@@ -71,13 +71,13 @@ public class WebClientApplicationService {
             ValidationResult validationResult = validationService.validate(message);
             if(!validationResult.isValid()) {
                 inboundMessageService.updateMessageStatus(messageId, InboundMessage.MessageStatus.REJECTED);
-                logger.warn("Message validation failed: {}", validationResult.getErrorMessage());
+                logger.warn("Message validation failed: {}", validationResult.getErrorsAsString());
 
                 return InboundMessageResponseDTO.builder()
                         .messageId(messageId)
                         .success(false)
                         .status("REJECTED")
-                        .error(validationResult.getErrorMessage())
+                        .error(validationResult.getErrorsAsString())
                         .validationErrors(convertValidationErrors(validationResult))
                         .receivedAt(message.getReceivedAt())
                         .build();

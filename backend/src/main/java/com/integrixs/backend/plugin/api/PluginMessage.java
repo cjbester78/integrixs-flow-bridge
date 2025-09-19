@@ -1,7 +1,5 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -9,14 +7,11 @@ import java.util.UUID;
 /**
  * Message structure for plugin communication
  */
-@Data
-@Builder
 public class PluginMessage {
 
     /**
      * Unique message ID
      */
-    @Builder.Default
     private String id = UUID.randomUUID().toString();
 
     /**
@@ -37,13 +32,11 @@ public class PluginMessage {
     /**
      * Encoding of the body(for text content)
      */
-    @Builder.Default
     private String encoding = "UTF-8";
 
     /**
      * Message timestamp
      */
-    @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
     /**
@@ -59,7 +52,6 @@ public class PluginMessage {
     /**
      * Message priority
      */
-    @Builder.Default
     private Priority priority = Priority.NORMAL;
 
     /**

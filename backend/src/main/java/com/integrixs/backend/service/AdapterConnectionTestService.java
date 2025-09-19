@@ -3,9 +3,7 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.api.dto.request.ConnectionTestRequest;
 import com.integrixs.backend.api.dto.response.ConnectionTestResponse;
 import com.integrixs.backend.api.dto.response.ConnectionDiagnostic;
-import com.integrixs.backend.model.enums.AdapterType;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.shared.enums.AdapterType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,20 +21,24 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.*;
 import javax.net.ssl.SSLSocketFactory;
-import javax.jms.ConnectionFactory;
+import jakarta.jms.ConnectionFactory;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import javax.jms.JMSException;
-import com.rabbitmq.client.ConnectionFactory as RabbitConnectionFactory;
-import com.rabbitmq.client.Connection as RabbitConnection;
+import jakarta.jms.JMSException;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterConnectionTestService {
 
-    @Qualifier("connectionTestRestTemplate")
+    private static final Logger log = LoggerFactory.getLogger(AdapterConnectionTestService.class);
+
+
     private final RestTemplate restTemplate;
+
+    public AdapterConnectionTestService(@Qualifier("connectionTestRestTemplate") RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public ConnectionTestResponse testConnection(ConnectionTestRequest request) {
         log.info("Testing connection for adapter type: {} with name: {}",
@@ -507,7 +509,7 @@ public class AdapterConnectionTestService {
 
     private ConnectionDiagnostic testIbmmqConnectivity(String brokerUrl, String username, String password) {
         long start = System.currentTimeMillis();
-        javax.jms.Connection connection = null;
+        jakarta.jms.Connection connection = null;
         try {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
             connectionFactory.setBrokerURL(brokerUrl);
@@ -546,7 +548,7 @@ public class AdapterConnectionTestService {
                                                          String password, String virtualHost) {
         long start = System.currentTimeMillis();
         try {
-            RabbitConnectionFactory factory = new RabbitConnectionFactory();
+            com.rabbitmq.client.ConnectionFactory factory = new com.rabbitmq.client.ConnectionFactory();
             factory.setHost(host);
             factory.setPort(port);
             factory.setUsername(username);
@@ -554,7 +556,7 @@ public class AdapterConnectionTestService {
             factory.setVirtualHost(virtualHost);
             factory.setConnectionTimeout(5000);
 
-            try(RabbitConnection connection = factory.newConnection()) {
+            try(com.rabbitmq.client.Connection connection = factory.newConnection()) {
                 return ConnectionDiagnostic.builder()
                         .step("RabbitMQ Connection")
                         .status(ConnectionDiagnostic.Status.SUCCESS)

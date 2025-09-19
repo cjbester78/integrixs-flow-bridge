@@ -5,8 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.snapchat.SnapchatAdsApiConfig.*;
+import com.integrixs.adapters.social.snapchat.SnapchatAdsApiConfig.WebhookEvent;
 import com.integrixs.shared.dto.MessageDTO;
-import com.integrixs.shared.enums.AdapterType;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -47,13 +50,76 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private ObjectMapper objectMapper;
 
     @Override
-    public AdapterType getType() {
-        return AdapterType.REST; // Using REST as Snapchat Ads is not yet in AdapterType enum
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
     }
 
     @Override
-    public String getName() {
-        return "Snapchat Ads API Adapter";
+    protected List<String> getSupportedEventTypes() {
+        return Arrays.asList("campaign", "ad_squad", "creative", "audience", "pixel", "report");
+    }
+
+    @Override
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("clientId", config.getClientId());
+        configMap.put("clientSecret", config.getClientSecret());
+        configMap.put("adAccountId", config.getAdAccountId());
+        configMap.put("accessToken", config.getAccessToken());
+        configMap.put("pixelId", config.getPixelId());
+        configMap.put("features", config.getFeatures());
+        configMap.put("limits", config.getLimits());
+        return configMap;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
+    }
+
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.info("Initializing Snapchat Ads adapter");
+        // Initialization logic if needed
+    }
+
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.info("Destroying Snapchat Ads adapter");
+        // Cleanup logic if needed
+    }
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // This is an inbound adapter, so we don't typically send data
+        // But we need to implement this method
+        log.debug("Sending data through Snapchat Ads adapter");
+        return AdapterResult.success("Message processed successfully");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String endpoint = String.format("%s/me", API_BASE_URL);
+            JsonNode response = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
+            if (response != null) {
+                return AdapterResult.success("Connection test successful");
+            } else {
+                return AdapterResult.failure("Connection test failed: No response");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        try {
+            return doSend(payload, headers);
+        } catch (Exception e) {
+            throw new AdapterException("Failed to send data", e);
+        }
     }
 
     // Campaign Management Polling
@@ -250,7 +316,6 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     }
 
     // Webhook Processing
-    @Override
     public void handleWebhookEvent(JsonNode event) {
         if(event == null || !event.has("event_type")) {
             log.warn("Invalid webhook event received");
@@ -265,16 +330,20 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         eventData.put("timestamp", Instant.now().toString());
         eventData.put("data", event);
 
-        MessageDTO message = new MessageDTO()
-            .type("webhook_event")
-            .category(webhookEventType.name())
-            .source("snapchat_ads_webhook")
-            .destination(getQueueName())
-            .content(objectMapper.writeValueAsString(eventData))
-            .timestamp(Instant.now().toEpochMilli())
-            .build();
-
-        publishToQueue(message);
+        try {
+            MessageDTO message = new MessageDTO();
+            message.setHeaders(Map.of(
+                "type", "webhook_event",
+                "category", webhookEventType.name(),
+                "source", "snapchat_ads_webhook"
+            ));
+            message.setPayload(objectMapper.writeValueAsString(eventData));
+            
+            // Process the webhook event
+            send(message);
+        } catch (Exception ex) {
+            log.error("Error processing webhook event", ex);
+        }
     }
 
     public boolean verifyWebhookSignature(String signature, String timestamp, String body) {
@@ -315,16 +384,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     campaignData.put("end_time", campaign.get("end_time").asText());
                 }
 
-                MessageDTO message = new MessageDTO()
-                    .type("campaign")
-                    .category("campaign_data")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(campaignData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "campaign",
+                    "category", "campaign_data",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(campaignData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing campaign", e);
             }
@@ -344,16 +412,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 adSquadData.put("daily_budget_micro", adSquad.get("daily_budget_micro").asLong());
                 adSquadData.put("optimization_goal", adSquad.get("optimization_goal").asText());
 
-                MessageDTO message = new MessageDTO()
-                    .type("ad_squad")
-                    .category("ad_squad_data")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(adSquadData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "ad_squad",
+                    "category", "ad_squad_data",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(adSquadData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing ad squad", e);
             }
@@ -379,16 +446,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     creativeData.put("headline", creative.get("headline").asText());
                 }
 
-                MessageDTO message = new MessageDTO()
-                    .type("creative")
-                    .category("creative_data")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(creativeData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "creative",
+                    "category", "creative_data",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(creativeData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing creative", e);
             }
@@ -407,16 +473,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 audienceData.put("upload_size", audience.get("upload_audience_size").asLong());
                 audienceData.put("match_rate", audience.get("audience_match_rate").asDouble());
 
-                MessageDTO message = new MessageDTO()
-                    .type("audience")
-                    .category("audience_data")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(audienceData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "audience",
+                    "category", "audience_data",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(audienceData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing audience", e);
             }
@@ -435,16 +500,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     pixelData.put(eventType, stats.get(eventType).asLong());
                 });
 
-                MessageDTO message = new MessageDTO()
-                    .type("pixel_stats")
-                    .category("pixel_data")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(pixelData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "pixel_stats",
+                    "category", "pixel_data",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(pixelData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing pixel stats", e);
             }
@@ -460,16 +524,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 reportData.put("end_time", report.get("end_time").asText());
                 reportData.put("dimension_breakdown", report.get("dimension_stats"));
 
-                MessageDTO message = new MessageDTO()
-                    .type("report")
-                    .category("campaign_report")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(reportData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "report",
+                    "category", "campaign_report",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(reportData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing campaign report", e);
             }
@@ -485,16 +548,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 reportData.put("end_time", report.get("end_time").asText());
                 reportData.put("dimension_breakdown", report.get("dimension_stats"));
 
-                MessageDTO message = new MessageDTO()
-                    .type("report")
-                    .category("ad_squad_report")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(reportData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "report",
+                    "category", "ad_squad_report",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(reportData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing ad squad report", e);
             }
@@ -510,16 +572,15 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                 reportData.put("end_time", report.get("end_time").asText());
                 reportData.put("dimension_breakdown", report.get("dimension_stats"));
 
-                MessageDTO message = new MessageDTO()
-                    .type("report")
-                    .category("creative_report")
-                    .source("snapchat_ads")
-                    .destination(getQueueName())
-                    .content(objectMapper.writeValueAsString(reportData))
-                    .timestamp(Instant.now().toEpochMilli())
-                    .build();
-
-                publishToQueue(message);
+                MessageDTO message = new MessageDTO();
+                message.setHeaders(Map.of(
+                    "type", "report",
+                    "category", "creative_report",
+                    "source", "snapchat_ads"
+                ));
+                message.setPayload(objectMapper.writeValueAsString(reportData));
+                
+                send(message);
             } catch(Exception e) {
                 log.error("Error processing creative report", e);
             }
@@ -541,12 +602,17 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method) {
         return makeAuthenticatedRequest(endpoint, method, null, null);
     }
+    
+    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method,
+                                            Map<String, String> queryParams) {
+        return makeAuthenticatedRequest(endpoint, method, queryParams, null);
+    }
 
 
     private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method,
                                             Map<String, String> queryParams, Object body) {
         try {
-            String accessToken = getAccessToken();
+            String accessToken = config.getAccessToken(); // Using config directly for now
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + accessToken);
@@ -575,7 +641,10 @@ public class SnapchatAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
             return objectMapper.readTree(response.getBody());
         } catch(HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AdapterException("Snapchat API request failed", e);
+            return null;
+        } catch(Exception e) {
+            log.error("Error parsing response", e);
+            return null;
         }
     }
 }

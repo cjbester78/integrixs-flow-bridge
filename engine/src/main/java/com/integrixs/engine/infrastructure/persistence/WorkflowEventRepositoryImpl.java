@@ -2,23 +2,26 @@ package com.integrixs.engine.infrastructure.persistence;
 
 import com.integrixs.engine.domain.model.WorkflowEvent;
 import com.integrixs.engine.domain.repository.WorkflowEventRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure implementation of WorkflowEventRepository
  * Currently uses in - memory storage, can be replaced with database persistence
  */
-@Slf4j
 @Repository
 public class WorkflowEventRepositoryImpl implements WorkflowEventRepository {
 
     // In - memory storage for events
+
+    private static final Logger log = LoggerFactory.getLogger(WorkflowEventRepositoryImpl.class);
+
     private final Map<String, WorkflowEvent> eventStore = new ConcurrentHashMap<>();
     private final Map<String, List<String>> workflowEventIndex = new ConcurrentHashMap<>();
     private final Map<String, List<String>> flowEventIndex = new ConcurrentHashMap<>();

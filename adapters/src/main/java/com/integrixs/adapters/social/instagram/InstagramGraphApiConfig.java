@@ -25,6 +25,12 @@ public class InstagramGraphApiConfig extends SocialMediaAdapterConfig {
     private boolean autoHideOffensiveComments;
     private String[] blockedKeywords;
 
+    // API limits
+    private Integer mediaLimit = 25;
+    private Integer commentsLimit = 50;
+    private Integer mentionsLimit = 25;
+    private Integer insightsMediaLimit = 10;
+
     // Default values
     private static final String DEFAULT_API_VERSION = "v18.0";
     private static final String DEFAULT_API_BASE_URL = "https://graph.facebook.com";
@@ -129,5 +135,29 @@ public class InstagramGraphApiConfig extends SocialMediaAdapterConfig {
     }
     public void setBlockedKeywords(String[] blockedKeywords) {
         this.blockedKeywords = blockedKeywords;
+    }
+    public Integer getMediaLimit() {
+        return mediaLimit;
+    }
+    public void setMediaLimit(Integer mediaLimit) {
+        this.mediaLimit = mediaLimit;
+    }
+    public Integer getCommentsLimit() {
+        return commentsLimit;
+    }
+    public void setCommentsLimit(Integer commentsLimit) {
+        this.commentsLimit = commentsLimit;
+    }
+    public Integer getMentionsLimit() {
+        return mentionsLimit;
+    }
+    public void setMentionsLimit(Integer mentionsLimit) {
+        this.mentionsLimit = mentionsLimit;
+    }
+    public Integer getInsightsMediaLimit() {
+        return insightsMediaLimit;
+    }
+    public void setInsightsMediaLimit(Integer insightsMediaLimit) {
+        this.insightsMediaLimit = insightsMediaLimit;
     }
 }

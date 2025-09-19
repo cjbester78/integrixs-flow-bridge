@@ -1,9 +1,8 @@
 package com.integrixs.soapbindings.application.service;
 
 import com.integrixs.soapbindings.api.dto.*;
-import com.integrixs.soapbindings.domain.model.GeneratedBinding;
-import com.integrixs.soapbindings.domain.model.SoapBinding;
-import com.integrixs.soapbindings.domain.model.WsdlDefinition;
+import com.integrixs.soapbindings.domain.model.*;
+import com.integrixs.soapbindings.domain.enums.*;
 import com.integrixs.soapbindings.domain.repository.GeneratedBindingRepository;
 import com.integrixs.soapbindings.domain.repository.SoapBindingRepository;
 import com.integrixs.soapbindings.domain.repository.WsdlRepository;
@@ -368,12 +367,12 @@ public class SoapBindingsApplicationService {
     private SoapBinding.SecurityConfiguration convertSecurityConfig(SecurityConfigurationDTO dto) {
         if(dto == null) return null;
 
-        SoapBinding.SecurityConfiguration.SecurityConfigurationBuilder builder = SoapBinding.SecurityConfiguration.builder()
-                .securityType(SoapBinding.SecurityConfiguration.SecurityType.valueOf(dto.getSecurityType()))
+        SoapBinding.SecurityConfiguration.Builder builder = SoapBinding.SecurityConfiguration.builder()
+                .securityType(SecurityType.valueOf(dto.getSecurityType()))
                 .credentials(dto.getCredentials());
 
         if(dto.getWsSecurityConfig() != null) {
-            builder.wsSecurityConfig(SoapBinding.WsSecurityConfig.builder()
+            builder.wsSecurityConfig(WsSecurityConfig.builder()
                     .enableTimestamp(dto.getWsSecurityConfig().isEnableTimestamp())
                     .enableSignature(dto.getWsSecurityConfig().isEnableSignature())
                     .enableEncryption(dto.getWsSecurityConfig().isEnableEncryption())
@@ -402,7 +401,7 @@ public class SoapBindingsApplicationService {
     }
 
     private Class<?> loadServiceClass(GeneratedBinding generatedBinding, ClassLoader classLoader) {
-        GeneratedBinding.ClassInfo serviceInfo = generatedBinding.getServiceInterface();
+        ClassInfo serviceInfo = generatedBinding.getServiceInterface();
         if(serviceInfo == null) {
             throw new RuntimeException("No service interface found in generated binding");
         }

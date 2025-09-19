@@ -1,7 +1,5 @@
 package com.integrixs.backend.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -17,19 +15,22 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
  * Service for extracting sample XML from WSDL definitions
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class WsdlSampleExtractorService {
 
     /**
      * Extracts a sample XML message for a specific operation from WSDL
      */
+
+    private static final Logger log = LoggerFactory.getLogger(WsdlSampleExtractorService.class);
+
     public String extractSampleXmlForOperation(String wsdlContent, String operationName, String messageType) {
         try {
             // Parse WSDL

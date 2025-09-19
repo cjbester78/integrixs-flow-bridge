@@ -3,7 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.JarFile;
 import com.integrixs.data.repository.JarFileRepository;
 import com.integrixs.shared.dto.JarFileDTO;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +24,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class JarFileService {
 

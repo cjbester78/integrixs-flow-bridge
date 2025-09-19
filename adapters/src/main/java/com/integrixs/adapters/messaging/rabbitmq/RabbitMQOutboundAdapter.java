@@ -125,7 +125,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
             log.info("RabbitMQ Outbound Adapter initialized successfully");
         } catch(Exception e) {
             log.error("Failed to initialize RabbitMQ Outbound Adapter", e);
-            throw new AdapterException("Failed to initialize RabbitMQ adapter", e);
+            throw new RuntimeException("Failed to initialize RabbitMQ adapter", e);
         }
     }
 
@@ -142,7 +142,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
 
         // Connection recovery
         connectionFactory.setAutomaticRecoveryEnabled(true);
-        connectionFactory.setNetworkRecoveryInterval(5000);
+        connectionFactory.setNetworkRecoveryInterval(config.getNetworkRecoveryInterval());
 
         // Connection timeout
         connectionFactory.setConnectionTimeout(config.getConnectionTimeout());
@@ -150,7 +150,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
 
         // Set connection name
         Map<String, Object> clientProperties = new HashMap<>();
-        clientProperties.put("connection_name", "IntegrixsFlowBridge_Outbound_" + UUID.randomUUID());
+        clientProperties.put("connection_name", config.getConnectionNamePrefix() + UUID.randomUUID());
         connectionFactory.setClientProperties(clientProperties);
 
         // SSL configuration
@@ -160,7 +160,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
                 log.info("SSL enabled for RabbitMQ connection");
             } catch(Exception e) {
                 log.error("Failed to enable SSL", e);
-                throw new AdapterException("Failed to configure SSL", e);
+                throw new RuntimeException("Failed to configure SSL", e);
             }
         }
     }
@@ -171,7 +171,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
                 Address[] addresses = Arrays.stream(config.getClusterAddresses())
                     .map(addr -> {
                         String[] parts = addr.split(":");
-                        return new Address(parts[0], parts.length > 1 ? Integer.parseInt(parts[1]) : 5672);
+                        return new Address(parts[0], parts.length > 1 ? Integer.parseInt(parts[1]) : config.getDefaultPort());
                     })
                     .toArray(Address[]::new);
                 connection = connectionFactory.newConnection(addresses);
@@ -183,7 +183,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
             log.info("Successfully connected to RabbitMQ");
 
         } catch(Exception e) {
-            throw new AdapterException("Failed to connect to RabbitMQ", e);
+            throw new RuntimeException("Failed to connect to RabbitMQ", e);
         }
     }
 
@@ -424,7 +424,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
 
         } catch(Exception e) {
             future.completeExceptionally(e);
-            throw new AdapterException("Failed to publish message", e);
+            throw new RuntimeException("Failed to publish message", e);
         }
     }
 
@@ -557,7 +557,7 @@ public class RabbitMQOutboundAdapter extends AbstractOutboundAdapter {
         // Wait for pending confirms
         if(config.isPublisherConfirms() && !pendingConfirms.isEmpty()) {
             try {
-                Thread.sleep(1000); // Give confirms time to arrive
+                Thread.sleep(config.getConfirmWaitTime()); // Give confirms time to arrive
             } catch(InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

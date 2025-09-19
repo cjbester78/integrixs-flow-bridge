@@ -1,25 +1,27 @@
 package com.integrixs.backend.logging;
 
-import com.integrixs.backend.security.AuthenticationSuccessEvent;
 import com.integrixs.backend.security.AuthenticationFailureEvent;
 import com.integrixs.backend.security.AuthenticationAttemptEvent;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent as SpringAuthSuccessEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Enhanced authentication logger providing detailed authentication event logging.
  */
-@Slf4j
 @Component
 public class EnhancedAuthenticationLogger {
+
+    private static final Logger log = LoggerFactory.getLogger(EnhancedAuthenticationLogger.class);
+
 
     public void logAuthenticationAttempt(String username, String authMethod, String ipAddress, String userAgent) {
         StringBuilder logMessage = new StringBuilder();
@@ -106,7 +108,7 @@ public class EnhancedAuthenticationLogger {
     }
 
     @EventListener
-    public void onAuthenticationSuccess(SpringAuthSuccessEvent event) {
+    public void onAuthenticationSuccess(org.springframework.security.authentication.event.AuthenticationSuccessEvent event) {
         Authentication auth = event.getAuthentication();
         logAuthenticationSuccess(
             auth.getName(),

@@ -5,7 +5,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +20,6 @@ import java.util.stream.Stream;
  * Base repository implementation with query optimization techniques.
  * Provides common patterns for efficient database access.
  */
-@Slf4j
 @Transactional(readOnly = true)
 public abstract class OptimizedRepositoryImpl<T, ID> {
 

@@ -1,20 +1,11 @@
 package com.integrixs.backend.api.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
  * Request object for creating an integration flow
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class CreateFlowRequest {
 
     @NotBlank(message = "Flow name is required")
@@ -32,6 +23,65 @@ public class CreateFlowRequest {
 
     private String targetFlowStructureId;
 
-    @Builder.Default
     private boolean active = true;
+
+    // Default constructor
+    public CreateFlowRequest() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getInboundAdapterId() {
+        return inboundAdapterId;
+    }
+
+    public void setInboundAdapterId(String inboundAdapterId) {
+        this.inboundAdapterId = inboundAdapterId;
+    }
+
+    public String getOutboundAdapterId() {
+        return outboundAdapterId;
+    }
+
+    public void setOutboundAdapterId(String outboundAdapterId) {
+        this.outboundAdapterId = outboundAdapterId;
+    }
+
+    public String getSourceFlowStructureId() {
+        return sourceFlowStructureId;
+    }
+
+    public void setSourceFlowStructureId(String sourceFlowStructureId) {
+        this.sourceFlowStructureId = sourceFlowStructureId;
+    }
+
+    public String getTargetFlowStructureId() {
+        return targetFlowStructureId;
+    }
+
+    public void setTargetFlowStructureId(String targetFlowStructureId) {
+        this.targetFlowStructureId = targetFlowStructureId;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

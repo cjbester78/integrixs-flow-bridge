@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.CertificateRepository;
 import com.integrixs.data.model.Certificate;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -16,7 +15,6 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainCertificateRepository")
-@RequiredArgsConstructor
 public class CertificateRepositoryImpl implements CertificateRepository {
 
     private final com.integrixs.data.repository.CertificateRepository jpaRepository;

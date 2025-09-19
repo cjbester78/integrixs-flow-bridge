@@ -2,8 +2,11 @@ package com.integrixs.backend.camunda;
 
 import com.integrixs.backend.service.AdapterExecutionService;
 import com.integrixs.backend.service.TransformationExecutionService;
-import com.integrixs.backend.service.OrchestrationTargetService;
+import com.integrixs.backend.application.service.OrchestrationTargetService;
+import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.OrchestrationTarget;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.OrchestrationTargetRepository;
 import org.camunda.bpm.client.ExternalTaskClient;
 import org.camunda.bpm.client.task.ExternalTask;
 import org.camunda.bpm.client.task.ExternalTaskHandler;
@@ -16,7 +19,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,6 +57,12 @@ public class ExternalTaskClientService implements CommandLineRunner {
 
     @Autowired
     private OrchestrationTargetService orchestrationTargetService;
+
+    @Autowired
+    private CommunicationAdapterRepository adapterRepository;
+
+    @Autowired
+    private OrchestrationTargetRepository orchestrationTargetRepository;
 
     private final Map<String, ExternalTaskClient> clients = new ConcurrentHashMap<>();
 
@@ -268,32 +277,25 @@ public class ExternalTaskClientService implements CommandLineRunner {
                 Object messageData = externalTask.getVariable("currentData");
                 Map<String, Object> context = externalTask.getAllVariables();
 
+                // Fetch adapter from repository
+                CommunicationAdapter adapter = adapterRepository.findById(UUID.fromString(adapterId))
+                    .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
+
                 // Execute adapter
-                var result = adapterExecutionService.executeAdapter(
-                    UUID.fromString(adapterId),
-                    messageData != null ? messageData : context,
+                String result = adapterExecutionService.executeAdapter(
+                    adapter,
+                    messageData != null ? messageData.toString() : context.toString(),
                     context
                );
 
-                if(result.isSuccess()) {
-                    // Complete task with result
-                    Map<String, Object> variables = new HashMap<>();
-                    variables.put("currentData", result.getData());
-                    variables.put("adapterResult", result.getData());
-                    variables.put("adapterSuccess", true);
+                // Adapter execution returns the result directly as string
+                Map<String, Object> variables = new HashMap<>();
+                variables.put("currentData", result);
+                variables.put("adapterResult", result);
+                variables.put("adapterSuccess", true);
 
-                    externalTaskService.complete(externalTask, variables);
-                    logger.debug("Adapter task completed successfully");
-                } else {
-                    // Handle failure
-                    externalTaskService.handleFailure(
-                        externalTask,
-                        result.getError(),
-                        result.getStackTrace(),
-                        3,
-                        Duration.ofSeconds(30).toMillis()
-                   );
-                }
+                externalTaskService.complete(externalTask, variables);
+                logger.debug("Adapter task completed successfully");
             } catch(Exception e) {
                 logger.error("Error executing adapter task", e);
                 externalTaskService.handleFailure(
@@ -323,7 +325,7 @@ public class ExternalTaskClientService implements CommandLineRunner {
                 }
 
                 // Get orchestration targets
-                List<OrchestrationTarget> targets = orchestrationTargetService.getTargetsByFlowId(UUID.fromString(flowId));
+                List<OrchestrationTarget> targets = orchestrationTargetRepository.findByFlowId(UUID.fromString(flowId));
 
                 // Get message data
                 Object messageData = externalTask.getVariable("currentData");
@@ -340,19 +342,15 @@ public class ExternalTaskClientService implements CommandLineRunner {
 
                     try {
                         // Execute adapter for target
-                        var result = adapterExecutionService.executeAdapter(
-                            target.getTargetAdapter().getId(),
-                            messageData != null ? messageData : context,
+                        String result = adapterExecutionService.executeAdapter(
+                            target.getTargetAdapter(),
+                            messageData != null ? messageData.toString() : context.toString(),
                             context
                        );
 
-                        if(result.isSuccess()) {
-                            results.put("target_" + target.getId() + "_result", result.getData());
-                        } else {
-                            failures.add(target.getName() + ": " + result.getError());
-                        }
+                        results.put("target_" + target.getId() + "_result", result);
                     } catch(Exception e) {
-                        failures.add(target.getName() + ": " + e.getMessage());
+                        failures.add(target.getTargetAdapter().getName() + ": " + e.getMessage());
                     }
                 }
 

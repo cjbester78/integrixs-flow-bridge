@@ -1,9 +1,9 @@
-import { useState, useEffect, ReactNode, useCallback } from 'react';
+import { useState, useEffect, ReactNode, useCallback, useContext } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { logger, LogCategory } from '@/lib/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { TenantContext, type Tenant, type TenantSubscription, type TenantUsage } from './tenant-context-types';
+import { TenantContext, type Tenant, type TenantSubscription, type TenantUsage, type TenantContextType } from './tenant-context-types';
 
 export function TenantProvider({ children }: { children: ReactNode }) {
  const { toast } = useToast();
@@ -197,4 +197,12 @@ export function TenantProvider({ children }: { children: ReactNode }) {
  {children}
  </TenantContext.Provider>
  );
+}
+
+export function useTenant() {
+  const context = useContext(TenantContext);
+  if (context === undefined) {
+    throw new Error('useTenant must be used within a TenantProvider');
+  }
+  return context;
 }

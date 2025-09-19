@@ -4,8 +4,6 @@ import com.integrixs.backend.domain.service.LogManagementService;
 import com.integrixs.backend.domain.repository.SystemLogRepository;
 import com.integrixs.backend.infrastructure.email.EmailService;
 import com.integrixs.data.model.SystemLog;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +11,18 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for email operations
  * Orchestrates email sending with business logic and logging
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailApplicationService.class);
+
 
     private final EmailService emailService;
     private final SystemLogRepository systemLogRepository;

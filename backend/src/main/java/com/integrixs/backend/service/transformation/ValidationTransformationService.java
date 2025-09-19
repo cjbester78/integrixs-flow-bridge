@@ -14,6 +14,11 @@ import java.util.Map;
 public class ValidationTransformationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JavaFunctionRunner javaFunctionRunner;
+
+    public ValidationTransformationService(JavaFunctionRunner javaFunctionRunner) {
+        this.javaFunctionRunner = javaFunctionRunner;
+    }
 
     /**
      * Applies validation rules on the input JSON string.
@@ -45,7 +50,12 @@ public class ValidationTransformationService {
                 String errorMessage = (messages != null && i < messages.size()) ? messages.get(i) : "Validation failed";
 
                 // Run the JS validation rule; it should return boolean
-                Object result = JavaFunctionRunner.run(rule, List.of("record"), Map.of("record", record));
+                Object result = javaFunctionRunner.execute(
+                    "validation_" + System.currentTimeMillis() + "_" + i,
+                    rule,
+                    "validate",
+                    record
+               );
                 boolean valid;
                 if(result instanceof Boolean) {
                     valid = (Boolean) result;

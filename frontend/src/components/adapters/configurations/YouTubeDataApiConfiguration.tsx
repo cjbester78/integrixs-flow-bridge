@@ -43,7 +43,6 @@ import {
   PhotoCamera,
   ViewStream
 } from '@mui/icons-material';
-import { BaseAdapterConfiguration } from '../BaseAdapterConfiguration';
 
 interface YouTubeDataApiConfigurationProps {
   configuration: any;
@@ -178,11 +177,6 @@ export const YouTubeDataApiConfiguration: React.FC<YouTubeDataApiConfigurationPr
   };
 
   return (
-    <BaseAdapterConfiguration
-      configuration={configuration}
-      onChange={onChange}
-      type="YOUTUBE"
-    >
       <Box sx={{ width: '100%' }}>
         <Paper sx={{ mb: 2 }}>
           <Tabs
@@ -1255,6 +1249,5 @@ export const YouTubeDataApiConfiguration: React.FC<YouTubeDataApiConfigurationPr
           </Grid>
         </TabPanel>
       </Box>
-    </BaseAdapterConfiguration>
   );
 };

@@ -40,6 +40,9 @@ public class FacebookAdsInboundAdapter extends AbstractInboundAdapter {
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
     private Map<String, Object> configuration = new HashMap<>();
+    
+    @Autowired
+    private FacebookAdsApiConfig config;
 
     @Autowired
     public FacebookAdsInboundAdapter(
@@ -166,7 +169,7 @@ public class FacebookAdsInboundAdapter extends AbstractInboundAdapter {
         }
     }
 
-    protected MessageDTO processInboundData(String data, String type) {
+    protected MessageDTO processInboundData(String data, String type) throws AdapterException {
         try {
             MessageDTO message = new MessageDTO();
             message.setCorrelationId(UUID.randomUUID().toString());
@@ -216,9 +219,9 @@ public class FacebookAdsInboundAdapter extends AbstractInboundAdapter {
         params.put("fields", "id,name,status,objective,spend_cap,daily_budget,lifetime_budget," +
                             "start_time,stop_time,created_time,insights {impressions,clicks," +
                             "spend,reach,frequency,ctr,cpc,cpm,cpp}");
-        params.put("limit", "100");
+        params.put("limit", String.valueOf(config.getDefaultQueryLimit()));
 
-        LocalDateTime lastPoll = lastPollTime.getOrDefault("campaigns", LocalDateTime.now().minusHours(24));
+        LocalDateTime lastPoll = lastPollTime.getOrDefault("campaigns", LocalDateTime.now().minusHours(config.getPollingLookbackHours()));
         params.put("filtering", String.format("[ {field:'updated_time',operator:'GREATER_THAN',value:'%s'}]",
                                             lastPoll.toString()));
 
@@ -243,9 +246,9 @@ public class FacebookAdsInboundAdapter extends AbstractInboundAdapter {
         params.put("fields", "id,name,status,campaign_id,targeting,bid_amount,billing_event," +
                             "optimization_goal,daily_budget,lifetime_budget,start_time,end_time," +
                             "insights {impressions,clicks,spend,reach,frequency,conversions}");
-        params.put("limit", "100");
+        params.put("limit", String.valueOf(config.getDefaultQueryLimit()));
 
-        LocalDateTime lastPoll = lastPollTime.getOrDefault("adsets", LocalDateTime.now().minusHours(24));
+        LocalDateTime lastPoll = lastPollTime.getOrDefault("adsets", LocalDateTime.now().minusHours(config.getPollingLookbackHours()));
         params.put("filtering", String.format("[ {field:'updated_time',operator:'GREATER_THAN',value:'%s'}]",
                                             lastPoll.toString()));
 
@@ -270,9 +273,9 @@ public class FacebookAdsInboundAdapter extends AbstractInboundAdapter {
         params.put("fields", "id,name,status,adset_id,creative,bid_type,bid_info," +
                             "insights {impressions,clicks,spend,reach,frequency,actions," +
                             "cost_per_action_type,video_views,video_p25_watched_actions}");
-        params.put("limit", "100");
+        params.put("limit", String.valueOf(config.getDefaultQueryLimit()));
 
-        LocalDateTime lastPoll = lastPollTime.getOrDefault("ads", LocalDateTime.now().minusHours(24));
+        LocalDateTime lastPoll = lastPollTime.getOrDefault("ads", LocalDateTime.now().minusHours(config.getPollingLookbackHours()));
         params.put("filtering", String.format("[ {field:'updated_time',operator:'GREATER_THAN',value:'%s'}]",
                                             lastPoll.toString()));
 

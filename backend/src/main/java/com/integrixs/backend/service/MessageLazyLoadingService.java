@@ -3,22 +3,23 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.performance.LazyLoadingService;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.repository.MessageRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service that integrates lazy loading with message persistence.
  * Automatically handles large payload storage and retrieval.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MessageLazyLoadingService {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageLazyLoadingService.class);
+
 
     private final MessageRepository messageRepository;
     private final LazyLoadingService lazyLoadingService;

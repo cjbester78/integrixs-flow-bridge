@@ -24,7 +24,8 @@ import { WsdlValidator } from '../structure/WsdlValidator';
 import { JsonSchemaEditor } from '../structure/JsonSchemaEditor';
 import { convertStructureToXml } from '@/utils/xmlStructureConverter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
+import { isApiResponse } from '@/lib/api-response-utils';
+import { logger, LogCategory } from '@/lib/logger';
 import {
  Package,
  Settings,

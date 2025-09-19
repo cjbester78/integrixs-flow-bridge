@@ -5,8 +5,8 @@ import com.integrixs.monitoring.domain.model.MetricSnapshot;
 import com.integrixs.monitoring.domain.model.MonitoringEvent;
 import com.integrixs.monitoring.domain.repository.AlertRepository;
 import com.integrixs.monitoring.domain.service.AlertingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -32,12 +32,15 @@ import java.util.UUID;
 /**
  * Infrastructure implementation of alerting service
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AlertingServiceImpl implements AlertingService {
 
+    private static final Logger log = LoggerFactory.getLogger(AlertingServiceImpl.class);
     private final AlertRepository alertRepository;
+    
+    public AlertingServiceImpl(AlertRepository alertRepository) {
+        this.alertRepository = alertRepository;
+    }
 
     @Autowired(required = false)
     private JavaMailSender mailSender;
@@ -45,28 +48,28 @@ public class AlertingServiceImpl implements AlertingService {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("$ {notifications.email.enabled:false}")
+    @Value("${notifications.email.enabled:false}")
     private boolean emailEnabled;
 
-    @Value("$ {notifications.email.from:alerts@integrix.com}")
+    @Value("${notifications.email.from:alerts@integrix.com}")
     private String fromEmail;
 
-    @Value("$ {notifications.sms.enabled:false}")
+    @Value("${notifications.sms.enabled:false}")
     private boolean smsEnabled;
 
-    @Value("$ {notifications.sms.twilio.account - sid:}")
+    @Value("${notifications.sms.twilio.account-sid:}")
     private String twilioAccountSid;
 
-    @Value("$ {notifications.sms.twilio.auth - token:}")
+    @Value("${notifications.sms.twilio.auth-token:}")
     private String twilioAuthToken;
 
-    @Value("$ {notifications.sms.twilio.from - number:}")
+    @Value("${notifications.sms.twilio.from-number:}")
     private String twilioFromNumber;
 
-    @Value("$ {notifications.webhook.enabled:true}")
+    @Value("${notifications.webhook.enabled:true}")
     private boolean webhookEnabled;
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     @Transactional

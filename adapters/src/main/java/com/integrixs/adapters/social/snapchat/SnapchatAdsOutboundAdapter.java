@@ -5,9 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.snapchat.SnapchatAdsApiConfig.*;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.shared.exceptions.AdapterException;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +35,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private static final Logger log = LoggerFactory.getLogger(SnapchatAdsOutboundAdapter.class);
 
 
-    private static final String API_BASE_URL = "https://adsapi.snapchat.com/v1";
-    private static final String MEDIA_UPLOAD_URL = "https://adsapi.snapchat.com/v1/media";
+    // API URLs are configured in application.yml
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     @Autowired
@@ -43,12 +47,23 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Override
+    @Autowired
+    public SnapchatAdsOutboundAdapter(
+            RateLimiterService rateLimiterService,
+            CredentialEncryptionService credentialEncryptionService,
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper,
+            SnapchatAdsApiConfig config) {
+        super(rateLimiterService, credentialEncryptionService);
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
+        this.config = config;
+    }
+
     public AdapterType getType() {
         return AdapterType.REST;
     }
 
-    @Override
     public String getName() {
         return "Snapchat Ads API Outbound Adapter";
     }
@@ -56,9 +71,9 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     @Override
     public MessageDTO processMessage(MessageDTO message) {
         try {
-            String operation = message.getHeaders().get("operation");
+            String operation = (String) message.getHeaders().get("operation");
             if(operation == null) {
-                throw new AdapterException("Operation header is required");
+                return createErrorResponse(message, "Operation header is required");
             }
 
             log.info("Processing Snapchat Ads operation: {}", operation);
@@ -153,11 +168,11 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                     return exportData(message);
 
                 default:
-                    throw new AdapterException("Unknown operation: " + operation);
+                    return createErrorResponse(message, "Unknown operation: " + operation);
             }
         } catch(Exception e) {
             log.error("Error processing Snapchat Ads operation", e);
-            throw new AdapterException("Failed to process operation", e);
+            return createErrorResponse(message, "Failed to process operation: " + e.getMessage());
         }
     }
 
@@ -185,7 +200,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             String endpoint = String.format("%s/adaccounts/%s/campaigns",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, campaign
@@ -194,7 +209,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating campaign", e);
-            throw new AdapterException("Failed to create campaign", e);
+            return createErrorResponse(message, "Failed to create campaign: " + e.getMessage());
         }
     }
 
@@ -214,7 +229,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 updates.put("end_time", content.get("end_time").asText());
             }
 
-            String endpoint = String.format("%s/campaigns/%s", API_BASE_URL, campaignId);
+            String endpoint = String.format("%s/campaigns/%s", config.getApiBaseUrl(), campaignId);
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.PUT, null, updates
@@ -223,7 +238,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error updating campaign", e);
-            throw new AdapterException("Failed to update campaign", e);
+            return createErrorResponse(message, "Failed to update campaign: " + e.getMessage());
         }
     }
 
@@ -260,7 +275,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             String endpoint = String.format("%s/adaccounts/%s/adsquads",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, adSquad
@@ -269,7 +284,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating ad squad", e);
-            throw new AdapterException("Failed to create ad squad", e);
+            return createErrorResponse(message, "Failed to create ad squad: " + e.getMessage());
         }
     }
 
@@ -302,7 +317,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             creative.set("properties", properties);
 
             String endpoint = String.format("%s/adaccounts/%s/creatives",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, creative
@@ -311,7 +326,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating creative", e);
-            throw new AdapterException("Failed to create creative", e);
+            return createErrorResponse(message, "Failed to create creative: " + e.getMessage());
         }
     }
 
@@ -322,7 +337,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
 
             // Validate media type and size
             if(!Arrays.asList("IMAGE", "VIDEO").contains(mediaType.toUpperCase())) {
-                throw new AdapterException("Invalid media type: " + mediaType);
+                return createErrorResponse(message, "Invalid media type: " + mediaType);
             }
 
             String base64Data = content.get("media_data").asText();
@@ -331,16 +346,16 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             // Check size limits
             if(mediaType.equalsIgnoreCase("VIDEO") &&
                 mediaBytes.length > config.getLimits().getMaxVideoSizeMB() * 1024 * 1024) {
-                throw new AdapterException("Video size exceeds limit");
+                return createErrorResponse(message, "Video size exceeds limit");
             }
             if(mediaType.equalsIgnoreCase("IMAGE") &&
                 mediaBytes.length > config.getLimits().getMaxImageSizeMB() * 1024 * 1024) {
-                throw new AdapterException("Image size exceeds limit");
+                return createErrorResponse(message, "Image size exceeds limit");
             }
 
             // Upload media
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
             headers.set("Authorization", "Bearer " + getAccessToken());
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -358,14 +373,14 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 new HttpEntity<>(body, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                MEDIA_UPLOAD_URL, HttpMethod.POST, requestEntity, String.class
+                config.getMediaUploadUrl(), HttpMethod.POST, requestEntity, String.class
            );
 
             JsonNode responseJson = objectMapper.readTree(response.getBody());
             return createSuccessResponse(message, responseJson);
         } catch(Exception e) {
             log.error("Error uploading media", e);
-            throw new AdapterException("Failed to upload media", e);
+            return createErrorResponse(message, "Failed to upload media: " + e.getMessage());
         }
     }
 
@@ -392,7 +407,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             String endpoint = String.format("%s/adaccounts/%s/segments",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, audience
@@ -401,7 +416,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating audience", e);
-            throw new AdapterException("Failed to create audience", e);
+            return createErrorResponse(message, "Failed to create audience: " + e.getMessage());
         }
     }
 
@@ -419,7 +434,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 .put("similarity_percent", content.get("similarity").asInt()));
 
             String endpoint = String.format("%s/adaccounts/%s/segments",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, lookalike
@@ -428,7 +443,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating lookalike audience", e);
-            throw new AdapterException("Failed to create lookalike audience", e);
+            return createErrorResponse(message, "Failed to create lookalike audience: " + e.getMessage());
         }
     }
 
@@ -444,7 +459,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 content.get("description").asText() : "");
 
             String endpoint = String.format("%s/adaccounts/%s/pixels",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, pixel
@@ -453,7 +468,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating pixel", e);
-            throw new AdapterException("Failed to create pixel", e);
+            return createErrorResponse(message, "Failed to create pixel: " + e.getMessage());
         }
     }
 
@@ -480,7 +495,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 event.set("user_data", content.get("user_data"));
             }
 
-            String endpoint = String.format("%s/pixels/%s/events", API_BASE_URL, pixelId);
+            String endpoint = String.format("%s/pixels/%s/events", config.getApiBaseUrl(), pixelId);
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, event
@@ -489,7 +504,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error firing pixel event", e);
-            throw new AdapterException("Failed to fire pixel event", e);
+            return createErrorResponse(message, "Failed to fire pixel event: " + e.getMessage());
         }
     }
 
@@ -526,7 +541,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             String endpoint = String.format("%s/adaccounts/%s/stats",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.GET, params
@@ -535,7 +550,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error generating report", e);
-            throw new AdapterException("Failed to generate report", e);
+            return createErrorResponse(message, "Failed to generate report: " + e.getMessage());
         }
     }
 
@@ -553,7 +568,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 content.get("end_time").asText() : getDefaultEndTime());
 
             String endpoint = String.format("%s/%s/%s/stats",
-                API_BASE_URL, entityType.toLowerCase(), entityId);
+                config.getApiBaseUrl(), entityType.toLowerCase(), entityId);
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.GET, params
@@ -562,7 +577,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error getting stats", e);
-            throw new AdapterException("Failed to get stats", e);
+            return createErrorResponse(message, "Failed to get stats: " + e.getMessage());
         }
     }
 
@@ -576,7 +591,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 try {
                     MessageDTO itemMessage = new MessageDTO();
                     itemMessage.setHeaders(message.getHeaders());
-                    itemMessage.setContent(item.toString());
+                    itemMessage.setPayload(item.toString());
                     MessageDTO result = createEntity(itemMessage, content.get("entity_type").asText());
                     results.add(objectMapper.readTree(result.getContent()));
                 } catch(Exception e) {
@@ -587,7 +602,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, objectMapper.valueToTree(results));
         } catch(Exception e) {
             log.error("Error in bulk create", e);
-            throw new AdapterException("Failed to perform bulk create", e);
+            return createErrorResponse(message, "Failed to perform bulk create: " + e.getMessage());
         }
     }
 
@@ -602,7 +617,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             case "AUDIENCE":
                 return createAudience(message);
             default:
-                throw new AdapterException("Unknown entity type: " + entityType);
+                return createErrorResponse(message, "Unknown entity type: " + entityType);
         }
     }
 
@@ -610,7 +625,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO createARLens(MessageDTO message) {
         try {
             if(!config.getFeatures().isEnableARLenses()) {
-                throw new AdapterException("AR Lenses feature is not enabled");
+                return createErrorResponse(message, "AR Lenses feature is not enabled");
             }
 
             JsonNode content = objectMapper.readTree(message.getContent());
@@ -621,7 +636,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             lens.put("ad_account_id", config.getAdAccountId());
 
             String endpoint = String.format("%s/adaccounts/%s/lenses",
-                API_BASE_URL, config.getAdAccountId());
+                config.getApiBaseUrl(), config.getAdAccountId());
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.POST, null, lens
@@ -630,7 +645,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error creating AR lens", e);
-            throw new AdapterException("Failed to create AR lens", e);
+            return createErrorResponse(message, "Failed to create AR lens: " + e.getMessage());
         }
     }
 
@@ -706,7 +721,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             ObjectNode update = objectMapper.createObjectNode();
             update.put("status", status);
 
-            String endpoint = String.format("%s/%s/%s", API_BASE_URL, entityType, entityId);
+            String endpoint = String.format("%s/%s/%s", config.getApiBaseUrl(), entityType, entityId);
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.PUT, null, update
@@ -715,7 +730,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error updating entity status", e);
-            throw new AdapterException("Failed to update entity status", e);
+            return createErrorResponse(message, "Failed to update entity status: " + e.getMessage());
         }
     }
 
@@ -740,7 +755,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             JsonNode content = objectMapper.readTree(message.getContent());
             String entityId = content.get(idField).asText();
 
-            String endpoint = String.format("%s/%s/%s", API_BASE_URL, entityType, entityId);
+            String endpoint = String.format("%s/%s/%s", config.getApiBaseUrl(), entityType, entityId);
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.DELETE, null
@@ -749,7 +764,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error deleting entity", e);
-            throw new AdapterException("Failed to delete entity", e);
+            return createErrorResponse(message, "Failed to delete entity: " + e.getMessage());
         }
     }
 
@@ -781,7 +796,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 }
             });
 
-            String endpoint = String.format("%s/%s/%s", API_BASE_URL, entityType, entityId);
+            String endpoint = String.format("%s/%s/%s", config.getApiBaseUrl(), entityType, entityId);
 
             JsonNode response = makeAuthenticatedRequest(
                 endpoint, HttpMethod.PUT, null, updates
@@ -790,7 +805,7 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return createSuccessResponse(message, response);
         } catch(Exception e) {
             log.error("Error updating entity", e);
-            throw new AdapterException("Failed to update entity", e);
+            return createErrorResponse(message, "Failed to update entity: " + e.getMessage());
         }
     }
 
@@ -871,9 +886,10 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return objectMapper.readTree(response.getBody());
         } catch(HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AdapterException("Snapchat API request failed", e);
+            return null;
         } catch(Exception e) {
-            throw new AdapterException("Failed to make authenticated request", e);
+            log.error("Error making authenticated request", e);
+            return null;
         }
     }
 
@@ -887,8 +903,82 @@ public class SnapchatAdsOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         response.setCorrelationId(originalMessage.getCorrelationId());
         response.setHeaders(new HashMap<>(originalMessage.getHeaders()));
         response.getHeaders().put("status", "success");
-        response.setContent(responseData.toString());
-        response.setTimestamp(Instant.now());
+        response.setPayload(responseData.toString());
+        response.setTimestamp(LocalDateTime.now());
         return response;
+    }
+
+    @Override
+    protected SnapchatAdsApiConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("adAccountId", config.getAdAccountId());
+            configMap.put("organizationId", config.getOrganizationId());
+            configMap.put("pixelId", config.getPixelId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("refreshToken", config.getRefreshToken());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+            configMap.put("apiVersion", config.getApiVersion());
+        }
+        return configMap;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    protected long getPollingIntervalMs() {
+        // Outbound adapters don't typically poll, but return 0 to indicate no polling
+        return 0;
+    }
+
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        // Initialize any receiver-specific resources
+        log.debug("Initializing Snapchat Ads outbound adapter");
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        // Clean up any receiver-specific resources
+        log.debug("Destroying Snapchat Ads outbound adapter");
+    }
+
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Outbound adapters typically don't receive data
+        throw new UnsupportedOperationException("Snapchat Ads outbound adapter does not support receiving data");
+    }
+
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String url = config.getApiBaseUrl() + "/me";
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + getAccessToken());
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "Snapchat Ads API connection successful");
+            } else {
+                return AdapterResult.failure("Snapchat Ads API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test Snapchat Ads connection: " + e.getMessage());
+        }
     }
 }

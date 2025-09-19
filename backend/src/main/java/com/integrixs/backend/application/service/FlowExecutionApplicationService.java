@@ -23,22 +23,26 @@ import com.integrixs.shared.dto.transformation.ValidationTransformationConfigDTO
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger;
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for orchestrating asynchronous flow execution
  * Handles ETL operations, file transfers, and data synchronization
  */
-@Slf4j
 @Service
 public class FlowExecutionApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionApplicationService.class);
+
 
     private final FlowExecutionService flowExecutionService;
     private final AdapterConfigurationService adapterConfigurationService;
@@ -56,6 +60,7 @@ public class FlowExecutionApplicationService {
     private final DevelopmentFunctionService developmentFunctionService;
     private final JavaTransformationEngine javaTransformationEngine;
     private final EnhancedFlowExecutionLogger flowLogger;
+    private final JavaFunctionRunner javaFunctionRunner;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -75,6 +80,7 @@ public class FlowExecutionApplicationService {
             ValidationTransformationService validationTransformationService,
             DevelopmentFunctionService developmentFunctionService,
             JavaTransformationEngine javaTransformationEngine,
+            JavaFunctionRunner javaFunctionRunner,
             @Autowired(required = false) EnhancedFlowExecutionLogger flowLogger) {
         this.flowExecutionService = flowExecutionService;
         this.adapterConfigurationService = adapterConfigurationService;
@@ -91,6 +97,7 @@ public class FlowExecutionApplicationService {
         this.validationTransformationService = validationTransformationService;
         this.developmentFunctionService = developmentFunctionService;
         this.javaTransformationEngine = javaTransformationEngine;
+        this.javaFunctionRunner = javaFunctionRunner;
         this.flowLogger = flowLogger != null ? flowLogger : new EnhancedFlowExecutionLogger();
     }
 
@@ -144,16 +151,16 @@ public class FlowExecutionApplicationService {
             }
 
             // Execute the flow
-            long startTime = System.currentTimeMillis();
+            long flowStartTime = System.currentTimeMillis();
             try {
                 executeFlowWithTransformations(flow, inboundAdapter, outboundAdapter, correlationId);
 
                 // Log flow completion
-                long duration = System.currentTimeMillis() - startTime;
+                long duration = System.currentTimeMillis() - flowStartTime;
                 flowContext = FlowExecutionContext.builder()
                     .flowId(flow.getId().toString())
                     .flowName(flow.getName())
-                    .flowVersion(flow.getVersion() != null ? flow.getVersion().toString() : "1.0")
+                    .flowVersion("1.0")
                     .sourceSystem(inboundAdapter.getName())
                     .targetSystem(outboundAdapter.getName())
                     .correlationId(correlationId)
@@ -198,10 +205,10 @@ public class FlowExecutionApplicationService {
         // Log adapter communication
         AdapterCommunicationContext inboundContext = AdapterCommunicationContext.builder()
             .adapterName(inboundAdapter.getName())
-            .adapterType(inboundAdapter.getType())
+            .adapterType(inboundAdapter.getType().toString())
             .direction("INBOUND")
-            .endpoint(inboundAdapter.getConfiguration().get("url"))
-            .protocol(inboundAdapter.getType())
+            .endpoint(getConfigValue(inboundAdapter.getConfiguration(), "url"))
+            .protocol(inboundAdapter.getType().toString())
             .sourceSystem(inboundAdapter.getName())
             .payloadSize(0)
             .build();
@@ -228,10 +235,10 @@ public class FlowExecutionApplicationService {
         // Log outbound adapter communication
         AdapterCommunicationContext outboundContext = AdapterCommunicationContext.builder()
             .adapterName(outboundAdapter.getName())
-            .adapterType(outboundAdapter.getType())
+            .adapterType(outboundAdapter.getType().toString())
             .direction("OUTBOUND")
-            .endpoint(outboundAdapter.getConfiguration().get("url"))
-            .protocol(outboundAdapter.getType())
+            .endpoint(getConfigValue(outboundAdapter.getConfiguration(), "url"))
+            .protocol(outboundAdapter.getType().toString())
             .targetSystem(outboundAdapter.getName())
             .payloadSize(processedData.length())
             .build();
@@ -250,7 +257,7 @@ public class FlowExecutionApplicationService {
 
         // Log response mapping if applicable
         if(flowExecutionService.isMappingRequired(flow)) {
-            flowLogger.logResponseMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0",
+            flowLogger.logResponseMapping(flow.getName(), "1.0",
                 String.valueOf(System.currentTimeMillis() - System.currentTimeMillis()));
         }
     }
@@ -265,8 +272,8 @@ public class FlowExecutionApplicationService {
             log.info("Mapping required for flow: {}", flow.getName());
 
             // Convert source data to XML
-            flowLogger.logRequestMapping(flow.getName(), flow.getVersion() != null ? flow.getVersion().toString() : "1.0",
-                inboundAdapter.getType(), "XML");
+            flowLogger.logRequestMapping(flow.getName(), "1.0",
+                inboundAdapter.getType().toString(), "XML");
 
             String xmlData = formatConversionService.convertToXml(rawData, inboundAdapter);
             log.debug("Converted source data to XML");
@@ -290,7 +297,7 @@ public class FlowExecutionApplicationService {
                 outboundAdapter,
                 conversionConfig
            );
-            log.info("Converted XML to target format: {}", outboundAdapter.getType());
+            log.info("Converted XML to target format: {}", outboundAdapter.getType().toString());
 
             return targetData.toString();
         } else {
@@ -315,10 +322,10 @@ public class FlowExecutionApplicationService {
                 .stepNumber(transformations.indexOf(transformation) + 1)
                 .totalSteps(transformations.size())
                 .transformationName(transformation.getName())
-                .transformationType(transformation.getType())
+                .transformationType(transformation.getType().toString())
                 .inputFormat("XML")
                 .outputFormat("XML")
-                .configuration(transformation.getConfiguration())
+                .configuration(parseConfigToMap(transformation.getConfiguration()))
                 .build();
 
             flowLogger.logTransformationStep(transformContext);
@@ -381,7 +388,7 @@ public class FlowExecutionApplicationService {
                 functionBody);
         }
 
-        Object result = JavaFunctionRunner.run(functionBody, config.getSourceFields(), inputMap);
+        Object result = javaFunctionRunner.execute("customFunc_" + System.currentTimeMillis(), functionBody, "transform", config.getSourceFields(), inputMap);
         return result != null ? result.toString() : null;
     }
 
@@ -419,5 +426,34 @@ public class FlowExecutionApplicationService {
             ValidationTransformationConfigDTO.class
        );
         return validationTransformationService.applyValidation(currentData, validationConfig);
+    }
+
+    private String getConfigValue(String configJson, String key) {
+        if (configJson == null || configJson.isBlank()) {
+            return null;
+        }
+        try {
+            Map<String, Object> config = objectMapper.readValue(configJson, Map.class);
+            Object value = config.get(key);
+            return value != null ? value.toString() : null;
+        } catch (Exception e) {
+            log.warn("Failed to parse configuration JSON", e);
+            return null;
+        }
+    }
+
+    private Map<String, String> parseConfigToMap(String configJson) {
+        if (configJson == null || configJson.isBlank()) {
+            return new HashMap<>();
+        }
+        try {
+            Map<String, Object> config = objectMapper.readValue(configJson, Map.class);
+            Map<String, String> result = new HashMap<>();
+            config.forEach((k, v) -> result.put(k, v != null ? v.toString() : null));
+            return result;
+        } catch (Exception e) {
+            log.warn("Failed to parse configuration JSON", e);
+            return new HashMap<>();
+        }
     }
 }

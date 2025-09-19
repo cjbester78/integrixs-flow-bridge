@@ -2,7 +2,6 @@ package com.integrixs.backend.controller;
 
 import com.integrixs.backend.dto.dashboard.health.*;
 import com.integrixs.backend.service.AdapterHealthService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +15,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/adapter - health")
-@RequiredArgsConstructor
 public class AdapterHealthController {
 
     private final AdapterHealthService adapterHealthService;

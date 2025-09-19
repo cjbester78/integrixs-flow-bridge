@@ -12,6 +12,7 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
     private String adAccountId;
     private String organizationId;
     private String pixelId;
+    private String mediaUploadUrl;
     private SnapchatAdsFeatures features = new SnapchatAdsFeatures();
     private SnapchatAdsLimits limits = new SnapchatAdsLimits();
     
@@ -526,6 +527,12 @@ public class SnapchatAdsApiConfig extends SocialMediaAdapterConfig {
     }
     public void setPixelId(String pixelId) {
         this.pixelId = pixelId;
+    }
+    public String getMediaUploadUrl() {
+        return mediaUploadUrl;
+    }
+    public void setMediaUploadUrl(String mediaUploadUrl) {
+        this.mediaUploadUrl = mediaUploadUrl;
     }
     public SnapchatAdsFeatures getFeatures() {
         return features;

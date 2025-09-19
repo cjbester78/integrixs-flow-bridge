@@ -1,16 +1,11 @@
 package com.integrixs.backend.api.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * DTO for validation results
  */
-@Data
-@NoArgsConstructor
 public class ValidationResultDTO {
     private boolean valid = true;
     private List<String> errors = new ArrayList<>();
@@ -28,5 +23,41 @@ public class ValidationResultDTO {
 
     public void addInfo(String info) {
         this.infos.add(info);
+    }
+
+    // Default constructor
+    public ValidationResultDTO() {
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings;
+    }
+
+    public List<String> getInfos() {
+        return infos;
+    }
+
+    public void setInfos(List<String> infos) {
+        this.infos = infos;
     }
 }

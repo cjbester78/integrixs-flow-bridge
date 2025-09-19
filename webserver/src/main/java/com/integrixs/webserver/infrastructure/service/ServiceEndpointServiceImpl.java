@@ -78,7 +78,7 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
     }
 
     @Override
-    public List<ServiceEndpoint> getEndpointsByType(ServiceEndpoint.EndpointType type) {
+    public List<ServiceEndpoint> getEndpointsByType(ServiceEndpoint.ServiceType type) {
         return repository.findByType(type);
     }
 
@@ -158,7 +158,7 @@ public class ServiceEndpointServiceImpl implements ServiceEndpointService {
         return true;
     }
 
-    private OutboundRequest.RequestType mapEndpointTypeToRequestType(ServiceEndpoint.EndpointType type) {
+    private OutboundRequest.RequestType mapEndpointTypeToRequestType(ServiceEndpoint.ServiceType type) {
         switch(type) {
             case SOAP_SERVICE:
                 return OutboundRequest.RequestType.SOAP_SERVICE;

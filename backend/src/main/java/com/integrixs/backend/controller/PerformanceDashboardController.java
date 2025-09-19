@@ -6,7 +6,6 @@ import com.integrixs.backend.dto.dashboard.RealTimeMetrics;
 import com.integrixs.backend.service.PerformanceDashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/dashboard/performance")
-@RequiredArgsConstructor
 @Tag(name = "Performance Dashboard", description = "Real - time performance monitoring")
 public class PerformanceDashboardController {
 

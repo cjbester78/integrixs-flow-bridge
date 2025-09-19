@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.CommunicationAdapter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainCommunicationAdapterRepository")
-@RequiredArgsConstructor
 public class CommunicationAdapterRepositoryImpl implements CommunicationAdapterRepository {
 
     private final com.integrixs.data.repository.CommunicationAdapterRepository jpaRepository;

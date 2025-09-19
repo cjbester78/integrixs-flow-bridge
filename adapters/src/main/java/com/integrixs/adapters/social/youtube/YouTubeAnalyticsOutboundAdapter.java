@@ -4,7 +4,10 @@ package com.integrixs.adapters.social.youtube;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 import com.integrixs.adapters.social.youtube.YouTubeAnalyticsApiConfig.*;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,12 +37,11 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     private static final Logger log = LoggerFactory.getLogger(YouTubeAnalyticsOutboundAdapter.class);
 
 
-    private static final String YOUTUBE_ANALYTICS_API_BASE = "https://youtubeanalytics.googleapis.com/v2";
-    private static final String YOUTUBE_DATA_API_BASE = "https://www.googleapis.com/youtube/v3";
-    private static final String YOUTUBE_REPORTING_API_BASE = "https://youtubereporting.googleapis.com/v1";
+    // API URLs are configured in application.yml
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    @Autowired
     private YouTubeAnalyticsApiConfig config;
     private final RateLimiterService rateLimiterService;
     private final TokenRefreshService tokenRefreshService;
@@ -51,6 +54,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super(rateLimiterService, credentialEncryptionService);
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -58,7 +62,6 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         try {
             validateConfiguration();
@@ -158,6 +161,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
             }
         } catch(Exception e) {
             log.error("Error in YouTube Analytics outbound adapter", e);
+            throw new AdapterException("Failed to process YouTube Analytics operation", e);
         }
     }
 
@@ -739,7 +743,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
 
     private MessageDTO getReportJobs(MessageDTO message) throws Exception {
         // YouTube Reporting API for scheduled reports
-        String url = YOUTUBE_REPORTING_API_BASE + "/jobs?onBehalfOfContentOwner = " +
+        String url = config.getReportingApiBaseUrl() + "/v1/jobs?onBehalfOfContentOwner = " +
                     config.getChannelId();
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
@@ -973,7 +977,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
         // Create a reporting job using YouTube Reporting API
-        String url = YOUTUBE_REPORTING_API_BASE + "/reportTypes";
+        String url = config.getReportingApiBaseUrl() + "/v1/reportTypes";
 
         // First get available report types
         ResponseEntity<String> typesResponse = makeApiCall(url, HttpMethod.GET, null);
@@ -983,7 +987,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         jobRequest.put("reportTypeId", payload.path("reportTypeId").asText());
         jobRequest.put("name", payload.path("name").asText());
 
-        String createJobUrl = YOUTUBE_REPORTING_API_BASE + "/jobs";
+        String createJobUrl = config.getReportingApiBaseUrl() + "/v1/jobs";
         ResponseEntity<String> response = makeApiCall(createJobUrl, HttpMethod.POST, jobRequest.toString());
 
         return createResponseMessage(response, "REPORT_SCHEDULED");
@@ -993,7 +997,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     private MessageDTO createGroup(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_DATA_API_BASE + "/groups";
+        String url = config.getDataApiBaseUrl() + "/groups";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         ObjectNode snippet = requestBody.putObject("snippet");
@@ -1035,7 +1039,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String groupId = payload.path("groupId").asText();
 
-        String url = YOUTUBE_DATA_API_BASE + "/groups?id = " + groupId;
+        String url = config.getDataApiBaseUrl() + "/groups?id = " + groupId;
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         if(payload.has("title")) {
@@ -1060,7 +1064,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String groupId = payload.path("groupId").asText();
 
-        String url = YOUTUBE_DATA_API_BASE + "/groups?id = " + groupId;
+        String url = config.getDataApiBaseUrl() + "/groups?id = " + groupId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "GROUP_DELETED");
@@ -1069,7 +1073,7 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     // Helper Methods
     private String buildReportUrl(LocalDate startDate, LocalDate endDate, String filters,
                                   List<Metric> metrics, List<Dimension> dimensions, String sort) {
-        StringBuilder url = new StringBuilder(YOUTUBE_ANALYTICS_API_BASE + "/reports?");
+        StringBuilder url = new StringBuilder(config.getApiBaseUrl() + "/v2/reports?");
 
         url.append("startDate = ").append(startDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
         url.append("&endDate = ").append(endDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -1209,8 +1213,8 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
     private MessageDTO createResponseMessage(ResponseEntity<String> response, String operation) {
         MessageDTO responseMessage = new MessageDTO();
         responseMessage.setCorrelationId(UUID.randomUUID().toString());
-        responseMessage.setMessageTimestamp(java.time.Instant.now());
-        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+        responseMessage.setTimestamp(LocalDateTime.now());
+        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.SUCCESS : MessageStatus.FAILED);
         responseMessage.setHeaders(Map.of(
             "operation", operation,
             "statusCode", response.getStatusCodeValue(),
@@ -1222,5 +1226,84 @@ public class YouTubeAnalyticsOutboundAdapter extends AbstractSocialMediaOutbound
 
     public void setConfiguration(YouTubeAnalyticsApiConfig config) {
         this.config = config;
+    }
+
+    @Override
+    public MessageDTO processMessage(MessageDTO message) {
+        try {
+            return sendMessage(message);
+        } catch (AdapterException e) {
+            return createErrorResponse(message, e.getMessage());
+        }
+    }
+
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("channelId", config.getChannelId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("refreshToken", config.getRefreshToken());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+            configMap.put("apiVersion", config.getApiVersion());
+        }
+        return configMap;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        // No initialization needed for analytics adapter
+        log.debug("Initializing YouTube Analytics outbound adapter");
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        // No cleanup needed for analytics adapter
+        log.debug("Destroying YouTube Analytics outbound adapter");
+    }
+
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Analytics adapter doesn't receive data - it's query-based
+        throw new UnsupportedOperationException("YouTube Analytics adapter does not support receiving data");
+    }
+
+    @Override
+    protected long getPollingIntervalMs() {
+        // Analytics adapter doesn't support polling
+        return 0;
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String url = config.getApiBaseUrl() + "/v2/reports?ids=channel==" + config.getChannelId() + 
+                        "&startDate=" + LocalDate.now().minusDays(7) + 
+                        "&endDate=" + LocalDate.now().minusDays(1) + 
+                        "&metrics=views&maxResults=1";
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "YouTube Analytics API connection successful");
+            } else {
+                return AdapterResult.failure("YouTube Analytics API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test YouTube Analytics connection: " + e.getMessage());
+        }
     }
 }

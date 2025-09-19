@@ -3,9 +3,6 @@ package com.integrixs.backend.plugin.test;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -14,12 +11,16 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Mock external service for plugin testing
  */
-@Slf4j
 public class MockExternalService {
+
+    private static final Logger log = LoggerFactory.getLogger(MockExternalService.class);
+
 
     private HttpServer server;
     private final int port;
@@ -241,8 +242,7 @@ public class MockExternalService {
     /**
      * Mock response configuration
      */
-    @Data
-    @lombok.Builder
+        @lombok.Builder
     public static class MockResponse {
         private int statusCode;
         private String body;
@@ -252,8 +252,7 @@ public class MockExternalService {
     /**
      * Received message
      */
-    @Data
-    @lombok.Builder
+        @lombok.Builder
     public static class ReceivedMessage {
         private String path;
         private Map<String, List<String>> headers;

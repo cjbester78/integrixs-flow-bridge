@@ -1,14 +1,10 @@
 package com.integrixs.backend.plugin.registry;
 
-import lombok.Builder;
-import lombok.Data;
 import java.util.Properties;
 
 /**
  * Descriptor for a discovered plugin
  */
-@Data
-@Builder
 public class PluginDescriptor {
 
     /**

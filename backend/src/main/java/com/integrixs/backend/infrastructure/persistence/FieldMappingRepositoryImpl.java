@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.FieldMappingRepository;
 import com.integrixs.data.model.FieldMapping;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.UUID;
  * Infrastructure implementation of FieldMappingRepository
  */
 @Repository("domainFieldMappingRepository")
-@RequiredArgsConstructor
 public class FieldMappingRepositoryImpl implements FieldMappingRepository {
 
     private final com.integrixs.data.repository.FieldMappingRepository jpaRepository;

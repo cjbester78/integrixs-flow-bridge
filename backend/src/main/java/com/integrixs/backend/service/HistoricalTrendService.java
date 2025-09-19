@@ -3,8 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.dto.dashboard.*;
 import com.integrixs.backend.dto.dashboard.trend.*;
 import io.micrometer.core.instrument.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,9 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Service for analyzing historical performance trends.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class HistoricalTrendService {
 
     private final MeterRegistry meterRegistry;

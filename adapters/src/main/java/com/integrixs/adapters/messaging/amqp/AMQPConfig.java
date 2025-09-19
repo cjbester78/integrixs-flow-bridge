@@ -111,6 +111,10 @@ public class AMQPConfig extends BaseAdapterConfig {
     private boolean enableExactlyOnceDelivery = false;
     private boolean enableEndToEndEncryption = false;
     
+    // Deduplication and cleanup settings
+    private long deduplicationTtlSeconds = 3600; // 1 hour
+    private long cleanupIntervalSeconds = 60; // 1 minute
+    
     // Broker-specific settings
     private BrokerType brokerType = BrokerType.GENERIC;
     private ArtemisSettings artemisSettings = new ArtemisSettings();
@@ -819,5 +823,19 @@ public class AMQPConfig extends BaseAdapterConfig {
     }
     public void setLockDuration(long lockDuration) {
         this.lockDuration = lockDuration;
+    }
+    
+    public long getDeduplicationTtlSeconds() {
+        return deduplicationTtlSeconds;
+    }
+    public void setDeduplicationTtlSeconds(long deduplicationTtlSeconds) {
+        this.deduplicationTtlSeconds = deduplicationTtlSeconds;
+    }
+    
+    public long getCleanupIntervalSeconds() {
+        return cleanupIntervalSeconds;
+    }
+    public void setCleanupIntervalSeconds(long cleanupIntervalSeconds) {
+        this.cleanupIntervalSeconds = cleanupIntervalSeconds;
     }
 }

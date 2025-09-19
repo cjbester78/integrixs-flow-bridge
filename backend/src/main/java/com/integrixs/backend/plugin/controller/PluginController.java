@@ -6,28 +6,29 @@ import com.integrixs.backend.plugin.registry.PluginRegistry;
 import com.integrixs.backend.plugin.service.PluginService;
 import com.integrixs.backend.plugin.documentation.PluginDocumentationGenerator;
 import com.integrixs.backend.plugin.monitoring.PluginPerformanceMonitor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for plugin management
  */
 @RestController
 @RequestMapping("/api/plugins")
-@RequiredArgsConstructor
-@Slf4j
 public class PluginController {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginController.class);
+
 
     private final PluginRegistry pluginRegistry;
     private final PluginService pluginService;
@@ -115,7 +116,7 @@ public class PluginController {
     @PostMapping("/ {pluginId}/test - connection")
     public ResponseEntity<ConnectionTestResult> testConnection(
             @PathVariable String pluginId,
-            @RequestParam Direction direction,
+            @RequestParam AdapterPlugin.Direction direction,
             @Valid @RequestBody(required = false) Map<String, Object> configuration) {
 
         try {

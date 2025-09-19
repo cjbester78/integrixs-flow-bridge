@@ -3,20 +3,21 @@ package com.integrixs.backend.performance;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.HikariPoolMXBean;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Dynamic connection pool tuner that monitors and adjusts pool sizes based on usage patterns.
  */
-@Slf4j
-@RequiredArgsConstructor
 public class ConnectionPoolTuner {
+
+    private static final Logger log = LoggerFactory.getLogger(ConnectionPoolTuner.class);
+
 
     private final DataSource dataSource;
     private final PoolingHttpClientConnectionManager httpConnectionManager;

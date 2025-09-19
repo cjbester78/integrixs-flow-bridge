@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.RoleRepository;
 import com.integrixs.data.model.Role;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -16,7 +15,6 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainRoleRepository")
-@RequiredArgsConstructor
 public class RoleRepositoryImpl implements RoleRepository {
 
     private final com.integrixs.data.repository.RoleRepository jpaRepository;

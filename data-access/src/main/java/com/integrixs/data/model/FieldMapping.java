@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -27,12 +26,6 @@ import java.util.UUID;
     @Index(name = "idx_mapping_target_field", columnList = "target_field"),
     @Index(name = "idx_mapping_active", columnList = "is_active")
 })
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"transformation", "javaFunction", "mappingRule"})
 public class FieldMapping {
 
     /**
@@ -41,7 +34,6 @@ public class FieldMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", columnDefinition = "UUID")
-    @EqualsAndHashCode.Include
     private UUID id;
 
     /**
@@ -81,7 +73,6 @@ public class FieldMapping {
      */
     @Column(name = "mapping_type", length = 50)
     @Enumerated(EnumType.STRING)
-    @Builder.Default
     private MappingType mappingType = MappingType.DIRECT;
 
     /**
@@ -124,7 +115,6 @@ public class FieldMapping {
      */
     @Column(name = "is_array_mapping", nullable = false)
     @NotNull(message = "Array mapping flag is required")
-    @Builder.Default
     private boolean isArrayMapping = false;
 
     /**
@@ -139,7 +129,6 @@ public class FieldMapping {
      */
     @Column(name = "namespace_aware", nullable = false)
     @NotNull(message = "Namespace aware flag is required")
-    @Builder.Default
     private boolean namespaceAware = false;
 
     /**
@@ -183,7 +172,6 @@ public class FieldMapping {
      */
     @Column(name = "is_active", nullable = false)
     @NotNull(message = "Active status is required")
-    @Builder.Default
     private boolean isActive = true;
 
     /**
@@ -204,7 +192,6 @@ public class FieldMapping {
      * Order of this mapping within the transformation
      */
     @Column(name = "mapping_order")
-    @Builder.Default
     private Integer mappingOrder = 0;
 
     /**
@@ -373,5 +360,472 @@ public class FieldMapping {
         } catch(Exception e) {
             this.inputTypes = "[]";
         }
+    }
+
+    // Default constructor
+    public FieldMapping() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public FlowTransformation getTransformation() {
+        return transformation;
+    }
+
+    public void setTransformation(FlowTransformation transformation) {
+        this.transformation = transformation;
+    }
+
+    public String getSourceFields() {
+        return sourceFields;
+    }
+
+    public void setSourceFields(String sourceFields) {
+        this.sourceFields = sourceFields;
+    }
+
+    public String getTargetField() {
+        return targetField;
+    }
+
+    public void setTargetField(String targetField) {
+        this.targetField = targetField;
+    }
+
+    public String getTargetFields() {
+        return targetFields;
+    }
+
+    public void setTargetFields(String targetFields) {
+        this.targetFields = targetFields;
+    }
+
+    public MappingType getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(MappingType mappingType) {
+        this.mappingType = mappingType;
+    }
+
+    public String getSplitConfiguration() {
+        return splitConfiguration;
+    }
+
+    public void setSplitConfiguration(String splitConfiguration) {
+        this.splitConfiguration = splitConfiguration;
+    }
+
+    public String getJavaFunction() {
+        return javaFunction;
+    }
+
+    public void setJavaFunction(String javaFunction) {
+        this.javaFunction = javaFunction;
+    }
+
+    public String getMappingRule() {
+        return mappingRule;
+    }
+
+    public void setMappingRule(String mappingRule) {
+        this.mappingRule = mappingRule;
+    }
+
+    public String getSourceXPath() {
+        return sourceXPath;
+    }
+
+    public void setSourceXPath(String sourceXPath) {
+        this.sourceXPath = sourceXPath;
+    }
+
+    public String getTargetXPath() {
+        return targetXPath;
+    }
+
+    public void setTargetXPath(String targetXPath) {
+        this.targetXPath = targetXPath;
+    }
+
+    public boolean isArrayMapping() {
+        return isArrayMapping;
+    }
+
+    public void setArrayMapping(boolean isArrayMapping) {
+        this.isArrayMapping = isArrayMapping;
+    }
+
+    public String getArrayContextPath() {
+        return arrayContextPath;
+    }
+
+    public void setArrayContextPath(String arrayContextPath) {
+        this.arrayContextPath = arrayContextPath;
+    }
+
+    public boolean isNamespaceAware() {
+        return namespaceAware;
+    }
+
+    public void setNamespaceAware(boolean namespaceAware) {
+        this.namespaceAware = namespaceAware;
+    }
+
+    public String getInputTypes() {
+        return inputTypes;
+    }
+
+    public void setInputTypes(String inputTypes) {
+        this.inputTypes = inputTypes;
+    }
+
+    public String getOutputType() {
+        return outputType;
+    }
+
+    public void setOutputType(String outputType) {
+        this.outputType = outputType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
+    }
+
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+
+    public String getVisualFlowData() {
+        return visualFlowData;
+    }
+
+    public void setVisualFlowData(String visualFlowData) {
+        this.visualFlowData = visualFlowData;
+    }
+
+    public String getFunctionNode() {
+        return functionNode;
+    }
+
+    public void setFunctionNode(String functionNode) {
+        this.functionNode = functionNode;
+    }
+
+    public Integer getMappingOrder() {
+        return mappingOrder;
+    }
+
+    public void setMappingOrder(Integer mappingOrder) {
+        this.mappingOrder = mappingOrder;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public User getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(User updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public List<String> getParsedSourceFields() {
+        return parsedSourceFields;
+    }
+
+    public void setParsedSourceFields(List<String> parsedSourceFields) {
+        this.parsedSourceFields = parsedSourceFields;
+    }
+
+    public List<String> getParsedTargetFields() {
+        return parsedTargetFields;
+    }
+
+    public void setParsedTargetFields(List<String> parsedTargetFields) {
+        this.parsedTargetFields = parsedTargetFields;
+    }
+
+    // Builder
+    public static FieldMappingBuilder builder() {
+        return new FieldMappingBuilder();
+    }
+
+    public static class FieldMappingBuilder {
+        private UUID id;
+        private FlowTransformation transformation;
+        private String sourceFields;
+        private String targetField;
+        private String targetFields;
+        private MappingType mappingType;
+        private String splitConfiguration;
+        private String javaFunction;
+        private String mappingRule;
+        private String sourceXPath;
+        private String targetXPath;
+        private boolean isArrayMapping;
+        private String arrayContextPath;
+        private boolean namespaceAware;
+        private String inputTypes;
+        private String outputType;
+        private String description;
+        private String version;
+        private String functionName;
+        private boolean isActive;
+        private String visualFlowData;
+        private String functionNode;
+        private Integer mappingOrder;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private User createdBy;
+        private User updatedBy;
+        private List<String> parsedSourceFields;
+        private List<String> parsedTargetFields;
+
+        public FieldMappingBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public FieldMappingBuilder transformation(FlowTransformation transformation) {
+            this.transformation = transformation;
+            return this;
+        }
+
+        public FieldMappingBuilder sourceFields(String sourceFields) {
+            this.sourceFields = sourceFields;
+            return this;
+        }
+
+        public FieldMappingBuilder targetField(String targetField) {
+            this.targetField = targetField;
+            return this;
+        }
+
+        public FieldMappingBuilder targetFields(String targetFields) {
+            this.targetFields = targetFields;
+            return this;
+        }
+
+        public FieldMappingBuilder mappingType(MappingType mappingType) {
+            this.mappingType = mappingType;
+            return this;
+        }
+
+        public FieldMappingBuilder splitConfiguration(String splitConfiguration) {
+            this.splitConfiguration = splitConfiguration;
+            return this;
+        }
+
+        public FieldMappingBuilder javaFunction(String javaFunction) {
+            this.javaFunction = javaFunction;
+            return this;
+        }
+
+        public FieldMappingBuilder mappingRule(String mappingRule) {
+            this.mappingRule = mappingRule;
+            return this;
+        }
+
+        public FieldMappingBuilder sourceXPath(String sourceXPath) {
+            this.sourceXPath = sourceXPath;
+            return this;
+        }
+
+        public FieldMappingBuilder targetXPath(String targetXPath) {
+            this.targetXPath = targetXPath;
+            return this;
+        }
+
+        public FieldMappingBuilder isArrayMapping(boolean isArrayMapping) {
+            this.isArrayMapping = isArrayMapping;
+            return this;
+        }
+
+        public FieldMappingBuilder arrayContextPath(String arrayContextPath) {
+            this.arrayContextPath = arrayContextPath;
+            return this;
+        }
+
+        public FieldMappingBuilder namespaceAware(boolean namespaceAware) {
+            this.namespaceAware = namespaceAware;
+            return this;
+        }
+
+        public FieldMappingBuilder inputTypes(String inputTypes) {
+            this.inputTypes = inputTypes;
+            return this;
+        }
+
+        public FieldMappingBuilder outputType(String outputType) {
+            this.outputType = outputType;
+            return this;
+        }
+
+        public FieldMappingBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public FieldMappingBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public FieldMappingBuilder functionName(String functionName) {
+            this.functionName = functionName;
+            return this;
+        }
+
+        public FieldMappingBuilder isActive(boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
+        public FieldMappingBuilder visualFlowData(String visualFlowData) {
+            this.visualFlowData = visualFlowData;
+            return this;
+        }
+
+        public FieldMappingBuilder functionNode(String functionNode) {
+            this.functionNode = functionNode;
+            return this;
+        }
+
+        public FieldMappingBuilder mappingOrder(Integer mappingOrder) {
+            this.mappingOrder = mappingOrder;
+            return this;
+        }
+
+        public FieldMappingBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public FieldMappingBuilder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public FieldMappingBuilder createdBy(User createdBy) {
+            this.createdBy = createdBy;
+            return this;
+        }
+
+        public FieldMappingBuilder updatedBy(User updatedBy) {
+            this.updatedBy = updatedBy;
+            return this;
+        }
+
+        public FieldMappingBuilder parsedSourceFields(List<String> parsedSourceFields) {
+            this.parsedSourceFields = parsedSourceFields;
+            return this;
+        }
+
+        public FieldMappingBuilder parsedTargetFields(List<String> parsedTargetFields) {
+            this.parsedTargetFields = parsedTargetFields;
+            return this;
+        }
+
+        public FieldMapping build() {
+            FieldMapping instance = new FieldMapping();
+            instance.setId(this.id);
+            instance.setTransformation(this.transformation);
+            instance.setSourceFields(this.sourceFields);
+            instance.setTargetField(this.targetField);
+            instance.setTargetFields(this.targetFields);
+            instance.setMappingType(this.mappingType);
+            instance.setSplitConfiguration(this.splitConfiguration);
+            instance.setJavaFunction(this.javaFunction);
+            instance.setMappingRule(this.mappingRule);
+            instance.setSourceXPath(this.sourceXPath);
+            instance.setTargetXPath(this.targetXPath);
+            instance.setArrayMapping(this.isArrayMapping);
+            instance.setArrayContextPath(this.arrayContextPath);
+            instance.setNamespaceAware(this.namespaceAware);
+            instance.setInputTypes(this.inputTypes);
+            instance.setOutputType(this.outputType);
+            instance.setDescription(this.description);
+            instance.setVersion(this.version);
+            instance.setFunctionName(this.functionName);
+            instance.setIsActive(this.isActive);
+            instance.setVisualFlowData(this.visualFlowData);
+            instance.setFunctionNode(this.functionNode);
+            instance.setMappingOrder(this.mappingOrder);
+            instance.setCreatedAt(this.createdAt);
+            instance.setUpdatedAt(this.updatedAt);
+            instance.setCreatedBy(this.createdBy);
+            instance.setUpdatedBy(this.updatedBy);
+            instance.setParsedSourceFields(this.parsedSourceFields);
+            instance.setParsedTargetFields(this.parsedTargetFields);
+            return instance;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "FieldMapping{" + 
+                "id=" + id + "sourceFields=" + sourceFields + "targetField=" + targetField + "targetFields=" + targetFields + "mappingType=" + mappingType + "..." + 
+                '}';
     }
 }

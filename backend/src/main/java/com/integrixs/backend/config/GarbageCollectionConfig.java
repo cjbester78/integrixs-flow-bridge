@@ -5,13 +5,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import lombok.extern.slf4j.Slf4j;
-
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration for JVM garbage collection optimization and monitoring.
@@ -22,10 +22,12 @@ import java.util.List;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Configuration
 @EnableScheduling
 public class GarbageCollectionConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(GarbageCollectionConfig.class);
+
 
     private final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
     private final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();

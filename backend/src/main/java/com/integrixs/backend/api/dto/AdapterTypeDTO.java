@@ -1,16 +1,9 @@
 package com.integrixs.backend.api.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AdapterTypeDTO {
     private UUID id;
     private String code;
@@ -51,4 +44,192 @@ public class AdapterTypeDTO {
     // Audit
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Default constructor
+    public AdapterTypeDTO() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public UUID getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(UUID categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(String vendor) {
+        this.vendor = vendor;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public boolean isSupportsInbound() {
+        return supportsInbound;
+    }
+
+    public void setSupportsInbound(boolean supportsInbound) {
+        this.supportsInbound = supportsInbound;
+    }
+
+    public boolean isSupportsOutbound() {
+        return supportsOutbound;
+    }
+
+    public void setSupportsOutbound(boolean supportsOutbound) {
+        this.supportsOutbound = supportsOutbound;
+    }
+
+    public boolean isSupportsBidirectional() {
+        return supportsBidirectional;
+    }
+
+    public void setSupportsBidirectional(boolean supportsBidirectional) {
+        this.supportsBidirectional = supportsBidirectional;
+    }
+
+    public String[] getSupportedProtocols() {
+        return supportedProtocols;
+    }
+
+    public void setSupportedProtocols(String[] supportedProtocols) {
+        this.supportedProtocols = supportedProtocols;
+    }
+
+    public String[] getSupportedFormats() {
+        return supportedFormats;
+    }
+
+    public void setSupportedFormats(String[] supportedFormats) {
+        this.supportedFormats = supportedFormats;
+    }
+
+    public String[] getAuthenticationMethods() {
+        return authenticationMethods;
+    }
+
+    public void setAuthenticationMethods(String[] authenticationMethods) {
+        this.authenticationMethods = authenticationMethods;
+    }
+
+    public String getDocumentationUrl() {
+        return documentationUrl;
+    }
+
+    public void setDocumentationUrl(String documentationUrl) {
+        this.documentationUrl = documentationUrl;
+    }
+
+    public String getSupportUrl() {
+        return supportUrl;
+    }
+
+    public void setSupportUrl(String supportUrl) {
+        this.supportUrl = supportUrl;
+    }
+
+    public String getPricingTier() {
+        return pricingTier;
+    }
+
+    public void setPricingTier(String pricingTier) {
+        this.pricingTier = pricingTier;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public boolean isIsCertified() {
+        return isCertified;
+    }
+
+    public void setIsCertified(boolean isCertified) {
+        this.isCertified = isCertified;
+    }
+
+    public LocalDateTime getCertificationDate() {
+        return certificationDate;
+    }
+
+    public void setCertificationDate(LocalDateTime certificationDate) {
+        this.certificationDate = certificationDate;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

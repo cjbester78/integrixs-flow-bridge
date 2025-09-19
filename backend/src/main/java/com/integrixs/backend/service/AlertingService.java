@@ -2,8 +2,6 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.*;
 import com.integrixs.data.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,14 +10,17 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing alerts and alert rules
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
-public class AlertingService {
+public class AlertingService implements com.integrixs.engine.service.AlertingService {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertingService.class);
+
 
     private final AlertRuleRepository alertRuleRepository;
     private final AlertRepository alertRepository;

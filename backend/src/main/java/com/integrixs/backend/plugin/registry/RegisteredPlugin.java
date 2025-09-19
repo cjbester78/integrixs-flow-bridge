@@ -2,15 +2,11 @@ package com.integrixs.backend.plugin.registry;
 
 import com.integrixs.backend.plugin.api.AdapterPlugin;
 import com.integrixs.backend.plugin.api.AdapterMetadata;
-import lombok.Builder;
-import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
  * Represents a registered plugin in the registry
  */
-@Data
-@Builder
 public class RegisteredPlugin {
 
     /**
@@ -36,7 +32,6 @@ public class RegisteredPlugin {
     /**
      * Registration timestamp
      */
-    @Builder.Default
     private LocalDateTime registeredAt = LocalDateTime.now();
 
     /**

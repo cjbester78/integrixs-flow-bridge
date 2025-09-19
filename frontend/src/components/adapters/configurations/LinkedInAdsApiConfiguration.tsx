@@ -38,7 +38,6 @@ import {
   TrendingUp,
   CreditCard
 } from '@mui/icons-material';
-import { BaseAdapterConfiguration } from '../BaseAdapterConfiguration';
 
 interface LinkedInAdsApiConfigurationProps {
   configuration: any;
@@ -222,11 +221,6 @@ export const LinkedInAdsApiConfiguration: React.FC<LinkedInAdsApiConfigurationPr
   };
 
   return (
-    <BaseAdapterConfiguration
-      configuration={configuration}
-      onChange={onChange}
-      type="LINKEDIN_ADS"
-    >
       <Box sx={{ width: '100%' }}>
         <Paper sx={{ mb: 2 }}>
           <Tabs
@@ -1196,6 +1190,5 @@ export const LinkedInAdsApiConfiguration: React.FC<LinkedInAdsApiConfigurationPr
           </Grid>
         </TabPanel>
       </Box>
-    </BaseAdapterConfiguration>
   );
 };

@@ -5,19 +5,22 @@ import com.integrixs.backend.websocket.JobProgressWebSocketHandler;
 import com.integrixs.backend.websocket.MessageWebSocketHandler;
 import com.integrixs.backend.websocket.SimpleWebSocketHandler;
 import com.integrixs.backend.websocket.StreamingProgressWebSocketHandler;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Configuration
 @EnableWebSocket
 @EnableScheduling
 public class WebSocketConfig implements WebSocketConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
+
 
     @Autowired
     private MessageWebSocketHandler messageWebSocketHandler;

@@ -7,8 +7,6 @@ import com.integrixs.backend.plugin.registry.PluginRegistry;
 import com.integrixs.backend.plugin.validation.PluginValidator;
 import com.integrixs.backend.plugin.security.PluginSecurityScanner;
 import com.integrixs.backend.plugin.version.PluginVersionManager;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,14 +18,17 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing plugins
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class PluginService {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginService.class);
+
 
     private final PluginRegistry pluginRegistry;
     private final PluginLoader pluginLoader;
@@ -212,7 +213,7 @@ public class PluginService {
     /**
      * Test plugin connection
      */
-    public ConnectionTestResult testConnection(String pluginId, Direction direction,
+    public ConnectionTestResult testConnection(String pluginId, AdapterPlugin.Direction direction,
                                              Map<String, Object> configuration) {
         AdapterPlugin plugin = pluginRegistry.getPlugin(pluginId);
         if(plugin == null) {

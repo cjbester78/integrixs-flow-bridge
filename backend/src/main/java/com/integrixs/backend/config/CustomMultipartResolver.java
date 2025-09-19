@@ -1,16 +1,19 @@
 package com.integrixs.backend.config;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Custom multipart resolver with enhanced error handling and logging.
  */
-@Slf4j
 public class CustomMultipartResolver extends StandardServletMultipartResolver {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomMultipartResolver.class);
+
 
     @Override
     public boolean isMultipart(HttpServletRequest request) {

@@ -4,10 +4,6 @@ import com.integrixs.backend.plugin.api.PluginMessage;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -17,14 +13,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Performance monitoring for plugins
  */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class PluginPerformanceMonitor {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginPerformanceMonitor.class);
+
 
     private final MeterRegistry meterRegistry;
 
@@ -311,8 +310,7 @@ public class PluginPerformanceMonitor {
     /**
      * Plugin performance metrics
      */
-    @Data
-    public static class PluginMetrics {
+        public static class PluginMetrics {
         private final String pluginId;
         private final AtomicLong messagesProcessed = new AtomicLong();
         private final AtomicLong successfulMessages = new AtomicLong();
@@ -358,8 +356,7 @@ public class PluginPerformanceMonitor {
     /**
      * Performance sample
      */
-    @Data
-    private static class PerformanceSample {
+        private static class PerformanceSample {
         private final Instant timestamp;
         private final long processingTimeMs;
         private final boolean success;
@@ -369,9 +366,7 @@ public class PluginPerformanceMonitor {
     /**
      * Performance statistics
      */
-    @Data
-    @Builder
-    public static class PerformanceStatistics {
+            public static class PerformanceStatistics {
         private long sampleCount;
         private long successCount;
         private double successRate;
@@ -390,9 +385,7 @@ public class PluginPerformanceMonitor {
     /**
      * Performance report
      */
-    @Data
-    @Builder
-    public static class PerformanceReport {
+            public static class PerformanceReport {
         private String pluginId;
         private Instant reportTime;
         private long totalMessagesProcessed;
@@ -408,9 +401,7 @@ public class PluginPerformanceMonitor {
     /**
      * Resource usage
      */
-    @Data
-    @Builder
-    public static class ResourceUsage {
+            public static class ResourceUsage {
         private long currentMemory;
         private long peakMemory;
         private double currentCpu;

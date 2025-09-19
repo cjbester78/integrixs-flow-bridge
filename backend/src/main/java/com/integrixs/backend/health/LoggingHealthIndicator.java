@@ -1,7 +1,5 @@
 package com.integrixs.backend.health;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -13,15 +11,18 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Health indicator for monitoring logging system health.
  * Checks log file accessibility, disk space, and logging configuration.
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class LoggingHealthIndicator implements HealthIndicator {
+
+    private static final Logger log = LoggerFactory.getLogger(LoggingHealthIndicator.class);
+
 
     private static final long DISK_SPACE_WARNING_THRESHOLD_MB = 1024; // 1GB
     private static final long DISK_SPACE_ERROR_THRESHOLD_MB = 100; // 100MB

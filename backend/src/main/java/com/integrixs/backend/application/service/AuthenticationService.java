@@ -14,8 +14,6 @@ import com.integrixs.data.model.UserSession;
 import com.integrixs.shared.dto.user.UserDTO;
 import com.integrixs.shared.dto.user.RegisterResponseDTO;
 import com.integrixs.shared.dto.user.UserRegisterResponseDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +25,9 @@ import java.util.Map;
  * Orchestrates authentication flow
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AuthenticationService {
+    
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthenticationService.class);
 
     private final UserAuthenticationService authService;
     private final UserSessionService sessionService;
@@ -179,7 +177,7 @@ public class AuthenticationService {
             return RegisterResponseDTO.builder()
                     .success(true)
                     .message("User created successfully. The user can now login with their credentials.")
-                    .userId(newUser.getId())
+                    .userId(newUser.getId().toString())
                     .build();
 
         } catch(Exception e) {

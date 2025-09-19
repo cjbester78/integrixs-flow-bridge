@@ -1,8 +1,5 @@
 package com.integrixs.backend.plugin.security;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -14,15 +11,19 @@ import java.util.jar.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Security scanner for plugin JAR files
  */
 @Component
-@Slf4j
 public class PluginSecurityScanner {
 
     // Dangerous class patterns
+
+    private static final Logger log = LoggerFactory.getLogger(PluginSecurityScanner.class);
+
     private static final Set<String> DANGEROUS_CLASSES = Set.of(
         "java.lang.Runtime",
         "java.lang.ProcessBuilder",
@@ -375,9 +376,7 @@ public class PluginSecurityScanner {
     /**
      * Security scan result
      */
-    @Data
-    @Builder
-    public static class SecurityScanResult {
+            public static class SecurityScanResult {
         private String jarPath;
         private Date scanDate;
         private boolean passed;
@@ -402,9 +401,7 @@ public class PluginSecurityScanner {
     /**
      * Security issue
      */
-    @Data
-    @Builder
-    public static class SecurityIssue {
+            public static class SecurityIssue {
         private Severity severity;
         private IssueType type;
         private String description;

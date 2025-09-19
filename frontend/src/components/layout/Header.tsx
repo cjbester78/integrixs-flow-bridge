@@ -9,9 +9,9 @@ import {
  DropdownMenuSeparator,
  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { TenantSelector } from '@/components/TenantSelector';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/hooks/useSidebar';
 
 export const Header = () => {
  const { user, logout } = useAuth();

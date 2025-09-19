@@ -1,7 +1,8 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.backend.exception.BusinessException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.tools.*;
@@ -12,9 +13,11 @@ import java.util.*;
 /**
  * Service for compiling and validating Java transformation functions
  */
-@Slf4j
 @Service
 public class JavaCompilationService {
+
+    private static final Logger log = LoggerFactory.getLogger(JavaCompilationService.class);
+
 
     private final JavaCompiler compiler;
 
@@ -126,7 +129,9 @@ public class JavaCompilationService {
                    "import java.text.*;\n" +
                    "import java.time.*;\n" +
                    "import java.time.format.*;\n" +
-                   "import com.integrixs.engine.transformation.TransformationFunction;\n\n" +
+                   "import com.integrixs.engine.transformation.TransformationFunction;\n" +
+                   "import org.slf4j.Logger;\n" +
+                   "import org.slf4j.LoggerFactory;\n\n" +
                    code;
         }
         return code;

@@ -5,23 +5,24 @@ import com.integrixs.backend.domain.repository.SystemLogRepository;
 import com.integrixs.backend.domain.service.LogManagementService;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for log management
  * Orchestrates logging operations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class LogManagementApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(LogManagementApplicationService.class);
+
 
     private final SystemLogRepository systemLogRepository;
     private final LogManagementService logManagementService;

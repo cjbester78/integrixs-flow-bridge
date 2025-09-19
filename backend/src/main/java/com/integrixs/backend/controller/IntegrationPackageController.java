@@ -1,6 +1,5 @@
 package com.integrixs.backend.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -13,12 +12,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controller for managing integration packages.
  * This is a placeholder implementation until the full package feature is implemented.
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/integration - packages")
 @CrossOrigin(origins = "*")
@@ -27,6 +27,9 @@ public class IntegrationPackageController {
     /**
      * Get all integration packages with pagination
      */
+
+    private static final Logger log = LoggerFactory.getLogger(IntegrationPackageController.class);
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<Page<Map<String, Object>>> getAllPackages(

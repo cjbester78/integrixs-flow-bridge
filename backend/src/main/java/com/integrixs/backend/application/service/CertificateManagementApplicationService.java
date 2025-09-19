@@ -9,8 +9,8 @@ import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.Certificate;
 import com.integrixs.shared.dto.certificate.CertificateDTO;
 import com.integrixs.shared.dto.certificate.CertificateUploadRequestDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -26,11 +26,10 @@ import java.util.stream.Collectors;
  * Application service for certificate management
  * Orchestrates certificate operations across domain services
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CertificateManagementApplicationService {
 
+    private static final Logger log = LoggerFactory.getLogger(CertificateManagementApplicationService.class);
     private final CertificateRepository certificateRepository;
     private final CertificateManagementService certificateManagementService;
     private final CertificateStorageService certificateStorageService;

@@ -5,8 +5,6 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.shared.dto.log.LogSearchCriteria;
 import com.integrixs.shared.dto.log.LogExportRequest;
 import com.integrixs.shared.dto.log.CorrelatedLogGroup;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -26,14 +24,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Enhanced service for exporting logs in various formats.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class LogExportService {
+
+    private static final Logger log = LoggerFactory.getLogger(LogExportService.class);
+
 
     private final LogSearchService logSearchService;
     private final LogCorrelationService logCorrelationService;

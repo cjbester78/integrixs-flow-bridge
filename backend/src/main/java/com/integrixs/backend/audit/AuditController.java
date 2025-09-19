@@ -266,8 +266,6 @@ public class AuditController {
     /**
      * Audit event DTO
      */
-    @lombok.Data
-    @lombok.Builder
     public static class AuditEventDTO {
         private UUID id;
         private Instant eventTimestamp;
@@ -283,5 +281,150 @@ public class AuditController {
         private String errorMessage;
         private Long durationMs;
         private Map<String, String> details;
+
+        // Private constructor for builder
+        private AuditEventDTO() {}
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private UUID id;
+            private Instant eventTimestamp;
+            private AuditEvent.AuditEventType eventType;
+            private AuditEvent.AuditCategory category;
+            private String username;
+            private String ipAddress;
+            private String entityType;
+            private String entityId;
+            private String entityName;
+            private String action;
+            private AuditEvent.AuditOutcome outcome;
+            private String errorMessage;
+            private Long durationMs;
+            private Map<String, String> details;
+
+            public Builder id(UUID id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder eventTimestamp(Instant eventTimestamp) {
+                this.eventTimestamp = eventTimestamp;
+                return this;
+            }
+
+            public Builder eventType(AuditEvent.AuditEventType eventType) {
+                this.eventType = eventType;
+                return this;
+            }
+
+            public Builder category(AuditEvent.AuditCategory category) {
+                this.category = category;
+                return this;
+            }
+
+            public Builder username(String username) {
+                this.username = username;
+                return this;
+            }
+
+            public Builder ipAddress(String ipAddress) {
+                this.ipAddress = ipAddress;
+                return this;
+            }
+
+            public Builder entityType(String entityType) {
+                this.entityType = entityType;
+                return this;
+            }
+
+            public Builder entityId(String entityId) {
+                this.entityId = entityId;
+                return this;
+            }
+
+            public Builder entityName(String entityName) {
+                this.entityName = entityName;
+                return this;
+            }
+
+            public Builder action(String action) {
+                this.action = action;
+                return this;
+            }
+
+            public Builder outcome(AuditEvent.AuditOutcome outcome) {
+                this.outcome = outcome;
+                return this;
+            }
+
+            public Builder errorMessage(String errorMessage) {
+                this.errorMessage = errorMessage;
+                return this;
+            }
+
+            public Builder durationMs(Long durationMs) {
+                this.durationMs = durationMs;
+                return this;
+            }
+
+            public Builder details(Map<String, String> details) {
+                this.details = details;
+                return this;
+            }
+
+            public AuditEventDTO build() {
+                AuditEventDTO dto = new AuditEventDTO();
+                dto.id = this.id;
+                dto.eventTimestamp = this.eventTimestamp;
+                dto.eventType = this.eventType;
+                dto.category = this.category;
+                dto.username = this.username;
+                dto.ipAddress = this.ipAddress;
+                dto.entityType = this.entityType;
+                dto.entityId = this.entityId;
+                dto.entityName = this.entityName;
+                dto.action = this.action;
+                dto.outcome = this.outcome;
+                dto.errorMessage = this.errorMessage;
+                dto.durationMs = this.durationMs;
+                dto.details = this.details;
+                return dto;
+            }
+        }
+
+        // Getters
+        public UUID getId() { return id; }
+        public Instant getEventTimestamp() { return eventTimestamp; }
+        public AuditEvent.AuditEventType getEventType() { return eventType; }
+        public AuditEvent.AuditCategory getCategory() { return category; }
+        public String getUsername() { return username; }
+        public String getIpAddress() { return ipAddress; }
+        public String getEntityType() { return entityType; }
+        public String getEntityId() { return entityId; }
+        public String getEntityName() { return entityName; }
+        public String getAction() { return action; }
+        public AuditEvent.AuditOutcome getOutcome() { return outcome; }
+        public String getErrorMessage() { return errorMessage; }
+        public Long getDurationMs() { return durationMs; }
+        public Map<String, String> getDetails() { return details; }
+
+        // Setters
+        public void setId(UUID id) { this.id = id; }
+        public void setEventTimestamp(Instant eventTimestamp) { this.eventTimestamp = eventTimestamp; }
+        public void setEventType(AuditEvent.AuditEventType eventType) { this.eventType = eventType; }
+        public void setCategory(AuditEvent.AuditCategory category) { this.category = category; }
+        public void setUsername(String username) { this.username = username; }
+        public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+        public void setEntityType(String entityType) { this.entityType = entityType; }
+        public void setEntityId(String entityId) { this.entityId = entityId; }
+        public void setEntityName(String entityName) { this.entityName = entityName; }
+        public void setAction(String action) { this.action = action; }
+        public void setOutcome(AuditEvent.AuditOutcome outcome) { this.outcome = outcome; }
+        public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+        public void setDurationMs(Long durationMs) { this.durationMs = durationMs; }
+        public void setDetails(Map<String, String> details) { this.details = details; }
     }
 }

@@ -18,8 +18,6 @@ import com.integrixs.data.repository.MessageStructureRepository;
 import com.integrixs.shared.dto.structure.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.user.UserDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,10 +38,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
-@Slf4j
 public class FlowStructureService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowStructureService.class);
+
 
     private final FlowStructureRepository flowStructureRepository;
     private final MessageStructureRepository messageStructureRepository;

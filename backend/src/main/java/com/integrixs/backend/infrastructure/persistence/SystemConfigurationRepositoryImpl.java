@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.SystemConfigurationRepository;
 import com.integrixs.data.model.SystemConfiguration;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.UUID;
  * Infrastructure implementation of SystemConfigurationRepository
  */
 @Repository("domainSystemConfigurationRepository")
-@RequiredArgsConstructor
 public class SystemConfigurationRepositoryImpl implements SystemConfigurationRepository {
 
     private final com.integrixs.data.repository.SystemConfigurationRepository jpaRepository;

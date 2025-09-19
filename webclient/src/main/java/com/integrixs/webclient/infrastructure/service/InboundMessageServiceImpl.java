@@ -68,20 +68,20 @@ public class InboundMessageServiceImpl implements InboundMessageService {
 
         // Check required fields
         if(message.getPayload() == null) {
-            result.addError("payload", "Payload is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
+            result.withError("payload", "Payload is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
 
         if(message.getMessageType() == null) {
-            result.addError("messageType", "Message type is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
+            result.withError("messageType", "Message type is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
 
         if(message.getSource() == null || message.getSource().isEmpty()) {
-            result.addError("source", "Source is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
+            result.withError("source", "Source is required", ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
 
         // Check content type
         if(message.getContentType() == null && message.getPayload() != null) {
-            result.addWarning("Content type not specified, defaulting to application/json");
+            result.withWarning("Content type not specified, defaulting to application/json");
         }
 
         return result;

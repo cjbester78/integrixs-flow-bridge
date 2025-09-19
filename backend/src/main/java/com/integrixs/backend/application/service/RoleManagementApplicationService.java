@@ -8,8 +8,6 @@ import com.integrixs.backend.exception.ResourceNotFoundException;
 import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.Role;
 import com.integrixs.shared.dto.RoleDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,15 +18,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for role management
  * Orchestrates role operations across domain services
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RoleManagementApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(RoleManagementApplicationService.class);
+
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;

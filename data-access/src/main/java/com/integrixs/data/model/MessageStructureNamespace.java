@@ -2,7 +2,6 @@ package com.integrixs.data.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -20,12 +19,6 @@ import java.util.UUID;
 @Table(name = "message_structure_namespaces",
        uniqueConstraints = @UniqueConstraint(columnNames = {"message_structure_id", "prefix"}),
        indexes = @Index(name = "idx_msg_struct_ns", columnList = "message_structure_id"))
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"messageStructure"})
 public class MessageStructureNamespace {
 
     /**
@@ -33,7 +26,6 @@ public class MessageStructureNamespace {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @EqualsAndHashCode.Include
     private UUID id;
 
     /**
@@ -64,7 +56,6 @@ public class MessageStructureNamespace {
      * Whether this is the default namespace
      */
     @Column(name = "is_default", nullable = false)
-    @Builder.Default
     private boolean isDefault = false;
 
     /**
@@ -73,4 +64,118 @@ public class MessageStructureNamespace {
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    // Default constructor
+    public MessageStructureNamespace() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public MessageStructure getMessageStructure() {
+        return messageStructure;
+    }
+
+    public void setMessageStructure(MessageStructure messageStructure) {
+        this.messageStructure = messageStructure;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public boolean isIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    // Builder
+    public static MessageStructureNamespaceBuilder builder() {
+        return new MessageStructureNamespaceBuilder();
+    }
+
+    public static class MessageStructureNamespaceBuilder {
+        private UUID id;
+        private MessageStructure messageStructure;
+        private String prefix;
+        private String uri;
+        private boolean isDefault;
+        private LocalDateTime createdAt;
+
+        public MessageStructureNamespaceBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public MessageStructureNamespaceBuilder messageStructure(MessageStructure messageStructure) {
+            this.messageStructure = messageStructure;
+            return this;
+        }
+
+        public MessageStructureNamespaceBuilder prefix(String prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        public MessageStructureNamespaceBuilder uri(String uri) {
+            this.uri = uri;
+            return this;
+        }
+
+        public MessageStructureNamespaceBuilder isDefault(boolean isDefault) {
+            this.isDefault = isDefault;
+            return this;
+        }
+
+        public MessageStructureNamespaceBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public MessageStructureNamespace build() {
+            MessageStructureNamespace instance = new MessageStructureNamespace();
+            instance.setId(this.id);
+            instance.setMessageStructure(this.messageStructure);
+            instance.setPrefix(this.prefix);
+            instance.setUri(this.uri);
+            instance.setIsDefault(this.isDefault);
+            instance.setCreatedAt(this.createdAt);
+            return instance;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "MessageStructureNamespace{" + 
+                "id=" + id + "prefix=" + prefix + "uri=" + uri + "isDefault=" + isDefault + "createdAt=" + createdAt + 
+                '}';
+    }
 }

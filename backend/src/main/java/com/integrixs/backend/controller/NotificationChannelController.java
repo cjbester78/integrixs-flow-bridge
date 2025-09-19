@@ -3,8 +3,6 @@ package com.integrixs.backend.controller;
 import com.integrixs.backend.service.NotificationService;
 import com.integrixs.data.model.NotificationChannel;
 import com.integrixs.data.repository.NotificationChannelRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +17,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v2/notification - channels")
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationChannelController {
 
     private final NotificationChannelRepository channelRepository;

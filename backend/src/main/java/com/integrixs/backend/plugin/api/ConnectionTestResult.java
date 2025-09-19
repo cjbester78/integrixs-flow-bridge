@@ -1,15 +1,11 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.time.Duration;
 import java.util.Map;
 
 /**
  * Result of a connection test
  */
-@Data
-@Builder
 public class ConnectionTestResult {
 
     /**
@@ -66,9 +62,7 @@ public class ConnectionTestResult {
     /**
      * System information
      */
-    @Data
-    @Builder
-    public static class SystemInfo {
+            public static class SystemInfo {
         private String name;
         private String version;
         private String vendor;

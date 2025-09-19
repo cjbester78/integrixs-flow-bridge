@@ -7,21 +7,22 @@ import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.engine.AdapterExecutor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure service for executing orchestration steps
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class OrchestrationExecutor {
+
+    private static final Logger log = LoggerFactory.getLogger(OrchestrationExecutor.class);
+
 
     private final TransformationExecutionService transformationService;
     private final CommunicationAdapterRepository adapterRepository;

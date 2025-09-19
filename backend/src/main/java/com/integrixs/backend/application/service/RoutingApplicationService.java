@@ -16,22 +16,23 @@ import com.integrixs.data.model.RouteCondition;
 import com.integrixs.data.repository.FlowRouteRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.data.repository.RouteConditionRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for conditional routing and decision making
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RoutingApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(RoutingApplicationService.class);
+
 
     private final RoutingManagementService routingManagementService;
     private final RoutingEvaluator routingEvaluator;

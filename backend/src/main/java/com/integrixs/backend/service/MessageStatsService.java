@@ -3,7 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.repository.MessageRepository;
 import com.integrixs.shared.dto.MessageStatsDTO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import java.util.UUID;
  * Service for message statistics
  */
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MessageStatsService {
 

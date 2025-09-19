@@ -5,8 +5,6 @@ import com.integrixs.backend.api.dto.response.StructureCompatibilityResponse;
 import com.integrixs.backend.api.dto.response.CompatibilityIssue;
 import com.integrixs.backend.api.dto.response.FieldMapping;
 import com.integrixs.backend.api.dto.response.StructureMetadata;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -22,11 +20,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class StructureCompatibilityService {
+
+    private static final Logger log = LoggerFactory.getLogger(StructureCompatibilityService.class);
+
 
     private final ObjectMapper objectMapper;
 

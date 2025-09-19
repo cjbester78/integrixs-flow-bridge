@@ -6,8 +6,6 @@ import com.integrixs.data.model.AdapterType;
 import com.integrixs.data.model.AdapterCategory;
 import com.integrixs.data.repository.AdapterTypeRepository;
 import com.integrixs.data.repository.AdapterCategoryRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,12 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
-@Slf4j
 public class AdapterTypeService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterTypeService.class);
+
 
     private final AdapterTypeRepository adapterTypeRepository;
     private final AdapterCategoryRepository adapterCategoryRepository;

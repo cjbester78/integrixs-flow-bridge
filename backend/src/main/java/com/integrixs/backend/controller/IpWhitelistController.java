@@ -2,9 +2,6 @@ package com.integrixs.backend.controller;
 
 import com.integrixs.backend.service.IpWhitelistService;
 import com.integrixs.backend.service.IpWhitelistService.IpWhitelistEntry;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -13,17 +10,20 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for managing IP whitelist configuration.
  * Only accessible by administrators.
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/admin/ip - whitelist")
-@RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class IpWhitelistController {
+
+    private static final Logger log = LoggerFactory.getLogger(IpWhitelistController.class);
+
 
     private final IpWhitelistService ipWhitelistService;
 
@@ -203,27 +203,23 @@ public class IpWhitelistController {
 
     // Request DTOs
 
-    @Data
-    public static class AddIpRequest {
+        public static class AddIpRequest {
         private String ip;
         private String description;
         private LocalDateTime expiresAt;
     }
 
-    @Data
-    public static class AddMultipleIpsRequest {
+        public static class AddMultipleIpsRequest {
         private List<String> ips;
         private String description;
         private LocalDateTime expiresAt;
     }
 
-    @Data
-    public static class UpdateDescriptionRequest {
+        public static class UpdateDescriptionRequest {
         private String description;
     }
 
-    @Data
-    public static class ExtendExpirationRequest {
+        public static class ExtendExpirationRequest {
         private LocalDateTime newExpiresAt;
     }
 }

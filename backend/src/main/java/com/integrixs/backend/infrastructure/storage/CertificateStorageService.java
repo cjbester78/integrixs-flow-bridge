@@ -1,6 +1,7 @@
 package com.integrixs.backend.infrastructure.storage;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,10 +17,11 @@ import java.nio.file.Paths;
  * Infrastructure service for certificate file storage
  * Handles file system operations for certificates
  */
-@Slf4j
 @Service
 public class CertificateStorageService {
 
+    private static final Logger log = LoggerFactory.getLogger(CertificateStorageService.class);
+    
     @Value("$ {certificates.storage.path:/opt/integrixlab/certs}")
     private String certStoragePath;
 

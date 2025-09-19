@@ -4,14 +4,11 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,15 +16,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing and monitoring caches.
  * Provides cache statistics, eviction policies, and warming capabilities.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CacheService {
+
+    private static final Logger log = LoggerFactory.getLogger(CacheService.class);
+
 
     private final CacheManager cacheManager;
     private final MeterRegistry meterRegistry;
@@ -235,8 +235,7 @@ public class CacheService {
         return recommendations;
     }
 
-    @Data
-    public static class CacheStatistics {
+        public static class CacheStatistics {
         private String cacheName;
         private long hitCount;
         private long missCount;
@@ -255,8 +254,7 @@ public class CacheService {
         }
     }
 
-    @Data
-    public static class CacheRecommendations {
+        public static class CacheRecommendations {
         private final Map<String, List<String>> recommendations = new HashMap<>();
 
         public void addRecommendation(String cacheName, String recommendation) {

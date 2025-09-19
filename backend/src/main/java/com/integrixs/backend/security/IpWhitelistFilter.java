@@ -4,7 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -14,15 +13,19 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * IP whitelisting filter for enhanced security.
  * Restricts access to configured IP addresses or CIDR ranges.
  */
-@Slf4j
 @Component
 @ConditionalOnProperty(name = "security.ip.whitelist.enabled", havingValue = "true", matchIfMissing = false)
 public class IpWhitelistFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(IpWhitelistFilter.class);
+
 
     @Value("$ {security.ip.whitelist.addresses:127.0.0.1,::1}")
     private String whitelistedIps;

@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.UUID;
+import jakarta.annotation.PostConstruct;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 @Component
 public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
@@ -37,7 +40,8 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
 
-    private static final String API_BASE_URL = "https://discord.com/api/v10";
+    // This will be read from config
+    private String apiBaseUrl;
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     @Autowired
@@ -49,9 +53,14 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @PostConstruct
+    public void initialize() {
+        this.apiBaseUrl = config.getApiBaseUrl();
+    }
+    
     @Override
     protected long getPollingIntervalMs() {
-        return 30000; // 30 seconds default, should be configurable
+        return config.getPollingIntervalMs() != null ? config.getPollingIntervalMs() : 30000;
     }
     
     @Override
@@ -84,7 +93,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             HttpEntity<String> entity = new HttpEntity<>(headers);
             
             ResponseEntity<String> response = restTemplate.exchange(
-                API_BASE_URL + "/users/@me",
+                apiBaseUrl + "/users/@me",
                 HttpMethod.GET,
                 entity,
                 String.class
@@ -148,7 +157,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // MessageDTO Operations
-    private MessageDTO sendMessage(MessageDTO message) {
+    private MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -206,7 +215,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO sendEmbed(MessageDTO message) {
+    private MessageDTO sendEmbed(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -271,7 +280,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO sendFile(MessageDTO message) {
+    private MessageDTO sendFile(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -307,7 +316,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                API_BASE_URL + endpoint, HttpMethod.POST, requestEntity, String.class
+                apiBaseUrl + endpoint, HttpMethod.POST, requestEntity, String.class
            );
 
             return createSuccessResponse(message, objectMapper.readTree(response.getBody()));
@@ -317,7 +326,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO sendMessageWithFiles(String channelId, ObjectNode messageData, JsonNode files) {
+    private MessageDTO sendMessageWithFiles(String channelId, ObjectNode messageData, JsonNode files) throws AdapterException {
         try {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
@@ -349,7 +358,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                API_BASE_URL + endpoint, HttpMethod.POST, requestEntity, String.class
+                apiBaseUrl + endpoint, HttpMethod.POST, requestEntity, String.class
            );
 
             return createSuccessResponse(null, objectMapper.readTree(response.getBody()));
@@ -359,7 +368,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO editMessage(MessageDTO message) {
+    private MessageDTO editMessage(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -386,7 +395,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO deleteMessage(MessageDTO message) {
+    private MessageDTO deleteMessage(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -404,7 +413,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO bulkDeleteMessages(MessageDTO message) {
+    private MessageDTO bulkDeleteMessages(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -425,7 +434,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Channel Operations
-    private MessageDTO createChannel(MessageDTO message) {
+    private MessageDTO createChannel(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -464,7 +473,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Guild Operations
-    private MessageDTO createRole(MessageDTO message) {
+    private MessageDTO createRole(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -496,7 +505,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO modifyMember(MessageDTO message) {
+    private MessageDTO modifyMember(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -529,7 +538,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO banMember(MessageDTO message) {
+    private MessageDTO banMember(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -553,7 +562,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Webhook Operations
-    private MessageDTO createWebhook(MessageDTO message) {
+    private MessageDTO createWebhook(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -574,7 +583,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO executeWebhook(MessageDTO message) {
+    private MessageDTO executeWebhook(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String webhookId = content.get("webhook_id").asText();
@@ -603,7 +612,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             HttpEntity<String> entity = new HttpEntity<>(webhookMessage.toString(), headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                API_BASE_URL + endpoint, HttpMethod.POST, entity, String.class
+                apiBaseUrl + endpoint, HttpMethod.POST, entity, String.class
            );
 
             return createSuccessResponse(message, objectMapper.createObjectNode()
@@ -616,12 +625,12 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
 
-    private MessageDTO sendWebhookMessage(MessageDTO message) {
+    private MessageDTO sendWebhookMessage(MessageDTO message) throws AdapterException {
         return executeWebhook(message);
     }
 
     // Scheduled Event Operations
-    private MessageDTO createScheduledEvent(MessageDTO message) {
+    private MessageDTO createScheduledEvent(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -629,7 +638,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             ObjectNode eventData = objectMapper.createObjectNode();
             eventData.put("name", content.get("name").asText());
             eventData.put("privacy_level", content.has("privacy_level") ?
-                content.get("privacy_level").asInt() : 2); // GUILD_ONLY
+                content.get("privacy_level").asInt() : config.getDefaultPrivacyLevel()); // GUILD_ONLY
             eventData.put("scheduled_start_time", content.get("scheduled_start_time").asText());
             eventData.put("entity_type", content.get("entity_type").asInt());
 
@@ -657,7 +666,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Interaction Response
-    private MessageDTO sendInteractionResponse(MessageDTO message) {
+    private MessageDTO sendInteractionResponse(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String interactionId = content.get("interaction_id").asText();
@@ -680,7 +689,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             HttpEntity<String> entity = new HttpEntity<>(response.toString(), headers);
 
             ResponseEntity<String> resp = restTemplate.exchange(
-                API_BASE_URL + endpoint, HttpMethod.POST, entity, String.class
+                apiBaseUrl + endpoint, HttpMethod.POST, entity, String.class
            );
 
             return createSuccessResponse(message, objectMapper.createObjectNode()
@@ -693,7 +702,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Application Commands
-    private MessageDTO createApplicationCommand(MessageDTO message) {
+    private MessageDTO createApplicationCommand(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
 
@@ -731,7 +740,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Direct MessageDTO Operations
-    private MessageDTO sendDirectMessage(MessageDTO message) {
+    private MessageDTO sendDirectMessage(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String userId = content.get("user_id").asText();
@@ -755,19 +764,19 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Helper methods for other operations
-    private MessageDTO modifyChannel(MessageDTO message) {
+    private MessageDTO modifyChannel(MessageDTO message) throws AdapterException {
         return genericModify(message, "channel_id", "/channels/%s");
     }
 
-    private MessageDTO deleteChannel(MessageDTO message) {
+    private MessageDTO deleteChannel(MessageDTO message) throws AdapterException {
         return genericDelete(message, "channel_id", "/channels/%s");
     }
 
-    private MessageDTO createInvite(MessageDTO message) {
+    private MessageDTO createInvite(MessageDTO message) throws AdapterException {
         return genericCreate(message, "channel_id", "/channels/%s/invites");
     }
 
-    private MessageDTO modifyPermissions(MessageDTO message) {
+    private MessageDTO modifyPermissions(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -789,11 +798,11 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO modifyGuild(MessageDTO message) {
+    private MessageDTO modifyGuild(MessageDTO message) throws AdapterException {
         return genericModify(message, "guild_id", "/guilds/%s");
     }
 
-    private MessageDTO modifyRole(MessageDTO message) {
+    private MessageDTO modifyRole(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -807,7 +816,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO deleteRole(MessageDTO message) {
+    private MessageDTO deleteRole(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -821,7 +830,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO kickMember(MessageDTO message) {
+    private MessageDTO kickMember(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -835,7 +844,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO unbanMember(MessageDTO message) {
+    private MessageDTO unbanMember(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -850,7 +859,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Voice operations helpers
-    private MessageDTO moveMember(MessageDTO message) {
+    private MessageDTO moveMember(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             ((ObjectNode) content).put("channel_id", content.get("voice_channel_id").asText());
@@ -862,7 +871,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Additional operations
-    private MessageDTO createThread(MessageDTO message) {
+    private MessageDTO createThread(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -892,7 +901,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO pinMessage(MessageDTO message) {
+    private MessageDTO pinMessage(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -910,7 +919,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO addReaction(MessageDTO message) {
+    private MessageDTO addReaction(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -930,7 +939,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO removeReaction(MessageDTO message) {
+    private MessageDTO removeReaction(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String channelId = content.get("channel_id").asText();
@@ -951,15 +960,15 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO modifyWebhook(MessageDTO message) {
+    private MessageDTO modifyWebhook(MessageDTO message) throws AdapterException {
         return genericModify(message, "webhook_id", "/webhooks/%s");
     }
 
-    private MessageDTO deleteWebhook(MessageDTO message) {
+    private MessageDTO deleteWebhook(MessageDTO message) throws AdapterException {
         return genericDelete(message, "webhook_id", "/webhooks/%s");
     }
 
-    private MessageDTO modifyScheduledEvent(MessageDTO message) {
+    private MessageDTO modifyScheduledEvent(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -973,7 +982,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO deleteScheduledEvent(MessageDTO message) {
+    private MessageDTO deleteScheduledEvent(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String guildId = content.get("guild_id").asText();
@@ -987,7 +996,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO editApplicationCommand(MessageDTO message) {
+    private MessageDTO editApplicationCommand(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String commandId = content.get("command_id").asText();
@@ -1008,7 +1017,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO deleteApplicationCommand(MessageDTO message) {
+    private MessageDTO deleteApplicationCommand(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String commandId = content.get("command_id").asText();
@@ -1030,7 +1039,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Stage operations
-    private MessageDTO createStageInstance(MessageDTO message) {
+    private MessageDTO createStageInstance(MessageDTO message) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
 
@@ -1038,7 +1047,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             stageData.put("channel_id", content.get("channel_id").asText());
             stageData.put("topic", content.get("topic").asText());
             stageData.put("privacy_level", content.has("privacy_level") ?
-                content.get("privacy_level").asInt() : 2);
+                content.get("privacy_level").asInt() : config.getDefaultPrivacyLevel());
 
             JsonNode response = makeAuthenticatedRequest("/stage - instances", HttpMethod.POST, stageData);
 
@@ -1049,16 +1058,16 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO modifyStageInstance(MessageDTO message) {
+    private MessageDTO modifyStageInstance(MessageDTO message) throws AdapterException {
         return genericModify(message, "channel_id", "/stage - instances/%s");
     }
 
-    private MessageDTO deleteStageInstance(MessageDTO message) {
+    private MessageDTO deleteStageInstance(MessageDTO message) throws AdapterException {
         return genericDelete(message, "channel_id", "/stage - instances/%s");
     }
 
     // Generic helper methods
-    private MessageDTO genericModify(MessageDTO message, String idField, String endpointFormat) {
+    private MessageDTO genericModify(MessageDTO message, String idField, String endpointFormat) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String id = content.get(idField).asText();
@@ -1071,7 +1080,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO genericModifyWithEndpoint(MessageDTO message, String endpoint) {
+    private MessageDTO genericModifyWithEndpoint(MessageDTO message, String endpoint) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
 
@@ -1091,7 +1100,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO genericDelete(MessageDTO message, String idField, String endpointFormat) {
+    private MessageDTO genericDelete(MessageDTO message, String idField, String endpointFormat) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String id = content.get(idField).asText();
@@ -1104,7 +1113,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO genericDeleteWithEndpoint(MessageDTO message, String endpoint) {
+    private MessageDTO genericDeleteWithEndpoint(MessageDTO message, String endpoint) throws AdapterException {
         try {
             makeAuthenticatedRequest(endpoint, HttpMethod.DELETE, null);
 
@@ -1116,7 +1125,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         }
     }
 
-    private MessageDTO genericCreate(MessageDTO message, String idField, String endpointFormat) {
+    private MessageDTO genericCreate(MessageDTO message, String idField, String endpointFormat) throws AdapterException {
         try {
             JsonNode content = objectMapper.readTree(message.getPayload());
             String id = content.get(idField).asText();
@@ -1139,18 +1148,18 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     // Helper method for authenticated requests
-    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, Object body) {
+    private JsonNode makeAuthenticatedRequest(String endpoint, HttpMethod method, Object body) throws AdapterException {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bot " + config.getBotToken());
             headers.set("Content - Type", "application/json");
-            headers.set("User - Agent", "DiscordBot(https://integrixs.com, 1.0)");
+            headers.set("User - Agent", config.getUserAgent());
 
             HttpEntity<?> entity = body != null ?
                 new HttpEntity<>(body, headers) : new HttpEntity<>(headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                API_BASE_URL + endpoint, method, entity, String.class
+                apiBaseUrl + endpoint, method, entity, String.class
            );
 
             if(response.getBody() != null && !response.getBody().isEmpty()) {
@@ -1160,10 +1169,13 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
         } catch(HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AdapterException("Discord API request failed", e);
+        } catch(JsonProcessingException e) {
+            log.error("Error parsing JSON response", e);
+            throw new AdapterException("Failed to parse Discord API response", e);
         }
     }
 
-    private MessageDTO createSuccessResponse(MessageDTO originalMessage, JsonNode responseData) {
+    private MessageDTO createSuccessResponse(MessageDTO originalMessage, JsonNode responseData) throws AdapterException {
         try {
             MessageDTO response = new MessageDTO();
             response.setId(UUID.randomUUID().toString());
@@ -1180,7 +1192,7 @@ public class DiscordOutboundAdapter extends AbstractOutboundAdapter {
             }
 
             // Add Discord - specific metadata
-            response.getHeaders().put("discord_api_version", "v10");
+            response.getHeaders().put("discord_api_version", config.getApiVersion());
             response.getHeaders().put("response_time", String.valueOf(System.currentTimeMillis()));
 
             return response;

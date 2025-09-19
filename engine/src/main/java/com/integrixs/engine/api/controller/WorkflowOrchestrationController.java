@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +14,25 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for workflow orchestration operations
  */
-@Slf4j
 @RestController
-@RequestMapping("/api/workflow - orchestration")
-@RequiredArgsConstructor
+@RequestMapping("/api/workflow-orchestration")
 @Tag(name = "Workflow Orchestration", description = "Operations for orchestrating complex workflows")
 public class WorkflowOrchestrationController {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkflowOrchestrationController.class);
+
+
     private final ApplicationOrchestrator applicationOrchestrator;
+
+    public WorkflowOrchestrationController(ApplicationOrchestrator applicationOrchestrator) {
+        this.applicationOrchestrator = applicationOrchestrator;
+    }
 
     /**
      * Execute a complex workflow

@@ -1,20 +1,11 @@
 package com.integrixs.backend.api.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.validation.constraints.*;
 import java.util.Map;
 
 /**
  * Request DTO for updating user information
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class UpdateUserRequest {
 
     @Email(message = "Email must be valid")
@@ -33,4 +24,56 @@ public class UpdateUserRequest {
     private String status;
 
     private Map<String, Object> permissions;
+
+    // Default constructor
+    public UpdateUserRequest() {
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Map<String, Object> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Map<String, Object> permissions) {
+        this.permissions = permissions;
+    }
 }

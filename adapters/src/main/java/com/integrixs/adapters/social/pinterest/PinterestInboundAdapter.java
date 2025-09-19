@@ -166,7 +166,13 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
         // Handle pagination
         if(responseData.containsKey("bookmark") && responseData.get("bookmark") != null) {
-            handlePagination(responseData, () -> fetchUserPins(userId));
+            handlePagination(responseData, () -> {
+                try {
+                    fetchUserPins(userId);
+                } catch (Exception e) {
+                    log.error("Error fetching user pins during pagination", e);
+                }
+            });
         }
     }
 
@@ -193,7 +199,13 @@ public class PinterestInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
         // Handle pagination
         if(responseData.containsKey("bookmark") && responseData.get("bookmark") != null) {
-            handlePagination(responseData, () -> fetchUserBoards(userId));
+            handlePagination(responseData, () -> {
+                try {
+                    fetchUserBoards(userId);
+                } catch (Exception e) {
+                    log.error("Error fetching user boards during pagination", e);
+                }
+            });
         }
     }
 

@@ -7,25 +7,26 @@ import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for flow deployment management
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/flows/ {flowId}/deployment")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequiredArgsConstructor
 @Tag(name = "Flow Deployment", description = "Flow deployment management")
 public class FlowDeploymentController {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowDeploymentController.class);
+
 
     private final FlowDeploymentApplicationService deploymentService;
     private final UserRepository userRepository;

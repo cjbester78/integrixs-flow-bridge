@@ -90,7 +90,7 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
             log.info("SMS Inbound Adapter initialized successfully for provider: {}", config.getProvider());
         } catch(Exception e) {
             log.error("Failed to initialize SMS Inbound Adapter", e);
-            throw new AdapterException("Failed to initialize SMS adapter", e);
+            throw new RuntimeException("Failed to initialize SMS adapter", e);
         }
     }
 
@@ -501,10 +501,10 @@ public class SMSInboundAdapter extends AbstractInboundAdapter {
     }
 
     // Scheduled tasks
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.sms.cleanup.interval:3600000}")
+    @Scheduled(fixedDelayString = "#{@sMSConfig.cleanupInterval}")
     public void cleanupProcessedMessages() {
         try {
-            Instant cutoff = Instant.now().minusSeconds(86400); // 24 hours
+            Instant cutoff = Instant.now().minusSeconds(config.getMessageRetentionSeconds());
             processedMessages.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoff));
             log.debug("Cleaned up processed messages cache");
         } catch(Exception e) {

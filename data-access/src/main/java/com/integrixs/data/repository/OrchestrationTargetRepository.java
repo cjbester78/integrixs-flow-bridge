@@ -90,6 +90,12 @@ public interface OrchestrationTargetRepository extends JpaRepository<Orchestrati
     void deleteByFlowId(UUID flowId);
 
     /**
+     * Find targets by target adapter ID
+     */
+    @Query("SELECT ot FROM OrchestrationTarget ot WHERE ot.targetAdapter.id = :adapterId")
+    List<OrchestrationTarget> findByTargetAdapterId(@Param("adapterId") UUID adapterId);
+
+    /**
      * Find targets that await response
      */
     @Query("SELECT ot FROM OrchestrationTarget ot " +

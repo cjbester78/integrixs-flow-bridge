@@ -6,8 +6,6 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.repository.SystemLogRepository;
 import com.integrixs.shared.dto.AdapterStatusDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +15,14 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterMonitoringService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterMonitoringService.class);
+
 
     private final CommunicationAdapterRepository adapterRepository;
     private final SystemLogRepository systemLogRepository;

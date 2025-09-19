@@ -4,11 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.integrixs.shared.dto.FieldMappingDTO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,87 +17,152 @@ import java.util.List;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FlowTransformationDTO {
 
-    /**
-     * Unique identifier for the transformation
-     */
     private String id;
-
-    /**
-     * Parent flow ID
-     */
-    @NotBlank(message = "Flow ID is required")
     private String flowId;
-
-    /**
-     * Type of transformation(MAPPING, FILTER, ENRICHMENT, VALIDATION, CUSTOM)
-     */
-    @NotBlank(message = "Transformation type is required")
-    @Pattern(regexp = "^(MAPPING|FILTER|ENRICHMENT|VALIDATION|CUSTOM)$",
-             message = "Type must be MAPPING, FILTER, ENRICHMENT, VALIDATION, or CUSTOM")
     private String type;
-
-    /**
-     * Transformation configuration in JSON format
-     */
-    @Size(max = 10000, message = "Configuration cannot exceed 10000 characters")
     private String configuration;
-
-    /**
-     * Execution order within the flow(1 - based)
-     */
-    @NotNull(message = "Execution order is required")
-    @Min(value = 1, message = "Execution order must be at least 1")
-    @Max(value = 100, message = "Execution order cannot exceed 100")
     private int executionOrder;
-
-    /**
-     * Whether this transformation is active
-     */
-    @NotNull(message = "Active status is required")
-    @Builder.Default
     private boolean isActive = true;
-
-    /**
-     * Timestamp when transformation was created
-     */
     private LocalDateTime createdAt;
-
-    /**
-     * Timestamp when transformation was last updated
-     */
     private LocalDateTime updatedAt;
-
-    /**
-     * Field mappings for this transformation
-     */
-    @Valid
-    @Builder.Default
     private List<FieldMappingDTO> fieldMappings = new ArrayList<>();
-
-    /**
-     * Transformation name for display
-     */
-    @Size(max = 100, message = "Name cannot exceed 100 characters")
     private String name;
-
-    /**
-     * Description of what this transformation does
-     */
-    @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
-
-    /**
-     * Error handling strategy(FAIL, SKIP, DEFAULT)
-     */
-    @Pattern(regexp = "^(FAIL|SKIP|DEFAULT)$",
-             message = "Error strategy must be FAIL, SKIP, or DEFAULT")
-    @Builder.Default
     private String errorStrategy = "FAIL";
+
+    // Default constructor
+    public FlowTransformationDTO() {
+    }
+
+    // All args constructor
+    public FlowTransformationDTO(String id, String flowId, String type, String configuration, int executionOrder, boolean isActive, LocalDateTime createdAt, LocalDateTime updatedAt, List<FieldMappingDTO> fieldMappings, String name, String description, String errorStrategy) {
+        this.id = id;
+        this.flowId = flowId;
+        this.type = type;
+        this.configuration = configuration;
+        this.executionOrder = executionOrder;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.fieldMappings = fieldMappings != null ? fieldMappings : new ArrayList<>();
+        this.name = name;
+        this.description = description;
+        this.errorStrategy = errorStrategy;
+    }
+
+    // Getters
+    public String getId() { return id; }
+    public String getFlowId() { return flowId; }
+    public String getType() { return type; }
+    public String getConfiguration() { return configuration; }
+    public int getExecutionOrder() { return executionOrder; }
+    public boolean isIsActive() { return isActive; }
+    public boolean isActive() { return isActive; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public List<FieldMappingDTO> getFieldMappings() { return fieldMappings; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public String getErrorStrategy() { return errorStrategy; }
+
+    // Setters
+    public void setId(String id) { this.id = id; }
+    public void setFlowId(String flowId) { this.flowId = flowId; }
+    public void setType(String type) { this.type = type; }
+    public void setConfiguration(String configuration) { this.configuration = configuration; }
+    public void setExecutionOrder(int executionOrder) { this.executionOrder = executionOrder; }
+    public void setIsActive(boolean isActive) { this.isActive = isActive; }
+    public void setActive(boolean isActive) { this.isActive = isActive; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setFieldMappings(List<FieldMappingDTO> fieldMappings) { this.fieldMappings = fieldMappings; }
+    public void setName(String name) { this.name = name; }
+    public void setDescription(String description) { this.description = description; }
+    public void setErrorStrategy(String errorStrategy) { this.errorStrategy = errorStrategy; }
+
+    // Builder
+    public static FlowTransformationDTOBuilder builder() {
+        return new FlowTransformationDTOBuilder();
+    }
+
+    public static class FlowTransformationDTOBuilder {
+        private String id;
+        private String flowId;
+        private String type;
+        private String configuration;
+        private int executionOrder;
+        private boolean isActive = true;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private List<FieldMappingDTO> fieldMappings = new ArrayList<>();
+        private String name;
+        private String description;
+        private String errorStrategy = "FAIL";
+
+        public FlowTransformationDTOBuilder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder flowId(String flowId) {
+            this.flowId = flowId;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder configuration(String configuration) {
+            this.configuration = configuration;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder executionOrder(int executionOrder) {
+            this.executionOrder = executionOrder;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder isActive(boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder fieldMappings(List<FieldMappingDTO> fieldMappings) {
+            this.fieldMappings = fieldMappings;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public FlowTransformationDTOBuilder errorStrategy(String errorStrategy) {
+            this.errorStrategy = errorStrategy;
+            return this;
+        }
+
+        public FlowTransformationDTO build() {
+            return new FlowTransformationDTO(id, flowId, type, configuration, executionOrder, isActive, createdAt, updatedAt, fieldMappings, name, description, errorStrategy);
+        }
+    }
 }

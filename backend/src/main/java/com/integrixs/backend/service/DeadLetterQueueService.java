@@ -8,8 +8,6 @@ import com.integrixs.data.repository.MessageRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.monitoring.domain.model.Alert;
 import com.integrixs.monitoring.domain.service.AlertingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -22,14 +20,17 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Enhanced Dead Letter Queue Service with automated retry and analysis
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class DeadLetterQueueService {
+
+    private static final Logger log = LoggerFactory.getLogger(DeadLetterQueueService.class);
+
 
     private final DeadLetterMessageRepository deadLetterRepository;
     private final MessageRepository messageRepository;

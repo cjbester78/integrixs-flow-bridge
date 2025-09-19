@@ -1,19 +1,10 @@
 package com.integrixs.soapbindings.api.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.validation.constraints.NotNull;
 
 /**
  * DTO for importing WSDL from URL
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ImportWsdlRequestDTO {
 
     @NotNull(message = "WSDL name is required")
@@ -23,4 +14,52 @@ public class ImportWsdlRequestDTO {
     private String wsdlUrl;
 
     private String description;
+    
+    public ImportWsdlRequestDTO() {
+    }
+    
+    public ImportWsdlRequestDTO(String name, String wsdlUrl, String description) {
+        this.name = name;
+        this.wsdlUrl = wsdlUrl;
+        this.description = description;
+    }
+    
+    // Getters
+    public String getName() { return name; }
+    public String getWsdlUrl() { return wsdlUrl; }
+    public String getDescription() { return description; }
+    
+    // Setters
+    public void setName(String name) { this.name = name; }
+    public void setWsdlUrl(String wsdlUrl) { this.wsdlUrl = wsdlUrl; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public static ImportWsdlRequestDTOBuilder builder() {
+        return new ImportWsdlRequestDTOBuilder();
+    }
+    
+    public static class ImportWsdlRequestDTOBuilder {
+        private String name;
+        private String wsdlUrl;
+        private String description;
+        
+        public ImportWsdlRequestDTOBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+        
+        public ImportWsdlRequestDTOBuilder wsdlUrl(String wsdlUrl) {
+            this.wsdlUrl = wsdlUrl;
+            return this;
+        }
+        
+        public ImportWsdlRequestDTOBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+        
+        public ImportWsdlRequestDTO build() {
+            return new ImportWsdlRequestDTO(name, wsdlUrl, description);
+        }
+    }
 }

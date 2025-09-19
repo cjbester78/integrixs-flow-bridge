@@ -3,8 +3,6 @@ package com.integrixs.backend.infrastructure.repository;
 import com.integrixs.backend.domain.repository.MessageRepository;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.repository.JpaMessageRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +19,6 @@ import java.util.UUID;
  * Implementation of MessageRepository using JPA
  */
 @Repository
-@RequiredArgsConstructor
-@Slf4j
 public class MessageRepositoryImpl implements MessageRepository {
 
     private final JpaMessageRepository jpaRepository;

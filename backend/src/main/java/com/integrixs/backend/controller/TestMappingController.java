@@ -3,19 +3,20 @@ package com.integrixs.backend.controller;
 import com.integrixs.backend.service.TestMappingService;
 import com.integrixs.shared.dto.TestFieldMappingsRequestDTO;
 import com.integrixs.shared.dto.TestFieldMappingsResponseDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for testing field mappings without deploying flows
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/test")
-@RequiredArgsConstructor
 public class TestMappingController {
+
+    private static final Logger log = LoggerFactory.getLogger(TestMappingController.class);
+
 
     private final TestMappingService testMappingService;
 

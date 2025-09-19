@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.FlowTransformationRepository;
 import com.integrixs.data.model.FlowTransformation;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -12,7 +11,6 @@ import java.util.UUID;
  * Infrastructure implementation of FlowTransformationRepository
  */
 @Repository("domainFlowTransformationRepository")
-@RequiredArgsConstructor
 public class FlowTransformationRepositoryImpl implements FlowTransformationRepository {
 
     private final com.integrixs.data.repository.FlowTransformationRepository jpaRepository;

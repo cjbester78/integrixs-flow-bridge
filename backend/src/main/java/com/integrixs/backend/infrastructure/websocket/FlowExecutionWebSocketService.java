@@ -1,19 +1,24 @@
 package com.integrixs.backend.infrastructure.websocket;
 
 import com.integrixs.backend.websocket.FlowExecutionWebSocketHandler;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure service for WebSocket notifications
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class FlowExecutionWebSocketService {
 
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionWebSocketService.class);
+
+
     private final FlowExecutionWebSocketHandler webSocketHandler;
+
+    public FlowExecutionWebSocketService(FlowExecutionWebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
+    }
 
     /**
      * Broadcast execution started event

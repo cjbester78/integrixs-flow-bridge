@@ -11,6 +11,9 @@ Integrix Flow Bridge is an enterprise integration platform built with:
 
 
 **CRITICAL**: Do stop untill all errors are fixed in the class.
+**CRITICAL**: Do not add hardcode variables or any hardcode values add it to a configurable value in the application.yml file.
+**CRITICAL**: If it does not exist in the application.yml file it is hardcoded and this is not allowed.  Claude cannot make this decision.
+**CRITICAL**: Donot use Lombok use getter and setters.
 
 
 This prevents misunderstandings, wasted work, and ensures alignment between user expectations and implementation.

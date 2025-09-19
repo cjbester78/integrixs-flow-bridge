@@ -4,18 +4,28 @@ package com.integrixs.adapters.social.twitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
-import com.integrixs.adapters.social.twitter.TwitterApiV2Config.*;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+// Import specific enums to avoid wildcard import conflicts
+import com.integrixs.adapters.social.twitter.TwitterApiV2Config.TweetType;
+import com.integrixs.adapters.social.twitter.TwitterApiV2Config.TimelineType;
+import com.integrixs.adapters.social.twitter.TwitterApiV2Config.Expansion;
+import com.integrixs.adapters.social.twitter.TwitterApiV2Config.TweetField;
+import com.integrixs.adapters.social.twitter.TwitterApiV2Config.UserField;
+import com.integrixs.adapters.social.twitter.TwitterApiV2Config.MediaField;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
-import com.integrixs.shared.services.TokenRefreshService;
+import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -31,29 +41,39 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.net.URLEncoder;
+import java.time.LocalDateTime;
 
 @Component("twitterApiV2OutboundAdapter")
 public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(TwitterApiV2OutboundAdapter.class);
 
 
-    private static final String TWITTER_API_BASE = "https://api.twitter.com/2";
-    private static final String TWITTER_UPLOAD_BASE = "https://upload.twitter.com/1.1";
+    @Value("${integrixs.adapters.twitter.api.api-base-url:https://api.twitter.com/2}")
+    private String twitterApiBase;
+    
+    @Value("${integrixs.adapters.twitter.api.upload-base-url:https://upload.twitter.com/1.1}")
+    private String twitterUploadBase;
+    
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    @Autowired
     private TwitterApiV2Config config;
+    
     private final RateLimiterService rateLimiterService;
-    private final TokenRefreshService tokenRefreshService;
+    private final OAuth2TokenRefreshService tokenRefreshService;
     private final CredentialEncryptionService credentialEncryptionService;
 
     @Autowired
     public TwitterApiV2OutboundAdapter(
+            TwitterApiV2Config config,
             RateLimiterService rateLimiterService,
-            TokenRefreshService tokenRefreshService,
+            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super(rateLimiterService, credentialEncryptionService);
+        this.config = config;
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -61,13 +81,16 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         this.objectMapper = objectMapper;
     }
 
-    @Override
-    public MessageDTO processMessage(MessageDTO message) throws AdapterException {
-        validateConfiguration();
+    public MessageDTO processMessage(MessageDTO message) {
+        try {
+            validateConfiguration();
+        } catch (AdapterException e) {
+            return createErrorResponse(message, e.getMessage());
+        }
 
         String operation = (String) message.getHeaders().get("operation");
         if(operation == null) {
-            throw new AdapterException("Operation header is required");
+            return createErrorResponse(message, "Operation header is required");
         }
 
         log.debug("Processing Twitter operation: {}", operation);
@@ -99,8 +122,8 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         } catch(Exception e) {
             log.error("Error processing Twitter operation: {}", operation, e);
             MessageDTO errorResponse = new MessageDTO();
-            errorResponse.setMessageId(message.getCorrelationId());
-            errorResponse.setStatus(MessageStatus.ERROR);
+            errorResponse.setCorrelationId(message.getCorrelationId());
+            errorResponse.setStatus(MessageStatus.FAILED);
             errorResponse.setHeaders(Map.of(
                 "error", e.getMessage(),
                 "originalOperation", operation
@@ -112,7 +135,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO createTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/tweets";
+        String url = twitterApiBase + "/tweets";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("text", payload.path("text").asText());
@@ -184,7 +207,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
                 tweetRequest.set("media", media);
             }
 
-            String url = TWITTER_API_BASE + "/tweets";
+            String url = twitterApiBase + "/tweets";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(getBearerToken());
@@ -211,7 +234,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO replyToTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/tweets";
+        String url = twitterApiBase + "/tweets";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("text", payload.path("text").asText());
@@ -238,7 +261,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO quoteTweet(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/tweets";
+        String url = twitterApiBase + "/tweets";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("text", payload.path("text").asText());
@@ -257,7 +280,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO createPoll(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/tweets";
+        String url = twitterApiBase + "/tweets";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("text", payload.path("text").asText());
@@ -286,7 +309,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String tweetId = payload.path("tweet_id").asText();
 
-        String url = TWITTER_API_BASE + "/tweets/" + tweetId;
+        String url = twitterApiBase + "/tweets/" + tweetId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -301,7 +324,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/likes";
+        String url = twitterApiBase + "/users/" + userId + "/likes";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("tweet_id", payload.path("tweet_id").asText());
@@ -321,7 +344,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String userId = payload.path("user_id").asText();
         String tweetId = payload.path("tweet_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/likes/" + tweetId;
+        String url = twitterApiBase + "/users/" + userId + "/likes/" + tweetId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -336,7 +359,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/retweets";
+        String url = twitterApiBase + "/users/" + userId + "/retweets";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("tweet_id", payload.path("tweet_id").asText());
@@ -356,7 +379,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String userId = payload.path("user_id").asText();
         String tweetId = payload.path("tweet_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/retweets/" + tweetId;
+        String url = twitterApiBase + "/users/" + userId + "/retweets/" + tweetId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -375,7 +398,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String mediaCategory = getMediaCategory(mediaType);
 
         // Step 1: Initialize upload
-        String initUrl = TWITTER_UPLOAD_BASE + "/media/upload.json";
+        String initUrl = twitterUploadBase + "/media/upload.json";
 
         MultiValueMap<String, String> initParams = new LinkedMultiValueMap<>();
         initParams.add("command", "INIT");
@@ -441,7 +464,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO addAltText(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_UPLOAD_BASE + "/media/metadata/create.json";
+        String url = twitterUploadBase + "/media/metadata/create.json";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("media_id", payload.path("media_id").asText());
@@ -464,7 +487,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/timelines/reverse_chronological";
+        String url = twitterApiBase + "/users/" + userId + "/timelines/reverse_chronological";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("100"));
@@ -486,7 +509,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/tweets";
+        String url = twitterApiBase + "/users/" + userId + "/tweets";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("100"));
@@ -507,7 +530,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/mentions";
+        String url = twitterApiBase + "/users/" + userId + "/mentions";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("100"));
@@ -523,7 +546,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO searchTweets(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/tweets/search/recent";
+        String url = twitterApiBase + "/tweets/search/recent";
 
         Map<String, String> params = new HashMap<>();
         params.put("query", payload.path("query").asText());
@@ -549,7 +572,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + sourceUserId + "/following";
+        String url = twitterApiBase + "/users/" + sourceUserId + "/following";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("target_user_id", payload.path("target_user_id").asText());
@@ -569,7 +592,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String sourceUserId = payload.path("source_user_id").asText();
         String targetUserId = payload.path("target_user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + sourceUserId + "/following/" + targetUserId;
+        String url = twitterApiBase + "/users/" + sourceUserId + "/following/" + targetUserId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -584,7 +607,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId;
+        String url = twitterApiBase + "/users/" + userId;
 
         Map<String, String> params = new HashMap<>();
         params.put("user.fields", "created_at,description,entities,id,location,name,pinned_tweet_id," +
@@ -599,7 +622,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/followers";
+        String url = twitterApiBase + "/users/" + userId + "/followers";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("1000"));
@@ -618,7 +641,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/following";
+        String url = twitterApiBase + "/users/" + userId + "/following";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("1000"));
@@ -638,7 +661,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + sourceUserId + "/blocking";
+        String url = twitterApiBase + "/users/" + sourceUserId + "/blocking";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("target_user_id", payload.path("target_user_id").asText());
@@ -658,7 +681,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String sourceUserId = payload.path("source_user_id").asText();
         String targetUserId = payload.path("target_user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + sourceUserId + "/blocking/" + targetUserId;
+        String url = twitterApiBase + "/users/" + sourceUserId + "/blocking/" + targetUserId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -673,7 +696,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String sourceUserId = payload.path("source_user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + sourceUserId + "/muting";
+        String url = twitterApiBase + "/users/" + sourceUserId + "/muting";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("target_user_id", payload.path("target_user_id").asText());
@@ -693,7 +716,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String sourceUserId = payload.path("source_user_id").asText();
         String targetUserId = payload.path("target_user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + sourceUserId + "/muting/" + targetUserId;
+        String url = twitterApiBase + "/users/" + sourceUserId + "/muting/" + targetUserId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -708,7 +731,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO createList(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/lists";
+        String url = twitterApiBase + "/lists";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("name", payload.path("name").asText());
@@ -733,7 +756,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
 
-        String url = TWITTER_API_BASE + "/lists/" + listId;
+        String url = twitterApiBase + "/lists/" + listId;
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         if(payload.has("name")) {
@@ -760,7 +783,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
 
-        String url = TWITTER_API_BASE + "/lists/" + listId;
+        String url = twitterApiBase + "/lists/" + listId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -775,7 +798,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
 
-        String url = TWITTER_API_BASE + "/lists/" + listId + "/members";
+        String url = twitterApiBase + "/lists/" + listId + "/members";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("user_id", payload.path("user_id").asText());
@@ -795,7 +818,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String listId = payload.path("list_id").asText();
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/lists/" + listId + "/members/" + userId;
+        String url = twitterApiBase + "/lists/" + listId + "/members/" + userId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -810,7 +833,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String listId = payload.path("list_id").asText();
 
-        String url = TWITTER_API_BASE + "/lists/" + listId + "/tweets";
+        String url = twitterApiBase + "/lists/" + listId + "/tweets";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("100"));
@@ -827,7 +850,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO sendDirectMessage(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/dm_conversations/with/" +
+        String url = twitterApiBase + "/dm_conversations/with/" +
                     payload.path("participant_id").asText() + "/messages";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
@@ -849,7 +872,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     }
 
     private MessageDTO getDirectMessages(MessageDTO message) throws Exception {
-        String url = TWITTER_API_BASE + "/dm_events";
+        String url = twitterApiBase + "/dm_events";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", "100");
@@ -868,7 +891,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/bookmarks";
+        String url = twitterApiBase + "/users/" + userId + "/bookmarks";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("tweet_id", payload.path("tweet_id").asText());
@@ -888,7 +911,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         String userId = payload.path("user_id").asText();
         String tweetId = payload.path("tweet_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/bookmarks/" + tweetId;
+        String url = twitterApiBase + "/users/" + userId + "/bookmarks/" + tweetId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getBearerToken());
@@ -903,7 +926,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId + "/bookmarks";
+        String url = twitterApiBase + "/users/" + userId + "/bookmarks";
 
         Map<String, String> params = new HashMap<>();
         params.put("max_results", payload.path("max_results").asText("100"));
@@ -921,7 +944,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String spaceId = payload.path("space_id").asText();
 
-        String url = TWITTER_API_BASE + "/spaces/" + spaceId;
+        String url = twitterApiBase + "/spaces/" + spaceId;
 
         Map<String, String> params = new HashMap<>();
         params.put("space.fields", "host_ids,created_at,creator_id,id,lang,invited_user_ids," +
@@ -937,7 +960,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO searchSpaces(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/spaces/search";
+        String url = twitterApiBase + "/spaces/search";
 
         Map<String, String> params = new HashMap<>();
         params.put("query", payload.path("query").asText());
@@ -954,7 +977,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String tweetId = payload.path("tweet_id").asText();
 
-        String url = TWITTER_API_BASE + "/tweets/" + tweetId;
+        String url = twitterApiBase + "/tweets/" + tweetId;
 
         Map<String, String> params = new HashMap<>();
         params.put("tweet.fields", "public_metrics,organic_metrics,promoted_metrics");
@@ -968,7 +991,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String userId = payload.path("user_id").asText();
 
-        String url = TWITTER_API_BASE + "/users/" + userId;
+        String url = twitterApiBase + "/users/" + userId;
 
         Map<String, String> params = new HashMap<>();
         params.put("user.fields", "public_metrics");
@@ -1014,16 +1037,28 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         return restTemplate.exchange(urlBuilder.toString(), method, entity, String.class);
     }
 
-    private MessageDTO createSuccessResponse(String messageId, String responseBody, String operation) {
+    protected MessageDTO createSuccessResponse(String messageId, String responseBody, String operation) {
         MessageDTO response = new MessageDTO();
         response.setCorrelationId(messageId);
-        response.setStatus(MessageStatus.PROCESSED);
-        response.setMessageTimestamp(Instant.now());
+        response.setStatus(MessageStatus.SUCCESS);
+        response.setTimestamp(java.time.LocalDateTime.now());
         response.setHeaders(Map.of(
             "operation", operation,
             "source", "twitter"
        ));
         response.setPayload(responseBody);
+        return response;
+    }
+    
+    protected MessageDTO createErrorResponse(MessageDTO originalMessage, String error) {
+        MessageDTO response = new MessageDTO();
+        response.setCorrelationId(originalMessage.getCorrelationId());
+        response.setStatus(MessageStatus.FAILED);
+        response.setTimestamp(java.time.LocalDateTime.now());
+        response.setHeaders(Map.of(
+            "error", error,
+            "source", "twitter"
+       ));
         return response;
     }
 
@@ -1039,7 +1074,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String tweetId = payload.path("tweet_id").asText();
 
-        String url = TWITTER_API_BASE + "/tweets/" + tweetId;
+        String url = twitterApiBase + "/tweets/" + tweetId;
 
         Map<String, String> params = new HashMap<>();
         params.put("tweet.fields", "id,text,created_at,author_id,public_metrics,entities,attachments");
@@ -1059,9 +1094,9 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
 
         String url;
         if(userId != null) {
-            url = TWITTER_API_BASE + "/users/" + userId;
+            url = twitterApiBase + "/users/" + userId;
         } else if(username != null) {
-            url = TWITTER_API_BASE + "/users/by/username/" + username;
+            url = twitterApiBase + "/users/by/username/" + username;
         } else {
             throw new AdapterException("Either user_id or username is required");
         }
@@ -1089,7 +1124,7 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
     private MessageDTO updateProfile(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = TWITTER_API_BASE + "/users/me";
+        String url = twitterApiBase + "/users/me";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
 
@@ -1125,12 +1160,90 @@ public class TwitterApiV2OutboundAdapter extends AbstractSocialMediaOutboundAdap
         }
     }
 
-    @Override
     public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         return processMessage(message);
     }
 
     public void setConfiguration(TwitterApiV2Config config) {
         this.config = config;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("apiKey", config.getApiKey());
+        configMap.put("bearerToken", config.getBearerToken() != null);
+        configMap.put("enabled", config.isEnabled());
+        return configMap;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+    
+    @Override
+    protected long getPollingIntervalMs() {
+        // Outbound adapter doesn't poll, but return a default value
+        return 60000; // 1 minute
+    }
+
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Convert payload to MessageDTO if needed
+        MessageDTO message;
+        if (payload instanceof MessageDTO) {
+            message = (MessageDTO) payload;
+        } else {
+            message = new MessageDTO();
+            message.setPayload(objectMapper.writeValueAsString(payload));
+            message.setHeaders(headers);
+        }
+        
+        MessageDTO result = processMessage(message);
+        return AdapterResult.success(result.getPayload(), result.getHeaders().toString());
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            String url = twitterApiBase + "/users/me";
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(getBearerToken());
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "Twitter API v2 connection successful");
+            } else {
+                return AdapterResult.failure("Twitter API v2 connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Twitter API v2 connection test failed: " + e.getMessage(), e);
+        }
+    }
+
+    // Implementation of abstract methods from AbstractOutboundAdapter
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.debug("Initializing Twitter API v2 receiver");
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.debug("Destroying Twitter API v2 receiver");
+    }
+    
+    @Override
+    protected AdapterResult doReceive(Object request) throws Exception {
+        // This is an outbound adapter, so receive is not supported
+        return AdapterResult.failure("Receive operation not supported for outbound adapter");
     }
 }

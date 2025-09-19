@@ -1,7 +1,5 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +7,6 @@ import java.util.Map;
 /**
  * Health status of an adapter
  */
-@Data
-@Builder
 public class HealthStatus {
 
     /**
@@ -26,7 +22,6 @@ public class HealthStatus {
     /**
      * Timestamp of health check
      */
-    @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
     /**
@@ -57,9 +52,7 @@ public class HealthStatus {
     /**
      * Component health information
      */
-    @Data
-    @Builder
-    public static class ComponentHealth {
+            public static class ComponentHealth {
         private String name;
         private HealthState state;
         private String message;
@@ -69,9 +62,7 @@ public class HealthStatus {
     /**
      * Performance metrics
      */
-    @Data
-    @Builder
-    public static class PerformanceMetrics {
+            public static class PerformanceMetrics {
         private Long messagesProcessed;
         private Long errors;
         private Double averageResponseTimeMs;

@@ -4,7 +4,6 @@ import com.integrixs.shared.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +23,8 @@ import com.integrixs.backend.exception.ForbiddenException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Global exception handler for all REST controllers.
@@ -35,7 +36,6 @@ import java.util.stream.Collectors;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -46,6 +46,9 @@ public class GlobalExceptionHandler {
      * @param request the HTTP request
      * @return error response with appropriate status code
      */
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(BaseIntegrationException.class)
     public ResponseEntity<ErrorResponse> handleIntegrationException(
             BaseIntegrationException ex, HttpServletRequest request) {

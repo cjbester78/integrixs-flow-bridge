@@ -2,27 +2,28 @@ package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.model.IntegrationFlow;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for system log management
  * Contains core logging business logic
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class LogManagementService {
 
     /**
      * Create a basic log entry
      */
+
+    private static final Logger log = LoggerFactory.getLogger(LogManagementService.class);
+
     public SystemLog createLog(SystemLog.LogLevel level, String message, String source,
                               String details, UUID userId, String domainType, String domainReferenceId) {
         SystemLog log = new SystemLog();

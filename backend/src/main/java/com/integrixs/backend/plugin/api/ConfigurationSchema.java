@@ -1,15 +1,11 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Configuration schema for dynamic form generation
  */
-@Data
-@Builder
 public class ConfigurationSchema {
 
     /**
@@ -20,9 +16,7 @@ public class ConfigurationSchema {
     /**
      * Configuration section
      */
-    @Data
-    @Builder
-    public static class Section {
+            public static class Section {
         private String id;
         private String title;
         private String description;
@@ -33,9 +27,7 @@ public class ConfigurationSchema {
     /**
      * Configuration field
      */
-    @Data
-    @Builder
-    public static class Field {
+            public static class Field {
         private String name;
         private String type;
         private String label;
@@ -52,9 +44,7 @@ public class ConfigurationSchema {
     /**
      * Field option for select/multiselect
      */
-    @Data
-    @Builder
-    public static class Option {
+            public static class Option {
         private String value;
         private String label;
         private String description;
@@ -64,9 +54,7 @@ public class ConfigurationSchema {
     /**
      * Field validation rules
      */
-    @Data
-    @Builder
-    public static class Validation {
+            public static class Validation {
         private String pattern;
         private Integer minLength;
         private Integer maxLength;
@@ -79,9 +67,7 @@ public class ConfigurationSchema {
     /**
      * Field visibility condition
      */
-    @Data
-    @Builder
-    public static class Condition {
+            public static class Condition {
         private String field;
         private String operator;
         private Object value;

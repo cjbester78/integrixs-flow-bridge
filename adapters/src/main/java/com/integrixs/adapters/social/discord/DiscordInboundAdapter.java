@@ -46,8 +46,9 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(DiscordInboundAdapter.class);
 
 
-    private static final String API_BASE_URL = "https://discord.com/api/v10";
-    private static final String GATEWAY_URL = "wss://gateway.discord.gg/?v = 10&encoding = json";
+    // These will be read from config
+    private String apiBaseUrl;
+    private String gatewayUrl;
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
     @Autowired
@@ -167,6 +168,9 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     // Initialize Gateway connection(for real - time events)
     @PostConstruct
     public void initialize() {
+        // Initialize URLs from config
+        this.apiBaseUrl = config.getApiBaseUrl();
+        this.gatewayUrl = config.getGatewayUrl();
         if(config.getBotToken() != null) {
             connectToGateway();
         }
@@ -225,7 +229,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
             // Poll messages for cached channels
             channelCache.keySet().forEach(channelId -> {
                 try {
-                    String endpoint = String.format("/channels/%s/messages?limit = 100", channelId);
+                    String endpoint = String.format("/channels/%s/messages?limit=%d", channelId, config.getLimits().getMessageHistoryLimit());
                     JsonNode messages = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
 
                     if(messages != null && messages.isArray()) {
@@ -250,7 +254,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
         try {
             log.debug("Polling Discord members for guild: {}", config.getGuildId());
-            String endpoint = String.format("/guilds/%s/members?limit = 1000", config.getGuildId());
+            String endpoint = String.format("/guilds/%s/members?limit=%d", config.getGuildId(), config.getGuildMemberLimit());
             JsonNode members = makeAuthenticatedRequest(endpoint, HttpMethod.GET);
 
             if(members != null && members.isArray()) {
@@ -311,7 +315,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private void connectToGateway() {
         try {
             StandardWebSocketClient client = new StandardWebSocketClient();
-            gatewaySession = client.doHandshake(new DiscordWebSocketHandler(), GATEWAY_URL).get();
+            gatewaySession = client.doHandshake(new DiscordWebSocketHandler(), gatewayUrl).get();
             log.info("Connected to Discord Gateway");
         } catch(Exception e) {
             log.error("Failed to connect to Discord Gateway", e);
@@ -509,14 +513,15 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private int calculateIntents() {
         int intents = 0;
         // Add intents based on configuration
-        // Enable all basic intents for Discord gateway
-        intents |= 1 << 0; // GUILDS
-        intents |= 1 << 1; // GUILD_MEMBERS  
-        intents |= 1 << 9; // GUILD_MESSAGES
-        intents |= 1 << 12; // DIRECT_MESSAGES
-        intents |= 1 << 15; // MESSAGE_CONTENT
-        intents |= 1 << 7; // GUILD_VOICE_STATES
-        intents |= 1 << 16; // GUILD_SCHEDULED_EVENTS
+        // Enable all basic intents for Discord gateway from config
+        Map<String, Integer> intentBits = config.getGatewayIntentBits();
+        intents |= 1 << intentBits.get("GUILDS");
+        intents |= 1 << intentBits.get("GUILD_MEMBERS");  
+        intents |= 1 << intentBits.get("GUILD_MESSAGES");
+        intents |= 1 << intentBits.get("DIRECT_MESSAGES");
+        intents |= 1 << intentBits.get("MESSAGE_CONTENT");
+        intents |= 1 << intentBits.get("GUILD_VOICE_STATES");
+        intents |= 1 << intentBits.get("GUILD_SCHEDULED_EVENTS");
         return intents;
     }
 
@@ -816,7 +821,7 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
             HttpEntity<Object> entity = new HttpEntity<>(body, headers);
             
             ResponseEntity<JsonNode> response = restTemplate.exchange(
-                API_BASE_URL + endpoint,
+                apiBaseUrl + endpoint,
                 method,
                 entity,
                 JsonNode.class
@@ -832,7 +837,11 @@ public class DiscordInboundAdapter extends AbstractSocialMediaInboundAdapter {
 
     @Override
     public void destroy() {
-        super.destroy();
+        try {
+            super.destroy();
+        } catch(AdapterException e) {
+            log.error("Error destroying adapter", e);
+        }
         if(heartbeatExecutor != null) {
             heartbeatExecutor.shutdown();
         }

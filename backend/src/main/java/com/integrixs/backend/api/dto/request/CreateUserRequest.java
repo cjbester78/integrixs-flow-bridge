@@ -1,19 +1,10 @@
 package com.integrixs.backend.api.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.validation.constraints.*;
 
 /**
  * Request DTO for creating a new user
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class CreateUserRequest {
 
     @NotBlank(message = "Username is required")
@@ -43,4 +34,56 @@ public class CreateUserRequest {
     @Pattern(regexp = "^(ADMINISTRATOR|DEVELOPER|INTEGRATOR|VIEWER)$",
             message = "Role must be one of: ADMINISTRATOR, DEVELOPER, INTEGRATOR, VIEWER")
     private String role;
+
+    // Default constructor
+    public CreateUserRequest() {
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 }

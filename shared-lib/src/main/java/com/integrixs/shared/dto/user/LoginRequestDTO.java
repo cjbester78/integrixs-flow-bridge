@@ -3,10 +3,6 @@ package com.integrixs.shared.dto.user;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * DTO for user login requests.
@@ -16,10 +12,6 @@ import lombok.NoArgsConstructor;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class LoginRequestDTO {
 
     /**
@@ -36,4 +28,62 @@ public class LoginRequestDTO {
     @Size(min = 8, message = "Password must be at least 8 characters")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+    
+    /**
+     * Default constructor
+     */
+    public LoginRequestDTO() {
+    }
+    
+    /**
+     * All args constructor
+     */
+    public LoginRequestDTO(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+    
+    // Getters
+    public String getUsername() {
+        return username;
+    }
+    
+    public String getPassword() {
+        return password;
+    }
+    
+    // Setters
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    /**
+     * Builder pattern implementation
+     */
+    public static LoginRequestDTOBuilder builder() {
+        return new LoginRequestDTOBuilder();
+    }
+    
+    public static class LoginRequestDTOBuilder {
+        private String username;
+        private String password;
+        
+        public LoginRequestDTOBuilder username(String username) {
+            this.username = username;
+            return this;
+        }
+        
+        public LoginRequestDTOBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+        
+        public LoginRequestDTO build() {
+            return new LoginRequestDTO(username, password);
+        }
+    }
 }

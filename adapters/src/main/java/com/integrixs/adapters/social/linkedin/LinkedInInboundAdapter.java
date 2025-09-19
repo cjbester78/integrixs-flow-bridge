@@ -138,7 +138,14 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return message;
         } catch(Exception e) {
             log.error("Error processing LinkedIn inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            // Return a failed message instead of throwing exception
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setStatus(MessageStatus.FAILED);
+            errorMessage.setPayload(data);
+            errorMessage.setHeaders(Map.of("type", type, "source", "linkedin", "error", e.getMessage()));
+            return errorMessage;
         }
     }
 
@@ -156,7 +163,18 @@ public class LinkedInInboundAdapter extends AbstractSocialMediaInboundAdapter {
             return null;
         } catch(Exception e) {
             log.error("Error processing LinkedIn webhook", e);
-            throw new AdapterException("Failed to process webhook", e);
+            // Return a failed message instead of throwing exception
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setStatus(MessageStatus.FAILED);
+            try {
+                errorMessage.setPayload(objectMapper.writeValueAsString(webhookData));
+            } catch (Exception ex) {
+                errorMessage.setPayload(webhookData.toString());
+            }
+            errorMessage.setHeaders(Map.of("source", "linkedin", "type", "webhook", "error", e.getMessage()));
+            return errorMessage;
         }
     }
     

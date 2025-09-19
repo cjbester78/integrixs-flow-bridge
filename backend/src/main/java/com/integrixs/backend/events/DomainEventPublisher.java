@@ -1,14 +1,14 @@
 package com.integrixs.backend.events;
 
 import com.integrixs.shared.events.DomainEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Publisher for domain events.
@@ -19,10 +19,11 @@ import java.util.List;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class DomainEventPublisher {
+
+    private static final Logger log = LoggerFactory.getLogger(DomainEventPublisher.class);
+
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ThreadLocal<List<DomainEvent>> pendingEvents = ThreadLocal.withInitial(ArrayList::new);

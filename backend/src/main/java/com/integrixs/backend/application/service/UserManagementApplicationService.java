@@ -11,8 +11,6 @@ import com.integrixs.backend.domain.service.UserManagementService;
 import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.User;
 import com.integrixs.data.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,15 +22,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
  * Application service for user management
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class UserManagementApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserManagementApplicationService.class);
+
 
     private final UserRepository userRepository;
     private final UserManagementService userManagementService;

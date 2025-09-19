@@ -4,14 +4,15 @@ import com.integrixs.shared.dto.GlobalRetrySettingsDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterRetryService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterRetryService.class);
+
 
     private final SystemSettingService systemSettingService;
     private final ObjectMapper objectMapper = new ObjectMapper();

@@ -3,21 +3,22 @@ package com.integrixs.backend.application.service;
 import com.integrixs.backend.domain.service.MetricsAggregatorService;
 import com.integrixs.backend.domain.service.StatisticsCalculatorService;
 import com.integrixs.shared.dto.DashboardStatsDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for dashboard operations
  * Orchestrates metrics and statistics calculation
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class DashboardApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(DashboardApplicationService.class);
+
 
     private final MetricsAggregatorService metricsAggregator;
     private final StatisticsCalculatorService statisticsCalculator;

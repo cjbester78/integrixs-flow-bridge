@@ -2,14 +2,12 @@ package com.integrixs.backend.controller;
 
 import com.integrixs.backend.api.dto.AdapterTypeDTO;
 import com.integrixs.backend.api.dto.ConfigurationSchemaDTO;
-import com.integrixs.backend.api.response.ApiResponse;
+import com.integrixs.backend.dto.response.ApiResponse;
 import com.integrixs.backend.service.AdapterTypeService;
 import com.integrixs.data.model.AdapterType;
 import com.integrixs.data.model.AdapterCategory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/adapter - types")
-@RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Adapter Types", description = "Adapter type management APIs")
 public class AdapterTypeController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterTypeController.class);
+
 
     private final AdapterTypeService adapterTypeService;
 

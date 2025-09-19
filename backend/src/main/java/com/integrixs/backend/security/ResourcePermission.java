@@ -56,7 +56,16 @@ public enum ResourcePermission {
     TENANT_READ("tenant:read", "Read tenant information"),
     TENANT_UPDATE("tenant:update", "Update tenant settings"),
     TENANT_DELETE("tenant:delete", "Delete tenants"),
-    TENANT_MANAGE_USERS("tenant:manage - users", "Manage tenant users");
+    TENANT_MANAGE_USERS("tenant:manage-users", "Manage tenant users"),
+    
+    // Audit permissions
+    VIEW_AUDIT_LOGS("audit:view", "View audit logs"),
+    VIEW_SECURITY_LOGS("audit:view-security", "View security logs"),
+    EXPORT_AUDIT_LOGS("audit:export", "Export audit logs"),
+    GENERATE_REPORTS("audit:generate-reports", "Generate audit reports"),
+    
+    // Documentation permissions
+    VIEW_DOCUMENTATION("doc:view", "View documentation");
 
     private final String permission;
     private final String description;

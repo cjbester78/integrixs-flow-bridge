@@ -1,7 +1,5 @@
 package com.integrixs.backend.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -11,17 +9,20 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing IP whitelist configuration dynamically.
  * Supports runtime updates without application restart.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class IpWhitelistService {
 
     // In - memory storage for dynamic IP whitelist
+
+    private static final Logger log = LoggerFactory.getLogger(IpWhitelistService.class);
+
     private final Set<String> whitelistedIps = ConcurrentHashMap.newKeySet();
     private final Set<String> whitelistedRanges = ConcurrentHashMap.newKeySet();
     private final Map<String, IpWhitelistEntry> ipEntries = new ConcurrentHashMap<>();

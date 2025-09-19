@@ -1,12 +1,12 @@
 package com.integrixs.data.repository;
 
 import com.integrixs.data.model.Message;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
  * Custom repository implementation for Message entity using JPA Criteria API
  */
 @Repository
-@RequiredArgsConstructor
 public class MessageRepositoryCustomImpl implements MessageRepositoryCustom {
 
-    private final EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Double calculateAverageProcessingTimeJpa() {

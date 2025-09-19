@@ -1,8 +1,5 @@
 package com.integrixs.webclient.domain.model;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,8 +7,6 @@ import java.util.Map;
 /**
  * Domain model representing the result of processing an inbound message
  */
-@Data
-@Builder
 public class ProcessingResult {
     private String messageId;
     private boolean success;
@@ -22,8 +17,11 @@ public class ProcessingResult {
     private String errorCode;
     private LocalDateTime processedAt;
     private long processingTimeMillis;
-    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
+
+    // Empty constructor
+    public ProcessingResult() {
+    }
 
     /**
      * Create success result
@@ -113,5 +111,170 @@ public class ProcessingResult {
     public ProcessingResult withProcessingTime(long startTime) {
         this.processingTimeMillis = System.currentTimeMillis() - startTime;
         return this;
+    }
+
+    // Getters
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public String getFlowId() {
+        return flowId;
+    }
+
+    public String getExecutionId() {
+        return executionId;
+    }
+
+    public Object getResponseData() {
+        return responseData;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public LocalDateTime getProcessedAt() {
+        return processedAt;
+    }
+
+    public long getProcessingTimeMillis() {
+        return processingTimeMillis;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    // Setters
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public void setFlowId(String flowId) {
+        this.flowId = flowId;
+    }
+
+    public void setExecutionId(String executionId) {
+        this.executionId = executionId;
+    }
+
+    public void setResponseData(Object responseData) {
+        this.responseData = responseData;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public void setProcessedAt(LocalDateTime processedAt) {
+        this.processedAt = processedAt;
+    }
+
+    public void setProcessingTimeMillis(long processingTimeMillis) {
+        this.processingTimeMillis = processingTimeMillis;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    // Builder
+    public static ProcessingResultBuilder builder() {
+        return new ProcessingResultBuilder();
+    }
+
+    public static class ProcessingResultBuilder {
+        private String messageId;
+        private boolean success;
+        private String flowId;
+        private String executionId;
+        private Object responseData;
+        private String errorMessage;
+        private String errorCode;
+        private LocalDateTime processedAt;
+        private long processingTimeMillis;
+        private Map<String, Object> metadata = new HashMap<>();
+
+        public ProcessingResultBuilder messageId(String messageId) {
+            this.messageId = messageId;
+            return this;
+        }
+
+        public ProcessingResultBuilder success(boolean success) {
+            this.success = success;
+            return this;
+        }
+
+        public ProcessingResultBuilder flowId(String flowId) {
+            this.flowId = flowId;
+            return this;
+        }
+
+        public ProcessingResultBuilder executionId(String executionId) {
+            this.executionId = executionId;
+            return this;
+        }
+
+        public ProcessingResultBuilder responseData(Object responseData) {
+            this.responseData = responseData;
+            return this;
+        }
+
+        public ProcessingResultBuilder errorMessage(String errorMessage) {
+            this.errorMessage = errorMessage;
+            return this;
+        }
+
+        public ProcessingResultBuilder errorCode(String errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        public ProcessingResultBuilder processedAt(LocalDateTime processedAt) {
+            this.processedAt = processedAt;
+            return this;
+        }
+
+        public ProcessingResultBuilder processingTimeMillis(long processingTimeMillis) {
+            this.processingTimeMillis = processingTimeMillis;
+            return this;
+        }
+
+        public ProcessingResultBuilder metadata(Map<String, Object> metadata) {
+            this.metadata = metadata != null ? metadata : new HashMap<>();
+            return this;
+        }
+
+        public ProcessingResult build() {
+            ProcessingResult result = new ProcessingResult();
+            result.setMessageId(messageId);
+            result.setSuccess(success);
+            result.setFlowId(flowId);
+            result.setExecutionId(executionId);
+            result.setResponseData(responseData);
+            result.setErrorMessage(errorMessage);
+            result.setErrorCode(errorCode);
+            result.setProcessedAt(processedAt);
+            result.setProcessingTimeMillis(processingTimeMillis);
+            result.setMetadata(metadata);
+            return result;
+        }
     }
 }

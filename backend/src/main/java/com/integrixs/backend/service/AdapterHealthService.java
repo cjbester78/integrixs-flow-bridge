@@ -1,13 +1,11 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.backend.dto.dashboard.health.*;
-import com.integrixs.backend.entity.AdapterStatus;
+import com.integrixs.data.model.AdapterStatus;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.backend.repository.AdapterStatusRepository;
+import com.integrixs.data.repository.AdapterStatusRepository;
 import com.integrixs.data.repository.SystemLogRepository;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for monitoring and analyzing adapter health.
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AdapterHealthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterHealthService.class);
+
 
     private final AdapterStatusRepository adapterStatusRepository;
     private final SystemLogRepository systemLogRepository;

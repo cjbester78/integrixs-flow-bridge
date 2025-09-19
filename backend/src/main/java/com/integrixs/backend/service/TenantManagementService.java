@@ -30,9 +30,6 @@ public class TenantManagementService {
     private UserRepository userRepository;
 
     @Autowired
-    private UserRoleRepository userRoleRepository;
-
-    @Autowired
     private IntegrationFlowRepository flowRepository;
 
     @Autowired

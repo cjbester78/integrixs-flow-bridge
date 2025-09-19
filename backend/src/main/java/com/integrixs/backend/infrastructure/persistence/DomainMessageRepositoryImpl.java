@@ -4,7 +4,6 @@ import com.integrixs.backend.domain.repository.DomainMessageRepository;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.Message.MessageStatus;
 import com.integrixs.data.repository.MessageRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +17,6 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainMessageRepositoryImpl")
-@RequiredArgsConstructor
 public class DomainMessageRepositoryImpl implements DomainMessageRepository {
 
     private final MessageRepository jpaRepository;

@@ -1,22 +1,25 @@
 package com.integrixs.backend.plugin.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing platform version information
  */
 @Service
-@Slf4j
 public class PlatformVersionService {
+
+    private static final Logger log = LoggerFactory.getLogger(PlatformVersionService.class);
+
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^(\\d + )\\.(\\d + )\\.(\\d + )(?:-(. + ))?$");
 

@@ -3,8 +3,6 @@ package com.integrixs.backend.domain.service;
 import com.integrixs.backend.domain.repository.UserRepository;
 import com.integrixs.backend.shared.exception.AuthenticationException;
 import com.integrixs.data.model.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +15,10 @@ import java.util.UUID;
  * Contains core authentication business logic
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class UserAuthenticationService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserAuthenticationService.class);
+    
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -103,8 +101,8 @@ public class UserAuthenticationService {
         newUser.setEmail(email);
         newUser.setPasswordHash(passwordEncoder.encode(password));
         newUser.setRole(role != null ? role : "USER");
-        newUser.setActive(true); // Admin - created users are immediately active
-        newUser.setEmailVerified(true); // No email verification required
+        newUser.setStatus("active"); // Admin - created users are immediately active
+        // Email verification is not a field in User entity
         newUser.setCreatedAt(LocalDateTime.now());
         newUser.setUpdatedAt(LocalDateTime.now());
 

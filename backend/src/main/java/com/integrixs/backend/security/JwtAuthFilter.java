@@ -20,11 +20,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import com.integrixs.data.repository.UserRepository;
 import com.integrixs.data.model.User;
 import com.integrixs.backend.logging.EnhancedAuthenticationLogger;
-import lombok.extern.slf4j.Slf4j;
-
-
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
+
 
     private final JwtUtil jwtUtil;
     private UserRepository userRepository;

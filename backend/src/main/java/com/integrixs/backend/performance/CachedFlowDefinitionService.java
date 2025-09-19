@@ -1,9 +1,7 @@
 package com.integrixs.backend.performance;
 
-import com.integrixs.data.model.FlowDefinition;
-import com.integrixs.data.repository.FlowDefinitionRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.data.model.IntegrationFlow;
+import com.integrixs.data.repository.IntegrationFlowRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,24 +11,27 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cached service layer for flow definitions.
  * Provides caching for frequently accessed flow data.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CachedFlowDefinitionService {
 
-    private final FlowDefinitionRepository flowDefinitionRepository;
+    private static final Logger log = LoggerFactory.getLogger(CachedFlowDefinitionService.class);
+
+
+    private final IntegrationFlowRepository flowDefinitionRepository;
 
     /**
      * Get flow definition by ID with caching.
      */
     @Cacheable(value = "flowDefinitions", key = "#id.toString()")
     @Transactional(readOnly = true)
-    public Optional<FlowDefinition> findById(UUID id) {
+    public Optional<IntegrationFlow> findById(UUID id) {
         log.debug("Loading flow definition from database: {}", id);
         return flowDefinitionRepository.findById(id);
     }
@@ -40,7 +41,7 @@ public class CachedFlowDefinitionService {
      */
     @Cacheable(value = "flowDefinitions", key = "'name:' + #name")
     @Transactional(readOnly = true)
-    public Optional<FlowDefinition> findByName(String name) {
+    public Optional<IntegrationFlow> findByName(String name) {
         log.debug("Loading flow definition by name from database: {}", name);
         return flowDefinitionRepository.findByName(name);
     }

@@ -89,7 +89,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
             log.info("SMS Outbound Adapter initialized successfully for provider: {}", config.getProvider());
         } catch(Exception e) {
             log.error("Failed to initialize SMS Outbound Adapter", e);
-            throw new AdapterException("Failed to initialize SMS adapter", e);
+            throw new RuntimeException("Failed to initialize SMS adapter", e);
         }
     }
 
@@ -111,7 +111,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
                 providerClient = new InfobipClient();
                 break;
             default:
-                throw new AdapterException("Unsupported SMS provider: " + config.getProvider());
+                throw new RuntimeException("Unsupported SMS provider: " + config.getProvider());
         }
     }
 
@@ -121,14 +121,12 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
     }
 
     private void setupScheduler() {
-        // TODO: Add isEnableBulkMessaging() to Features class if needed
-        // if(config.getFeatures().isEnableBulkMessaging()) {
-        if(false) { // Temporarily disabled
+        if(config.isEnableBulkMessaging()) {
             scheduler = Executors.newScheduledThreadPool(2);
 
             // Schedule bulk message processor
             scheduler.scheduleWithFixedDelay(this::processBulkMessages,
-                1000, 1000, TimeUnit.MILLISECONDS);
+                config.getBulkProcessorDelay(), config.getBulkProcessorInterval(), TimeUnit.MILLISECONDS);
 
             // Schedule rate limiter reset
             scheduler.scheduleAtFixedRate(rateLimiter::reset,
@@ -174,9 +172,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
             }
 
             // Check quiet hours
-            // TODO: Add isHonorQuietHours() to Compliance class if needed
-            // if(config.getCompliance().isHonorQuietHours() && isInQuietHours(to)) {
-            if(false) { // Temporarily disabled
+            if(config.isHonorQuietHours() && isInQuietHours(to)) {
                 // Queue for later delivery
                 queueForLaterDelivery(message, future);
                 return future;
@@ -186,9 +182,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
             SendRequest request = new SendRequest(to, from, body, future, message);
 
             // Queue or send based on configuration
-            // TODO: Add isBulkMode() method if needed
-            // if(config.isBulkMode()) {
-            if(false) { // Temporarily disabled
+            if(config.isEnableBulkMessaging()) {
                 messageQueue.offer(request);
             } else {
                 sendMessage(request);
@@ -229,13 +223,13 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
 
     private long calculateDeliveryTimeAfterQuietHours() {
         // Simple implementation - would need timezone handling in production
-        return System.currentTimeMillis() + TimeUnit.HOURS.toMillis(8); // 8 hours later
+        return System.currentTimeMillis() + TimeUnit.HOURS.toMillis(config.getQuietHoursDelayHours());
     }
 
     private boolean isInQuietHours(String phoneNumber) {
         // Simple implementation - would need timezone handling in production
         int hour = java.time.LocalTime.now().getHour();
-        return hour >= 21 || hour < 8; // 9 PM to 8 AM
+        return hour >= config.getQuietHoursStartHour() || hour < config.getQuietHoursEndHour();
     }
 
     private void sendMessage(SendRequest request) {
@@ -283,7 +277,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         }
 
         List<SendRequest> batch = new ArrayList<>();
-        messageQueue.drainTo(batch, Math.min(100, rateLimiter.getAvailable()));
+        messageQueue.drainTo(batch, Math.min(config.getBulkBatchSize(), rateLimiter.getAvailable()));
 
         for(SendRequest request : batch) {
             sendMessage(request);
@@ -293,15 +287,14 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
     private String applyTemplate(String templateId, Map<String, String> variables) {
         MessageTemplate template = templates.get(templateId);
         if(template == null) {
-            throw new AdapterException("Template not found: " + templateId);
+            throw new RuntimeException("Template not found: " + templateId);
         }
 
-        // TODO: Add getter for content field in MessageTemplate
-        String content = ""; // template.getContent();
+        String content = template.getContent();
 
         // Replace variables
         for(Map.Entry<String, String> entry : variables.entrySet()) {
-            content = content.replace(" {{" + entry.getKey() + "}}", entry.getValue());
+            content = content.replace(config.getTemplateVariablePrefix() + entry.getKey() + config.getTemplateVariableSuffix(), entry.getValue());
         }
 
         return content;
@@ -323,7 +316,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
 
         // Basic validation
         String normalized = normalizePhoneNumber(phoneNumber);
-        if(normalized == null || normalized.length() < 10 || normalized.length() > 15) {
+        if(normalized == null || normalized.length() < config.getMinPhoneLength() || normalized.length() > config.getMaxPhoneLength()) {
             return false;
         }
 
@@ -417,7 +410,7 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
     private void scheduleRetry(SendRequest request) {
         long delay = config.getRetryDelay();
         if(config.isExponentialBackoff()) {
-            delay *= Math.pow(2, request.retryCount - 1);
+            delay *= Math.pow(config.getExponentialBackoffBase(), request.retryCount - 1);
         }
 
         scheduler.schedule(() -> sendMessage(request), delay, TimeUnit.MILLISECONDS);
@@ -615,14 +608,15 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
 
     // Twilio client implementation
     private class TwilioClient implements ProviderClient {
-        private final String baseUrl = "https://api.twilio.com/2010-04-01";
+        private String getBaseUrl() {
+            return config.getTwilioApiBaseUrl();
+        }
 
         @Override
         public SMSResponse send(SendRequest request) throws Exception {
-            // TODO: Add getAccountSid() to TwilioConfig if needed
-            String accountSid = "test"; // config.getTwilioConfig().getAccountSid();
+            String accountSid = config.getTwilioConfig().getAccountSid();
             String url = String.format("%s/Accounts/%s/Messages.json",
-                baseUrl, accountSid);
+                getBaseUrl(), accountSid);
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("To", request.to);
@@ -635,16 +629,14 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
                 }
             }
 
-            // TODO: Add getStatusCallbackUrl() to TwilioConfig if needed
-            // if(config.getTwilioConfig().getStatusCallbackUrl() != null) {
-            //     params.add("StatusCallback", config.getTwilioConfig().getStatusCallbackUrl());
-            // }
+            if(config.getTwilioConfig().getStatusCallbackUrl() != null) {
+                params.add("StatusCallback", config.getTwilioConfig().getStatusCallbackUrl());
+            }
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            // TODO: Add getAccountSid() and getAuthToken() to TwilioConfig if needed
-            String accountSidAuth = "test"; // config.getTwilioConfig().getAccountSid();
-            String authToken = "test"; // config.getTwilioConfig().getAuthToken();
+            String accountSidAuth = config.getTwilioConfig().getAccountSid();
+            String authToken = config.getTwilioConfig().getAuthToken();
             headers.setBasicAuth(accountSidAuth, authToken);
 
             HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
@@ -672,12 +664,11 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         @Override
         public NumberInfo lookupNumber(String phoneNumber) throws Exception {
             String url = String.format("%s/PhoneNumbers/%s?Type = carrier",
-                baseUrl.replace("/2010-04-01", "/v1"), phoneNumber);
+                getBaseUrl().replace("/2010-04-01", "/v1"), phoneNumber);
 
             HttpHeaders headers = new HttpHeaders();
-            // TODO: Add getAccountSid() and getAuthToken() to TwilioConfig if needed
-            String accountSidAuth = "test"; // config.getTwilioConfig().getAccountSid();
-            String authToken = "test"; // config.getTwilioConfig().getAuthToken();
+            String accountSidAuth = config.getTwilioConfig().getAccountSid();
+            String authToken = config.getTwilioConfig().getAuthToken();
             headers.setBasicAuth(accountSidAuth, authToken);
 
             HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -699,15 +690,13 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
 
         @Override
         public boolean testConnection() throws Exception {
-            // TODO: Add getAccountSid() to TwilioConfig if needed
-            String accountSidTest = "test"; // config.getTwilioConfig().getAccountSid();
+            String accountSidTest = config.getTwilioConfig().getAccountSid();
             String url = String.format("%s/Accounts/%s.json",
-                baseUrl, accountSidTest);
+                getBaseUrl(), accountSidTest);
 
             HttpHeaders headers = new HttpHeaders();
-            // TODO: Add getAccountSid() and getAuthToken() to TwilioConfig if needed
-            String accountSidAuth = "test"; // config.getTwilioConfig().getAccountSid();
-            String authToken = "test"; // config.getTwilioConfig().getAuthToken();
+            String accountSidAuth = config.getTwilioConfig().getAccountSid();
+            String authToken = config.getTwilioConfig().getAuthToken();
             headers.setBasicAuth(accountSidAuth, authToken);
 
             HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -721,16 +710,17 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
 
     // Vonage client implementation
     private class VonageClient implements ProviderClient {
-        private final String baseUrl = "https://rest.nexmo.com";
+        private String getBaseUrl() {
+            return config.getVonageApiBaseUrl();
+        }
 
         @Override
         public SMSResponse send(SendRequest request) throws Exception {
-            String url = baseUrl + "/sms/json";
+            String url = getBaseUrl() + "/sms/json";
 
             Map<String, Object> params = new HashMap<>();
-            // TODO: Add getApiKey() and getApiSecret() to VonageConfig if needed
-            String apiKey = "test"; // config.getVonageConfig().getApiKey();
-            String apiSecret = "test"; // config.getVonageConfig().getApiSecret();
+            String apiKey = config.getVonageConfig().getApiKey();
+            String apiSecret = config.getVonageConfig().getApiSecret();
             params.put("api_key", apiKey);
             params.put("api_secret", apiSecret);
             params.put("to", request.to);
@@ -738,10 +728,9 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
             params.put("text", request.body);
             params.put("type", "text");
 
-            // TODO: Add getClientRef() to VonageConfig if needed
-            // if(config.getVonageConfig().getClientRef() != null) {
-            //     params.put("client - ref", config.getVonageConfig().getClientRef());
-            // }
+            if(config.getVonageConfig().getClientRef() != null) {
+                params.put("client - ref", config.getVonageConfig().getClientRef());
+            }
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -772,12 +761,11 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
         @Override
         public NumberInfo lookupNumber(String phoneNumber) throws Exception {
             // Vonage Number Insight API
-            String url = baseUrl + "/number/lookup/json";
+            String url = getBaseUrl() + "/number/lookup/json";
 
             Map<String, String> params = new HashMap<>();
-            // TODO: Add getApiKey() and getApiSecret() to VonageConfig if needed
-            String apiKey = "test"; // config.getVonageConfig().getApiKey();
-            String apiSecret = "test"; // config.getVonageConfig().getApiSecret();
+            String apiKey = config.getVonageConfig().getApiKey();
+            String apiSecret = config.getVonageConfig().getApiSecret();
             params.put("api_key", apiKey);
             params.put("api_secret", apiSecret);
             params.put("number", phoneNumber);
@@ -799,12 +787,11 @@ public class SMSOutboundAdapter extends AbstractOutboundAdapter {
 
         @Override
         public boolean testConnection() throws Exception {
-            String url = baseUrl + "/account/get - balance";
+            String url = getBaseUrl() + "/account/get - balance";
 
             Map<String, String> params = new HashMap<>();
-            // TODO: Add getApiKey() and getApiSecret() to VonageConfig if needed
-            String apiKey = "test"; // config.getVonageConfig().getApiKey();
-            String apiSecret = "test"; // config.getVonageConfig().getApiSecret();
+            String apiKey = config.getVonageConfig().getApiKey();
+            String apiSecret = config.getVonageConfig().getApiSecret();
             params.put("api_key", apiKey);
             params.put("api_secret", apiSecret);
 

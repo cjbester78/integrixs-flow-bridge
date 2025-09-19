@@ -4,6 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Component
 @ConfigurationProperties(prefix = "integrixs.adapters.discord")
@@ -17,6 +19,39 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     private String applicationId;
     private DiscordFeatures features = new DiscordFeatures();
     private DiscordLimits limits = new DiscordLimits();
+    
+    // API configuration
+    private String apiBaseUrl;
+    private String gatewayUrl;
+    private String apiVersion;
+    private String userAgent;
+    
+    // Default values for Discord operations
+    private int defaultChannelType;
+    private int defaultPrivacyLevel;
+    private int defaultAutoArchiveDuration;
+    private int defaultThreadType;
+    
+    // Polling configuration
+    private Long pollingIntervalMs = 30000L;
+    
+    // OAuth URLs
+    private String authorizationUrl;
+    private String tokenUrl;
+    
+    // Gateway intent bit positions
+    private Map<String, Integer> gatewayIntentBits = new HashMap<>();
+    
+    {
+        // Initialize default intent bit positions
+        gatewayIntentBits.put("GUILDS", 0);
+        gatewayIntentBits.put("GUILD_MEMBERS", 1);
+        gatewayIntentBits.put("GUILD_MESSAGES", 9);
+        gatewayIntentBits.put("DIRECT_MESSAGES", 12);
+        gatewayIntentBits.put("MESSAGE_CONTENT", 15);
+        gatewayIntentBits.put("GUILD_VOICE_STATES", 7);
+        gatewayIntentBits.put("GUILD_SCHEDULED_EVENTS", 16);
+    }
     
     // Missing fields from DiscordFeatures (referenced by getters/setters)
     private boolean enableGuildManagement;
@@ -96,6 +131,14 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
         private int bulkDeleteLimit = 100; // Messages at once
         private int messageHistoryLimit = 100; // Per request
         private int guildMemberLimit = 250000; // Without verification
+        
+        // Getters
+        public int getMessageHistoryLimit() {
+            return messageHistoryLimit;
+        }
+        public void setMessageHistoryLimit(int messageHistoryLimit) {
+            this.messageHistoryLimit = messageHistoryLimit;
+        }
     }
 
     // Gateway intents
@@ -602,12 +645,12 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     
     @Override
     public String getAuthorizationUrl() {
-        return "https://discord.com/api/oauth2/authorize";
+        return authorizationUrl != null ? authorizationUrl : "https://discord.com/api/oauth2/authorize";
     }
     
     @Override
     public String getTokenUrl() {
-        return "https://discord.com/api/oauth2/token";
+        return tokenUrl != null ? tokenUrl : "https://discord.com/api/oauth2/token";
     }
 
     // Getters and Setters
@@ -868,5 +911,73 @@ public class DiscordApiConfig extends SocialMediaAdapterConfig {
     }
     public void setGuildMemberLimit(int guildMemberLimit) {
         this.guildMemberLimit = guildMemberLimit;
+    }
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+    }
+    public String getGatewayUrl() {
+        return gatewayUrl;
+    }
+    public void setGatewayUrl(String gatewayUrl) {
+        this.gatewayUrl = gatewayUrl;
+    }
+    public Map<String, Integer> getGatewayIntentBits() {
+        return gatewayIntentBits;
+    }
+    public void setGatewayIntentBits(Map<String, Integer> gatewayIntentBits) {
+        this.gatewayIntentBits = gatewayIntentBits;
+    }
+    public String getApiVersion() {
+        return apiVersion;
+    }
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
+    public String getUserAgent() {
+        return userAgent;
+    }
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+    public int getDefaultChannelType() {
+        return defaultChannelType;
+    }
+    public void setDefaultChannelType(int defaultChannelType) {
+        this.defaultChannelType = defaultChannelType;
+    }
+    public int getDefaultPrivacyLevel() {
+        return defaultPrivacyLevel;
+    }
+    public void setDefaultPrivacyLevel(int defaultPrivacyLevel) {
+        this.defaultPrivacyLevel = defaultPrivacyLevel;
+    }
+    public int getDefaultAutoArchiveDuration() {
+        return defaultAutoArchiveDuration;
+    }
+    public void setDefaultAutoArchiveDuration(int defaultAutoArchiveDuration) {
+        this.defaultAutoArchiveDuration = defaultAutoArchiveDuration;
+    }
+    public int getDefaultThreadType() {
+        return defaultThreadType;
+    }
+    public void setDefaultThreadType(int defaultThreadType) {
+        this.defaultThreadType = defaultThreadType;
+    }
+    public Long getPollingIntervalMs() {
+        return pollingIntervalMs;
+    }
+    public void setPollingIntervalMs(Long pollingIntervalMs) {
+        this.pollingIntervalMs = pollingIntervalMs;
+    }
+    
+    public void setAuthorizationUrl(String authorizationUrl) {
+        this.authorizationUrl = authorizationUrl;
+    }
+    
+    public void setTokenUrl(String tokenUrl) {
+        this.tokenUrl = tokenUrl;
     }
 }

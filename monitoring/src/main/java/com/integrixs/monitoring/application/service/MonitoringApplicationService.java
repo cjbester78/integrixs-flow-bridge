@@ -7,8 +7,8 @@ import com.integrixs.monitoring.domain.model.MonitoringEvent;
 import com.integrixs.monitoring.domain.service.AlertingService;
 import com.integrixs.monitoring.domain.service.EventLoggingService;
 import com.integrixs.monitoring.domain.service.MetricsCollectorService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,14 +22,21 @@ import java.util.stream.Collectors;
  * Application service for monitoring operations
  * Orchestrates domain services and handles use cases
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MonitoringApplicationService {
 
+    private static final Logger log = LoggerFactory.getLogger(MonitoringApplicationService.class);
     private final EventLoggingService eventLoggingService;
     private final MetricsCollectorService metricsCollectorService;
     private final AlertingService alertingService;
+    
+    public MonitoringApplicationService(EventLoggingService eventLoggingService,
+                                     MetricsCollectorService metricsCollectorService,
+                                     AlertingService alertingService) {
+        this.eventLoggingService = eventLoggingService;
+        this.metricsCollectorService = metricsCollectorService;
+        this.alertingService = alertingService;
+    }
 
     /**
      * Log a monitoring event

@@ -6,14 +6,16 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import lombok.extern.slf4j.Slf4j;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Tomcat - specific configuration for handling large multipart requests.
  */
 @Configuration
-@Slf4j
 public class TomcatConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(TomcatConfig.class);
+
 
     @Bean
     public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {

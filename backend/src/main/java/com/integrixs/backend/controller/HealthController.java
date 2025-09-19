@@ -1,17 +1,17 @@
 package com.integrixs.backend.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Health check controller for monitoring backend availability.
  * This endpoint is used by the frontend to detect when the backend is ready.
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/health")
 @CrossOrigin(origins = "*")
@@ -21,6 +21,9 @@ public class HealthController {
      * Simple health check endpoint
      * Returns 200 OK when the backend is ready to serve requests
      */
+
+    private static final Logger log = LoggerFactory.getLogger(HealthController.class);
+
     @GetMapping
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> health = new HashMap<>();

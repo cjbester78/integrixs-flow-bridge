@@ -1,10 +1,6 @@
 package com.integrixs.shared.events.flow;
 
 import com.integrixs.shared.events.AbstractDomainEvent;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 /**
  * Event raised when an integration flow status changes.
@@ -12,10 +8,6 @@ import lombok.experimental.SuperBuilder;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class FlowStatusChangedEvent extends AbstractDomainEvent {
 
     private String flowId;
@@ -24,6 +16,12 @@ public class FlowStatusChangedEvent extends AbstractDomainEvent {
     private String reason;
     private String changedBy;
 
+    // Default constructor
+    public FlowStatusChangedEvent() {
+        super();
+    }
+
+    // All args constructor
     public FlowStatusChangedEvent(String flowId, String oldStatus, String newStatus,
                                  String reason, String changedBy) {
         super(flowId, changedBy);
@@ -50,5 +48,47 @@ public class FlowStatusChangedEvent extends AbstractDomainEvent {
      */
     public boolean isDeactivation() {
         return "ACTIVE".equals(oldStatus) && !"ACTIVE".equals(newStatus);
+    }
+
+    // Getters
+    public String getFlowId() {
+        return flowId;
+    }
+
+    public String getOldStatus() {
+        return oldStatus;
+    }
+
+    public String getNewStatus() {
+        return newStatus;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public String getChangedBy() {
+        return changedBy;
+    }
+
+    // Setters
+    public void setFlowId(String flowId) {
+        this.flowId = flowId;
+    }
+
+    public void setOldStatus(String oldStatus) {
+        this.oldStatus = oldStatus;
+    }
+
+    public void setNewStatus(String newStatus) {
+        this.newStatus = newStatus;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public void setChangedBy(String changedBy) {
+        this.changedBy = changedBy;
     }
 }

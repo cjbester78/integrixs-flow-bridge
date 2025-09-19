@@ -9,8 +9,6 @@ import com.integrixs.backend.api.dto.response.AdapterTestResponse;
 import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
 import com.integrixs.backend.domain.service.AdapterConfigurationService;
 import com.integrixs.data.model.CommunicationAdapter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,14 +16,17 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for testing adapter connections
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AdapterTestingService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterTestingService.class);
+
 
     private final CommunicationAdapterRepository adapterRepository;
     private final AdapterConfigurationService configurationService;

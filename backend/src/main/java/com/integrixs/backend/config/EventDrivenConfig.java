@@ -1,6 +1,5 @@
 package com.integrixs.backend.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +13,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration for event - driven architecture.
@@ -23,7 +24,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Configuration
 @EnableAsync
 public class EventDrivenConfig implements AsyncConfigurer {
@@ -33,6 +33,9 @@ public class EventDrivenConfig implements AsyncConfigurer {
      *
      * @return configured thread pool executor
      */
+
+    private static final Logger log = LoggerFactory.getLogger(EventDrivenConfig.class);
+
     @Bean(name = "eventExecutor")
     public TaskExecutor eventExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

@@ -5,9 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.tiktok.TikTokContentApiConfig.*;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.domain.model.AdapterOperationResult;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.OAuth2TokenRefreshService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.enums.MessageStatus;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -36,9 +41,40 @@ import javax.crypto.spec.SecretKeySpec;
 public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(TikTokContentInboundAdapter.class);
 
-
-    private static final String TIKTOK_API_BASE = "https://open - api.tiktok.com";
-    private static final String TIKTOK_API_VERSION = "/v1.3";
+    // API Configuration from application.yml
+    @Value("${integrixs.adapters.tiktok.content.api-base-url:https://open-api.tiktok.com}")
+    private String tiktokApiBase;
+    
+    @Value("${integrixs.adapters.tiktok.content.api-version:/v1.3}")
+    private String tiktokApiVersion;
+    
+    // Default limits from configuration
+    @Value("${integrixs.adapters.tiktok.content.default-video-count:20}")
+    private int defaultVideoCount;
+    
+    @Value("${integrixs.adapters.tiktok.content.default-comment-count:50}")
+    private int defaultCommentCount;
+    
+    @Value("${integrixs.adapters.tiktok.content.default-trending-count:50}")
+    private int defaultTrendingCount;
+    
+    @Value("${integrixs.adapters.tiktok.content.default-follower-count:100}")
+    private int defaultFollowerCount;
+    
+    @Value("${integrixs.adapters.tiktok.content.default-hashtag-count:20}")
+    private int defaultHashtagCount;
+    
+    @Value("${integrixs.adapters.tiktok.content.default-top-hashtags-limit:5}")
+    private int defaultTopHashtagsLimit;
+    
+    @Value("${integrixs.adapters.tiktok.content.active-follower-video-threshold:10}")
+    private int activeFollowerVideoThreshold;
+    
+    @Value("${integrixs.adapters.tiktok.content.webhook-timestamp-max-age-seconds:300}")
+    private int webhookTimestampMaxAgeSeconds;
+    
+    @Value("${integrixs.adapters.tiktok.content.default-polling-interval-ms:300000}")
+    private long defaultPollingIntervalMs;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
@@ -47,23 +83,26 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     private final TikTokContentApiConfig config;
     private final RateLimiterService rateLimiterService;
     private final CredentialEncryptionService credentialEncryptionService;
+    private boolean isListening = false;
+    private final OAuth2TokenRefreshService tokenRefreshService;
 
     @Autowired
     public TikTokContentInboundAdapter(
             TikTokContentApiConfig config,
             RateLimiterService rateLimiterService,
+            OAuth2TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
         super();
         this.config = config;
         this.rateLimiterService = rateLimiterService;
+        this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(!isConfigValid()) {
             throw new AdapterException("TikTok Content configuration is invalid");
@@ -97,19 +136,17 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         }
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping TikTok Content inbound adapter");
         isListening = false;
     }
 
-    @Override
     protected MessageDTO processInboundData(String data, String type) {
         try {
             MessageDTO message = new MessageDTO();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setTimestamp(LocalDateTime.now());
+            message.setStatus(MessageStatus.SUCCESS);
 
             JsonNode dataNode = objectMapper.readTree(data);
 
@@ -146,18 +183,22 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             return message;
         } catch(Exception e) {
             log.error("Error processing TikTok Content inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setPayload("Error: " + e.getMessage());
+            errorMessage.setHeaders(Map.of("error", "true", "errorMessage", e.getMessage()));
+            return errorMessage;
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // TikTok Content API supports webhooks for certain events
         try {
             MessageDTO message = new MessageDTO();
-            message.setMessageId(UUID.randomUUID().toString());
-            message.setTimestamp(Instant.now());
-            message.setStatus(MessageStatus.RECEIVED);
+            message.setCorrelationId(UUID.randomUUID().toString());
+            message.setTimestamp(LocalDateTime.now());
+            message.setStatus(MessageStatus.SUCCESS);
 
             // Verify webhook signature
             if(!verifyWebhookSignature(webhookData)) {
@@ -197,13 +238,26 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             return message;
         } catch(Exception e) {
             log.error("Error processing TikTok Content webhook", e);
-            throw new AdapterException("Failed to process webhook data", 1);
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setPayload("Error: " + e.getMessage());
+            errorMessage.setHeaders(Map.of("error", "true", "errorMessage", e.getMessage()));
+            return errorMessage;
+        }
+    }
 
-            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/video/list/";
+    private void pollVideos() {
+        if(!isListening || !config.getFeatures().isEnableVideoRetrieval()) return;
+
+        try {
+            rateLimiterService.acquire("tiktok_content_api", 1);
+
+            String url = tiktokApiBase + tiktokApiVersion + "/video/list/";
 
             Map<String, Object> params = new HashMap<>();
             params.put("user_id", config.getUserId());
-            params.put("count", Math.min(20, config.getLimits().getMaxVideosPerDay()));
+            params.put("count", Math.min(defaultVideoCount, config.getLimits().getMaxVideosPerDay()));
             params.put("cursor", 0);
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
@@ -226,7 +280,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.commentPollInterval:1800000}") // 30 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.commentPollInterval:1800000}") // 30 minutes
     private void pollComments() {
         if(!isListening || !config.getFeatures().isEnableCommentManagement()) return;
 
@@ -236,11 +290,11 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
             rateLimiterService.acquire("tiktok_content_api", 1);
 
-            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/comment/list/";
+            String url = tiktokApiBase + tiktokApiVersion + "/comment/list/";
 
             Map<String, Object> params = new HashMap<>();
             params.put("video_id", latestVideo);
-            params.put("count", Math.min(50, config.getLimits().getMaxCommentsToRetrieve()));
+            params.put("count", Math.min(defaultCommentCount, config.getLimits().getMaxCommentsToRetrieve()));
             params.put("cursor", 0);
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
@@ -253,14 +307,14 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.engagementPollInterval:900000}") // 15 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.engagementPollInterval:900000}") // 15 minutes
     private void pollEngagement() {
         if(!isListening || !config.getFeatures().isEnableEngagementMetrics()) return;
 
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
 
-            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/stats/";
+            String url = tiktokApiBase + tiktokApiVersion + "/user/stats/";
 
             Map<String, Object> params = new HashMap<>();
             params.put("user_id", config.getUserId());
@@ -275,17 +329,17 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.trendingPollInterval:7200000}") // 2 hours
+    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.trendingPollInterval:7200000}") // 2 hours
     private void pollTrending() {
         if(!isListening || !config.getFeatures().isEnableTrendingContent()) return;
 
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
 
-            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/trending/feed/";
+            String url = tiktokApiBase + tiktokApiVersion + "/trending/feed/";
 
             Map<String, Object> params = new HashMap<>();
-            params.put("count", Math.min(50, config.getLimits().getMaxTrendingVideos()));
+            params.put("count", Math.min(defaultTrendingCount, config.getLimits().getMaxTrendingVideos()));
             params.put("category", "all");
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
@@ -298,18 +352,18 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.followerPollInterval:21600000}") // 6 hours
+    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.followerPollInterval:21600000}") // 6 hours
     private void pollFollowers() {
         if(!isListening || !config.getFeatures().isEnableFollowerAnalytics()) return;
 
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
 
-            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/followers/";
+            String url = tiktokApiBase + tiktokApiVersion + "/user/followers/";
 
             Map<String, Object> params = new HashMap<>();
             params.put("user_id", config.getUserId());
-            params.put("count", Math.min(100, config.getLimits().getMaxFollowersToRetrieve()));
+            params.put("count", Math.min(defaultFollowerCount, config.getLimits().getMaxFollowersToRetrieve()));
             params.put("cursor", 0);
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
@@ -322,17 +376,17 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.tiktok.content.hashtagPollInterval:14400000}") // 4 hours
+    @Scheduled(fixedDelayString = "${integrixs.adapters.tiktok.content.hashtagPollInterval:14400000}") // 4 hours
     private void pollHashtags() {
         if(!isListening || !config.getFeatures().isEnableHashtagAnalytics()) return;
 
         try {
             rateLimiterService.acquire("tiktok_content_api", 1);
 
-            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/hashtag/trending/";
+            String url = tiktokApiBase + tiktokApiVersion + "/hashtag/trending/";
 
             Map<String, Object> params = new HashMap<>();
-            params.put("count", 20);
+            params.put("count", defaultHashtagCount);
 
             ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
             if(response.getStatusCode().is2xxSuccessful()) {
@@ -347,9 +401,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     // Process different data types
     private MessageDTO processVideoData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "VIDEO_DATA");
@@ -389,9 +443,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processCommentData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "COMMENT_DATA");
@@ -429,9 +483,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processEngagementData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ENGAGEMENT_DATA");
@@ -460,9 +514,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processTrendingData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "TRENDING_DATA");
@@ -481,9 +535,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processFollowerData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "FOLLOWER_DATA");
@@ -501,7 +555,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
                 if(follower.path("verified").asBoolean()) {
                     verifiedFollowers++;
                 }
-                if(follower.path("video_count").asInt(0) > 10) {
+                if(follower.path("video_count").asInt(0) > activeFollowerVideoThreshold) {
                     activeFollowers++;
                 }
             }
@@ -518,9 +572,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processHashtagData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "HASHTAG_DATA");
@@ -532,7 +586,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
             List<String> topHashtags = new ArrayList<>();
             for(JsonNode hashtag : hashtags) {
-                if(topHashtags.size() < 5) {
+                if(topHashtags.size() < defaultTopHashtagsLimit) {
                     topHashtags.add("#" + hashtag.path("name").asText());
                 }
             }
@@ -547,9 +601,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processAnalyticsData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "ANALYTICS_DATA");
@@ -575,9 +629,9 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private MessageDTO processNotificationData(JsonNode data) {
         MessageDTO message = new MessageDTO();
-        message.setMessageId(UUID.randomUUID().toString());
-        message.setTimestamp(Instant.now());
-        message.setStatus(MessageStatus.RECEIVED);
+        message.setCorrelationId(UUID.randomUUID().toString());
+        message.setTimestamp(LocalDateTime.now());
+        message.setStatus(MessageStatus.SUCCESS);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "NOTIFICATION_DATA");
@@ -615,8 +669,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
 
     private boolean verifyWebhookSignature(Map<String, Object> webhookData) {
         try {
-            String signature = (String) webhookData.get("x - tiktok - signature");
-            String timestamp = (String) webhookData.get("x - tiktok - timestamp");
+            String signature = (String) webhookData.get("x-tiktok-signature");
+            String timestamp = (String) webhookData.get("x-tiktok-timestamp");
 
             if(signature == null || timestamp == null) {
                 return false;
@@ -625,7 +679,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
             // Verify timestamp is within 5 minutes
             long webhookTime = Long.parseLong(timestamp);
             long currentTime = Instant.now().getEpochSecond();
-            if(Math.abs(currentTime - webhookTime) > 300) {
+            if(Math.abs(currentTime - webhookTime) > webhookTimestampMaxAgeSeconds) {
                 return false;
             }
 
@@ -667,7 +721,7 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
                     config.getClientKey(),
                     config.getClientSecret(),
                     config.getRefreshToken(),
-                    TIKTOK_API_BASE + "/oauth/refresh_token/"
+                    tiktokApiBase + "/oauth/refresh_token/"
                );
             }
         } catch(Exception e) {
@@ -709,8 +763,8 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     }
 
     @Override
-    protected String getAdapterType() {
-        return "TIKTOK_CONTENT";
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
     }
 
     @Override
@@ -736,4 +790,46 @@ public class TikTokContentInboundAdapter extends AbstractSocialMediaInboundAdapt
     public Map<String, Object> getAdapterConfig() {
         return getConfig();
     }
+
+    // Implementation of abstract methods from AbstractInboundAdapter
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.debug("Initializing TikTok Content sender");
+        // Sender initialization logic if needed
+    }
+
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.debug("Destroying TikTok Content sender");
+        // Sender cleanup logic if needed
+    }
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        log.debug("TikTok Content adapter is inbound only - send operation not supported");
+        return AdapterResult.failure("Send operation not supported for inbound adapter");
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        throw new AdapterException("TikTok Content adapter is inbound only - send operation not supported");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        // Test connection by getting user info
+        String url = tiktokApiBase + tiktokApiVersion + "/user/info/";
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", config.getUserId());
+        
+        ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
+        
+        if(response.getStatusCode().is2xxSuccessful()) {
+            return AdapterResult.success(null, "TikTok Content API connection successful");
+        } else {
+            return AdapterResult.failure("TikTok Content API connection failed: " + response.getStatusCode());
+        }
+    }
+
 }

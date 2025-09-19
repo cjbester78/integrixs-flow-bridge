@@ -5,6 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.tiktok.TikTokContentApiConfig;
+import com.integrixs.adapters.social.tiktok.TikTokContentApiConfig.*;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
@@ -40,8 +44,9 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     private static final Logger log = LoggerFactory.getLogger(TikTokContentOutboundAdapter.class);
 
 
-    private static final String TIKTOK_API_BASE = "https://open - api.tiktok.com";
+    private static final String TIKTOK_API_BASE = "https://open-api.tiktok.com";
     private static final String TIKTOK_API_VERSION = "/v1.3";
+    private static final int VIDEO_CHUNK_SIZE_MB = 5;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -56,15 +61,17 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
             TokenRefreshService tokenRefreshService,
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            TikTokContentApiConfig config) {
+        super(rateLimiterService, credentialEncryptionService);
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        this.config = config;
     }
 
-    @Override
     protected MessageDTO processOutboundMessage(MessageDTO message) {
         try {
             String operation = (String) message.getHeaders().get("operation");
@@ -115,8 +122,8 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         } catch(Exception e) {
             log.error("Error processing TikTok Content outbound operation", e);
             MessageDTO errorResponse = new MessageDTO();
-            errorResponse.setMessageId(message.getCorrelationId());
-            errorResponse.setStatus(MessageStatus.ERROR);
+            errorResponse.setCorrelationId(message.getCorrelationId());
+            errorResponse.setStatus(MessageStatus.FAILED);
             errorResponse.setHeaders(Map.of(
                 "error", e.getMessage(),
                 "operation", message.getHeaders().getOrDefault("operation", "unknown")
@@ -201,19 +208,20 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     }
 
     private void uploadVideoChunks(String uploadUrl, byte[] videoBytes) throws Exception {
-        int chunkSize = 5 * 1024 * 1024; // 5MB chunks
+        int chunkSize = VIDEO_CHUNK_SIZE_MB * 1024 * 1024;
         int totalChunks = (int) Math.ceil(videoBytes.length / (double) chunkSize);
 
         for(int i = 0; i < totalChunks; i++) {
             int start = i * chunkSize;
             int end = Math.min(start + chunkSize, videoBytes.length);
             byte[] chunk = Arrays.copyOfRange(videoBytes, start, end);
+            final int chunkNumber = i;
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("video", new ByteArrayResource(chunk) {
                 @Override
                 public String getFilename() {
-                    return "video_chunk_" + i + ".mp4";
+                    return "video_chunk_" + chunkNumber + ".mp4";
                 }
             });
             body.add("chunk_number", i);
@@ -327,7 +335,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         Map<String, Object> payload = objectMapper.readValue(message.getPayload(), Map.class);
         Map<String, Object> params = new HashMap<>();
         params.put("video_id", payload.get("videoId"));
-        params.put("count", Math.min(payload.getOrDefault("count", 50), config.getLimits().getMaxCommentsToRetrieve()));
+        params.put("count", Math.min((Integer) payload.getOrDefault("count", 50), config.getLimits().getMaxCommentsToRetrieve()));
         params.put("cursor", payload.getOrDefault("cursor", 0));
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
@@ -400,7 +408,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         Map<String, Object> payload = objectMapper.readValue(message.getPayload(), Map.class);
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", payload.getOrDefault("userId", config.getUserId()));
-        params.put("count", Math.min(payload.getOrDefault("count", 100), config.getLimits().getMaxFollowersToRetrieve()));
+        params.put("count", Math.min((Integer) payload.getOrDefault("count", 100), config.getLimits().getMaxFollowersToRetrieve()));
         params.put("cursor", payload.getOrDefault("cursor", 0));
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
@@ -742,7 +750,7 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         Map<String, Object> payload = objectMapper.readValue(message.getPayload(), Map.class);
         Map<String, Object> params = new HashMap<>();
         params.put("query", payload.get("query"));
-        params.put("count", Math.min(payload.getOrDefault("count", 20), config.getLimits().getMaxSearchResults()));
+        params.put("count", Math.min((Integer) payload.getOrDefault("count", 20), config.getLimits().getMaxSearchResults()));
         params.put("cursor", payload.getOrDefault("cursor", 0));
 
         if(payload.containsKey("filters")) {
@@ -855,8 +863,8 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
     private MessageDTO createResponseMessage(ResponseEntity<String> response, String operation) {
         MessageDTO responseMessageDTO = new MessageDTO();
         responseMessageDTO.setCorrelationId(UUID.randomUUID().toString());
-        responseMessageDTO.setMessageTimestamp(Instant.now());
-        responseMessageDTO.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
+        responseMessageDTO.setTimestamp(LocalDateTime.now());
+        responseMessageDTO.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.SUCCESS : MessageStatus.FAILED);
         responseMessageDTO.setHeaders(Map.of(
             "operation", operation,
             "statusCode", response.getStatusCode().value(),
@@ -886,9 +894,79 @@ public class TikTokContentOutboundAdapter extends AbstractSocialMediaOutboundAda
         }
     }
 
-    @Override
     public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         return processOutboundMessage(message);
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("clientKey", config.getClientKey());
+        configMap.put("clientSecret", config.getClientSecret());
+        configMap.put("userId", config.getUserId());
+        configMap.put("username", config.getUsername());
+        configMap.put("features", config.getFeatures());
+        configMap.put("limits", config.getLimits());
+        return configMap;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    public MessageDTO processMessage(MessageDTO message) {
+        return processOutboundMessage(message);
+    }
+
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    protected long getPollingIntervalMs() {
+        // Outbound adapter doesn't poll, return 0
+        return 0;
+    }
+
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        // Outbound adapter doesn't need receiver initialization
+        log.debug("Initializing TikTok Content outbound adapter");
+        validateConfiguration();
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        // Outbound adapter cleanup if needed
+        log.debug("Destroying TikTok Content outbound adapter");
+    }
+
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Outbound adapter doesn't receive messages
+        throw new UnsupportedOperationException("TikTok Content outbound adapter does not support receiving messages");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String url = TIKTOK_API_BASE + TIKTOK_API_VERSION + "/user/info/";
+            Map<String, Object> params = new HashMap<>();
+            params.put("user_id", config.getUserId());
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params, null);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success("Connection test successful");
+            } else {
+                return AdapterResult.failure("Connection test failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage());
+        }
     }
 
     public void setConfiguration(TikTokContentApiConfig config) {

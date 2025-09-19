@@ -13,10 +13,26 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
     private String clientSecret;
     private String channelId;
     private String uploadPlaylistId; // Usually "uploads" playlist
+    private String uploadBaseUrl;
     private YouTubeDataFeatures features = new YouTubeDataFeatures();
     private YouTubeDataLimits limits = new YouTubeDataLimits();
+    
+    @Override
+    public String getPlatformName() {
+        return "youtube-data";
+    }
+    
+    @Override
+    public String getAuthorizationUrl() {
+        return "https://accounts.google.com/o/oauth2/v2/auth";
+    }
+    
+    @Override
+    public String getTokenUrl() {
+        return "https://oauth2.googleapis.com/token";
+    }
 
-        public static class YouTubeDataFeatures {
+    public static class YouTubeDataFeatures {
         private boolean enableVideoUpload = true;
         private boolean enableVideoManagement = true;
         private boolean enablePlaylistManagement = true;
@@ -37,9 +53,170 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         private boolean enableMemberships = true;
         private boolean enableSuperChat = true;
         private boolean enableMerchandise = true;
+        
+        // Getters and setters
+        public boolean isEnableVideoUpload() {
+            return enableVideoUpload;
+        }
+        
+        public void setEnableVideoUpload(boolean enableVideoUpload) {
+            this.enableVideoUpload = enableVideoUpload;
+        }
+        
+        public boolean isEnableVideoManagement() {
+            return enableVideoManagement;
+        }
+        
+        public void setEnableVideoManagement(boolean enableVideoManagement) {
+            this.enableVideoManagement = enableVideoManagement;
+        }
+        
+        public boolean isEnablePlaylistManagement() {
+            return enablePlaylistManagement;
+        }
+        
+        public void setEnablePlaylistManagement(boolean enablePlaylistManagement) {
+            this.enablePlaylistManagement = enablePlaylistManagement;
+        }
+        
+        public boolean isEnableCommentManagement() {
+            return enableCommentManagement;
+        }
+        
+        public void setEnableCommentManagement(boolean enableCommentManagement) {
+            this.enableCommentManagement = enableCommentManagement;
+        }
+        
+        public boolean isEnableLiveStreaming() {
+            return enableLiveStreaming;
+        }
+        
+        public void setEnableLiveStreaming(boolean enableLiveStreaming) {
+            this.enableLiveStreaming = enableLiveStreaming;
+        }
+        
+        public boolean isEnableCommunityPosts() {
+            return enableCommunityPosts;
+        }
+        
+        public void setEnableCommunityPosts(boolean enableCommunityPosts) {
+            this.enableCommunityPosts = enableCommunityPosts;
+        }
+        
+        public boolean isEnableChannelManagement() {
+            return enableChannelManagement;
+        }
+        
+        public void setEnableChannelManagement(boolean enableChannelManagement) {
+            this.enableChannelManagement = enableChannelManagement;
+        }
+        
+        public boolean isEnableSubscriberManagement() {
+            return enableSubscriberManagement;
+        }
+        
+        public void setEnableSubscriberManagement(boolean enableSubscriberManagement) {
+            this.enableSubscriberManagement = enableSubscriberManagement;
+        }
+        
+        public boolean isEnableAnalytics() {
+            return enableAnalytics;
+        }
+        
+        public void setEnableAnalytics(boolean enableAnalytics) {
+            this.enableAnalytics = enableAnalytics;
+        }
+        
+        public boolean isEnableCaptions() {
+            return enableCaptions;
+        }
+        
+        public void setEnableCaptions(boolean enableCaptions) {
+            this.enableCaptions = enableCaptions;
+        }
+        
+        public boolean isEnableThumbnailUpload() {
+            return enableThumbnailUpload;
+        }
+        
+        public void setEnableThumbnailUpload(boolean enableThumbnailUpload) {
+            this.enableThumbnailUpload = enableThumbnailUpload;
+        }
+        
+        public boolean isEnableVideoEditing() {
+            return enableVideoEditing;
+        }
+        
+        public void setEnableVideoEditing(boolean enableVideoEditing) {
+            this.enableVideoEditing = enableVideoEditing;
+        }
+        
+        public boolean isEnableMonetization() {
+            return enableMonetization;
+        }
+        
+        public void setEnableMonetization(boolean enableMonetization) {
+            this.enableMonetization = enableMonetization;
+        }
+        
+        public boolean isEnableContentId() {
+            return enableContentId;
+        }
+        
+        public void setEnableContentId(boolean enableContentId) {
+            this.enableContentId = enableContentId;
+        }
+        
+        public boolean isEnablePremiere() {
+            return enablePremiere;
+        }
+        
+        public void setEnablePremiere(boolean enablePremiere) {
+            this.enablePremiere = enablePremiere;
+        }
+        
+        public boolean isEnableStories() {
+            return enableStories;
+        }
+        
+        public void setEnableStories(boolean enableStories) {
+            this.enableStories = enableStories;
+        }
+        
+        public boolean isEnableShorts() {
+            return enableShorts;
+        }
+        
+        public void setEnableShorts(boolean enableShorts) {
+            this.enableShorts = enableShorts;
+        }
+        
+        public boolean isEnableMemberships() {
+            return enableMemberships;
+        }
+        
+        public void setEnableMemberships(boolean enableMemberships) {
+            this.enableMemberships = enableMemberships;
+        }
+        
+        public boolean isEnableSuperChat() {
+            return enableSuperChat;
+        }
+        
+        public void setEnableSuperChat(boolean enableSuperChat) {
+            this.enableSuperChat = enableSuperChat;
+        }
+        
+        public boolean isEnableMerchandise() {
+            return enableMerchandise;
+        }
+        
+        public void setEnableMerchandise(boolean enableMerchandise) {
+            this.enableMerchandise = enableMerchandise;
+        }
     }
 
-        public static class YouTubeDataLimits {
+    public static class YouTubeDataLimits {
         private long maxVideoSize = 128L * 1024 * 1024 * 1024; // 128GB
         private int maxVideoLength = 12 * 60 * 60; // 12 hours in seconds
         private int maxTitleLength = 100;
@@ -52,6 +229,103 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
         private int maxCaptionSize = 1 * 1024 * 1024; // 1MB
         private int dailyUploadLimit = 50;
         private int rateLimit = 10000; // Quota units per day
+        
+        // Getters and setters
+        public long getMaxVideoSize() {
+            return maxVideoSize;
+        }
+        
+        public void setMaxVideoSize(long maxVideoSize) {
+            this.maxVideoSize = maxVideoSize;
+        }
+        
+        public int getMaxVideoLength() {
+            return maxVideoLength;
+        }
+        
+        public void setMaxVideoLength(int maxVideoLength) {
+            this.maxVideoLength = maxVideoLength;
+        }
+        
+        public int getMaxTitleLength() {
+            return maxTitleLength;
+        }
+        
+        public void setMaxTitleLength(int maxTitleLength) {
+            this.maxTitleLength = maxTitleLength;
+        }
+        
+        public int getMaxDescriptionLength() {
+            return maxDescriptionLength;
+        }
+        
+        public void setMaxDescriptionLength(int maxDescriptionLength) {
+            this.maxDescriptionLength = maxDescriptionLength;
+        }
+        
+        public int getMaxTags() {
+            return maxTags;
+        }
+        
+        public void setMaxTags(int maxTags) {
+            this.maxTags = maxTags;
+        }
+        
+        public int getMaxPlaylistItems() {
+            return maxPlaylistItems;
+        }
+        
+        public void setMaxPlaylistItems(int maxPlaylistItems) {
+            this.maxPlaylistItems = maxPlaylistItems;
+        }
+        
+        public int getMaxPlaylistsPerChannel() {
+            return maxPlaylistsPerChannel;
+        }
+        
+        public void setMaxPlaylistsPerChannel(int maxPlaylistsPerChannel) {
+            this.maxPlaylistsPerChannel = maxPlaylistsPerChannel;
+        }
+        
+        public int getMaxCommentLength() {
+            return maxCommentLength;
+        }
+        
+        public void setMaxCommentLength(int maxCommentLength) {
+            this.maxCommentLength = maxCommentLength;
+        }
+        
+        public int getMaxThumbnailSize() {
+            return maxThumbnailSize;
+        }
+        
+        public void setMaxThumbnailSize(int maxThumbnailSize) {
+            this.maxThumbnailSize = maxThumbnailSize;
+        }
+        
+        public int getMaxCaptionSize() {
+            return maxCaptionSize;
+        }
+        
+        public void setMaxCaptionSize(int maxCaptionSize) {
+            this.maxCaptionSize = maxCaptionSize;
+        }
+        
+        public int getDailyUploadLimit() {
+            return dailyUploadLimit;
+        }
+        
+        public void setDailyUploadLimit(int dailyUploadLimit) {
+            this.dailyUploadLimit = dailyUploadLimit;
+        }
+        
+        public int getRateLimit() {
+            return rateLimit;
+        }
+        
+        public void setRateLimit(int rateLimit) {
+            this.rateLimit = rateLimit;
+        }
     }
 
     // Video categories
@@ -304,6 +578,12 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
     public void setUploadPlaylistId(String uploadPlaylistId) {
         this.uploadPlaylistId = uploadPlaylistId;
     }
+    public String getUploadBaseUrl() {
+        return uploadBaseUrl;
+    }
+    public void setUploadBaseUrl(String uploadBaseUrl) {
+        this.uploadBaseUrl = uploadBaseUrl;
+    }
     public YouTubeDataFeatures getFeatures() {
         return features;
     }
@@ -315,197 +595,5 @@ public class YouTubeDataApiConfig extends SocialMediaAdapterConfig {
     }
     public void setLimits(YouTubeDataLimits limits) {
         this.limits = limits;
-    }
-    public boolean isEnableVideoUpload() {
-        return enableVideoUpload;
-    }
-    public void setEnableVideoUpload(boolean enableVideoUpload) {
-        this.enableVideoUpload = enableVideoUpload;
-    }
-    public boolean isEnableVideoManagement() {
-        return enableVideoManagement;
-    }
-    public void setEnableVideoManagement(boolean enableVideoManagement) {
-        this.enableVideoManagement = enableVideoManagement;
-    }
-    public boolean isEnablePlaylistManagement() {
-        return enablePlaylistManagement;
-    }
-    public void setEnablePlaylistManagement(boolean enablePlaylistManagement) {
-        this.enablePlaylistManagement = enablePlaylistManagement;
-    }
-    public boolean isEnableCommentManagement() {
-        return enableCommentManagement;
-    }
-    public void setEnableCommentManagement(boolean enableCommentManagement) {
-        this.enableCommentManagement = enableCommentManagement;
-    }
-    public boolean isEnableLiveStreaming() {
-        return enableLiveStreaming;
-    }
-    public void setEnableLiveStreaming(boolean enableLiveStreaming) {
-        this.enableLiveStreaming = enableLiveStreaming;
-    }
-    public boolean isEnableCommunityPosts() {
-        return enableCommunityPosts;
-    }
-    public void setEnableCommunityPosts(boolean enableCommunityPosts) {
-        this.enableCommunityPosts = enableCommunityPosts;
-    }
-    public boolean isEnableChannelManagement() {
-        return enableChannelManagement;
-    }
-    public void setEnableChannelManagement(boolean enableChannelManagement) {
-        this.enableChannelManagement = enableChannelManagement;
-    }
-    public boolean isEnableSubscriberManagement() {
-        return enableSubscriberManagement;
-    }
-    public void setEnableSubscriberManagement(boolean enableSubscriberManagement) {
-        this.enableSubscriberManagement = enableSubscriberManagement;
-    }
-    public boolean isEnableAnalytics() {
-        return enableAnalytics;
-    }
-    public void setEnableAnalytics(boolean enableAnalytics) {
-        this.enableAnalytics = enableAnalytics;
-    }
-    public boolean isEnableCaptions() {
-        return enableCaptions;
-    }
-    public void setEnableCaptions(boolean enableCaptions) {
-        this.enableCaptions = enableCaptions;
-    }
-    public boolean isEnableThumbnailUpload() {
-        return enableThumbnailUpload;
-    }
-    public void setEnableThumbnailUpload(boolean enableThumbnailUpload) {
-        this.enableThumbnailUpload = enableThumbnailUpload;
-    }
-    public boolean isEnableVideoEditing() {
-        return enableVideoEditing;
-    }
-    public void setEnableVideoEditing(boolean enableVideoEditing) {
-        this.enableVideoEditing = enableVideoEditing;
-    }
-    public boolean isEnableMonetization() {
-        return enableMonetization;
-    }
-    public void setEnableMonetization(boolean enableMonetization) {
-        this.enableMonetization = enableMonetization;
-    }
-    public boolean isEnableContentId() {
-        return enableContentId;
-    }
-    public void setEnableContentId(boolean enableContentId) {
-        this.enableContentId = enableContentId;
-    }
-    public boolean isEnablePremiere() {
-        return enablePremiere;
-    }
-    public void setEnablePremiere(boolean enablePremiere) {
-        this.enablePremiere = enablePremiere;
-    }
-    public boolean isEnableStories() {
-        return enableStories;
-    }
-    public void setEnableStories(boolean enableStories) {
-        this.enableStories = enableStories;
-    }
-    public boolean isEnableShorts() {
-        return enableShorts;
-    }
-    public void setEnableShorts(boolean enableShorts) {
-        this.enableShorts = enableShorts;
-    }
-    public boolean isEnableMemberships() {
-        return enableMemberships;
-    }
-    public void setEnableMemberships(boolean enableMemberships) {
-        this.enableMemberships = enableMemberships;
-    }
-    public boolean isEnableSuperChat() {
-        return enableSuperChat;
-    }
-    public void setEnableSuperChat(boolean enableSuperChat) {
-        this.enableSuperChat = enableSuperChat;
-    }
-    public boolean isEnableMerchandise() {
-        return enableMerchandise;
-    }
-    public void setEnableMerchandise(boolean enableMerchandise) {
-        this.enableMerchandise = enableMerchandise;
-    }
-    public long getMaxVideoSize() {
-        return maxVideoSize;
-    }
-    public void setMaxVideoSize(long maxVideoSize) {
-        this.maxVideoSize = maxVideoSize;
-    }
-    public int getMaxVideoLength() {
-        return maxVideoLength;
-    }
-    public void setMaxVideoLength(int maxVideoLength) {
-        this.maxVideoLength = maxVideoLength;
-    }
-    public int getMaxTitleLength() {
-        return maxTitleLength;
-    }
-    public void setMaxTitleLength(int maxTitleLength) {
-        this.maxTitleLength = maxTitleLength;
-    }
-    public int getMaxDescriptionLength() {
-        return maxDescriptionLength;
-    }
-    public void setMaxDescriptionLength(int maxDescriptionLength) {
-        this.maxDescriptionLength = maxDescriptionLength;
-    }
-    public int getMaxTags() {
-        return maxTags;
-    }
-    public void setMaxTags(int maxTags) {
-        this.maxTags = maxTags;
-    }
-    public int getMaxPlaylistItems() {
-        return maxPlaylistItems;
-    }
-    public void setMaxPlaylistItems(int maxPlaylistItems) {
-        this.maxPlaylistItems = maxPlaylistItems;
-    }
-    public int getMaxPlaylistsPerChannel() {
-        return maxPlaylistsPerChannel;
-    }
-    public void setMaxPlaylistsPerChannel(int maxPlaylistsPerChannel) {
-        this.maxPlaylistsPerChannel = maxPlaylistsPerChannel;
-    }
-    public int getMaxCommentLength() {
-        return maxCommentLength;
-    }
-    public void setMaxCommentLength(int maxCommentLength) {
-        this.maxCommentLength = maxCommentLength;
-    }
-    public int getMaxThumbnailSize() {
-        return maxThumbnailSize;
-    }
-    public void setMaxThumbnailSize(int maxThumbnailSize) {
-        this.maxThumbnailSize = maxThumbnailSize;
-    }
-    public int getMaxCaptionSize() {
-        return maxCaptionSize;
-    }
-    public void setMaxCaptionSize(int maxCaptionSize) {
-        this.maxCaptionSize = maxCaptionSize;
-    }
-    public int getDailyUploadLimit() {
-        return dailyUploadLimit;
-    }
-    public void setDailyUploadLimit(int dailyUploadLimit) {
-        this.dailyUploadLimit = dailyUploadLimit;
-    }
-    public int getRateLimit() {
-        return rateLimit;
-    }
-    public void setRateLimit(int rateLimit) {
-        this.rateLimit = rateLimit;
     }
 }

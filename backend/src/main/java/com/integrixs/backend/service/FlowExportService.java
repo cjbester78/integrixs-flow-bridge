@@ -11,8 +11,6 @@ import com.integrixs.shared.dto.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.certificate.CertificateDTO;
 import com.integrixs.shared.dto.export.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,15 +20,18 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for exporting integration flows with all dependencies.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class FlowExportService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExportService.class);
+
 
     private final IntegrationFlowRepository integrationFlowRepository;
     private final CommunicationAdapterRepository communicationAdapterRepository;

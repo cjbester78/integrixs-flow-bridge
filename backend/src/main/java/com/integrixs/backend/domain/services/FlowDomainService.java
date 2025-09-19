@@ -9,13 +9,13 @@ import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.shared.events.flow.FlowCreatedEvent;
 import com.integrixs.shared.events.flow.FlowStatusChangedEvent;
 import com.integrixs.shared.exceptions.BusinessException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for integration flow business logic.
@@ -25,10 +25,11 @@ import java.util.UUID;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FlowDomainService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowDomainService.class);
+
 
     private final IntegrationFlowRepository flowRepository;
     private final DomainEventPublisher eventPublisher;

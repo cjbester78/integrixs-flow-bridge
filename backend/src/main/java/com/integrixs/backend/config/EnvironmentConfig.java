@@ -1,8 +1,6 @@
 package com.integrixs.backend.config;
 
 import com.integrixs.shared.enums.EnvironmentType;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,8 +12,6 @@ import jakarta.annotation.PostConstruct;
  */
 @Configuration
 @ConfigurationProperties(prefix = "system.environment")
-@Getter
-@Setter
 public class EnvironmentConfig {
 
     /**

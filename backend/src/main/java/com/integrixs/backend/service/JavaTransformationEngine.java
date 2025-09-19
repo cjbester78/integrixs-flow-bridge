@@ -3,8 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.exception.BusinessException;
 import com.integrixs.data.model.TransformationCustomFunction;
 import com.integrixs.data.repository.TransformationCustomFunctionRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.tools.*;
@@ -17,15 +15,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for executing Java transformation functions
  * Replaces the JavaScript - based execution with proper Java compilation and execution
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class JavaTransformationEngine {
+
+    private static final Logger log = LoggerFactory.getLogger(JavaTransformationEngine.class);
+
 
     private final TransformationCustomFunctionRepository functionRepository;
     private final JavaCompilationService compilationService;

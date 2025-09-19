@@ -3,7 +3,6 @@ package com.integrixs.backend.performance;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -15,16 +14,20 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration for connection pool tuning across different components.
  * Provides optimized settings for database and HTTP connection pools.
  */
-@Slf4j
 @Configuration
 public class ConnectionPoolConfiguration {
 
     // Database connection pool settings
+
+    private static final Logger log = LoggerFactory.getLogger(ConnectionPoolConfiguration.class);
+
     @Value("$ {spring.datasource.hikari.maximum - pool - size:20}")
     private int dbMaxPoolSize;
 

@@ -4,8 +4,6 @@ import com.integrixs.backend.domain.repository.DomainMessageRepository;
 import com.integrixs.backend.domain.repository.DomainFlowExecutionRepository;
 import com.integrixs.data.model.Message.MessageStatus;
 import com.integrixs.data.model.FlowExecution.ExecutionStatus;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,9 +14,7 @@ import java.util.UUID;
  * Domain service for calculating execution statistics
  * Contains business logic for message and execution metrics
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class StatisticsCalculatorService {
 
     private final DomainMessageRepository messageRepository;

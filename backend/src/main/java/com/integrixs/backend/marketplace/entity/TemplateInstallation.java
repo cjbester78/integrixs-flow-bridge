@@ -1,10 +1,6 @@
 package com.integrixs.backend.marketplace.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import com.integrixs.data.model.BaseEntity;
 import com.integrixs.backend.auth.entity.User;
 
@@ -18,10 +14,6 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "template_installations")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class TemplateInstallation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -90,5 +82,105 @@ public class TemplateInstallation extends BaseEntity {
         UNINSTALLED,
         FAILED,
         UPDATING
+    }
+
+    // Default constructor
+    public TemplateInstallation() {
+    }
+
+    public FlowTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(FlowTemplate template) {
+        this.template = template;
+    }
+
+    public TemplateVersion getVersion() {
+        return version;
+    }
+
+    public void setVersion(TemplateVersion version) {
+        this.version = version;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
+
+    public UUID getFlowId() {
+        return flowId;
+    }
+
+    public void setFlowId(UUID flowId) {
+        this.flowId = flowId;
+    }
+
+    public LocalDateTime getInstalledAt() {
+        return installedAt;
+    }
+
+    public void setInstalledAt(LocalDateTime installedAt) {
+        this.installedAt = installedAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getLastUsedAt() {
+        return lastUsedAt;
+    }
+
+    public void setLastUsedAt(LocalDateTime lastUsedAt) {
+        this.lastUsedAt = lastUsedAt;
+    }
+
+    public InstallationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InstallationStatus status) {
+        this.status = status;
+    }
+
+    public boolean isAutoUpdateEnabled() {
+        return autoUpdateEnabled;
+    }
+
+    public void setAutoUpdateEnabled(boolean autoUpdateEnabled) {
+        this.autoUpdateEnabled = autoUpdateEnabled;
+    }
+
+    public LocalDateTime getUninstalledAt() {
+        return uninstalledAt;
+    }
+
+    public void setUninstalledAt(LocalDateTime uninstalledAt) {
+        this.uninstalledAt = uninstalledAt;
+    }
+
+    public String getUninstallReason() {
+        return uninstallReason;
+    }
+
+    public void setUninstallReason(String uninstallReason) {
+        this.uninstallReason = uninstallReason;
     }
 }

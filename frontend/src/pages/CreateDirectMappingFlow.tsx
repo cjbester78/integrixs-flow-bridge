@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigationHistory } from '@/hooks/useNavigationHistory';
 import { usePageReset } from '@/hooks/usePageReset';
 import { Button } from '@/components/ui/button';

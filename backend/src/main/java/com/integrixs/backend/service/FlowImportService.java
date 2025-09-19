@@ -11,8 +11,6 @@ import com.integrixs.data.repository.*;
 import com.integrixs.shared.dto.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.export.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for importing integration flows with validation and conflict resolution.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class FlowImportService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowImportService.class);
+
 
     private final IntegrationFlowRepository integrationFlowRepository;
     private final CommunicationAdapterRepository communicationAdapterRepository;

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.UUID;
 import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,8 +57,8 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     public Map<String, Object> getAdapterConfig() {
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("pageId", config.getPageId());
-        configMap.put("apiUrl", config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com");
-        configMap.put("apiVersion", config.getApiVersion() != null ? config.getApiVersion() : "v18.0");
+        configMap.put("apiUrl", config.getApiBaseUrl());
+        configMap.put("apiVersion", config.getApiVersion());
         configMap.put("pageAccessToken", config.getPageAccessToken());
         configMap.put("appSecret", config.getAppSecret());
         return configMap;
@@ -167,7 +168,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
             request.put("tag", messageTag);
         }
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -232,7 +233,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -259,7 +260,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -284,7 +285,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -314,7 +315,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -338,7 +339,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -380,7 +381,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -405,7 +406,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", messageData);
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -437,7 +438,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
 
         request.put("message", Map.of("attachment", attachment));
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -459,7 +460,7 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
                 "sender_action", action
        );
 
-        String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me/messages";
+        String url = config.getMessagesEndpoint();
         String response = executeApiCall(() -> makePostRequest(url, request));
 
         return createSuccessResponse(message.getCorrelationId(), response, "FACEBOOK_MESSENGER_OPERATION");
@@ -736,31 +737,9 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
         return AdapterConfiguration.AdapterTypeEnum.REST;
     }
     
-    @Override
-    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
-        // Convert the payload to MessageDTO for processing
-        MessageDTO message = new MessageDTO();
-        message.setPayload(payload.toString());
-        message.setHeaders(headers);
-        message.setCorrelationId(UUID.randomUUID().toString());
-        
-        MessageDTO result = processMessage(message);
-        return AdapterResult.success(result.getPayload(), "Message sent successfully");
-    }
-    
-    @Override
-    protected void doSenderInitialize() throws Exception {
-        log.debug("Initializing Facebook Messenger sender");
-    }
-    
-    @Override
-    protected void doSenderDestroy() throws Exception {
-        log.debug("Destroying Facebook Messenger sender");
-    }
     
     private String getApiUrl() {
-        return (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + 
-               (config.getApiVersion() != null ? config.getApiVersion() : "v18.0");
+        return config.getMessagesEndpoint().replace("/me/messages", "");
     }
     
     private Map<String, Object> getPayloadAsMap(MessageDTO message) {
@@ -804,15 +783,14 @@ public class FacebookMessengerOutboundAdapter extends AbstractSocialMediaOutboun
     
     @Override
     protected long getPollingIntervalMs() {
-        return 60000L; // Default to 60 seconds
+        return config.getPollingInterval() != null ? config.getPollingInterval() : 60000L;
     }
     
     @Override
     protected AdapterResult doTestConnection() throws Exception {
         try {
             // Test connection by making a simple API call
-            String url = (config.getApiBaseUrl() != null ? config.getApiBaseUrl() : "https://graph.facebook.com") + "/" + 
-                        (config.getApiVersion() != null ? config.getApiVersion() : "v18.0") + "/me";
+            String url = getApiUrl() + "/me";
             
             Map<String, String> params = new HashMap<>();
             params.put("access_token", config.getPageAccessToken());

@@ -2,8 +2,6 @@ package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.IntegrationFlow;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,8 +11,6 @@ import java.util.UUID;
  * Domain service for message processing logic
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MessageProcessingService {
 
     /**

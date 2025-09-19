@@ -1,20 +1,22 @@
 package com.integrixs.backend.plugin.documentation;
 
 import com.integrixs.backend.plugin.api.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generates documentation for plugins
  */
-@Slf4j
 public class PluginDocumentationGenerator {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginDocumentationGenerator.class);
+
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
 

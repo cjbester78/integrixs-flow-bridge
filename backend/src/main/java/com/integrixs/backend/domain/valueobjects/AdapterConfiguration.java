@@ -3,8 +3,6 @@ package com.integrixs.backend.domain.valueobjects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.shared.exceptions.ValidationException;
-import lombok.Value;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,10 +15,9 @@ import java.util.Map;
  * @author Integration Team
  * @since 1.0.0
  */
-@Value
 public class AdapterConfiguration {
 
-    Map<String, Object> properties;
+    private final Map<String, Object> properties;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -31,6 +28,15 @@ public class AdapterConfiguration {
      */
     private AdapterConfiguration(Map<String, Object> properties) {
         this.properties = Collections.unmodifiableMap(new HashMap<>(properties));
+    }
+
+    /**
+     * Gets the properties map (immutable).
+     *
+     * @return unmodifiable map of properties
+     */
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 
     /**
@@ -189,5 +195,25 @@ public class AdapterConfiguration {
         public AdapterConfiguration build() {
             return new AdapterConfiguration(properties);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AdapterConfiguration that = (AdapterConfiguration) o;
+        return properties.equals(that.properties);
+    }
+
+    @Override
+    public int hashCode() {
+        return properties.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "AdapterConfiguration{" +
+                "properties=" + properties +
+                '}';
     }
 }

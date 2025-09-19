@@ -1,6 +1,5 @@
 package com.integrixs.backend.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -12,10 +11,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.server.support.WebSocketHandlerMapping;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Configuration
 public class WebSocketHandlerMappingConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketHandlerMappingConfigurer.class);
+
 
     @Autowired
     private ApplicationContext applicationContext;

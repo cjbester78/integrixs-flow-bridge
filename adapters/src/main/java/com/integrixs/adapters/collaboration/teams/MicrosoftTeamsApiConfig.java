@@ -16,11 +16,15 @@ public class MicrosoftTeamsApiConfig extends SocialMediaAdapterConfig {
     private String botName;
     private String webhookUrl;
     private String notificationUrl;
-    private String graphApiUrl = "https://graph.microsoft.com/v1.0";
-    private String botFrameworkUrl = "https://smba.trafficmanager.net/teams";
+    private String graphApiUrl;
+    private String botFrameworkUrl;
     private TeamsFeatures features = new TeamsFeatures();
     private TeamsLimits limits = new TeamsLimits();
     private List<String> scopes; // Microsoft Graph API scopes
+    
+    // OAuth URLs
+    private String authorizationUrlBase;
+    private String tokenUrlBase;
 
         public static class TeamsFeatures {
         public boolean enableMessaging;
@@ -525,15 +529,25 @@ public class MicrosoftTeamsApiConfig extends SocialMediaAdapterConfig {
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
     }
+    
+    public void setAuthorizationUrlBase(String authorizationUrlBase) {
+        this.authorizationUrlBase = authorizationUrlBase;
+    }
+    
+    public void setTokenUrlBase(String tokenUrlBase) {
+        this.tokenUrlBase = tokenUrlBase;
+    }
     // Implement abstract methods from SocialMediaAdapterConfig
     @Override
     public String getAuthorizationUrl() {
-        return String.format("https://login.microsoftonline.com/%s/oauth2/v2.0/authorize", tenantId);
+        String baseUrl = authorizationUrlBase != null ? authorizationUrlBase : "https://login.microsoftonline.com";
+        return String.format("%s/%s/oauth2/v2.0/authorize", baseUrl, tenantId);
     }
 
     @Override
     public String getTokenUrl() {
-        return String.format("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantId);
+        String baseUrl = tokenUrlBase != null ? tokenUrlBase : "https://login.microsoftonline.com";
+        return String.format("%s/%s/oauth2/v2.0/token", baseUrl, tenantId);
     }
 
     @Override

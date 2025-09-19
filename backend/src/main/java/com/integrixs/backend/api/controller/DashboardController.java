@@ -5,22 +5,23 @@ import com.integrixs.shared.dto.DashboardStatsDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for dashboard metrics and statistics
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/dashboard")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Dashboard metrics and statistics")
 public class DashboardController {
+
+    private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
+
 
     private final DashboardApplicationService dashboardService;
 

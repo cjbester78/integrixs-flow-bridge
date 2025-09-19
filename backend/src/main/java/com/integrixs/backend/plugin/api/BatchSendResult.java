@@ -1,15 +1,11 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Result of a batch send operation
  */
-@Data
-@Builder
 public class BatchSendResult {
 
     /**

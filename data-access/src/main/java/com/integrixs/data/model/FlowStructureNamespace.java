@@ -2,7 +2,6 @@ package com.integrixs.data.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -20,12 +19,6 @@ import java.util.UUID;
 @Table(name = "flow_structure_namespaces",
        uniqueConstraints = @UniqueConstraint(columnNames = {"flow_structure_id", "prefix"}),
        indexes = @Index(name = "idx_flow_struct_ns", columnList = "flow_structure_id"))
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"flowStructure"})
 public class FlowStructureNamespace {
 
     /**
@@ -33,7 +26,6 @@ public class FlowStructureNamespace {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @EqualsAndHashCode.Include
     private UUID id;
 
     /**
@@ -64,7 +56,6 @@ public class FlowStructureNamespace {
      * Whether this is the default namespace
      */
     @Column(name = "is_default", nullable = false)
-    @Builder.Default
     private boolean isDefault = false;
 
     /**
@@ -73,4 +64,118 @@ public class FlowStructureNamespace {
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    // Default constructor
+    public FlowStructureNamespace() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public FlowStructure getFlowStructure() {
+        return flowStructure;
+    }
+
+    public void setFlowStructure(FlowStructure flowStructure) {
+        this.flowStructure = flowStructure;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public boolean isIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    // Builder
+    public static FlowStructureNamespaceBuilder builder() {
+        return new FlowStructureNamespaceBuilder();
+    }
+
+    public static class FlowStructureNamespaceBuilder {
+        private UUID id;
+        private FlowStructure flowStructure;
+        private String prefix;
+        private String uri;
+        private boolean isDefault;
+        private LocalDateTime createdAt;
+
+        public FlowStructureNamespaceBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public FlowStructureNamespaceBuilder flowStructure(FlowStructure flowStructure) {
+            this.flowStructure = flowStructure;
+            return this;
+        }
+
+        public FlowStructureNamespaceBuilder prefix(String prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        public FlowStructureNamespaceBuilder uri(String uri) {
+            this.uri = uri;
+            return this;
+        }
+
+        public FlowStructureNamespaceBuilder isDefault(boolean isDefault) {
+            this.isDefault = isDefault;
+            return this;
+        }
+
+        public FlowStructureNamespaceBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public FlowStructureNamespace build() {
+            FlowStructureNamespace instance = new FlowStructureNamespace();
+            instance.setId(this.id);
+            instance.setFlowStructure(this.flowStructure);
+            instance.setPrefix(this.prefix);
+            instance.setUri(this.uri);
+            instance.setIsDefault(this.isDefault);
+            instance.setCreatedAt(this.createdAt);
+            return instance;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "FlowStructureNamespace{" + 
+                "id=" + id + "prefix=" + prefix + "uri=" + uri + "isDefault=" + isDefault + "createdAt=" + createdAt + 
+                '}';
+    }
 }

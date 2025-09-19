@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +39,62 @@ import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
 public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(InstagramGraphOutboundAdapter.class);
 
+    @Value("${integrix.adapters.instagram.graph.media-endpoint:/media}")
+    private String mediaEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.media-publish-endpoint:/media_publish}")
+    private String mediaPublishEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.comments-endpoint:/comments}")
+    private String commentsEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.replies-endpoint:/replies}")
+    private String repliesEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.product-tags-endpoint:/product_tags}")
+    private String productTagsEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.stories-endpoint:/stories}")
+    private String storiesEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.tags-endpoint:/tags}")
+    private String tagsEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.insights-endpoint:/insights}")
+    private String insightsEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.hashtag-search-endpoint:/ig_hashtag_search}")
+    private String hashtagSearchEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.recent-media-endpoint:/recent_media}")
+    private String recentMediaEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.mentioned-media-endpoint:/mentioned_media}")
+    private String mentionedMediaEndpointPath;
+    
+    @Value("${integrix.adapters.instagram.graph.video-processing-initial-delay:5000}")
+    private long videoProcessingInitialDelay;
+    
+    @Value("${integrix.adapters.instagram.graph.video-processing-check-interval:5000}")
+    private long videoProcessingCheckInterval;
+    
+    @Value("${integrix.adapters.instagram.graph.reel-processing-delay:10000}")
+    private long reelProcessingDelay;
+    
+    @Value("${integrix.adapters.instagram.graph.default-polling-interval:60000}")
+    private long defaultPollingInterval;
+    
+    @Value("${integrix.adapters.instagram.graph.carousel-min-items:2}")
+    private int carouselMinItems;
+    
+    @Value("${integrix.adapters.instagram.graph.carousel-max-items:10}")
+    private int carouselMaxItems;
+    
+    @Value("${integrix.adapters.instagram.graph.default-api-version:v18.0}")
+    private String defaultApiVersion;
+    
+    @Value("${integrix.adapters.instagram.graph.default-api-base-url:https://graph.facebook.com}")
+    private String defaultApiBaseUrl;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -57,12 +114,14 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     @Override
     public MessageDTO processMessage(MessageDTO message) {
         if(config == null) {
-            throw new AdapterException("Instagram configuration is not set");
+            log.error("Instagram configuration is not set");
+            return createErrorResponse(message, "Instagram configuration is not set");
         }
 
         String operation = (String) message.getHeaders().get("operation");
         if(operation == null) {
-            throw new AdapterException("Operation header is required");
+            log.error("Operation header is required");
+            return createErrorResponse(message, "Operation header is required");
         }
 
         log.debug("Processing Instagram operation: {}", operation);
@@ -98,18 +157,12 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
                 case "SCHEDULE_POST":
                     return schedulePost(message);
                 default:
-                    throw new AdapterException("Unknown operation: " + operation);
+                    log.error("Unknown operation: {}", operation);
+                    return createErrorResponse(message, "Unknown operation: " + operation);
             }
         } catch(Exception e) {
             log.error("Error processing Instagram operation: " + operation, e);
-            MessageDTO errorResponse = new MessageDTO();
-            errorResponse.setCorrelationId(message.getCorrelationId());
-            errorResponse.setStatus(MessageStatus.FAILED);
-            errorResponse.setHeaders(Map.of(
-                "error", e.getMessage(),
-                "originalOperation", operation
-           ));
-            return errorResponse;
+            return createErrorResponse(message, e.getMessage());
         }
     }
 
@@ -117,10 +170,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
         // Step 1: Create media container
-        String containerUrl = String.format("%s/%s/%s/media",
+        String containerUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -147,10 +200,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         String containerId = containerData.path("id").asText();
 
         // Step 2: Publish the container
-        String publishUrl = String.format("%s/%s/%s/media_publish",
+        String publishUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaPublishEndpointPath);
 
         MultiValueMap<String, String> publishParams = new LinkedMultiValueMap<>();
         publishParams.add("access_token", getAccessToken());
@@ -166,10 +219,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
         // Step 1: Create video container
-        String containerUrl = String.format("%s/%s/%s/media",
+        String containerUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -191,11 +244,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         String containerId = containerData.path("id").asText();
 
         // Step 2: Check upload status(videos need time to process)
-        Thread.sleep(5000); // Wait 5 seconds before checking
+        Thread.sleep(videoProcessingInitialDelay);
 
-        String statusUrl = String.format("%s/%s/%s?fields = status_code&access_token = %s",
+        String statusUrl = String.format("%s/%s?fields=status_code&access_token=%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
             containerId,
             getAccessToken());
 
@@ -204,16 +256,16 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
 
         // Wait for video to finish processing
         while(!"FINISHED".equals(statusData.path("status_code").asText())) {
-            Thread.sleep(5000);
+            Thread.sleep(videoProcessingCheckInterval);
             statusResponse = restTemplate.getForEntity(statusUrl, String.class);
             statusData = objectMapper.readTree(statusResponse.getBody());
         }
 
         // Step 3: Publish the video
-        String publishUrl = String.format("%s/%s/%s/media_publish",
+        String publishUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaPublishEndpointPath);
 
         MultiValueMap<String, String> publishParams = new LinkedMultiValueMap<>();
         publishParams.add("access_token", getAccessToken());
@@ -229,18 +281,20 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         ArrayNode items = (ArrayNode) payload.path("items");
 
-        if(items.size() < 2 || items.size() > 10) {
-            throw new AdapterException("Carousel must have between 2 and 10 items");
+        if(items.size() < carouselMinItems || items.size() > carouselMaxItems) {
+            log.error("Carousel must have between {} and {} items", carouselMinItems, carouselMaxItems);
+            return createErrorResponse(message, 
+                String.format("Carousel must have between %d and %d items", carouselMinItems, carouselMaxItems));
         }
 
         // Step 1: Create containers for each item
         List<String> containerIds = new ArrayList<>();
 
         for(JsonNode item : items) {
-            String containerUrl = String.format("%s/%s/%s/media",
+            String containerUrl = String.format("%s/%s%s",
                 config.getBaseUrl(),
-                config.getApiVersion(),
-                config.getInstagramBusinessAccountId());
+                config.getInstagramBusinessAccountId(),
+                mediaEndpointPath);
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("access_token", getAccessToken());
@@ -265,10 +319,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         }
 
         // Step 2: Create carousel container
-        String carouselUrl = String.format("%s/%s/%s/media",
+        String carouselUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaEndpointPath);
 
         MultiValueMap<String, String> carouselParams = new LinkedMultiValueMap<>();
         carouselParams.add("access_token", getAccessToken());
@@ -286,10 +340,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         String carouselId = carouselData.path("id").asText();
 
         // Step 3: Publish carousel
-        String publishUrl = String.format("%s/%s/%s/media_publish",
+        String publishUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaPublishEndpointPath);
 
         MultiValueMap<String, String> publishParams = new LinkedMultiValueMap<>();
         publishParams.add("access_token", getAccessToken());
@@ -305,10 +359,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
         // Reels are published similar to videos but with specific requirements
-        String containerUrl = String.format("%s/%s/%s/media",
+        String containerUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -335,13 +389,13 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         String containerId = containerData.path("id").asText();
 
         // Wait for processing
-        Thread.sleep(10000);
+        Thread.sleep(reelProcessingDelay);
 
         // Publish the reel
-        String publishUrl = String.format("%s/%s/%s/media_publish",
+        String publishUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaPublishEndpointPath);
 
         MultiValueMap<String, String> publishParams = new LinkedMultiValueMap<>();
         publishParams.add("access_token", getAccessToken());
@@ -356,10 +410,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     private MessageDTO publishStory(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String containerUrl = String.format("%s/%s/%s/media",
+        String containerUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -381,10 +435,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         String containerId = containerData.path("id").asText();
 
         // Publish story
-        String publishUrl = String.format("%s/%s/%s/media_publish",
+        String publishUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaPublishEndpointPath);
 
         MultiValueMap<String, String> publishParams = new LinkedMultiValueMap<>();
         publishParams.add("access_token", getAccessToken());
@@ -406,10 +460,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s/comments",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            mediaId);
+            mediaId,
+            commentsEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -428,9 +482,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("comment_id").asText();
 
-        String url = String.format("%s/%s/%s?access_token = %s",
+        String url = String.format("%s/%s?access_token=%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
             commentId,
             getAccessToken());
 
@@ -446,9 +499,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("comment_id").asText();
 
-        String url = String.format("%s/%s/%s",
+        String url = String.format("%s/%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
             commentId);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -468,10 +520,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("comment_id").asText();
 
-        String url = String.format("%s/%s/%s/replies",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            commentId);
+            commentId,
+            repliesEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -490,9 +542,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s",
+        String url = String.format("%s/%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
             mediaId);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -515,9 +566,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s?access_token = %s",
+        String url = String.format("%s/%s?access_token=%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
             mediaId,
             getAccessToken());
 
@@ -533,10 +583,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s/insights",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            mediaId);
+            mediaId,
+            insightsEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -545,7 +595,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -557,9 +607,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     }
 
     private MessageDTO getAccountInfo(MessageDTO message) throws Exception {
-        String url = String.format("%s/%s/%s",
+        String url = String.format("%s/%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
             config.getInstagramBusinessAccountId());
 
         Map<String, String> params = new HashMap<>();
@@ -570,7 +619,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -584,10 +633,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     private MessageDTO getAccountInsights(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = String.format("%s/%s/%s/insights",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            insightsEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -598,7 +647,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -610,10 +659,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     }
 
     private MessageDTO getAudienceInsights(MessageDTO message) throws Exception {
-        String url = String.format("%s/%s/%s/insights",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            insightsEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -623,7 +672,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -638,9 +687,9 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String hashtag = payload.path("hashtag").asText().replace("#", "");
 
-        String url = String.format("%s/%s/ig_hashtag_search",
+        String url = String.format("%s%s",
             config.getBaseUrl(),
-            config.getApiVersion());
+            hashtagSearchEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -666,10 +715,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         String hashtagId = payload.path("hashtag_id").asText();
 
         // Get recent media for hashtag
-        String recentUrl = String.format("%s/%s/%s/recent_media",
+        String recentUrl = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            hashtagId);
+            hashtagId,
+            recentMediaEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -694,9 +743,9 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String query = payload.path("query").asText();
 
-        String url = String.format("%s/%s/ig_hashtag_search",
+        String url = String.format("%s%s",
             config.getBaseUrl(),
-            config.getApiVersion());
+            hashtagSearchEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -721,10 +770,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s/product_tags",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            mediaId);
+            mediaId,
+            productTagsEndpointPath);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("access_token", getAccessToken());
@@ -743,10 +792,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s/product_tags",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            mediaId);
+            mediaId,
+            productTagsEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -754,7 +803,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -766,10 +815,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     }
 
     private MessageDTO getMediaDiscovery(MessageDTO message) throws Exception {
-        String url = String.format("%s/%s/%s/media",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mediaEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -780,7 +829,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -792,10 +841,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     }
 
     private MessageDTO getUserTags(MessageDTO message) throws Exception {
-        String url = String.format("%s/%s/%s/tags",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            tagsEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -804,7 +853,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -855,16 +904,20 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         return getDecryptedCredential("accessToken");
     }
 
-    private void validateConfiguration() throws AdapterException {
+    private boolean validateConfiguration() {
         if(config == null) {
-            throw new AdapterException("Instagram configuration is not set");
+            log.error("Instagram configuration is not set");
+            return false;
         }
         if(config.getInstagramBusinessAccountId() == null || config.getInstagramBusinessAccountId().isEmpty()) {
-            throw new AdapterException("Instagram Business Account ID is required");
+            log.error("Instagram Business Account ID is required");
+            return false;
         }
         if(config.getAccessToken() == null || config.getAccessToken().isEmpty()) {
-            throw new AdapterException("Access token is required");
+            log.error("Access token is required");
+            return false;
         }
+        return true;
     }
 
     public void setConfiguration(InstagramGraphApiConfig config) {
@@ -883,10 +936,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String mediaId = payload.path("media_id").asText();
 
-        String url = String.format("%s/%s/%s/comments",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            mediaId);
+            mediaId,
+            commentsEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -895,7 +948,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -907,10 +960,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     }
 
     private MessageDTO getMentions(MessageDTO message) throws Exception {
-        String url = String.format("%s/%s/%s/mentioned_media",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            mentionedMediaEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -919,7 +972,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -935,10 +988,10 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     }
 
     private MessageDTO getStories(MessageDTO message) throws Exception {
-        String url = String.format("%s/%s/%s/stories",
+        String url = String.format("%s/%s%s",
             config.getBaseUrl(),
-            config.getApiVersion(),
-            config.getInstagramBusinessAccountId());
+            config.getInstagramBusinessAccountId(),
+            storiesEndpointPath);
 
         Map<String, String> params = new HashMap<>();
         params.put("access_token", getAccessToken());
@@ -947,7 +1000,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append("?");
         params.forEach((key, value) ->
-            urlBuilder.append(key).append(" = ").append(value).append("&"));
+            urlBuilder.append(key).append("=").append(value).append("&"));
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> request = new HttpEntity<>(headers);
@@ -961,7 +1014,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     private MessageDTO schedulePost(MessageDTO message) throws Exception {
         // Instagram doesn't support scheduling through API yet
         // This would need to be implemented with a scheduling service
-        throw new AdapterException("Post scheduling is not yet supported by Instagram API");
+        log.error("Post scheduling is not yet supported by Instagram API");
+        return createErrorResponse(message, "Post scheduling is not yet supported by Instagram API");
     }
     
     protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
@@ -977,7 +1031,9 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     
     protected void doSenderInitialize() throws Exception {
         log.debug("Initializing Instagram Graph sender");
-        validateConfiguration();
+        if (!validateConfiguration()) {
+            throw new Exception("Invalid Instagram configuration");
+        }
     }
     
     protected void doSenderDestroy() throws Exception {
@@ -988,9 +1044,8 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     protected AdapterResult doTestConnection() throws Exception {
         try {
             // Test connection by making a simple API call
-            String url = String.format("%s/%s/%s",
-                config.getBaseUrl() != null ? config.getBaseUrl() : "https://graph.facebook.com",
-                config.getApiVersion() != null ? config.getApiVersion() : "v18.0",
+            String url = String.format("%s/%s",
+                config.getBaseUrl() != null ? config.getBaseUrl() : defaultApiBaseUrl,
                 config.getInstagramBusinessAccountId());
             
             Map<String, String> params = new HashMap<>();
@@ -1037,7 +1092,7 @@ public class InstagramGraphOutboundAdapter extends AbstractSocialMediaOutboundAd
     
     @Override
     protected long getPollingIntervalMs() {
-        return 60000L; // Default to 60 seconds
+        return defaultPollingInterval;
     }
 
 }

@@ -3,24 +3,25 @@ package com.integrixs.backend.api.controller;
 import com.integrixs.backend.logging.BusinessOperation;
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger;
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test controller to verify enhanced logging functionality.
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/logging - test")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class LoggingTestController {
+
+    private static final Logger log = LoggerFactory.getLogger(LoggingTestController.class);
+
 
     private final EnhancedFlowExecutionLogger flowLogger;
 

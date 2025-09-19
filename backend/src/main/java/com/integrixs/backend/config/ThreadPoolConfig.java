@@ -1,8 +1,6 @@
 package com.integrixs.backend.config;
 
 import com.integrixs.backend.interceptor.MDCTaskDecorator;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -11,15 +9,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Thread pool configuration with MDC context propagation.
  * Provides various thread pools for different use cases.
  */
-@Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class ThreadPoolConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(ThreadPoolConfig.class);
+
 
     private final MDCTaskDecorator mdcTaskDecorator;
 

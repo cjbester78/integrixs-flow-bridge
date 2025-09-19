@@ -1,20 +1,11 @@
 package com.integrixs.backend.api.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.validation.constraints.NotBlank;
 import java.util.Map;
 
 /**
  * Request object for testing an adapter connection
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class TestAdapterRequest {
 
     @NotBlank(message = "Adapter ID is required")
@@ -24,6 +15,33 @@ public class TestAdapterRequest {
 
     private Map<String, String> testParameters;
 
-    @Builder.Default
     private boolean validateOnly = false;
+
+    // Default constructor
+    public TestAdapterRequest() {
+    }
+
+    public String getAdapterId() {
+        return adapterId;
+    }
+
+    public void setAdapterId(String adapterId) {
+        this.adapterId = adapterId;
+    }
+
+    public String getTestData() {
+        return testData;
+    }
+
+    public void setTestData(String testData) {
+        this.testData = testData;
+    }
+
+    public boolean isValidateOnly() {
+        return validateOnly;
+    }
+
+    public void setValidateOnly(boolean validateOnly) {
+        this.validateOnly = validateOnly;
+    }
 }

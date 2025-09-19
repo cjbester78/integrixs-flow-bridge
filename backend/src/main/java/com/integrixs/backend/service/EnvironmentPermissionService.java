@@ -4,8 +4,6 @@ import com.integrixs.backend.config.EnvironmentConfig;
 import com.integrixs.backend.exception.ForbiddenException;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.shared.enums.EnvironmentType;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -13,15 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing environment - based permissions.
  * Enforces restrictions based on the system environment type.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class EnvironmentPermissionService {
+
+    private static final Logger log = LoggerFactory.getLogger(EnvironmentPermissionService.class);
+
 
     private final EnvironmentConfig environmentConfig;
 

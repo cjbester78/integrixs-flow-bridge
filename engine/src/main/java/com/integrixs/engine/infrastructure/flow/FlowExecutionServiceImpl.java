@@ -13,8 +13,6 @@ import com.integrixs.engine.domain.service.AdapterExecutionService;
 import com.integrixs.engine.domain.service.FlowExecutionService;
 import com.integrixs.engine.mapper.HierarchicalXmlFieldMapper;
 import com.integrixs.engine.service.MessageRoutingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -23,20 +21,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure implementation of FlowExecutionService
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FlowExecutionServiceImpl implements FlowExecutionService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionServiceImpl.class);
+
 
     private final AdapterExecutionService adapterExecutionService;
     private final MessageRoutingService messageRoutingService;
     private final HierarchicalXmlFieldMapper xmlFieldMapper;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final CommunicationAdapterRepository communicationAdapterRepository;
+
+    public FlowExecutionServiceImpl(AdapterExecutionService adapterExecutionService, MessageRoutingService messageRoutingService, HierarchicalXmlFieldMapper xmlFieldMapper, IntegrationFlowRepository integrationFlowRepository, CommunicationAdapterRepository communicationAdapterRepository) {
+        this.adapterExecutionService = adapterExecutionService;
+        this.messageRoutingService = messageRoutingService;
+        this.xmlFieldMapper = xmlFieldMapper;
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.communicationAdapterRepository = communicationAdapterRepository;
+    }
 
     @Override
     public FlowExecutionResult executeFlow(IntegrationFlow flow, Object message, FlowExecutionContext context) {

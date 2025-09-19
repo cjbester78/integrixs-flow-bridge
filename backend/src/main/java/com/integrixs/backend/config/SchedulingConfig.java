@@ -1,8 +1,6 @@
 package com.integrixs.backend.config;
 
 import com.integrixs.backend.interceptor.MDCTaskDecorator;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,16 +14,19 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Scheduling configuration with MDC context propagation.
  * Ensures that scheduled tasks maintain logging context.
  */
-@Slf4j
 @Configuration
 @EnableScheduling
-@RequiredArgsConstructor
 public class SchedulingConfig implements SchedulingConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(SchedulingConfig.class);
+
 
     private final MDCTaskDecorator mdcTaskDecorator;
 

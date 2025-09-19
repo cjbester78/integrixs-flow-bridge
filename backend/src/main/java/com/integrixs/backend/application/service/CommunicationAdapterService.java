@@ -18,8 +18,6 @@ import com.integrixs.data.model.ExternalAuthentication;
 import com.integrixs.data.repository.BusinessComponentRepository;
 import com.integrixs.data.repository.ExternalAuthenticationRepository;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,14 +26,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for communication adapter use cases
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class CommunicationAdapterService {
+
+    private static final Logger log = LoggerFactory.getLogger(CommunicationAdapterService.class);
+
 
     private final CommunicationAdapterRepository adapterRepository;
     private final AdapterValidationService validationService;

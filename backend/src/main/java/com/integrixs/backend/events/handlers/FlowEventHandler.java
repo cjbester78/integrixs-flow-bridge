@@ -4,12 +4,12 @@ import com.integrixs.monitoring.service.SystemLogService;
 import com.integrixs.shared.events.flow.FlowCreatedEvent;
 import com.integrixs.shared.events.flow.FlowExecutedEvent;
 import com.integrixs.shared.events.flow.FlowStatusChangedEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Event handler for flow - related domain events.
@@ -17,10 +17,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class FlowEventHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowEventHandler.class);
+
 
     private final SystemLogService systemLogService;
 

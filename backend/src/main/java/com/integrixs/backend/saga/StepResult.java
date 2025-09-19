@@ -1,8 +1,5 @@
 package com.integrixs.backend.saga;
 
-import lombok.Builder;
-import lombok.Data;
-
 /**
  * Result of a saga step execution.
  *
@@ -10,8 +7,6 @@ import lombok.Data;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@Builder
 public class StepResult<T> {
 
     private String stepName;

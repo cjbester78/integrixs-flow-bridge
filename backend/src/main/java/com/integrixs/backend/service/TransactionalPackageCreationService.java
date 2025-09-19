@@ -2,6 +2,11 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.*;
 import com.integrixs.data.repository.*;
+import com.integrixs.backend.dto.PackageCreationRequest;
+import com.integrixs.backend.dto.PackageCreationResult;
+import com.integrixs.backend.dto.PackageCreationRequest.AdapterRequest;
+import com.integrixs.backend.dto.PackageCreationRequest.StructureRequest;
+import com.integrixs.backend.dto.PackageCreationRequest.TransformationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +18,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

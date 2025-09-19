@@ -3,8 +3,6 @@ package com.integrixs.backend.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.SystemLog;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,11 +12,11 @@ import java.util.Map;
  * Service for encrypting sensitive data in audit logs and system logs.
  * Extends FieldEncryptionService to handle audit - specific encryption needs.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuditLogEncryptionService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuditLogEncryptionService.class);
+    
     private final FieldEncryptionService fieldEncryptionService;
     private final ObjectMapper objectMapper;
 

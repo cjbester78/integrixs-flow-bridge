@@ -4,22 +4,23 @@ import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
 import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.CommunicationAdapter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for aggregating integration metrics
  * Contains business logic for calculating flow and adapter statistics
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MetricsAggregatorService {
+
+    private static final Logger log = LoggerFactory.getLogger(MetricsAggregatorService.class);
+
 
     private final IntegrationFlowRepository flowRepository;
     private final CommunicationAdapterRepository adapterRepository;

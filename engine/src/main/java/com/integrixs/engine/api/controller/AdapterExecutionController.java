@@ -7,26 +7,31 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for adapter execution operations
  */
-@Slf4j
 @RestController
-@RequestMapping("/api/adapter - execution")
-@RequiredArgsConstructor
+@RequestMapping("/api/adapter-execution")
 @Tag(name = "Adapter Execution", description = "Operations for executing adapters")
 public class AdapterExecutionController {
 
+    private static final Logger log = LoggerFactory.getLogger(AdapterExecutionController.class);
+
+
     private final AdapterExecutionApplicationService adapterExecutionApplicationService;
+
+    public AdapterExecutionController(AdapterExecutionApplicationService adapterExecutionApplicationService) {
+        this.adapterExecutionApplicationService = adapterExecutionApplicationService;
+    }
 
     /**
      * Fetch data from an adapter
@@ -34,7 +39,7 @@ public class AdapterExecutionController {
      * @param request Execution request
      * @return Execution response
      */
-    @PostMapping("/fetch/ {adapterId}")
+    @PostMapping("/fetch/{adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Fetch data from an adapter")
     public ResponseEntity<AdapterExecutionResponseDTO> fetchData(
@@ -80,7 +85,7 @@ public class AdapterExecutionController {
      * @param request Execution request
      * @return Future with execution response
      */
-    @PostMapping("/fetch - async/ {adapterId}")
+    @PostMapping("/fetch -async/ {adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Fetch data from an adapter asynchronously")
     public CompletableFuture<ResponseEntity<AdapterExecutionResponseDTO>> fetchDataAsync(
@@ -105,7 +110,7 @@ public class AdapterExecutionController {
      * @param request Execution request
      * @return Future with execution response
      */
-    @PostMapping("/send - async/ {adapterId}")
+    @PostMapping("/send -async/ {adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Send data to an adapter asynchronously")
     public CompletableFuture<ResponseEntity<AdapterExecutionResponseDTO>> sendDataAsync(
@@ -129,7 +134,7 @@ public class AdapterExecutionController {
      * @param adapterId Adapter ID
      * @return Map of capabilities
      */
-    @GetMapping("/ {adapterId}/capabilities")
+    @GetMapping("/{adapterId}/capabilities")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Get adapter capabilities")
     public ResponseEntity<Map<String, Object>> getAdapterCapabilities(
@@ -146,7 +151,7 @@ public class AdapterExecutionController {
      * @param adapterId Adapter ID
      * @return Health status
      */
-    @GetMapping("/ {adapterId}/health")
+    @GetMapping("/{adapterId}/health")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     @Operation(summary = "Check adapter health")
     public ResponseEntity<Map<String, Object>> checkAdapterHealth(
@@ -170,7 +175,7 @@ public class AdapterExecutionController {
      * @param request Optional test configuration
      * @return Test result
      */
-    @PostMapping("/ {adapterId}/test")
+    @PostMapping("/{adapterId}/test")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     @Operation(summary = "Test adapter connection")
     public ResponseEntity<AdapterExecutionResponseDTO> testAdapter(

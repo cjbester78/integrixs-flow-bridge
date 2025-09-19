@@ -1,6 +1,9 @@
 package com.integrixs.backend.camunda;
 
 import com.integrixs.backend.service.NotificationService;
+import com.integrixs.data.model.Alert;
+import com.integrixs.data.model.AlertRule;
+import com.integrixs.data.repository.NotificationChannelRepository;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.slf4j.Logger;
@@ -23,6 +26,9 @@ public class IntegrixErrorDelegate implements JavaDelegate {
 
     @Autowired(required = false)
     private NotificationService notificationService;
+
+    @Autowired(required = false)
+    private NotificationChannelRepository notificationChannelRepository;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
@@ -143,7 +149,18 @@ public class IntegrixErrorDelegate implements JavaDelegate {
                 getErrorCount(execution)
            );
 
-            notificationService.sendErrorNotification(subject, message, errorDetails);
+            // Create an alert for the error notification
+            Alert errorAlert = Alert.builder()
+                .title(subject)
+                .message(message)
+                .severity(AlertRule.AlertSeverity.HIGH)
+                .details(errorDetails)
+                .build();
+            
+            // Send to default error notification channel (first available channel)
+            notificationChannelRepository.findByEnabledTrue().stream()
+                .findFirst()
+                .ifPresent(channel -> notificationService.sendNotification(channel, errorAlert));
             logger.info("Error notification sent");
 
         } catch(Exception e) {

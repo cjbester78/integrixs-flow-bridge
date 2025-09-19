@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -39,10 +40,17 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter 
     private static final Logger log = LoggerFactory.getLogger(LinkedInOutboundAdapter.class);
 
 
-    private static final String LINKEDIN_API_BASE = "https://api.linkedin.com/v2";
-    private static final String LINKEDIN_API_REST_BASE = "https://api.linkedin.com/rest";
-    private static final String LINKEDIN_MEDIA_UPLOAD = "https://api.linkedin.com/mediaUpload";
-    private static final String LINKEDIN_API_UGC = "https://api.linkedin.com/v2";
+    @Value("${integrix.adapters.linkedin.api-base-url:https://api.linkedin.com/v2}")
+    private String LINKEDIN_API_BASE;
+    
+    @Value("${integrix.adapters.linkedin.rest-api-base-url:https://api.linkedin.com/rest}")
+    private String LINKEDIN_API_REST_BASE;
+    
+    @Value("${integrix.adapters.linkedin.media-upload-url:https://api.linkedin.com/mediaUpload}")
+    private String LINKEDIN_MEDIA_UPLOAD;
+    
+    @Value("${integrix.adapters.linkedin.ugc-api-base-url:https://api.linkedin.com/v2}")
+    private String LINKEDIN_API_UGC;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -705,9 +713,19 @@ public class LinkedInOutboundAdapter extends AbstractSocialMediaOutboundAdapter 
             return restTemplate.exchange(builder.toUriString(), method, entity, String.class);
         } catch(HttpClientErrorException e) {
             log.error("LinkedIn API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AdapterException("LinkedIn API request failed", e);
+            // Return error response with status code and error details
+            ObjectNode errorResponse = objectMapper.createObjectNode();
+            errorResponse.put("error", "LinkedIn API request failed");
+            errorResponse.put("status", e.getStatusCode().value());
+            errorResponse.put("message", e.getResponseBodyAsString());
+            return ResponseEntity.status(e.getStatusCode()).body(errorResponse.toString());
         } catch(Exception e) {
-            throw new AdapterException("Failed to make API call", e);
+            log.error("Failed to make API call", e);
+            // Return internal server error response
+            ObjectNode errorResponse = objectMapper.createObjectNode();
+            errorResponse.put("error", "Failed to make API call");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse.toString());
         }
     }
 

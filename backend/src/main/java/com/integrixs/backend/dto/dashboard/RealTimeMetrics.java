@@ -1,7 +1,5 @@
 package com.integrixs.backend.dto.dashboard;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +7,6 @@ import java.util.Map;
 /**
  * Real - time metrics for the performance dashboard.
  */
-@Data
 public class RealTimeMetrics {
 
     private LocalDateTime timestamp;
@@ -31,4 +28,16 @@ public class RealTimeMetrics {
 
     // Throughput rates
     private Map<String, Double> throughputRates;
+
+    // Default constructor
+    public RealTimeMetrics() {
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 }

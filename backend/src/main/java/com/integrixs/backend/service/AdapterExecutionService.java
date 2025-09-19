@@ -32,6 +32,46 @@ import java.util.UUID;
  */
 @Service
 public class AdapterExecutionService {
+    
+    /**
+     * Interface for adapter handlers
+     */
+    public interface AdapterHandler {
+        ExecutionResult execute(CommunicationAdapter adapter, Map<String, Object> context);
+    }
+    
+    /**
+     * Result of adapter execution
+     */
+    public static class ExecutionResult {
+        private boolean success;
+        private Object data;
+        private String error;
+        private Map<String, Object> metadata;
+        
+        public ExecutionResult(boolean success, Object data) {
+            this.success = success;
+            this.data = data;
+            this.metadata = new HashMap<>();
+        }
+        
+        public ExecutionResult(boolean success, Object data, String error) {
+            this.success = success;
+            this.data = data;
+            this.error = error;
+            this.metadata = new HashMap<>();
+        }
+        
+        // Getters and setters
+        public boolean isSuccess() { return success; }
+        public void setSuccess(boolean success) { this.success = success; }
+        public Object getData() { return data; }
+        public void setData(Object data) { this.data = data; }
+        public String getError() { return error; }
+        public void setError(String error) { this.error = error; }
+        public Map<String, Object> getMetadata() { return metadata; }
+        public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(AdapterExecutionService.class);
 

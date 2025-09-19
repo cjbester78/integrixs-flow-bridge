@@ -1,7 +1,5 @@
 package com.integrixs.backend.util;
 
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 
 import java.util.Map;
@@ -13,7 +11,6 @@ import java.util.function.Supplier;
  * Utility class for MDC context propagation in various scenarios.
  * Helps maintain logging context across thread boundaries.
  */
-@Slf4j
 @UtilityClass
 public class MDCContextUtil {
 

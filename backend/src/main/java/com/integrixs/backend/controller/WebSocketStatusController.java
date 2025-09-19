@@ -1,7 +1,6 @@
 package com.integrixs.backend.controller;
 
 import jakarta.servlet.ServletContext;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,11 +11,15 @@ import org.springframework.web.socket.server.support.WebSocketHandlerMapping;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/websocket - test")
 public class WebSocketStatusController {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketStatusController.class);
+
 
     @Autowired
     private ApplicationContext applicationContext;

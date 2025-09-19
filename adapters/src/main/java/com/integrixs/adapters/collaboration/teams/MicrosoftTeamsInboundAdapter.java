@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -113,9 +114,13 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
     }
 
 
-    private static final String LOGIN_URL = "https://login.microsoftonline.com/%s/oauth2/v2.0/token";
+    @Value("${integrix.adapters.teams.authorization-url-base:https://login.microsoftonline.com}")
+    private String authorizationUrlBase;
+    
     private static final String SUBSCRIPTION_PATH = "/subscriptions";
-    private static final long TOKEN_REFRESH_BUFFER = 300000; // 5 minutes before expiry
+    
+    @Value("${integrix.adapters.teams.token-refresh-buffer:300000}")
+    private long TOKEN_REFRESH_BUFFER; // 5 minutes before expiry
 
     @Autowired
     private MicrosoftTeamsApiConfig config;
@@ -192,7 +197,7 @@ public class MicrosoftTeamsInboundAdapter extends AbstractSocialMediaInboundAdap
             synchronized(tokenLock) {
                 log.info("Refreshing Microsoft Teams access token");
 
-                String tokenUrl = String.format(LOGIN_URL, config.getTenantId());
+                String tokenUrl = String.format("%s/%s/oauth2/v2.0/token", authorizationUrlBase, config.getTenantId());
 
                 MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
                 params.add("client_id", config.getClientId());

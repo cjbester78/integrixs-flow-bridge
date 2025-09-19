@@ -6,7 +6,11 @@ import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.telegram.TelegramBotApiConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
-import com.integrixs.shared.enums.AdapterType;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,7 +32,6 @@ import java.util.*;
 public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(TelegramBotOutboundAdapter.class);
 
-
     private static final String API_URL_FORMAT = "%s/bot%s/%s";
 
     @Autowired
@@ -40,22 +43,42 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Override
-    public AdapterType getType() {
-        return AdapterType.REST;
+    @Autowired
+    public TelegramBotOutboundAdapter(RateLimiterService rateLimiterService,
+                                     CredentialEncryptionService credentialEncryptionService) {
+        super(rateLimiterService, credentialEncryptionService);
     }
 
     @Override
-    public String getName() {
-        return "Telegram Bot API Outbound Adapter";
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("botToken", config.getBotToken());
+        configMap.put("apiUrl", config.getApiUrl());
+        configMap.put("webhookUrl", config.getWebhookUrl());
+        configMap.put("webhookPath", config.getWebhookPath());
+        configMap.put("webhookSecret", config.getWebhookSecret());
+        configMap.put("defaultChatId", config.getDefaultChatId());
+        configMap.put("features", config.getFeatures());
+        configMap.put("limits", config.getLimits());
+        return configMap;
     }
 
     @Override
     public MessageDTO processMessage(MessageDTO message) {
         try {
-            String operation = message.getHeaders().get("operation");
+            String operation = (String) message.getHeaders().get("operation");
             if(operation == null) {
-                throw new AdapterException("Operation header is required");
+                return createErrorResponse(message, "Operation header is required");
             }
 
             log.info("Processing Telegram operation: {}", operation);
@@ -89,7 +112,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 case "SEND_POLL":
                     return sendPoll(message);
                 case "SEND_DICE":
-                    return sendDice(message);
+                    return sendDiceMessage(message);
                 case "SEND_STICKER":
                     return sendSticker(message);
 
@@ -123,7 +146,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 case "GET_CHAT_MEMBER":
                     return getChatMember(message);
                 case "SET_CHAT_PERMISSIONS":
-                    return setChatPermissions(message);
+                    return setChatPermissionsMessage(message);
                 case "SET_CHAT_TITLE":
                     return setChatTitle(message);
                 case "SET_CHAT_DESCRIPTION":
@@ -143,7 +166,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
 
                 // User info
                 case "GET_USER_PROFILE_PHOTOS":
-                    return getUserProfilePhotos(message);
+                    return getUserProfilePhotosMessage(message);
 
                 // File operations
                 case "GET_FILE":
@@ -162,18 +185,18 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                     return deleteWebhook(message);
 
                 default:
-                    throw new AdapterException("Unknown operation: " + operation);
+                    return createErrorResponse(message, "Unknown operation: " + operation);
             }
         } catch(Exception e) {
             log.error("Error processing Telegram operation", e);
-            throw new AdapterException("Failed to process operation", e);
+            return createErrorResponse(message, "Failed to process operation: " + e.getMessage());
         }
     }
 
     // MessageDTO Operations
     private MessageDTO sendMessage(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
             Map<String, Object> params = new HashMap<>();
 
             params.put("chat_id", content.get("chat_id").asText());
@@ -209,16 +232,20 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("sendMessage", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send message - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending message", e);
-            throw new AdapterException("Failed to send message", e);
+            return createErrorResponse(message, "Failed to send message: " + e.getMessage());
         }
     }
 
     private MessageDTO sendPhoto(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             if(content.has("photo_data")) {
                 // Photo upload with multipart
@@ -232,11 +259,15 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 addMediaOptionalParams(params, content);
 
                 JsonNode response = makeApiRequest("sendPhoto", params);
-                return createSuccessResponse(message, response);
+                if (response == null) {
+                    return createErrorResponse(message, "Failed to send photo - API request failed");
+                }
+                String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
             }
         } catch(Exception e) {
             log.error("Error sending photo", e);
-            throw new AdapterException("Failed to send photo", e);
+            return createErrorResponse(message, "Failed to send photo: " + e.getMessage());
         }
     }
 
@@ -279,13 +310,15 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return sendMultipartRequest("sendPhoto", body);
         } catch(Exception e) {
             log.error("Error sending photo multipart", e);
-            throw new AdapterException("Failed to send photo", e);
+            MessageDTO msg = new MessageDTO();
+            msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+            return createErrorResponse(msg, "Failed to send photo: " + e.getMessage());
         }
     }
 
     private MessageDTO sendVideo(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             if(content.has("video_data")) {
                 // Video upload with multipart
@@ -312,11 +345,15 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 }
 
                 JsonNode response = makeApiRequest("sendVideo", params);
-                return createSuccessResponse(message, response);
+                if (response == null) {
+                    return createErrorResponse(message, "Failed to send video - API request failed");
+                }
+                String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
             }
         } catch(Exception e) {
             log.error("Error sending video", e);
-            throw new AdapterException("Failed to send video", e);
+            return createErrorResponse(message, "Failed to send video: " + e.getMessage());
         }
     }
 
@@ -368,13 +405,15 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return sendMultipartRequest("sendVideo", body);
         } catch(Exception e) {
             log.error("Error sending video multipart", e);
-            throw new AdapterException("Failed to send video", e);
+            MessageDTO msg = new MessageDTO();
+            msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+            return createErrorResponse(msg, "Failed to send video: " + e.getMessage());
         }
     }
 
     private MessageDTO sendDocument(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             if(content.has("document_data")) {
                 // Document upload with multipart
@@ -393,11 +432,15 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 }
 
                 JsonNode response = makeApiRequest("sendDocument", params);
-                return createSuccessResponse(message, response);
+                if (response == null) {
+                    return createErrorResponse(message, "Failed to send document - API request failed");
+                }
+                String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
             }
         } catch(Exception e) {
             log.error("Error sending document", e);
-            throw new AdapterException("Failed to send document", e);
+            return createErrorResponse(message, "Failed to send document: " + e.getMessage());
         }
     }
 
@@ -425,13 +468,15 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return sendMultipartRequest("sendDocument", body);
         } catch(Exception e) {
             log.error("Error sending document multipart", e);
-            throw new AdapterException("Failed to send document", e);
+            MessageDTO msg = new MessageDTO();
+            msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+            return createErrorResponse(msg, "Failed to send document: " + e.getMessage());
         }
     }
 
     private MessageDTO sendAudio(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -450,16 +495,20 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("sendAudio", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send audio - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending audio", e);
-            throw new AdapterException("Failed to send audio", e);
+            return createErrorResponse(message, "Failed to send audio: " + e.getMessage());
         }
     }
 
     private MessageDTO sendSticker(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -479,16 +528,20 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("sendSticker", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send sticker - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending sticker", e);
-            throw new AdapterException("Failed to send sticker", e);
+            return createErrorResponse(message, "Failed to send sticker: " + e.getMessage());
         }
     }
 
     private MessageDTO sendMediaGroup(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -502,17 +555,21 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("sendMediaGroup", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send media group - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending media group", e);
-            throw new AdapterException("Failed to send media group", e);
+            return createErrorResponse(message, "Failed to send media group: " + e.getMessage());
         }
     }
 
     // Location Operations
     private MessageDTO sendLocation(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -532,17 +589,21 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             addOptionalMessageParams(params, content);
 
             JsonNode response = makeApiRequest("sendLocation", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send location - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending location", e);
-            throw new AdapterException("Failed to send location", e);
+            return createErrorResponse(message, "Failed to send location: " + e.getMessage());
         }
     }
 
     // Poll Operations
     private MessageDTO sendPoll(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -579,17 +640,21 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             addOptionalMessageParams(params, content);
 
             JsonNode response = makeApiRequest("sendPoll", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send poll - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending poll", e);
-            throw new AdapterException("Failed to send poll", e);
+            return createErrorResponse(message, "Failed to send poll: " + e.getMessage());
         }
     }
 
     // MessageDTO Editing
     private MessageDTO editMessageText(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
 
@@ -613,49 +678,61 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("editMessageText", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to edit message text - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error editing message text", e);
-            throw new AdapterException("Failed to edit message text", e);
+            return createErrorResponse(message, "Failed to edit message text: " + e.getMessage());
         }
     }
 
     private MessageDTO deleteMessage(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
             params.put("message_id", content.get("message_id").asLong());
 
             JsonNode response = makeApiRequest("deleteMessage", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to delete message - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error deleting message", e);
-            throw new AdapterException("Failed to delete message", e);
+            return createErrorResponse(message, "Failed to delete message: " + e.getMessage());
         }
     }
 
     private MessageDTO deleteMessages(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
             params.put("message_ids", content.get("message_ids"));
 
             JsonNode response = makeApiRequest("deleteMessages", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to delete messages - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error deleting messages", e);
-            throw new AdapterException("Failed to delete messages", e);
+            return createErrorResponse(message, "Failed to delete messages: " + e.getMessage());
         }
     }
 
     // Inline Query Response
     private MessageDTO answerInlineQuery(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("inline_query_id", content.get("inline_query_id").asText());
@@ -675,17 +752,21 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("answerInlineQuery", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to answer inline query - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error answering inline query", e);
-            throw new AdapterException("Failed to answer inline query", e);
+            return createErrorResponse(message, "Failed to answer inline query: " + e.getMessage());
         }
     }
 
     // Callback Query Response
     private MessageDTO answerCallbackQuery(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("callback_query_id", content.get("callback_query_id").asText());
@@ -704,17 +785,21 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("answerCallbackQuery", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to answer callback query - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error answering callback query", e);
-            throw new AdapterException("Failed to answer callback query", e);
+            return createErrorResponse(message, "Failed to answer callback query: " + e.getMessage());
         }
     }
 
     // Chat Management
     private MessageDTO banChatMember(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -728,16 +813,20 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("banChatMember", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to ban chat member - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error banning chat member", e);
-            throw new AdapterException("Failed to ban chat member", e);
+            return createErrorResponse(message, "Failed to ban chat member: " + e.getMessage());
         }
     }
 
     private MessageDTO restrictChatMember(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -753,16 +842,20 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("restrictChatMember", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to restrict chat member - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error restricting chat member", e);
-            throw new AdapterException("Failed to restrict chat member", e);
+            return createErrorResponse(message, "Failed to restrict chat member: " + e.getMessage());
         }
     }
 
     private MessageDTO promoteChatMember(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -807,17 +900,21 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("promoteChatMember", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to promote chat member - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error promoting chat member", e);
-            throw new AdapterException("Failed to promote chat member", e);
+            return createErrorResponse(message, "Failed to promote chat member: " + e.getMessage());
         }
     }
 
     // Bot Commands
     private MessageDTO setMyCommands(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("commands", content.get("commands").toString());
@@ -830,17 +927,98 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("setMyCommands", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to set commands - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error setting bot commands", e);
-            throw new AdapterException("Failed to set bot commands", e);
+            return createErrorResponse(message, "Failed to set bot commands: " + e.getMessage());
+        }
+    }
+
+    // Additional methods that were renamed
+    private MessageDTO sendDiceMessage(MessageDTO message) {
+        try {
+            JsonNode content = objectMapper.readTree(message.getPayload());
+            
+            Map<String, Object> params = new HashMap<>();
+            params.put("chat_id", content.get("chat_id").asText());
+            
+            if(content.has("emoji")) {
+                params.put("emoji", content.get("emoji").asText());
+            }
+            
+            addOptionalMessageParams(params, content);
+            
+            JsonNode response = makeApiRequest("sendDice", params);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send dice - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "sendDice");
+        } catch(Exception e) {
+            log.error("Error sending dice", e);
+            return createErrorResponse(message, "Failed to send dice: " + e.getMessage());
+        }
+    }
+    
+    private MessageDTO setChatPermissionsMessage(MessageDTO message) {
+        try {
+            JsonNode content = objectMapper.readTree(message.getPayload());
+            
+            Map<String, Object> params = new HashMap<>();
+            params.put("chat_id", content.get("chat_id").asText());
+            params.put("permissions", content.get("permissions").toString());
+            
+            if(content.has("use_independent_chat_permissions")) {
+                params.put("use_independent_chat_permissions", 
+                    content.get("use_independent_chat_permissions").asBoolean());
+            }
+            
+            JsonNode response = makeApiRequest("setChatPermissions", params);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to set chat permissions - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "setChatPermissions");
+        } catch(Exception e) {
+            log.error("Error setting chat permissions", e);
+            return createErrorResponse(message, "Failed to set chat permissions: " + e.getMessage());
+        }
+    }
+    
+    private MessageDTO getUserProfilePhotosMessage(MessageDTO message) {
+        try {
+            JsonNode content = objectMapper.readTree(message.getPayload());
+            
+            Map<String, Object> params = new HashMap<>();
+            params.put("user_id", content.get("user_id").asLong());
+            
+            if(content.has("offset")) {
+                params.put("offset", content.get("offset").asInt());
+            }
+            if(content.has("limit")) {
+                params.put("limit", content.get("limit").asInt());
+            }
+            
+            JsonNode response = makeApiRequest("getUserProfilePhotos", params);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to get user profile photos - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "getUserProfilePhotos");
+        } catch(Exception e) {
+            log.error("Error getting user profile photos", e);
+            return createErrorResponse(message, "Failed to get user profile photos: " + e.getMessage());
         }
     }
 
     // Chat Action
     private MessageDTO sendChatAction(MessageDTO message) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
 
             Map<String, Object> params = new HashMap<>();
             params.put("chat_id", content.get("chat_id").asText());
@@ -854,10 +1032,14 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
 
             JsonNode response = makeApiRequest("sendChatAction", params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to send chat action - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error sending chat action", e);
-            throw new AdapterException("Failed to send chat action", e);
+            return createErrorResponse(message, "Failed to send chat action: " + e.getMessage());
         }
     }
 
@@ -1061,14 +1243,18 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     // Generic helper methods
     private MessageDTO genericForwardOperation(MessageDTO message, String method) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
             Map<String, Object> params = objectMapper.convertValue(content, Map.class);
 
             JsonNode response = makeApiRequest(method, params);
-            return createSuccessResponse(message, response);
+            if (response == null) {
+                return createErrorResponse(message, "Failed to execute " + method + " - API request failed");
+            }
+            String responsePayload = objectMapper.writeValueAsString(response);
+            return createSuccessResponse(message.getCorrelationId(), responsePayload, "telegram_operation");
         } catch(Exception e) {
             log.error("Error in {} operation", method, e);
-            throw new AdapterException("Failed to execute " + method, e);
+            return createErrorResponse(message, "Failed to execute " + method + ": " + e.getMessage());
         }
     }
 
@@ -1114,7 +1300,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
 
     private MessageDTO genericChatPhotoOperation(MessageDTO message, String method) {
         try {
-            JsonNode content = objectMapper.readTree(message.getContent());
+            JsonNode content = objectMapper.readTree(message.getPayload());
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
             body.add("chat_id", content.get("chat_id").asText());
@@ -1132,7 +1318,7 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             return sendMultipartRequest(method, body);
         } catch(Exception e) {
             log.error("Error in {} operation", method, e);
-            throw new AdapterException("Failed to execute " + method, e);
+            return createErrorResponse(message, "Failed to execute " + method + ": " + e.getMessage());
         }
     }
 
@@ -1186,6 +1372,46 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
 
     private MessageDTO genericLocationEditOperation(MessageDTO message, String method) {
         return genericForwardOperation(message, method);
+    }
+
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        log.info("Initializing Telegram Bot Outbound adapter");
+        // Initialization logic if needed
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        log.info("Destroying Telegram Bot Outbound adapter");
+        // Cleanup logic if needed
+    }
+
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // This is an outbound adapter, so we don't typically receive data
+        log.debug("Receiving data in Telegram Bot adapter");
+        return AdapterResult.success("No data to receive");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            JsonNode response = makeApiRequest("getMe", null);
+            if (response != null && response.has("result")) {
+                return AdapterResult.success("Connection test successful");
+            } else {
+                return AdapterResult.failure("Connection test failed: No response");
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Connection test failed: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public long getPollingIntervalMs() {
+        // Return polling interval in milliseconds (default 5 seconds)
+        return 5000L;
     }
 
     // Helper methods for parameters
@@ -1270,13 +1496,16 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
                 String errorDescription = responseJson.has("description") ?
                     responseJson.get("description").asText() : "Unknown error";
                 log.error("Telegram API error: {}", errorDescription);
-                throw new AdapterException("Telegram API error: " + errorDescription);
+                return null;
             }
 
             return responseJson;
         } catch(HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AdapterException("Telegram API request failed", e);
+            return null;
+        } catch(Exception e) {
+            log.error("Error making API request", e);
+            return null;
         }
     }
 
@@ -1299,15 +1528,24 @@ public class TelegramBotOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             if(responseJson.has("ok") && !responseJson.get("ok").asBoolean()) {
                 String errorDescription = responseJson.has("description") ?
                     responseJson.get("description").asText() : "Unknown error";
-                throw new AdapterException("Telegram API error: " + errorDescription);
+                MessageDTO msg = new MessageDTO();
+                msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+                return createErrorResponse(msg, "Telegram API error: " + errorDescription);
             }
 
-            return createSuccessResponse(null, responseJson);
+            String responsePayload = objectMapper.writeValueAsString(responseJson);
+            MessageDTO msg = new MessageDTO();
+            msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+            return createSuccessResponse(msg.getCorrelationId(), responsePayload, "multipart");
         } catch(HttpClientErrorException e) {
             log.error("HTTP error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new AdapterException("Telegram API request failed", e);
+            MessageDTO msg = new MessageDTO();
+            msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+            return createErrorResponse(msg, "Telegram API request failed: " + e.getMessage());
         } catch(Exception e) {
-            throw new AdapterException("Failed to send multipart request", e);
+            MessageDTO msg = new MessageDTO();
+            msg.setCorrelationId(java.util.UUID.randomUUID().toString());
+            return createErrorResponse(msg, "Failed to send multipart request: " + e.getMessage());
         }
     }
 }

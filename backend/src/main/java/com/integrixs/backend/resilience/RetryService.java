@@ -4,11 +4,9 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,15 +14,18 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing retry policies across adapters.
  * Provides centralized retry operations with monitoring.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RetryService {
+
+    private static final Logger log = LoggerFactory.getLogger(RetryService.class);
+
 
     private final RetryRegistry retryRegistry;
     private final RetryPolicyConfiguration configuration;

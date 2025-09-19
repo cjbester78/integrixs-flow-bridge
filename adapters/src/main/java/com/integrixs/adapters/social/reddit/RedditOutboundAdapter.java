@@ -815,13 +815,15 @@ public class RedditOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
         params.put("type", "link");
         params.put("limit", getHeader(message, "limit", "25"));
 
-        String url = getApiUrl();
+        String baseUrl = getApiUrl();
+        String finalUrl;
         if(subreddit != null) {
-            url += "/r/" + subreddit;
+            finalUrl = baseUrl + "/r/" + subreddit + "/search.json";
+        } else {
+            finalUrl = baseUrl + "/search.json";
         }
-        url += "/search.json";
 
-        String response = executeApiCall(() -> makeGetRequest(url, params));
+        String response = executeApiCall(() -> makeGetRequest(finalUrl, params));
 
         return createSuccessResponse(message, response);
     }

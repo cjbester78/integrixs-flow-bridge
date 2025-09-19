@@ -1,7 +1,5 @@
 package com.integrixs.backend.domain.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -12,8 +10,6 @@ import java.util.List;
  * Domain service for calculating execution metrics
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class ExecutionMetricsCalculator {
 
     /**

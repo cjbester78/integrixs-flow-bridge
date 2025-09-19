@@ -2,15 +2,18 @@ package com.integrixs.backend.websocket;
 
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Component
 @ServerEndpoint("/direct - ws")
 @Profile("!test")
 public class DirectWebSocketEndpoint {
+
+    private static final Logger log = LoggerFactory.getLogger(DirectWebSocketEndpoint.class);
+
 
     @OnOpen
     public void onOpen(Session session) {

@@ -1,82 +1,132 @@
 package com.integrixs.shared.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Request DTO for testing field mappings
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class TestFieldMappingsRequestDTO {
 
     private String inputXml;
-    private List<TestMappingDTO> mappings;
-    private String mappingType; // request, response, or fault
+    private List<FieldMappingDTO> mappings;
+    private String mappingType;
     private String sourceStructureXml;
     private String targetStructureXml;
+    private TestMappingDTO testMapping;
+    private VisualFlowData visualFlowData;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    // Default constructor
+    public TestFieldMappingsRequestDTO() {
+        this.mappings = new ArrayList<>();
+    }
+
+    // All args constructor
+    public TestFieldMappingsRequestDTO(String inputXml, List<FieldMappingDTO> mappings, String mappingType, String sourceStructureXml, String targetStructureXml) {
+        this.inputXml = inputXml;
+        this.mappings = mappings != null ? mappings : new ArrayList<>();
+        this.mappingType = mappingType;
+        this.sourceStructureXml = sourceStructureXml;
+        this.targetStructureXml = targetStructureXml;
+    }
+
+    // Getters
+    public String getInputXml() { return inputXml; }
+    public List<FieldMappingDTO> getMappings() { return mappings; }
+    public String getMappingType() { return mappingType; }
+    public String getSourceStructureXml() { return sourceStructureXml; }
+    public String getTargetStructureXml() { return targetStructureXml; }
+    public TestMappingDTO getTestMapping() { return testMapping; }
+    public VisualFlowData getVisualFlowData() { return visualFlowData; }
+
+    // Setters
+    public void setInputXml(String inputXml) { this.inputXml = inputXml; }
+    public void setMappings(List<FieldMappingDTO> mappings) { this.mappings = mappings; }
+    public void setMappingType(String mappingType) { this.mappingType = mappingType; }
+    public void setSourceStructureXml(String sourceStructureXml) { this.sourceStructureXml = sourceStructureXml; }
+    public void setTargetStructureXml(String targetStructureXml) { this.targetStructureXml = targetStructureXml; }
+    public void setTestMapping(TestMappingDTO testMapping) { this.testMapping = testMapping; }
+    public void setVisualFlowData(VisualFlowData visualFlowData) { this.visualFlowData = visualFlowData; }
+
+    // Builder
+    public static TestFieldMappingsRequestDTOBuilder builder() {
+        return new TestFieldMappingsRequestDTOBuilder();
+    }
+
+    public static class TestFieldMappingsRequestDTOBuilder {
+        private String inputXml;
+        private List<FieldMappingDTO> mappings = new ArrayList<>();
+        private String mappingType;
+        private String sourceStructureXml;
+        private String targetStructureXml;
+
+        public TestFieldMappingsRequestDTOBuilder inputXml(String inputXml) {
+            this.inputXml = inputXml;
+            return this;
+        }
+
+        public TestFieldMappingsRequestDTOBuilder mappings(List<FieldMappingDTO> mappings) {
+            this.mappings = mappings;
+            return this;
+        }
+
+        public TestFieldMappingsRequestDTOBuilder mappingType(String mappingType) {
+            this.mappingType = mappingType;
+            return this;
+        }
+
+        public TestFieldMappingsRequestDTOBuilder sourceStructureXml(String sourceStructureXml) {
+            this.sourceStructureXml = sourceStructureXml;
+            return this;
+        }
+
+        public TestFieldMappingsRequestDTOBuilder targetStructureXml(String targetStructureXml) {
+            this.targetStructureXml = targetStructureXml;
+            return this;
+        }
+
+        public TestFieldMappingsRequestDTO build() {
+            return new TestFieldMappingsRequestDTO(inputXml, mappings, mappingType, sourceStructureXml, targetStructureXml);
+        }
+    }
+
+    // Inner class for test mapping configuration
     public static class TestMappingDTO {
-        private List<String> sourceFields;
-        private String targetField;
-        private List<String> sourcePaths;
-        private String targetPath;
-        private String javaFunction;
-        private Object functionNode;
-        private boolean requiresTransformation;
-        private VisualFlowData visualFlowData;
+        private String id;
+        private String name;
+        private String description;
+        private String configuration;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        
+        public String getConfiguration() { return configuration; }
+        public void setConfiguration(String configuration) { this.configuration = configuration; }
     }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
+    // Inner class for visual flow data
     public static class VisualFlowData {
-        private List<VisualFlowNode> nodes;
-        private List<VisualFlowEdge> edges;
-        private int nodeIdCounter;
-    }
+        private String flowId;
+        private String flowName;
+        private String flowData;
+        private String nodeData;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class VisualFlowNode {
-        private String id;
-        private String type;
-        private Object data;
-        private Position position;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class VisualFlowEdge {
-        private String id;
-        private String source;
-        private String target;
-        private String type;
-        private String sourceHandle;
-        private String targetHandle;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Position {
-        private double x;
-        private double y;
+        public String getFlowId() { return flowId; }
+        public void setFlowId(String flowId) { this.flowId = flowId; }
+        
+        public String getFlowName() { return flowName; }
+        public void setFlowName(String flowName) { this.flowName = flowName; }
+        
+        public String getFlowData() { return flowData; }
+        public void setFlowData(String flowData) { this.flowData = flowData; }
+        
+        public String getNodeData() { return nodeData; }
+        public void setNodeData(String nodeData) { this.nodeData = nodeData; }
     }
 }

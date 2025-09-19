@@ -3,8 +3,6 @@ package com.integrixs.backend.api.controller;
 import com.integrixs.backend.application.service.RoleManagementApplicationService;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.shared.dto.RoleDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,19 +11,26 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for role management
  * Handles role CRUD operations
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/roles")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 public class RoleManagementController {
 
+    private static final Logger log = LoggerFactory.getLogger(RoleManagementController.class);
+
+
     private final RoleManagementApplicationService roleManagementApplicationService;
+
+    public RoleManagementController(RoleManagementApplicationService roleManagementApplicationService) {
+        this.roleManagementApplicationService = roleManagementApplicationService;
+    }
 
     /**
      * Get all roles with pagination
@@ -82,7 +87,7 @@ public class RoleManagementController {
             @Valid @RequestBody RoleDTO roleDTO,
             Authentication authentication) {
         log.info("Creating new role: {}", roleDTO.getName());
-        String userId = SecurityUtils.getCurrentUserId();
+        String userId = SecurityUtils.getCurrentUserId().toString();
         RoleDTO createdRole = roleManagementApplicationService.createRole(roleDTO, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRole);
     }
@@ -97,7 +102,7 @@ public class RoleManagementController {
             @Valid @RequestBody RoleDTO roleDTO,
             Authentication authentication) {
         log.info("Updating role: {}", id);
-        String userId = SecurityUtils.getCurrentUserId();
+        String userId = SecurityUtils.getCurrentUserId().toString();
         RoleDTO updatedRole = roleManagementApplicationService.updateRole(id, roleDTO, userId);
         return ResponseEntity.ok(updatedRole);
     }
@@ -111,7 +116,7 @@ public class RoleManagementController {
             @PathVariable String id,
             Authentication authentication) {
         log.info("Deleting role: {}", id);
-        String userId = SecurityUtils.getCurrentUserId();
+        String userId = SecurityUtils.getCurrentUserId().toString();
         roleManagementApplicationService.deleteRole(id, userId);
         return ResponseEntity.noContent().build();
     }

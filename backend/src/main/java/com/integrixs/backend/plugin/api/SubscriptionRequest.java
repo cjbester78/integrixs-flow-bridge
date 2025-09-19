@@ -1,14 +1,10 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.util.Map;
 
 /**
  * Request to subscribe to events or topics
  */
-@Data
-@Builder
 public class SubscriptionRequest {
 
     /**

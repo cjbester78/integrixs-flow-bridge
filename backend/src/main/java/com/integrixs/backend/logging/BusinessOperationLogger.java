@@ -1,6 +1,5 @@
 package com.integrixs.backend.logging;
 
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -11,14 +10,18 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Aspect for logging business operations with enhanced context and structure.
  */
 @Aspect
 @Component
-@Slf4j
 public class BusinessOperationLogger {
+
+    private static final Logger log = LoggerFactory.getLogger(BusinessOperationLogger.class);
+
 
     private static final String OPERATION_ID = "operationId";
     private static final String OPERATION_TYPE = "operationType";

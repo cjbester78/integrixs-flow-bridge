@@ -1,12 +1,30 @@
 package com.integrixs.monitoring.api.dto;
 
-import lombok.Data;
 
 /**
  * DTO for acknowledge alert request
  */
-@Data
 public class AcknowledgeAlertRequestDTO {
     private String userId;
     private String comment;
+
+
+    // Getters
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    // Setters
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
 }

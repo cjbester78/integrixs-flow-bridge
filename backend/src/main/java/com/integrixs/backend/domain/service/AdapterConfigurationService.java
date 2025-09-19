@@ -3,22 +3,23 @@ package com.integrixs.backend.domain.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.security.CredentialEncryptionService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for handling adapter configuration encryption/decryption
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AdapterConfigurationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterConfigurationService.class);
+
 
     private final CredentialEncryptionService encryptionService;
     private final ObjectMapper objectMapper = new ObjectMapper();

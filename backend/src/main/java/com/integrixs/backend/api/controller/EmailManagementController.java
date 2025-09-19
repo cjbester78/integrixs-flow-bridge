@@ -1,24 +1,25 @@
 package com.integrixs.backend.api.controller;
 
 import com.integrixs.backend.infrastructure.email.EmailService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for email management
  * Handles email configuration testing
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/email")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 public class EmailManagementController {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailManagementController.class);
+
 
     private final EmailService emailService;
 

@@ -6,8 +6,6 @@ import com.integrixs.backend.domain.service.ConfigurationManagementService;
 import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.SystemConfiguration;
 import com.integrixs.data.model.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -16,14 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for system configuration management
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class SystemConfigurationApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(SystemConfigurationApplicationService.class);
+
 
     private final ConfigurationManagementService configurationService;
     private final AuditTrailService auditTrailService;

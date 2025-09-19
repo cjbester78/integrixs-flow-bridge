@@ -61,7 +61,7 @@ public class HazelcastConfig {
      * Main Hazelcast instance configuration
      */
     @Bean
-    @SpringSessionHazelcastInstance
+    // @SpringSessionHazelcastInstance
     public HazelcastInstance hazelcastInstance() {
         logger.info("Configuring Hazelcast cluster: {}", clusterName);
 

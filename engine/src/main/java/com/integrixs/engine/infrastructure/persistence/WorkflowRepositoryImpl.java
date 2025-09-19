@@ -2,22 +2,25 @@ package com.integrixs.engine.infrastructure.persistence;
 
 import com.integrixs.engine.domain.model.WorkflowContext;
 import com.integrixs.engine.domain.repository.WorkflowRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure implementation of WorkflowRepository
  * Currently uses in - memory storage, can be replaced with database persistence
  */
-@Slf4j
 @Repository
 public class WorkflowRepositoryImpl implements WorkflowRepository {
 
     // In - memory storage for workflows
+
+    private static final Logger log = LoggerFactory.getLogger(WorkflowRepositoryImpl.class);
+
     private final Map<String, WorkflowContext> workflowStore = new ConcurrentHashMap<>();
 
     @Override

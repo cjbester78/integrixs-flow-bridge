@@ -23,10 +23,15 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
     private String appToken; // For request verification
     private String webhookUrl;
     private String slashCommandPrefix = "/";
-    private String apiUrl = "https://slack.com/api/"; // Allow custom URL for enterprise
+    private String apiUrl; // Allow custom URL for enterprise
     private SlackFeatures features = new SlackFeatures();
     private SlackLimits limits = new SlackLimits();
     private List<String> scopes; // OAuth scopes
+    
+    // OAuth URLs
+    private String authorizationUrl;
+    private String tokenUrl;
+    private String userInfoUrl;
 
         public static class SlackFeatures {
         private boolean enableMessaging = true;
@@ -782,15 +787,27 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
     // OAuth URL implementations(Slack uses different auth flow)
     @Override
     public String getAuthorizationUrl() {
-        return "https://slack.com/oauth/v2/authorize";
+        return authorizationUrl != null ? authorizationUrl : "https://slack.com/oauth/v2/authorize";
     }
 
     @Override
     public String getTokenUrl() {
-        return "https://slack.com/api/oauth.v2.access";
+        return tokenUrl != null ? tokenUrl : "https://slack.com/api/oauth.v2.access";
     }
 
     public String getUserInfoUrl() {
-        return "https://slack.com/api/users.identity";
+        return userInfoUrl != null ? userInfoUrl : "https://slack.com/api/users.identity";
+    }
+    
+    public void setAuthorizationUrl(String authorizationUrl) {
+        this.authorizationUrl = authorizationUrl;
+    }
+    
+    public void setTokenUrl(String tokenUrl) {
+        this.tokenUrl = tokenUrl;
+    }
+    
+    public void setUserInfoUrl(String userInfoUrl) {
+        this.userInfoUrl = userInfoUrl;
     }
 }

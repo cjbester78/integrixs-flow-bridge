@@ -50,7 +50,7 @@ public class InMemoryServiceEndpointRepository implements ServiceEndpointReposit
     }
 
     @Override
-    public List<ServiceEndpoint> findByType(ServiceEndpoint.EndpointType type) {
+    public List<ServiceEndpoint> findByType(ServiceEndpoint.ServiceType type) {
         return endpoints.values().stream()
                 .filter(endpoint -> type.equals(endpoint.getType()))
                 .collect(Collectors.toList());

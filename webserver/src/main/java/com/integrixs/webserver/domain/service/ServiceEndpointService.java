@@ -48,7 +48,7 @@ public interface ServiceEndpointService {
      * @param type Endpoint type
      * @return List of endpoints
      */
-    List<ServiceEndpoint> getEndpointsByType(ServiceEndpoint.EndpointType type);
+    List<ServiceEndpoint> getEndpointsByType(ServiceEndpoint.ServiceType type);
 
     /**
      * Test endpoint connectivity

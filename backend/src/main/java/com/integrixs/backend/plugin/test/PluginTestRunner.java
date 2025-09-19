@@ -1,18 +1,16 @@
 package com.integrixs.backend.plugin.test;
 
 import com.integrixs.backend.plugin.api.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.*;
 import java.util.concurrent.*;
 
 /**
  * Automated test runner for plugins
  */
-@Slf4j
 public class PluginTestRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginTestRunner.class);
+
 
     private final PluginTestHarness harness;
     private final List<TestResult> results = new ArrayList<>();
@@ -248,9 +246,7 @@ public class PluginTestRunner {
     /**
      * Test result
      */
-    @Data
-    @Builder
-    public static class TestResult {
+            public static class TestResult {
         private String testName;
         private boolean passed;
         private String error;
@@ -261,9 +257,7 @@ public class PluginTestRunner {
     /**
      * Test report
      */
-    @Data
-    @Builder
-    public static class TestReport {
+            public static class TestReport {
         private List<TestResult> results;
         private int totalTests;
         private int passedTests;

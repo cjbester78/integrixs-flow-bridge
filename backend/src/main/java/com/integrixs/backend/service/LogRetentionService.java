@@ -2,27 +2,28 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing log retention policies and archiving.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class LogRetentionService {
+
+    private static final Logger log = LoggerFactory.getLogger(LogRetentionService.class);
+
 
     private final SystemLogRepository systemLogRepository;
     private final EntityManager entityManager;

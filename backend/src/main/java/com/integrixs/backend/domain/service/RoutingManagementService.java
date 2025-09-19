@@ -4,7 +4,6 @@ import com.integrixs.backend.domain.model.RoutingDecision;
 import com.integrixs.backend.domain.model.RouterConfiguration;
 import com.integrixs.data.model.FlowRoute;
 import com.integrixs.data.model.RouteCondition;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -13,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Domain service for routing business logic and decision making
  */
-@Slf4j
 @Service
 public class RoutingManagementService {
 

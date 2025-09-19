@@ -4,6 +4,7 @@ import com.integrixs.webserver.api.dto.*;
 import com.integrixs.webserver.domain.model.OutboundRequest;
 import com.integrixs.webserver.domain.model.OutboundResponse;
 import com.integrixs.webserver.domain.model.ServiceEndpoint;
+import com.integrixs.webserver.domain.model.ServiceEndpoint.ServiceType;
 import com.integrixs.webserver.domain.repository.RequestHistoryRepository;
 import com.integrixs.webserver.domain.repository.ServiceEndpointRepository;
 import com.integrixs.webserver.domain.service.HttpClientService;
@@ -357,7 +358,7 @@ public class WebServerApplicationService {
         return ServiceEndpoint.builder()
                 .name(dto.getName())
                 .baseUrl(dto.getBaseUrl())
-                .type(ServiceEndpoint.EndpointType.valueOf(dto.getType()))
+                .type(ServiceType.valueOf(dto.getType()))
                 .description(dto.getDescription())
                 .defaultAuth(convertEndpointAuth(dto.getDefaultAuth()))
                 .defaultHeaders(dto.getDefaultHeaders())
@@ -424,7 +425,7 @@ public class WebServerApplicationService {
         }
     }
 
-    private OutboundRequest.RequestType mapEndpointTypeToRequestType(ServiceEndpoint.EndpointType type) {
+    private OutboundRequest.RequestType mapEndpointTypeToRequestType(ServiceType type) {
         switch(type) {
             case SOAP_SERVICE:
                 return OutboundRequest.RequestType.SOAP_SERVICE;

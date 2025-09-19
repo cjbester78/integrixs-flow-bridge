@@ -1,10 +1,6 @@
 package com.integrixs.backend.marketplace.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import com.integrixs.data.model.BaseEntity;
 import com.integrixs.backend.auth.entity.User;
 import com.integrixs.data.model.IntegrationFlow;
@@ -19,10 +15,6 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "flow_templates")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class FlowTemplate extends BaseEntity {
 
     @Column(nullable = false, unique = true)
@@ -210,5 +202,313 @@ public class FlowTemplate extends BaseEntity {
         PRIVATE,          // Only visible to author
         ORGANIZATION,     // Only visible to organization members
         UNLISTED          // Accessible via direct link only
+    }
+
+    // Default constructor
+    public FlowTemplate() {
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+
+    public TemplateCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(TemplateCategory category) {
+        this.category = category;
+    }
+
+    public TemplateType getType() {
+        return type;
+    }
+
+    public void setType(TemplateType type) {
+        this.type = type;
+    }
+
+    public TemplateVisibility getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(TemplateVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getFlowDefinition() {
+        return flowDefinition;
+    }
+
+    public void setFlowDefinition(String flowDefinition) {
+        this.flowDefinition = flowDefinition;
+    }
+
+    public String getConfigurationSchema() {
+        return configurationSchema;
+    }
+
+    public void setConfigurationSchema(String configurationSchema) {
+        this.configurationSchema = configurationSchema;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
+
+    public Set<String> getScreenshots() {
+        return screenshots;
+    }
+
+    public void setScreenshots(Set<String> screenshots) {
+        this.screenshots = screenshots;
+    }
+
+    public String getIconUrl() {
+        return iconUrl;
+    }
+
+    public void setIconUrl(String iconUrl) {
+        this.iconUrl = iconUrl;
+    }
+
+    public String getDocumentationUrl() {
+        return documentationUrl;
+    }
+
+    public void setDocumentationUrl(String documentationUrl) {
+        this.documentationUrl = documentationUrl;
+    }
+
+    public String getSourceRepositoryUrl() {
+        return sourceRepositoryUrl;
+    }
+
+    public void setSourceRepositoryUrl(String sourceRepositoryUrl) {
+        this.sourceRepositoryUrl = sourceRepositoryUrl;
+    }
+
+    public Set<TemplateVersion> getVersions() {
+        return versions;
+    }
+
+    public void setVersions(Set<TemplateVersion> versions) {
+        this.versions = versions;
+    }
+
+    public Set<TemplateRating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(Set<TemplateRating> ratings) {
+        this.ratings = ratings;
+    }
+
+    public Set<TemplateComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<TemplateComment> comments) {
+        this.comments = comments;
+    }
+
+    public Set<TemplateInstallation> getInstallations() {
+        return installations;
+    }
+
+    public void setInstallations(Set<TemplateInstallation> installations) {
+        this.installations = installations;
+    }
+
+    public Set<FlowTemplate> getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(Set<FlowTemplate> dependencies) {
+        this.dependencies = dependencies;
+    }
+
+    public Set<String> getRequirements() {
+        return requirements;
+    }
+
+    public void setRequirements(Set<String> requirements) {
+        this.requirements = requirements;
+    }
+
+    public String getMinPlatformVersion() {
+        return minPlatformVersion;
+    }
+
+    public void setMinPlatformVersion(String minPlatformVersion) {
+        this.minPlatformVersion = minPlatformVersion;
+    }
+
+    public String getMaxPlatformVersion() {
+        return maxPlatformVersion;
+    }
+
+    public void setMaxPlatformVersion(String maxPlatformVersion) {
+        this.maxPlatformVersion = maxPlatformVersion;
+    }
+
+    public Long getDownloadCount() {
+        return downloadCount;
+    }
+
+    public void setDownloadCount(Long downloadCount) {
+        this.downloadCount = downloadCount;
+    }
+
+    public Long getInstallCount() {
+        return installCount;
+    }
+
+    public void setInstallCount(Long installCount) {
+        this.installCount = installCount;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public Long getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Long ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
+    public boolean isCertified() {
+        return certified;
+    }
+
+    public void setCertified(boolean certified) {
+        this.certified = certified;
+    }
+
+    public LocalDateTime getCertifiedAt() {
+        return certifiedAt;
+    }
+
+    public void setCertifiedAt(LocalDateTime certifiedAt) {
+        this.certifiedAt = certifiedAt;
+    }
+
+    public User getCertifiedBy() {
+        return certifiedBy;
+    }
+
+    public void setCertifiedBy(User certifiedBy) {
+        this.certifiedBy = certifiedBy;
+    }
+
+    public boolean isFeatured() {
+        return featured;
+    }
+
+    public void setFeatured(boolean featured) {
+        this.featured = featured;
+    }
+
+    public LocalDateTime getFeaturedUntil() {
+        return featuredUntil;
+    }
+
+    public void setFeaturedUntil(LocalDateTime featuredUntil) {
+        this.featuredUntil = featuredUntil;
+    }
+
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public String getDeactivationReason() {
+        return deactivationReason;
+    }
+
+    public void setDeactivationReason(String deactivationReason) {
+        this.deactivationReason = deactivationReason;
     }
 }

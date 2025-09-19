@@ -1,8 +1,5 @@
 package com.integrixs.backend.saga;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +11,6 @@ import java.util.List;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@Builder
 public class SagaResult<T> {
 
     private String sagaId;
@@ -24,7 +19,6 @@ public class SagaResult<T> {
     private String errorMessage;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    @Builder.Default
     private List<StepResult<T>> stepResults = new ArrayList<>();
 
     /**

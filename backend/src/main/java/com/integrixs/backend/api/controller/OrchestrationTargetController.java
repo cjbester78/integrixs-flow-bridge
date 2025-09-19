@@ -9,29 +9,30 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for orchestration target management
  */
 @RestController
 @RequestMapping("/api/flows/ {flowId}/targets")
-@RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Orchestration Targets", description = "Manage orchestration flow targets")
 public class OrchestrationTargetController {
 
+    private static final Logger log = LoggerFactory.getLogger(OrchestrationTargetController.class);
+
+
     private final OrchestrationTargetService orchestrationTargetService;
+
+    public OrchestrationTargetController(OrchestrationTargetService orchestrationTargetService) {
+        this.orchestrationTargetService = orchestrationTargetService;
+    }
 
     @GetMapping
     @Operation(summary = "Get all targets for a flow", description = "Retrieve all orchestration targets for a specific flow")
@@ -144,11 +145,29 @@ public class OrchestrationTargetController {
     /**
      * Request for updating target order
      */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class TargetOrderRequest {
         private String targetId;
         private Integer executionOrder;
+
+        // Default constructor
+        public TargetOrderRequest() {
+        }
+
+        // Getters and Setters
+        public String getTargetId() {
+            return targetId;
+        }
+
+        public void setTargetId(String targetId) {
+            this.targetId = targetId;
+        }
+
+        public Integer getExecutionOrder() {
+            return executionOrder;
+        }
+
+        public void setExecutionOrder(Integer executionOrder) {
+            this.executionOrder = executionOrder;
+        }
     }
 }

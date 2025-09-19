@@ -82,9 +82,9 @@ public class FacebookWebhookProcessor {
     private MessageDTO convertWebhookToMessageDTO(Map<String, Object> event) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(java.util.UUID.randomUUID().toString());
-        message.setMessageTimestamp(java.time.Instant.now());
+        message.setTimestamp(LocalDateTime.now());
 
-        Map<String, String> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         headers.put("source", "facebook - webhook");
 
         // Extract webhook type
@@ -116,7 +116,7 @@ public class FacebookWebhookProcessor {
     /**
      * Process page - specific webhook event
      */
-    private void processPageWebhookEvent(Map<String, Object> event, MessageDTO message, Map<String, String> headers) {
+    private void processPageWebhookEvent(Map<String, Object> event, MessageDTO message, Map<String, Object> headers) {
         try {
             java.util.List<Map<String, Object>> entries = (java.util.List<Map<String, Object>>) event.get("entry");
             if(entries != null && !entries.isEmpty()) {

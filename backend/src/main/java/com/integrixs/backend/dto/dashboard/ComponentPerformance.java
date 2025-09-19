@@ -1,7 +1,5 @@
 package com.integrixs.backend.dto.dashboard;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +8,6 @@ import java.util.Map;
 /**
  * Detailed performance metrics for a specific component.
  */
-@Data
 public class ComponentPerformance {
 
     private String componentId;
@@ -28,12 +25,71 @@ public class ComponentPerformance {
     /**
      * Metrics for a specific operation.
      */
-    @Data
-    public static class OperationMetrics {
+        public static class OperationMetrics {
         private String operationName;
         private long count;
         private double meanDuration;
         private double maxDuration;
         private Map<String, Double> percentiles;
+    }
+
+    // Default constructor
+    public ComponentPerformance() {
+    }
+
+    public String getComponentId() {
+        return componentId;
+    }
+
+    public void setComponentId(String componentId) {
+        this.componentId = componentId;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public List<OperationMetrics> getOperationMetrics() {
+        return operationMetrics;
+    }
+
+    public void setOperationMetrics(List<OperationMetrics> operationMetrics) {
+        this.operationMetrics = operationMetrics;
+    }
+
+    public String getOperationName() {
+        return operationName;
+    }
+
+    public void setOperationName(String operationName) {
+        this.operationName = operationName;
+    }
+
+    public long getCount() {
+        return count;
+    }
+
+    public void setCount(long count) {
+        this.count = count;
+    }
+
+    public double getMeanDuration() {
+        return meanDuration;
+    }
+
+    public void setMeanDuration(double meanDuration) {
+        this.meanDuration = meanDuration;
+    }
+
+    public double getMaxDuration() {
+        return maxDuration;
+    }
+
+    public void setMaxDuration(double maxDuration) {
+        this.maxDuration = maxDuration;
     }
 }

@@ -85,6 +85,10 @@ public class SMSConfig extends BaseAdapterConfig {
     private boolean trackLinks = false;
     private String linkTrackingDomain;
     
+    // Cleanup and retention settings
+    private long cleanupInterval = 3600000; // milliseconds (1 hour)
+    private long messageRetentionSeconds = 86400; // 24 hours
+    
     // Template fields - these seem to be misplaced getters/setters
     private String id;
     private String name;
@@ -137,6 +141,31 @@ public class SMSConfig extends BaseAdapterConfig {
     private boolean enableKeywordProcessing = false;
     private boolean enableAutoResponse = false;
     private boolean enableBulkMessaging = false;
+    
+    // Scheduler configuration
+    private long bulkProcessorDelay = 1000; // milliseconds
+    private long bulkProcessorInterval = 1000; // milliseconds
+    private int bulkBatchSize = 100; // max messages per batch
+    
+    // Phone validation
+    private int minPhoneLength = 10;
+    private int maxPhoneLength = 15;
+    
+    // Quiet hours configuration  
+    private long quietHoursDelayHours = 8; // hours to delay during quiet hours
+    private int quietHoursStartHour = 21; // 9 PM
+    private int quietHoursEndHour = 8; // 8 AM
+    
+    // Template configuration
+    private String templateVariablePrefix = " {{";
+    private String templateVariableSuffix = "}}";
+    
+    // Retry configuration
+    private double exponentialBackoffBase = 2.0;
+    
+    // API endpoints
+    private String twilioApiBaseUrl;
+    private String vonageApiBaseUrl;
     
     // Additional missing fields
     private String accessKey;
@@ -257,6 +286,14 @@ public class SMSConfig extends BaseAdapterConfig {
         private boolean approved = false;
         private String language = "en";
         private MessageType type = MessageType.SMS;
+        
+        // Getters
+        public String getContent() {
+            return content;
+        }
+        public void setContent(String content) {
+            this.content = content;
+        }
     }
 
     // Provider - specific configurations
@@ -279,6 +316,26 @@ public class SMSConfig extends BaseAdapterConfig {
         private boolean enableValidityPeriod = true;
         private boolean enableShortenUrls = false;
         private String statusCallbackUrl;
+        
+        // Getters and Setters
+        public String getAccountSid() {
+            return accountSid;
+        }
+        public void setAccountSid(String accountSid) {
+            this.accountSid = accountSid;
+        }
+        public String getAuthToken() {
+            return authToken;
+        }
+        public void setAuthToken(String authToken) {
+            this.authToken = authToken;
+        }
+        public String getStatusCallbackUrl() {
+            return statusCallbackUrl;
+        }
+        public void setStatusCallbackUrl(String statusCallbackUrl) {
+            this.statusCallbackUrl = statusCallbackUrl;
+        }
     }
 
         public static class VonageConfig {
@@ -293,6 +350,26 @@ public class SMSConfig extends BaseAdapterConfig {
         private int dlrMask = 7;
         private String clientRef;
         private boolean enableFlashMessage = false;
+        
+        // Getters and Setters
+        public String getApiKey() {
+            return apiKey;
+        }
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+        public String getApiSecret() {
+            return apiSecret;
+        }
+        public void setApiSecret(String apiSecret) {
+            this.apiSecret = apiSecret;
+        }
+        public String getClientRef() {
+            return clientRef;
+        }
+        public void setClientRef(String clientRef) {
+            this.clientRef = clientRef;
+        }
     }
 
         public static class AwsSnsConfig {
@@ -324,7 +401,7 @@ public class SMSConfig extends BaseAdapterConfig {
         public static class InfobipConfig {
         private String apiKey;
         private String apiKeyPrefix = "App";
-        private String baseUrl = "https://api.infobip.com";
+        private String baseUrl;
         private boolean enableDeliveryReports = true;
         private String notifyUrl;
         private String notifyContentType = "application/json";
@@ -659,6 +736,18 @@ public class SMSConfig extends BaseAdapterConfig {
     }
     public void setLinkTrackingDomain(String linkTrackingDomain) {
         this.linkTrackingDomain = linkTrackingDomain;
+    }
+    public long getCleanupInterval() {
+        return cleanupInterval;
+    }
+    public void setCleanupInterval(long cleanupInterval) {
+        this.cleanupInterval = cleanupInterval;
+    }
+    public long getMessageRetentionSeconds() {
+        return messageRetentionSeconds;
+    }
+    public void setMessageRetentionSeconds(long messageRetentionSeconds) {
+        this.messageRetentionSeconds = messageRetentionSeconds;
     }
     public String getId() {
         return id;
@@ -1097,6 +1186,84 @@ public class SMSConfig extends BaseAdapterConfig {
     }
     public void setEnableBulkMessaging(boolean enableBulkMessaging) {
         this.enableBulkMessaging = enableBulkMessaging;
+    }
+    public long getBulkProcessorDelay() {
+        return bulkProcessorDelay;
+    }
+    public void setBulkProcessorDelay(long bulkProcessorDelay) {
+        this.bulkProcessorDelay = bulkProcessorDelay;
+    }
+    public long getBulkProcessorInterval() {
+        return bulkProcessorInterval;
+    }
+    public void setBulkProcessorInterval(long bulkProcessorInterval) {
+        this.bulkProcessorInterval = bulkProcessorInterval;
+    }
+    public int getBulkBatchSize() {
+        return bulkBatchSize;
+    }
+    public void setBulkBatchSize(int bulkBatchSize) {
+        this.bulkBatchSize = bulkBatchSize;
+    }
+    public int getMinPhoneLength() {
+        return minPhoneLength;
+    }
+    public void setMinPhoneLength(int minPhoneLength) {
+        this.minPhoneLength = minPhoneLength;
+    }
+    public int getMaxPhoneLength() {
+        return maxPhoneLength;
+    }
+    public void setMaxPhoneLength(int maxPhoneLength) {
+        this.maxPhoneLength = maxPhoneLength;
+    }
+    public long getQuietHoursDelayHours() {
+        return quietHoursDelayHours;
+    }
+    public void setQuietHoursDelayHours(long quietHoursDelayHours) {
+        this.quietHoursDelayHours = quietHoursDelayHours;
+    }
+    public int getQuietHoursStartHour() {
+        return quietHoursStartHour;
+    }
+    public void setQuietHoursStartHour(int quietHoursStartHour) {
+        this.quietHoursStartHour = quietHoursStartHour;
+    }
+    public int getQuietHoursEndHour() {
+        return quietHoursEndHour;
+    }
+    public void setQuietHoursEndHour(int quietHoursEndHour) {
+        this.quietHoursEndHour = quietHoursEndHour;
+    }
+    public String getTemplateVariablePrefix() {
+        return templateVariablePrefix;
+    }
+    public void setTemplateVariablePrefix(String templateVariablePrefix) {
+        this.templateVariablePrefix = templateVariablePrefix;
+    }
+    public String getTemplateVariableSuffix() {
+        return templateVariableSuffix;
+    }
+    public void setTemplateVariableSuffix(String templateVariableSuffix) {
+        this.templateVariableSuffix = templateVariableSuffix;
+    }
+    public double getExponentialBackoffBase() {
+        return exponentialBackoffBase;
+    }
+    public void setExponentialBackoffBase(double exponentialBackoffBase) {
+        this.exponentialBackoffBase = exponentialBackoffBase;
+    }
+    public String getTwilioApiBaseUrl() {
+        return twilioApiBaseUrl;
+    }
+    public void setTwilioApiBaseUrl(String twilioApiBaseUrl) {
+        this.twilioApiBaseUrl = twilioApiBaseUrl;
+    }
+    public String getVonageApiBaseUrl() {
+        return vonageApiBaseUrl;
+    }
+    public void setVonageApiBaseUrl(String vonageApiBaseUrl) {
+        this.vonageApiBaseUrl = vonageApiBaseUrl;
     }
     public boolean isEnablePersonalization() {
         return enablePersonalization;

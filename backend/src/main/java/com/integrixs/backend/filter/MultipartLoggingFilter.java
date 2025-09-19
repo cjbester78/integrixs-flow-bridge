@@ -2,20 +2,23 @@ package com.integrixs.backend.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Filter to log multipart requests for debugging.
  */
-@Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class MultipartLoggingFilter implements Filter {
+
+    private static final Logger log = LoggerFactory.getLogger(MultipartLoggingFilter.class);
+
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

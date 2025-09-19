@@ -1,7 +1,6 @@
 package com.integrixs.backend.infrastructure.email;
 
 import com.integrixs.backend.config.EmailConfiguration;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +11,18 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure service for email operations
  * Handles SMTP connections and email sending
  */
-@Slf4j
 @Service
 public class EmailService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+
 
     private final EmailConfiguration emailConfig;
     private Session mailSession;

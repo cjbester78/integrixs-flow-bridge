@@ -10,8 +10,6 @@ import com.integrixs.data.repository.UserRepository;
 import com.integrixs.shared.dto.log.FrontendLogBatchRequest;
 import com.integrixs.shared.dto.log.FrontendLogEntry;
 import com.integrixs.shared.dto.system.SystemLogDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -25,16 +23,19 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for managing system logs including frontend application logs.
  * Handles log persistence, alerting, and configuration.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class SystemLogService {
+
+    private static final Logger log = LoggerFactory.getLogger(SystemLogService.class);
+
 
     private final SystemLogRepository systemLogRepository;
     private final UserRepository userRepository;

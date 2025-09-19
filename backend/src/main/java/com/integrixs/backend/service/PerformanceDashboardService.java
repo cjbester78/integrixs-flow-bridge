@@ -6,8 +6,6 @@ import com.integrixs.backend.dto.dashboard.PerformanceSnapshot;
 import com.integrixs.backend.dto.dashboard.RealTimeMetrics;
 import com.integrixs.backend.dto.dashboard.ComponentPerformance;
 import io.micrometer.core.instrument.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +15,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for real - time performance monitoring dashboard.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class PerformanceDashboardService {
+
+    private static final Logger log = LoggerFactory.getLogger(PerformanceDashboardService.class);
+
 
     private final MeterRegistry meterRegistry;
     private final PerformanceMetricsCollector metricsCollector;

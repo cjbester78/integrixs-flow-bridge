@@ -7,6 +7,8 @@ import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
 import com.integrixs.adapters.social.linkedin.LinkedInAdsApiConfig;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
+import com.integrixs.adapters.core.AdapterResult;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.shared.services.RateLimiterService;
 import com.integrixs.shared.services.CredentialEncryptionService;
 import com.integrixs.shared.services.TokenRefreshService;
@@ -16,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -27,14 +30,40 @@ import java.time.format.DateTimeFormatter;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 @Component("linkedInAdsInboundAdapter")
 public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(LinkedInAdsInboundAdapter.class);
 
+    @Value("${integrix.adapters.linkedin.ads.rest-path:/rest}")
+    private String restPath;
+    
+    @Value("${integrix.adapters.linkedin.ads.ad-analytics-endpoint:/adAnalytics}")
+    private String adAnalyticsEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.ad-campaign-groups-endpoint:/adCampaignGroups}")
+    private String adCampaignGroupsEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.ad-creatives-endpoint:/adCreatives}")
+    private String adCreativesEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.dmp-segments-endpoint:/dmpSegments}")
+    private String dmpSegmentsEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.conversions-endpoint:/conversions}")
+    private String conversionsEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.ad-campaigns-endpoint:/adCampaigns}")
+    private String adCampaignsEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.lead-gen-form-responses-endpoint:/leadGenerationFormResponses}")
+    private String leadGenFormResponsesEndpoint;
+    
+    @Value("${integrix.adapters.linkedin.ads.ad-accounts-endpoint:/adAccounts}")
+    private String adAccountsEndpoint;
 
-    private static final String LINKEDIN_ADS_API_BASE = "https://api.linkedin.com/v2";
-    private static final String LINKEDIN_ADS_REST_BASE = "https://api.linkedin.com/rest";
+    // API base URLs are configured in application.yml
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Map<String, LocalDateTime> lastPollTime = new ConcurrentHashMap<>();
@@ -59,7 +88,6 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public void startListening() throws AdapterException {
         if(config == null || config.getAdAccountId() == null) {
             throw new AdapterException("LinkedIn Ads configuration is invalid");
@@ -83,7 +111,6 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         scheduleLeadGenFormsPolling();
     }
 
-    @Override
     public void stopListening() {
         log.info("Stopping LinkedIn Ads API inbound adapter");
         isListening = false;
@@ -93,63 +120,60 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         try {
             MessageDTO message = new MessageDTO();
             message.setCorrelationId(UUID.randomUUID().toString());
-            message.setMessageTimestamp(Instant.now());
+            message.setTimestamp(LocalDateTime.now());
             message.setStatus(MessageStatus.NEW);
 
             JsonNode dataNode = objectMapper.readTree(data);
 
             switch(type) {
                 case "CAMPAIGN_PERFORMANCE":
-                    message = processCampaignPerformance(dataNode);
-                    break;
+                    return processCampaignPerformance(dataNode);
                 case "AD_PERFORMANCE":
-                    message = processAdPerformance(dataNode);
-                    break;
+                    return processAdPerformance(dataNode);
                 case "CREATIVE_PERFORMANCE":
-                    message = processCreativePerformance(dataNode);
-                    break;
+                    return processCreativePerformance(dataNode);
                 case "AUDIENCE_INSIGHTS":
-                    message = processAudienceInsights(dataNode);
-                    break;
+                    return processAudienceInsights(dataNode);
                 case "CONVERSION_EVENT":
-                    message = processConversionEvent(dataNode);
-                    break;
+                    return processConversionEvent(dataNode);
                 case "BUDGET_ALERT":
-                    message = processBudgetAlert(dataNode);
-                    break;
+                    return processBudgetAlert(dataNode);
                 case "LEAD_GEN_FORM":
-                    message = processLeadGenForm(dataNode);
-                    break;
+                    return processLeadGenForm(dataNode);
                 case "APPROVAL_STATUS":
-                    message = processApprovalStatus(dataNode);
-                    break;
+                    return processApprovalStatus(dataNode);
                 default:
                     message.setPayload(data);
                     message.setHeaders(Map.of("type", type, "source", "linkedin_ads"));
+                    return message;
             }
-
-            return message;
         } catch(Exception e) {
             log.error("Error processing LinkedIn Ads inbound data", e);
-            throw new AdapterException("Failed to process inbound data", e);
+            // Return a failed message instead of throwing exception
+            MessageDTO errorMessage = new MessageDTO();
+            errorMessage.setCorrelationId(UUID.randomUUID().toString());
+            errorMessage.setTimestamp(LocalDateTime.now());
+            errorMessage.setStatus(MessageStatus.FAILED);
+            errorMessage.setPayload(data);
+            errorMessage.setHeaders(Map.of("type", type, "source", "linkedin_ads", "error", e.getMessage()));
+            return errorMessage;
         }
     }
 
-    @Override
     public MessageDTO processWebhookData(Map<String, Object> webhookData) {
         // LinkedIn Ads primarily uses polling, not webhooks
         return null;
     }
 
     // Scheduled polling methods
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.campaignPollingInterval:300000}") // 5 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.campaign:300000}") // 5 minutes
     private void pollCampaignPerformance() {
         if(!isListening || !config.isEnableAnalytics()) return;
 
         try {
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
-            String url = LINKEDIN_ADS_REST_BASE + "/adAnalytics";
+            String url = config.getApiBaseUrl() + restPath + adAnalyticsEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "analytics");
@@ -178,14 +202,14 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.adGroupPollingInterval:600000}") // 10 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.ad-group:600000}") // 10 minutes
     private void pollAdGroupPerformance() {
         if(!isListening || !config.isEnableAnalytics()) return;
 
         try {
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
-            String url = LINKEDIN_ADS_REST_BASE + "/adCampaignGroups";
+            String url = config.getApiBaseUrl() + restPath + adCampaignGroupsEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "search");
@@ -208,14 +232,14 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.creativePollingInterval:900000}") // 15 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.creative:900000}") // 15 minutes
     private void pollCreativePerformance() {
         if(!isListening || !config.isEnableAnalytics()) return;
 
         try {
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
-            String url = LINKEDIN_ADS_REST_BASE + "/adCreatives";
+            String url = config.getApiBaseUrl() + restPath + adCreativesEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "search");
@@ -230,7 +254,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.audiencePollingInterval:3600000}") // 1 hour
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.audience:3600000}") // 1 hour
     private void pollAudienceInsights() {
         if(!isListening || !config.isEnableAudienceTargeting()) return;
 
@@ -238,7 +262,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
             // Poll matched audiences
-            String url = LINKEDIN_ADS_REST_BASE + "/dmpSegments";
+            String url = config.getApiBaseUrl() + restPath + dmpSegmentsEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "account");
@@ -253,14 +277,14 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.conversionPollingInterval:1800000}") // 30 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.conversion:1800000}") // 30 minutes
     private void pollConversionEvents() {
         if(!isListening || !config.isEnableConversionTracking()) return;
 
         try {
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
-            String url = LINKEDIN_ADS_REST_BASE + "/conversions";
+            String url = config.getApiBaseUrl() + restPath + conversionsEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "account");
@@ -278,7 +302,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.budgetCheckInterval:600000}") // 10 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.budget-check:600000}") // 10 minutes
     private void checkBudgetAlerts() {
         if(!isListening || !config.isEnableBudgetManagement()) return;
 
@@ -286,7 +310,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
             // Check campaign budgets
-            String url = LINKEDIN_ADS_REST_BASE + "/adCampaigns";
+            String url = config.getApiBaseUrl() + restPath + adCampaignsEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "search");
@@ -303,14 +327,14 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         }
     }
 
-    @Scheduled(fixedDelayString = "$ {integrixs.adapters.linkedin.ads.leadGenPollingInterval:300000}") // 5 minutes
+    @Scheduled(fixedDelayString = "${integrixs.adapters.linkedin.ads.polling-intervals.lead-gen:300000}") // 5 minutes
     private void pollLeadGenForms() {
         if(!isListening || !config.isEnableLeadGenForms()) return;
 
         try {
             rateLimiterService.acquire("linkedin_ads_api", 1);
 
-            String url = LINKEDIN_ADS_REST_BASE + "/leadGenerationFormResponses";
+            String url = config.getApiBaseUrl() + restPath + leadGenFormResponsesEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "account");
@@ -333,7 +357,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processCampaignPerformance(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -373,7 +397,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processAdPerformance(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -389,7 +413,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processCreativePerformance(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -409,7 +433,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processAudienceInsights(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -436,7 +460,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processConversionEvent(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -456,13 +480,13 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processBudgetAlert(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("type", "BUDGET_ALERT");
         headers.put("source", "linkedin_ads");
-        headers.put("alert_level", "WARNING");
+        headers.put("alert_level", config.getDefaultAlertLevel());
 
         message.setHeaders(headers);
         message.setPayload(data.toString());
@@ -473,7 +497,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processLeadGenForm(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -493,7 +517,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
     private MessageDTO processApprovalStatus(JsonNode data) {
         MessageDTO message = new MessageDTO();
         message.setCorrelationId(UUID.randomUUID().toString());
-        message.setMessageTimestamp(Instant.now());
+        message.setTimestamp(LocalDateTime.now());
         message.setStatus(MessageStatus.NEW);
 
         Map<String, Object> headers = new HashMap<>();
@@ -511,14 +535,14 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(getAccessToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("LinkedIn - Version", "202401");
-        headers.set("X - Restli - Protocol - Version", "2.0.0");
+        headers.set("LinkedIn-Version", config.getLinkedInApiVersion());
+        headers.set("X-Restli-Protocol-Version", config.getRestliProtocolVersion());
 
         StringBuilder urlBuilder = new StringBuilder(url);
         if(!params.isEmpty()) {
             urlBuilder.append("?");
             params.forEach((key, value) ->
-                urlBuilder.append(key).append(" = ").append(value).append("&"));
+                urlBuilder.append(key).append("=").append(value).append("&"));
             urlBuilder.setLength(urlBuilder.length() - 1);
         }
 
@@ -537,7 +561,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
                     config.getClientId(),
                     config.getClientSecret(),
                     config.getRefreshToken(),
-                    "https://www.linkedin.com/oauth/v2/accessToken"
+                    config.getTokenUrl()
                );
             }
         } catch(Exception e) {
@@ -547,7 +571,7 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
 
     private void pollAdGroupAnalytics(String adGroupId) {
         try {
-            String url = LINKEDIN_ADS_REST_BASE + "/adAnalytics";
+            String url = config.getApiBaseUrl() + restPath + adAnalyticsEndpoint;
 
             Map<String, String> params = new HashMap<>();
             params.put("q", "analytics");
@@ -625,5 +649,95 @@ public class LinkedInAdsInboundAdapter extends AbstractSocialMediaInboundAdapter
 
     public void setConfiguration(LinkedInAdsApiConfig config) {
         this.config = config;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    protected List<String> getSupportedEventTypes() {
+        return List.of(
+            "CAMPAIGN_PERFORMANCE",
+            "AD_PERFORMANCE",
+            "CREATIVE_PERFORMANCE",
+            "AUDIENCE_INSIGHTS",
+            "CONVERSION_EVENT",
+            "BUDGET_ALERT",
+            "LEAD_GEN_FORM",
+            "APPROVAL_STATUS"
+        );
+    }
+
+    @Override
+    protected Map<String, Object> getConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("adAccountId", config.getAdAccountId());
+            configMap.put("organizationId", config.getOrganizationId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("refreshToken", config.getRefreshToken());
+            configMap.put("enableAnalytics", config.isEnableAnalytics());
+            configMap.put("enableAudienceTargeting", config.isEnableAudienceTargeting());
+            configMap.put("enableConversionTracking", config.isEnableConversionTracking());
+            configMap.put("enableBudgetManagement", config.isEnableBudgetManagement());
+            configMap.put("enableLeadGenForms", config.isEnableLeadGenForms());
+        }
+        return configMap;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        return getConfig();
+    }
+
+    @Override
+    protected void doSenderInitialize() throws Exception {
+        log.debug("Initializing LinkedIn Ads inbound adapter");
+        // Initialization is handled in startListening method
+    }
+
+    @Override
+    protected void doSenderDestroy() throws Exception {
+        log.debug("Destroying LinkedIn Ads inbound adapter");
+        stopListening();
+    }
+
+    @Override
+    protected AdapterResult doSend(Object payload, Map<String, Object> headers) throws Exception {
+        // Inbound adapter doesn't send data, it receives it
+        throw new UnsupportedOperationException("LinkedIn Ads inbound adapter is for receiving data only");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        if (!isConfigValid()) {
+            return AdapterResult.failure("LinkedIn Ads configuration is invalid");
+        }
+
+        try {
+            // Test connection by making a simple API call
+            String url = config.getApiBaseUrl() + restPath + adAccountsEndpoint + "/" + config.getAdAccountId();
+
+            Map<String, String> params = new HashMap<>();
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, params);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "LinkedIn Ads API connection successful");
+            } else {
+                return AdapterResult.failure("LinkedIn Ads API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("Error testing LinkedIn Ads connection", e);
+            return AdapterResult.failure("Failed to test LinkedIn Ads connection: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
+        return executeTimedOperation("send", () -> doSend(payload, headers));
     }
 }

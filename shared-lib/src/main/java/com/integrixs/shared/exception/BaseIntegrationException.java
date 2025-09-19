@@ -1,6 +1,5 @@
 package com.integrixs.shared.exception;
 
-import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +17,6 @@ import java.util.Map;
  * @author Integration Team
  * @since 1.0.0
  */
-@Getter
 public abstract class BaseIntegrationException extends RuntimeException {
 
     /**
@@ -138,4 +136,21 @@ public abstract class BaseIntegrationException extends RuntimeException {
      * @return suggested HTTP status code
      */
     public abstract int getHttpStatusCode();
+
+    // Getters
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public ErrorCategory getCategory() {
+        return category;
+    }
+
+    public Map<String, Object> getContext() {
+        return context;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 }

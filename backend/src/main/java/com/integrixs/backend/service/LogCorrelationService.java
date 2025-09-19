@@ -4,8 +4,6 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
 import com.integrixs.shared.dto.log.CorrelatedLogGroup;
 import com.integrixs.shared.dto.log.FlowExecutionTimeline;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -18,15 +16,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for correlating logs across different components and flows.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class LogCorrelationService {
+
+    private static final Logger log = LoggerFactory.getLogger(LogCorrelationService.class);
+
 
     private final SystemLogRepository systemLogRepository;
 
@@ -542,7 +543,7 @@ public class LogCorrelationService {
         LocalDateTime endTime = baseTime.plusSeconds(10);
 
         Specification<SystemLog> spec = (root, query, cb) -> {
-            List<javax.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.between(root.get("timestamp"), startTime, endTime));
 
@@ -554,7 +555,7 @@ public class LogCorrelationService {
                 predicates.add(cb.equal(root.get("category"), category));
             }
 
-            return cb.and(predicates.toArray(new javax.persistence.criteria.Predicate[0]));
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
 
         return systemLogRepository.findAll(spec, Sort.by("timestamp"))

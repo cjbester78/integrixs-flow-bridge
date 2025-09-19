@@ -3,7 +3,6 @@ package com.integrixs.backend.performance;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManagerFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,12 +19,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
 import java.util.Map;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Database query optimization configuration.
  * Enhances Hibernate and connection pool settings for optimal performance.
  */
-@Slf4j
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = {
@@ -33,6 +33,9 @@ import java.util.Properties;
     "com.integrixs.backend.domain.repository"
 })
 public class QueryOptimizationConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(QueryOptimizationConfig.class);
+
 
     @Value("$ {spring.jpa.properties.hibernate.jdbc.batch_size:50}")
     private int batchSize;

@@ -3,8 +3,8 @@ package com.integrixs.monitoring.infrastructure.service;
 import com.integrixs.monitoring.domain.model.MonitoringEvent;
 import com.integrixs.monitoring.domain.repository.MonitoringEventRepository;
 import com.integrixs.monitoring.domain.service.EventLoggingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +16,15 @@ import java.util.Map;
 /**
  * Infrastructure implementation of event logging service
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class EventLoggingServiceImpl implements EventLoggingService {
 
+    private static final Logger log = LoggerFactory.getLogger(EventLoggingServiceImpl.class);
     private final MonitoringEventRepository eventRepository;
+    
+    public EventLoggingServiceImpl(MonitoringEventRepository eventRepository) {
+        this.eventRepository = eventRepository;
+    }
 
     @Override
     @Transactional

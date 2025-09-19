@@ -1,10 +1,6 @@
 package com.integrixs.backend.marketplace.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import com.integrixs.data.model.BaseEntity;
 import com.integrixs.backend.auth.entity.User;
 
@@ -16,10 +12,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "template_ratings",
     uniqueConstraints = @UniqueConstraint(columnNames = {"template_id", "user_id"}))
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class TemplateRating extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -70,5 +62,81 @@ public class TemplateRating extends BaseEntity {
         if(rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
+    }
+
+    // Default constructor
+    public TemplateRating() {
+    }
+
+    public FlowTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(FlowTemplate template) {
+        this.template = template;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
+    public String getReview() {
+        return review;
+    }
+
+    public void setReview(String review) {
+        this.review = review;
+    }
+
+    public boolean isVerifiedPurchase() {
+        return verifiedPurchase;
+    }
+
+    public void setVerifiedPurchase(boolean verifiedPurchase) {
+        this.verifiedPurchase = verifiedPurchase;
+    }
+
+    public LocalDateTime getRatedAt() {
+        return ratedAt;
+    }
+
+    public void setRatedAt(LocalDateTime ratedAt) {
+        this.ratedAt = ratedAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Long getHelpfulCount() {
+        return helpfulCount;
+    }
+
+    public void setHelpfulCount(Long helpfulCount) {
+        this.helpfulCount = helpfulCount;
+    }
+
+    public Long getNotHelpfulCount() {
+        return notHelpfulCount;
+    }
+
+    public void setNotHelpfulCount(Long notHelpfulCount) {
+        this.notHelpfulCount = notHelpfulCount;
     }
 }

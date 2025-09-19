@@ -6,8 +6,6 @@ import com.integrixs.data.model.TransformationCustomFunction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,14 +16,17 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/development/functions")
-@RequiredArgsConstructor
 @Tag(name = "Development Functions", description = "Development function management endpoints")
 @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
 public class DevelopmentFunctionController {
+
+    private static final Logger log = LoggerFactory.getLogger(DevelopmentFunctionController.class);
+
 
     private final DevelopmentFunctionService functionService;
 

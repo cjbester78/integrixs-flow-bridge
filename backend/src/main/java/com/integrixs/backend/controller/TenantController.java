@@ -1,7 +1,5 @@
 package com.integrixs.backend.controller;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -11,11 +9,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/tenants")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TenantController {
 
@@ -23,6 +21,9 @@ public class TenantController {
      * Get current tenant(stub implementation)
      * In a multi - tenant system, this would return the current tenant context
      */
+
+    private static final Logger log = LoggerFactory.getLogger(TenantController.class);
+
     @GetMapping("/current")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getCurrentTenant() {

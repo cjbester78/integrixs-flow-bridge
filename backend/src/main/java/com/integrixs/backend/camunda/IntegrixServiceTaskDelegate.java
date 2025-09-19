@@ -3,7 +3,11 @@ package com.integrixs.backend.camunda;
 import com.integrixs.backend.service.AdapterExecutionService;
 import com.integrixs.backend.service.TransformationExecutionService;
 import com.integrixs.backend.service.OrchestrationTargetService;
+import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.OrchestrationTarget;
+import static com.integrixs.data.model.OrchestrationTarget.ErrorStrategy.*;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.OrchestrationTargetRepository;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.slf4j.Logger;
@@ -32,6 +36,12 @@ public class IntegrixServiceTaskDelegate implements JavaDelegate {
 
     @Autowired
     private OrchestrationTargetService orchestrationTargetService;
+
+    @Autowired
+    private CommunicationAdapterRepository adapterRepository;
+
+    @Autowired
+    private OrchestrationTargetRepository orchestrationTargetRepository;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
@@ -128,20 +138,20 @@ public class IntegrixServiceTaskDelegate implements JavaDelegate {
             throw new RuntimeException("No adapter ID specified for adapter call");
         }
 
+        // Fetch adapter from repository
+        CommunicationAdapter adapter = adapterRepository.findById(UUID.fromString(adapterId))
+            .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
+
         // Execute adapter
-        var result = adapterExecutionService.executeAdapter(
-            UUID.fromString(adapterId),
-            messageData != null ? messageData : context,
+        String result = adapterExecutionService.executeAdapter(
+            adapter,
+            messageData != null ? messageData.toString() : context.toString(),
             context
        );
 
-        if(result.isSuccess()) {
-            execution.setVariable("currentData", result.getData());
-            execution.setVariable("adapterResult", result.getData());
-            logger.info("Adapter call completed successfully");
-        } else {
-            throw new RuntimeException("Adapter execution failed: " + result.getError());
-        }
+        execution.setVariable("currentData", result);
+        execution.setVariable("adapterResult", result);
+        logger.info("Adapter call completed successfully");
     }
 
     /**
@@ -175,7 +185,7 @@ public class IntegrixServiceTaskDelegate implements JavaDelegate {
         }
 
         // Get orchestration targets
-        List<OrchestrationTarget> targets = orchestrationTargetService.getTargetsByFlowId(UUID.fromString(flowId));
+        List<OrchestrationTarget> targets = orchestrationTargetRepository.findByFlowId(UUID.fromString(flowId));
 
         // Execute each target based on configuration
         for(OrchestrationTarget target : targets) {
@@ -210,18 +220,14 @@ public class IntegrixServiceTaskDelegate implements JavaDelegate {
         Map<String, Object> context = execution.getVariables();
 
         // Execute adapter
-        var result = adapterExecutionService.executeAdapter(
-            target.getTargetAdapter().getId(),
-            messageData != null ? messageData : context,
+        String result = adapterExecutionService.executeAdapter(
+            target.getTargetAdapter(),
+            messageData != null ? messageData.toString() : context.toString(),
             context
        );
 
-        if(result.isSuccess()) {
-            execution.setVariable("target_" + target.getId() + "_result", result.getData());
-            logger.info("Target {} executed successfully", target.getId());
-        } else {
-            throw new RuntimeException("Target execution failed: " + result.getError());
-        }
+        execution.setVariable("target_" + target.getId() + "_result", result);
+        logger.info("Target {} executed successfully", target.getId());
     }
 
     /**
@@ -230,28 +236,28 @@ public class IntegrixServiceTaskDelegate implements JavaDelegate {
     private void handleTargetError(OrchestrationTarget target, Exception error, DelegateExecution execution) throws Exception {
         logger.error("Error executing target: " + target.getId(), error);
 
-        String errorStrategy = target.getErrorStrategy();
+        OrchestrationTarget.ErrorStrategy errorStrategy = target.getErrorStrategy();
         if(errorStrategy == null) {
-            errorStrategy = "FAIL_FAST";
+            errorStrategy = OrchestrationTarget.ErrorStrategy.FAIL_FLOW;
         }
 
         switch(errorStrategy) {
-            case "CONTINUE":
+            case SKIP_TARGET:
                 // Log error and continue
                 execution.setVariable("target_" + target.getId() + "_error", error.getMessage());
                 break;
 
-            case "COMPENSATE":
+            case COMPENSATE:
                 // Trigger compensation
                 execution.setVariable("compensationRequired", true);
                 execution.setVariable("compensationTargetId", target.getId().toString());
                 throw error;
 
-            case "RETRY":
+            case RETRY:
                 // Will be handled by Camunda retry mechanism
                 throw error;
 
-            case "FAIL_FAST":
+            case FAIL_FLOW:
             default:
                 // Fail immediately
                 throw error;

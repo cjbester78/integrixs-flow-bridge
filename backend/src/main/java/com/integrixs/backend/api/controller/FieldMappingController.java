@@ -9,8 +9,6 @@ import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,17 +16,20 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for field mapping management
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/transformations/ {transformationId}/mappings")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequiredArgsConstructor
 @Tag(name = "Field Mapping", description = "Field mapping management")
 public class FieldMappingController {
+
+    private static final Logger log = LoggerFactory.getLogger(FieldMappingController.class);
+
 
     private final FieldMappingApplicationService fieldMappingService;
     private final UserRepository userRepository;

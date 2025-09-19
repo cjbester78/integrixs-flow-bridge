@@ -11,8 +11,6 @@ import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +18,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for flow deployment management
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FlowDeploymentApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowDeploymentApplicationService.class);
+
 
     private final IntegrationFlowRepository flowRepository;
     private final CommunicationAdapterRepository adapterRepository;

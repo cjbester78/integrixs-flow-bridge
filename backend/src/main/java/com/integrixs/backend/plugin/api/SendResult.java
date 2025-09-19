@@ -1,15 +1,11 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
  * Result of a send operation
  */
-@Data
-@Builder
 public class SendResult {
 
     /**
@@ -40,7 +36,6 @@ public class SendResult {
     /**
      * Timestamp when sent
      */
-    @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
     /**

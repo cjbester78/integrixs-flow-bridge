@@ -66,6 +66,17 @@ public class RabbitMQConfig extends BaseAdapterConfig {
     private boolean enableDeadLetterExchange = true;
     private String deadLetterExchangeName;
     private String deadLetterRoutingKey;
+    
+    // Recovery settings
+    private long networkRecoveryInterval = 5000; // milliseconds
+    
+    // Connection settings
+    private String connectionNamePrefix = "IntegrixsFlowBridge_Outbound_";
+    private int defaultPort = 5672;
+    private long confirmWaitTime = 1000; // milliseconds to wait for confirms
+    
+    // Priority settings
+    private int maxPriority = 10; // max priority level for priority queues
 
     // SSL/TLS settings
     private boolean sslEnabled = false;
@@ -209,12 +220,12 @@ public class RabbitMQConfig extends BaseAdapterConfig {
     
     // Management API fields referenced by getters/setters
     private boolean enabled = false;
-    private String url = "http://localhost:15672"; 
+    private String url; 
     private int readTimeout = 10000;
 
     public static class ManagementApi {
         private boolean enabled = false;
-        private String url = "http://localhost:15672";
+        private String url;
         private String username = "guest";
         private String password = "guest";
         private int connectionTimeout = 5000;
@@ -646,5 +657,35 @@ public class RabbitMQConfig extends BaseAdapterConfig {
     }
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+    public long getNetworkRecoveryInterval() {
+        return networkRecoveryInterval;
+    }
+    public void setNetworkRecoveryInterval(long networkRecoveryInterval) {
+        this.networkRecoveryInterval = networkRecoveryInterval;
+    }
+    public String getConnectionNamePrefix() {
+        return connectionNamePrefix;
+    }
+    public void setConnectionNamePrefix(String connectionNamePrefix) {
+        this.connectionNamePrefix = connectionNamePrefix;
+    }
+    public int getDefaultPort() {
+        return defaultPort;
+    }
+    public void setDefaultPort(int defaultPort) {
+        this.defaultPort = defaultPort;
+    }
+    public long getConfirmWaitTime() {
+        return confirmWaitTime;
+    }
+    public void setConfirmWaitTime(long confirmWaitTime) {
+        this.confirmWaitTime = confirmWaitTime;
+    }
+    public int getMaxPriority() {
+        return maxPriority;
+    }
+    public void setMaxPriority(int maxPriority) {
+        this.maxPriority = maxPriority;
     }
 }

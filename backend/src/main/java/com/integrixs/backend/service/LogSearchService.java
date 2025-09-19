@@ -4,8 +4,6 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
 import com.integrixs.shared.dto.log.LogSearchCriteria;
 import com.integrixs.shared.dto.log.LogSearchResult;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,20 +12,23 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Enhanced log search service with advanced search capabilities.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class LogSearchService {
+
+    private static final Logger log = LoggerFactory.getLogger(LogSearchService.class);
+
 
     private final SystemLogRepository systemLogRepository;
 

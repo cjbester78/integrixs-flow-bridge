@@ -4,7 +4,7 @@ import com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum;
 import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.RequiredArgsConstructor;
+import static com.integrixs.shared.enums.AdapterType.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -14,7 +14,6 @@ import java.util.UUID;
  * Domain service for adapter validation logic
  */
 @Service
-@RequiredArgsConstructor
 public class AdapterValidationService {
 
     private final CommunicationAdapterRepository adapterRepository;
@@ -62,7 +61,7 @@ public class AdapterValidationService {
             case EMAIL:
                 validateEmailConfiguration(config, mode);
                 break;
-            case JMS:
+            case IBMMQ:
                 validateJmsConfiguration(config, mode);
                 break;
             case KAFKA:

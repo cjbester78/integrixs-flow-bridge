@@ -7,8 +7,6 @@ import com.integrixs.backend.dto.dashboard.health.*;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import io.micrometer.core.instrument.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +15,17 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for adapter health monitoring and dashboards.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AdapterHealthDashboardService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterHealthDashboardService.class);
+
 
     private final CommunicationAdapterRepository adapterRepository;
     private final AdapterMonitoringService adapterMonitoringService;

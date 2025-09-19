@@ -3,7 +3,6 @@ package com.integrixs.backend.controller;
 import com.integrixs.backend.security.RateLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/rate - limits")
 @Tag(name = "Rate Limits", description = "API rate limit management")
-@RequiredArgsConstructor
 public class RateLimitController {
 
     private final RateLimitService rateLimitService;

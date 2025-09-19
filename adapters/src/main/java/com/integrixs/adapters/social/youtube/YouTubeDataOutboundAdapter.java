@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.integrixs.adapters.social.base.AbstractSocialMediaOutboundAdapter;
 import com.integrixs.adapters.social.youtube.YouTubeDataApiConfig.*;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.shared.dto.MessageDTO;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.shared.services.RateLimiterService;
@@ -37,11 +39,11 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private static final Logger log = LoggerFactory.getLogger(YouTubeDataOutboundAdapter.class);
 
 
-    private static final String YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3";
-    private static final String YOUTUBE_UPLOAD_BASE = "https://www.googleapis.com/upload/youtube/v3";
+    // API URLs are configured in application.yml
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    @Autowired
     private YouTubeDataApiConfig config;
     private final RateLimiterService rateLimiterService;
     private final TokenRefreshService tokenRefreshService;
@@ -54,6 +56,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             CredentialEncryptionService credentialEncryptionService,
             RestTemplate restTemplate,
             ObjectMapper objectMapper) {
+        super(rateLimiterService, credentialEncryptionService);
         this.rateLimiterService = rateLimiterService;
         this.tokenRefreshService = tokenRefreshService;
         this.credentialEncryptionService = credentialEncryptionService;
@@ -61,7 +64,6 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         this.objectMapper = objectMapper;
     }
 
-    @Override
     public MessageDTO sendMessage(MessageDTO message) throws AdapterException {
         try {
             validateConfiguration();
@@ -177,6 +179,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             }
         } catch(Exception e) {
             log.error("Error in YouTube Data outbound adapter", e);
+            throw new AdapterException("Failed to process YouTube operation", e);
         }
     }
 
@@ -186,7 +189,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
 
         // Step 1: Upload video file
         String videoPath = payload.path("videoPath").asText();
-        String uploadUrl = YOUTUBE_UPLOAD_BASE + "/videos?uploadType = resumable&part = snippet,status,contentDetails";
+        String uploadUrl = config.getUploadBaseUrl() + "/videos?uploadType=resumable&part=snippet,status,contentDetails";
 
         // Create video metadata
         ObjectNode videoMetadata = objectMapper.createObjectNode();
@@ -262,7 +265,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
             JsonNode uploadedVideo = objectMapper.readTree(uploadResponse.getBody());
             String videoId = uploadedVideo.path("id").asText();
 
-            MessageDTO thumbnailMessageDTO = new MessageDTO();
+            MessageDTO thumbnailMessage = new MessageDTO();
             ObjectNode thumbnailPayload = objectMapper.createObjectNode();
             thumbnailPayload.put("videoId", videoId);
             thumbnailPayload.put("thumbnailPath", payload.get("thumbnailPath").asText());
@@ -279,7 +282,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String videoId = payload.path("videoId").asText();
 
-        String url = YOUTUBE_API_BASE + "/videos?part = snippet,status";
+        String url = config.getApiBaseUrl() + "/videos?part = snippet,status";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", videoId);
@@ -322,7 +325,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String videoId = payload.path("videoId").asText();
 
-        String url = YOUTUBE_API_BASE + "/videos?id = " + videoId;
+        String url = config.getApiBaseUrl() + "/videos?id = " + videoId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "VIDEO_DELETED");
@@ -333,7 +336,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         String videoId = payload.path("videoId").asText();
         String thumbnailPath = payload.path("thumbnailPath").asText();
 
-        String url = YOUTUBE_UPLOAD_BASE + "/thumbnails/set?videoId = " + videoId;
+        String url = config.getUploadBaseUrl() + "/thumbnails/set?videoId = " + videoId;
 
         Path thumbnailFile = Paths.get(thumbnailPath);
         byte[] thumbnailContent = Files.readAllBytes(thumbnailFile);
@@ -354,7 +357,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String videoId = payload.path("videoId").asText();
 
-        String url = YOUTUBE_API_BASE + "/videos";
+        String url = config.getApiBaseUrl() + "/videos";
         Map<String, String> params = new HashMap<>();
         params.put("id", videoId);
         params.put("part", payload.path("parts").asText("snippet,statistics,contentDetails,status"));
@@ -367,7 +370,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO createPlaylist(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/playlists?part = snippet,status";
+        String url = config.getApiBaseUrl() + "/playlists?part = snippet,status";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
 
@@ -393,7 +396,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String playlistId = payload.path("playlistId").asText();
 
-        String url = YOUTUBE_API_BASE + "/playlists?part = snippet,status";
+        String url = config.getApiBaseUrl() + "/playlists?part = snippet,status";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", playlistId);
@@ -425,7 +428,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String playlistId = payload.path("playlistId").asText();
 
-        String url = YOUTUBE_API_BASE + "/playlists?id = " + playlistId;
+        String url = config.getApiBaseUrl() + "/playlists?id = " + playlistId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "PLAYLIST_DELETED");
@@ -434,7 +437,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO addToPlaylist(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/playlistItems?part = snippet";
+        String url = config.getApiBaseUrl() + "/playlistItems?part = snippet";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         ObjectNode snippet = requestBody.putObject("snippet");
@@ -456,7 +459,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String playlistItemId = payload.path("playlistItemId").asText();
 
-        String url = YOUTUBE_API_BASE + "/playlistItems?id = " + playlistItemId;
+        String url = config.getApiBaseUrl() + "/playlistItems?id = " + playlistItemId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "VIDEO_REMOVED_FROM_PLAYLIST");
@@ -467,10 +470,10 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         String playlistItemId = payload.path("playlistItemId").asText();
         int newPosition = payload.path("position").asInt();
 
-        String url = YOUTUBE_API_BASE + "/playlistItems?part = snippet";
+        String url = config.getApiBaseUrl() + "/playlistItems?part = snippet";
 
         // First get the current item
-        String getUrl = YOUTUBE_API_BASE + "/playlistItems?id = " + playlistItemId + "&part = snippet";
+        String getUrl = config.getApiBaseUrl() + "/playlistItems?id = " + playlistItemId + "&part = snippet";
         ResponseEntity<String> getResponse = makeApiCall(getUrl, HttpMethod.GET, null);
         JsonNode currentItem = objectMapper.readTree(getResponse.getBody()).path("items").get(0);
 
@@ -478,7 +481,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", playlistItemId);
         requestBody.set("snippet", currentItem.get("snippet"));
-        requestBody.path("snippet").put("position", newPosition);
+        ((ObjectNode) requestBody.path("snippet")).put("position", newPosition);
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.PUT, requestBody.toString());
         return createResponseMessage(response, "PLAYLIST_REORDERED");
@@ -488,7 +491,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO postComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/commentThreads?part = snippet";
+        String url = config.getApiBaseUrl() + "/commentThreads?part = snippet";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         ObjectNode snippet = requestBody.putObject("snippet");
@@ -511,7 +514,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("commentId").asText();
 
-        String url = YOUTUBE_API_BASE + "/comments?part = snippet";
+        String url = config.getApiBaseUrl() + "/comments?part = snippet";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", commentId);
@@ -527,7 +530,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String commentId = payload.path("commentId").asText();
 
-        String url = YOUTUBE_API_BASE + "/comments?id = " + commentId;
+        String url = config.getApiBaseUrl() + "/comments?id = " + commentId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "COMMENT_DELETED");
@@ -538,7 +541,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         String commentId = payload.path("commentId").asText();
         String moderationStatus = payload.path("moderationStatus").asText();
 
-        String url = YOUTUBE_API_BASE + "/comments/setModerationStatus";
+        String url = config.getApiBaseUrl() + "/comments/setModerationStatus";
         Map<String, String> params = new HashMap<>();
         params.put("id", commentId);
         params.put("moderationStatus", moderationStatus);
@@ -554,7 +557,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO replyToComment(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/comments?part = snippet";
+        String url = config.getApiBaseUrl() + "/comments?part = snippet";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         ObjectNode snippet = requestBody.putObject("snippet");
@@ -569,7 +572,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO createLiveBroadcast(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/liveBroadcasts?part = snippet,status,contentDetails";
+        String url = config.getApiBaseUrl() + "/liveBroadcasts?part = snippet,status,contentDetails";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
 
@@ -598,7 +601,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String broadcastId = payload.path("broadcastId").asText();
 
-        String url = YOUTUBE_API_BASE + "/liveBroadcasts?part = snippet,status";
+        String url = config.getApiBaseUrl() + "/liveBroadcasts?part = snippet,status";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", broadcastId);
@@ -631,7 +634,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         String streamId = payload.path("streamId").asText();
 
         // Bind stream to broadcast
-        String bindUrl = YOUTUBE_API_BASE + "/liveBroadcasts/bind";
+        String bindUrl = config.getApiBaseUrl() + "/liveBroadcasts/bind";
         Map<String, String> bindParams = new HashMap<>();
         bindParams.put("id", broadcastId);
         bindParams.put("part", "id,contentDetails,status");
@@ -640,7 +643,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         makeApiCall(bindUrl, HttpMethod.POST, null, bindParams);
 
         // Transition to testing
-        String testUrl = YOUTUBE_API_BASE + "/liveBroadcasts/transition";
+        String testUrl = config.getApiBaseUrl() + "/liveBroadcasts/transition";
         Map<String, String> testParams = new HashMap<>();
         testParams.put("broadcastStatus", "testing");
         testParams.put("id", broadcastId);
@@ -652,7 +655,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         TimeUnit.SECONDS.sleep(5);
 
         // Transition to live
-        String liveUrl = YOUTUBE_API_BASE + "/liveBroadcasts/transition";
+        String liveUrl = config.getApiBaseUrl() + "/liveBroadcasts/transition";
         Map<String, String> liveParams = new HashMap<>();
         liveParams.put("broadcastStatus", "live");
         liveParams.put("id", broadcastId);
@@ -666,7 +669,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String broadcastId = payload.path("broadcastId").asText();
 
-        String url = YOUTUBE_API_BASE + "/liveBroadcasts/transition";
+        String url = config.getApiBaseUrl() + "/liveBroadcasts/transition";
         Map<String, String> params = new HashMap<>();
         params.put("broadcastStatus", "complete");
         params.put("id", broadcastId);
@@ -679,7 +682,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO createLiveStream(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/liveStreams?part = snippet,cdn,status";
+        String url = config.getApiBaseUrl() + "/liveStreams?part = snippet,cdn,status";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
 
@@ -699,7 +702,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO updateChannel(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/channels?part = snippet,status,brandingSettings";
+        String url = config.getApiBaseUrl() + "/channels?part = snippet,status,brandingSettings";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", config.getChannelId());
@@ -739,19 +742,19 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO setChannelSections(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/channelSections?part = snippet,contentDetails";
+        String url = config.getApiBaseUrl() + "/channelSections?part = snippet,contentDetails";
 
         // Delete existing sections if requested
         if(payload.path("clearExisting").asBoolean(false)) {
             // Get existing sections
-            String getUrl = YOUTUBE_API_BASE + "/channelSections?part = id&channelId = " + config.getChannelId();
+            String getUrl = config.getApiBaseUrl() + "/channelSections?part = id&channelId = " + config.getChannelId();
             ResponseEntity<String> getResponse = makeApiCall(getUrl, HttpMethod.GET, null);
             JsonNode sections = objectMapper.readTree(getResponse.getBody()).get("items");
 
             // Delete each section
             if(sections != null) {
                 for(JsonNode section : sections) {
-                    String deleteUrl = YOUTUBE_API_BASE + "/channelSections?id = " + section.get("id").asText();
+                    String deleteUrl = config.getApiBaseUrl() + "/channelSections?id = " + section.get("id").asText();
                     makeApiCall(deleteUrl, HttpMethod.DELETE, null);
                 }
             }
@@ -818,7 +821,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         ObjectNode storyPayload = payload.deepCopy();
         storyPayload.put("isShort", true);
 
-        MessageDTO storyMessageDTO = new MessageDTO();
+        MessageDTO storyMessage = new MessageDTO();
         storyMessage.setPayload(storyPayload.toString());
         storyMessage.setHeaders(Map.of("operation", "UPLOAD_VIDEO"));
 
@@ -831,7 +834,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         String videoId = payload.path("videoId").asText();
         String captionPath = payload.path("captionPath").asText();
 
-        String url = YOUTUBE_UPLOAD_BASE + "/captions?part = snippet&sync = true";
+        String url = config.getUploadBaseUrl() + "/captions?part = snippet&sync = true";
 
         ObjectNode captionMetadata = objectMapper.createObjectNode();
         ObjectNode snippet = captionMetadata.putObject("snippet");
@@ -870,7 +873,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String captionId = payload.path("captionId").asText();
 
-        String url = YOUTUBE_UPLOAD_BASE + "/captions?part = snippet";
+        String url = config.getUploadBaseUrl() + "/captions?part = snippet";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("id", captionId);
@@ -890,7 +893,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String captionId = payload.path("captionId").asText();
 
-        String url = YOUTUBE_API_BASE + "/captions?id = " + captionId;
+        String url = config.getApiBaseUrl() + "/captions?id = " + captionId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "CAPTION_DELETED");
@@ -900,7 +903,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO subscribe(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/subscriptions?part = snippet";
+        String url = config.getApiBaseUrl() + "/subscriptions?part = snippet";
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         ObjectNode snippet = requestBody.putObject("snippet");
@@ -917,7 +920,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         JsonNode payload = objectMapper.readTree(message.getPayload());
         String subscriptionId = payload.path("subscriptionId").asText();
 
-        String url = YOUTUBE_API_BASE + "/subscriptions?id = " + subscriptionId;
+        String url = config.getApiBaseUrl() + "/subscriptions?id = " + subscriptionId;
 
         ResponseEntity<String> response = makeApiCall(url, HttpMethod.DELETE, null);
         return createResponseMessage(response, "UNSUBSCRIBED");
@@ -950,7 +953,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO searchVideos(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/search";
+        String url = config.getApiBaseUrl() + "/search";
         Map<String, String> params = new HashMap<>();
         params.put("part", "id,snippet");
         params.put("q", payload.path("query").asText());
@@ -988,7 +991,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO searchChannels(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/search";
+        String url = config.getApiBaseUrl() + "/search";
         Map<String, String> params = new HashMap<>();
         params.put("part", "id,snippet");
         params.put("q", payload.path("query").asText());
@@ -1006,7 +1009,7 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO searchPlaylists(MessageDTO message) throws Exception {
         JsonNode payload = objectMapper.readTree(message.getPayload());
 
-        String url = YOUTUBE_API_BASE + "/search";
+        String url = config.getApiBaseUrl() + "/search";
         Map<String, String> params = new HashMap<>();
         params.put("part", "id,snippet");
         params.put("q", payload.path("query").asText());
@@ -1030,6 +1033,39 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
         return makeApiCall(url, method, body, null);
     }
 
+    private ResponseEntity<String> makeApiCall(String url, HttpMethod method, String body, Map<String, String> params) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(getAccessToken());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Accept", "application/json");
+
+        // Add query parameters to URL
+        if (params != null && !params.isEmpty()) {
+            StringBuilder urlBuilder = new StringBuilder(url);
+            urlBuilder.append("?");
+            params.forEach((key, value) -> 
+                urlBuilder.append(key).append("=").append(value).append("&"));
+            urlBuilder.setLength(urlBuilder.length() - 1); // Remove trailing &
+            url = urlBuilder.toString();
+        }
+
+        HttpEntity<String> entity = body != null ? 
+            new HttpEntity<>(body, headers) : new HttpEntity<>(headers);
+
+        rateLimiterService.acquire("youtube_data_api", getQuotaCost(method, url));
+        return restTemplate.exchange(url, method, entity, String.class);
+    }
+
+    private int getQuotaCost(HttpMethod method, String url) {
+        // YouTube API quota costs vary by operation
+        if (method == HttpMethod.GET) return 1;
+        if (method == HttpMethod.DELETE) return 50;
+        if (url.contains("/videos") && method == HttpMethod.POST) return 1600;
+        if (url.contains("/playlists") && method == HttpMethod.POST) return 50;
+        if (url.contains("/comments") && method == HttpMethod.POST) return 50;
+        return 50; // Default for other operations
+    }
+
 
     private String getAccessToken() {
         return credentialEncryptionService.decrypt(config.getAccessToken());
@@ -1047,18 +1083,108 @@ public class YouTubeDataOutboundAdapter extends AbstractSocialMediaOutboundAdapt
     private MessageDTO createResponseMessage(ResponseEntity<String> response, String operation) {
         MessageDTO responseMessage = new MessageDTO();
         responseMessage.setCorrelationId(UUID.randomUUID().toString());
-        responseMessage.setMessageTimestamp(java.time.Instant.now());
-        responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.PROCESSED : MessageStatus.FAILED);
-        responseMessage.setHeaders(Map.of(
-            "operation", operation,
-            "statusCode", response.getStatusCodeValue(),
-            "source", "youtube"
-       ));
-        responseMessage.setPayload(response.getBody());
+        responseMessage.setTimestamp(LocalDateTime.now());
+        
+        if (response != null) {
+            responseMessage.setStatus(response.getStatusCode().is2xxSuccessful() ? MessageStatus.SUCCESS : MessageStatus.FAILED);
+            responseMessage.setHeaders(Map.of(
+                "operation", operation,
+                "statusCode", response.getStatusCodeValue(),
+                "source", "youtube"
+            ));
+            responseMessage.setPayload(response.getBody());
+        } else {
+            // For operations that don't have actual API calls
+            responseMessage.setStatus(MessageStatus.SUCCESS);
+            responseMessage.setHeaders(Map.of(
+                "operation", operation,
+                "source", "youtube"
+            ));
+            responseMessage.setPayload("{}");
+        }
         return responseMessage;
     }
 
     public void setConfiguration(YouTubeDataApiConfig config) {
         this.config = config;
+    }
+
+    @Override
+    protected YouTubeDataApiConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public Map<String, Object> getAdapterConfig() {
+        Map<String, Object> configMap = new HashMap<>();
+        if (config != null) {
+            configMap.put("channelId", config.getChannelId());
+            configMap.put("clientId", config.getClientId());
+            configMap.put("clientSecret", config.getClientSecret());
+            configMap.put("accessToken", config.getAccessToken());
+            configMap.put("refreshToken", config.getRefreshToken());
+            configMap.put("apiBaseUrl", config.getApiBaseUrl());
+            configMap.put("apiVersion", config.getApiVersion());
+        }
+        return configMap;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REST;
+    }
+
+    @Override
+    public MessageDTO processMessage(MessageDTO message) {
+        try {
+            return sendMessage(message);
+        } catch (AdapterException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected long getPollingIntervalMs() {
+        // Outbound adapters don't typically poll, but return 0 to indicate no polling
+        return 0;
+    }
+
+    @Override
+    protected void doReceiverInitialize() throws Exception {
+        // Initialize any receiver-specific resources
+        log.debug("Initializing YouTube Data outbound adapter");
+    }
+
+    @Override
+    protected void doReceiverDestroy() throws Exception {
+        // Clean up any receiver-specific resources
+        log.debug("Destroying YouTube Data outbound adapter");
+    }
+
+    @Override
+    protected AdapterResult doReceive(Object criteria) throws Exception {
+        // Outbound adapters typically don't receive data
+        throw new UnsupportedOperationException("YouTube Data outbound adapter does not support receiving data");
+    }
+
+    @Override
+    protected AdapterResult doTestConnection() throws Exception {
+        try {
+            // Test connection by making a simple API call
+            String url = config.getApiBaseUrl() + "/channels/list";
+            Map<String, String> params = new HashMap<>();
+            params.put("part", "id");
+            params.put("mine", "true");
+            
+            ResponseEntity<String> response = makeApiCall(url, HttpMethod.GET, null, params);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return AdapterResult.success(null, "YouTube Data API connection successful");
+            } else {
+                return AdapterResult.failure("YouTube Data API connection failed: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return AdapterResult.failure("Failed to test YouTube Data connection: " + e.getMessage());
+        }
     }
 }

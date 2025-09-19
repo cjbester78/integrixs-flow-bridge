@@ -1,8 +1,6 @@
 package com.integrixs.backend.domain.valueobjects;
 
 import com.integrixs.shared.exceptions.ValidationException;
-import lombok.Value;
-
 import java.util.regex.Pattern;
 
 /**
@@ -13,14 +11,13 @@ import java.util.regex.Pattern;
  * @author Integration Team
  * @since 1.0.0
  */
-@Value
 public class FlowName {
 
     private static final int MIN_LENGTH = 3;
     private static final int MAX_LENGTH = 100;
-    private static final Pattern VALID_PATTERN = Pattern.compile("^[a - zA - Z0-9][a - zA - Z0-9_\\ - \\s]*$");
+    private static final Pattern VALID_PATTERN = Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_\\-\\s]*$");
 
-    String value;
+    private final String value;
 
     /**
      * Creates a new FlowName.
@@ -63,8 +60,30 @@ public class FlowName {
         return new FlowName(value);
     }
 
+    /**
+     * Gets the flow name value.
+     *
+     * @return the flow name
+     */
+    public String getValue() {
+        return value;
+    }
+
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FlowName flowName = (FlowName) o;
+        return value.equals(flowName.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 }

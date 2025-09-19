@@ -1,15 +1,11 @@
 package com.integrixs.backend.plugin.dto;
 
 import com.integrixs.backend.plugin.api.AdapterMetadata;
-import lombok.Builder;
-import lombok.Data;
 import java.util.List;
 
 /**
  * DTO for plugin upload results
  */
-@Data
-@Builder
 public class UploadResultDto {
     private boolean successful;
     private String pluginId;
@@ -31,5 +27,49 @@ public class UploadResultDto {
                 .successful(false)
                 .error(error)
                 .build();
+    }
+
+    // Default constructor
+    public UploadResultDto() {
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
+    }
+
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    public void setPluginId(String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    public AdapterMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(AdapterMetadata metadata) {
+        this.metadata = metadata;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
     }
 }

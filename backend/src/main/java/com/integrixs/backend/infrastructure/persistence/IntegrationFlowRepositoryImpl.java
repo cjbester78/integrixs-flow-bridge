@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
 import com.integrixs.data.model.IntegrationFlow;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainIntegrationFlowRepository")
-@RequiredArgsConstructor
 public class IntegrationFlowRepositoryImpl implements IntegrationFlowRepository {
 
     private final com.integrixs.data.repository.IntegrationFlowRepository jpaRepository;

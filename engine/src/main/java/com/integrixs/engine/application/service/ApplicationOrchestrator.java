@@ -8,8 +8,6 @@ import com.integrixs.engine.domain.model.FlowExecutionContext;
 import com.integrixs.engine.domain.model.WorkflowContext;
 import com.integrixs.engine.domain.service.FlowExecutionService;
 import com.integrixs.engine.domain.service.WorkflowOrchestrationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +15,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application - level orchestrator that coordinates complex workflows
  * Bridges between API layer and domain services
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ApplicationOrchestrator {
+
+    private static final Logger log = LoggerFactory.getLogger(ApplicationOrchestrator.class);
+
 
     private final WorkflowOrchestrationService workflowOrchestrationService;
     private final FlowExecutionService flowExecutionService;
@@ -35,6 +36,14 @@ public class ApplicationOrchestrator {
 
     // Track active workflows
     private final Map<String, WorkflowContext> activeWorkflows = new ConcurrentHashMap<>();
+
+    public ApplicationOrchestrator(WorkflowOrchestrationService workflowOrchestrationService, FlowExecutionService flowExecutionService, IntegrationFlowRepository integrationFlowRepository, AdapterExecutionApplicationService adapterExecutionApplicationService, FlowExecutionApplicationService flowExecutionApplicationService) {
+        this.workflowOrchestrationService = workflowOrchestrationService;
+        this.flowExecutionService = flowExecutionService;
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.adapterExecutionApplicationService = adapterExecutionApplicationService;
+        this.flowExecutionApplicationService = flowExecutionApplicationService;
+    }
 
     /**
      * Execute a complete workflow
@@ -239,5 +248,53 @@ public class ApplicationOrchestrator {
                    context.getState() == WorkflowContext.WorkflowState.FAILED ||
                    context.getState() == WorkflowContext.WorkflowState.CANCELLED;
         });
+    }
+
+    // Builder
+    public static ApplicationOrchestratorBuilder builder() {
+        return new ApplicationOrchestratorBuilder();
+    }
+
+    public static class ApplicationOrchestratorBuilder {
+        private WorkflowOrchestrationService workflowOrchestrationService;
+        private FlowExecutionService flowExecutionService;
+        private IntegrationFlowRepository integrationFlowRepository;
+        private AdapterExecutionApplicationService adapterExecutionApplicationService;
+        private FlowExecutionApplicationService flowExecutionApplicationService;
+
+        public ApplicationOrchestratorBuilder workflowOrchestrationService(WorkflowOrchestrationService workflowOrchestrationService) {
+            this.workflowOrchestrationService = workflowOrchestrationService;
+            return this;
+        }
+
+        public ApplicationOrchestratorBuilder flowExecutionService(FlowExecutionService flowExecutionService) {
+            this.flowExecutionService = flowExecutionService;
+            return this;
+        }
+
+        public ApplicationOrchestratorBuilder integrationFlowRepository(IntegrationFlowRepository integrationFlowRepository) {
+            this.integrationFlowRepository = integrationFlowRepository;
+            return this;
+        }
+
+        public ApplicationOrchestratorBuilder adapterExecutionApplicationService(AdapterExecutionApplicationService adapterExecutionApplicationService) {
+            this.adapterExecutionApplicationService = adapterExecutionApplicationService;
+            return this;
+        }
+
+        public ApplicationOrchestratorBuilder flowExecutionApplicationService(FlowExecutionApplicationService flowExecutionApplicationService) {
+            this.flowExecutionApplicationService = flowExecutionApplicationService;
+            return this;
+        }
+
+        public ApplicationOrchestrator build() {
+            return new ApplicationOrchestrator(
+                this.workflowOrchestrationService,
+                this.flowExecutionService,
+                this.integrationFlowRepository,
+                this.adapterExecutionApplicationService,
+                this.flowExecutionApplicationService
+            );
+        }
     }
 }

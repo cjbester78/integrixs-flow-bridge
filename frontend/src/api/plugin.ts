@@ -1,4 +1,4 @@
-import { api as apiClient } from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
 import type { Plugin, PluginDetails, UploadResult, ValidationResult } from '../types/plugin';
 
 export const pluginApi = {

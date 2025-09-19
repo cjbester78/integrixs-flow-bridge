@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { FieldNode, FieldMapping, FunctionNodeData } from './types';
 import { functionsByCategory } from '@/services/transformationFunctions';
 import { X, Check } from 'lucide-react';
-import { cn, logger, LogCategory } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface FunctionMappingModalProps {
  open: boolean;

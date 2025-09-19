@@ -5,8 +5,6 @@ import com.integrixs.backend.api.dto.request.UpdateFlowRequest;
 import com.integrixs.backend.api.dto.response.FlowResponse;
 import com.integrixs.backend.application.service.IntegrationFlowService;
 import com.integrixs.backend.logging.BusinessOperation;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for integration flow management
@@ -22,10 +22,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/integration - flows")
-@RequiredArgsConstructor
 @Validated
-@Slf4j
 public class IntegrationFlowController {
+
+    private static final Logger log = LoggerFactory.getLogger(IntegrationFlowController.class);
+
 
     private final IntegrationFlowService integrationFlowService;
 

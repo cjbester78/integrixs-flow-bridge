@@ -2,7 +2,6 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.UserRepository;
 import com.integrixs.data.model.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,7 +12,6 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("backendUserRepository")
-@RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
     private final com.integrixs.data.repository.UserRepository jpaRepository;

@@ -1,8 +1,5 @@
 package com.integrixs.backend.domain.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,8 +9,6 @@ import java.util.Map;
 /**
  * Domain model for orchestration execution
  */
-@Data
-@NoArgsConstructor
 public class OrchestrationExecution {
     private String executionId;
     private String flowId;
@@ -83,5 +78,113 @@ public class OrchestrationExecution {
      */
     public boolean isComplete() {
         return "COMPLETED".equals(status) || "FAILED".equals(status) || "CANCELLED".equals(status);
+    }
+
+    // Default constructor
+    public OrchestrationExecution() {
+    }
+
+    public String getExecutionId() {
+        return executionId;
+    }
+
+    public void setExecutionId(String executionId) {
+        this.executionId = executionId;
+    }
+
+    public String getFlowId() {
+        return flowId;
+    }
+
+    public void setFlowId(String flowId) {
+        this.flowId = flowId;
+    }
+
+    public String getFlowName() {
+        return flowName;
+    }
+
+    public void setFlowName(String flowName) {
+        this.flowName = flowName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getCurrentStep() {
+        return currentStep;
+    }
+
+    public void setCurrentStep(String currentStep) {
+        this.currentStep = currentStep;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public Object getInputData() {
+        return inputData;
+    }
+
+    public void setInputData(Object inputData) {
+        this.inputData = inputData;
+    }
+
+    public Object getTransformedData() {
+        return transformedData;
+    }
+
+    public void setTransformedData(Object transformedData) {
+        this.transformedData = transformedData;
+    }
+
+    public Object getOutputData() {
+        return outputData;
+    }
+
+    public void setOutputData(Object outputData) {
+        this.outputData = outputData;
+    }
+
+    public List<String> getLogs() {
+        return logs;
+    }
+
+    public void setLogs(List<String> logs) {
+        this.logs = logs;
+    }
+
+    public Map<String, Object> getExecutionContext() {
+        return executionContext;
+    }
+
+    public void setExecutionContext(Map<String, Object> executionContext) {
+        this.executionContext = executionContext;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 }

@@ -1,8 +1,9 @@
 package com.integrixs.backend.infrastructure.messaging;
 
 import com.integrixs.data.model.Message;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -12,8 +13,10 @@ import java.util.concurrent.*;
  * In production, this would be replaced with RabbitMQ, Kafka, or similar
  */
 @Component
-@Slf4j
 public class MessageQueue {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageQueue.class);
+
 
     private final PriorityBlockingQueue<QueuedMessage> queue;
     private final Map<UUID, QueuedMessage> messageMap;

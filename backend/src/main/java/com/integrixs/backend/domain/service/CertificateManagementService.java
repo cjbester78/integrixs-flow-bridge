@@ -1,8 +1,8 @@
 package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.Certificate;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -16,11 +16,11 @@ import java.util.List;
  * Domain service for certificate management
  * Contains core business logic for certificate operations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CertificateManagementService {
 
+    private static final Logger log = LoggerFactory.getLogger(CertificateManagementService.class);
+    
     private static final List<String> SUPPORTED_FORMATS = Arrays.asList("PEM", "DER", "P12", "PKCS12", "CER", "CRT");
     private static final List<String> SUPPORTED_TYPES = Arrays.asList("X.509", "PKCS12", "JKS");
     private static final long MAX_CERTIFICATE_SIZE = 10 * 1024 * 1024; // 10MB

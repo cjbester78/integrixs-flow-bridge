@@ -142,7 +142,7 @@ public class FormatConversionService {
         }
 
         // Build configuration with defaults and overrides from adapter config
-        com.integrixs.shared.dto.adapter.JsonXmlWrapperConfig.JsonXmlWrapperConfigBuilder builder =
+        com.integrixs.shared.dto.adapter.JsonXmlWrapperConfig.Builder builder =
             com.integrixs.shared.dto.adapter.JsonXmlWrapperConfig.builder()
                 .rootElementName((String) xmlConfig.getOrDefault("rootElementName", "Message"))
                 .includeXmlDeclaration((Boolean) xmlConfig.getOrDefault("includeXmlDeclaration", true))

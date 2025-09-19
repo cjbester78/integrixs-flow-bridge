@@ -1,6 +1,6 @@
 package com.integrixs.engine.impl;
 
-import com.integrixs.adapters.core.AdapterException;
+import com.integrixs.shared.exception.AdapterException;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.domain.model.FetchRequest;
@@ -13,8 +13,6 @@ import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.engine.AdapterExecutor;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -24,20 +22,27 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of AdapterExecutor that uses the AdapterFactoryManager
  * to create and execute adapter operations.
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class AdapterExecutorImpl implements AdapterExecutor {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterExecutorImpl.class);
+
 
     private final AdapterFactoryManager adapterFactoryManager;
     private final CommunicationAdapterRepository adapterRepository;
 
-    @Override
+    public AdapterExecutorImpl(AdapterFactoryManager adapterFactoryManager, CommunicationAdapterRepository adapterRepository) {
+        this.adapterFactoryManager = adapterFactoryManager;
+        this.adapterRepository = adapterRepository;
+    }
+
     public String fetchData(String adapterId) {
         Object data = fetchDataAsObject(adapterId);
         return convertToString(data);
@@ -358,6 +363,30 @@ public class AdapterExecutorImpl implements AdapterExecutor {
             if(closed) {
                 throw new java.io.IOException("Stream is closed");
             }
+        }
+    }
+
+    // Builder
+    public static AdapterExecutorImplBuilder builder() {
+        return new AdapterExecutorImplBuilder();
+    }
+
+    public static class AdapterExecutorImplBuilder {
+        private AdapterFactoryManager adapterFactoryManager;
+        private CommunicationAdapterRepository adapterRepository;
+
+        public AdapterExecutorImplBuilder adapterFactoryManager(AdapterFactoryManager adapterFactoryManager) {
+            this.adapterFactoryManager = adapterFactoryManager;
+            return this;
+        }
+
+        public AdapterExecutorImplBuilder adapterRepository(CommunicationAdapterRepository adapterRepository) {
+            this.adapterRepository = adapterRepository;
+            return this;
+        }
+
+        public AdapterExecutorImpl build() {
+            return new AdapterExecutorImpl(this.adapterFactoryManager, this.adapterRepository);
         }
     }
 }

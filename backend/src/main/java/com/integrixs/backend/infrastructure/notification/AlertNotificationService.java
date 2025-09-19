@@ -6,9 +6,9 @@ import com.integrixs.backend.domain.model.ExecutionTrace;
 import com.integrixs.backend.infrastructure.email.EmailService;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.repository.IntegrationFlowRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -16,9 +16,10 @@ import java.util.*;
  * Infrastructure service for sending alert notifications
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AlertNotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertNotificationService.class);
+
 
     private final EmailService emailService;
     private final EmailConfiguration emailConfig;

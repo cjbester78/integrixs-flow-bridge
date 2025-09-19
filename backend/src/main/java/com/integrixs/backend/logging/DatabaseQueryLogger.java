@@ -1,6 +1,5 @@
 package com.integrixs.backend.logging;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
@@ -10,14 +9,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Database query logger and inspector for SQL tracking.
  * Logs queries, execution times, and detects slow queries.
  */
-@Slf4j
 @Component
 public class DatabaseQueryLogger implements StatementInspector {
+
+    private static final Logger log = LoggerFactory.getLogger(DatabaseQueryLogger.class);
+
 
     private static final long SLOW_QUERY_THRESHOLD_MS = 1000;
     private static final Pattern TABLE_PATTERN = Pattern.compile("(?:FROM|JOIN|INTO|UPDATE|DELETE FROM)\\s + ([a - zA - Z_][a - zA - Z0-9_]*)", Pattern.CASE_INSENSITIVE);

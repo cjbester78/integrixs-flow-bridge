@@ -1,20 +1,11 @@
 package com.integrixs.backend.api.dto.request;
 
 import com.integrixs.data.model.TargetFieldMapping;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.validation.constraints.*;
 
 /**
  * Request DTO for updating a target field mapping
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class UpdateTargetFieldMappingRequest {
 
     @Size(max = 500, message = "Source field path cannot exceed 500 characters")
@@ -48,4 +39,112 @@ public class UpdateTargetFieldMappingRequest {
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
+
+    // Default constructor
+    public UpdateTargetFieldMappingRequest() {
+    }
+
+    public String getSourceFieldPath() {
+        return sourceFieldPath;
+    }
+
+    public void setSourceFieldPath(String sourceFieldPath) {
+        this.sourceFieldPath = sourceFieldPath;
+    }
+
+    public String getTargetFieldPath() {
+        return targetFieldPath;
+    }
+
+    public void setTargetFieldPath(String targetFieldPath) {
+        this.targetFieldPath = targetFieldPath;
+    }
+
+    public TargetFieldMapping.MappingType getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(TargetFieldMapping.MappingType mappingType) {
+        this.mappingType = mappingType;
+    }
+
+    public String getTransformationExpression() {
+        return transformationExpression;
+    }
+
+    public void setTransformationExpression(String transformationExpression) {
+        this.transformationExpression = transformationExpression;
+    }
+
+    public String getConstantValue() {
+        return constantValue;
+    }
+
+    public void setConstantValue(String constantValue) {
+        this.constantValue = constantValue;
+    }
+
+    public String getConditionExpression() {
+        return conditionExpression;
+    }
+
+    public void setConditionExpression(String conditionExpression) {
+        this.conditionExpression = conditionExpression;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
+    public String getTargetDataType() {
+        return targetDataType;
+    }
+
+    public void setTargetDataType(String targetDataType) {
+        this.targetDataType = targetDataType;
+    }
+
+    public Boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
+    }
+
+    public Integer getMappingOrder() {
+        return mappingOrder;
+    }
+
+    public void setMappingOrder(Integer mappingOrder) {
+        this.mappingOrder = mappingOrder;
+    }
+
+    public String getVisualFlowData() {
+        return visualFlowData;
+    }
+
+    public void setVisualFlowData(String visualFlowData) {
+        this.visualFlowData = visualFlowData;
+    }
+
+    public String getValidationRules() {
+        return validationRules;
+    }
+
+    public void setValidationRules(String validationRules) {
+        this.validationRules = validationRules;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }

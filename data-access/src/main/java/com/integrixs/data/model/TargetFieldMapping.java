@@ -2,7 +2,6 @@ package com.integrixs.data.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -25,16 +24,10 @@ import java.util.UUID;
             columnNames = {"orchestration_target_id", "target_field_path"})
     }
 )
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class TargetFieldMapping {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @EqualsAndHashCode.Include
     private UUID id;
 
     /**
@@ -67,7 +60,6 @@ public class TargetFieldMapping {
     @Enumerated(EnumType.STRING)
     @Column(name = "mapping_type", length = 50, nullable = false)
     @NotNull(message = "Mapping type is required")
-    @Builder.Default
     private MappingType mappingType = MappingType.DIRECT;
 
     /**
@@ -106,7 +98,6 @@ public class TargetFieldMapping {
      * Whether this mapping is required(target field must have a value)
      */
     @Column(name = "is_required")
-    @Builder.Default
     private boolean required = false;
 
     /**
@@ -114,7 +105,6 @@ public class TargetFieldMapping {
      */
     @Column(name = "mapping_order")
     @Min(value = 0, message = "Mapping order must be non - negative")
-    @Builder.Default
     private Integer mappingOrder = 0;
 
     /**
@@ -140,7 +130,6 @@ public class TargetFieldMapping {
      * Whether this mapping is active
      */
     @Column(name = "is_active")
-    @Builder.Default
     private boolean active = true;
 
     @Column(name = "created_at", updatable = false)
@@ -179,5 +168,322 @@ public class TargetFieldMapping {
         CALCULATION,   // Mathematical calculation
         DATE_FORMAT,   // Date/time formatting
         CUSTOM          // Custom transformation logic
+    }
+
+    // Default constructor
+    public TargetFieldMapping() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public OrchestrationTarget getOrchestrationTarget() {
+        return orchestrationTarget;
+    }
+
+    public void setOrchestrationTarget(OrchestrationTarget orchestrationTarget) {
+        this.orchestrationTarget = orchestrationTarget;
+    }
+
+    public String getSourceFieldPath() {
+        return sourceFieldPath;
+    }
+
+    public void setSourceFieldPath(String sourceFieldPath) {
+        this.sourceFieldPath = sourceFieldPath;
+    }
+
+    public String getTargetFieldPath() {
+        return targetFieldPath;
+    }
+
+    public void setTargetFieldPath(String targetFieldPath) {
+        this.targetFieldPath = targetFieldPath;
+    }
+
+    public MappingType getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(MappingType mappingType) {
+        this.mappingType = mappingType;
+    }
+
+    public String getTransformationExpression() {
+        return transformationExpression;
+    }
+
+    public void setTransformationExpression(String transformationExpression) {
+        this.transformationExpression = transformationExpression;
+    }
+
+    public String getConstantValue() {
+        return constantValue;
+    }
+
+    public void setConstantValue(String constantValue) {
+        this.constantValue = constantValue;
+    }
+
+    public String getConditionExpression() {
+        return conditionExpression;
+    }
+
+    public void setConditionExpression(String conditionExpression) {
+        this.conditionExpression = conditionExpression;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
+    public String getTargetDataType() {
+        return targetDataType;
+    }
+
+    public void setTargetDataType(String targetDataType) {
+        this.targetDataType = targetDataType;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
+    }
+
+    public Integer getMappingOrder() {
+        return mappingOrder;
+    }
+
+    public void setMappingOrder(Integer mappingOrder) {
+        this.mappingOrder = mappingOrder;
+    }
+
+    public String getVisualFlowData() {
+        return visualFlowData;
+    }
+
+    public void setVisualFlowData(String visualFlowData) {
+        this.visualFlowData = visualFlowData;
+    }
+
+    public String getValidationRules() {
+        return validationRules;
+    }
+
+    public void setValidationRules(String validationRules) {
+        this.validationRules = validationRules;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public User getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(User updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    // Builder
+    public static TargetFieldMappingBuilder builder() {
+        return new TargetFieldMappingBuilder();
+    }
+
+    public static class TargetFieldMappingBuilder {
+        private UUID id;
+        private OrchestrationTarget orchestrationTarget;
+        private String sourceFieldPath;
+        private String targetFieldPath;
+        private MappingType mappingType;
+        private String transformationExpression;
+        private String constantValue;
+        private String conditionExpression;
+        private String defaultValue;
+        private String targetDataType;
+        private boolean required;
+        private Integer mappingOrder;
+        private String visualFlowData;
+        private String validationRules;
+        private String description;
+        private boolean active;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private User createdBy;
+        private User updatedBy;
+
+        public TargetFieldMappingBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder orchestrationTarget(OrchestrationTarget orchestrationTarget) {
+            this.orchestrationTarget = orchestrationTarget;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder sourceFieldPath(String sourceFieldPath) {
+            this.sourceFieldPath = sourceFieldPath;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder targetFieldPath(String targetFieldPath) {
+            this.targetFieldPath = targetFieldPath;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder mappingType(MappingType mappingType) {
+            this.mappingType = mappingType;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder transformationExpression(String transformationExpression) {
+            this.transformationExpression = transformationExpression;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder constantValue(String constantValue) {
+            this.constantValue = constantValue;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder conditionExpression(String conditionExpression) {
+            this.conditionExpression = conditionExpression;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder defaultValue(String defaultValue) {
+            this.defaultValue = defaultValue;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder targetDataType(String targetDataType) {
+            this.targetDataType = targetDataType;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder required(boolean required) {
+            this.required = required;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder mappingOrder(Integer mappingOrder) {
+            this.mappingOrder = mappingOrder;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder visualFlowData(String visualFlowData) {
+            this.visualFlowData = visualFlowData;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder validationRules(String validationRules) {
+            this.validationRules = validationRules;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder active(boolean active) {
+            this.active = active;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder createdBy(User createdBy) {
+            this.createdBy = createdBy;
+            return this;
+        }
+
+        public TargetFieldMappingBuilder updatedBy(User updatedBy) {
+            this.updatedBy = updatedBy;
+            return this;
+        }
+
+        public TargetFieldMapping build() {
+            TargetFieldMapping instance = new TargetFieldMapping();
+            instance.setId(this.id);
+            instance.setOrchestrationTarget(this.orchestrationTarget);
+            instance.setSourceFieldPath(this.sourceFieldPath);
+            instance.setTargetFieldPath(this.targetFieldPath);
+            instance.setMappingType(this.mappingType);
+            instance.setTransformationExpression(this.transformationExpression);
+            instance.setConstantValue(this.constantValue);
+            instance.setConditionExpression(this.conditionExpression);
+            instance.setDefaultValue(this.defaultValue);
+            instance.setTargetDataType(this.targetDataType);
+            instance.setRequired(this.required);
+            instance.setMappingOrder(this.mappingOrder);
+            instance.setVisualFlowData(this.visualFlowData);
+            instance.setValidationRules(this.validationRules);
+            instance.setDescription(this.description);
+            instance.setActive(this.active);
+            instance.setCreatedAt(this.createdAt);
+            instance.setUpdatedAt(this.updatedAt);
+            instance.setCreatedBy(this.createdBy);
+            instance.setUpdatedBy(this.updatedBy);
+            return instance;
+        }
     }
 }

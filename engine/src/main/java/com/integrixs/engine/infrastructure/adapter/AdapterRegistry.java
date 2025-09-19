@@ -2,21 +2,22 @@ package com.integrixs.engine.infrastructure.adapter;
 
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Registry for managing and tracking adapters
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class AdapterRegistry {
+
+    private static final Logger log = LoggerFactory.getLogger(AdapterRegistry.class);
+
 
     private final CommunicationAdapterRepository communicationAdapterRepository;
 
@@ -28,6 +29,10 @@ public class AdapterRegistry {
      * @param adapterId Adapter ID
      * @return true if registered
      */
+    public AdapterRegistry(CommunicationAdapterRepository communicationAdapterRepository) {
+        this.communicationAdapterRepository = communicationAdapterRepository;
+    }
+
     public boolean isAdapterRegistered(String adapterId) {
         try {
             // Check cache first

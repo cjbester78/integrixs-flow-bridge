@@ -18,8 +18,9 @@ import {
 import { NavLink } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn, logger, LogCategory } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
+import { logger, LogCategory } from '@/lib/logger';
+import { useAuth } from '@/hooks/useAuth';
 import { useEnvironmentPermissions } from '@/hooks/useEnvironmentPermissions-no-query';
 
 const navigation = [

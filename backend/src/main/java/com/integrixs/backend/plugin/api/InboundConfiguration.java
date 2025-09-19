@@ -1,14 +1,10 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.util.Map;
 
 /**
  * Configuration for inbound handlers
  */
-@Data
-@Builder
 public class InboundConfiguration {
 
     /**

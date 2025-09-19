@@ -2,26 +2,27 @@ package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.SystemLog;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for calculating message statistics
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MessageStatisticsService {
 
     /**
      * Calculates message counts by status
      */
+
+    private static final Logger log = LoggerFactory.getLogger(MessageStatisticsService.class);
+
     public Map<String, Long> calculateMessagesByStatus(List<SystemLog> logs) {
         return logs.stream()
                 .filter(log -> log.getDetails() != null && log.getDetails().contains("status"))

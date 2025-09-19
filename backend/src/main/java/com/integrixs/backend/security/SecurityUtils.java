@@ -30,6 +30,13 @@ public class SecurityUtils {
         }
         return null;
     }
+    
+    /**
+     * Get current username (static version for backwards compatibility)
+     */
+    public static String getCurrentUsernameStatic() {
+        return getCurrentUsername();
+    }
 
     /**
      * Get current user ID
@@ -55,6 +62,23 @@ public class SecurityUtils {
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_" + role));
         }
         return false;
+    }
+
+    /**
+     * Get current user's role
+     */
+    public static String getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null && authentication.isAuthenticated()) {
+            // Get the first role (assuming single role per user)
+            return authentication.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .filter(auth -> auth.startsWith("ROLE_"))
+                .map(auth -> auth.substring(5)) // Remove "ROLE_" prefix
+                .findFirst()
+                .orElse("USER");
+        }
+        return "ANONYMOUS";
     }
 
     /**

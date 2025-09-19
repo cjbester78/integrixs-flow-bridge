@@ -1,11 +1,8 @@
 package com.integrixs.backend.dto.dashboard.heatmap;
 
-import lombok.Data;
-
 /**
  * Individual cell in a heatmap.
  */
-@Data
 public class HeatmapCell {
     private int count = 0;
     private int errors = 0;
@@ -30,5 +27,41 @@ public class HeatmapCell {
 
     public double getErrorRate() {
         return count > 0 ? (double) errors / count * 100 : 0;
+    }
+
+    // Default constructor
+    public HeatmapCell() {
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public int getErrors() {
+        return errors;
+    }
+
+    public void setErrors(int errors) {
+        this.errors = errors;
+    }
+
+    public long getTotalDuration() {
+        return totalDuration;
+    }
+
+    public void setTotalDuration(long totalDuration) {
+        this.totalDuration = totalDuration;
+    }
+
+    public double getIntensity() {
+        return intensity;
+    }
+
+    public void setIntensity(double intensity) {
+        this.intensity = intensity;
     }
 }

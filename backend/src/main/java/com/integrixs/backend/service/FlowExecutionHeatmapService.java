@@ -3,8 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.dto.dashboard.heatmap.*;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,14 +10,17 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for generating flow execution heatmaps and analytics.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FlowExecutionHeatmapService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionHeatmapService.class);
+
 
     private final SystemLogRepository systemLogRepository;
 
@@ -160,14 +161,14 @@ public class FlowExecutionHeatmapService {
 
         // Query logs for flow executions
         List<SystemLog> logs = systemLogRepository.findAll((root, query, cb) -> {
-            List<javax.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.between(root.get("timestamp"), startTime, endTime));
             predicates.add(cb.like(root.get("message"), "%flow execution%"));
 
             if(flowIds != null && !flowIds.isEmpty()) {
                 // Filter by flow IDs
-                javax.persistence.criteria.Predicate flowPredicate = cb.disjunction();
+                jakarta.persistence.criteria.Predicate flowPredicate = cb.disjunction();
                 for(String flowId : flowIds) {
                     flowPredicate = cb.or(flowPredicate,
                         cb.like(root.get("message"), "%flow: " + flowId + "%"));
@@ -175,7 +176,7 @@ public class FlowExecutionHeatmapService {
                 predicates.add(flowPredicate);
             }
 
-            return cb.and(predicates.toArray(new javax.persistence.criteria.Predicate[0]));
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         });
 
         // Group logs by correlation ID to reconstruct executions

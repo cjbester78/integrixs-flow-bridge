@@ -1,14 +1,10 @@
 package com.integrixs.backend.plugin.api;
 
-import lombok.Builder;
-import lombok.Data;
 import java.util.List;
 
 /**
  * Result of a polling operation
  */
-@Data
-@Builder
 public class PollingResult {
 
     /**

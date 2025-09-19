@@ -25,7 +25,8 @@ import {
  OAuth2Request,
  ApiKeyRequest
 } from '@/types/externalAuth';
-import { isApiResponse, logger, LogCategory } from '@/lib/api-response-utils';
+import { isApiResponse } from '@/lib/api-response-utils';
+import { logger, LogCategory } from '@/lib/logger';
 
 interface EditExternalAuthDialogProps {
  config: ExternalAuthConfig;

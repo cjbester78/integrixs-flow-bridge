@@ -11,9 +11,7 @@ import com.integrixs.engine.api.dto.FlowExecutionResponseDTO;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
 import com.integrixs.engine.domain.model.FlowExecutionResult;
 import com.integrixs.engine.domain.service.FlowExecutionService;
-import com.integrixs.backend.service.AlertingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.engine.service.AlertingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +21,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for orchestrating flow executions
  */
-@Slf4j
 @Service("engineFlowExecutionApplicationService")
-@RequiredArgsConstructor
 public class FlowExecutionApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionApplicationService.class);
+
 
     private final FlowExecutionService flowExecutionService;
     private final IntegrationFlowRepository integrationFlowRepository;
@@ -39,6 +40,13 @@ public class FlowExecutionApplicationService {
 
     @Autowired(required = false)
     private AlertingService alertingService;
+
+    public FlowExecutionApplicationService(FlowExecutionService flowExecutionService, IntegrationFlowRepository integrationFlowRepository, FieldMappingRepository fieldMappingRepository, FlowExecutionRepository flowExecutionRepository) {
+        this.flowExecutionService = flowExecutionService;
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.fieldMappingRepository = fieldMappingRepository;
+        this.flowExecutionRepository = flowExecutionRepository;
+    }
 
     /**
      * Execute a flow
@@ -60,7 +68,7 @@ public class FlowExecutionApplicationService {
             IntegrationFlow flow = integrationFlowRepository.findById(UUID.fromString(request.getFlowId()))
                     .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + request.getFlowId()));
 
-            flowExecution.setIntegrationFlow(flow);
+            flowExecution.setFlow(flow);
             flowExecution = flowExecutionRepository.save(flowExecution);
 
             // Validate flow
@@ -79,7 +87,7 @@ public class FlowExecutionApplicationService {
             // Update flow execution record
             flowExecution.setEndTime(LocalDateTime.now());
             flowExecution.setStatus(FlowExecution.ExecutionStatus.COMPLETED);
-            flowExecution.setSuccessCount(1);
+            flowExecution.setMessagesProcessed(1);
             flowExecution = flowExecutionRepository.save(flowExecution);
 
             // Evaluate alerts for successful execution
@@ -100,7 +108,7 @@ public class FlowExecutionApplicationService {
                 flowExecution.setEndTime(LocalDateTime.now());
                 flowExecution.setStatus(FlowExecution.ExecutionStatus.FAILED);
                 flowExecution.setErrorMessage(e.getMessage());
-                flowExecution.setErrorCount(1);
+                flowExecution.setMessagesFailed(1);
                 flowExecution = flowExecutionRepository.save(flowExecution);
 
                 // Evaluate alerts for failed execution
@@ -195,5 +203,56 @@ public class FlowExecutionApplicationService {
                 .outboundAdapterId(result.getOutboundAdapterId())
                 .recordsProcessed(result.getRecordsProcessed())
                 .build();
+    }
+
+    // Builder
+    public static FlowExecutionApplicationServiceBuilder builder() {
+        return new FlowExecutionApplicationServiceBuilder();
+    }
+
+    public static class FlowExecutionApplicationServiceBuilder {
+        private FlowExecutionService flowExecutionService;
+        private IntegrationFlowRepository integrationFlowRepository;
+        private FieldMappingRepository fieldMappingRepository;
+        private FlowExecutionRepository flowExecutionRepository;
+        private AlertingService alertingService;
+
+        public FlowExecutionApplicationServiceBuilder flowExecutionService(FlowExecutionService flowExecutionService) {
+            this.flowExecutionService = flowExecutionService;
+            return this;
+        }
+
+        public FlowExecutionApplicationServiceBuilder integrationFlowRepository(IntegrationFlowRepository integrationFlowRepository) {
+            this.integrationFlowRepository = integrationFlowRepository;
+            return this;
+        }
+
+        public FlowExecutionApplicationServiceBuilder fieldMappingRepository(FieldMappingRepository fieldMappingRepository) {
+            this.fieldMappingRepository = fieldMappingRepository;
+            return this;
+        }
+
+        public FlowExecutionApplicationServiceBuilder flowExecutionRepository(FlowExecutionRepository flowExecutionRepository) {
+            this.flowExecutionRepository = flowExecutionRepository;
+            return this;
+        }
+
+        public FlowExecutionApplicationServiceBuilder alertingService(AlertingService alertingService) {
+            this.alertingService = alertingService;
+            return this;
+        }
+
+        public FlowExecutionApplicationService build() {
+            FlowExecutionApplicationService instance = new FlowExecutionApplicationService(
+                this.flowExecutionService,
+                this.integrationFlowRepository,
+                this.fieldMappingRepository,
+                this.flowExecutionRepository
+            );
+            if (this.alertingService != null) {
+                instance.alertingService = this.alertingService;
+            }
+            return instance;
+        }
     }
 }

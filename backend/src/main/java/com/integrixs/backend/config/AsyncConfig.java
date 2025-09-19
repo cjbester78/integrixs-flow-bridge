@@ -1,8 +1,6 @@
 package com.integrixs.backend.config;
 
 import com.integrixs.backend.interceptor.MDCTaskDecorator;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -10,15 +8,18 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Async configuration with MDC context propagation.
  */
-@Slf4j
 @Configuration
 @EnableAsync
-@RequiredArgsConstructor
 public class AsyncConfig implements AsyncConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(AsyncConfig.class);
+
 
     private final MDCTaskDecorator mdcTaskDecorator;
 

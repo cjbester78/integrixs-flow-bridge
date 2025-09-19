@@ -2,8 +2,8 @@ package com.integrixs.backend.domain.service;
 
 import com.integrixs.backend.domain.repository.BusinessComponentRepository;
 import com.integrixs.data.model.BusinessComponent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -12,11 +12,10 @@ import java.util.UUID;
  * Domain service for business component management
  * Contains core business logic for component operations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ComponentManagementService {
 
+    private static final Logger log = LoggerFactory.getLogger(ComponentManagementService.class);
     private final BusinessComponentRepository businessComponentRepository;
 
     /**

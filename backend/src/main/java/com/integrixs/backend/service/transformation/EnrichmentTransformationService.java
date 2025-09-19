@@ -13,6 +13,11 @@ import java.util.Map;
 public class EnrichmentTransformationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JavaFunctionRunner javaFunctionRunner;
+
+    public EnrichmentTransformationService(JavaFunctionRunner javaFunctionRunner) {
+        this.javaFunctionRunner = javaFunctionRunner;
+    }
 
     /**
      * Applies enrichment on the input JSON string.
@@ -42,10 +47,11 @@ public class EnrichmentTransformationService {
             // Execute enrichment function if provided
             String enrichmentFunction = config.getEnrichmentFunction();
             if(enrichmentFunction != null && !enrichmentFunction.isBlank()) {
-                Object result = JavaFunctionRunner.run(
+                Object result = javaFunctionRunner.execute(
+                    "enrichment_" + System.currentTimeMillis(),
                     enrichmentFunction,
-                    java.util.List.of("record"),
-                    Map.of("record", map)
+                    "enrich",
+                    map
                );
 
                 if(result instanceof Map<?, ?>) {

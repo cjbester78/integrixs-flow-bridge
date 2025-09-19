@@ -3,24 +3,25 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.repository.MessageRepository;
 import com.integrixs.shared.dto.MessageStatsDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
  * Optimized Message Statistics Service using native queries for better performance
  */
-@Slf4j
 @Service
 @Primary // Make this the primary implementation
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OptimizedMessageStatsService extends MessageStatsService {
+
+    private static final Logger log = LoggerFactory.getLogger(OptimizedMessageStatsService.class);
+
 
     private final MessageRepository messageRepository;
 

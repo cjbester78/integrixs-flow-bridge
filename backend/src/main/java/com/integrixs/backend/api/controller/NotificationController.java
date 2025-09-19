@@ -1,24 +1,25 @@
 package com.integrixs.backend.api.controller;
 
 import com.integrixs.backend.application.service.NotificationApplicationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for notification management
  * Handles notification testing and configuration
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/notifications")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 public class NotificationController {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
+
 
     private final NotificationApplicationService notificationApplicationService;
 

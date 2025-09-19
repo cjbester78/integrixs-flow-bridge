@@ -7,20 +7,21 @@ import com.integrixs.backend.service.FlowContextService;
 import com.integrixs.backend.service.FlowContextService.FlowContext;
 import com.integrixs.data.model.FlowRoute;
 import com.integrixs.data.model.RouteCondition;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Infrastructure service for evaluating routing conditions and executing routing logic
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RoutingEvaluator {
+
+    private static final Logger log = LoggerFactory.getLogger(RoutingEvaluator.class);
+
 
     private final FlowContextService contextService;
     private final RoutingManagementService routingManagementService;

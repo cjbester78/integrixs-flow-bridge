@@ -3,8 +3,6 @@ package com.integrixs.backend.performance;
 import com.integrixs.data.model.Message;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -21,15 +19,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for lazy loading of large message payloads.
  * Provides streaming and compression for efficient memory usage.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class LazyLoadingService {
+
+    private static final Logger log = LoggerFactory.getLogger(LazyLoadingService.class);
+
 
     @PersistenceContext
     private EntityManager entityManager;

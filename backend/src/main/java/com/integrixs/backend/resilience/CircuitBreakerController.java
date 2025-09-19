@@ -2,7 +2,6 @@ package com.integrixs.backend.resilience;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +13,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/circuit - breakers")
 @Tag(name = "Circuit Breakers", description = "Circuit breaker management API")
-@RequiredArgsConstructor
 public class CircuitBreakerController {
 
     private final CircuitBreakerService circuitBreakerService;

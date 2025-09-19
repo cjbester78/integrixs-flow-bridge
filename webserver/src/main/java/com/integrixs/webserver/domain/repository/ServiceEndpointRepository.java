@@ -48,7 +48,7 @@ public interface ServiceEndpointRepository {
      * @param type Endpoint type
      * @return List of endpoints
      */
-    List<ServiceEndpoint> findByType(ServiceEndpoint.EndpointType type);
+    List<ServiceEndpoint> findByType(ServiceEndpoint.ServiceType type);
 
     /**
      * Update endpoint

@@ -3,7 +3,6 @@ package com.integrixs.backend.config;
 import com.integrixs.backend.filter.MDCFilter;
 import com.integrixs.backend.logging.EnhancedAuthenticationLogger;
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -21,11 +20,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Configuration
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class WebConfig implements WebMvcConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(WebConfig.class);
+
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {

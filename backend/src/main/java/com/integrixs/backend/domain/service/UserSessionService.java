@@ -4,8 +4,6 @@ import com.integrixs.backend.shared.exception.SessionException;
 import com.integrixs.data.model.User;
 import com.integrixs.data.model.UserSession;
 import com.integrixs.data.repository.UserSessionRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,8 +13,6 @@ import java.util.UUID;
  * Domain service for user session management
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class UserSessionService {
 
     private final UserSessionRepository sessionRepository;

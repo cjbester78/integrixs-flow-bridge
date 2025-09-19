@@ -125,7 +125,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
             log.info("AMQP Outbound Adapter initialized successfully");
         } catch(Exception e) {
             log.error("Failed to initialize AMQP Outbound Adapter", e);
-            throw new AdapterException("Failed to initialize AMQP adapter", e);
+            throw new RuntimeException("Failed to initialize AMQP adapter", e);
         }
     }
 
@@ -201,7 +201,8 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
 
             log.info("Successfully connected to AMQP broker");
         } catch(JMSException e) {
-            throw new AdapterException("Failed to connect to AMQP broker", e);
+            log.error("Failed to connect to AMQP broker", e);
+            throw e;
         }
     }
 
@@ -331,7 +332,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
             } else if(config.getTargetAddress() != null) {
                 producer.send(jmsMessage);
             } else {
-                throw new AdapterException("No target address specified", null);
+                throw new JMSException("No target address specified");
             }
 
             messagesSent.incrementAndGet();
@@ -510,7 +511,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
 
         try {
             for(SendRequest request : batch) {
-                sendMessage(request.message, request.future);
+                sendMessage(request.getMessage(), request.getFuture());
             }
 
             // Commit batch transaction
@@ -559,7 +560,7 @@ public class AMQPOutboundAdapter extends AbstractOutboundAdapter {
 
 
     private void scheduleReconnection() {
-        CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> {
+        CompletableFuture.delayedExecutor(config.getRetryDelay() / 1000, TimeUnit.SECONDS).execute(() -> {
             if(!isConnected.get()) {
                 try {
                     log.info("Attempting to reconnect to AMQP broker");

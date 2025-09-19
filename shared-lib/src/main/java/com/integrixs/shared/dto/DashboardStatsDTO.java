@@ -4,10 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * DTO for dashboard statistics.
@@ -18,58 +14,100 @@ import lombok.NoArgsConstructor;
  * @author Integration Team
  * @since 1.0.0
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DashboardStatsDTO {
 
-    /**
-     * Number of currently active integration flows
-     */
-    @NotNull(message = "Active integrations count is required")
-    @Min(value = 0, message = "Active integrations cannot be negative")
     private int activeIntegrations;
-
-    /**
-     * Number of messages processed today
-     */
-    @NotNull(message = "Messages today count is required")
-    @Min(value = 0, message = "Messages count cannot be negative")
     private long messagesToday;
-
-    /**
-     * Success rate as a percentage(0-100)
-     */
-    @NotNull(message = "Success rate is required")
-    @Min(value = 0, message = "Success rate cannot be less than 0")
-    @Max(value = 100, message = "Success rate cannot exceed 100")
     private double successRate;
-
-    /**
-     * Average response time in milliseconds
-     */
-    @NotNull(message = "Average response time is required")
-    @Min(value = 0, message = "Response time cannot be negative")
     private long avgResponseTime;
-
-    /**
-     * Total number of integration flows
-     */
-    @Min(value = 0, message = "Total flows cannot be negative")
     private Integer totalFlows;
-
-    /**
-     * Number of flows with errors
-     */
-    @Min(value = 0, message = "Error flows cannot be negative")
     private Integer errorFlows;
-
-    /**
-     * System uptime percentage(0-100)
-     */
-    @Min(value = 0, message = "Uptime cannot be less than 0")
-    @Max(value = 100, message = "Uptime cannot exceed 100")
     private Double uptimePercentage;
+
+    // Default constructor
+    public DashboardStatsDTO() {
+    }
+
+    // All args constructor
+    public DashboardStatsDTO(int activeIntegrations, long messagesToday, double successRate, long avgResponseTime, Integer totalFlows, Integer errorFlows, Double uptimePercentage) {
+        this.activeIntegrations = activeIntegrations;
+        this.messagesToday = messagesToday;
+        this.successRate = successRate;
+        this.avgResponseTime = avgResponseTime;
+        this.totalFlows = totalFlows;
+        this.errorFlows = errorFlows;
+        this.uptimePercentage = uptimePercentage;
+    }
+
+    // Getters
+    public int getActiveIntegrations() { return activeIntegrations; }
+    public long getMessagesToday() { return messagesToday; }
+    public double getSuccessRate() { return successRate; }
+    public long getAvgResponseTime() { return avgResponseTime; }
+    public Integer getTotalFlows() { return totalFlows; }
+    public Integer getErrorFlows() { return errorFlows; }
+    public Double getUptimePercentage() { return uptimePercentage; }
+
+    // Setters
+    public void setActiveIntegrations(int activeIntegrations) { this.activeIntegrations = activeIntegrations; }
+    public void setMessagesToday(long messagesToday) { this.messagesToday = messagesToday; }
+    public void setSuccessRate(double successRate) { this.successRate = successRate; }
+    public void setAvgResponseTime(long avgResponseTime) { this.avgResponseTime = avgResponseTime; }
+    public void setTotalFlows(Integer totalFlows) { this.totalFlows = totalFlows; }
+    public void setErrorFlows(Integer errorFlows) { this.errorFlows = errorFlows; }
+    public void setUptimePercentage(Double uptimePercentage) { this.uptimePercentage = uptimePercentage; }
+
+    // Builder
+    public static DashboardStatsDTOBuilder builder() {
+        return new DashboardStatsDTOBuilder();
+    }
+
+    public static class DashboardStatsDTOBuilder {
+        private int activeIntegrations;
+        private long messagesToday;
+        private double successRate;
+        private long avgResponseTime;
+        private Integer totalFlows;
+        private Integer errorFlows;
+        private Double uptimePercentage;
+
+        public DashboardStatsDTOBuilder activeIntegrations(int activeIntegrations) {
+            this.activeIntegrations = activeIntegrations;
+            return this;
+        }
+
+        public DashboardStatsDTOBuilder messagesToday(long messagesToday) {
+            this.messagesToday = messagesToday;
+            return this;
+        }
+
+        public DashboardStatsDTOBuilder successRate(double successRate) {
+            this.successRate = successRate;
+            return this;
+        }
+
+        public DashboardStatsDTOBuilder avgResponseTime(long avgResponseTime) {
+            this.avgResponseTime = avgResponseTime;
+            return this;
+        }
+
+        public DashboardStatsDTOBuilder totalFlows(Integer totalFlows) {
+            this.totalFlows = totalFlows;
+            return this;
+        }
+
+        public DashboardStatsDTOBuilder errorFlows(Integer errorFlows) {
+            this.errorFlows = errorFlows;
+            return this;
+        }
+
+        public DashboardStatsDTOBuilder uptimePercentage(Double uptimePercentage) {
+            this.uptimePercentage = uptimePercentage;
+            return this;
+        }
+
+        public DashboardStatsDTO build() {
+            return new DashboardStatsDTO(activeIntegrations, messagesToday, successRate, avgResponseTime, totalFlows, errorFlows, uptimePercentage);
+        }
+    }
 }

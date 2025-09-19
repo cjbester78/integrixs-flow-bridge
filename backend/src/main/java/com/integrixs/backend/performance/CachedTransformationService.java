@@ -1,10 +1,8 @@
 package com.integrixs.backend.performance;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.integrixs.data.model.TransformationRule;
-import com.integrixs.data.repository.TransformationRuleRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.integrixs.data.model.FieldMapping;
+import com.integrixs.data.repository.FieldMappingRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,17 +17,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cached service for transformation rules.
  * Provides caching for transformation rules and compiled scripts.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class CachedTransformationService {
 
-    private final TransformationRuleRepository transformationRuleRepository;
+    private static final Logger log = LoggerFactory.getLogger(CachedTransformationService.class);
+
+
+    private final FieldMappingRepository transformationRuleRepository;
     private final Cache<String, Object> transformationCache;
 
     // Cache for compiled scripts
@@ -42,7 +43,7 @@ public class CachedTransformationService {
      */
     @Cacheable(value = "transformationRules", key = "#id.toString()")
     @Transactional(readOnly = true)
-    public Optional<TransformationRule> findById(UUID id) {
+    public Optional<FieldMapping> findById(UUID id) {
         log.debug("Loading transformation rule from database: {}", id);
         return transformationRuleRepository.findById(id);
     }
@@ -52,7 +53,7 @@ public class CachedTransformationService {
      */
     @Cacheable(value = "transformationRules", key = "'flow:' + #flowId.toString()")
     @Transactional(readOnly = true)
-    public List<TransformationRule> findByFlowId(UUID flowId) {
+    public List<FieldMapping> findByFlowId(UUID flowId) {
         log.debug("Loading transformation rules for flow: {}", flowId);
         return transformationRuleRepository.findByFlowDefinitionId(flowId);
     }
@@ -88,7 +89,7 @@ public class CachedTransformationService {
     @CachePut(value = "transformationRules", key = "#rule.id.toString()")
     @CacheEvict(value = "transformationRules", key = "'flow:' + #rule.flowDefinition.id.toString()")
     @Transactional
-    public TransformationRule save(TransformationRule rule) {
+    public FieldMapping save(FieldMapping rule) {
         log.debug("Saving transformation rule: {}", rule.getName());
 
         // Evict compiled script if exists
@@ -140,13 +141,13 @@ public class CachedTransformationService {
         log.info("Preloading transformation rules into cache");
 
         // Load all active transformation rules
-        List<TransformationRule> activeRules = transformationRuleRepository.findByIsActiveTrue();
+        List<FieldMapping> activeRules = transformationRuleRepository.findByIsActiveTrue();
         log.info("Found {} active transformation rules", activeRules.size());
 
         // Precompile scripts
         int compiledCount = 0;
-        for(TransformationRule rule : activeRules) {
-            if(rule.getTransformationType() == TransformationRule.TransformationType.SCRIPT) {
+        for(FieldMapping rule : activeRules) {
+            if(rule.getTransformationType() == FieldMapping.TransformationType.SCRIPT) {
                 CompiledScript compiled = getCompiledScript(
                     rule.getId().toString(),
                     rule.getTransformationLogic(),

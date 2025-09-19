@@ -3,8 +3,8 @@ package com.integrixs.monitoring.infrastructure.service;
 import com.integrixs.monitoring.domain.model.MetricSnapshot;
 import com.integrixs.monitoring.domain.repository.MetricRepository;
 import com.integrixs.monitoring.domain.service.MetricsCollectorService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +17,15 @@ import java.util.UUID;
 /**
  * Infrastructure implementation of metrics collector service
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MetricsCollectorServiceImpl implements MetricsCollectorService {
 
+    private static final Logger log = LoggerFactory.getLogger(MetricsCollectorServiceImpl.class);
     private final MetricRepository metricRepository;
+    
+    public MetricsCollectorServiceImpl(MetricRepository metricRepository) {
+        this.metricRepository = metricRepository;
+    }
 
     @Override
     @Transactional

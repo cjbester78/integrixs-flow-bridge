@@ -2,7 +2,6 @@ package com.integrixs.backend.controller;
 
 import com.integrixs.backend.service.JarFileService;
 import com.integrixs.shared.dto.JarFileDTO;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -21,7 +20,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/jar - files")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 public class JarFileController {
 
     private static final Logger logger = LoggerFactory.getLogger(JarFileController.class);

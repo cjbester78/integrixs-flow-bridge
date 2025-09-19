@@ -1,19 +1,21 @@
 package com.integrixs.engine.infrastructure.queue;
 
 import com.integrixs.engine.domain.service.MessageQueueService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.concurrent.*;
 
 /**
- * In - memory implementation of MessageQueueService
- * Can be replaced with external queue systems(RabbitMQ, Kafka, etc.)
+ * In-memory implementation of MessageQueueService
+ * Can be replaced with external queue systems (RabbitMQ, Kafka, etc.)
  */
-@Slf4j
 @Service
 public class InMemoryMessageQueueService implements MessageQueueService {
+
+    private static final Logger log = LoggerFactory.getLogger(InMemoryMessageQueueService.class);
 
     private final Map<String, BlockingQueue<QueuedMessage>> queues = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -32,7 +34,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
 
         try {
             return queue.offer(queuedMessage, 5, TimeUnit.SECONDS);
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             log.error("Interrupted while queueing message", e);
             Thread.currentThread().interrupt();
             return false;
@@ -47,7 +49,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
     @Override
     public Object dequeueMessage(String queueName, long timeoutMs) {
         BlockingQueue<QueuedMessage> queue = queues.get(queueName);
-        if(queue == null) {
+        if (queue == null) {
             return null;
         }
 
@@ -57,7 +59,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
                 : queue.poll();
 
             return queuedMessage != null ? queuedMessage.getMessage() : null;
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             log.error("Interrupted while dequeuing message", e);
             Thread.currentThread().interrupt();
             return null;
@@ -67,7 +69,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
     @Override
     public CompletableFuture<Object> queueAsync(String queueName, Object message) {
         return CompletableFuture.supplyAsync(() -> {
-            if(queueMessage(queueName, message)) {
+            if (queueMessage(queueName, message)) {
                 log.debug("Message queued asynchronously to queue: {}", queueName);
                 return message;
             } else {
@@ -85,7 +87,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
     @Override
     public void clearQueue(String queueName) {
         BlockingQueue<QueuedMessage> queue = queues.get(queueName);
-        if(queue != null) {
+        if (queue != null) {
             queue.clear();
             log.info("Cleared queue: {}", queueName);
         }
@@ -98,7 +100,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
 
     @Override
     public boolean createQueue(String queueName, int capacity) {
-        if(queues.containsKey(queueName)) {
+        if (queues.containsKey(queueName)) {
             return false;
         }
 
@@ -113,7 +115,7 @@ public class InMemoryMessageQueueService implements MessageQueueService {
 
     private BlockingQueue<QueuedMessage> getOrCreateQueue(String queueName) {
         return queues.computeIfAbsent(queueName, k -> {
-            log.info("Auto - creating queue: {}", k);
+            log.info("Auto-creating queue: {}", k);
             return new PriorityBlockingQueue<>();
         });
     }
@@ -124,10 +126,10 @@ public class InMemoryMessageQueueService implements MessageQueueService {
     public void shutdown() {
         executorService.shutdown();
         try {
-            if(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
@@ -155,10 +157,10 @@ public class InMemoryMessageQueueService implements MessageQueueService {
         public int compareTo(QueuedMessage other) {
             // Higher priority first
             int priorityCompare = Integer.compare(other.priority, this.priority);
-            if(priorityCompare != 0) {
+            if (priorityCompare != 0) {
                 return priorityCompare;
             }
-            // If same priority, older messages first(FIFO)
+            // If same priority, older messages first (FIFO)
             return Long.compare(this.timestamp, other.timestamp);
         }
     }

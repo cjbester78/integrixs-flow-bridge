@@ -1,13 +1,11 @@
 package com.integrixs.backend.config;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration properties for business logging features.
  */
-@Data
 @Configuration
 @ConfigurationProperties(prefix = "logging.business")
 public class BusinessLoggingConfig {
@@ -82,8 +80,7 @@ public class BusinessLoggingConfig {
      */
     private MdcConfig mdc = new MdcConfig();
 
-    @Data
-    public static class MdcConfig {
+        public static class MdcConfig {
         /**
          * Enable MDC propagation
          */

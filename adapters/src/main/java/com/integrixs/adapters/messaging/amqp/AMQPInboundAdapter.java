@@ -8,9 +8,9 @@ import com.integrixs.adapters.core.AdapterResult;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.messaging.amqp.AMQPConfig.*;
 import com.integrixs.shared.dto.MessageDTO;
-import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.shared.exceptions.AdapterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.qpid.proton.amqp.messaging.*;
 import org.apache.qpid.proton.amqp.transport.DeliveryState;
 import org.apache.qpid.proton.message.Message;
@@ -107,7 +107,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
             log.info("AMQP Inbound Adapter initialized successfully");
         } catch(Exception e) {
             log.error("Failed to initialize AMQP Inbound Adapter", e);
-            throw new AdapterException("Failed to initialize AMQP adapter", e);
+            throw new RuntimeException("Failed to initialize AMQP adapter", e);
         }
     }
 
@@ -192,7 +192,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
             log.info("Successfully connected to AMQP broker");
         } catch(JMSException e) {
             connectionFailures.incrementAndGet();
-            throw new AdapterException("Failed to connect to AMQP broker", e);
+            throw new RuntimeException("Failed to connect to AMQP broker", e);
         }
     }
 
@@ -220,7 +220,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
         String address = config.getSourceAddress();
 
         if(address == null || address.isEmpty()) {
-            throw new AdapterException("Source address not configured", null);
+            throw new RuntimeException("Source address not configured");
         }
 
         // Handle broker - specific addressing
@@ -331,8 +331,9 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
 
             // Create MessageDTO
             MessageDTO message = new MessageDTO();
-            message.setId(messageId);
-            message.setType("amqp_message");
+            message.setCorrelationId(messageId);
+            // Set message type if needed
+            // message.setMessageType("amqp_message");
             message.setSource(String.format("amqp://%s:%d/%s",
                 config.getHost(), config.getPort(), config.getSourceAddress()));
             message.setTarget(config.getSourceAddress());
@@ -363,7 +364,7 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
                     log.error("Failed to rollback transaction", ex);
                 }
             }
-            throw new AdapterException("Failed to process AMQP message", e);
+            throw new RuntimeException("Failed to process AMQP message", e);
         }
     }
 
@@ -383,10 +384,20 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
                 String name = names.nextElement();
                 map.put(name, mapMessage.getObject(name));
             }
-            return objectMapper.writeValueAsString(map);
+            try {
+                return objectMapper.writeValueAsString(map);
+            } catch (JsonProcessingException e) {
+                log.error("Failed to serialize map message", e);
+                return map.toString();
+            }
         } else if(message instanceof ObjectMessage) {
             ObjectMessage objectMessage = (ObjectMessage) message;
-            return objectMapper.writeValueAsString(objectMessage.getObject());
+            try {
+                return objectMapper.writeValueAsString(objectMessage.getObject());
+            } catch (JsonProcessingException e) {
+                log.error("Failed to serialize object message", e);
+                return objectMessage.getObject().toString();
+            }
         } else if(message instanceof StreamMessage) {
             // Handle stream message
             return "StreamMessage[" + message.getJMSMessageID() + "]";
@@ -490,12 +501,12 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
 
         cleanupExecutor.scheduleAtFixedRate(() -> {
             try {
-                Instant cutoff = Instant.now().minusSeconds(3600); // 1 hour
+                Instant cutoff = Instant.now().minusSeconds(config.getDeduplicationTtlSeconds());
                 messageDeduplication.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoff));
             } catch(Exception e) {
                 log.error("Error during deduplication cleanup", e);
             }
-        }, 60, 60, TimeUnit.SECONDS);
+        }, config.getCleanupIntervalSeconds(), config.getCleanupIntervalSeconds(), TimeUnit.SECONDS);
     }
 
     private void scheduleReconnection() {
@@ -608,5 +619,29 @@ public class AMQPInboundAdapter extends AbstractInboundAdapter implements Messag
     public AdapterResult send(Object payload, Map<String, Object> headers) throws AdapterException {
         // AMQP Inbound adapter doesn't send - it receives messages
         throw new UnsupportedOperationException("AMQP Inbound adapter only receives messages");
+    }
+    
+    @Override
+    protected void doInitialize() {
+        try {
+            doSenderInitialize();
+        } catch (Exception e) {
+            log.error("Failed to initialize AMQP adapter", e);
+            throw new RuntimeException("Failed to initialize AMQP adapter", e);
+        }
+    }
+    
+    @Override
+    protected void doDestroy() {
+        try {
+            doSenderDestroy();
+        } catch (Exception e) {
+            log.error("Failed to destroy AMQP adapter", e);
+        }
+    }
+    
+    protected long getPollingIntervalMs() {
+        // AMQP uses push model, not polling
+        return 0;
     }
 }

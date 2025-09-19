@@ -2,8 +2,6 @@ package com.integrixs.backend.api.controller;
 
 import com.integrixs.backend.application.service.FlowExecutionApplicationService;
 import com.integrixs.backend.logging.BusinessOperation;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,17 +9,20 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for flow execution operations
  * Handles asynchronous flow execution requests
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/flow - execution")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 public class FlowExecutionController {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowExecutionController.class);
+
 
     private final FlowExecutionApplicationService flowExecutionApplicationService;
 

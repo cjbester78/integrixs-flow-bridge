@@ -4,7 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
@@ -14,11 +13,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.socket.server.support.WebSocketHandlerMapping;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 //@Component // Disabled - might be interfering
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class WebSocketUpgradeFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketUpgradeFilter.class);
+
 
     @Autowired
     private ApplicationContext applicationContext;

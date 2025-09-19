@@ -4,22 +4,23 @@ import com.integrixs.backend.domain.service.NotificationManagementService;
 import com.integrixs.backend.infrastructure.notification.EmailNotificationService;
 import com.integrixs.monitoring.domain.model.Alert;
 import com.integrixs.monitoring.domain.service.AlertingService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application service for notification management
  * Orchestrates notification operations across domain and infrastructure services
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class NotificationApplicationService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationApplicationService.class);
+
 
     private final NotificationManagementService notificationManagementService;
     private final EmailNotificationService emailNotificationService;
@@ -52,7 +53,7 @@ public class NotificationApplicationService {
             Alert monitoringAlert = Alert.builder()
                 .alertName(subject)
                 .message(message)
-                .alertType("SYSTEM_ALERT")
+                .alertType(Alert.AlertType.CUSTOM)
                 .severity(Alert.AlertSeverity.valueOf((String) alert.get("severity")))
                 .source("NotificationApplicationService")
                 .domainType((String) alert.get("domainType"))
@@ -114,7 +115,7 @@ public class NotificationApplicationService {
                 Alert userAlert = Alert.builder()
                     .alertName(subject)
                     .message(message)
-                    .alertType("USER_NOTIFICATION")
+                    .alertType(Alert.AlertType.CUSTOM)
                     .severity(Alert.AlertSeverity.INFO)
                     .source("NotificationApplicationService")
                     .domainType("User")

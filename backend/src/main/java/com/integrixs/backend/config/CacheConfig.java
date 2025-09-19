@@ -3,7 +3,6 @@ package com.integrixs.backend.config;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -15,6 +14,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Memory - aware caching configuration with automatic eviction.
@@ -25,7 +26,6 @@ import java.util.Arrays;
  * @author Integration Team
  * @since 1.0.0
  */
-@Slf4j
 @Configuration
 @EnableCaching
 public class CacheConfig {
@@ -33,6 +33,9 @@ public class CacheConfig {
     /**
      * Primary cache manager with memory - aware eviction policies.
      */
+
+    private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
+
     @Bean
     @Primary
     public CacheManager cacheManager() {

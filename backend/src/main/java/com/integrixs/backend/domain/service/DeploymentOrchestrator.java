@@ -4,8 +4,6 @@ import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.FlowStatus;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.shared.enums.AdapterType;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,14 +11,17 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for orchestrating flow deployment operations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class DeploymentOrchestrator {
+
+    private static final Logger log = LoggerFactory.getLogger(DeploymentOrchestrator.class);
+
 
     @Value("$ {server.host:localhost}")
     private String serverHost;

@@ -5,8 +5,6 @@ import com.integrixs.data.model.Alert;
 import com.integrixs.data.model.AlertRule;
 import com.integrixs.data.repository.AlertRepository;
 import com.integrixs.data.repository.AlertRuleRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +20,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v2/alerts")
-@RequiredArgsConstructor
-@Slf4j
 public class AlertController {
 
     private final AlertRepository alertRepository;

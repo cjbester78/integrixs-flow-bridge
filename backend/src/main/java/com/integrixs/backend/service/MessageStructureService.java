@@ -15,8 +15,6 @@ import com.integrixs.shared.dto.structure.MessageStructureCreateRequestDTO;
 import com.integrixs.shared.dto.structure.MessageStructureDTO;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.user.UserDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,11 +31,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.UUID;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MessageStructureService {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageStructureService.class);
+
 
     private final MessageStructureRepository messageStructureRepository;
     private final BusinessComponentRepository businessComponentRepository;
@@ -594,8 +595,6 @@ public class MessageStructureService {
         return results;
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class XsdValidationResult {
         private String fileName;
         private boolean valid;
@@ -603,15 +602,204 @@ public class MessageStructureService {
         private List<String> dependencies;
         private List<String> resolvedDependencies;
         private List<String> missingDependencies;
+
+        public XsdValidationResult() {
+        }
+
+        public XsdValidationResult(String fileName, boolean valid, List<String> errors, 
+                                  List<String> dependencies, List<String> resolvedDependencies, 
+                                  List<String> missingDependencies) {
+            this.fileName = fileName;
+            this.valid = valid;
+            this.errors = errors;
+            this.dependencies = dependencies;
+            this.resolvedDependencies = resolvedDependencies;
+            this.missingDependencies = missingDependencies;
+        }
+
+        // Getters and setters
+        public String getFileName() {
+            return fileName;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public void setValid(boolean valid) {
+            this.valid = valid;
+        }
+
+        public List<String> getErrors() {
+            return errors;
+        }
+
+        public void setErrors(List<String> errors) {
+            this.errors = errors;
+        }
+
+        public List<String> getDependencies() {
+            return dependencies;
+        }
+
+        public void setDependencies(List<String> dependencies) {
+            this.dependencies = dependencies;
+        }
+
+        public List<String> getResolvedDependencies() {
+            return resolvedDependencies;
+        }
+
+        public void setResolvedDependencies(List<String> resolvedDependencies) {
+            this.resolvedDependencies = resolvedDependencies;
+        }
+
+        public List<String> getMissingDependencies() {
+            return missingDependencies;
+        }
+
+        public void setMissingDependencies(List<String> missingDependencies) {
+            this.missingDependencies = missingDependencies;
+        }
+
+        // Builder
+        public static XsdValidationResultBuilder builder() {
+            return new XsdValidationResultBuilder();
+        }
+
+        public static class XsdValidationResultBuilder {
+            private String fileName;
+            private boolean valid;
+            private List<String> errors;
+            private List<String> dependencies;
+            private List<String> resolvedDependencies;
+            private List<String> missingDependencies;
+
+            public XsdValidationResultBuilder fileName(String fileName) {
+                this.fileName = fileName;
+                return this;
+            }
+
+            public XsdValidationResultBuilder valid(boolean valid) {
+                this.valid = valid;
+                return this;
+            }
+
+            public XsdValidationResultBuilder errors(List<String> errors) {
+                this.errors = errors;
+                return this;
+            }
+
+            public XsdValidationResultBuilder dependencies(List<String> dependencies) {
+                this.dependencies = dependencies;
+                return this;
+            }
+
+            public XsdValidationResultBuilder resolvedDependencies(List<String> resolvedDependencies) {
+                this.resolvedDependencies = resolvedDependencies;
+                return this;
+            }
+
+            public XsdValidationResultBuilder missingDependencies(List<String> missingDependencies) {
+                this.missingDependencies = missingDependencies;
+                return this;
+            }
+
+            public XsdValidationResult build() {
+                return new XsdValidationResult(fileName, valid, errors, dependencies, 
+                                             resolvedDependencies, missingDependencies);
+            }
+        }
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class XsdImportResult {
         private String fileName;
         private String structureName;
         private boolean success;
         private String message;
+
+        public XsdImportResult() {
+        }
+
+        public XsdImportResult(String fileName, String structureName, boolean success, String message) {
+            this.fileName = fileName;
+            this.structureName = structureName;
+            this.success = success;
+            this.message = message;
+        }
+
+        // Getters and setters
+        public String getFileName() {
+            return fileName;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public String getStructureName() {
+            return structureName;
+        }
+
+        public void setStructureName(String structureName) {
+            this.structureName = structureName;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        // Builder
+        public static XsdImportResultBuilder builder() {
+            return new XsdImportResultBuilder();
+        }
+
+        public static class XsdImportResultBuilder {
+            private String fileName;
+            private String structureName;
+            private boolean success;
+            private String message;
+
+            public XsdImportResultBuilder fileName(String fileName) {
+                this.fileName = fileName;
+                return this;
+            }
+
+            public XsdImportResultBuilder structureName(String structureName) {
+                this.structureName = structureName;
+                return this;
+            }
+
+            public XsdImportResultBuilder success(boolean success) {
+                this.success = success;
+                return this;
+            }
+
+            public XsdImportResultBuilder message(String message) {
+                this.message = message;
+                return this;
+            }
+
+            public XsdImportResult build() {
+                return new XsdImportResult(fileName, structureName, success, message);
+            }
+        }
     }
 
     private Map<String, Object> extractNamespaceInfo(String xsdContent) {

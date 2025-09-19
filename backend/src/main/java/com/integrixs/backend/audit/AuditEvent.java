@@ -1,11 +1,6 @@
 package com.integrixs.backend.audit;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,11 +17,11 @@ import java.util.UUID;
     @Index(name = "idx_audit_entity", columnList = "entity_type,entity_id"),
     @Index(name = "idx_audit_tenant", columnList = "tenant_id")
 })
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class AuditEvent {
+    
+    public static AuditEventBuilder builder() {
+        return new AuditEventBuilder();
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -225,6 +220,13 @@ public class AuditEvent {
     }
 
     /**
+     * Default constructor
+     */
+    public AuditEvent() {
+        this.details = new HashMap<>();
+    }
+    
+    /**
      * Add detail to audit event
      */
     public void addDetail(String key, String value) {
@@ -233,6 +235,64 @@ public class AuditEvent {
         }
         details.put(key, value);
     }
+    
+    // Getters
+    public UUID getId() { return id; }
+    public Instant getEventTimestamp() { return eventTimestamp; }
+    public AuditEventType getEventType() { return eventType; }
+    public AuditCategory getCategory() { return category; }
+    public String getUsername() { return username; }
+    public UUID getUserId() { return userId; }
+    public String getTenantId() { return tenantId; }
+    public String getSessionId() { return sessionId; }
+    public String getIpAddress() { return ipAddress; }
+    public String getUserAgent() { return userAgent; }
+    public String getRequestId() { return requestId; }
+    public String getEntityType() { return entityType; }
+    public String getEntityId() { return entityId; }
+    public String getEntityName() { return entityName; }
+    public String getAction() { return action; }
+    public AuditOutcome getOutcome() { return outcome; }
+    public String getErrorMessage() { return errorMessage; }
+    public Long getDurationMs() { return durationMs; }
+    public Map<String, String> getDetails() { return details; }
+    public String getOldValue() { return oldValue; }
+    public String getNewValue() { return newValue; }
+    public String getCorrelationId() { return correlationId; }
+    public String getServiceName() { return serviceName; }
+    public String getEnvironment() { return environment; }
+    public String getApiEndpoint() { return apiEndpoint; }
+    public String getHttpMethod() { return httpMethod; }
+    public Integer getHttpStatus() { return httpStatus; }
+    
+    // Setters
+    public void setId(UUID id) { this.id = id; }
+    public void setEventTimestamp(Instant eventTimestamp) { this.eventTimestamp = eventTimestamp; }
+    public void setEventType(AuditEventType eventType) { this.eventType = eventType; }
+    public void setCategory(AuditCategory category) { this.category = category; }
+    public void setUsername(String username) { this.username = username; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
+    public void setSessionId(String sessionId) { this.sessionId = sessionId; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
+    public void setRequestId(String requestId) { this.requestId = requestId; }
+    public void setEntityType(String entityType) { this.entityType = entityType; }
+    public void setEntityId(String entityId) { this.entityId = entityId; }
+    public void setEntityName(String entityName) { this.entityName = entityName; }
+    public void setAction(String action) { this.action = action; }
+    public void setOutcome(AuditOutcome outcome) { this.outcome = outcome; }
+    public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+    public void setDurationMs(Long durationMs) { this.durationMs = durationMs; }
+    public void setDetails(Map<String, String> details) { this.details = details; }
+    public void setOldValue(String oldValue) { this.oldValue = oldValue; }
+    public void setNewValue(String newValue) { this.newValue = newValue; }
+    public void setCorrelationId(String correlationId) { this.correlationId = correlationId; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+    public void setEnvironment(String environment) { this.environment = environment; }
+    public void setApiEndpoint(String apiEndpoint) { this.apiEndpoint = apiEndpoint; }
+    public void setHttpMethod(String httpMethod) { this.httpMethod = httpMethod; }
+    public void setHttpStatus(Integer httpStatus) { this.httpStatus = httpStatus; }
 
     /**
      * Create builder with common fields
@@ -282,5 +342,203 @@ public class AuditEvent {
         }
 
         return AuditCategory.SYSTEM;
+    }
+    
+    public static class AuditEventBuilder {
+        private UUID id;
+        private Instant eventTimestamp;
+        private AuditEventType eventType;
+        private AuditCategory category;
+        private String username;
+        private String ipAddress;
+        private String sessionId;
+        private String tenantId;
+        private String entityType;
+        private String entityId;
+                private Map<String, String> details;
+        private String serviceName;
+        private String environment;
+        private String action;
+        private AuditOutcome outcome;
+        private String entityName;
+        private UUID userId;
+        private String correlationId;
+        private String apiEndpoint;
+        private String httpMethod;
+        private Integer httpStatus;
+        private Long durationMs;
+        private String oldValue;
+        private String newValue;
+        private String errorMessage;
+        private String userAgent;
+        private String requestId;
+        
+        public AuditEventBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+        
+        public AuditEventBuilder eventTimestamp(Instant eventTimestamp) {
+            this.eventTimestamp = eventTimestamp;
+            return this;
+        }
+        
+        public AuditEventBuilder eventType(AuditEventType eventType) {
+            this.eventType = eventType;
+            return this;
+        }
+        
+        public AuditEventBuilder category(AuditCategory category) {
+            this.category = category;
+            return this;
+        }
+        
+        public AuditEventBuilder username(String username) {
+            this.username = username;
+            return this;
+        }
+        
+        public AuditEventBuilder ipAddress(String ipAddress) {
+            this.ipAddress = ipAddress;
+            return this;
+        }
+        
+        public AuditEventBuilder sessionId(String sessionId) {
+            this.sessionId = sessionId;
+            return this;
+        }
+        
+        public AuditEventBuilder tenantId(String tenantId) {
+            this.tenantId = tenantId;
+            return this;
+        }
+        
+        public AuditEventBuilder entityType(String entityType) {
+            this.entityType = entityType;
+            return this;
+        }
+        
+        public AuditEventBuilder entityId(String entityId) {
+            this.entityId = entityId;
+            return this;
+        }
+        
+        public AuditEventBuilder action(String action) {
+            this.action = action;
+            return this;
+        }
+        
+        public AuditEventBuilder outcome(AuditOutcome outcome) {
+            this.outcome = outcome;
+            return this;
+        }
+        
+        public AuditEventBuilder entityName(String entityName) {
+            this.entityName = entityName;
+            return this;
+        }
+        
+        public AuditEventBuilder userId(UUID userId) {
+            this.userId = userId;
+            return this;
+        }
+        
+        public AuditEventBuilder correlationId(String correlationId) {
+            this.correlationId = correlationId;
+            return this;
+        }
+        
+        public AuditEventBuilder apiEndpoint(String apiEndpoint) {
+            this.apiEndpoint = apiEndpoint;
+            return this;
+        }
+        
+        public AuditEventBuilder httpMethod(String httpMethod) {
+            this.httpMethod = httpMethod;
+            return this;
+        }
+        
+        public AuditEventBuilder httpStatus(Integer httpStatus) {
+            this.httpStatus = httpStatus;
+            return this;
+        }
+        
+        public AuditEventBuilder durationMs(Long durationMs) {
+            this.durationMs = durationMs;
+            return this;
+        }
+        
+        public AuditEventBuilder oldValue(String oldValue) {
+            this.oldValue = oldValue;
+            return this;
+        }
+        
+        public AuditEventBuilder newValue(String newValue) {
+            this.newValue = newValue;
+            return this;
+        }
+        
+        public AuditEventBuilder details(Map<String, String> details) {
+            this.details = details;
+            return this;
+        }
+        
+        public AuditEventBuilder serviceName(String serviceName) {
+            this.serviceName = serviceName;
+            return this;
+        }
+        
+        public AuditEventBuilder environment(String environment) {
+            this.environment = environment;
+            return this;
+        }
+        
+        
+        public AuditEventBuilder userAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+        
+        public AuditEventBuilder requestId(String requestId) {
+            this.requestId = requestId;
+            return this;
+        }
+        
+        public AuditEventBuilder errorMessage(String errorMessage) {
+            this.errorMessage = errorMessage;
+            return this;
+        }
+        
+        public AuditEvent build() {
+            AuditEvent event = new AuditEvent();
+            event.id = this.id;
+            event.eventTimestamp = this.eventTimestamp;
+            event.eventType = this.eventType;
+            event.category = this.category;
+            event.username = this.username;
+            event.userId = this.userId;
+            event.tenantId = this.tenantId;
+            event.sessionId = this.sessionId;
+            event.ipAddress = this.ipAddress;
+            event.userAgent = this.userAgent;
+            event.requestId = this.requestId;
+            event.entityType = this.entityType;
+            event.entityId = this.entityId;
+            event.entityName = this.entityName;
+            event.action = this.action;
+            event.outcome = this.outcome;
+            event.errorMessage = this.errorMessage;
+            event.durationMs = this.durationMs;
+            event.details = this.details;
+            event.oldValue = this.oldValue;
+            event.newValue = this.newValue;
+            event.correlationId = this.correlationId;
+            event.serviceName = this.serviceName;
+            event.environment = this.environment;
+            event.apiEndpoint = this.apiEndpoint;
+            event.httpMethod = this.httpMethod;
+            event.httpStatus = this.httpStatus;
+            return event;
+        }
     }
 }

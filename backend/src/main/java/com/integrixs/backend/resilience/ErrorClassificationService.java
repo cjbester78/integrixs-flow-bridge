@@ -1,8 +1,5 @@
 package com.integrixs.backend.resilience;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,17 +12,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for classifying errors and exceptions to determine appropriate handling strategies.
  * Provides intelligent error categorization for better resilience decisions.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ErrorClassificationService {
 
     // Cache for classification results
+
+    private static final Logger log = LoggerFactory.getLogger(ErrorClassificationService.class);
+
     private final Map<String, ErrorClassification> classificationCache = new ConcurrentHashMap<>();
 
     // Patterns for error message analysis
@@ -343,8 +343,7 @@ public class ErrorClassificationService {
     /**
      * Error classification result.
      */
-    @Data
-    public static class ErrorClassification {
+        public static class ErrorClassification {
         private String exceptionClass;
         private String message;
         private ErrorCategory category;

@@ -3,8 +3,6 @@ package com.integrixs.backend.service;
 import com.integrixs.engine.transformation.FieldMappingProcessor;
 import com.integrixs.shared.dto.TestFieldMappingsRequestDTO;
 import com.integrixs.shared.dto.TestFieldMappingsResponseDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -22,14 +20,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for testing field mappings without deploying flows
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class TestMappingService {
+
+    private static final Logger log = LoggerFactory.getLogger(TestMappingService.class);
+
 
     private final FieldMappingProcessor fieldMappingProcessor;
     private final DevelopmentFunctionService developmentFunctionService;

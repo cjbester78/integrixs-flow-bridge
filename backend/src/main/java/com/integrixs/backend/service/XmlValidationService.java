@@ -2,8 +2,6 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.FlowStructure;
 import com.integrixs.data.model.MessageStructure;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.*;
 import org.xml.sax.ErrorHandler;
@@ -27,19 +25,22 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.StringReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
  * Service for XML validation against XSD schemas and WSDL definitions
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class XmlValidationService {
 
     /**
      * Validates an XML message against a FlowStructure(which contains WSDL)
      */
+
+    private static final Logger log = LoggerFactory.getLogger(XmlValidationService.class);
+
     public ValidationResult validateMessageAgainstFlowStructure(String xmlMessage, FlowStructure flowStructure, Map<String, Object> context) {
         ValidationResult result = new ValidationResult();
 

@@ -2,6 +2,7 @@ package com.integrixs.soapbindings.infrastructure.binding;
 
 import com.integrixs.soapbindings.domain.model.GeneratedBinding;
 import com.integrixs.soapbindings.domain.model.WsdlDefinition;
+import com.integrixs.soapbindings.domain.enums.GenerationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -76,7 +77,7 @@ public class BindingGenerator {
                     .outputDirectory(outputDirectory)
                     .generatedClassesContent(generatedClasses)
                     .generationTime(LocalDateTime.now())
-                    .status(GeneratedBinding.GenerationStatus.COMPLETED)
+                    .status(GenerationStatus.SUCCESS)
                     .build();
 
         } catch(Exception e) {

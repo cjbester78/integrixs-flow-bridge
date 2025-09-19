@@ -1,5 +1,7 @@
 package com.integrixs.soapbindings.infrastructure.service;
 
+import static com.integrixs.soapbindings.domain.enums.SecurityType.*;
+
 import com.integrixs.soapbindings.domain.model.SoapBinding;
 import com.integrixs.soapbindings.domain.service.SoapClientService;
 import com.integrixs.soapbindings.infrastructure.client.SoapClientWrapper;
@@ -155,7 +157,7 @@ public class SoapClientServiceImpl implements SoapClientService {
                     // Configure WS - Security
                     logger.warn("WS - Security configuration not yet implemented");
                     break;
-                case OAUTH2:
+                case OAUTH:
                     // Configure OAuth2
                     logger.warn("OAuth2 configuration not yet implemented");
                     break;

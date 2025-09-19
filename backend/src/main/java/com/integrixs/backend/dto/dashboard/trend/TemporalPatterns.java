@@ -1,14 +1,11 @@
 package com.integrixs.backend.dto.dashboard.trend;
 
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
 
 /**
  * Temporal patterns analysis(hourly, daily, weekly).
  */
-@Data
 public class TemporalPatterns {
     private String metric;
     private int analysisPeriodDays;
@@ -16,4 +13,40 @@ public class TemporalPatterns {
     private Map<String, DailyStats> dailyPatterns;
     private List<PeakPeriod> peakPeriods;
     private double seasonalityScore; // 0.0 to 1.0
+
+    // Default constructor
+    public TemporalPatterns() {
+    }
+
+    public String getMetric() {
+        return metric;
+    }
+
+    public void setMetric(String metric) {
+        this.metric = metric;
+    }
+
+    public int getAnalysisPeriodDays() {
+        return analysisPeriodDays;
+    }
+
+    public void setAnalysisPeriodDays(int analysisPeriodDays) {
+        this.analysisPeriodDays = analysisPeriodDays;
+    }
+
+    public List<PeakPeriod> getPeakPeriods() {
+        return peakPeriods;
+    }
+
+    public void setPeakPeriods(List<PeakPeriod> peakPeriods) {
+        this.peakPeriods = peakPeriods;
+    }
+
+    public double getSeasonalityScore() {
+        return seasonalityScore;
+    }
+
+    public void setSeasonalityScore(double seasonalityScore) {
+        this.seasonalityScore = seasonalityScore;
+    }
 }

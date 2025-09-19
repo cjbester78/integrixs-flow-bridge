@@ -2,8 +2,6 @@ package com.integrixs.backend.domain.service;
 
 import com.integrixs.backend.domain.repository.SystemConfigurationRepository;
 import com.integrixs.data.model.SystemConfiguration;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -13,9 +11,7 @@ import java.util.Optional;
 /**
  * Domain service for managing system configurations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ConfigurationManagementService {
 
     private final SystemConfigurationRepository configurationRepository;

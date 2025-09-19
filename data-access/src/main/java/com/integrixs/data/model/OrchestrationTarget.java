@@ -2,7 +2,6 @@ package com.integrixs.data.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,17 +20,19 @@ import java.util.UUID;
         @Index(name = "idx_orch_target_order", columnList = "flow_id,execution_order")
     }
 )
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class OrchestrationTarget {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @EqualsAndHashCode.Include
     private UUID id;
+
+    /**
+     * Name of this orchestration target
+     */
+    @Column(name = "name", nullable = false, length = 255)
+    @NotBlank(message = "Target name is required")
+    @Size(max = 255, message = "Target name cannot exceed 255 characters")
+    private String name;
 
     /**
      * The orchestration flow this target belongs to
@@ -45,9 +46,15 @@ public class OrchestrationTarget {
      * The target adapter
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_adapter_id", nullable = false)
-    @NotNull(message = "Target adapter is required")
+    @JoinColumn(name = "target_adapter_id")
     private CommunicationAdapter targetAdapter;
+
+    /**
+     * The target flow (alternative to target adapter)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_flow_id")
+    private IntegrationFlow targetFlow;
 
     /**
      * Execution order(for sequential processing)
@@ -55,14 +62,12 @@ public class OrchestrationTarget {
      */
     @Column(name = "execution_order", nullable = false)
     @Min(value = 0, message = "Execution order must be non - negative")
-    @Builder.Default
     private Integer executionOrder = 0;
 
     /**
      * Whether this target executes in parallel with others at the same order level
      */
     @Column(name = "is_parallel")
-    @Builder.Default
     private boolean parallel = false;
 
     /**
@@ -78,7 +83,6 @@ public class OrchestrationTarget {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "condition_type", length = 50)
-    @Builder.Default
     private ConditionType conditionType = ConditionType.ALWAYS;
 
     /**
@@ -97,7 +101,6 @@ public class OrchestrationTarget {
      * Whether to wait for response from this target
      */
     @Column(name = "await_response")
-    @Builder.Default
     private boolean awaitResponse = false;
 
     /**
@@ -106,7 +109,6 @@ public class OrchestrationTarget {
     @Column(name = "timeout_ms")
     @Min(value = 0, message = "Timeout must be non - negative")
     @Max(value = 3600000, message = "Timeout cannot exceed 1 hour")
-    @Builder.Default
     private Long timeoutMs = 30000L; // 30 seconds default
 
     /**
@@ -120,15 +122,25 @@ public class OrchestrationTarget {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "error_strategy", length = 50)
-    @Builder.Default
     private ErrorStrategy errorStrategy = ErrorStrategy.FAIL_FLOW;
 
     /**
      * Whether this target is active
      */
     @Column(name = "is_active")
-    @Builder.Default
     private boolean active = true;
+
+    /**
+     * Status of this target
+     */
+    @Column(name = "status", length = 50)
+    private String status = "ACTIVE";
+
+    /**
+     * Priority for execution ordering (higher values execute first)
+     */
+    @Column(name = "priority")
+    private Integer priority = 0;
 
     /**
      * Configuration specific to this target(JSON)
@@ -195,37 +207,505 @@ public class OrchestrationTarget {
      * Embedded retry policy
      */
     @Embeddable
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
     public static class RetryPolicy {
 
         @Column(name = "max_attempts")
         @Min(0)
         @Max(10)
-        @Builder.Default
         private Integer maxAttempts = 3;
 
         @Column(name = "retry_delay_ms")
         @Min(0)
         @Max(300000) // 5 minutes max
-        @Builder.Default
         private Long retryDelayMs = 1000L;
 
         @Column(name = "backoff_multiplier")
         @Min(1)
         @Max(10)
-        @Builder.Default
         private Double backoffMultiplier = 2.0;
 
         @Column(name = "max_retry_delay_ms")
         @Min(0)
         @Max(3600000) // 1 hour max
-        @Builder.Default
         private Long maxRetryDelayMs = 60000L; // 1 minute
 
         @Column(name = "retry_on_errors", length = 500)
         private String retryOnErrors; // Comma - separated error types
+
+        // Default constructor
+        public RetryPolicy() {
+        }
+
+        public Integer getMaxAttempts() {
+            return maxAttempts;
+        }
+
+        public void setMaxAttempts(Integer maxAttempts) {
+            this.maxAttempts = maxAttempts;
+        }
+
+        public Long getRetryDelayMs() {
+            return retryDelayMs;
+        }
+
+        public void setRetryDelayMs(Long retryDelayMs) {
+            this.retryDelayMs = retryDelayMs;
+        }
+
+        public Double getBackoffMultiplier() {
+            return backoffMultiplier;
+        }
+
+        public void setBackoffMultiplier(Double backoffMultiplier) {
+            this.backoffMultiplier = backoffMultiplier;
+        }
+
+        public Long getMaxRetryDelayMs() {
+            return maxRetryDelayMs;
+        }
+
+        public void setMaxRetryDelayMs(Long maxRetryDelayMs) {
+            this.maxRetryDelayMs = maxRetryDelayMs;
+        }
+
+        public String getRetryOnErrors() {
+            return retryOnErrors;
+        }
+
+        public void setRetryOnErrors(String retryOnErrors) {
+            this.retryOnErrors = retryOnErrors;
+        }
+
+        // Builder
+        public static RetryPolicyBuilder builder() {
+            return new RetryPolicyBuilder();
+        }
+
+        public static class RetryPolicyBuilder {
+            private Integer maxAttempts = 3;
+            private Long retryDelayMs = 1000L;
+            private Double backoffMultiplier = 2.0;
+            private Long maxRetryDelayMs = 60000L;
+            private String retryOnErrors;
+
+            public RetryPolicyBuilder maxAttempts(Integer maxAttempts) {
+                this.maxAttempts = maxAttempts;
+                return this;
+            }
+
+            public RetryPolicyBuilder retryDelayMs(Long retryDelayMs) {
+                this.retryDelayMs = retryDelayMs;
+                return this;
+            }
+
+            public RetryPolicyBuilder backoffMultiplier(Double backoffMultiplier) {
+                this.backoffMultiplier = backoffMultiplier;
+                return this;
+            }
+
+            public RetryPolicyBuilder maxRetryDelayMs(Long maxRetryDelayMs) {
+                this.maxRetryDelayMs = maxRetryDelayMs;
+                return this;
+            }
+
+            public RetryPolicyBuilder retryOnErrors(String retryOnErrors) {
+                this.retryOnErrors = retryOnErrors;
+                return this;
+            }
+
+            public RetryPolicy build() {
+                RetryPolicy policy = new RetryPolicy();
+                policy.maxAttempts = this.maxAttempts;
+                policy.retryDelayMs = this.retryDelayMs;
+                policy.backoffMultiplier = this.backoffMultiplier;
+                policy.maxRetryDelayMs = this.maxRetryDelayMs;
+                policy.retryOnErrors = this.retryOnErrors;
+                return policy;
+            }
+        }
+    }
+
+    // Default constructor
+    public OrchestrationTarget() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public IntegrationFlow getFlow() {
+        return flow;
+    }
+
+    public void setFlow(IntegrationFlow flow) {
+        this.flow = flow;
+    }
+
+    public CommunicationAdapter getTargetAdapter() {
+        return targetAdapter;
+    }
+
+    public void setTargetAdapter(CommunicationAdapter targetAdapter) {
+        this.targetAdapter = targetAdapter;
+    }
+
+    public IntegrationFlow getTargetFlow() {
+        return targetFlow;
+    }
+
+    public void setTargetFlow(IntegrationFlow targetFlow) {
+        this.targetFlow = targetFlow;
+    }
+
+    public Integer getExecutionOrder() {
+        return executionOrder;
+    }
+
+    public void setExecutionOrder(Integer executionOrder) {
+        this.executionOrder = executionOrder;
+    }
+
+    public boolean isParallel() {
+        return parallel;
+    }
+
+    public void setParallel(boolean parallel) {
+        this.parallel = parallel;
+    }
+
+    public String getRoutingCondition() {
+        return routingCondition;
+    }
+
+    public void setRoutingCondition(String routingCondition) {
+        this.routingCondition = routingCondition;
+    }
+
+    public ConditionType getConditionType() {
+        return conditionType;
+    }
+
+    public void setConditionType(ConditionType conditionType) {
+        this.conditionType = conditionType;
+    }
+
+    public UUID getStructureId() {
+        return structureId;
+    }
+
+    public void setStructureId(UUID structureId) {
+        this.structureId = structureId;
+    }
+
+    public UUID getResponseStructureId() {
+        return responseStructureId;
+    }
+
+    public void setResponseStructureId(UUID responseStructureId) {
+        this.responseStructureId = responseStructureId;
+    }
+
+    public boolean isAwaitResponse() {
+        return awaitResponse;
+    }
+
+    public void setAwaitResponse(boolean awaitResponse) {
+        this.awaitResponse = awaitResponse;
+    }
+
+    public Long getTimeoutMs() {
+        return timeoutMs;
+    }
+
+    public void setTimeoutMs(Long timeoutMs) {
+        this.timeoutMs = timeoutMs;
+    }
+
+    public RetryPolicy getRetryPolicy() {
+        return retryPolicy;
+    }
+
+    public void setRetryPolicy(RetryPolicy retryPolicy) {
+        this.retryPolicy = retryPolicy;
+    }
+
+    public ErrorStrategy getErrorStrategy() {
+        return errorStrategy;
+    }
+
+    public void setErrorStrategy(ErrorStrategy errorStrategy) {
+        this.errorStrategy = errorStrategy;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public User getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(User updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    // Builder
+    public static OrchestrationTargetBuilder builder() {
+        return new OrchestrationTargetBuilder();
+    }
+
+    public static class OrchestrationTargetBuilder {
+        private UUID id;
+        private String name;
+        private IntegrationFlow flow;
+        private CommunicationAdapter targetAdapter;
+        private IntegrationFlow targetFlow;
+        private Integer executionOrder;
+        private boolean parallel;
+        private String routingCondition;
+        private ConditionType conditionType;
+        private UUID structureId;
+        private UUID responseStructureId;
+        private boolean awaitResponse;
+        private Long timeoutMs;
+        private RetryPolicy retryPolicy;
+        private ErrorStrategy errorStrategy;
+        private boolean active;
+        private String status;
+        private Integer priority;
+        private String configuration;
+        private String description;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private User createdBy;
+        private User updatedBy;
+        private Integer maxAttempts;
+        private Long retryDelayMs;
+        private Double backoffMultiplier;
+        private Long maxRetryDelayMs;
+        private String retryOnErrors;
+
+        public OrchestrationTargetBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder flow(IntegrationFlow flow) {
+            this.flow = flow;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder targetAdapter(CommunicationAdapter targetAdapter) {
+            this.targetAdapter = targetAdapter;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder executionOrder(Integer executionOrder) {
+            this.executionOrder = executionOrder;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder parallel(boolean parallel) {
+            this.parallel = parallel;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder routingCondition(String routingCondition) {
+            this.routingCondition = routingCondition;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder conditionType(ConditionType conditionType) {
+            this.conditionType = conditionType;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder structureId(UUID structureId) {
+            this.structureId = structureId;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder responseStructureId(UUID responseStructureId) {
+            this.responseStructureId = responseStructureId;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder awaitResponse(boolean awaitResponse) {
+            this.awaitResponse = awaitResponse;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder timeoutMs(Long timeoutMs) {
+            this.timeoutMs = timeoutMs;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder retryPolicy(RetryPolicy retryPolicy) {
+            this.retryPolicy = retryPolicy;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder errorStrategy(ErrorStrategy errorStrategy) {
+            this.errorStrategy = errorStrategy;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder active(boolean active) {
+            this.active = active;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder configuration(String configuration) {
+            this.configuration = configuration;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder createdBy(User createdBy) {
+            this.createdBy = createdBy;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder updatedBy(User updatedBy) {
+            this.updatedBy = updatedBy;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder maxAttempts(Integer maxAttempts) {
+            this.maxAttempts = maxAttempts;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder retryDelayMs(Long retryDelayMs) {
+            this.retryDelayMs = retryDelayMs;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder backoffMultiplier(Double backoffMultiplier) {
+            this.backoffMultiplier = backoffMultiplier;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder maxRetryDelayMs(Long maxRetryDelayMs) {
+            this.maxRetryDelayMs = maxRetryDelayMs;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder retryOnErrors(String retryOnErrors) {
+            this.retryOnErrors = retryOnErrors;
+            return this;
+        }
+
+        public OrchestrationTarget build() {
+            OrchestrationTarget instance = new OrchestrationTarget();
+            instance.setId(this.id);
+            instance.setFlow(this.flow);
+            instance.setTargetAdapter(this.targetAdapter);
+            instance.setExecutionOrder(this.executionOrder);
+            instance.setParallel(this.parallel);
+            instance.setRoutingCondition(this.routingCondition);
+            instance.setConditionType(this.conditionType);
+            instance.setStructureId(this.structureId);
+            instance.setResponseStructureId(this.responseStructureId);
+            instance.setAwaitResponse(this.awaitResponse);
+            instance.setTimeoutMs(this.timeoutMs);
+            instance.setRetryPolicy(this.retryPolicy);
+            instance.setErrorStrategy(this.errorStrategy);
+            instance.setActive(this.active);
+            instance.setConfiguration(this.configuration);
+            instance.setDescription(this.description);
+            instance.setCreatedAt(this.createdAt);
+            instance.setUpdatedAt(this.updatedAt);
+            instance.setCreatedBy(this.createdBy);
+            instance.setUpdatedBy(this.updatedBy);
+            // Retry fields are part of RetryPolicy, not OrchestrationTarget
+            return instance;
+        }
     }
 }

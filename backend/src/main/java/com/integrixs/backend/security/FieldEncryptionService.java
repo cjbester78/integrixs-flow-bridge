@@ -1,11 +1,9 @@
 package com.integrixs.backend.security;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -22,10 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Service for field - level encryption of sensitive data.
  * Uses AES-256 - GCM for authenticated encryption.
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FieldEncryptionService {
+    
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FieldEncryptionService.class);
 
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH = 128;

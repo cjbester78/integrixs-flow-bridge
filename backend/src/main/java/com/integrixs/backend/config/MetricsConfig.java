@@ -9,7 +9,6 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.core.instrument.binder.system.UptimeMetrics;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -20,14 +19,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Metrics configuration for comprehensive application monitoring.
  * Configures Micrometer with Prometheus registry and custom metrics.
  */
-@Slf4j
 @Configuration
 public class MetricsConfig implements WebMvcConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(MetricsConfig.class);
+
 
     @Value("$ {spring.application.name:integrixs - flow - bridge}")
     private String applicationName;

@@ -115,14 +115,47 @@ public class AuditAspect {
             // Extract entity information if available
             extractEntityInfo(joinPoint, event);
 
-            // Save audit event
+            // Save audit event using appropriate method based on event type
             try {
-                auditService.enrichWithSecurityContext(event);
-                auditService.enrichWithRequestContext(event);
-                auditService.save(event);
+                saveAuditEvent(event, outcome, details);
             } catch(Exception e) {
                 logger.error("Failed to save audit event", e);
             }
+        }
+    }
+
+    /**
+     * Save audit event based on its type
+     */
+    private void saveAuditEvent(AuditEvent event, AuditEvent.AuditOutcome outcome,
+                               Map<String, String> details) {
+        // Use the appropriate audit service method based on event type
+        AuditEvent.AuditEventType eventType = event.getEventType();
+        
+        if (eventType.name().startsWith("LOGIN") || eventType.name().startsWith("LOGOUT")) {
+            auditService.logAuthentication(event.getUsername(), 
+                outcome == AuditEvent.AuditOutcome.SUCCESS, 
+                event.getIpAddress() != null ? event.getIpAddress() : "unknown",
+                details.getOrDefault("reason", ""));
+        } else if (eventType.name().contains("CONFIG")) {
+            auditService.logConfigChange(event.getEntityType(), event.getEntityName(),
+                event.getOldValue(), event.getNewValue());
+        } else if (eventType == AuditEvent.AuditEventType.SECURITY_ALERT ||
+                   eventType.name().startsWith("SECURITY")) {
+            auditService.logSecurityEvent(eventType, event.getAction(), details);
+        } else if (eventType.name().contains("API")) {
+            auditService.logApiAccess(event.getApiEndpoint(), event.getHttpMethod(),
+                event.getHttpStatus() != null ? event.getHttpStatus() : 0, 
+                event.getDurationMs() != null ? event.getDurationMs() : 0L);
+        } else if (eventType.name().startsWith("FLOW")) {
+            auditService.logFlowExecution(event.getEntityId(), event.getEntityName(),
+                outcome == AuditEvent.AuditOutcome.SUCCESS, 
+                event.getDurationMs() != null ? event.getDurationMs() : 0L,
+                details.getOrDefault("correlationId", null));
+        } else {
+            // For other types, use logDataAccess as a generic method
+            auditService.logDataAccess(eventType, event.getEntityType(), 
+                event.getEntityId(), details.getOrDefault("details", ""));
         }
     }
 

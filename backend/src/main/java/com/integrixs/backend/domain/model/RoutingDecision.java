@@ -1,16 +1,13 @@
 package com.integrixs.backend.domain.model;
 
 import com.integrixs.data.model.FlowRoute;
-import lombok.Getter;
-
 /**
  * Domain model for routing decision result
  */
-@Getter
 public class RoutingDecision {
-    private final boolean success;
-    private final FlowRoute route;
-    private final String errorMessage;
+    private boolean success;
+    private FlowRoute route;
+    private String errorMessage;
 
     private RoutingDecision(boolean success, FlowRoute route, String errorMessage) {
         this.success = success;
@@ -36,5 +33,33 @@ public class RoutingDecision {
 
     public boolean hasRoute() {
         return route != null;
+    }
+
+    // Default constructor
+    public RoutingDecision() {
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public FlowRoute getRoute() {
+        return route;
+    }
+
+    public void setRoute(FlowRoute route) {
+        this.route = route;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

@@ -1,6 +1,7 @@
 package com.integrixs.soapbindings.infrastructure.service;
 
-import com.integrixs.soapbindings.domain.model.WsdlDefinition;
+import com.integrixs.soapbindings.domain.model.*;
+import com.integrixs.soapbindings.domain.enums.*;
 import com.integrixs.soapbindings.domain.repository.WsdlRepository;
 import com.integrixs.soapbindings.domain.service.WsdlService;
 import com.integrixs.soapbindings.infrastructure.wsdl.WsdlParser;
@@ -185,14 +186,14 @@ public class WsdlServiceImpl implements WsdlService {
     public List<String> extractOperations(WsdlDefinition wsdl, String serviceName) {
         logger.debug("Extracting operations from WSDL: {} for service: {}", wsdl.getName(), serviceName);
 
-        WsdlDefinition.ServiceDefinition service = wsdl.getService(serviceName);
+        ServiceDefinition service = wsdl.getService(serviceName);
         if(service == null) {
             logger.warn("Service not found in WSDL: {}", serviceName);
             return new ArrayList<>();
         }
 
-        List<String> operations = service.getPorts().values().stream()
-                .flatMap(port -> port.getOperations().keySet().stream())
+        List<String> operations = service.getPorts().stream()
+                .flatMap(port -> port.getOperations().stream().map(OperationDefinition::getName))
                 .distinct()
                 .collect(Collectors.toList());
 

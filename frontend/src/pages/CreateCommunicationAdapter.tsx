@@ -39,21 +39,21 @@ import { FacebookGraphApiConfiguration } from '@/components/adapter/FacebookGrap
 import { FacebookAdsApiConfiguration } from '@/components/adapter/FacebookAdsApiConfiguration';
 import { InstagramGraphApiConfiguration } from '@/components/adapter/InstagramGraphApiConfiguration';
 import { WhatsAppBusinessApiConfiguration } from '@/components/adapter/WhatsAppBusinessApiConfiguration';
-import { TwitterApiV2Configuration } from '@/components/adapter/TwitterApiV2Configuration';
-import { TwitterAdsApiConfiguration } from '@/components/adapter/TwitterAdsApiConfiguration';
-import { LinkedInApiConfiguration } from '@/components/adapter/LinkedInApiConfiguration';
+import TwitterApiV2Configuration from '@/components/adapters/configurations/TwitterApiV2Configuration';
+import TwitterAdsApiConfiguration from '@/components/adapters/configurations/TwitterAdsApiConfiguration';
+import LinkedInApiConfiguration from '@/components/adapters/configurations/LinkedInApiConfiguration';
 import { LinkedInAdsApiConfiguration } from '@/components/adapters/configurations/LinkedInAdsApiConfiguration';
 import { YouTubeDataApiConfiguration } from '@/components/adapters/configurations/YouTubeDataApiConfiguration';
-import { YouTubeAnalyticsApiConfiguration } from '@/components/adapters/configurations/YouTubeAnalyticsApiConfiguration';
-import { TikTokBusinessApiConfiguration } from '@/components/adapters/configurations/TikTokBusinessApiConfiguration';
-import { TikTokContentApiConfiguration } from '@/components/adapters/configurations/TikTokContentApiConfiguration';
+import YouTubeAnalyticsApiConfiguration from '@/components/adapters/configurations/YouTubeAnalyticsApiConfiguration';
+import TikTokBusinessApiConfiguration from '@/components/adapters/configurations/TikTokBusinessApiConfiguration';
+import TikTokContentApiConfiguration from '@/components/adapters/configurations/TikTokContentApiConfiguration';
 import { FacebookMessengerApiConfiguration } from '@/components/adapters/configurations/FacebookMessengerApiConfiguration';
 import { PinterestApiConfiguration } from '@/components/adapters/configurations/PinterestApiConfiguration';
 import { RedditApiConfiguration } from '@/components/adapters/configurations/RedditApiConfiguration';
 import { SnapchatAdsApiConfiguration } from '@/components/adapters/configurations/SnapchatAdsApiConfiguration';
 import { DiscordApiConfiguration } from '@/components/adapters/configurations/DiscordApiConfiguration';
-import { TelegramBotApiConfiguration } from '@/components/adapters/social/TelegramBotApiConfiguration';
-import { SlackApiConfiguration } from '@/components/adapters/collaboration/SlackApiConfiguration';
+import TelegramBotApiConfiguration from '@/components/adapters/social/TelegramBotApiConfiguration';
+import SlackApiConfiguration from '@/components/adapters/collaboration/SlackApiConfiguration';
 import { useToast } from '@/hooks/use-toast';
 import { adapterService } from '@/services/adapter';
 import { AdapterValidationDialog } from '@/components/adapter/AdapterValidationDialog';
@@ -96,7 +96,7 @@ import {
  Linkedin,
  Youtube,
  Send,
- Groups,
+ Users,
  Radio,
  Share2,
  Repeat
@@ -706,7 +706,7 @@ const communicationAdapters: CommunicationAdapter[] = [
   {
     id: 'teams',
     name: 'Microsoft Teams',
-    icon: Groups,
+    icon: Users,
     description: 'Microsoft Teams API for collaboration, meetings, channels, and Microsoft 365 integration',
     category: 'Collaboration',
     fields: [

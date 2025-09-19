@@ -1,10 +1,6 @@
 package com.integrixs.backend.marketplace.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import com.integrixs.data.model.BaseEntity;
 
 import java.time.LocalDateTime;
@@ -15,10 +11,6 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "template_versions")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class TemplateVersion extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -59,5 +51,97 @@ public class TemplateVersion extends BaseEntity {
     public void prePersist() {
         super.prePersist();
         publishedAt = LocalDateTime.now();
+    }
+
+    // Default constructor
+    public TemplateVersion() {
+    }
+
+    public FlowTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(FlowTemplate template) {
+        this.template = template;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getFlowDefinition() {
+        return flowDefinition;
+    }
+
+    public void setFlowDefinition(String flowDefinition) {
+        this.flowDefinition = flowDefinition;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
+    }
+
+    public boolean isStable() {
+        return stable;
+    }
+
+    public void setStable(boolean stable) {
+        this.stable = stable;
+    }
+
+    public boolean isLatest() {
+        return latest;
+    }
+
+    public void setLatest(boolean latest) {
+        this.latest = latest;
+    }
+
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
+    }
+
+    public String getDeprecationMessage() {
+        return deprecationMessage;
+    }
+
+    public void setDeprecationMessage(String deprecationMessage) {
+        this.deprecationMessage = deprecationMessage;
+    }
+
+    public String getMinPlatformVersion() {
+        return minPlatformVersion;
+    }
+
+    public void setMinPlatformVersion(String minPlatformVersion) {
+        this.minPlatformVersion = minPlatformVersion;
+    }
+
+    public String getMaxPlatformVersion() {
+        return maxPlatformVersion;
+    }
+
+    public void setMaxPlatformVersion(String maxPlatformVersion) {
+        this.maxPlatformVersion = maxPlatformVersion;
     }
 }

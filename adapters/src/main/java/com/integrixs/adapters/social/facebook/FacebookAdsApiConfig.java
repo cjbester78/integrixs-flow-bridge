@@ -12,6 +12,10 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
     private FacebookAdsFeatures features = new FacebookAdsFeatures();
     private FacebookAdsLimits limits = new FacebookAdsLimits();
     
+    // Query configuration
+    private int defaultQueryLimit = 100;
+    private int pollingLookbackHours = 24;
+    
     // Missing field declarations - these are referenced by getters/setters below
     private boolean enableCampaignManagement;
     private boolean enableAdSetManagement;
@@ -493,5 +497,17 @@ public class FacebookAdsApiConfig extends SocialMediaAdapterConfig {
     }
     public void setImageMaxSize(long imageMaxSize) {
         this.imageMaxSize = imageMaxSize;
+    }
+    public int getDefaultQueryLimit() {
+        return defaultQueryLimit;
+    }
+    public void setDefaultQueryLimit(int defaultQueryLimit) {
+        this.defaultQueryLimit = defaultQueryLimit;
+    }
+    public int getPollingLookbackHours() {
+        return pollingLookbackHours;
+    }
+    public void setPollingLookbackHours(int pollingLookbackHours) {
+        this.pollingLookbackHours = pollingLookbackHours;
     }
 }

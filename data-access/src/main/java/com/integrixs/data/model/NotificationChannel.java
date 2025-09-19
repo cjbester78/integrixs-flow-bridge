@@ -1,13 +1,6 @@
 package com.integrixs.data.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,12 +11,6 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "notification_channels")
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 public class NotificationChannel extends BaseEntity {
 
     @Column(name = "channel_name", nullable = false, unique = true)
@@ -37,7 +24,6 @@ public class NotificationChannel extends BaseEntity {
     private ChannelType channelType;
 
     @Column(name = "is_enabled", nullable = false)
-    @Builder.Default
     private boolean enabled = true;
 
     // Channel Configuration(stored as JSON)
@@ -45,7 +31,6 @@ public class NotificationChannel extends BaseEntity {
     @CollectionTable(name = "notification_channel_config", joinColumns = @JoinColumn(name = "channel_id"))
     @MapKeyColumn(name = "config_key")
     @Column(name = "config_value", columnDefinition = "TEXT")
-    @Builder.Default
     private Map<String, String> configuration = new HashMap<>();
 
     // Rate Limiting
@@ -56,7 +41,6 @@ public class NotificationChannel extends BaseEntity {
     private LocalDateTime lastNotificationAt;
 
     @Column(name = "notification_count_current_hour")
-    @Builder.Default
     private Integer notificationCountCurrentHour = 0;
 
     // Testing and Validation
@@ -148,5 +132,179 @@ public class NotificationChannel extends BaseEntity {
         }
 
         return required;
+    }
+
+    // Default constructor
+    public NotificationChannel() {
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public ChannelType getChannelType() {
+        return channelType;
+    }
+
+    public void setChannelType(ChannelType channelType) {
+        this.channelType = channelType;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public Integer getRateLimitPerHour() {
+        return rateLimitPerHour;
+    }
+
+    public void setRateLimitPerHour(Integer rateLimitPerHour) {
+        this.rateLimitPerHour = rateLimitPerHour;
+    }
+
+    public LocalDateTime getLastNotificationAt() {
+        return lastNotificationAt;
+    }
+
+    public void setLastNotificationAt(LocalDateTime lastNotificationAt) {
+        this.lastNotificationAt = lastNotificationAt;
+    }
+
+    public Integer getNotificationCountCurrentHour() {
+        return notificationCountCurrentHour;
+    }
+
+    public void setNotificationCountCurrentHour(Integer notificationCountCurrentHour) {
+        this.notificationCountCurrentHour = notificationCountCurrentHour;
+    }
+
+    public LocalDateTime getLastTestAt() {
+        return lastTestAt;
+    }
+
+    public void setLastTestAt(LocalDateTime lastTestAt) {
+        this.lastTestAt = lastTestAt;
+    }
+
+    public Boolean getLastTestSuccess() {
+        return lastTestSuccess;
+    }
+
+    public void setLastTestSuccess(Boolean lastTestSuccess) {
+        this.lastTestSuccess = lastTestSuccess;
+    }
+
+    public String getLastTestMessage() {
+        return lastTestMessage;
+    }
+
+    public void setLastTestMessage(String lastTestMessage) {
+        this.lastTestMessage = lastTestMessage;
+    }
+
+    // Builder
+    public static NotificationChannelBuilder builder() {
+        return new NotificationChannelBuilder();
+    }
+
+    public static class NotificationChannelBuilder {
+        private String channelName;
+        private String description;
+        private ChannelType channelType;
+        private boolean enabled;
+        private Integer rateLimitPerHour;
+        private LocalDateTime lastNotificationAt;
+        private Integer notificationCountCurrentHour;
+        private LocalDateTime lastTestAt;
+        private Boolean lastTestSuccess;
+        private String lastTestMessage;
+
+        public NotificationChannelBuilder channelName(String channelName) {
+            this.channelName = channelName;
+            return this;
+        }
+
+        public NotificationChannelBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public NotificationChannelBuilder channelType(ChannelType channelType) {
+            this.channelType = channelType;
+            return this;
+        }
+
+        public NotificationChannelBuilder enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public NotificationChannelBuilder rateLimitPerHour(Integer rateLimitPerHour) {
+            this.rateLimitPerHour = rateLimitPerHour;
+            return this;
+        }
+
+        public NotificationChannelBuilder lastNotificationAt(LocalDateTime lastNotificationAt) {
+            this.lastNotificationAt = lastNotificationAt;
+            return this;
+        }
+
+        public NotificationChannelBuilder notificationCountCurrentHour(Integer notificationCountCurrentHour) {
+            this.notificationCountCurrentHour = notificationCountCurrentHour;
+            return this;
+        }
+
+        public NotificationChannelBuilder lastTestAt(LocalDateTime lastTestAt) {
+            this.lastTestAt = lastTestAt;
+            return this;
+        }
+
+        public NotificationChannelBuilder lastTestSuccess(Boolean lastTestSuccess) {
+            this.lastTestSuccess = lastTestSuccess;
+            return this;
+        }
+
+        public NotificationChannelBuilder lastTestMessage(String lastTestMessage) {
+            this.lastTestMessage = lastTestMessage;
+            return this;
+        }
+
+        public NotificationChannel build() {
+            NotificationChannel instance = new NotificationChannel();
+            instance.setChannelName(this.channelName);
+            instance.setDescription(this.description);
+            instance.setChannelType(this.channelType);
+            instance.setEnabled(this.enabled);
+            instance.setRateLimitPerHour(this.rateLimitPerHour);
+            instance.setLastNotificationAt(this.lastNotificationAt);
+            instance.setNotificationCountCurrentHour(this.notificationCountCurrentHour);
+            instance.setLastTestAt(this.lastTestAt);
+            instance.setLastTestSuccess(this.lastTestSuccess);
+            instance.setLastTestMessage(this.lastTestMessage);
+            return instance;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "NotificationChannel{" + 
+                "channelName=" + channelName + "description=" + description + "channelType=" + channelType + "enabled=" + enabled + "rateLimitPerHour=" + rateLimitPerHour + "..." + 
+                '}';
     }
 }

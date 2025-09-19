@@ -4,7 +4,6 @@ import com.integrixs.backend.domain.repository.DomainFlowExecutionRepository;
 import com.integrixs.data.model.FlowExecution;
 import com.integrixs.data.model.FlowExecution.ExecutionStatus;
 import com.integrixs.data.repository.FlowExecutionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +17,6 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainFlowExecutionRepositoryImpl")
-@RequiredArgsConstructor
 public class DomainFlowExecutionRepositoryImpl implements DomainFlowExecutionRepository {
 
     private final FlowExecutionRepository jpaRepository;

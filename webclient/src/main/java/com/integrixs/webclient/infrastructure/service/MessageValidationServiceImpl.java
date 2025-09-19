@@ -31,12 +31,12 @@ public class MessageValidationServiceImpl implements MessageValidationService {
 
         if(contentType != null && payload != null) {
             if(contentType.contains("json") && !(payload instanceof String || payload instanceof java.util.Map)) {
-                result.addError("payload", "Payload format does not match content type",
+                result.withError("payload", "Payload format does not match content type",
                     ValidationResult.ValidationError.ErrorType.INVALID_FORMAT);
             }
 
             if(contentType.contains("xml") && !(payload instanceof String)) {
-                result.addError("payload", "XML payload must be a string",
+                result.withError("payload", "XML payload must be a string",
                     ValidationResult.ValidationError.ErrorType.INVALID_FORMAT);
             }
         }
@@ -66,7 +66,7 @@ public class MessageValidationServiceImpl implements MessageValidationService {
             // Example: Check for authorization header
             if(!message.getHeaders().containsKey("Authorization") &&
                 !message.getHeaders().containsKey("X - API - Key")) {
-                result.addWarning("No authentication headers found");
+                result.withWarning("No authentication headers found");
             }
         }
 
@@ -86,7 +86,7 @@ public class MessageValidationServiceImpl implements MessageValidationService {
         if(payload != null) {
             long estimatedSize = estimatePayloadSize(payload);
             if(estimatedSize > maxSize) {
-                result.addError("payload",
+                result.withError("payload",
                     String.format("Payload size %d exceeds maximum allowed size %d", estimatedSize, maxSize),
                     ValidationResult.ValidationError.ErrorType.SIZE_LIMIT_EXCEEDED);
             }
@@ -106,12 +106,12 @@ public class MessageValidationServiceImpl implements MessageValidationService {
 
         // Basic validation
         if(message.getPayload() == null) {
-            result.addError("payload", "Payload is required",
+            result.withError("payload", "Payload is required",
                 ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
 
         if(message.getMessageType() == null) {
-            result.addError("messageType", "Message type is required",
+            result.withError("messageType", "Message type is required",
                 ValidationResult.ValidationError.ErrorType.MISSING_FIELD);
         }
 
@@ -119,14 +119,14 @@ public class MessageValidationServiceImpl implements MessageValidationService {
         ValidationResult formatResult = validateFormat(message);
         if(!formatResult.isValid()) {
             formatResult.getErrors().forEach(error ->
-                result.addError(error.getField(), error.getMessage(), error.getType()));
+                result.withError(error.getField(), error.getMessage(), error.getType()));
         }
 
         // Size validation
         ValidationResult sizeResult = validateSize(message, DEFAULT_MAX_SIZE);
         if(!sizeResult.isValid()) {
             sizeResult.getErrors().forEach(error ->
-                result.addError(error.getField(), error.getMessage(), error.getType()));
+                result.withError(error.getField(), error.getMessage(), error.getType()));
         }
 
         // Security validation

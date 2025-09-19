@@ -2,8 +2,6 @@ package com.integrixs.backend.logging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
@@ -13,15 +11,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * External service call logger for tracking API interactions.
  * Logs requests, responses, and performance metrics for external services.
  */
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class ExternalServiceLogger {
+
+    private static final Logger log = LoggerFactory.getLogger(ExternalServiceLogger.class);
+
 
     private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;

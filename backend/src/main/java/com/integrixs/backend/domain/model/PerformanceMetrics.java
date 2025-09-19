@@ -1,12 +1,10 @@
 package com.integrixs.backend.domain.model;
 
-import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
  * Domain model for flow performance metrics
  */
-@Data
 public class PerformanceMetrics {
 
     private String flowId;
@@ -26,5 +24,73 @@ public class PerformanceMetrics {
             return 0.0;
         }
         return(double) successfulExecutions / totalExecutions * 100;
+    }
+
+    // Default constructor
+    public PerformanceMetrics() {
+    }
+
+    public String getFlowId() {
+        return flowId;
+    }
+
+    public void setFlowId(String flowId) {
+        this.flowId = flowId;
+    }
+
+    public int getTotalExecutions() {
+        return totalExecutions;
+    }
+
+    public void setTotalExecutions(int totalExecutions) {
+        this.totalExecutions = totalExecutions;
+    }
+
+    public int getSuccessfulExecutions() {
+        return successfulExecutions;
+    }
+
+    public void setSuccessfulExecutions(int successfulExecutions) {
+        this.successfulExecutions = successfulExecutions;
+    }
+
+    public int getFailedExecutions() {
+        return failedExecutions;
+    }
+
+    public void setFailedExecutions(int failedExecutions) {
+        this.failedExecutions = failedExecutions;
+    }
+
+    public double getAverageExecutionTimeMs() {
+        return averageExecutionTimeMs;
+    }
+
+    public void setAverageExecutionTimeMs(double averageExecutionTimeMs) {
+        this.averageExecutionTimeMs = averageExecutionTimeMs;
+    }
+
+    public long getMinExecutionTimeMs() {
+        return minExecutionTimeMs;
+    }
+
+    public void setMinExecutionTimeMs(long minExecutionTimeMs) {
+        this.minExecutionTimeMs = minExecutionTimeMs;
+    }
+
+    public long getMaxExecutionTimeMs() {
+        return maxExecutionTimeMs;
+    }
+
+    public void setMaxExecutionTimeMs(long maxExecutionTimeMs) {
+        this.maxExecutionTimeMs = maxExecutionTimeMs;
+    }
+
+    public LocalDateTime getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

@@ -2,16 +2,16 @@ package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.FlowTransformation;
 import com.integrixs.data.model.IntegrationFlow;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Domain service for flow transformation business logic
  */
-@Slf4j
 @Service
 public class FlowTransformationManagementService {
 
@@ -21,6 +21,9 @@ public class FlowTransformationManagementService {
      * @param flow The integration flow
      * @throws IllegalArgumentException if validation fails
      */
+
+    private static final Logger log = LoggerFactory.getLogger(FlowTransformationManagementService.class);
+
     public void validateTransformation(FlowTransformation transformation, IntegrationFlow flow) {
         if(transformation == null) {
             throw new IllegalArgumentException("Transformation cannot be null");

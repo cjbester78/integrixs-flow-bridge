@@ -9,8 +9,6 @@ import com.integrixs.backend.exception.ResourceNotFoundException;
 import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.BusinessComponent;
 import com.integrixs.data.model.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +20,11 @@ import java.util.stream.Collectors;
  * Application service for business component management
  * Orchestrates business component operations
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class BusinessComponentApplicationService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BusinessComponentApplicationService.class);
+    
     private final BusinessComponentRepository businessComponentRepository;
     private final ComponentManagementService componentManagementService;
     private final AuditTrailService auditTrailService;

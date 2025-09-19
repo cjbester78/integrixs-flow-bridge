@@ -1,7 +1,5 @@
 package com.integrixs.backend.security;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,15 +10,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Aspect for automatic encryption/decryption of annotated fields.
  */
-@Slf4j
 @Aspect
 @Component
-@RequiredArgsConstructor
 public class EncryptionAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(EncryptionAspect.class);
+
 
     private final FieldEncryptionService encryptionService;
 
