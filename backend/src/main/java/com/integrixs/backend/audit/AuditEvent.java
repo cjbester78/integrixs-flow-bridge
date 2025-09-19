@@ -163,6 +163,7 @@ public class AuditEvent {
         SERVICE_HEALTH_CHECK,
         MAINTENANCE_MODE_ENABLED,
         MAINTENANCE_MODE_DISABLED,
+        MAINTENANCE_PERFORMED,
 
         // Security events
         SECURITY_ALERT,

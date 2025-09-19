@@ -562,6 +562,11 @@ public class OrchestrationTarget {
             return this;
         }
 
+        public OrchestrationTargetBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
         public OrchestrationTargetBuilder flow(IntegrationFlow flow) {
             this.flow = flow;
             return this;
@@ -569,6 +574,11 @@ public class OrchestrationTarget {
 
         public OrchestrationTargetBuilder targetAdapter(CommunicationAdapter targetAdapter) {
             this.targetAdapter = targetAdapter;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder targetFlow(IntegrationFlow targetFlow) {
+            this.targetFlow = targetFlow;
             return this;
         }
 
@@ -624,6 +634,16 @@ public class OrchestrationTarget {
 
         public OrchestrationTargetBuilder active(boolean active) {
             this.active = active;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder status(String status) {
+            this.status = status;
+            return this;
+        }
+
+        public OrchestrationTargetBuilder priority(Integer priority) {
+            this.priority = priority;
             return this;
         }
 
@@ -685,8 +705,10 @@ public class OrchestrationTarget {
         public OrchestrationTarget build() {
             OrchestrationTarget instance = new OrchestrationTarget();
             instance.setId(this.id);
+            instance.setName(this.name);
             instance.setFlow(this.flow);
             instance.setTargetAdapter(this.targetAdapter);
+            instance.setTargetFlow(this.targetFlow);
             instance.setExecutionOrder(this.executionOrder);
             instance.setParallel(this.parallel);
             instance.setRoutingCondition(this.routingCondition);
@@ -698,6 +720,8 @@ public class OrchestrationTarget {
             instance.setRetryPolicy(this.retryPolicy);
             instance.setErrorStrategy(this.errorStrategy);
             instance.setActive(this.active);
+            instance.setStatus(this.status);
+            instance.setPriority(this.priority);
             instance.setConfiguration(this.configuration);
             instance.setDescription(this.description);
             instance.setCreatedAt(this.createdAt);

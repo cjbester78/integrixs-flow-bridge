@@ -109,4 +109,18 @@ public interface OrchestrationTargetRepository extends JpaRepository<Orchestrati
            "WHERE ot.id = :targetId")
     void updateExecutionOrder(@Param("targetId") UUID targetId,
                              @Param("newOrder") Integer newOrder);
+
+    /**
+     * Find targets by status
+     */
+    List<OrchestrationTarget> findByStatus(String status);
+
+    /**
+     * Find targets by source adapter ID (targets that have the source adapter in their flow)
+     */
+    @Query("SELECT ot FROM OrchestrationTarget ot " +
+           "INNER JOIN ot.flow f " +
+           "INNER JOIN f.sourceAdapter sa " +
+           "WHERE sa.id = :sourceAdapterId")
+    List<OrchestrationTarget> findBySourceAdapterId(@Param("sourceAdapterId") UUID sourceAdapterId);
 }
