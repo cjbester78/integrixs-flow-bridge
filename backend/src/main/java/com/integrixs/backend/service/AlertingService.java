@@ -35,7 +35,7 @@ public class AlertingService implements com.integrixs.engine.service.AlertingSer
     public void evaluateFlowAlerts(FlowExecution flowExecution) {
         try {
             List<AlertRule> rules = alertRuleRepository.findActiveRulesForFlow(
-                flowExecution.getIntegrationFlow().getId().toString());
+                flowExecution.getFlow().getId().toString());
 
             for(AlertRule rule : rules) {
                 evaluateRule(rule, flowExecution);
@@ -118,7 +118,8 @@ public class AlertingService implements com.integrixs.engine.service.AlertingSer
         sendAlertNotifications(alert);
 
         // Log alert
-        systemLogService.logAlert(alert);
+        // TODO: Implement alert logging in SystemLogService
+        // systemLogService.logAlert(alert);
 
         return alert;
     }
@@ -213,9 +214,9 @@ public class AlertingService implements com.integrixs.engine.service.AlertingSer
                     shouldAlert = true;
                     title = "Flow Execution Failed";
                     message = String.format("Flow '%s' failed with error: %s",
-                            flowExecution.getIntegrationFlow().getFlowName(),
+                            flowExecution.getFlow().getName(),
                             flowExecution.getErrorMessage());
-                    details.put("flow_id", flowExecution.getIntegrationFlow().getId().toString());
+                    details.put("flow_id", flowExecution.getFlow().getId().toString());
                     details.put("execution_id", flowExecution.getId().toString());
                     details.put("error", flowExecution.getErrorMessage());
                 }
@@ -223,16 +224,16 @@ public class AlertingService implements com.integrixs.engine.service.AlertingSer
 
             case FLOW_SLA_BREACH:
                 // Check if execution time exceeds threshold
-                if(rule.getThresholdValue() != null && flowExecution.getEndTime() != null) {
+                if(rule.getThresholdValue() != null && flowExecution.getCompletedAt() != null) {
                     long executionTime = java.time.Duration.between(
-                            flowExecution.getStartTime(),
-                            flowExecution.getEndTime()).toMillis();
+                            flowExecution.getStartedAt(),
+                            flowExecution.getCompletedAt()).toMillis();
 
                     if(evaluateThreshold(executionTime, rule.getThresholdOperator(), rule.getThresholdValue())) {
                         shouldAlert = true;
                         title = "Flow SLA Breach";
                         message = String.format("Flow '%s' execution time(%d ms) exceeded SLA threshold(%d ms)",
-                                flowExecution.getIntegrationFlow().getFlowName(),
+                                flowExecution.getFlow().getName(),
                                 executionTime,
                                 rule.getThresholdValue().longValue());
                         details.put("execution_time_ms", String.valueOf(executionTime));
@@ -244,7 +245,7 @@ public class AlertingService implements com.integrixs.engine.service.AlertingSer
 
         if(shouldAlert) {
             createAlert(rule, title, message, Alert.SourceType.FLOW,
-                       flowExecution.getIntegrationFlow().getId().toString(), details);
+                       flowExecution.getFlow().getId().toString(), details);
         }
     }
 

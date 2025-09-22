@@ -150,11 +150,15 @@ public class IntegrixErrorDelegate implements JavaDelegate {
            );
 
             // Create an alert for the error notification
+            // Convert Map<String, Object> to Map<String, String> for Alert builder
+            Map<String, String> stringDetails = new HashMap<>();
+            errorDetails.forEach((key, value) -> stringDetails.put(key, String.valueOf(value)));
+            
             Alert errorAlert = Alert.builder()
                 .title(subject)
                 .message(message)
                 .severity(AlertRule.AlertSeverity.HIGH)
-                .details(errorDetails)
+                .details(stringDetails)
                 .build();
             
             // Send to default error notification channel (first available channel)

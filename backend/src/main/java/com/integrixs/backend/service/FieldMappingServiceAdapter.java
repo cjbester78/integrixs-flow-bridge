@@ -80,12 +80,13 @@ public class FieldMappingServiceAdapter {
     @Transactional
     public void createMapping(FieldMappingDTO dto) {
         // Get system user or first admin user
-        User systemUser = userRepository.findByUsername("system")
-            .orElseGet(() -> userRepository.findAll().stream()
+        User systemUser = userRepository.findByUsername("system");
+        if (systemUser == null) {
+            systemUser = userRepository.findAll().stream()
                 .filter(u -> u.getUsername() != null)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No users found in system"))
-           );
+                .orElseThrow(() -> new RuntimeException("No users found in system"));
+        }
 
         createMapping(dto, systemUser);
     }

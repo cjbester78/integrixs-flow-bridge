@@ -67,6 +67,32 @@ public class JobProgressWebSocketHandler implements WebSocketHandler {
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
         logger.error("WebSocket transport error for session {}", session.getId(), exception);
     }
+    
+    /**
+     * Convert from backend JobStatus to websocket JobStatus
+     */
+    private JobStatus convertJobStatus(com.integrixs.backend.jobs.JobStatus backendStatus) {
+        if (backendStatus == null) {
+            return JobStatus.PENDING;
+        }
+        
+        switch (backendStatus) {
+            case PENDING:
+                return JobStatus.PENDING;
+            case RUNNING:
+                return JobStatus.RUNNING;
+            case COMPLETED:
+                return JobStatus.COMPLETED;
+            case FAILED:
+                return JobStatus.FAILED;
+            case CANCELLED:
+                return JobStatus.CANCELLED;
+            case RETRYING:
+                return JobStatus.RETRYING;
+            default:
+                return JobStatus.PENDING;
+        }
+    }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
@@ -91,7 +117,7 @@ public class JobProgressWebSocketHandler implements WebSocketHandler {
     public void sendJobUpdate(BackgroundJob job) {
         JobUpdateMessage update = new JobUpdateMessage();
         update.setJobId(job.getId());
-        update.setStatus(job.getStatus());
+        update.setStatus(convertJobStatus(job.getStatus()));
         update.setProgress(job.getProgress());
         update.setCurrentStep(job.getCurrentStep());
         update.setErrorMessage(job.getErrorMessage());

@@ -1,7 +1,9 @@
 package com.integrixs.backend.messaging;
 
 import com.integrixs.backend.service.ProcessEngineService;
+import com.integrixs.backend.service.EnhancedAdapterExecutionService;
 import com.integrixs.data.model.IntegrationFlow;
+import com.integrixs.data.repository.IntegrationFlowRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -34,10 +36,13 @@ public class MessageRoutingService {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
-    private FlowEngineService flowEngineService;
+    private EnhancedAdapterExecutionService adapterExecutionService;
 
     @Autowired
     private ProcessEngineService processEngineService;
+
+    @Autowired
+    private IntegrationFlowRepository flowRepository;
 
     /**
      * RabbitMQ inbound listener
@@ -110,7 +115,8 @@ public class MessageRoutingService {
             // Load the integration flow
             IntegrationFlow flow;
             try {
-                flow = flowEngineService.loadFlow(UUID.fromString(flowId));
+                flow = flowRepository.findById(UUID.fromString(flowId))
+                    .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
             } catch(Exception e) {
                 logger.error("Failed to load flow: {}", flowId, e);
                 sendToErrorQueue(message, "Failed to load flow: " + e.getMessage(), source);
@@ -125,15 +131,9 @@ public class MessageRoutingService {
             context.put("messageType", message.getMessageType());
             context.putAll(message.getMetadata());
 
-            // Check if flow uses Camunda
-            if(flow.getConfiguration() != null &&
-                Boolean.TRUE.equals(flow.getConfiguration().get("useCamunda"))) {
-                // Execute via Camunda process engine
-                executeViaCamunda(flow, message, context);
-            } else {
-                // Execute directly via flow engine
-                executeViaFlowEngine(flow, message, context);
-            }
+            // For now, execute directly via flow engine
+            // TODO: Add Camunda integration based on flow type or other criteria
+            executeViaFlowEngine(flow, message, context);
 
         } catch(Exception e) {
             logger.error("Error processing inbound message", e);
@@ -147,7 +147,9 @@ public class MessageRoutingService {
     private void executeViaCamunda(IntegrationFlow flow, IntegrixMessage message, Map<String, Object> context) {
         try {
             // Get process definition ID
-            String processDefinitionId = (String) flow.getConfiguration().get("processDefinitionId");
+            // TODO: Store process definition ID in a more appropriate location
+            String processDefinitionId = null;
+            
             if(processDefinitionId == null) {
                 // Deploy process if not already deployed
                 var deployResult = processEngineService.deployProcess(flow);
@@ -185,18 +187,21 @@ public class MessageRoutingService {
     private void executeViaFlowEngine(IntegrationFlow flow, IntegrixMessage message, Map<String, Object> context) {
         try {
             // Execute the flow
-            var result = flowEngineService.executeFlow(flow.getId(), message.getPayload(), context);
+            String correlationId = message.getCorrelationId() != null ? message.getCorrelationId() : message.getId();
+            String payload = message.getPayload() != null ? message.getPayload().toString() : "";
+            var resultFuture = adapterExecutionService.executeFlow(flow.getId().toString(), correlationId, payload);
+            
+            // Wait for the result
+            var result = resultFuture.get();
 
             if(result.isSuccess()) {
                 logger.info("Flow executed successfully for message: {}", message.getId());
 
-                // Send result to outbound if configured
-                if(flow.getConfiguration() != null &&
-                    Boolean.TRUE.equals(flow.getConfiguration().get("sendToOutbound"))) {
-                    sendToOutbound(message, result.getData(), context);
-                }
+                // TODO: Determine whether to send to outbound based on flow type or adapter configuration
+                // For now, always send result to outbound
+                sendToOutbound(message, result.getData(), context);
             } else {
-                throw new RuntimeException("Flow execution failed: " + result.getError());
+                throw new RuntimeException("Flow execution failed: " + result.getErrorMessage());
             }
 
         } catch(Exception e) {

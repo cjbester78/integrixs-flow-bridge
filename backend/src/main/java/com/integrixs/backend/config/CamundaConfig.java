@@ -15,6 +15,9 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 @Configuration
 public class CamundaConfig {
@@ -36,8 +39,6 @@ public class CamundaConfig {
 
         // Job execution
         config.setJobExecutorActivate(true);
-        config.setAsyncExecutorEnabled(true);
-        config.setAsyncExecutorActivate(true);
 
         // History configuration
         config.setHistory("full");
@@ -45,7 +46,14 @@ public class CamundaConfig {
         config.setHistoryCleanupBatchWindowEndTime("06:00");
 
         // Deployment
-        config.setDeploymentResources(new String[] {"classpath*:bpmn/*.bpmn"});
+        try {
+            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources("classpath*:bpmn/*.bpmn");
+            config.setDeploymentResources(resources);
+        } catch (Exception e) {
+            // If no BPMN files found, continue without deployment resources
+            config.setDeploymentResources(new Resource[0]);
+        }
 
         // Metrics
         config.setMetricsEnabled(true);

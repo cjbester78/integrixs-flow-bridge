@@ -48,6 +48,12 @@ public class AuditLogEncryptionService {
         "url"
     };
 
+    // Constructor
+    public AuditLogEncryptionService(FieldEncryptionService fieldEncryptionService, ObjectMapper objectMapper) {
+        this.fieldEncryptionService = fieldEncryptionService;
+        this.objectMapper = objectMapper;
+    }
+
     /**
      * Encrypt sensitive data in an AuditTrail entry.
      */

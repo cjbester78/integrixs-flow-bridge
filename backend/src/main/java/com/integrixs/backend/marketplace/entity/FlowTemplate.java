@@ -150,7 +150,6 @@ public class FlowTemplate extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        super.prePersist();
         if(slug == null && name != null) {
             slug = generateSlug(name);
         }
@@ -160,7 +159,6 @@ public class FlowTemplate extends BaseEntity {
 
     @PreUpdate
     public void preUpdate() {
-        super.preUpdate();
         updatedAt = LocalDateTime.now();
     }
 

@@ -44,6 +44,31 @@ public class MarketplaceService {
     private final TemplateValidationService validationService;
     private final ObjectMapper objectMapper;
 
+    // Constructor with all dependencies
+    public MarketplaceService(FlowTemplateRepository templateRepository,
+                            TemplateVersionRepository versionRepository,
+                            TemplateRatingRepository ratingRepository,
+                            TemplateCommentRepository commentRepository,
+                            TemplateInstallationRepository installationRepository,
+                            OrganizationRepository organizationRepository,
+                            IntegrationFlowService flowService,
+                            AuthService authService,
+                            FileStorageService fileStorageService,
+                            TemplateValidationService validationService,
+                            ObjectMapper objectMapper) {
+        this.templateRepository = templateRepository;
+        this.versionRepository = versionRepository;
+        this.ratingRepository = ratingRepository;
+        this.commentRepository = commentRepository;
+        this.installationRepository = installationRepository;
+        this.organizationRepository = organizationRepository;
+        this.flowService = flowService;
+        this.authService = authService;
+        this.fileStorageService = fileStorageService;
+        this.validationService = validationService;
+        this.objectMapper = objectMapper;
+    }
+
     /**
      * Search templates with filters
      */
@@ -181,7 +206,7 @@ public class MarketplaceService {
             template.setDetailedDescription(request.getDetailedDescription());
         }
         if(request.getCategory() != null) {
-            template.setCategory(request.getCategory());
+            template.setCategory(FlowTemplate.TemplateCategory.valueOf(request.getCategory().toUpperCase()));
         }
         if(request.getTags() != null) {
             template.setTags(new HashSet<>(request.getTags()));
@@ -190,7 +215,7 @@ public class MarketplaceService {
             template.setRequirements(new HashSet<>(request.getRequirements()));
         }
         if(request.getVisibility() != null) {
-            template.setVisibility(request.getVisibility());
+            template.setVisibility(FlowTemplate.TemplateVisibility.valueOf(request.getVisibility().toUpperCase()));
         }
         if(request.getDocumentationUrl() != null) {
             template.setDocumentationUrl(request.getDocumentationUrl());
@@ -325,7 +350,11 @@ public class MarketplaceService {
 
             // Apply configuration
             if(request.getConfiguration() != null) {
-                applyConfiguration(flowDefinition, request.getConfiguration());
+                Map<String, String> stringConfig = new HashMap<>();
+                for (Map.Entry<String, Object> entry : request.getConfiguration().entrySet()) {
+                    stringConfig.put(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+                applyConfiguration(flowDefinition, stringConfig);
             }
 
             // Set metadata
@@ -345,7 +374,7 @@ public class MarketplaceService {
             installation.setAutoUpdateEnabled(request.isEnableAutoUpdate());
 
             if(request.getOrganizationId() != null) {
-                Organization org = organizationRepository.findById(request.getOrganizationId())
+                Organization org = organizationRepository.findById(UUID.fromString(request.getOrganizationId()))
                     .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
                 installation.setOrganization(org);
             }
@@ -360,8 +389,8 @@ public class MarketplaceService {
 
             return InstallationResultDto.builder()
                 .success(true)
-                .flowId(createdFlow.getId())
-                .installationId(installation.getId())
+                .flowId(createdFlow.getId().toString())
+                .installationId(installation.getId().toString())
                 .message("Template installed successfully")
                 .build();
 
@@ -441,7 +470,7 @@ public class MarketplaceService {
 
         // Set parent comment if replying
         if(request.getParentCommentId() != null) {
-            TemplateComment parent = commentRepository.findById(request.getParentCommentId())
+            TemplateComment parent = commentRepository.findById(UUID.fromString(request.getParentCommentId()))
                 .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
             comment.setParentComment(parent);
         }
@@ -659,7 +688,7 @@ public class MarketplaceService {
             .version(version.getVersion())
             .releaseNotes(version.getReleaseNotes())
             .stable(version.isStable())
-            .latest(version.isLatest())
+            .isLatest(version.isLatest())
             .publishedAt(version.getPublishedAt())
             .deprecated(version.isDeprecated())
             .deprecationMessage(version.getDeprecationMessage())
@@ -679,6 +708,114 @@ public class MarketplaceService {
             .replies(comment.getReplies().stream()
                 .map(this::toCommentDto)
                 .collect(Collectors.toList()))
+            .build();
+    }
+
+    /**
+     * Get all template categories with counts
+     */
+    public List<CategoryDto> getCategories() {
+        // Implementation to get categories with template counts
+        List<CategoryDto> categories = new ArrayList<>();
+        
+        // This would typically query the database for category counts
+        // For now, returning placeholder implementation
+        return categories;
+    }
+
+    /**
+     * Get popular tags used in templates
+     */
+    public List<TagDto> getPopularTags(int limit) {
+        // Implementation to get popular tags
+        List<TagDto> tags = new ArrayList<>();
+        
+        // This would typically query the database for tag usage counts
+        // For now, returning placeholder implementation
+        return tags;
+    }
+
+    /**
+     * Get user's templates
+     */
+    public Page<TemplateDto> getUserTemplates(Pageable pageable) {
+        User currentUser = authService.getCurrentUser();
+        
+        Page<FlowTemplate> templates = templateRepository.findByAuthor(currentUser, pageable);
+        return templates.map(this::toDto);
+    }
+
+    /**
+     * Get user's installations
+     */
+    public Page<InstallationDto> getUserInstallations(Pageable pageable) {
+        User currentUser = authService.getCurrentUser();
+        
+        Page<TemplateInstallation> installations = installationRepository.findByUser(currentUser, pageable);
+        return installations.map(this::toInstallationDto);
+    }
+
+    /**
+     * Uninstall template
+     */
+    public void uninstallTemplate(UUID installationId) {
+        TemplateInstallation installation = installationRepository.findById(installationId)
+            .orElseThrow(() -> new IllegalArgumentException("Installation not found"));
+            
+        User currentUser = authService.getCurrentUser();
+        if (!installation.getUser().equals(currentUser)) {
+            throw new UnauthorizedAccessException("Cannot uninstall template installed by another user");
+        }
+        
+        // Delete the associated flow if needed
+        if (installation.getFlowId() != null) {
+            flowService.deleteIntegrationFlow(installation.getFlowId());
+        }
+        
+        installationRepository.delete(installation);
+        
+        log.info("User {} uninstalled template installation {}", currentUser.getUsername(), installationId);
+    }
+
+    /**
+     * Certify template (admin only)
+     */
+    public void certifyTemplate(String slug) {
+        FlowTemplate template = templateRepository.findBySlug(slug)
+            .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
+            
+        template.setCertified(true);
+        templateRepository.save(template);
+        
+        log.info("Template {} certified", slug);
+    }
+
+    /**
+     * Feature template (admin only)
+     */
+    public void featureTemplate(String slug, int duration) {
+        FlowTemplate template = templateRepository.findBySlug(slug)
+            .orElseThrow(() -> new TemplateNotFoundException("Template not found: " + slug));
+            
+        template.setFeatured(true);
+        template.setFeaturedUntil(LocalDateTime.now().plusDays(duration));
+        templateRepository.save(template);
+        
+        log.info("Template {} featured for {} days", slug, duration);
+    }
+
+    /**
+     * Convert installation to DTO
+     */
+    private InstallationDto toInstallationDto(TemplateInstallation installation) {
+        return InstallationDto.builder()
+            .id(installation.getId())
+            .template(toDto(installation.getTemplate()))
+            .version(installation.getVersion().getVersion())
+            .flowId(installation.getFlowId())
+            .installedAt(installation.getInstalledAt())
+            .lastUpdated(installation.getLastUpdated())
+            .autoUpdateEnabled(installation.isAutoUpdateEnabled())
             .build();
     }
 }
