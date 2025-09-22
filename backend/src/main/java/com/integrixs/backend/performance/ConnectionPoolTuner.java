@@ -38,6 +38,15 @@ public class ConnectionPoolTuner {
     private static final int MAX_HTTP_CONNECTIONS = 500;
     private static final int MIN_HTTP_CONNECTIONS = 20;
 
+    // Constructor
+    public ConnectionPoolTuner(DataSource dataSource, 
+                             PoolingHttpClientConnectionManager httpConnectionManager,
+                             MeterRegistry meterRegistry) {
+        this.dataSource = dataSource;
+        this.httpConnectionManager = httpConnectionManager;
+        this.meterRegistry = meterRegistry;
+    }
+
     /**
      * Periodically tune connection pools based on utilization.
      */
@@ -213,7 +222,6 @@ public class ConnectionPoolTuner {
         return stats;
     }
 
-    @lombok.Data
     public static class PoolStatistics {
         // Database pool
         private int dbPoolMax;
@@ -226,6 +234,31 @@ public class ConnectionPoolTuner {
         private int httpPoolLeased;
         private int httpPoolAvailable;
         private int httpPoolPending;
+        
+        // Getters and setters
+        public int getDbPoolMax() { return dbPoolMax; }
+        public void setDbPoolMax(int dbPoolMax) { this.dbPoolMax = dbPoolMax; }
+        
+        public int getDbPoolActive() { return dbPoolActive; }
+        public void setDbPoolActive(int dbPoolActive) { this.dbPoolActive = dbPoolActive; }
+        
+        public int getDbPoolIdle() { return dbPoolIdle; }
+        public void setDbPoolIdle(int dbPoolIdle) { this.dbPoolIdle = dbPoolIdle; }
+        
+        public int getDbPoolWaiting() { return dbPoolWaiting; }
+        public void setDbPoolWaiting(int dbPoolWaiting) { this.dbPoolWaiting = dbPoolWaiting; }
+        
+        public int getHttpPoolMax() { return httpPoolMax; }
+        public void setHttpPoolMax(int httpPoolMax) { this.httpPoolMax = httpPoolMax; }
+        
+        public int getHttpPoolLeased() { return httpPoolLeased; }
+        public void setHttpPoolLeased(int httpPoolLeased) { this.httpPoolLeased = httpPoolLeased; }
+        
+        public int getHttpPoolAvailable() { return httpPoolAvailable; }
+        public void setHttpPoolAvailable(int httpPoolAvailable) { this.httpPoolAvailable = httpPoolAvailable; }
+        
+        public int getHttpPoolPending() { return httpPoolPending; }
+        public void setHttpPoolPending(int httpPoolPending) { this.httpPoolPending = httpPoolPending; }
 
         public double getDbPoolUtilization() {
             return dbPoolMax > 0 ? (double) dbPoolActive / dbPoolMax : 0;

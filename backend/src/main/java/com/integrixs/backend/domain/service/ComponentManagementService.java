@@ -1,6 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.domain.repository.BusinessComponentRepository;
+import com.integrixs.data.repository.BusinessComponentRepository;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.BusinessComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,13 @@ public class ComponentManagementService {
 
     private static final Logger log = LoggerFactory.getLogger(ComponentManagementService.class);
     private final BusinessComponentRepository businessComponentRepository;
+    private final CommunicationAdapterRepository communicationAdapterRepository;
+
+    public ComponentManagementService(BusinessComponentRepository businessComponentRepository,
+                                     CommunicationAdapterRepository communicationAdapterRepository) {
+        this.businessComponentRepository = businessComponentRepository;
+        this.communicationAdapterRepository = communicationAdapterRepository;
+    }
 
     /**
      * Validate business component before creation
@@ -56,7 +64,7 @@ public class ComponentManagementService {
      */
     public void validateComponentDeletion(BusinessComponent component) {
         // Check if component is used by any adapters
-        long adapterCount = businessComponentRepository.countAssociatedAdapters(component.getId());
+        long adapterCount = communicationAdapterRepository.countByBusinessComponent_Id(component.getId());
         if(adapterCount > 0) {
             throw new IllegalStateException(
                 String.format("Cannot delete business component '%s' as it is associated with %d adapter(s)",

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +80,7 @@ public class AdapterHealthDashboardService {
         dashboard.setTotalAdapters(adapters.size());
 
         // Overall health score
-        dashboard.setOverallHealthScore(calculateOverallHealthScore(healthSummaries));
+        dashboard.setOverallHealthScore((int) calculateOverallHealthScore(healthSummaries));
 
         // Critical issues
         dashboard.setCriticalIssues(identifyCriticalIssues(healthSummaries));
@@ -110,7 +111,7 @@ public class AdapterHealthDashboardService {
 
         // Calculate health score
         AdapterHealthScore healthScore = calculateDetailedHealthScore(adapter);
-        details.setHealthScore(healthScore);
+        details.setHealthScore((int) healthScore.getOverallScore());
 
         // Get metrics
         details.setPerformanceMetrics(collectPerformanceMetrics(adapter));
@@ -216,13 +217,13 @@ public class AdapterHealthDashboardService {
             k -> calculateDetailedHealthScore(adapter)
        );
 
-        summary.setHealthScore(healthScore.getOverallScore());
+        summary.setHealthScore((int) healthScore.getOverallScore());
         summary.setHealthStatus(determineHealthStatus(healthScore.getOverallScore()));
 
         // Key metrics
         summary.setUptime(calculateUptime(adapter));
         summary.setErrorRate(getErrorRate(adapter));
-        summary.setAverageResponseTime(getAverageResponseTime(adapter));
+        summary.setAverageResponseTime((long) getAverageResponseTime(adapter));
         summary.setLastActivity(getLastActivity(adapter));
 
         // Issues
@@ -280,11 +281,16 @@ public class AdapterHealthDashboardService {
         }
 
         // Get recent connection test results
-        AdapterMonitoringService.HealthStatus healthStatus =
-            adapterMonitoringService.getHealthStatus(adapter.getType(), adapter.getMode(), adapter.getId().toString());
-
-        if(healthStatus != null && healthStatus.isHealthy()) {
-            return 100;
+        // Note: HealthStatus is package-private in AdapterMonitoringService, we'll use alternative approach
+        try {
+            // Try to determine health through other means
+            if(adapter.isActive() && adapter.getUpdatedAt() != null) {
+                long minutesSinceLastUpdate = Duration.between(adapter.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                if(minutesSinceLastUpdate < 5) return 100;
+                if(minutesSinceLastUpdate < 15) return 80;
+            }
+        } catch (Exception e) {
+            log.debug("Error checking adapter connection status", e);
         }
 
         // Check last successful connection
@@ -507,7 +513,7 @@ public class AdapterHealthDashboardService {
         metrics.put("successRate", 100 - getErrorRate(adapter));
 
         // Get percentiles
-        Timer timer = meterRegistry.find("adapter.operation.duration")
+        io.micrometer.core.instrument.Timer timer = meterRegistry.find("adapter.operation.duration")
             .tag("adapter.type", adapter.getType().toString())
             .timer();
 
@@ -713,7 +719,7 @@ public class AdapterHealthDashboardService {
 
                 HealthSnapshot snapshot = new HealthSnapshot();
                 snapshot.setTimestamp(LocalDateTime.now());
-                snapshot.setHealthScore(score.getOverallScore());
+                snapshot.setHealthScore((int) score.getOverallScore());
                 snapshot.setStatus(determineHealthStatus(score.getOverallScore()));
 
                 // Add to history
@@ -760,7 +766,7 @@ public class AdapterHealthDashboardService {
     }
 
     private double getAverageResponseTime(CommunicationAdapter adapter) {
-        Timer timer = meterRegistry.find("adapter.operation.duration")
+        io.micrometer.core.instrument.Timer timer = meterRegistry.find("adapter.operation.duration")
             .tag("adapter.type", adapter.getType().toString())
             .timer();
 

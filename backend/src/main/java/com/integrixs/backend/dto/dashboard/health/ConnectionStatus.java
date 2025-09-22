@@ -18,6 +18,11 @@ public class ConnectionStatus {
     private Integer port;
     private String protocol;
     private String connectionDetails;
+    private boolean connected;
+    private LocalDateTime lastConnectionTest;
+    private LocalDateTime lastSuccessfulConnection;
+    private int connectionAttempts;
+    private int failedAttempts;
     
     public ConnectionStatus() {
     }
@@ -135,5 +140,45 @@ public class ConnectionStatus {
     
     public void setConnectionDetails(String connectionDetails) {
         this.connectionDetails = connectionDetails;
+    }
+    
+    public boolean isConnected() {
+        return connected;
+    }
+    
+    public void setConnected(boolean connected) {
+        this.connected = connected;
+    }
+    
+    public LocalDateTime getLastConnectionTest() {
+        return lastConnectionTest;
+    }
+    
+    public void setLastConnectionTest(LocalDateTime lastConnectionTest) {
+        this.lastConnectionTest = lastConnectionTest;
+    }
+    
+    public LocalDateTime getLastSuccessfulConnection() {
+        return lastSuccessfulConnection;
+    }
+    
+    public void setLastSuccessfulConnection(LocalDateTime lastSuccessfulConnection) {
+        this.lastSuccessfulConnection = lastSuccessfulConnection;
+    }
+    
+    public int getConnectionAttempts() {
+        return connectionAttempts;
+    }
+    
+    public void setConnectionAttempts(int connectionAttempts) {
+        this.connectionAttempts = connectionAttempts;
+    }
+    
+    public int getFailedAttempts() {
+        return failedAttempts;
+    }
+    
+    public void setFailedAttempts(int failedAttempts) {
+        this.failedAttempts = failedAttempts;
     }
 }

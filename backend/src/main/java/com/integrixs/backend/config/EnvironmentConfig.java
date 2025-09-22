@@ -118,4 +118,29 @@ public class EnvironmentConfig {
     public String getFormattedRestrictionMessage() {
         return String.format(restrictionMessage, type.getDisplayName());
     }
+    
+    // Getters and setters
+    public EnvironmentType getType() {
+        return type;
+    }
+    
+    public void setType(EnvironmentType type) {
+        this.type = type;
+    }
+    
+    public boolean isEnforceRestrictions() {
+        return enforceRestrictions;
+    }
+    
+    public void setEnforceRestrictions(boolean enforceRestrictions) {
+        this.enforceRestrictions = enforceRestrictions;
+    }
+    
+    public String getRestrictionMessage() {
+        return restrictionMessage;
+    }
+    
+    public void setRestrictionMessage(String restrictionMessage) {
+        this.restrictionMessage = restrictionMessage;
+    }
 }

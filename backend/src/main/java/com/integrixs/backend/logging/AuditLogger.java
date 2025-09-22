@@ -23,8 +23,11 @@ public class AuditLogger {
 
     private static final Logger log = LoggerFactory.getLogger(AuditLogger.class);
 
-
     private final ObjectMapper objectMapper;
+    
+    public AuditLogger(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Log data creation
@@ -153,7 +156,7 @@ public class AuditLogger {
             if(auth.getPrincipal() instanceof User) {
                 User user = (User) auth.getPrincipal();
                 event.setUserEmail(user.getEmail());
-                event.setUserRole(user.getRole() != null ? user.getRole().name() : null);
+                event.setUserRole(user.getRole());
             }
         }
 

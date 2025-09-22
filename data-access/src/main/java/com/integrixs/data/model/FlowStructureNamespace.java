@@ -104,6 +104,10 @@ public class FlowStructureNamespace {
     public boolean isIsDefault() {
         return isDefault;
     }
+    
+    public boolean isDefault() {
+        return isDefault;
+    }
 
     public void setIsDefault(boolean isDefault) {
         this.isDefault = isDefault;

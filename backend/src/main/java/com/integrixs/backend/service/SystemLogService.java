@@ -44,6 +44,14 @@ public class SystemLogService {
     @Autowired(required = false)
     private AuditLogEncryptionService auditLogEncryptionService;
 
+    public SystemLogService(SystemLogRepository systemLogRepository,
+                          UserRepository userRepository,
+                          ObjectMapper objectMapper) {
+        this.systemLogRepository = systemLogRepository;
+        this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
+    }
+
     @Value("$ {logging.frontend.level:INFO}")
     private String frontendLogLevel;
 

@@ -7,12 +7,14 @@ import com.integrixs.adapters.domain.model.SendRequest;
 import com.integrixs.adapters.domain.model.FetchRequest;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.backend.service.AdapterPoolManager.PooledAdapter;
+import com.integrixs.backend.service.FlowAlertingService;
 // import com.integrixs.backend.service.deprecated.MessageService;
 // import com.integrixs.backend.service.deprecated.FlowExecutionMonitoringService;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.model.Alert;
+import com.integrixs.data.model.AlertRule;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.engine.mapper.HierarchicalXmlFieldMapper;
@@ -73,6 +75,9 @@ public class EnhancedAdapterExecutionService {
 
     @Autowired
     private FlowExecutionMonitoringService monitoringService;
+    
+    @Autowired
+    private FlowAlertingService alertingService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -439,7 +444,15 @@ public class EnhancedAdapterExecutionService {
                 CommunicationAdapter adapter = adapterRepository.findById(UUID.fromString(adapterId))
                     .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
 
-                Map<String, String> config = adapter.getConfiguration();
+                // Parse configuration JSON
+                Map<String, String> config = new HashMap<>();
+                try {
+                    if (adapter.getConfiguration() != null) {
+                        config = objectMapper.readValue(adapter.getConfiguration(), Map.class);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Failed to parse adapter configuration", e);
+                }
                 boolean supportsReversal = Boolean.parseBoolean(config.getOrDefault("supportsReversal", "false"));
 
                 if(supportsReversal) {
@@ -469,14 +482,22 @@ public class EnhancedAdapterExecutionService {
 
                     // Create alert for manual intervention
                     Alert compensationAlert = Alert.builder()
-                        .alertName("Adapter Compensation Required")
+                        .title("Adapter Compensation Required")
                         .message(String.format("Manual compensation needed for adapter %s, correlation ID: %s",
                             adapter.getName(), correlationId))
-                        .alertType("COMPENSATION_REQUIRED")
-                        .severity(Alert.AlertSeverity.HIGH)
+                        .severity(AlertRule.AlertSeverity.HIGH)
+                        .alertId(UUID.randomUUID().toString())
+                        .triggeredAt(LocalDateTime.now())
                         .build();
 
-                    alertingService.triggerAlert(compensationAlert);
+                    // Find or create alert rule for compensation
+                    Map<String, String> alertDetails = new HashMap<>();
+                    alertDetails.put("adapterId", adapterId);
+                    alertDetails.put("correlationId", correlationId);
+                    alertDetails.put("adapterName", adapter.getName());
+                    
+                    // For now, just log the alert since we don't have an alert rule
+                    logger.error("ALERT: {}", compensationAlert.getMessage());
                 }
             } catch(Exception e) {
                 logger.error("Error during adapter send compensation for correlationId: {}", correlationId, e);

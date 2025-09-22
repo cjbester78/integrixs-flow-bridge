@@ -11,6 +11,8 @@ public class DiagnosticResult {
     private Instant timestamp;
     private Long executionTimeMs;
     private String recommendedAction;
+    private String testName;
+    private boolean passed;
 
     // Default constructor
     public DiagnosticResult() {
@@ -62,5 +64,29 @@ public class DiagnosticResult {
 
     public void setRecommendedAction(String recommendedAction) {
         this.recommendedAction = recommendedAction;
+    }
+    
+    public Map<String, Object> getDetails() {
+        return details;
+    }
+    
+    public void setDetails(Map<String, Object> details) {
+        this.details = details;
+    }
+    
+    public String getTestName() {
+        return testName;
+    }
+    
+    public void setTestName(String testName) {
+        this.testName = testName;
+    }
+    
+    public boolean isPassed() {
+        return passed;
+    }
+    
+    public void setPassed(boolean passed) {
+        this.passed = passed;
     }
 }

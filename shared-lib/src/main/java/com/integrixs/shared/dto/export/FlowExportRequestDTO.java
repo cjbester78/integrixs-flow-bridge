@@ -3,6 +3,7 @@ package com.integrixs.shared.dto.export;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * DTO for requesting flow export with options.
@@ -175,6 +176,7 @@ public class FlowExportRequestDTO {
         private boolean includeSensitiveData = false;
         private boolean includeStatistics = false;
         private boolean includeAuditInfo = false;
+        private List<String> tags;
         
         // Default constructor
         public ExportOptions() {
@@ -187,6 +189,7 @@ public class FlowExportRequestDTO {
         public boolean isIncludeSensitiveData() { return includeSensitiveData; }
         public boolean isIncludeStatistics() { return includeStatistics; }
         public boolean isIncludeAuditInfo() { return includeAuditInfo; }
+        public List<String> getTags() { return tags; }
         
         // Setters
         public void setIncludeBusinessComponent(boolean includeBusinessComponent) { this.includeBusinessComponent = includeBusinessComponent; }
@@ -195,6 +198,7 @@ public class FlowExportRequestDTO {
         public void setIncludeSensitiveData(boolean includeSensitiveData) { this.includeSensitiveData = includeSensitiveData; }
         public void setIncludeStatistics(boolean includeStatistics) { this.includeStatistics = includeStatistics; }
         public void setIncludeAuditInfo(boolean includeAuditInfo) { this.includeAuditInfo = includeAuditInfo; }
+        public void setTags(List<String> tags) { this.tags = tags; }
     }
     
     /**

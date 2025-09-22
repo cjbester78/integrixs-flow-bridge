@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
-import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,12 @@ public class MetricsAggregatorService {
 
     private final IntegrationFlowRepository flowRepository;
     private final CommunicationAdapterRepository adapterRepository;
+    
+    public MetricsAggregatorService(IntegrationFlowRepository flowRepository, 
+                                  CommunicationAdapterRepository adapterRepository) {
+        this.flowRepository = flowRepository;
+        this.adapterRepository = adapterRepository;
+    }
 
     /**
      * Count active integration flows
@@ -66,24 +72,30 @@ public class MetricsAggregatorService {
      */
     private boolean isFlowAssociatedWithBusinessComponent(IntegrationFlow flow, UUID businessComponentId) {
         // Check source adapter
-        boolean sourceMatch = adapterRepository.findById(flow.getInboundAdapterId())
-            .map(adapter -> {
-                if(adapter.getBusinessComponent() != null) {
-                    return businessComponentId.equals(adapter.getBusinessComponent().getId());
-                }
-                return false;
-            })
-            .orElse(false);
+        boolean sourceMatch = false;
+        if (flow.getInboundAdapterId() != null) {
+            sourceMatch = adapterRepository.findById(flow.getInboundAdapterId())
+                .map(adapter -> {
+                    if(adapter.getBusinessComponent() != null) {
+                        return businessComponentId.equals(adapter.getBusinessComponent().getId());
+                    }
+                    return false;
+                })
+                .orElse(false);
+        }
 
         // Check target adapter
-        boolean targetMatch = adapterRepository.findById(flow.getOutboundAdapterId())
-            .map(adapter -> {
-                if(adapter.getBusinessComponent() != null) {
-                    return businessComponentId.equals(adapter.getBusinessComponent().getId());
-                }
-                return false;
-            })
-            .orElse(false);
+        boolean targetMatch = false;
+        if (flow.getOutboundAdapterId() != null) {
+            targetMatch = adapterRepository.findById(flow.getOutboundAdapterId())
+                .map(adapter -> {
+                    if(adapter.getBusinessComponent() != null) {
+                        return businessComponentId.equals(adapter.getBusinessComponent().getId());
+                    }
+                    return false;
+                })
+                .orElse(false);
+        }
 
         return sourceMatch || targetMatch;
     }

@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.repository;
 
-import com.integrixs.backend.domain.repository.MessageRepository;
+import com.integrixs.backend.domain.repository.MessageRepositoryPort;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.repository.JpaMessageRepository;
 import org.springframework.data.domain.Page;
@@ -19,9 +19,13 @@ import java.util.UUID;
  * Implementation of MessageRepository using JPA
  */
 @Repository
-public class MessageRepositoryImpl implements MessageRepository {
+public class MessageRepositoryImpl implements MessageRepositoryPort {
 
     private final JpaMessageRepository jpaRepository;
+    
+    public MessageRepositoryImpl(JpaMessageRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public Optional<Message> findById(UUID id) {

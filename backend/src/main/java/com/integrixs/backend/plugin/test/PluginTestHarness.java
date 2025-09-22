@@ -1,6 +1,8 @@
 package com.integrixs.backend.plugin.test;
 
 import com.integrixs.backend.plugin.api.*;
+import com.integrixs.backend.plugin.api.AdapterPlugin.Direction;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +15,17 @@ import org.slf4j.LoggerFactory;
 public class PluginTestHarness {
 
     private static final Logger log = LoggerFactory.getLogger(PluginTestHarness.class);
+
+    /**
+     * Convert Map<String, Object> to Map<String, String>
+     */
+    private static Map<String, String> convertToStringMap(Map<String, Object> objectMap) {
+        Map<String, String> stringMap = new HashMap<>();
+        if (objectMap != null) {
+            objectMap.forEach((key, value) -> stringMap.put(key, String.valueOf(value)));
+        }
+        return stringMap;
+    }
 
 
     private final Class<? extends AdapterPlugin> pluginClass;
@@ -189,11 +202,11 @@ public class PluginTestHarness {
                 .id(id)
                 .headers(Map.of(
                     "test", "true",
-                    "timestamp", System.currentTimeMillis()
+                    "timestamp", String.valueOf(System.currentTimeMillis())
                ))
                 .body(body)
                 .contentType("application/json")
-                .timestamp(System.currentTimeMillis())
+                .timestamp(LocalDateTime.now())
                 .build();
     }
 
@@ -204,10 +217,10 @@ public class PluginTestHarness {
                                                   Map<String, Object> body) {
         return PluginMessage.builder()
                 .id(id)
-                .headers(headers)
+                .headers(convertToStringMap(headers))
                 .body(body)
                 .contentType("application/json")
-                .timestamp(System.currentTimeMillis())
+                .timestamp(LocalDateTime.now())
                 .build();
     }
 
@@ -241,9 +254,13 @@ public class PluginTestHarness {
         }
 
         @Override
-        public void onError(Exception e) {
-            log.error("Received error", e);
-            errors.add(e);
+        public void onError(Throwable error) {
+            log.error("Received error", error);
+            if (error instanceof Exception) {
+                errors.add((Exception) error);
+            } else {
+                errors.add(new RuntimeException("Error in message processing", error));
+            }
         }
 
         public List<PluginMessage> getMessages() {

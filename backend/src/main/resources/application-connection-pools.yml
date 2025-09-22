@@ -1,0 +1,64 @@
+# ======================================
+# Connection Pool Configuration
+# ======================================
+# This file contains all connection pool configurations for
+# database, HTTP, JMS, and file transfer connections
+
+# ✅ Connection Pool configuration
+connection-pool:
+  database:
+    min-idle: 5
+    max-size: 50
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    leak-detection-threshold: 60000
+    postgresql:
+      prepare-threshold: 3
+      prepared-statement-cache-queries: 256
+      prepared-statement-cache-size-mib: 5
+    mysql:
+      cache-prep-stmts: true
+      prep-stmt-cache-size: 256
+      prep-stmt-cache-sql-limit: 2048
+      use-server-prep-stmts: true
+  http:
+    default:
+      min-size: 20
+      max-size: 500
+      idle-timeout: 30000
+      cleanup-interval: 60000
+    adapter:
+      min-size: 10
+      max-size: 200
+      idle-timeout: 60000
+    idle-connection-timeout: 30
+    connection-ttl-minutes: 5
+  jms:
+    max-connections: 10
+    idle-timeout: 300000
+    expiry-timeout: 0
+    time-between-expiration-check-millis: 60000
+    block-if-session-pool-is-full: true
+    block-if-session-pool-is-full-timeout: 5000
+    use-anonymous-producers: true
+  file-transfer:
+    max-total: 10
+    max-per-host: 5
+    min-evictable-idle-time-millis: 300000
+    time-between-eviction-runs-millis: 60000
+    connection-timeout: 30000
+    data-timeout: 120000
+    keep-alive-timeout: 60000
+
+# ✅ Thread Pool configuration
+thread-pool:
+  core-size: 10
+  max-size: 50
+  queue-capacity: 1000
+  keep-alive-seconds: 60
+  thread-name-prefix: "integrix-"
+  await-termination-seconds: 60
+  scheduled:
+    core-size: 5
+    thread-name-prefix: "integrix-scheduled-"

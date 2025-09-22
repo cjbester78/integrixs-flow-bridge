@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.FieldMappingRepository;
+import com.integrixs.backend.domain.repository.FieldMappingRepositoryPort;
 import com.integrixs.data.model.FieldMapping;
 import org.springframework.stereotype.Repository;
 
@@ -12,9 +12,13 @@ import java.util.UUID;
  * Infrastructure implementation of FieldMappingRepository
  */
 @Repository("domainFieldMappingRepository")
-public class FieldMappingRepositoryImpl implements FieldMappingRepository {
+public class FieldMappingRepositoryImpl implements FieldMappingRepositoryPort {
 
     private final com.integrixs.data.repository.FieldMappingRepository jpaRepository;
+    
+    public FieldMappingRepositoryImpl(com.integrixs.data.repository.FieldMappingRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public Optional<FieldMapping> findById(UUID id) {

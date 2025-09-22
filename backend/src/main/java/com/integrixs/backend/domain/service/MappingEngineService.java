@@ -22,6 +22,10 @@ public class MappingEngineService {
 
     private final ObjectMapper objectMapper;
 
+    public MappingEngineService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     /**
      * Validate field mapping configuration
      */

@@ -66,7 +66,6 @@ public class Organization extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        super.prePersist();
         if(slug == null && name != null) {
             slug = generateSlug(name);
         }

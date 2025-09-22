@@ -13,6 +13,10 @@ public class ComponentInteractionHeatmap {
     private Map<String, Map<String, InteractionMetrics>> interactions;
     private List<String> components;
     private List<HotPath> hotPaths;
+    private double[][] interactionMatrix;
+    private Map<String, Double> componentCentrality;
+    private List<List<String>> criticalPaths;
+    private Map<String, Object> statistics;
 
     // Default constructor
     public ComponentInteractionHeatmap() {
@@ -48,5 +52,52 @@ public class ComponentInteractionHeatmap {
 
     public void setHotPaths(List<HotPath> hotPaths) {
         this.hotPaths = hotPaths;
+    }
+
+    public Map<String, Map<String, InteractionMetrics>> getInteractions() {
+        return interactions;
+    }
+
+    public void setInteractions(Map<String, Map<String, InteractionMetrics>> interactions) {
+        this.interactions = interactions;
+    }
+
+    // Alias method for services expecting this method
+    public void setAnalysisPeriodDays(int days) {
+        // This method is used by services to set analysis period
+        // The actual period is determined by startTime and endTime
+        // This is here for compatibility
+    }
+
+    public double[][] getInteractionMatrix() {
+        return interactionMatrix;
+    }
+
+    public void setInteractionMatrix(double[][] interactionMatrix) {
+        this.interactionMatrix = interactionMatrix;
+    }
+
+    public Map<String, Double> getComponentCentrality() {
+        return componentCentrality;
+    }
+
+    public void setComponentCentrality(Map<String, Double> componentCentrality) {
+        this.componentCentrality = componentCentrality;
+    }
+
+    public List<List<String>> getCriticalPaths() {
+        return criticalPaths;
+    }
+
+    public void setCriticalPaths(List<List<String>> criticalPaths) {
+        this.criticalPaths = criticalPaths;
+    }
+
+    public Map<String, Object> getStatistics() {
+        return statistics;
+    }
+
+    public void setStatistics(Map<String, Object> statistics) {
+        this.statistics = statistics;
     }
 }

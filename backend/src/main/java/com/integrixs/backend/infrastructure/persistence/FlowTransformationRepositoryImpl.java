@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.FlowTransformationRepository;
+import com.integrixs.backend.domain.repository.FlowTransformationRepositoryPort;
 import com.integrixs.data.model.FlowTransformation;
 import org.springframework.stereotype.Repository;
 
@@ -11,9 +11,13 @@ import java.util.UUID;
  * Infrastructure implementation of FlowTransformationRepository
  */
 @Repository("domainFlowTransformationRepository")
-public class FlowTransformationRepositoryImpl implements FlowTransformationRepository {
+public class FlowTransformationRepositoryImpl implements FlowTransformationRepositoryPort {
 
     private final com.integrixs.data.repository.FlowTransformationRepository jpaRepository;
+    
+    public FlowTransformationRepositoryImpl(com.integrixs.data.repository.FlowTransformationRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public Optional<FlowTransformation> findById(UUID id) {

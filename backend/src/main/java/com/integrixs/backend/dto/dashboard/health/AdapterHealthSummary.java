@@ -24,6 +24,9 @@ public class AdapterHealthSummary {
     private List<String> recentErrors;
     private Map<String, Object> metrics;
     private List<CriticalIssue> criticalIssues;
+    private String healthStatus;
+    private double uptime;
+    private List<String> activeIssues;
     
     public AdapterHealthSummary() {
     }
@@ -179,5 +182,30 @@ public class AdapterHealthSummary {
     
     public void setCriticalIssues(List<CriticalIssue> criticalIssues) {
         this.criticalIssues = criticalIssues;
+    }
+    
+    // Alias for getStatus
+    public String getHealthStatus() {
+        return healthStatus != null ? healthStatus : status;
+    }
+    
+    public void setHealthStatus(String healthStatus) {
+        this.healthStatus = healthStatus;
+    }
+    
+    public double getUptime() {
+        return uptime;
+    }
+    
+    public void setUptime(double uptime) {
+        this.uptime = uptime;
+    }
+    
+    public List<String> getActiveIssues() {
+        return activeIssues;
+    }
+    
+    public void setActiveIssues(List<String> activeIssues) {
+        this.activeIssues = activeIssues;
     }
 }

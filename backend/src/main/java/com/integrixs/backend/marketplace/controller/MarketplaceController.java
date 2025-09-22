@@ -29,6 +29,11 @@ public class MarketplaceController {
 
     private final MarketplaceService marketplaceService;
     private final OrganizationService organizationService;
+    
+    public MarketplaceController(MarketplaceService marketplaceService, OrganizationService organizationService) {
+        this.marketplaceService = marketplaceService;
+        this.organizationService = organizationService;
+    }
 
     @GetMapping("/templates")
     @Operation(summary = "Search templates", description = "Search and filter templates in the marketplace")
@@ -199,7 +204,7 @@ public class MarketplaceController {
     public ResponseEntity<Void> addMember(
             @PathVariable String slug,
             @Valid @RequestBody AddMemberRequest request) {
-        organizationService.addMember(slug, request.getUserId());
+        organizationService.addMember(slug, request.getEmail());
         return ResponseEntity.noContent().build();
     }
 

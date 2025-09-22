@@ -22,8 +22,9 @@ public class OptimizedMessageStatsService extends MessageStatsService {
 
     private static final Logger log = LoggerFactory.getLogger(OptimizedMessageStatsService.class);
 
-
-    private final MessageRepository messageRepository;
+    public OptimizedMessageStatsService(MessageRepository messageRepository) {
+        super(messageRepository);
+    }
 
     @Override
     public MessageStatsDTO getMessageStats(Map<String, String> filters) {

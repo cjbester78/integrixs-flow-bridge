@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.domain.repository.UserRepository;
-import com.integrixs.backend.shared.exception.AuthenticationException;
+import com.integrixs.backend.domain.repository.UserRepositoryPort;
+import com.integrixs.shared.exceptions.AuthenticationException;
 import com.integrixs.data.model.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,13 @@ public class UserAuthenticationService {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserAuthenticationService.class);
     
-    private final UserRepository userRepository;
+    private final UserRepositoryPort userRepository;
     private final PasswordEncoder passwordEncoder;
+    
+    public UserAuthenticationService(UserRepositoryPort userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * Authenticate user with username and password
@@ -34,16 +39,16 @@ public class UserAuthenticationService {
         log.debug("Authenticating user: {}", username);
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
+                .orElseThrow(() -> new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Invalid credentials"));
 
         if(!passwordEncoder.matches(password, user.getPasswordHash())) {
             log.warn("Failed login attempt for user: {}", username);
-            throw new AuthenticationException("Invalid credentials");
+            throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Invalid credentials");
         }
 
         if(!user.isActive()) {
             log.warn("Login attempt for inactive user: {}", username);
-            throw new AuthenticationException("User account is not active");
+            throw new AuthenticationException("AUTH_ACCOUNT_INACTIVE", "User account is not active");
         }
 
         log.info("User authenticated successfully: {}", username);

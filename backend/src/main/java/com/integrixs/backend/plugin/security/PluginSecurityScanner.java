@@ -162,7 +162,7 @@ public class PluginSecurityScanner {
             String pluginClass = attrs.getValue("Plugin - Class");
             if(pluginClass == null) {
                 issues.add(SecurityIssue.builder()
-                        .severity(Severity.ERROR)
+                        .severity(Severity.HIGH)
                         .type(IssueType.INVALID_MANIFEST)
                         .description("Missing required Plugin - Class attribute")
                         .build());
@@ -396,6 +396,125 @@ public class PluginSecurityScanner {
                     severityCounts.getOrDefault(Severity.WARNING, 0L),
                     severityCounts.getOrDefault(Severity.INFO, 0L));
         }
+
+        // Getters and Setters
+        public String getJarPath() {
+            return jarPath;
+        }
+
+        public void setJarPath(String jarPath) {
+            this.jarPath = jarPath;
+        }
+
+        public Date getScanDate() {
+            return scanDate;
+        }
+
+        public void setScanDate(Date scanDate) {
+            this.scanDate = scanDate;
+        }
+
+        public boolean isPassed() {
+            return passed;
+        }
+
+        public void setPassed(boolean passed) {
+            this.passed = passed;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public List<SecurityIssue> getIssues() {
+            return issues;
+        }
+
+        public void setIssues(List<SecurityIssue> issues) {
+            this.issues = issues;
+        }
+
+        public String getChecksum() {
+            return checksum;
+        }
+
+        public void setChecksum(String checksum) {
+            this.checksum = checksum;
+        }
+
+        public long getFileSize() {
+            return fileSize;
+        }
+
+        public void setFileSize(long fileSize) {
+            this.fileSize = fileSize;
+        }
+
+        // Builder pattern
+        public static SecurityScanResultBuilder builder() {
+            return new SecurityScanResultBuilder();
+        }
+
+        public static class SecurityScanResultBuilder {
+            private String jarPath;
+            private Date scanDate;
+            private boolean passed;
+            private RiskLevel riskLevel;
+            private List<SecurityIssue> issues;
+            private String checksum;
+            private long fileSize;
+
+            public SecurityScanResultBuilder jarPath(String jarPath) {
+                this.jarPath = jarPath;
+                return this;
+            }
+
+            public SecurityScanResultBuilder scanDate(Date scanDate) {
+                this.scanDate = scanDate;
+                return this;
+            }
+
+            public SecurityScanResultBuilder passed(boolean passed) {
+                this.passed = passed;
+                return this;
+            }
+
+            public SecurityScanResultBuilder riskLevel(RiskLevel riskLevel) {
+                this.riskLevel = riskLevel;
+                return this;
+            }
+
+            public SecurityScanResultBuilder issues(List<SecurityIssue> issues) {
+                this.issues = issues;
+                return this;
+            }
+
+            public SecurityScanResultBuilder checksum(String checksum) {
+                this.checksum = checksum;
+                return this;
+            }
+
+            public SecurityScanResultBuilder fileSize(long fileSize) {
+                this.fileSize = fileSize;
+                return this;
+            }
+
+            public SecurityScanResult build() {
+                SecurityScanResult result = new SecurityScanResult();
+                result.jarPath = this.jarPath;
+                result.scanDate = this.scanDate;
+                result.passed = this.passed;
+                result.riskLevel = this.riskLevel;
+                result.issues = this.issues;
+                result.checksum = this.checksum;
+                result.fileSize = this.fileSize;
+                return result;
+            }
+        }
     }
 
     /**
@@ -407,6 +526,95 @@ public class PluginSecurityScanner {
         private String description;
         private String location;
         private String recommendation;
+
+        // Getters and Setters
+        public Severity getSeverity() {
+            return severity;
+        }
+
+        public void setSeverity(Severity severity) {
+            this.severity = severity;
+        }
+
+        public IssueType getType() {
+            return type;
+        }
+
+        public void setType(IssueType type) {
+            this.type = type;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public void setLocation(String location) {
+            this.location = location;
+        }
+
+        public String getRecommendation() {
+            return recommendation;
+        }
+
+        public void setRecommendation(String recommendation) {
+            this.recommendation = recommendation;
+        }
+
+        // Builder pattern
+        public static SecurityIssueBuilder builder() {
+            return new SecurityIssueBuilder();
+        }
+
+        public static class SecurityIssueBuilder {
+            private Severity severity;
+            private IssueType type;
+            private String description;
+            private String location;
+            private String recommendation;
+
+            public SecurityIssueBuilder severity(Severity severity) {
+                this.severity = severity;
+                return this;
+            }
+
+            public SecurityIssueBuilder type(IssueType type) {
+                this.type = type;
+                return this;
+            }
+
+            public SecurityIssueBuilder description(String description) {
+                this.description = description;
+                return this;
+            }
+
+            public SecurityIssueBuilder location(String location) {
+                this.location = location;
+                return this;
+            }
+
+            public SecurityIssueBuilder recommendation(String recommendation) {
+                this.recommendation = recommendation;
+                return this;
+            }
+
+            public SecurityIssue build() {
+                SecurityIssue issue = new SecurityIssue();
+                issue.severity = this.severity;
+                issue.type = this.type;
+                issue.description = this.description;
+                issue.location = this.location;
+                issue.recommendation = this.recommendation;
+                return issue;
+            }
+        }
     }
 
     /**

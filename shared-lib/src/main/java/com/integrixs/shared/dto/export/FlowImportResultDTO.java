@@ -305,5 +305,59 @@ public class FlowImportResultDTO {
         public void setNewName(String newName) { this.newName = newName; }
         public void setResolution(String resolution) { this.resolution = resolution; }
         public void setReason(String reason) { this.reason = reason; }
+        
+        // Builder
+        public static ConflictResolutionBuilder builder() {
+            return new ConflictResolutionBuilder();
+        }
+        
+        public static class ConflictResolutionBuilder {
+            private String objectType;
+            private String originalId;
+            private String originalName;
+            private String newId;
+            private String newName;
+            private String resolution;
+            private String reason;
+            
+            public ConflictResolutionBuilder objectType(String objectType) {
+                this.objectType = objectType;
+                return this;
+            }
+            
+            public ConflictResolutionBuilder originalId(String originalId) {
+                this.originalId = originalId;
+                return this;
+            }
+            
+            public ConflictResolutionBuilder originalName(String originalName) {
+                this.originalName = originalName;
+                return this;
+            }
+            
+            public ConflictResolutionBuilder newId(String newId) {
+                this.newId = newId;
+                return this;
+            }
+            
+            public ConflictResolutionBuilder newName(String newName) {
+                this.newName = newName;
+                return this;
+            }
+            
+            public ConflictResolutionBuilder resolution(String resolution) {
+                this.resolution = resolution;
+                return this;
+            }
+            
+            public ConflictResolutionBuilder reason(String reason) {
+                this.reason = reason;
+                return this;
+            }
+            
+            public ConflictResolution build() {
+                return new ConflictResolution(objectType, originalId, originalName, newId, newName, resolution, reason);
+            }
+        }
     }
 }

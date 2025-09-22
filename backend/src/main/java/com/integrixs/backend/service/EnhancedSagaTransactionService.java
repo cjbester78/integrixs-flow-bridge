@@ -8,6 +8,7 @@ import com.integrixs.data.repository.SagaStepRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
  * Extends the basic saga pattern to support parallel steps and complex orchestration
  */
 @Service
+@Primary
 public class EnhancedSagaTransactionService extends SagaTransactionService {
 
     private static final Logger logger = LoggerFactory.getLogger(EnhancedSagaTransactionService.class);

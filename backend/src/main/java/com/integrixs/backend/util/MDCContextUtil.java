@@ -11,8 +11,12 @@ import java.util.function.Supplier;
  * Utility class for MDC context propagation in various scenarios.
  * Helps maintain logging context across thread boundaries.
  */
-@UtilityClass
-public class MDCContextUtil {
+public final class MDCContextUtil {
+    
+    // Private constructor to prevent instantiation
+    private MDCContextUtil() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     /**
      * Wraps a Runnable with MDC context preservation

@@ -45,7 +45,6 @@ public class TemplateRating extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        super.prePersist();
         ratedAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         validateRating();
@@ -53,7 +52,6 @@ public class TemplateRating extends BaseEntity {
 
     @PreUpdate
     public void preUpdate() {
-        super.preUpdate();
         updatedAt = LocalDateTime.now();
         validateRating();
     }

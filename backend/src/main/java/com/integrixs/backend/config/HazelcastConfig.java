@@ -56,6 +56,88 @@ public class HazelcastConfig {
 
     @Value("$ {hazelcast.network.kubernetes.service - name:integrixs - hazelcast}")
     private String kubernetesServiceName;
+    
+    // Multicast configuration
+    @Value("${hazelcast.network.multicast.group:224.2.2.3}")
+    private String multicastGroup;
+    
+    @Value("${hazelcast.network.multicast.port:54327}")
+    private int multicastPort;
+    
+    // Session map configuration
+    @Value("${hazelcast.map.session.ttl-seconds:3600}")
+    private int sessionMapTtl;
+    
+    @Value("${hazelcast.map.session.max-idle-seconds:1800}")
+    private int sessionMapMaxIdleSeconds;
+    
+    @Value("${hazelcast.map.session.max-size:10000}")
+    private int sessionMapMaxSize;
+    
+    @Value("${hazelcast.map.session.backup-count:1}")
+    private int sessionMapBackupCount;
+    
+    @Value("${hazelcast.map.session.async-backup-count:0}")
+    private int sessionMapAsyncBackupCount;
+    
+    @Value("${hazelcast.session.max-inactive-interval:3600}")
+    private int sessionMaxInactiveInterval;
+    
+    // Cache map configuration
+    @Value("${hazelcast.map.cache.ttl-seconds:1800}")
+    private int cacheMapTtl;
+    
+    @Value("${hazelcast.map.cache.max-size:5000}")
+    private int cacheMapMaxSize;
+    
+    @Value("${hazelcast.map.cache.backup-count:1}")
+    private int cacheMapBackupCount;
+    
+    @Value("${hazelcast.map.cache.async-backup-count:1}")
+    private int cacheMapAsyncBackupCount;
+    
+    // Flow state map configuration
+    @Value("${hazelcast.map.flow-state.ttl-seconds:86400}")
+    private int flowStateMapTtl;
+    
+    @Value("${hazelcast.map.flow-state.backup-count:2}")
+    private int flowStateMapBackupCount;
+    
+    @Value("${hazelcast.map.flow-state.async-backup-count:0}")
+    private int flowStateMapAsyncBackupCount;
+    
+    // Rate limit map configuration
+    @Value("${hazelcast.map.rate-limit.ttl-seconds:300}")
+    private int rateLimitMapTtl;
+    
+    @Value("${hazelcast.map.rate-limit.max-size:100000}")
+    private int rateLimitMapMaxSize;
+    
+    @Value("${hazelcast.map.rate-limit.backup-count:0}")
+    private int rateLimitMapBackupCount;
+    
+    // Job queue configuration
+    @Value("${hazelcast.queue.job.max-size:10000}")
+    private int jobQueueMaxSize;
+    
+    @Value("${hazelcast.queue.job.backup-count:1}")
+    private int jobQueueBackupCount;
+    
+    @Value("${hazelcast.queue.job.async-backup-count:0}")
+    private int jobQueueAsyncBackupCount;
+    
+    @Value("${hazelcast.queue.job.empty-ttl:300}")
+    private int jobQueueEmptyTtl;
+    
+    // Message queue configuration
+    @Value("${hazelcast.queue.message.max-size:100000}")
+    private int messageQueueMaxSize;
+    
+    @Value("${hazelcast.queue.message.backup-count:2}")
+    private int messageQueueBackupCount;
+    
+    @Value("${hazelcast.queue.message.async-backup-count:0}")
+    private int messageQueueAsyncBackupCount;
 
     /**
      * Main Hazelcast instance configuration
@@ -111,8 +193,8 @@ public class HazelcastConfig {
         MulticastConfig multicastConfig = joinConfig.getMulticastConfig();
         multicastConfig.setEnabled(multicastEnabled);
         if(multicastEnabled) {
-            multicastConfig.setMulticastGroup("224.2.2.3");
-            multicastConfig.setMulticastPort(54327);
+            multicastConfig.setMulticastGroup(multicastGroup);
+            multicastConfig.setMulticastPort(multicastPort);
         }
 
         // TCP/IP discovery
@@ -160,44 +242,44 @@ public class HazelcastConfig {
     private void configureDistributedMaps(Config config) {
         // Session map configuration
         MapConfig sessionMapConfig = new MapConfig("spring:session:sessions");
-        sessionMapConfig.setTimeToLiveSeconds(3600); // 1 hour
-        sessionMapConfig.setMaxIdleSeconds(1800); // 30 minutes
+        sessionMapConfig.setTimeToLiveSeconds(sessionMapTtl);
+        sessionMapConfig.setMaxIdleSeconds(sessionMapMaxIdleSeconds);
         sessionMapConfig.setEvictionConfig(new EvictionConfig()
             .setEvictionPolicy(EvictionPolicy.LRU)
             .setMaxSizePolicy(MaxSizePolicy.PER_NODE)
-            .setSize(10000));
-        sessionMapConfig.setBackupCount(1);
-        sessionMapConfig.setAsyncBackupCount(0);
+            .setSize(sessionMapMaxSize));
+        sessionMapConfig.setBackupCount(sessionMapBackupCount);
+        sessionMapConfig.setAsyncBackupCount(sessionMapAsyncBackupCount);
         config.addMapConfig(sessionMapConfig);
 
         // Cache map configuration
         MapConfig cacheMapConfig = new MapConfig("distributed - cache-*");
-        cacheMapConfig.setTimeToLiveSeconds(1800); // 30 minutes default
+        cacheMapConfig.setTimeToLiveSeconds(cacheMapTtl);
         cacheMapConfig.setEvictionConfig(new EvictionConfig()
             .setEvictionPolicy(EvictionPolicy.LFU)
             .setMaxSizePolicy(MaxSizePolicy.PER_NODE)
-            .setSize(5000));
-        cacheMapConfig.setBackupCount(1);
-        cacheMapConfig.setAsyncBackupCount(1);
+            .setSize(cacheMapMaxSize));
+        cacheMapConfig.setBackupCount(cacheMapBackupCount);
+        cacheMapConfig.setAsyncBackupCount(cacheMapAsyncBackupCount);
         cacheMapConfig.setReadBackupData(true);
         config.addMapConfig(cacheMapConfig);
 
         // Flow state map
         MapConfig flowStateMapConfig = new MapConfig("flow - state-*");
-        flowStateMapConfig.setTimeToLiveSeconds(86400); // 24 hours
-        flowStateMapConfig.setBackupCount(2); // Higher backup for critical data
-        flowStateMapConfig.setAsyncBackupCount(0);
+        flowStateMapConfig.setTimeToLiveSeconds(flowStateMapTtl);
+        flowStateMapConfig.setBackupCount(flowStateMapBackupCount);
+        flowStateMapConfig.setAsyncBackupCount(flowStateMapAsyncBackupCount);
         flowStateMapConfig.setInMemoryFormat(InMemoryFormat.BINARY);
         config.addMapConfig(flowStateMapConfig);
 
         // Rate limit map
         MapConfig rateLimitMapConfig = new MapConfig("rate - limit-*");
-        rateLimitMapConfig.setTimeToLiveSeconds(300); // 5 minutes
+        rateLimitMapConfig.setTimeToLiveSeconds(rateLimitMapTtl);
         rateLimitMapConfig.setEvictionConfig(new EvictionConfig()
             .setEvictionPolicy(EvictionPolicy.LRU)
             .setMaxSizePolicy(MaxSizePolicy.PER_NODE)
-            .setSize(100000));
-        rateLimitMapConfig.setBackupCount(0); // No backup for transient data
+            .setSize(rateLimitMapMaxSize));
+        rateLimitMapConfig.setBackupCount(rateLimitMapBackupCount);
         config.addMapConfig(rateLimitMapConfig);
     }
 
@@ -207,17 +289,17 @@ public class HazelcastConfig {
     private void configureDistributedQueues(Config config) {
         // Job queue configuration
         QueueConfig jobQueueConfig = new QueueConfig("job - queue-*");
-        jobQueueConfig.setMaxSize(10000);
-        jobQueueConfig.setBackupCount(1);
-        jobQueueConfig.setAsyncBackupCount(0);
-        jobQueueConfig.setEmptyQueueTtl(300); // 5 minutes
+        jobQueueConfig.setMaxSize(jobQueueMaxSize);
+        jobQueueConfig.setBackupCount(jobQueueBackupCount);
+        jobQueueConfig.setAsyncBackupCount(jobQueueAsyncBackupCount);
+        jobQueueConfig.setEmptyQueueTtl(jobQueueEmptyTtl);
         config.addQueueConfig(jobQueueConfig);
 
         // Message queue configuration
         QueueConfig messageQueueConfig = new QueueConfig("message - queue-*");
-        messageQueueConfig.setMaxSize(100000);
-        messageQueueConfig.setBackupCount(2);
-        messageQueueConfig.setAsyncBackupCount(0);
+        messageQueueConfig.setMaxSize(messageQueueMaxSize);
+        messageQueueConfig.setBackupCount(messageQueueBackupCount);
+        messageQueueConfig.setAsyncBackupCount(messageQueueAsyncBackupCount);
         config.addQueueConfig(messageQueueConfig);
     }
 
@@ -242,27 +324,30 @@ public class HazelcastConfig {
      * Configure CP subsystem for strong consistency
      */
     private void configureCPSubsystem(Config config) {
-        CPSubsystemConfig cpConfig = config.getCPSubsystemConfig();
-        cpConfig.setCPMemberCount(3); // Minimum 3 for fault tolerance
-        cpConfig.setGroupSize(3);
-        cpConfig.setSessionTimeToLiveSeconds(300);
-        cpConfig.setSessionHeartbeatIntervalSeconds(5);
-        cpConfig.setMissingCPMemberAutoRemovalSeconds(14400); // 4 hours
+        // CP Subsystem is not available in this version of Hazelcast
+        // Will need to upgrade Hazelcast version to use CP Subsystem features
+        
+        // CPSubsystemConfig cpConfig = config.getCPSubsystemConfig();
+        // cpConfig.setCPMemberCount(3); // Minimum 3 for fault tolerance
+        // cpConfig.setGroupSize(3);
+        // cpConfig.setSessionTimeToLiveSeconds(300);
+        // cpConfig.setSessionHeartbeatIntervalSeconds(5);
+        // cpConfig.setMissingCPMemberAutoRemovalSeconds(14400); // 4 hours
 
-        // Configure Raft algorithm
-        RaftAlgorithmConfig raftConfig = cpConfig.getRaftAlgorithmConfig();
-        raftConfig.setLeaderElectionTimeoutInMillis(2000);
-        raftConfig.setLeaderHeartbeatPeriodInMillis(500);
-        raftConfig.setMaxMissedLeaderHeartbeatCount(5);
-        raftConfig.setAppendRequestMaxEntryCount(100);
-        raftConfig.setCommitIndexAdvanceCountToSnapshot(10000);
-        raftConfig.setUncommittedEntryCountToRejectNewAppends(200);
-        raftConfig.setAppendRequestBackoffTimeoutInMillis(100);
+        // // Configure Raft algorithm
+        // RaftAlgorithmConfig raftConfig = cpConfig.getRaftAlgorithmConfig();
+        // raftConfig.setLeaderElectionTimeoutInMillis(2000);
+        // raftConfig.setLeaderHeartbeatPeriodInMillis(500);
+        // raftConfig.setMaxMissedLeaderHeartbeatCount(5);
+        // raftConfig.setAppendRequestMaxEntryCount(100);
+        // raftConfig.setCommitIndexAdvanceCountToSnapshot(10000);
+        // raftConfig.setUncommittedEntryCountToRejectNewAppends(200);
+        // raftConfig.setAppendRequestBackoffTimeoutInMillis(100);
 
-        // Configure semaphores
-        cpConfig.addSemaphoreConfig(new SemaphoreConfig("distributed - lock-*")
-            .setInitialPermits(1)
-            .setJDKCompatible(false));
+        // // Configure semaphores
+        // cpConfig.addSemaphoreConfig(new SemaphoreConfig("distributed - lock-*")
+        //     .setInitialPermits(1)
+        //     .setJDKCompatible(false));
     }
 
     /**
@@ -285,9 +370,6 @@ public class HazelcastConfig {
         serializationConfig.setAllowUnsafe(true);
         serializationConfig.setEnableCompression(true);
         serializationConfig.setEnableSharedObject(true);
-
-        // Configure portable serialization for cross - platform compatibility
-        serializationConfig.setPortableVersion(1);
     }
 
     /**
@@ -315,9 +397,10 @@ public class HazelcastConfig {
     @Bean
     public HazelcastIndexedSessionRepository hazelcastSessionRepository(HazelcastInstance hazelcastInstance) {
         HazelcastIndexedSessionRepository repository = new HazelcastIndexedSessionRepository(hazelcastInstance);
-        repository.setDefaultMaxInactiveInterval(3600); // 1 hour
+        repository.setDefaultMaxInactiveInterval(sessionMaxInactiveInterval);
         repository.setSessionMapName("spring:session:sessions");
-        repository.setFlushMode(HazelcastIndexedSessionRepository.HazelcastFlushMode.IMMEDIATE);
+        // Set flush mode if available in the current version
+        // repository.setFlushMode(HazelcastIndexedSessionRepository.HazelcastFlushMode.IMMEDIATE);
         return repository;
     }
 }

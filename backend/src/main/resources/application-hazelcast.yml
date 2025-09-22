@@ -1,0 +1,78 @@
+# ======================================
+# Hazelcast Configuration
+# ======================================
+# This file contains distributed cache and session management
+# configurations using Hazelcast
+
+# ✅ Hazelcast configuration
+hazelcast:
+  enabled: false
+  cluster:
+    name: integrixs-cluster
+  instance:
+    name: integrixs-node
+  network:
+    port: 5701
+    port-auto-increment: true
+    multicast:
+      enabled: true
+      group: "224.2.2.3"
+      port: 54327
+      trusted-interfaces:
+        - 10.10.1.*
+        - 10.10.2.*
+    tcp:
+      enabled: false
+      members: 127.0.0.1
+    kubernetes:
+      enabled: false
+      namespace: default
+      service-name: integrixs-hazelcast
+    join:
+      multicast:
+        multicast-timeout-seconds: 2
+        multicast-time-to-live: 32
+    connection:
+      timeout: 5000
+      heartbeat-interval: 5000
+      max-no-heartbeat-seconds: 300
+  cache:
+    enabled: true
+  session:
+    max-inactive-interval: 3600
+  map:
+    default:
+      time-to-live-seconds: 3600
+      max-idle-seconds: 600
+      eviction-percentage: 25
+      min-eviction-check-millis: 100
+      backup-count: 1
+    session:
+      ttl-seconds: 3600
+      max-idle-seconds: 1800
+      max-size: 10000
+      backup-count: 1
+      async-backup-count: 0
+    cache:
+      ttl-seconds: 1800
+      max-size: 5000
+      backup-count: 1
+      async-backup-count: 1
+    flow-state:
+      ttl-seconds: 86400
+      backup-count: 2
+      async-backup-count: 0
+    rate-limit:
+      ttl-seconds: 300
+      max-size: 100000
+      backup-count: 0
+  queue:
+    job:
+      max-size: 10000
+      backup-count: 1
+      async-backup-count: 0
+      empty-ttl: 300
+    message:
+      max-size: 100000
+      backup-count: 2
+      async-backup-count: 0

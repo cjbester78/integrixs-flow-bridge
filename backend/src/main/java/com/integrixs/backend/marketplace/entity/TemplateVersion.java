@@ -49,7 +49,6 @@ public class TemplateVersion extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        super.prePersist();
         publishedAt = LocalDateTime.now();
     }
 

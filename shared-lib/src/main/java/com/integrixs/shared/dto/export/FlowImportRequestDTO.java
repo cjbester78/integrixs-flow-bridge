@@ -175,6 +175,10 @@ public class FlowImportRequestDTO {
         private boolean importCertificateReferences = true;
         private boolean validateReferences = true;
         private boolean activateAfterImport = false;
+        private ConflictStrategy conflictStrategy = ConflictStrategy.FAIL;
+        private String targetBusinessComponentId;
+        private String namePrefix;
+        private String nameSuffix;
         
         // Default constructor
         public ImportOptions() {
@@ -186,6 +190,10 @@ public class FlowImportRequestDTO {
         public boolean isImportCertificateReferences() { return importCertificateReferences; }
         public boolean isValidateReferences() { return validateReferences; }
         public boolean isActivateAfterImport() { return activateAfterImport; }
+        public ConflictStrategy getConflictStrategy() { return conflictStrategy; }
+        public String getTargetBusinessComponentId() { return targetBusinessComponentId; }
+        public String getNamePrefix() { return namePrefix; }
+        public String getNameSuffix() { return nameSuffix; }
         
         // Setters
         public void setImportBusinessComponent(boolean importBusinessComponent) { this.importBusinessComponent = importBusinessComponent; }
@@ -193,6 +201,86 @@ public class FlowImportRequestDTO {
         public void setImportCertificateReferences(boolean importCertificateReferences) { this.importCertificateReferences = importCertificateReferences; }
         public void setValidateReferences(boolean validateReferences) { this.validateReferences = validateReferences; }
         public void setActivateAfterImport(boolean activateAfterImport) { this.activateAfterImport = activateAfterImport; }
+        public void setConflictStrategy(ConflictStrategy conflictStrategy) { this.conflictStrategy = conflictStrategy; }
+        public void setTargetBusinessComponentId(String targetBusinessComponentId) { this.targetBusinessComponentId = targetBusinessComponentId; }
+        public void setNamePrefix(String namePrefix) { this.namePrefix = namePrefix; }
+        public void setNameSuffix(String nameSuffix) { this.nameSuffix = nameSuffix; }
+        
+        // Builder
+        public static ImportOptionsBuilder builder() {
+            return new ImportOptionsBuilder();
+        }
+        
+        public static class ImportOptionsBuilder {
+            private boolean importBusinessComponent = true;
+            private boolean importAdapters = true;
+            private boolean importCertificateReferences = true;
+            private boolean validateReferences = true;
+            private boolean activateAfterImport = false;
+            private ConflictStrategy conflictStrategy = ConflictStrategy.FAIL;
+            private String targetBusinessComponentId;
+            private String namePrefix;
+            private String nameSuffix;
+            
+            public ImportOptionsBuilder importBusinessComponent(boolean importBusinessComponent) {
+                this.importBusinessComponent = importBusinessComponent;
+                return this;
+            }
+            
+            public ImportOptionsBuilder importAdapters(boolean importAdapters) {
+                this.importAdapters = importAdapters;
+                return this;
+            }
+            
+            public ImportOptionsBuilder importCertificateReferences(boolean importCertificateReferences) {
+                this.importCertificateReferences = importCertificateReferences;
+                return this;
+            }
+            
+            public ImportOptionsBuilder validateReferences(boolean validateReferences) {
+                this.validateReferences = validateReferences;
+                return this;
+            }
+            
+            public ImportOptionsBuilder activateAfterImport(boolean activateAfterImport) {
+                this.activateAfterImport = activateAfterImport;
+                return this;
+            }
+            
+            public ImportOptionsBuilder conflictStrategy(ConflictStrategy conflictStrategy) {
+                this.conflictStrategy = conflictStrategy;
+                return this;
+            }
+            
+            public ImportOptionsBuilder targetBusinessComponentId(String targetBusinessComponentId) {
+                this.targetBusinessComponentId = targetBusinessComponentId;
+                return this;
+            }
+            
+            public ImportOptionsBuilder namePrefix(String namePrefix) {
+                this.namePrefix = namePrefix;
+                return this;
+            }
+            
+            public ImportOptionsBuilder nameSuffix(String nameSuffix) {
+                this.nameSuffix = nameSuffix;
+                return this;
+            }
+            
+            public ImportOptions build() {
+                ImportOptions options = new ImportOptions();
+                options.importBusinessComponent = this.importBusinessComponent;
+                options.importAdapters = this.importAdapters;
+                options.importCertificateReferences = this.importCertificateReferences;
+                options.validateReferences = this.validateReferences;
+                options.activateAfterImport = this.activateAfterImport;
+                options.conflictStrategy = this.conflictStrategy;
+                options.targetBusinessComponentId = this.targetBusinessComponentId;
+                options.namePrefix = this.namePrefix;
+                options.nameSuffix = this.nameSuffix;
+                return options;
+            }
+        }
     }
     
     /**
@@ -202,6 +290,7 @@ public class FlowImportRequestDTO {
         FAIL,        // Fail on any conflict
         SKIP,        // Skip conflicting items
         OVERWRITE,   // Overwrite existing items
-        RENAME       // Rename conflicting items
+        RENAME,      // Rename conflicting items
+        CREATE_NEW   // Create new item with new ID
     }
 }

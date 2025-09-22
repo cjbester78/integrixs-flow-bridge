@@ -22,8 +22,7 @@ import java.util.function.Function;
  * Saga Transaction Service for managing distributed transactions
  * Implements the Saga pattern for handling complex multi - step flows with compensation
  */
-@Service
-public class SagaTransactionService {
+public abstract class SagaTransactionService {
 
     private static final Logger logger = LoggerFactory.getLogger(SagaTransactionService.class);
 

@@ -1,8 +1,13 @@
 package com.integrixs.backend.service;
 
+import com.integrixs.backend.config.TrendAnalysisConfig;
 import com.integrixs.backend.dto.dashboard.*;
 import com.integrixs.backend.dto.dashboard.trend.*;
-import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -10,6 +15,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -20,9 +26,18 @@ public class HistoricalTrendService {
 
     private final MeterRegistry meterRegistry;
     private final PerformanceDashboardService dashboardService;
+    private final TrendAnalysisConfig trendConfig;
 
     // Time series data storage(in production, use time - series DB)
     private final Map<String, List<TimeSeriesDataPoint>> timeSeriesData = new ConcurrentHashMap<>();
+
+    public HistoricalTrendService(MeterRegistry meterRegistry, 
+                                  PerformanceDashboardService dashboardService,
+                                  TrendAnalysisConfig trendConfig) {
+        this.meterRegistry = meterRegistry;
+        this.dashboardService = dashboardService;
+        this.trendConfig = trendConfig;
+    }
 
     /**
      * Get trend analysis for a specific metric.
@@ -313,10 +328,10 @@ public class HistoricalTrendService {
     private List<Anomaly> detectAnomalies(List<TimeSeriesDataPoint> dataPoints) {
         List<Anomaly> anomalies = new ArrayList<>();
 
-        if(dataPoints.size() < 10) return anomalies;
+        if(dataPoints.size() < trendConfig.getTemporal().getMinDataPoints()) return anomalies;
 
         // Calculate moving average and standard deviation
-        int windowSize = Math.min(20, dataPoints.size() / 5);
+        int windowSize = Math.min(trendConfig.getAnomaly().getDetectionWindowSize(), dataPoints.size() / 5);
 
         for(int i = windowSize; i < dataPoints.size(); i++) {
             // Calculate stats for window
@@ -335,13 +350,13 @@ public class HistoricalTrendService {
             TimeSeriesDataPoint current = dataPoints.get(i);
             double deviation = Math.abs(current.getValue() - mean);
 
-            if(deviation > 3 * stdDev) {
+            if(deviation > trendConfig.getAnomaly().getSigmaThreshold() * stdDev) {
                 Anomaly anomaly = new Anomaly();
                 anomaly.setTimestamp(current.getTimestamp());
                 anomaly.setValue(current.getValue());
                 anomaly.setExpectedValue(mean);
                 anomaly.setDeviation(deviation / stdDev);
-                anomaly.setSeverity(deviation > 4 * stdDev ? "HIGH" : "MEDIUM");
+                anomaly.setSeverity(deviation > trendConfig.getAnomaly().getHighSeveritySigma() * stdDev ? "HIGH" : "MEDIUM");
 
                 anomalies.add(anomaly);
             }
@@ -356,11 +371,11 @@ public class HistoricalTrendService {
     private List<Prediction> makePredictions(List<TimeSeriesDataPoint> dataPoints) {
         List<Prediction> predictions = new ArrayList<>();
 
-        if(dataPoints.size() < 10) return predictions;
+        if(dataPoints.size() < trendConfig.getTemporal().getMinDataPoints()) return predictions;
 
         // Simple moving average prediction
-        int periods = 5; // Predict next 5 periods
-        int maWindow = Math.min(10, dataPoints.size() / 2);
+        int periods = trendConfig.getPrediction().getPeriodsAhead();
+        int maWindow = Math.min(trendConfig.getPrediction().getMovingAverageWindow(), dataPoints.size() / 2);
 
         double movingAvg = dataPoints.subList(dataPoints.size() - maWindow, dataPoints.size())
             .stream()
@@ -424,7 +439,7 @@ public class HistoricalTrendService {
 
             if(otherData.size() == baseData.size()) {
                 double correlation = calculateCorrelation(baseData, otherData);
-                if(Math.abs(correlation) > 0.5) { // Only include significant correlations
+                if(Math.abs(correlation) > trendConfig.getCorrelation().getMinThreshold()) {
                     correlations.put(metric, correlation);
                 }
             }
@@ -548,7 +563,7 @@ public class HistoricalTrendService {
         // Identify outliers(2 sigma rule)
         for(Map.Entry<String, ComponentStats> entry : componentStats.entrySet()) {
             double deviation = Math.abs(entry.getValue().getMean() - overallMean);
-            if(deviation > 2 * overallStdDev) {
+            if(deviation > trendConfig.getVarianceOutlier().getSigmaThreshold() * overallStdDev) {
                 outliers.add(entry.getKey());
             }
         }
@@ -648,7 +663,7 @@ public class HistoricalTrendService {
             projection.setCurrentUsage(currentValue);
             projection.setProjectedUsage(projectedValue);
             projection.setDaysUntilCapacity(estimateDaysUntilCapacity(currentValue, growthRate));
-            projection.setConfidence(0.7); // Medium confidence for simple projection
+            projection.setConfidence(trendConfig.getCapacity().getProjectionConfidence());
         }
 
         return projection;
@@ -664,9 +679,9 @@ public class HistoricalTrendService {
         // Estimate based on log growth
         // In production, would query actual storage metrics
         projection.setCurrentUsage(1024); // 1GB estimate
-        projection.setProjectedUsage(1024 * (1 + daysAhead * 0.01)); // 1% daily growth
+        projection.setProjectedUsage(1024 * (1 + daysAhead * trendConfig.getCapacity().getStorageDailyGrowth()));
         projection.setDaysUntilCapacity(365); // Rough estimate
-        projection.setConfidence(0.5);
+        projection.setConfidence(trendConfig.getCapacity().getProjectionConfidence() * 0.7);
 
         return projection;
     }
@@ -677,7 +692,7 @@ public class HistoricalTrendService {
     private int estimateDaysUntilCapacity(double currentUsage, double dailyGrowthRate) {
         if(dailyGrowthRate <= 0) return Integer.MAX_VALUE;
 
-        double capacityLimit = 0.9; // 90% is considered full
+        double capacityLimit = trendConfig.getCapacity().getLimitPercentage();
         double currentUtilization = currentUsage; // Assume current is percentage
 
         if(currentUtilization >= capacityLimit) return 0;
@@ -724,11 +739,11 @@ public class HistoricalTrendService {
         double growthRate = calculateGrowthRate(data);
         pattern.setGrowthRate(growthRate);
 
-        if(Math.abs(growthRate) < 5) {
+        if(Math.abs(growthRate) < trendConfig.getGrowthPattern().getStableThreshold()) {
             pattern.setType("STABLE");
-        } else if(growthRate > 50) {
+        } else if(growthRate > trendConfig.getGrowthPattern().getExponentialThreshold()) {
             pattern.setType("EXPONENTIAL");
-        } else if(growthRate > 20) {
+        } else if(growthRate > trendConfig.getGrowthPattern().getRapidLinearThreshold()) {
             pattern.setType("RAPID_LINEAR");
         } else if(growthRate > 0) {
             pattern.setType("GRADUAL_LINEAR");
@@ -844,7 +859,7 @@ public class HistoricalTrendService {
             .average()
             .orElse(0));
 
-        double peakThreshold = mean + 2 * stdDev;
+        double peakThreshold = mean + trendConfig.getPeakDetection().getSigmaMultiplier() * stdDev;
 
         // Find continuous periods above threshold
         boolean inPeak = false;
@@ -877,7 +892,7 @@ public class HistoricalTrendService {
      * Calculate seasonality score.
      */
     private double calculateSeasonality(List<TimeSeriesDataPoint> data) {
-        if(data.size() < 24 * 7) return 0; // Need at least a week of hourly data
+        if(data.size() < trendConfig.getTemporal().getSeasonalityMinHours()) return 0;
 
         // Simple seasonality detection using autocorrelation
         double[] values = data.stream().mapToDouble(TimeSeriesDataPoint::getValue).toArray();

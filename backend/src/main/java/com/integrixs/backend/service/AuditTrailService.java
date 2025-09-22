@@ -26,6 +26,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -220,9 +221,9 @@ public class AuditTrailService {
         if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             try {
                 String username = auth.getName();
-                User user = userRepository.findByUsername(username);
-                if(user != null) {
-                    audit.setUser(user);
+                Optional<User> userOpt = userRepository.findByUsername(username);
+                if(userOpt.isPresent()) {
+                    audit.setUser(userOpt.get());
                 } else {
                     log.warn("Could not find user with username: {}", username);
                 }

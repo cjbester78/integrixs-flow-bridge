@@ -8,6 +8,11 @@ public class CriticalPath {
     private double totalDuration;
     private double criticality;
     private List<String> bottlenecks;
+    private String fromComponent;
+    private String toComponent;
+    private int trafficVolume;
+    private double averageLatency;
+    private double errorRate;
 
     // Default constructor
     public CriticalPath() {
@@ -43,5 +48,45 @@ public class CriticalPath {
 
     public void setBottlenecks(List<String> bottlenecks) {
         this.bottlenecks = bottlenecks;
+    }
+    
+    public String getFromComponent() {
+        return fromComponent;
+    }
+    
+    public void setFromComponent(String fromComponent) {
+        this.fromComponent = fromComponent;
+    }
+    
+    public String getToComponent() {
+        return toComponent;
+    }
+    
+    public void setToComponent(String toComponent) {
+        this.toComponent = toComponent;
+    }
+    
+    public int getTrafficVolume() {
+        return trafficVolume;
+    }
+    
+    public void setTrafficVolume(int trafficVolume) {
+        this.trafficVolume = trafficVolume;
+    }
+    
+    public double getAverageLatency() {
+        return averageLatency;
+    }
+    
+    public void setAverageLatency(double averageLatency) {
+        this.averageLatency = averageLatency;
+    }
+    
+    public double getErrorRate() {
+        return errorRate;
+    }
+    
+    public void setErrorRate(double errorRate) {
+        this.errorRate = errorRate;
     }
 }

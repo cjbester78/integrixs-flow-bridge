@@ -65,14 +65,12 @@ public class TemplateInstallation extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        super.prePersist();
         installedAt = LocalDateTime.now();
         lastUsedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        super.preUpdate();
         updatedAt = LocalDateTime.now();
     }
 
@@ -182,5 +180,27 @@ public class TemplateInstallation extends BaseEntity {
 
     public void setUninstallReason(String uninstallReason) {
         this.uninstallReason = uninstallReason;
+    }
+    
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
+    
+    public void setConfiguration(Map<String, Object> configuration) {
+        // Convert Map<String, Object> to Map<String, String> for storage
+        this.configuration.clear();
+        if (configuration != null) {
+            for (Map.Entry<String, Object> entry : configuration.entrySet()) {
+                this.configuration.put(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+        }
+    }
+    
+    public LocalDateTime getLastUpdated() {
+        return updatedAt;
+    }
+    
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.updatedAt = lastUpdated;
     }
 }

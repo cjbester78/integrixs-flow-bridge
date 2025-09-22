@@ -16,6 +16,8 @@ public class CriticalIssue {
     private String status;
     private String recommendedAction;
     private Object details;
+    private String adapterId;
+    private String adapterName;
     
     public CriticalIssue() {
     }
@@ -114,5 +116,21 @@ public class CriticalIssue {
     
     public void setDetails(Object details) {
         this.details = details;
+    }
+    
+    public String getAdapterId() {
+        return adapterId;
+    }
+    
+    public void setAdapterId(String adapterId) {
+        this.adapterId = adapterId;
+    }
+    
+    public String getAdapterName() {
+        return adapterName;
+    }
+    
+    public void setAdapterName(String adapterName) {
+        this.adapterName = adapterName;
     }
 }

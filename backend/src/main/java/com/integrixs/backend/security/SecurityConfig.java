@@ -69,7 +69,7 @@ public class SecurityConfig {
                                          UserContextFilter userContextFilter,
                                          CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
                                          CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
-        return http
+        http
                 // CORS configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
@@ -83,8 +83,8 @@ public class SecurityConfig {
                     .contentTypeOptions(content -> content.disable())
                     .referrerPolicy(referrer ->
                         referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                    .permissionsPolicy(permissions ->
-                        permissions.policy("camera = (), microphone = (), geolocation = ()"))
+                    .addHeaderWriter((request, response) -> 
+                        response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"))
                )
 
                 // Authorization rules
@@ -151,22 +151,21 @@ public class SecurityConfig {
                 // Session management
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-                // Add IP whitelist filter if enabled
+                // Add filters
                 if(ipWhitelistFilter != null) {
                     http.addFilterBefore(ipWhitelistFilter, UsernamePasswordAuthenticationFilter.class);
                 }
 
-                // JWT filter
-                http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-
-                // UserContext filter(after JWT authentication)
-                .addFilterAfter(userContextFilter, JwtAuthFilter.class)
-
-                // Exception handling
-                .exceptionHandling(exceptions -> exceptions
-                    .authenticationEntryPoint(customAuthenticationEntryPoint)
-                    .accessDeniedHandler(customAccessDeniedHandler)
-               );
+                http
+                    // JWT filter
+                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                    // UserContext filter(after JWT authentication)
+                    .addFilterAfter(userContextFilter, JwtAuthFilter.class)
+                    // Exception handling
+                    .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                   );
 
                 return http.build();
     }

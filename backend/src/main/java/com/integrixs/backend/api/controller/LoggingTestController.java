@@ -25,6 +25,10 @@ public class LoggingTestController {
 
     private final EnhancedFlowExecutionLogger flowLogger;
 
+    public LoggingTestController(EnhancedFlowExecutionLogger flowLogger) {
+        this.flowLogger = flowLogger;
+    }
+
     @GetMapping("/test - business - operation")
     @BusinessOperation(value = "TEST.OPERATION", module = "TestModule", includeMetrics = true)
     public ResponseEntity<Map<String, String>> testBusinessOperation() {

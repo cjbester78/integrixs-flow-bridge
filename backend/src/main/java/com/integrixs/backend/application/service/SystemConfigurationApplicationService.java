@@ -28,7 +28,15 @@ public class SystemConfigurationApplicationService {
 
     private final ConfigurationManagementService configurationService;
     private final AuditTrailService auditTrailService;
-    private final com.integrixs.backend.domain.repository.SystemConfigurationRepository systemConfigurationRepository;
+    private final com.integrixs.data.repository.SystemConfigurationRepository systemConfigurationRepository;
+
+    public SystemConfigurationApplicationService(ConfigurationManagementService configurationService,
+                                               AuditTrailService auditTrailService,
+                                               com.integrixs.data.repository.SystemConfigurationRepository systemConfigurationRepository) {
+        this.configurationService = configurationService;
+        this.auditTrailService = auditTrailService;
+        this.systemConfigurationRepository = systemConfigurationRepository;
+    }
 
     /**
      * Get all system configurations

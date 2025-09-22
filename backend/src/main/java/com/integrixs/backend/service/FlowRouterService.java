@@ -534,7 +534,7 @@ public class FlowRouterService {
     private List<Object> splitByDelimiter(Object payload, String delimiter) {
         if(!(payload instanceof String)) return Collections.emptyList();
 
-        return Arrays.asList(((String) payload).split(delimiter));
+        return Arrays.asList((Object[]) ((String) payload).split(delimiter));
     }
 
     private List<Object> splitByLine(Object payload) {

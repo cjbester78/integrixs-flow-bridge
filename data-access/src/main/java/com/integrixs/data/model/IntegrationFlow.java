@@ -56,6 +56,12 @@ public class IntegrationFlow {
     @Column(columnDefinition = "TEXT")
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
+    
+    /**
+     * Tenant ID for multi-tenancy support
+     */
+    @Column(name = "tenant_id")
+    private UUID tenantId;
 
     /**
      * Source adapter ID(sender - receives data FROM external systems)
@@ -317,6 +323,14 @@ public class IntegrationFlow {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public UUID getTenantId() {
+        return tenantId;
+    }
+    
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
     }
 
     public UUID getInboundAdapterId() {

@@ -47,6 +47,13 @@ public class AdapterHealthDetails {
     private Map<String, Object> metrics;
     private Map<String, String> metadata;
     
+    // Additional fields for the service
+    private LocalDateTime timestamp;
+    private Map<String, Object> performanceMetrics;
+    private Map<String, Object> resourceMetrics;
+    private Map<String, Object> errorMetrics;
+    private List<DiagnosticResult> diagnostics;
+    
     public AdapterHealthDetails() {
     }
     
@@ -289,5 +296,45 @@ public class AdapterHealthDetails {
     
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+    
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+    
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+    
+    public Map<String, Object> getPerformanceMetrics() {
+        return performanceMetrics;
+    }
+    
+    public void setPerformanceMetrics(Map<String, Object> performanceMetrics) {
+        this.performanceMetrics = performanceMetrics;
+    }
+    
+    public Map<String, Object> getResourceMetrics() {
+        return resourceMetrics;
+    }
+    
+    public void setResourceMetrics(Map<String, Object> resourceMetrics) {
+        this.resourceMetrics = resourceMetrics;
+    }
+    
+    public Map<String, Object> getErrorMetrics() {
+        return errorMetrics;
+    }
+    
+    public void setErrorMetrics(Map<String, Object> errorMetrics) {
+        this.errorMetrics = errorMetrics;
+    }
+    
+    public List<DiagnosticResult> getDiagnostics() {
+        return diagnostics;
+    }
+    
+    public void setDiagnostics(List<DiagnosticResult> diagnostics) {
+        this.diagnostics = diagnostics;
     }
 }

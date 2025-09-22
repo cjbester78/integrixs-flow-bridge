@@ -49,4 +49,20 @@ public class RegressionAnalysis {
     public void setPredictedValues(List<Double> predictedValues) {
         this.predictedValues = predictedValues;
     }
+
+    public Map<String, Double> getCoefficients() {
+        return coefficients;
+    }
+
+    public void setCoefficients(Map<String, Double> coefficients) {
+        this.coefficients = coefficients;
+    }
+
+    public Map<String, Double> getPValues() {
+        return pValues;
+    }
+
+    public void setPValues(Map<String, Double> pValues) {
+        this.pValues = pValues;
+    }
 }

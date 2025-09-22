@@ -12,6 +12,18 @@ public class ValidationResult {
     private List<String> errors;
     private List<String> warnings;
 
+    // Constructor
+    public ValidationResult() {
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
+    }
+
+    public ValidationResult(boolean valid, List<String> errors, List<String> warnings) {
+        this.valid = valid;
+        this.errors = errors != null ? errors : new ArrayList<>();
+        this.warnings = warnings != null ? warnings : new ArrayList<>();
+    }
+
     /**
      * Create a successful validation result
      */
@@ -40,5 +52,30 @@ public class ValidationResult {
         List<String> errors = new ArrayList<>();
         errors.add(error);
         return new ValidationResult(false, errors, new ArrayList<>());
+    }
+
+    // Getters and Setters
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings;
     }
 }

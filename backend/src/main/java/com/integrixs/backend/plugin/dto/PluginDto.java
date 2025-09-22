@@ -1,6 +1,7 @@
 package com.integrixs.backend.plugin.dto;
 
 import com.integrixs.backend.plugin.api.AdapterMetadata;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,8 @@ public class PluginDto {
                 .supportedProtocols(metadata.getSupportedProtocols())
                 .supportedFormats(metadata.getSupportedFormats())
                 .authenticationMethods(metadata.getAuthenticationMethods())
-                .capabilities(metadata.getCapabilities())
+                .capabilities(metadata.getCapabilities() != null ? 
+                    new HashMap<>(metadata.getCapabilities()) : null)
                 .documentationUrl(metadata.getDocumentationUrl())
                 .license(metadata.getLicense())
                 .tags(metadata.getTags())
@@ -148,5 +150,124 @@ public class PluginDto {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public Map<String, Object> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(Map<String, Object> capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    // Builder pattern
+    public static PluginDtoBuilder builder() {
+        return new PluginDtoBuilder();
+    }
+
+    public static class PluginDtoBuilder {
+        private String id;
+        private String name;
+        private String version;
+        private String vendor;
+        private String description;
+        private String icon;
+        private String category;
+        private List<String> supportedProtocols;
+        private List<String> supportedFormats;
+        private List<String> authenticationMethods;
+        private Map<String, Object> capabilities;
+        private String documentationUrl;
+        private String license;
+        private List<String> tags;
+
+        public PluginDtoBuilder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public PluginDtoBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public PluginDtoBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public PluginDtoBuilder vendor(String vendor) {
+            this.vendor = vendor;
+            return this;
+        }
+
+        public PluginDtoBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public PluginDtoBuilder icon(String icon) {
+            this.icon = icon;
+            return this;
+        }
+
+        public PluginDtoBuilder category(String category) {
+            this.category = category;
+            return this;
+        }
+
+        public PluginDtoBuilder supportedProtocols(List<String> supportedProtocols) {
+            this.supportedProtocols = supportedProtocols;
+            return this;
+        }
+
+        public PluginDtoBuilder supportedFormats(List<String> supportedFormats) {
+            this.supportedFormats = supportedFormats;
+            return this;
+        }
+
+        public PluginDtoBuilder authenticationMethods(List<String> authenticationMethods) {
+            this.authenticationMethods = authenticationMethods;
+            return this;
+        }
+
+        public PluginDtoBuilder capabilities(Map<String, Object> capabilities) {
+            this.capabilities = capabilities;
+            return this;
+        }
+
+        public PluginDtoBuilder documentationUrl(String documentationUrl) {
+            this.documentationUrl = documentationUrl;
+            return this;
+        }
+
+        public PluginDtoBuilder license(String license) {
+            this.license = license;
+            return this;
+        }
+
+        public PluginDtoBuilder tags(List<String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public PluginDto build() {
+            PluginDto dto = new PluginDto();
+            dto.id = this.id;
+            dto.name = this.name;
+            dto.version = this.version;
+            dto.vendor = this.vendor;
+            dto.description = this.description;
+            dto.icon = this.icon;
+            dto.category = this.category;
+            dto.supportedProtocols = this.supportedProtocols;
+            dto.supportedFormats = this.supportedFormats;
+            dto.authenticationMethods = this.authenticationMethods;
+            dto.capabilities = this.capabilities;
+            dto.documentationUrl = this.documentationUrl;
+            dto.license = this.license;
+            dto.tags = this.tags;
+            return dto;
+        }
     }
 }

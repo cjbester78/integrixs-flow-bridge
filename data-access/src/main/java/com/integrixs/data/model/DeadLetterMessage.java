@@ -71,6 +71,12 @@ public class DeadLetterMessage extends BaseEntity {
 
     @Column(name = "target_system")
     private String targetSystem;
+    
+    @Column(name = "retry_message_id")
+    private String retryMessageId;
+    
+    @Column(name = "failed_at")
+    private LocalDateTime failedAt;
 
     // Getters and setters
 
@@ -261,7 +267,8 @@ public class DeadLetterMessage extends BaseEntity {
         REPROCESSED,
         RETRIED,
         FAILED,
-        EXPIRED
+        EXPIRED,
+        RESOLVED
     }
 
     @Column(name = "status")
@@ -274,5 +281,67 @@ public class DeadLetterMessage extends BaseEntity {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+    
+    // Additional methods for DeadLetterQueueService compatibility
+    public void setErrorMessage(String errorMessage) {
+        this.errorDetails = errorMessage;
+    }
+    
+    public String getErrorMessage() {
+        return this.errorDetails;
+    }
+    
+    public void setErrorStackTrace(String errorStackTrace) {
+        // Store stack trace as part of error details
+        if (this.errorDetails == null || this.errorDetails.isEmpty()) {
+            this.errorDetails = errorStackTrace;
+        } else {
+            this.errorDetails = this.errorDetails + "\n\nStack Trace:\n" + errorStackTrace;
+        }
+    }
+    
+    public String getErrorStackTrace() {
+        // Extract stack trace from error details if present
+        if (this.errorDetails != null && this.errorDetails.contains("Stack Trace:")) {
+            int index = this.errorDetails.indexOf("Stack Trace:");
+            return this.errorDetails.substring(index);
+        }
+        return null;
+    }
+    
+    public void setOriginalReceivedAt(LocalDateTime originalReceivedAt) {
+        // Store as part of queuedAt if not already set
+        if (this.queuedAt == null) {
+            this.queuedAt = originalReceivedAt;
+        }
+    }
+    
+    public LocalDateTime getOriginalReceivedAt() {
+        return this.queuedAt;
+    }
+    
+    public void setErrorType(ErrorRecord.ErrorType errorType) {
+        this.lastErrorType = errorType;
+    }
+    
+    public ErrorRecord.ErrorType getErrorType() {
+        return this.lastErrorType;
+    }
+    
+    public String getRetryMessageId() {
+        return retryMessageId;
+    }
+    
+    public void setRetryMessageId(String retryMessageId) {
+        this.retryMessageId = retryMessageId;
+    }
+    
+    public LocalDateTime getFailedAt() {
+        return failedAt;
+    }
+    
+    public void setFailedAt(LocalDateTime failedAt) {
+        this.failedAt = failedAt;
     }
 }

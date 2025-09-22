@@ -7,6 +7,10 @@ public class FlowExecutionData {
     private UUID flowId;
     private String flowName;
     private LocalDateTime executionTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String correlationId;
+    private int componentCount;
     private long duration;
     private boolean success;
     private String status;
@@ -39,6 +43,38 @@ public class FlowExecutionData {
 
     public void setExecutionTime(LocalDateTime executionTime) {
         this.executionTime = executionTime;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
+    public int getComponentCount() {
+        return componentCount;
+    }
+
+    public void setComponentCount(int componentCount) {
+        this.componentCount = componentCount;
     }
 
     public long getDuration() {

@@ -2,9 +2,9 @@ package com.integrixs.backend.api.controller;
 
 import com.integrixs.backend.api.dto.response.DeploymentInfoResponse;
 import com.integrixs.backend.application.service.FlowDeploymentApplicationService;
-import com.integrixs.backend.domain.repository.UserRepository;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
+import com.integrixs.data.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -30,6 +30,12 @@ public class FlowDeploymentController {
 
     private final FlowDeploymentApplicationService deploymentService;
     private final UserRepository userRepository;
+
+    public FlowDeploymentController(FlowDeploymentApplicationService deploymentService,
+                                   UserRepository userRepository) {
+        this.deploymentService = deploymentService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Deploy a flow

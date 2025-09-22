@@ -34,6 +34,10 @@ public class OrchestrationController {
 
     private final OrchestrationApplicationService orchestrationApplicationService;
 
+    public OrchestrationController(OrchestrationApplicationService orchestrationApplicationService) {
+        this.orchestrationApplicationService = orchestrationApplicationService;
+    }
+
     /**
      * Execute an orchestration flow synchronously
      */

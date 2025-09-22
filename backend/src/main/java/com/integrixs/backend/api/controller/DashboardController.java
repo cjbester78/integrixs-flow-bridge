@@ -25,6 +25,10 @@ public class DashboardController {
 
     private final DashboardApplicationService dashboardService;
 
+    public DashboardController(DashboardApplicationService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
+
     /**
      * Get dashboard statistics
      */

@@ -72,4 +72,52 @@ public class UploadResultDto {
     public void setError(String error) {
         this.error = error;
     }
+
+    // Builder pattern
+    public static UploadResultDtoBuilder builder() {
+        return new UploadResultDtoBuilder();
+    }
+
+    public static class UploadResultDtoBuilder {
+        private boolean successful;
+        private String pluginId;
+        private AdapterMetadata metadata;
+        private List<String> warnings;
+        private String error;
+
+        public UploadResultDtoBuilder successful(boolean successful) {
+            this.successful = successful;
+            return this;
+        }
+
+        public UploadResultDtoBuilder pluginId(String pluginId) {
+            this.pluginId = pluginId;
+            return this;
+        }
+
+        public UploadResultDtoBuilder metadata(AdapterMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public UploadResultDtoBuilder warnings(List<String> warnings) {
+            this.warnings = warnings;
+            return this;
+        }
+
+        public UploadResultDtoBuilder error(String error) {
+            this.error = error;
+            return this;
+        }
+
+        public UploadResultDto build() {
+            UploadResultDto dto = new UploadResultDto();
+            dto.successful = this.successful;
+            dto.pluginId = this.pluginId;
+            dto.metadata = this.metadata;
+            dto.warnings = this.warnings;
+            dto.error = this.error;
+            return dto;
+        }
+    }
 }

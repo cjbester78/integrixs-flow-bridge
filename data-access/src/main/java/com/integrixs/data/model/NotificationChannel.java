@@ -217,6 +217,19 @@ public class NotificationChannel extends BaseEntity {
     public void setLastTestMessage(String lastTestMessage) {
         this.lastTestMessage = lastTestMessage;
     }
+    
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
+    
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
+    
+    // Alias for updatedAt from BaseEntity
+    public void setModifiedAt(LocalDateTime modifiedAt) {
+        this.setUpdatedAt(modifiedAt);
+    }
 
     // Builder
     public static NotificationChannelBuilder builder() {

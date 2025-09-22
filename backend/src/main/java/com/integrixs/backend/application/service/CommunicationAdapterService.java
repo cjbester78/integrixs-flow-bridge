@@ -7,7 +7,7 @@ import com.integrixs.backend.annotation.AuditUpdate;
 import com.integrixs.backend.api.dto.request.CreateAdapterRequest;
 import com.integrixs.backend.api.dto.request.UpdateAdapterRequest;
 import com.integrixs.backend.api.dto.response.AdapterResponse;
-import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.backend.domain.service.AdapterConfigurationService;
 import com.integrixs.backend.domain.service.AdapterValidationService;
 import com.integrixs.backend.service.AuditTrailService;
@@ -44,6 +44,20 @@ public class CommunicationAdapterService {
     private final AuditTrailService auditTrailService;
     private final BusinessComponentRepository businessComponentRepository;
     private final ExternalAuthenticationRepository externalAuthRepository;
+
+    public CommunicationAdapterService(CommunicationAdapterRepository adapterRepository,
+                                       AdapterValidationService validationService,
+                                       AdapterConfigurationService configurationService,
+                                       AuditTrailService auditTrailService,
+                                       BusinessComponentRepository businessComponentRepository,
+                                       ExternalAuthenticationRepository externalAuthRepository) {
+        this.adapterRepository = adapterRepository;
+        this.validationService = validationService;
+        this.configurationService = configurationService;
+        this.auditTrailService = auditTrailService;
+        this.businessComponentRepository = businessComponentRepository;
+        this.externalAuthRepository = externalAuthRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<AdapterResponse> getAllAdapters() {

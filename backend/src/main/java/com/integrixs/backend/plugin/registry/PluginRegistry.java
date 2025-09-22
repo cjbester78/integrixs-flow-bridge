@@ -133,4 +133,27 @@ public class PluginRegistry {
 
         logger.info("Unregistered plugin: {}", pluginId);
     }
+    
+    /**
+     * Register a plugin using descriptor
+     */
+    public void registerPlugin(PluginDescriptor descriptor) throws ClassNotFoundException {
+        if (descriptor.getMetadata() == null) {
+            throw new PluginRegistrationException("Plugin descriptor must have metadata");
+        }
+        
+        try {
+            Class<?> clazz = Class.forName(descriptor.getPluginClass());
+            if (!AdapterPlugin.class.isAssignableFrom(clazz)) {
+                throw new PluginRegistrationException("Plugin class must implement AdapterPlugin interface");
+            }
+            
+            @SuppressWarnings("unchecked")
+            Class<? extends AdapterPlugin> pluginClass = (Class<? extends AdapterPlugin>) clazz;
+            
+            registerPlugin(pluginClass, descriptor.getMetadata());
+        } catch (ClassNotFoundException e) {
+            throw new ClassNotFoundException("Plugin class not found: " + descriptor.getPluginClass(), e);
+        }
+    }
 }

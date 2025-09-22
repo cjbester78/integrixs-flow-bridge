@@ -16,6 +16,12 @@ public class ErrorPropagationHeatmap {
     private Long totalErrors;
     private Map<String, Long> errorsByType;
     private Map<String, Double> propagationRates;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private List<List<String>> propagationPaths;
+    private double[][] errorDensityGrid;
+    private List<Map<String, Object>> errorHotspots;
+    private Map<String, Double> componentErrorImpact;
     
     // Inner classes
     public static class ErrorNode {
@@ -304,5 +310,53 @@ public class ErrorPropagationHeatmap {
 
     public void setPropagationRates(Map<String, Double> propagationRates) {
         this.propagationRates = propagationRates;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public List<List<String>> getPropagationPaths() {
+        return propagationPaths;
+    }
+
+    public void setPropagationPaths(List<List<String>> propagationPaths) {
+        this.propagationPaths = propagationPaths;
+    }
+
+    public double[][] getErrorDensityGrid() {
+        return errorDensityGrid;
+    }
+
+    public void setErrorDensityGrid(double[][] errorDensityGrid) {
+        this.errorDensityGrid = errorDensityGrid;
+    }
+
+    public List<Map<String, Object>> getErrorHotspots() {
+        return errorHotspots;
+    }
+
+    public void setErrorHotspots(List<Map<String, Object>> errorHotspots) {
+        this.errorHotspots = errorHotspots;
+    }
+
+    public Map<String, Double> getComponentErrorImpact() {
+        return componentErrorImpact;
+    }
+
+    public void setComponentErrorImpact(Map<String, Double> componentErrorImpact) {
+        this.componentErrorImpact = componentErrorImpact;
     }
 }

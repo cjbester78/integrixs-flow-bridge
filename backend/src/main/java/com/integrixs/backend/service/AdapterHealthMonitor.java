@@ -31,7 +31,6 @@ import javax.sql.DataSource;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import javax.xml.namespace.QName;
 import jakarta.xml.soap.*;
-import jakarta.xml.ws.Service;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
@@ -478,7 +477,7 @@ public class AdapterHealthMonitor {
             if(adapter.getType() == AdapterType.SFTP) {
                 // SFTP health check
                 JSch jsch = new JSch();
-                Session session = null;
+                com.jcraft.jsch.Session session = null;
                 ChannelSftp channelSftp = null;
 
                 try {
@@ -607,8 +606,6 @@ public class AdapterHealthMonitor {
                 } else {
                     // IBM MQ would be configured here with MQConnectionFactory
                     return HealthCheckResult.healthy(
-                        String.format("IBM MQ configuration valid - Host: %s, QM: %s, Channel: %s",
-                            host, queueManager, channel),
                         System.currentTimeMillis() - startTime
                    );
                 }
@@ -626,7 +623,7 @@ public class AdapterHealthMonitor {
                 connection = connectionFactory.createConnection();
                 connection.start();
 
-                session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+                session = connection.createSession(false, jakarta.jms.Session.AUTO_ACKNOWLEDGE);
 
                 // Try to create destination to verify connectivity
                 if(destinationName != null) {

@@ -38,6 +38,18 @@ public class FlowExecutionMonitoringService {
 
     // In - memory storage(in production, these would be persisted)
     private final Map<String, ExecutionTrace> activeTraces = new ConcurrentHashMap<>();
+
+    public FlowExecutionMonitoringService(ExecutionTraceManager traceManager,
+                                        ExecutionMetricsCalculator metricsCalculator,
+                                        FlowExecutionWebSocketService webSocketService,
+                                        AlertNotificationService alertService,
+                                        IntegrationFlowRepository flowRepository) {
+        this.traceManager = traceManager;
+        this.metricsCalculator = metricsCalculator;
+        this.webSocketService = webSocketService;
+        this.alertService = alertService;
+        this.flowRepository = flowRepository;
+    }
     private final Map<String, List<ExecutionTrace>> executionHistory = new ConcurrentHashMap<>();
     private final Map<String, PerformanceMetrics> flowMetrics = new ConcurrentHashMap<>();
 

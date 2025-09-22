@@ -1,7 +1,7 @@
 package com.integrixs.engine.service;
 
 import com.integrixs.adapters.core.AdapterResult;
-import com.integrixs.shared.exception.AdapterException;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.adapters.config.FileInboundAdapterConfig;
 import com.integrixs.adapters.config.FileOutboundAdapterConfig;
 

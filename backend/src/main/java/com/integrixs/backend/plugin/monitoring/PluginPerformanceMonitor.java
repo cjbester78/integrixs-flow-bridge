@@ -35,6 +35,11 @@ public class PluginPerformanceMonitor {
     private static final int HISTORY_SIZE = 1000;
     private static final Duration AGGREGATION_WINDOW = Duration.ofMinutes(5);
 
+    // Constructor
+    public PluginPerformanceMonitor(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
     /**
      * Record message processing
      */
@@ -351,6 +356,91 @@ public class PluginPerformanceMonitor {
                 maxProcessingTime = processingTime;
             }
         }
+
+        // Getters and Setters
+        public String getPluginId() {
+            return pluginId;
+        }
+
+        public AtomicLong getMessagesProcessed() {
+            return messagesProcessed;
+        }
+
+        public AtomicLong getSuccessfulMessages() {
+            return successfulMessages;
+        }
+
+        public AtomicLong getFailedMessages() {
+            return failedMessages;
+        }
+
+        public AtomicLong getTotalProcessingTime() {
+            return totalProcessingTime;
+        }
+
+        public AtomicLong getErrors() {
+            return errors;
+        }
+
+        public AtomicLong getSuccessfulConnectionTests() {
+            return successfulConnectionTests;
+        }
+
+        public AtomicLong getFailedConnectionTests() {
+            return failedConnectionTests;
+        }
+
+        public long getMinProcessingTime() {
+            return minProcessingTime;
+        }
+
+        public void setMinProcessingTime(long minProcessingTime) {
+            this.minProcessingTime = minProcessingTime;
+        }
+
+        public long getMaxProcessingTime() {
+            return maxProcessingTime;
+        }
+
+        public void setMaxProcessingTime(long maxProcessingTime) {
+            this.maxProcessingTime = maxProcessingTime;
+        }
+
+        public long getLastMemoryUsage() {
+            return lastMemoryUsage;
+        }
+
+        public void setLastMemoryUsage(long lastMemoryUsage) {
+            this.lastMemoryUsage = lastMemoryUsage;
+        }
+
+        public long getPeakMemoryUsage() {
+            return peakMemoryUsage;
+        }
+
+        public void setPeakMemoryUsage(long peakMemoryUsage) {
+            this.peakMemoryUsage = peakMemoryUsage;
+        }
+
+        public double getLastCpuUsage() {
+            return lastCpuUsage;
+        }
+
+        public void setLastCpuUsage(double lastCpuUsage) {
+            this.lastCpuUsage = lastCpuUsage;
+        }
+
+        public double getPeakCpuUsage() {
+            return peakCpuUsage;
+        }
+
+        public void setPeakCpuUsage(double peakCpuUsage) {
+            this.peakCpuUsage = peakCpuUsage;
+        }
+
+        public Map<String, Integer> getErrorCounts() {
+            return errorCounts;
+        }
     }
 
     /**
@@ -361,6 +451,29 @@ public class PluginPerformanceMonitor {
         private final long processingTimeMs;
         private final boolean success;
         private final String direction;
+
+        public PerformanceSample(Instant timestamp, long processingTimeMs, boolean success, String direction) {
+            this.timestamp = timestamp;
+            this.processingTimeMs = processingTimeMs;
+            this.success = success;
+            this.direction = direction;
+        }
+
+        public Instant getTimestamp() {
+            return timestamp;
+        }
+
+        public long getProcessingTimeMs() {
+            return processingTimeMs;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getDirection() {
+            return direction;
+        }
     }
 
     /**
@@ -380,6 +493,155 @@ public class PluginPerformanceMonitor {
         public static PerformanceStatistics empty() {
             return PerformanceStatistics.builder().build();
         }
+
+        // Getters and Setters
+        public long getSampleCount() {
+            return sampleCount;
+        }
+
+        public void setSampleCount(long sampleCount) {
+            this.sampleCount = sampleCount;
+        }
+
+        public long getSuccessCount() {
+            return successCount;
+        }
+
+        public void setSuccessCount(long successCount) {
+            this.successCount = successCount;
+        }
+
+        public double getSuccessRate() {
+            return successRate;
+        }
+
+        public void setSuccessRate(double successRate) {
+            this.successRate = successRate;
+        }
+
+        public double getAverageProcessingTime() {
+            return averageProcessingTime;
+        }
+
+        public void setAverageProcessingTime(double averageProcessingTime) {
+            this.averageProcessingTime = averageProcessingTime;
+        }
+
+        public long getMinProcessingTime() {
+            return minProcessingTime;
+        }
+
+        public void setMinProcessingTime(long minProcessingTime) {
+            this.minProcessingTime = minProcessingTime;
+        }
+
+        public long getMaxProcessingTime() {
+            return maxProcessingTime;
+        }
+
+        public void setMaxProcessingTime(long maxProcessingTime) {
+            this.maxProcessingTime = maxProcessingTime;
+        }
+
+        public long getP50ProcessingTime() {
+            return p50ProcessingTime;
+        }
+
+        public void setP50ProcessingTime(long p50ProcessingTime) {
+            this.p50ProcessingTime = p50ProcessingTime;
+        }
+
+        public long getP95ProcessingTime() {
+            return p95ProcessingTime;
+        }
+
+        public void setP95ProcessingTime(long p95ProcessingTime) {
+            this.p95ProcessingTime = p95ProcessingTime;
+        }
+
+        public long getP99ProcessingTime() {
+            return p99ProcessingTime;
+        }
+
+        public void setP99ProcessingTime(long p99ProcessingTime) {
+            this.p99ProcessingTime = p99ProcessingTime;
+        }
+
+        // Builder pattern
+        public static PerformanceStatisticsBuilder builder() {
+            return new PerformanceStatisticsBuilder();
+        }
+
+        public static class PerformanceStatisticsBuilder {
+            private long sampleCount;
+            private long successCount;
+            private double successRate;
+            private double averageProcessingTime;
+            private long minProcessingTime;
+            private long maxProcessingTime;
+            private long p50ProcessingTime;
+            private long p95ProcessingTime;
+            private long p99ProcessingTime;
+
+            public PerformanceStatisticsBuilder sampleCount(long sampleCount) {
+                this.sampleCount = sampleCount;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder successCount(long successCount) {
+                this.successCount = successCount;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder successRate(double successRate) {
+                this.successRate = successRate;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder averageProcessingTime(double averageProcessingTime) {
+                this.averageProcessingTime = averageProcessingTime;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder minProcessingTime(long minProcessingTime) {
+                this.minProcessingTime = minProcessingTime;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder maxProcessingTime(long maxProcessingTime) {
+                this.maxProcessingTime = maxProcessingTime;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder p50ProcessingTime(long p50ProcessingTime) {
+                this.p50ProcessingTime = p50ProcessingTime;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder p95ProcessingTime(long p95ProcessingTime) {
+                this.p95ProcessingTime = p95ProcessingTime;
+                return this;
+            }
+
+            public PerformanceStatisticsBuilder p99ProcessingTime(long p99ProcessingTime) {
+                this.p99ProcessingTime = p99ProcessingTime;
+                return this;
+            }
+
+            public PerformanceStatistics build() {
+                PerformanceStatistics stats = new PerformanceStatistics();
+                stats.sampleCount = this.sampleCount;
+                stats.successCount = this.successCount;
+                stats.successRate = this.successRate;
+                stats.averageProcessingTime = this.averageProcessingTime;
+                stats.minProcessingTime = this.minProcessingTime;
+                stats.maxProcessingTime = this.maxProcessingTime;
+                stats.p50ProcessingTime = this.p50ProcessingTime;
+                stats.p95ProcessingTime = this.p95ProcessingTime;
+                stats.p99ProcessingTime = this.p99ProcessingTime;
+                return stats;
+            }
+        }
     }
 
     /**
@@ -396,6 +658,170 @@ public class PluginPerformanceMonitor {
         private PerformanceStatistics last24Hours;
         private Map<String, Integer> errorSummary;
         private ResourceUsage resourceUsage;
+
+        // Getters and Setters
+        public String getPluginId() {
+            return pluginId;
+        }
+
+        public void setPluginId(String pluginId) {
+            this.pluginId = pluginId;
+        }
+
+        public Instant getReportTime() {
+            return reportTime;
+        }
+
+        public void setReportTime(Instant reportTime) {
+            this.reportTime = reportTime;
+        }
+
+        public long getTotalMessagesProcessed() {
+            return totalMessagesProcessed;
+        }
+
+        public void setTotalMessagesProcessed(long totalMessagesProcessed) {
+            this.totalMessagesProcessed = totalMessagesProcessed;
+        }
+
+        public double getSuccessRate() {
+            return successRate;
+        }
+
+        public void setSuccessRate(double successRate) {
+            this.successRate = successRate;
+        }
+
+        public double getAverageProcessingTime() {
+            return averageProcessingTime;
+        }
+
+        public void setAverageProcessingTime(double averageProcessingTime) {
+            this.averageProcessingTime = averageProcessingTime;
+        }
+
+        public PerformanceStatistics getLast5Minutes() {
+            return last5Minutes;
+        }
+
+        public void setLast5Minutes(PerformanceStatistics last5Minutes) {
+            this.last5Minutes = last5Minutes;
+        }
+
+        public PerformanceStatistics getLastHour() {
+            return lastHour;
+        }
+
+        public void setLastHour(PerformanceStatistics lastHour) {
+            this.lastHour = lastHour;
+        }
+
+        public PerformanceStatistics getLast24Hours() {
+            return last24Hours;
+        }
+
+        public void setLast24Hours(PerformanceStatistics last24Hours) {
+            this.last24Hours = last24Hours;
+        }
+
+        public Map<String, Integer> getErrorSummary() {
+            return errorSummary;
+        }
+
+        public void setErrorSummary(Map<String, Integer> errorSummary) {
+            this.errorSummary = errorSummary;
+        }
+
+        public ResourceUsage getResourceUsage() {
+            return resourceUsage;
+        }
+
+        public void setResourceUsage(ResourceUsage resourceUsage) {
+            this.resourceUsage = resourceUsage;
+        }
+
+        // Builder pattern
+        public static PerformanceReportBuilder builder() {
+            return new PerformanceReportBuilder();
+        }
+
+        public static class PerformanceReportBuilder {
+            private String pluginId;
+            private Instant reportTime;
+            private long totalMessagesProcessed;
+            private double successRate;
+            private double averageProcessingTime;
+            private PerformanceStatistics last5Minutes;
+            private PerformanceStatistics lastHour;
+            private PerformanceStatistics last24Hours;
+            private Map<String, Integer> errorSummary;
+            private ResourceUsage resourceUsage;
+
+            public PerformanceReportBuilder pluginId(String pluginId) {
+                this.pluginId = pluginId;
+                return this;
+            }
+
+            public PerformanceReportBuilder reportTime(Instant reportTime) {
+                this.reportTime = reportTime;
+                return this;
+            }
+
+            public PerformanceReportBuilder totalMessagesProcessed(long totalMessagesProcessed) {
+                this.totalMessagesProcessed = totalMessagesProcessed;
+                return this;
+            }
+
+            public PerformanceReportBuilder successRate(double successRate) {
+                this.successRate = successRate;
+                return this;
+            }
+
+            public PerformanceReportBuilder averageProcessingTime(double averageProcessingTime) {
+                this.averageProcessingTime = averageProcessingTime;
+                return this;
+            }
+
+            public PerformanceReportBuilder last5Minutes(PerformanceStatistics last5Minutes) {
+                this.last5Minutes = last5Minutes;
+                return this;
+            }
+
+            public PerformanceReportBuilder lastHour(PerformanceStatistics lastHour) {
+                this.lastHour = lastHour;
+                return this;
+            }
+
+            public PerformanceReportBuilder last24Hours(PerformanceStatistics last24Hours) {
+                this.last24Hours = last24Hours;
+                return this;
+            }
+
+            public PerformanceReportBuilder errorSummary(Map<String, Integer> errorSummary) {
+                this.errorSummary = errorSummary;
+                return this;
+            }
+
+            public PerformanceReportBuilder resourceUsage(ResourceUsage resourceUsage) {
+                this.resourceUsage = resourceUsage;
+                return this;
+            }
+
+            public PerformanceReport build() {
+                PerformanceReport report = new PerformanceReport();
+                report.pluginId = this.pluginId;
+                report.reportTime = this.reportTime;
+                report.totalMessagesProcessed = this.totalMessagesProcessed;
+                report.successRate = this.successRate;
+                report.averageProcessingTime = this.averageProcessingTime;
+                report.last5Minutes = this.last5Minutes;
+                report.lastHour = this.lastHour;
+                report.last24Hours = this.last24Hours;
+                report.errorSummary = this.errorSummary;
+                report.resourceUsage = this.resourceUsage;
+                return report;
+            }
+        }
     }
 
     /**
@@ -406,5 +832,79 @@ public class PluginPerformanceMonitor {
         private long peakMemory;
         private double currentCpu;
         private double peakCpu;
+
+        // Getters and Setters
+        public long getCurrentMemory() {
+            return currentMemory;
+        }
+
+        public void setCurrentMemory(long currentMemory) {
+            this.currentMemory = currentMemory;
+        }
+
+        public long getPeakMemory() {
+            return peakMemory;
+        }
+
+        public void setPeakMemory(long peakMemory) {
+            this.peakMemory = peakMemory;
+        }
+
+        public double getCurrentCpu() {
+            return currentCpu;
+        }
+
+        public void setCurrentCpu(double currentCpu) {
+            this.currentCpu = currentCpu;
+        }
+
+        public double getPeakCpu() {
+            return peakCpu;
+        }
+
+        public void setPeakCpu(double peakCpu) {
+            this.peakCpu = peakCpu;
+        }
+
+        // Builder pattern
+        public static ResourceUsageBuilder builder() {
+            return new ResourceUsageBuilder();
+        }
+
+        public static class ResourceUsageBuilder {
+            private long currentMemory;
+            private long peakMemory;
+            private double currentCpu;
+            private double peakCpu;
+
+            public ResourceUsageBuilder currentMemory(long currentMemory) {
+                this.currentMemory = currentMemory;
+                return this;
+            }
+
+            public ResourceUsageBuilder peakMemory(long peakMemory) {
+                this.peakMemory = peakMemory;
+                return this;
+            }
+
+            public ResourceUsageBuilder currentCpu(double currentCpu) {
+                this.currentCpu = currentCpu;
+                return this;
+            }
+
+            public ResourceUsageBuilder peakCpu(double peakCpu) {
+                this.peakCpu = peakCpu;
+                return this;
+            }
+
+            public ResourceUsage build() {
+                ResourceUsage usage = new ResourceUsage();
+                usage.currentMemory = this.currentMemory;
+                usage.peakMemory = this.peakMemory;
+                usage.currentCpu = this.currentCpu;
+                usage.peakCpu = this.peakCpu;
+                return usage;
+            }
+        }
     }
 }

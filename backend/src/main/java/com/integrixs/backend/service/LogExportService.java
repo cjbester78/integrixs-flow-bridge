@@ -5,6 +5,7 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.shared.dto.log.LogSearchCriteria;
 import com.integrixs.shared.dto.log.LogExportRequest;
 import com.integrixs.shared.dto.log.CorrelatedLogGroup;
+import com.integrixs.shared.dto.system.SystemLogDTO;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import org.w3c.dom.Element;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -47,7 +49,7 @@ public class LogExportService {
      */
     public byte[] exportLogs(LogExportRequest request) {
         try {
-            List<SystemLog> logs = getLogs(request);
+            List<SystemLogDTO> logs = getLogs(request);
 
             switch(request.getFormat().toUpperCase()) {
                 case "CSV":
@@ -76,7 +78,7 @@ public class LogExportService {
     /**
      * Get logs based on export request.
      */
-    private List<SystemLog> getLogs(LogExportRequest request) {
+    private List<SystemLogDTO> getLogs(LogExportRequest request) {
         if(request.getSearchCriteria() != null) {
             return logSearchService.searchLogs(request.getSearchCriteria()).getLogs();
         } else if(request.getCorrelationId() != null) {
@@ -84,7 +86,7 @@ public class LogExportService {
             return group != null ? group.getLogs() : Collections.emptyList();
         } else if(request.getLogIds() != null && !request.getLogIds().isEmpty()) {
             // Export specific logs by IDs
-            List<SystemLog> logs = new ArrayList<>();
+            List<SystemLogDTO> logs = new ArrayList<>();
             for(String logId : request.getLogIds()) {
                 // Note: Would need to add findById method to repository
                 log.debug("Would fetch log by ID: {}", logId);
@@ -98,12 +100,12 @@ public class LogExportService {
     /**
      * Export to CSV format with enhanced options.
      */
-    private byte[] exportToCsv(List<SystemLog> logs, LogExportRequest request) {
+    private byte[] exportToCsv(List<SystemLogDTO> logs, LogExportRequest request) {
         StringBuilder csv = new StringBuilder();
 
         // Headers
         List<String> headers = new ArrayList<>(Arrays.asList(
-            "Timestamp", "Level", "Source", "Category", "Message"
+            "Timestamp", "Level", "Source", "Component", "Message"
        ));
 
         if(request.isIncludeUserInfo()) {
@@ -125,24 +127,24 @@ public class LogExportService {
         csv.append(String.join(",", headers)).append("\n");
 
         // Data rows
-        for(SystemLog log : logs) {
+        for(SystemLogDTO log : logs) {
             List<String> values = new ArrayList<>();
 
             values.add(escapeCSV(log.getTimestamp().format(DATE_FORMATTER)));
-            values.add(escapeCSV(log.getLevel().toString()));
+            values.add(escapeCSV(log.getLevel()));
             values.add(escapeCSV(log.getSource()));
-            values.add(escapeCSV(log.getCategory()));
+            values.add(escapeCSV(log.getComponent()));
             values.add(escapeCSV(log.getMessage()));
 
             if(request.isIncludeUserInfo()) {
+                values.add(escapeCSV(log.getUserId() != null ? log.getUserId() : ""));
                 values.add(escapeCSV(log.getUserId()));
-                values.add(escapeCSV(log.getUsername()));
-                values.add(escapeCSV(log.getIpAddress()));
+                values.add(escapeCSV(log.getClientIp()));
             }
 
             if(request.isIncludeCorrelationInfo()) {
                 values.add(escapeCSV(log.getCorrelationId()));
-                values.add(escapeCSV(log.getSessionId()));
+                values.add(escapeCSV(log.getCorrelationId()));
             }
 
             if(request.isIncludeDetails()) {
@@ -150,7 +152,7 @@ public class LogExportService {
             }
 
             if(request.isIncludeStackTrace()) {
-                values.add(escapeCSV(log.getStackTrace()));
+                values.add(escapeCSV(log.getContext() != null && log.getContext().get("stackTrace") != null ? log.getContext().get("stackTrace").toString() : ""));
             }
 
             csv.append(String.join(",", values)).append("\n");
@@ -162,30 +164,30 @@ public class LogExportService {
     /**
      * Export to JSON format with formatting options.
      */
-    private byte[] exportToJson(List<SystemLog> logs, LogExportRequest request) throws Exception {
+    private byte[] exportToJson(List<SystemLogDTO> logs, LogExportRequest request) throws Exception {
         List<Map<String, Object>> exportData = new ArrayList<>();
 
-        for(SystemLog log : logs) {
+        for(SystemLogDTO log : logs) {
             Map<String, Object> logData = new HashMap<>();
 
             logData.put("timestamp", log.getTimestamp().toString());
-            logData.put("level", log.getLevel().toString());
+            logData.put("level", log.getLevel());
             logData.put("source", log.getSource());
-            logData.put("category", log.getCategory());
+            logData.put("category", log.getComponent());
             logData.put("message", log.getMessage());
 
             if(request.isIncludeUserInfo()) {
                 Map<String, String> userInfo = new HashMap<>();
                 userInfo.put("userId", log.getUserId());
-                userInfo.put("username", log.getUsername());
-                userInfo.put("ipAddress", log.getIpAddress());
+                userInfo.put("username", log.getUserId());
+                userInfo.put("ipAddress", log.getClientIp());
                 logData.put("userInfo", userInfo);
             }
 
             if(request.isIncludeCorrelationInfo()) {
                 Map<String, String> correlationInfo = new HashMap<>();
                 correlationInfo.put("correlationId", log.getCorrelationId());
-                correlationInfo.put("sessionId", log.getSessionId());
+                correlationInfo.put("sessionId", log.getCorrelationId());
                 logData.put("correlationInfo", correlationInfo);
             }
 
@@ -198,8 +200,8 @@ public class LogExportService {
                 }
             }
 
-            if(request.isIncludeStackTrace() && log.getStackTrace() != null) {
-                logData.put("stackTrace", log.getStackTrace());
+            if(request.isIncludeStackTrace() && log.getContext() != null && log.getContext().get("stackTrace") != null) {
+                logData.put("stackTrace", log.getContext().get("stackTrace"));
             }
 
             exportData.add(logData);
@@ -216,7 +218,7 @@ public class LogExportService {
     /**
      * Export to XML format.
      */
-    private byte[] exportToXml(List<SystemLog> logs, LogExportRequest request) throws Exception {
+    private byte[] exportToXml(List<SystemLogDTO> logs, LogExportRequest request) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.newDocument();
@@ -228,27 +230,27 @@ public class LogExportService {
         doc.appendChild(root);
 
         // Log entries
-        for(SystemLog log : logs) {
+        for(SystemLogDTO log : logs) {
             Element logElement = doc.createElement("log");
 
             addXmlElement(doc, logElement, "timestamp", log.getTimestamp().toString());
-            addXmlElement(doc, logElement, "level", log.getLevel().toString());
+            addXmlElement(doc, logElement, "level", log.getLevel());
             addXmlElement(doc, logElement, "source", log.getSource());
-            addXmlElement(doc, logElement, "category", log.getCategory());
+            addXmlElement(doc, logElement, "category", log.getComponent());
             addXmlElement(doc, logElement, "message", log.getMessage());
 
             if(request.isIncludeUserInfo()) {
                 Element userElement = doc.createElement("user");
                 addXmlElement(doc, userElement, "id", log.getUserId());
-                addXmlElement(doc, userElement, "username", log.getUsername());
-                addXmlElement(doc, userElement, "ipAddress", log.getIpAddress());
+                addXmlElement(doc, userElement, "username", log.getUserId());
+                addXmlElement(doc, userElement, "ipAddress", log.getClientIp());
                 logElement.appendChild(userElement);
             }
 
             if(request.isIncludeCorrelationInfo()) {
                 Element correlationElement = doc.createElement("correlation");
                 addXmlElement(doc, correlationElement, "correlationId", log.getCorrelationId());
-                addXmlElement(doc, correlationElement, "sessionId", log.getSessionId());
+                addXmlElement(doc, correlationElement, "sessionId", log.getCorrelationId());
                 logElement.appendChild(correlationElement);
             }
 
@@ -256,8 +258,8 @@ public class LogExportService {
                 addXmlElement(doc, logElement, "details", log.getDetails());
             }
 
-            if(request.isIncludeStackTrace() && log.getStackTrace() != null) {
-                addXmlElement(doc, logElement, "stackTrace", log.getStackTrace());
+            if(request.isIncludeStackTrace() && log.getContext() != null && log.getContext().get("stackTrace") != null) {
+                addXmlElement(doc, logElement, "stackTrace", log.getContext().get("stackTrace").toString());
             }
 
             root.appendChild(logElement);
@@ -277,7 +279,7 @@ public class LogExportService {
     /**
      * Export to Excel format.
      */
-    private byte[] exportToExcel(List<SystemLog> logs, LogExportRequest request) throws Exception {
+    private byte[] exportToExcel(List<SystemLogDTO> logs, LogExportRequest request) throws Exception {
         try(Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Logs");
 
@@ -320,25 +322,25 @@ public class LogExportService {
 
             // Create data rows
             int rowIndex = 1;
-            for(SystemLog log : logs) {
+            for(SystemLogDTO log : logs) {
                 Row row = sheet.createRow(rowIndex++);
                 colIndex = 0;
 
                 createCell(row, colIndex++, log.getTimestamp().format(DATE_FORMATTER));
-                createCell(row, colIndex++, log.getLevel().toString());
+                createCell(row, colIndex++, log.getLevel());
                 createCell(row, colIndex++, log.getSource());
-                createCell(row, colIndex++, log.getCategory());
+                createCell(row, colIndex++, log.getComponent());
                 createCell(row, colIndex++, log.getMessage());
 
                 if(request.isIncludeUserInfo()) {
+                    createCell(row, colIndex++, log.getUserId() != null ? log.getUserId().toString() : "");
                     createCell(row, colIndex++, log.getUserId());
-                    createCell(row, colIndex++, log.getUsername());
-                    createCell(row, colIndex++, log.getIpAddress());
+                    createCell(row, colIndex++, log.getClientIp());
                 }
 
                 if(request.isIncludeCorrelationInfo()) {
                     createCell(row, colIndex++, log.getCorrelationId());
-                    createCell(row, colIndex++, log.getSessionId());
+                    createCell(row, colIndex++, log.getCorrelationId());
                 }
 
                 if(request.isIncludeDetails()) {
@@ -346,11 +348,11 @@ public class LogExportService {
                 }
 
                 if(request.isIncludeStackTrace()) {
-                    createCell(row, colIndex++, log.getStackTrace());
+                    createCell(row, colIndex++, log.getContext() != null && log.getContext().get("stackTrace") != null ? log.getContext().get("stackTrace").toString() : "");
                 }
 
                 // Apply conditional formatting for error rows
-                if(log.getLevel() == SystemLog.LogLevel.ERROR) {
+                if("ERROR".equals(log.getLevel())) {
                     CellStyle errorStyle = workbook.createCellStyle();
                     errorStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
                     errorStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -378,7 +380,7 @@ public class LogExportService {
     /**
      * Export to formatted text.
      */
-    private byte[] exportToText(List<SystemLog> logs, LogExportRequest request) {
+    private byte[] exportToText(List<SystemLogDTO> logs, LogExportRequest request) {
         StringBuilder text = new StringBuilder();
 
         text.append("=== Log Export ===\n");
@@ -386,16 +388,16 @@ public class LogExportService {
         text.append("Total Logs: ").append(logs.size()).append("\n");
         text.append("==================\n\n");
 
-        for(SystemLog log : logs) {
+        for(SystemLogDTO log : logs) {
             text.append("[").append(log.getTimestamp().format(DATE_FORMATTER)).append("] ");
             text.append(log.getLevel()).append(" - ");
             text.append(log.getSource()).append(" - ");
             text.append(log.getMessage()).append("\n");
 
-            if(request.isIncludeUserInfo() && log.getUsername() != null) {
-                text.append(" User: ").append(log.getUsername());
-                if(log.getIpAddress() != null) {
-                    text.append(" (").append(log.getIpAddress()).append(")");
+            if(request.isIncludeUserInfo() && log.getUserId() != null) {
+                text.append(" User: ").append(log.getUserId());
+                if(log.getClientIp() != null) {
+                    text.append(" (").append(log.getClientIp()).append(")");
                 }
                 text.append("\n");
             }
@@ -408,9 +410,9 @@ public class LogExportService {
                 text.append(" Details: ").append(log.getDetails()).append("\n");
             }
 
-            if(request.isIncludeStackTrace() && log.getStackTrace() != null) {
+            if(request.isIncludeStackTrace() && log.getContext() != null && log.getContext().get("stackTrace") != null) {
                 text.append(" Stack Trace:\n");
-                String[] lines = log.getStackTrace().split("\n");
+                String[] lines = log.getContext().get("stackTrace").toString().split("\n");
                 for(String line : lines) {
                     text.append("    ").append(line).append("\n");
                 }
@@ -425,7 +427,7 @@ public class LogExportService {
     /**
      * Export to HTML format.
      */
-    private byte[] exportToHtml(List<SystemLog> logs, LogExportRequest request) {
+    private byte[] exportToHtml(List<SystemLogDTO> logs, LogExportRequest request) {
         StringBuilder html = new StringBuilder();
 
         html.append("<!DOCTYPE html>\n<html>\n<head>\n");
@@ -458,13 +460,13 @@ public class LogExportService {
 
         html.append("</tr>\n</thead>\n<tbody>\n");
 
-        for(SystemLog log : logs) {
+        for(SystemLogDTO log : logs) {
             String rowClass = "";
-            if(log.getLevel() == SystemLog.LogLevel.ERROR) {
+            if("ERROR".equals(log.getLevel())) {
                 rowClass = " class = \"error\"";
-            } else if(log.getLevel() == SystemLog.LogLevel.WARN) {
+            } else if("WARN".equals(log.getLevel())) {
                 rowClass = " class = \"warn\"";
-            } else if(log.getLevel() == SystemLog.LogLevel.DEBUG) {
+            } else if("DEBUG".equals(log.getLevel())) {
                 rowClass = " class = \"debug\"";
             }
 
@@ -475,9 +477,9 @@ public class LogExportService {
             html.append("<td>").append(escapeHtml(log.getMessage())).append("</td>\n");
 
             if(request.isIncludeUserInfo()) {
-                String userInfo = log.getUsername() != null ? log.getUsername() : "";
-                if(log.getIpAddress() != null) {
-                    userInfo += " (" + log.getIpAddress() + ")";
+                String userInfo = log.getUserId() != null ? log.getUserId() : "";
+                if(log.getClientIp() != null) {
+                    userInfo += " (" + log.getClientIp() + ")";
                 }
                 html.append("<td>").append(escapeHtml(userInfo)).append("</td>\n");
             }
@@ -494,7 +496,7 @@ public class LogExportService {
     /**
      * Export to ZIP with multiple formats.
      */
-    private byte[] exportToZip(List<SystemLog> logs, LogExportRequest request) throws Exception {
+    private byte[] exportToZip(List<SystemLogDTO> logs, LogExportRequest request) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try(ZipOutputStream zos = new ZipOutputStream(baos)) {
@@ -529,7 +531,7 @@ public class LogExportService {
     /**
      * Create export metadata.
      */
-    private byte[] createMetadata(List<SystemLog> logs, LogExportRequest request) throws Exception {
+    private byte[] createMetadata(List<SystemLogDTO> logs, LogExportRequest request) throws Exception {
         Map<String, Object> metadata = new HashMap<>();
 
         metadata.put("exportTime", LocalDateTime.now().toString());
@@ -539,8 +541,8 @@ public class LogExportService {
 
         // Calculate statistics
         Map<String, Long> levelCounts = new HashMap<>();
-        for(SystemLog log : logs) {
-            levelCounts.merge(log.getLevel().toString(), 1L, Long::sum);
+        for(SystemLogDTO log : logs) {
+            levelCounts.merge(log.getLevel(), 1L, Long::sum);
         }
         metadata.put("levelCounts", levelCounts);
 

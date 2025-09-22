@@ -3,7 +3,7 @@ package com.integrixs.engine.infrastructure.adapter;
 import com.integrixs.engine.AdapterExecutor;
 import com.integrixs.engine.domain.model.AdapterExecutionContext;
 import com.integrixs.engine.domain.model.AdapterExecutionResult;
-import com.integrixs.engine.domain.service.AdapterExecutionService;
+import com.integrixs.engine.domain.service.FlowAdapterExecutor;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  * Bridges clean architecture with existing AdapterExecutor
  */
 @Service
-public class AdapterExecutionServiceImpl implements AdapterExecutionService {
+public class AdapterExecutionServiceImpl implements FlowAdapterExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(AdapterExecutionServiceImpl.class);
 

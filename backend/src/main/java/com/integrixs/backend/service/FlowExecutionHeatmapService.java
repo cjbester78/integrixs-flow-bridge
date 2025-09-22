@@ -1,9 +1,14 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.backend.dto.dashboard.heatmap.*;
+import com.integrixs.backend.dto.FlowExecutionPatterns;
+import com.integrixs.backend.dto.ErrorPropagationHeatmap;
+import com.integrixs.backend.dto.ExecutionStats;
+import com.integrixs.backend.config.HeatmapAnalyticsConfig;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -21,8 +26,15 @@ public class FlowExecutionHeatmapService {
 
     private static final Logger log = LoggerFactory.getLogger(FlowExecutionHeatmapService.class);
 
-
     private final SystemLogRepository systemLogRepository;
+    private final HeatmapAnalyticsConfig heatmapConfig;
+    
+    @Autowired
+    public FlowExecutionHeatmapService(SystemLogRepository systemLogRepository, 
+                                     HeatmapAnalyticsConfig heatmapConfig) {
+        this.systemLogRepository = systemLogRepository;
+        this.heatmapConfig = heatmapConfig;
+    }
 
     /**
      * Generate execution heatmap for flows.
@@ -34,10 +46,17 @@ public class FlowExecutionHeatmapService {
         heatmap.setGranularity(request.getGranularity());
 
         // Get flow execution data
+        // Convert List<UUID> to List<String>
+        List<String> flowIdStrings = request.getFlowIds() != null ? 
+            request.getFlowIds().stream()
+                .map(UUID::toString)
+                .collect(Collectors.toList()) : 
+            Collections.emptyList();
+        
         List<FlowExecutionData> executionData = collectFlowExecutionData(
             request.getStartTime(),
             request.getEndTime(),
-            request.getFlowIds()
+            flowIdStrings
        );
 
         // Generate time - based grid
@@ -73,21 +92,66 @@ public class FlowExecutionHeatmapService {
         LocalDateTime startTime = endTime.minusDays(days);
 
         List<FlowExecutionData> executions = collectFlowExecutionData(
-            startTime, endTime, Collections.singletonList(flowId));
+            startTime, endTime, Collections.singletonList(flowId.toString()));
 
         // Analyze temporal patterns
-        patterns.setHourlyPattern(analyzeHourlyPattern(executions));
-        patterns.setDailyPattern(analyzeDailyPattern(executions));
-        patterns.setWeeklyPattern(analyzeWeeklyPattern(executions));
+        Map<Integer, ExecutionStats> hourlyStats = analyzeHourlyPattern(executions);
+        Map<Integer, Long> hourlyPattern = new HashMap<>();
+        hourlyStats.forEach((hour, stats) -> hourlyPattern.put(hour, stats.getCount()));
+        patterns.setHourlyPattern(hourlyPattern);
+        
+        Map<String, ExecutionStats> dailyStats = analyzeDailyPattern(executions);
+        Map<LocalDateTime, Long> dailyPattern = new HashMap<>();
+        dailyStats.forEach((dateStr, stats) -> {
+            try {
+                LocalDateTime date = LocalDateTime.parse(dateStr);
+                dailyPattern.put(date, stats.getCount());
+            } catch (Exception e) {
+                // Skip invalid dates
+            }
+        });
+        patterns.setDailyPattern(dailyPattern);
+        
+        Map<Integer, ExecutionStats> weeklyStats = analyzeWeeklyPattern(executions);
+        Map<String, Long> weeklyPattern = new HashMap<>();
+        weeklyStats.forEach((dayOfWeek, stats) -> 
+            weeklyPattern.put(getDayOfWeekName(dayOfWeek), stats.getCount()));
+        patterns.setWeeklyPattern(weeklyPattern);
 
-        // Identify execution clusters
-        patterns.setExecutionClusters(identifyExecutionClusters(executions));
+        // Identify execution clusters - convert to expected format
+        List<ExecutionCluster> clusters = identifyExecutionClusters(executions);
+        List<Map<String, Object>> clusterMaps = new ArrayList<>();
+        for (ExecutionCluster cluster : clusters) {
+            Map<String, Object> clusterMap = new HashMap<>();
+            clusterMap.put("startTime", cluster.getStartTime());
+            clusterMap.put("endTime", cluster.getEndTime());
+            clusterMap.put("count", cluster.getExecutionCount());
+            clusterMap.put("intensity", cluster.getIntensity());
+            clusterMaps.add(clusterMap);
+        }
+        patterns.setExecutionClusters(clusterMaps);
 
-        // Calculate execution velocity
-        patterns.setExecutionVelocity(calculateExecutionVelocity(executions));
+        // Calculate execution velocity - convert to expected format
+        ExecutionVelocity velocity = calculateExecutionVelocity(executions);
+        Map<String, Double> velocityMap = new HashMap<>();
+        velocityMap.put("current", velocity.getCurrentRate());
+        velocityMap.put("average", velocity.getAverageRate());
+        velocityMap.put("trend", velocity.getTrendValue());
+        patterns.setExecutionVelocity(velocityMap);
 
-        // Find anomalous patterns
-        patterns.setAnomalousPatterns(findAnomalousPatterns(executions));
+        // Find anomalous patterns - convert to expected format
+        List<AnomalousPattern> anomalous = findAnomalousPatterns(executions);
+        List<Map<String, Object>> anomalousMaps = new ArrayList<>();
+        for (AnomalousPattern pattern : anomalous) {
+            Map<String, Object> patternMap = new HashMap<>();
+            patternMap.put("type", pattern.getType());
+            patternMap.put("startTime", pattern.getStartTime());
+            patternMap.put("endTime", pattern.getEndTime());
+            patternMap.put("severity", pattern.getSeverity());
+            patternMap.put("description", pattern.getDescription());
+            anomalousMaps.add(patternMap);
+        }
+        patterns.setAnomalousPatterns(anomalousMaps);
 
         return patterns;
     }
@@ -113,7 +177,17 @@ public class FlowExecutionHeatmapService {
         heatmap.setComponentCentrality(calculateComponentCentrality(interactions));
 
         // Identify critical paths
-        heatmap.setCriticalPaths(identifyCriticalPaths(interactions));
+        List<CriticalPath> criticalPaths = identifyCriticalPaths(interactions);
+        List<List<String>> criticalPathStrings = criticalPaths.stream()
+            .map(path -> {
+                List<String> pathStrings = new ArrayList<>();
+                if (path.getFlowIds() != null) {
+                    path.getFlowIds().forEach(id -> pathStrings.add(id.toString()));
+                }
+                return pathStrings;
+            })
+            .collect(Collectors.toList());
+        heatmap.setCriticalPaths(criticalPathStrings);
 
         // Calculate interaction statistics
         heatmap.setStatistics(calculateInteractionStatistics(interactions));
@@ -135,13 +209,38 @@ public class FlowExecutionHeatmapService {
         List<ErrorEvent> errorEvents = collectErrorEvents(startTime, endTime);
 
         // Build error propagation paths
-        heatmap.setPropagationPaths(buildErrorPropagationPaths(errorEvents));
+        List<ErrorPropagationPath> propagationPaths = buildErrorPropagationPaths(errorEvents);
+        List<List<String>> propagationPathStrings = propagationPaths.stream()
+            .map(path -> {
+                List<String> pathStrings = new ArrayList<>();
+                if (path.getPath() != null) {
+                    path.getPath().forEach(event -> {
+                        if (event.getComponentId() != null) {
+                            pathStrings.add(event.getComponentId());
+                        }
+                    });
+                }
+                return pathStrings;
+            })
+            .collect(Collectors.toList());
+        heatmap.setPropagationPaths(propagationPathStrings);
 
         // Calculate error density grid
         heatmap.setErrorDensityGrid(calculateErrorDensityGrid(errorEvents, startTime, endTime));
 
         // Identify error hotspots
-        heatmap.setErrorHotspots(identifyErrorHotspots(errorEvents));
+        List<ErrorHotspot> errorHotspots = identifyErrorHotspots(errorEvents);
+        List<Map<String, Object>> errorHotspotMaps = errorHotspots.stream()
+            .map(hotspot -> {
+                Map<String, Object> hotspotMap = new HashMap<>();
+                hotspotMap.put("location", hotspot.getLocation());
+                hotspotMap.put("errorCount", hotspot.getErrorCount());
+                hotspotMap.put("errorTypes", hotspot.getErrorTypes());
+                hotspotMap.put("errorRate", hotspot.getErrorRate());
+                return hotspotMap;
+            })
+            .collect(Collectors.toList());
+        heatmap.setErrorHotspots(errorHotspotMaps);
 
         // Calculate error impact scores
         heatmap.setComponentErrorImpact(calculateErrorImpactScores(errorEvents));
@@ -212,9 +311,13 @@ public class FlowExecutionHeatmapService {
 
         // Extract flow ID
         for(SystemLog log : logs) {
-            String flowId = extractFlowId(log.getMessage());
-            if(flowId != null) {
-                data.setFlowId(flowId);
+            String flowIdStr = extractFlowId(log.getMessage());
+            if(flowIdStr != null) {
+                try {
+                    data.setFlowId(UUID.fromString(flowIdStr));
+                } catch (IllegalArgumentException e) {
+                    // Invalid UUID format, skip
+                }
                 break;
             }
         }
@@ -259,14 +362,14 @@ public class FlowExecutionHeatmapService {
             TimeSlot slot = new TimeSlot();
             slot.setStartTime(current);
 
-            switch(request.getGranularity()) {
-                case MINUTE:
+            switch(request.getGranularity() != null ? request.getGranularity().toUpperCase() : "HOUR") {
+                case "MINUTE":
                     slot.setEndTime(current.plusMinutes(1));
                     break;
-                case HOUR:
+                case "HOUR":
                     slot.setEndTime(current.plusHours(1));
                     break;
-                case DAY:
+                case "DAY":
                     slot.setEndTime(current.plusDays(1));
                     break;
                 default:
@@ -295,7 +398,8 @@ public class FlowExecutionHeatmapService {
         double[][] grid = new double[flowCount][timeSlots];
 
         // Map flow IDs to indices
-        List<String> flowIds = request.getFlowIds() != null ? request.getFlowIds() :
+        List<String> flowIds = request.getFlowIds() != null ? 
+                              request.getFlowIds().stream().map(UUID::toString).collect(Collectors.toList()) :
                               getUniqueFlowIds(executions);
 
         // Fill grid with execution counts
@@ -330,7 +434,8 @@ public class FlowExecutionHeatmapService {
 
         double[][] grid = new double[flowCount][timeSlots];
 
-        List<String> flowIds = request.getFlowIds() != null ? request.getFlowIds() :
+        List<String> flowIds = request.getFlowIds() != null ? 
+                              request.getFlowIds().stream().map(UUID::toString).collect(Collectors.toList()) :
                               getUniqueFlowIds(executions);
 
         for(int i = 0; i < flowIds.size(); i++) {
@@ -372,7 +477,8 @@ public class FlowExecutionHeatmapService {
 
         double[][] grid = new double[flowCount][timeSlots];
 
-        List<String> flowIds = request.getFlowIds() != null ? request.getFlowIds() :
+        List<String> flowIds = request.getFlowIds() != null ? 
+                              request.getFlowIds().stream().map(UUID::toString).collect(Collectors.toList()) :
                               getUniqueFlowIds(executions);
 
         for(int i = 0; i < flowIds.size(); i++) {
@@ -421,6 +527,7 @@ public class FlowExecutionHeatmapService {
         return executions.stream()
             .map(FlowExecutionData::getFlowId)
             .filter(Objects::nonNull)
+            .map(UUID::toString)
             .distinct()
             .sorted()
             .collect(Collectors.toList());
@@ -605,7 +712,7 @@ public class FlowExecutionHeatmapService {
         sorted.sort(Comparator.comparing(FlowExecutionData::getStartTime));
 
         ExecutionCluster currentCluster = null;
-        long clusterThreshold = 300000; // 5 minutes
+        long clusterThreshold = heatmapConfig.getExecutionClusterThresholdMillis();
 
         for(FlowExecutionData execution : sorted) {
             if(currentCluster == null ||
@@ -867,7 +974,8 @@ public class FlowExecutionHeatmapService {
                 InteractionMetrics metrics = toEntry.getValue();
 
                 // Check if this is a critical path
-                if(metrics.getCount() > 100 || metrics.getErrorRate() > 0.1) {
+                if(metrics.getCount() > heatmapConfig.getCriticalPathMinTrafficVolume() || 
+                   metrics.getErrorRate() > heatmapConfig.getCriticalPathMaxErrorRate()) {
                     CriticalPath path = new CriticalPath();
                     path.setFromComponent(fromEntry.getKey());
                     path.setToComponent(toEntry.getKey());
@@ -939,9 +1047,9 @@ public class FlowExecutionHeatmapService {
     private ErrorEvent convertToErrorEvent(SystemLog log) {
         ErrorEvent event = new ErrorEvent();
         event.setTimestamp(log.getTimestamp());
-        event.setComponent(log.getSource());
+        event.setComponentId(log.getSource());
         event.setErrorType(classifyErrorType(log.getMessage()));
-        event.setMessage(log.getMessage());
+        event.setErrorMessage(log.getMessage());
         event.setCorrelationId(log.getCorrelationId());
         return event;
     }
@@ -978,7 +1086,7 @@ public class FlowExecutionHeatmapService {
                 // Sort by timestamp
                 correlatedGroup.sort(Comparator.comparing(ErrorEvent::getTimestamp));
 
-                path.setOriginComponent(correlatedGroup.get(0).getComponent());
+                path.setOriginComponent(correlatedGroup.get(0).getComponentId());
                 path.setErrorSequence(correlatedGroup);
                 path.setPropagationTime(ChronoUnit.MILLIS.between(
                     correlatedGroup.get(0).getTimestamp(),
@@ -1002,7 +1110,7 @@ public class FlowExecutionHeatmapService {
         // Create hourly grid for the time range
         long hours = ChronoUnit.HOURS.between(startTime, endTime);
         List<String> components = errorEvents.stream()
-            .map(ErrorEvent::getComponent)
+            .map(ErrorEvent::getComponentId)
             .filter(Objects::nonNull)
             .distinct()
             .sorted()
@@ -1015,7 +1123,7 @@ public class FlowExecutionHeatmapService {
             String component = components.get(i);
 
             for(ErrorEvent event : errorEvents) {
-                if(component.equals(event.getComponent())) {
+                if(component.equals(event.getComponentId())) {
                     int hourIndex = (int) ChronoUnit.HOURS.between(startTime, event.getTimestamp());
                     if(hourIndex >= 0 && hourIndex < hours) {
                         grid[i][hourIndex]++;
@@ -1037,11 +1145,11 @@ public class FlowExecutionHeatmapService {
         Map<String, Map<LocalDateTime, Long>> componentHourlyErrors = new HashMap<>();
 
         for(ErrorEvent event : errorEvents) {
-            if(event.getComponent() != null) {
+            if(event.getComponentId() != null) {
                 LocalDateTime hour = event.getTimestamp().truncatedTo(ChronoUnit.HOURS);
 
                 componentHourlyErrors
-                    .computeIfAbsent(event.getComponent(), k -> new HashMap<>())
+                    .computeIfAbsent(event.getComponentId(), k -> new HashMap<>())
                     .merge(hour, 1L, Long::sum);
             }
         }
@@ -1049,7 +1157,7 @@ public class FlowExecutionHeatmapService {
         // Find hotspots(high error concentration)
         for(Map.Entry<String, Map<LocalDateTime, Long>> componentEntry : componentHourlyErrors.entrySet()) {
             for(Map.Entry<LocalDateTime, Long> hourEntry : componentEntry.getValue().entrySet()) {
-                if(hourEntry.getValue() > 10) { // Threshold for hotspot
+                if(hourEntry.getValue() > heatmapConfig.getErrorHotspotThreshold()) {
                     ErrorHotspot hotspot = new ErrorHotspot();
                     hotspot.setComponent(componentEntry.getKey());
                     hotspot.setTimestamp(hourEntry.getKey());
@@ -1057,7 +1165,7 @@ public class FlowExecutionHeatmapService {
 
                     // Calculate error types
                     Map<String, Long> errorTypes = errorEvents.stream()
-                        .filter(e -> componentEntry.getKey().equals(e.getComponent()))
+                        .filter(e -> componentEntry.getKey().equals(e.getComponentId()))
                         .filter(e -> e.getTimestamp().truncatedTo(ChronoUnit.HOURS).equals(hourEntry.getKey()))
                         .collect(Collectors.groupingBy(ErrorEvent::getErrorType, Collectors.counting()));
 
@@ -1078,8 +1186,8 @@ public class FlowExecutionHeatmapService {
 
         // Count errors by component
         Map<String, Long> errorCounts = errorEvents.stream()
-            .filter(e -> e.getComponent() != null)
-            .collect(Collectors.groupingBy(ErrorEvent::getComponent, Collectors.counting()));
+            .filter(e -> e.getComponentId() != null)
+            .collect(Collectors.groupingBy(ErrorEvent::getComponentId, Collectors.counting()));
 
         // Count propagated errors(errors that appear in correlation chains)
         Map<String, Long> propagatedCounts = new HashMap<>();
@@ -1091,7 +1199,7 @@ public class FlowExecutionHeatmapService {
         for(List<ErrorEvent> chain : correlatedErrors.values()) {
             if(chain.size() > 1) {
                 for(ErrorEvent event : chain) {
-                    propagatedCounts.merge(event.getComponent(), 1L, Long::sum);
+                    propagatedCounts.merge(event.getComponentId(), 1L, Long::sum);
                 }
             }
         }
@@ -1107,5 +1215,13 @@ public class FlowExecutionHeatmapService {
         }
 
         return impactScores;
+    }
+
+    /**
+     * Convert day of week number to name.
+     */
+    private String getDayOfWeekName(int dayOfWeek) {
+        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+        return (dayOfWeek >= 1 && dayOfWeek <= 7) ? days[dayOfWeek - 1] : "Unknown";
     }
 }

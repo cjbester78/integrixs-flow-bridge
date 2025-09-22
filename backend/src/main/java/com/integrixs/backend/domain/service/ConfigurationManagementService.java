@@ -1,6 +1,6 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.domain.repository.SystemConfigurationRepository;
+import com.integrixs.data.repository.SystemConfigurationRepository;
 import com.integrixs.data.model.SystemConfiguration;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,10 @@ import java.util.Optional;
 public class ConfigurationManagementService {
 
     private final SystemConfigurationRepository configurationRepository;
+
+    public ConfigurationManagementService(SystemConfigurationRepository configurationRepository) {
+        this.configurationRepository = configurationRepository;
+    }
 
     // Configuration keys
     public static final String TIMEZONE_KEY = "system.timezone";

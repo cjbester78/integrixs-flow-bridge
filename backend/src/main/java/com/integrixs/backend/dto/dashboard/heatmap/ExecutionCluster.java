@@ -1,5 +1,6 @@
 package com.integrixs.backend.dto.dashboard.heatmap;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ExecutionCluster {
@@ -9,6 +10,13 @@ public class ExecutionCluster {
     private List<FlowExecutionData> members;
     private double density;
     private String description;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private long executionCount;
+    private double intensity;
+    private List<FlowExecutionData> executions;
+    private int size;
+    private long duration;
 
     // Default constructor
     public ExecutionCluster() {
@@ -60,5 +68,61 @@ public class ExecutionCluster {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public long getExecutionCount() {
+        return executionCount;
+    }
+
+    public void setExecutionCount(long executionCount) {
+        this.executionCount = executionCount;
+    }
+
+    public double getIntensity() {
+        return intensity;
+    }
+
+    public void setIntensity(double intensity) {
+        this.intensity = intensity;
+    }
+    
+    public List<FlowExecutionData> getExecutions() {
+        return executions;
+    }
+    
+    public void setExecutions(List<FlowExecutionData> executions) {
+        this.executions = executions;
+    }
+    
+    public int getSize() {
+        return size;
+    }
+    
+    public void setSize(int size) {
+        this.size = size;
+    }
+    
+    public long getDuration() {
+        return duration;
+    }
+    
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 }

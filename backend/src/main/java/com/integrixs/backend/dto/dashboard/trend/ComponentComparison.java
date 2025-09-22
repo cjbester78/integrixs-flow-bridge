@@ -59,4 +59,20 @@ public class ComponentComparison {
     public void setOutliers(List<String> outliers) {
         this.outliers = outliers;
     }
+
+    public Map<String, List<TimeSeriesDataPoint>> getComponentData() {
+        return componentData;
+    }
+
+    public void setComponentData(Map<String, List<TimeSeriesDataPoint>> componentData) {
+        this.componentData = componentData;
+    }
+
+    public Map<String, ComponentStats> getComponentStatistics() {
+        return componentStatistics;
+    }
+
+    public void setComponentStatistics(Map<String, ComponentStats> componentStatistics) {
+        this.componentStatistics = componentStatistics;
+    }
 }

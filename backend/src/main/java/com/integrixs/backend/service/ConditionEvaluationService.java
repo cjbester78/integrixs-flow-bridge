@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.api.dto.response.TestConditionResponse;
 import com.integrixs.backend.exception.BusinessException;
 import com.integrixs.data.model.RouteCondition;
-import static com.integrixs.data.model.RouteCondition.ConditionType.*;
 import com.jayway.jsonpath.JsonPath;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -37,8 +36,23 @@ public class ConditionEvaluationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ExpressionParser parser = new SpelExpressionParser();
+    
+    /**
+     * Evaluation condition types - different from RouteCondition.ConditionType
+     * These are for runtime evaluation, not storage
+     */
+    public enum EvaluationConditionType {
+        ALWAYS,
+        EXPRESSION,
+        JSONPATH,
+        XPATH,
+        REGEX,
+        HEADER_MATCH,
+        CONTENT_TYPE,
+        CUSTOM
+    }
 
-    public TestConditionResponse evaluateCondition(String condition, RouteCondition.ConditionType conditionType, Map<String, Object> payload) {
+    public TestConditionResponse evaluateCondition(String condition, EvaluationConditionType conditionType, Map<String, Object> payload) {
         String testId = UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
         List<TestConditionResponse.ExecutionStep> steps = new ArrayList<>();
@@ -125,7 +139,7 @@ public class ConditionEvaluationService {
         }
     }
 
-    public TestConditionResponse validateCondition(String condition, RouteCondition.ConditionType conditionType) {
+    public TestConditionResponse validateCondition(String condition, EvaluationConditionType conditionType) {
         String testId = UUID.randomUUID().toString();
         List<TestConditionResponse.ExecutionStep> steps = new ArrayList<>();
 

@@ -1,17 +1,22 @@
 package com.integrixs.backend.marketplace.dto;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * DTO for template version information
  */
 public class TemplateVersionDto {
-    private String id;
+    private UUID id;
     private String templateId;
     private String version;
     private String releaseNotes;
     private String downloadUrl;
     private LocalDateTime releasedAt;
+    private LocalDateTime publishedAt;
+    private boolean stable;
+    private boolean deprecated;
+    private String deprecationMessage;
     private boolean isLatest;
     private boolean isCompatible;
     private String minVersion;
@@ -22,11 +27,11 @@ public class TemplateVersionDto {
     }
     
     // Getters and setters
-    public String getId() {
+    public UUID getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
     
@@ -102,24 +107,61 @@ public class TemplateVersionDto {
         this.maxVersion = maxVersion;
     }
     
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+    
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+    
+    public boolean isStable() {
+        return stable;
+    }
+    
+    public void setStable(boolean stable) {
+        this.stable = stable;
+    }
+    
+    
+    public boolean isDeprecated() {
+        return deprecated;
+    }
+    
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
+    }
+    
+    public String getDeprecationMessage() {
+        return deprecationMessage;
+    }
+    
+    public void setDeprecationMessage(String deprecationMessage) {
+        this.deprecationMessage = deprecationMessage;
+    }
+    
     // Builder
     public static TemplateVersionDtoBuilder builder() {
         return new TemplateVersionDtoBuilder();
     }
     
     public static class TemplateVersionDtoBuilder {
-        private String id;
+        private UUID id;
         private String templateId;
         private String version;
         private String releaseNotes;
         private String downloadUrl;
         private LocalDateTime releasedAt;
+        private LocalDateTime publishedAt;
+        private boolean stable;
+        private boolean deprecated;
+        private String deprecationMessage;
         private boolean isLatest;
         private boolean isCompatible;
         private String minVersion;
         private String maxVersion;
         
-        public TemplateVersionDtoBuilder id(String id) {
+        public TemplateVersionDtoBuilder id(UUID id) {
             this.id = id;
             return this;
         }
@@ -169,6 +211,26 @@ public class TemplateVersionDto {
             return this;
         }
         
+        public TemplateVersionDtoBuilder publishedAt(LocalDateTime publishedAt) {
+            this.publishedAt = publishedAt;
+            return this;
+        }
+        
+        public TemplateVersionDtoBuilder stable(boolean stable) {
+            this.stable = stable;
+            return this;
+        }
+        
+        public TemplateVersionDtoBuilder deprecated(boolean deprecated) {
+            this.deprecated = deprecated;
+            return this;
+        }
+        
+        public TemplateVersionDtoBuilder deprecationMessage(String deprecationMessage) {
+            this.deprecationMessage = deprecationMessage;
+            return this;
+        }
+        
         public TemplateVersionDto build() {
             TemplateVersionDto dto = new TemplateVersionDto();
             dto.setId(this.id);
@@ -181,6 +243,10 @@ public class TemplateVersionDto {
             dto.setCompatible(this.isCompatible);
             dto.setMinVersion(this.minVersion);
             dto.setMaxVersion(this.maxVersion);
+            dto.setPublishedAt(this.publishedAt);
+            dto.setStable(this.stable);
+            dto.setDeprecated(this.deprecated);
+            dto.setDeprecationMessage(this.deprecationMessage);
             return dto;
         }
     }

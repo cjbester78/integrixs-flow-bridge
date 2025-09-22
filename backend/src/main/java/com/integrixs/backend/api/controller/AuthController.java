@@ -3,7 +3,7 @@ package com.integrixs.backend.api.controller;
 import com.integrixs.backend.api.dto.auth.LoginRequest;
 import com.integrixs.backend.api.dto.auth.LoginResponse;
 import com.integrixs.backend.application.service.AuthenticationService;
-import com.integrixs.backend.shared.exception.AuthenticationException;
+import com.integrixs.shared.exceptions.AuthenticationException;
 import com.integrixs.backend.logging.BusinessOperation;
 import com.integrixs.shared.dto.user.RegisterResponseDTO;
 import com.integrixs.shared.dto.user.UserRegisterResponseDTO;
@@ -30,6 +30,10 @@ public class AuthController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthController.class);
     
     private final AuthenticationService authenticationService;
+
+    public AuthController(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
 
     /**
      * User login endpoint

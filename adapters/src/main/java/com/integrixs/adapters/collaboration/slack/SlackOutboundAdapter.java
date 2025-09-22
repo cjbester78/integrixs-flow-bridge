@@ -93,9 +93,6 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
     private static final Logger log = LoggerFactory.getLogger(SlackOutboundAdapter.class);
 
 
-    private static final String API_URL = "https://slack.com/api/";
-    private static final int MAX_RETRY_ATTEMPTS = 3;
-    private static final int RETRY_DELAY_MS = 1000;
 
     @Autowired
     private SlackApiConfig config;
@@ -970,7 +967,7 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(config.getBotToken());
 
-            String url = API_URL + method;
+            String url = config.getApiUrl() + method;
 
             HttpEntity<Map<String, Object>> entity = params != null ?
                 new HttpEntity<>(params, headers) : new HttpEntity<>(headers);
@@ -985,7 +982,7 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
                 String error = responseJson.get("error").asText();
 
                 // Handle retryable errors
-                if(error.equals("rate_limited") && attempt < MAX_RETRY_ATTEMPTS) {
+                if(error.equals("rate_limited") && attempt < config.getMaxRetryAttempts()) {
                     int retryAfter = responseJson.path("retry_after").asInt(60);
                     log.warn("Rate limited. Retrying after {} seconds", retryAfter);
                     Thread.sleep(retryAfter * 1000);
@@ -997,8 +994,8 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
 
             return responseJson;
         } catch(HttpClientErrorException e) {
-            if(e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS && attempt < MAX_RETRY_ATTEMPTS) {
-                String retryAfter = e.getResponseHeaders().getFirst("Retry - After");
+            if(e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS && attempt < config.getMaxRetryAttempts()) {
+                String retryAfter = e.getResponseHeaders().getFirst("Retry-After");
                 int delay = retryAfter != null ? Integer.parseInt(retryAfter) : 60;
 
                 log.warn("HTTP 429 Rate Limited. Retrying after {} seconds", delay);
@@ -1016,7 +1013,7 @@ public class SlackOutboundAdapter extends AbstractSocialMediaOutboundAdapter {
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             headers.setBearerAuth(config.getBotToken());
 
-            String url = API_URL + method;
+            String url = config.getApiUrl() + method;
 
             HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(params, headers);
 

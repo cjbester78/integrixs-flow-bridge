@@ -6,7 +6,7 @@ import com.integrixs.adapters.core.BaseAdapter;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.backend.api.dto.request.TestAdapterRequest;
 import com.integrixs.backend.api.dto.response.AdapterTestResponse;
-import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.backend.domain.service.AdapterConfigurationService;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Service;
@@ -31,6 +31,12 @@ public class AdapterTestingService {
     private final CommunicationAdapterRepository adapterRepository;
     private final AdapterConfigurationService configurationService;
     private final AdapterFactoryManager factoryManager = AdapterFactoryManager.getInstance();
+
+    public AdapterTestingService(CommunicationAdapterRepository adapterRepository,
+                                 AdapterConfigurationService configurationService) {
+        this.adapterRepository = adapterRepository;
+        this.configurationService = configurationService;
+    }
 
     @Transactional(readOnly = true)
     public AdapterTestResponse testAdapter(TestAdapterRequest request) {
@@ -115,22 +121,11 @@ public class AdapterTestingService {
                         .connectionDetails(connectionDetails)
                         .build();
             }
-        } catch(AdapterException e) {
+        } catch(Exception e) {
             log.error("Adapter test failed", e);
             return AdapterTestResponse.builder()
                     .success(false)
                     .message("Connection test failed")
-                    .errorDetails(e.getMessage())
-                    .testedAt(LocalDateTime.now())
-                    .responseTimeMs(System.currentTimeMillis() - startTime)
-                    .connectionValid(false)
-                    .authenticationValid(false)
-                    .build();
-        } catch(Exception e) {
-            log.error("Unexpected error during adapter test", e);
-            return AdapterTestResponse.builder()
-                    .success(false)
-                    .message("Test failed due to unexpected error")
                     .errorDetails(e.getMessage())
                     .testedAt(LocalDateTime.now())
                     .responseTimeMs(System.currentTimeMillis() - startTime)

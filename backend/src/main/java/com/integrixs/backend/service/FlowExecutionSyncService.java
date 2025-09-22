@@ -39,7 +39,7 @@ public class FlowExecutionSyncService {
     private TransformationExecutionService transformationService;
 
     @Autowired
-    private AdapterExecutionService adapterExecutionService;
+    private BackendAdapterExecutor adapterExecutionService;
 
     @Autowired
     private ObjectMapper objectMapper;

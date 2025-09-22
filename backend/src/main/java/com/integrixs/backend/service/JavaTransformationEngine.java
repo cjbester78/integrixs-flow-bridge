@@ -33,6 +33,12 @@ public class JavaTransformationEngine {
 
     // Cache for compiled classes
     private final Map<String, Class<?>> compiledFunctionCache = new ConcurrentHashMap<>();
+
+    public JavaTransformationEngine(TransformationCustomFunctionRepository functionRepository,
+                                   JavaCompilationService compilationService) {
+        this.functionRepository = functionRepository;
+        this.compilationService = compilationService;
+    }
     private final Map<String, Long> functionVersionCache = new ConcurrentHashMap<>();
 
     /**

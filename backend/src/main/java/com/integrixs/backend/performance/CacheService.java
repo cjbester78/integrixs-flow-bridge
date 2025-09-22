@@ -252,6 +252,40 @@ public class CacheService {
             long totalLoadCount = loadSuccessCount + loadFailureCount;
             return totalLoadCount > 0 ? (double) totalLoadTime / totalLoadCount : 0;
         }
+        
+        // Getters and setters
+        public String getCacheName() { return cacheName; }
+        public void setCacheName(String cacheName) { this.cacheName = cacheName; }
+        
+        public long getHitCount() { return hitCount; }
+        public void setHitCount(long hitCount) { this.hitCount = hitCount; }
+        
+        public long getMissCount() { return missCount; }
+        public void setMissCount(long missCount) { this.missCount = missCount; }
+        
+        public long getLoadSuccessCount() { return loadSuccessCount; }
+        public void setLoadSuccessCount(long loadSuccessCount) { this.loadSuccessCount = loadSuccessCount; }
+        
+        public long getLoadFailureCount() { return loadFailureCount; }
+        public void setLoadFailureCount(long loadFailureCount) { this.loadFailureCount = loadFailureCount; }
+        
+        public long getTotalLoadTime() { return totalLoadTime; }
+        public void setTotalLoadTime(long totalLoadTime) { this.totalLoadTime = totalLoadTime; }
+        
+        public long getEvictionCount() { return evictionCount; }
+        public void setEvictionCount(long evictionCount) { this.evictionCount = evictionCount; }
+        
+        public long getEvictionWeight() { return evictionWeight; }
+        public void setEvictionWeight(long evictionWeight) { this.evictionWeight = evictionWeight; }
+        
+        public double getHitRate() { return hitRate; }
+        public void setHitRate(double hitRate) { this.hitRate = hitRate; }
+        
+        public double getMissRate() { return missRate; }
+        public void setMissRate(double missRate) { this.missRate = missRate; }
+        
+        public long getEstimatedSize() { return estimatedSize; }
+        public void setEstimatedSize(long estimatedSize) { this.estimatedSize = estimatedSize; }
     }
 
         public static class CacheRecommendations {

@@ -16,6 +16,10 @@ public class ExecutionTraceManager {
 
     private final ExecutionMetricsCalculator metricsCalculator;
 
+    public ExecutionTraceManager(ExecutionMetricsCalculator metricsCalculator) {
+        this.metricsCalculator = metricsCalculator;
+    }
+
     /**
      * Creates a new execution trace
      */

@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.SystemConfigurationRepository;
+import com.integrixs.backend.domain.repository.SystemConfigurationRepositoryPort;
 import com.integrixs.data.model.SystemConfiguration;
 import org.springframework.stereotype.Repository;
 
@@ -12,9 +12,13 @@ import java.util.UUID;
  * Infrastructure implementation of SystemConfigurationRepository
  */
 @Repository("domainSystemConfigurationRepository")
-public class SystemConfigurationRepositoryImpl implements SystemConfigurationRepository {
+public class SystemConfigurationRepositoryImpl implements SystemConfigurationRepositoryPort {
 
     private final com.integrixs.data.repository.SystemConfigurationRepository jpaRepository;
+    
+    public SystemConfigurationRepositoryImpl(com.integrixs.data.repository.SystemConfigurationRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public Optional<SystemConfiguration> findById(UUID id) {

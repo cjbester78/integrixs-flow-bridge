@@ -27,6 +27,10 @@ public class IpWhitelistController {
 
     private final IpWhitelistService ipWhitelistService;
 
+    public IpWhitelistController(IpWhitelistService ipWhitelistService) {
+        this.ipWhitelistService = ipWhitelistService;
+    }
+
     /**
      * Get all whitelisted IPs.
      */
@@ -207,19 +211,43 @@ public class IpWhitelistController {
         private String ip;
         private String description;
         private LocalDateTime expiresAt;
+        
+        // Getters and setters
+        public String getIp() { return ip; }
+        public void setIp(String ip) { this.ip = ip; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public LocalDateTime getExpiresAt() { return expiresAt; }
+        public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
     }
 
         public static class AddMultipleIpsRequest {
         private List<String> ips;
         private String description;
         private LocalDateTime expiresAt;
+        
+        // Getters and setters
+        public List<String> getIps() { return ips; }
+        public void setIps(List<String> ips) { this.ips = ips; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public LocalDateTime getExpiresAt() { return expiresAt; }
+        public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
     }
 
         public static class UpdateDescriptionRequest {
         private String description;
+        
+        // Getters and setters
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
     }
 
         public static class ExtendExpirationRequest {
         private LocalDateTime newExpiresAt;
+        
+        // Getters and setters
+        public LocalDateTime getNewExpiresAt() { return newExpiresAt; }
+        public void setNewExpiresAt(LocalDateTime newExpiresAt) { this.newExpiresAt = newExpiresAt; }
     }
 }

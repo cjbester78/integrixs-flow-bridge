@@ -1,10 +1,10 @@
 package com.integrixs.backend.application.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.integrixs.backend.domain.repository.SystemLogRepository;
 import com.integrixs.backend.domain.service.LogManagementService;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
+import com.integrixs.data.repository.SystemLogRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +27,14 @@ public class LogManagementApplicationService {
     private final SystemLogRepository systemLogRepository;
     private final LogManagementService logManagementService;
     private final ObjectMapper objectMapper;
+
+    public LogManagementApplicationService(SystemLogRepository systemLogRepository,
+                                           LogManagementService logManagementService,
+                                           ObjectMapper objectMapper) {
+        this.systemLogRepository = systemLogRepository;
+        this.logManagementService = logManagementService;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Log a system event

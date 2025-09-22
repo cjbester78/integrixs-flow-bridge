@@ -90,8 +90,8 @@ public class UserManagementApplicationService {
     public Optional<UserResponse> getUserByUsername(String username) {
         log.debug("Getting user by username: {}", username);
 
-        User user = userRepository.findByUsername(username);
-        return Optional.ofNullable(user).map(this::convertToResponse);
+        return userRepository.findByUsername(username)
+            .map(this::convertToResponse);
     }
 
     @Transactional(readOnly = true)

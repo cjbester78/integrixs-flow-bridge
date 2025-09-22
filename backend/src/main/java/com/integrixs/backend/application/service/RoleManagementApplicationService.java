@@ -1,7 +1,7 @@
 package com.integrixs.backend.application.service;
 
-import com.integrixs.backend.domain.repository.RoleRepository;
-import com.integrixs.backend.domain.repository.UserRepository;
+import com.integrixs.data.repository.RoleRepository;
+import com.integrixs.data.repository.UserRepository;
 import com.integrixs.backend.domain.service.RoleManagementService;
 import com.integrixs.backend.exception.ConflictException;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -35,6 +35,16 @@ public class RoleManagementApplicationService {
     private final UserRepository userRepository;
     private final RoleManagementService roleManagementService;
     private final AuditTrailService auditTrailService;
+
+    public RoleManagementApplicationService(RoleRepository roleRepository,
+                                          UserRepository userRepository,
+                                          RoleManagementService roleManagementService,
+                                          AuditTrailService auditTrailService) {
+        this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
+        this.roleManagementService = roleManagementService;
+        this.auditTrailService = auditTrailService;
+    }
 
     /**
      * Get all roles with pagination

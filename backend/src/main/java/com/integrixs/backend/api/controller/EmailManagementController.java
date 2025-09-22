@@ -23,6 +23,10 @@ public class EmailManagementController {
 
     private final EmailService emailService;
 
+    public EmailManagementController(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
     /**
      * Test email configuration
      */

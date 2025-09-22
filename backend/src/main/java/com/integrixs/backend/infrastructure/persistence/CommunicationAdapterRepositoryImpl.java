@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
+import com.integrixs.backend.domain.repository.CommunicationAdapterRepositoryPort;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Repository;
 
@@ -14,9 +14,13 @@ import java.util.stream.Collectors;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainCommunicationAdapterRepository")
-public class CommunicationAdapterRepositoryImpl implements CommunicationAdapterRepository {
+public class CommunicationAdapterRepositoryImpl implements CommunicationAdapterRepositoryPort {
 
     private final com.integrixs.data.repository.CommunicationAdapterRepository jpaRepository;
+
+    public CommunicationAdapterRepositoryImpl(com.integrixs.data.repository.CommunicationAdapterRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public List<CommunicationAdapter> findAll() {

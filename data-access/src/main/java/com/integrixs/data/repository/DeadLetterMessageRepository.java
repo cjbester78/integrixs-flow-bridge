@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -29,4 +30,14 @@ public interface DeadLetterMessageRepository extends JpaRepository<DeadLetterMes
     Long countByFlowIdAndReprocessedFalse(Long flowId);
 
     List<DeadLetterMessage> findByStatusAndRetryCountLessThanOrderByQueuedAtAsc(DeadLetterMessage.Status status, int maxRetries);
+    
+    Page<DeadLetterMessage> findByStatusAndRetryCountLessThan(DeadLetterMessage.Status status, int maxRetries, Pageable pageable);
+    
+    List<DeadLetterMessage> findByFlowIdAndQueuedAtBetween(UUID flowId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    List<DeadLetterMessage> findByQueuedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    Optional<DeadLetterMessage> findByMessageId(String messageId);
+    
+    long deleteByQueuedAtBeforeAndStatus(LocalDateTime cutoffDate, DeadLetterMessage.Status status);
 }

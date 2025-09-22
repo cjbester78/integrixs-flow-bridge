@@ -33,6 +33,12 @@ public class CommunicationAdapterController {
     private final CommunicationAdapterService adapterService;
     private final AdapterTestingService testingService;
 
+    public CommunicationAdapterController(CommunicationAdapterService adapterService,
+                                          AdapterTestingService testingService) {
+        this.adapterService = adapterService;
+        this.testingService = testingService;
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ADAPTER.LIST", module = "AdapterManagement")

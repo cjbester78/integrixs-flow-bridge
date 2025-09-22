@@ -9,10 +9,10 @@ import com.integrixs.engine.domain.model.AdapterExecutionContext;
 import com.integrixs.engine.domain.model.AdapterExecutionResult;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
 import com.integrixs.engine.domain.model.FlowExecutionResult;
-import com.integrixs.engine.domain.service.AdapterExecutionService;
+import com.integrixs.engine.domain.service.FlowAdapterExecutor;
 import com.integrixs.engine.domain.service.FlowExecutionService;
 import com.integrixs.engine.mapper.HierarchicalXmlFieldMapper;
-import com.integrixs.engine.service.MessageRoutingService;
+import com.integrixs.engine.service.FlowMessageProcessor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -33,15 +33,15 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
     private static final Logger log = LoggerFactory.getLogger(FlowExecutionServiceImpl.class);
 
 
-    private final AdapterExecutionService adapterExecutionService;
-    private final MessageRoutingService messageRoutingService;
+    private final FlowAdapterExecutor adapterExecutionService;
+    private final FlowMessageProcessor flowMessageProcessor;
     private final HierarchicalXmlFieldMapper xmlFieldMapper;
     private final IntegrationFlowRepository integrationFlowRepository;
     private final CommunicationAdapterRepository communicationAdapterRepository;
 
-    public FlowExecutionServiceImpl(AdapterExecutionService adapterExecutionService, MessageRoutingService messageRoutingService, HierarchicalXmlFieldMapper xmlFieldMapper, IntegrationFlowRepository integrationFlowRepository, CommunicationAdapterRepository communicationAdapterRepository) {
+    public FlowExecutionServiceImpl(FlowAdapterExecutor adapterExecutionService, FlowMessageProcessor flowMessageProcessor, HierarchicalXmlFieldMapper xmlFieldMapper, IntegrationFlowRepository integrationFlowRepository, CommunicationAdapterRepository communicationAdapterRepository) {
         this.adapterExecutionService = adapterExecutionService;
-        this.messageRoutingService = messageRoutingService;
+        this.flowMessageProcessor = flowMessageProcessor;
         this.xmlFieldMapper = xmlFieldMapper;
         this.integrationFlowRepository = integrationFlowRepository;
         this.communicationAdapterRepository = communicationAdapterRepository;
@@ -122,7 +122,7 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
                     .orElseThrow(() -> new IllegalArgumentException("Source adapter not found: " + inboundAdapterId));
 
             // Use message routing service for initial processing
-            return messageRoutingService.processMessage(message, null, inboundAdapter.getConfiguration());
+            return flowMessageProcessor.processMessage(message, null, inboundAdapter.getConfiguration());
 
         } catch(Exception e) {
             log.error("Error processing source adapter {}: {}", inboundAdapterId, e.getMessage());

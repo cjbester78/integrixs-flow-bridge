@@ -146,6 +146,14 @@ public class FlowOrchestrationStep {
         this.executionOrder = executionOrder;
     }
 
+    public Map<String, Object> getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.configuration = configuration;
+    }
+
     public String getConditionExpression() {
         return conditionExpression;
     }
@@ -246,6 +254,7 @@ public class FlowOrchestrationStep {
         private String stepName;
         private String description;
         private Integer executionOrder;
+        private Map<String, Object> configuration;
         private String conditionExpression;
         private Boolean isConditional;
         private Boolean isActive;
@@ -285,6 +294,11 @@ public class FlowOrchestrationStep {
 
         public FlowOrchestrationStepBuilder executionOrder(Integer executionOrder) {
             this.executionOrder = executionOrder;
+            return this;
+        }
+
+        public FlowOrchestrationStepBuilder configuration(Map<String, Object> configuration) {
+            this.configuration = configuration;
             return this;
         }
 
@@ -351,6 +365,7 @@ public class FlowOrchestrationStep {
             instance.setStepName(this.stepName);
             instance.setDescription(this.description);
             instance.setExecutionOrder(this.executionOrder);
+            instance.setConfiguration(this.configuration);
             instance.setConditionExpression(this.conditionExpression);
             instance.setIsConditional(this.isConditional);
             instance.setIsActive(this.isActive);

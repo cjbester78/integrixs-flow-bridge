@@ -1,6 +1,6 @@
 package com.integrixs.backend.exception;
 
-import com.integrixs.shared.exception.*;
+import com.integrixs.shared.exceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

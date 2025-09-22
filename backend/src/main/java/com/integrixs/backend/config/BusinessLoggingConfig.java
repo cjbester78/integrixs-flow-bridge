@@ -105,5 +105,159 @@ public class BusinessLoggingConfig {
          * Include session ID in MDC
          */
         private boolean includeSessionId = true;
+
+        // Getters and Setters
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isIncludeUserId() {
+            return includeUserId;
+        }
+
+        public void setIncludeUserId(boolean includeUserId) {
+            this.includeUserId = includeUserId;
+        }
+
+        public boolean isIncludeFlowId() {
+            return includeFlowId;
+        }
+
+        public void setIncludeFlowId(boolean includeFlowId) {
+            this.includeFlowId = includeFlowId;
+        }
+
+        public boolean isIncludeTenantId() {
+            return includeTenantId;
+        }
+
+        public void setIncludeTenantId(boolean includeTenantId) {
+            this.includeTenantId = includeTenantId;
+        }
+
+        public boolean isIncludeSessionId() {
+            return includeSessionId;
+        }
+
+        public void setIncludeSessionId(boolean includeSessionId) {
+            this.includeSessionId = includeSessionId;
+        }
+    }
+
+    // Getters and Setters
+    public boolean isEnableOperationLogging() {
+        return enableOperationLogging;
+    }
+
+    public void setEnableOperationLogging(boolean enableOperationLogging) {
+        this.enableOperationLogging = enableOperationLogging;
+    }
+
+    public boolean isEnableAuthenticationDetails() {
+        return enableAuthenticationDetails;
+    }
+
+    public void setEnableAuthenticationDetails(boolean enableAuthenticationDetails) {
+        this.enableAuthenticationDetails = enableAuthenticationDetails;
+    }
+
+    public boolean isEnableFlowExecutionDetails() {
+        return enableFlowExecutionDetails;
+    }
+
+    public void setEnableFlowExecutionDetails(boolean enableFlowExecutionDetails) {
+        this.enableFlowExecutionDetails = enableFlowExecutionDetails;
+    }
+
+    public boolean isEnableTransformationSteps() {
+        return enableTransformationSteps;
+    }
+
+    public void setEnableTransformationSteps(boolean enableTransformationSteps) {
+        this.enableTransformationSteps = enableTransformationSteps;
+    }
+
+    public boolean isEnableAdapterCommunication() {
+        return enableAdapterCommunication;
+    }
+
+    public void setEnableAdapterCommunication(boolean enableAdapterCommunication) {
+        this.enableAdapterCommunication = enableAdapterCommunication;
+    }
+
+    public boolean isEnablePerformanceMetrics() {
+        return enablePerformanceMetrics;
+    }
+
+    public void setEnablePerformanceMetrics(boolean enablePerformanceMetrics) {
+        this.enablePerformanceMetrics = enablePerformanceMetrics;
+    }
+
+    public boolean isEnableMessageRouting() {
+        return enableMessageRouting;
+    }
+
+    public void setEnableMessageRouting(boolean enableMessageRouting) {
+        this.enableMessageRouting = enableMessageRouting;
+    }
+
+    public int getMaxPayloadLength() {
+        return maxPayloadLength;
+    }
+
+    public void setMaxPayloadLength(int maxPayloadLength) {
+        this.maxPayloadLength = maxPayloadLength;
+    }
+
+    public boolean isIncludeStackTraces() {
+        return includeStackTraces;
+    }
+
+    public void setIncludeStackTraces(boolean includeStackTraces) {
+        this.includeStackTraces = includeStackTraces;
+    }
+
+    public boolean isLogSensitiveData() {
+        return logSensitiveData;
+    }
+
+    public void setLogSensitiveData(boolean logSensitiveData) {
+        this.logSensitiveData = logSensitiveData;
+    }
+
+    public boolean isEnableStructuredFormat() {
+        return enableStructuredFormat;
+    }
+
+    public void setEnableStructuredFormat(boolean enableStructuredFormat) {
+        this.enableStructuredFormat = enableStructuredFormat;
+    }
+
+    public long getPerformanceThresholdMs() {
+        return performanceThresholdMs;
+    }
+
+    public void setPerformanceThresholdMs(long performanceThresholdMs) {
+        this.performanceThresholdMs = performanceThresholdMs;
+    }
+
+    public String getCorrelationIdHeader() {
+        return correlationIdHeader;
+    }
+
+    public void setCorrelationIdHeader(String correlationIdHeader) {
+        this.correlationIdHeader = correlationIdHeader;
+    }
+
+    public MdcConfig getMdc() {
+        return mdc;
+    }
+
+    public void setMdc(MdcConfig mdc) {
+        this.mdc = mdc;
     }
 }

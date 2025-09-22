@@ -168,6 +168,7 @@ public class OrchestrationEngineController {
      * Cancel a running orchestration execution
      * @deprecated Use /api/orchestration/execution/ {executionId}/cancel from OrchestrationController instead
      */
+    @Deprecated
     @PostMapping("/engine/execution/ {executionId}/cancel")
     public ResponseEntity<CancelExecutionResponse> cancelExecution(@PathVariable String executionId) {
         boolean cancelled = orchestrationService.cancelExecution(executionId);

@@ -36,12 +36,16 @@ public class CircuitBreakerService {
     public void init() {
         // Register event listeners for all circuit breakers
         circuitBreakerRegistry.getEventPublisher()
-            .onStateTransition(this::handleStateTransition)
-            .onSuccess(event -> recordMetric("success", event.getCircuitBreakerName()))
-            .onError(event -> recordMetric("error", event.getCircuitBreakerName()))
-            .onIgnoredError(event -> recordMetric("ignored", event.getCircuitBreakerName()))
-            .onSlowCallRateExceeded(event ->
-                log.warn("Circuit breaker {} slow call rate exceeded", event.getCircuitBreakerName()));
+            .onEntryAdded(event -> {
+                CircuitBreaker cb = event.getAddedEntry();
+                cb.getEventPublisher()
+                    .onStateTransition(this::handleStateTransition)
+                    .onSuccess(evt -> recordMetric("success", evt.getCircuitBreakerName()))
+                    .onError(evt -> recordMetric("error", evt.getCircuitBreakerName()))
+                    .onIgnoredError(evt -> recordMetric("ignored", evt.getCircuitBreakerName()))
+                    .onSlowCallRateExceeded(evt ->
+                        log.warn("Circuit breaker {} slow call rate exceeded", evt.getCircuitBreakerName()));
+            });
     }
 
     /**
@@ -182,8 +186,6 @@ public class CircuitBreakerService {
             "name", circuitBreakerName).increment();
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class CircuitBreakerHealthStatus {
         private String adapterType;
         private String adapterId;
@@ -194,5 +196,154 @@ public class CircuitBreakerService {
         private int numberOfFailedCalls;
         private int numberOfSlowCalls;
         private int numberOfSuccessfulCalls;
+
+        // Getters and Setters
+        public String getAdapterType() {
+            return adapterType;
+        }
+
+        public void setAdapterType(String adapterType) {
+            this.adapterType = adapterType;
+        }
+
+        public String getAdapterId() {
+            return adapterId;
+        }
+
+        public void setAdapterId(String adapterId) {
+            this.adapterId = adapterId;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
+
+        public float getFailureRate() {
+            return failureRate;
+        }
+
+        public void setFailureRate(float failureRate) {
+            this.failureRate = failureRate;
+        }
+
+        public float getSlowCallRate() {
+            return slowCallRate;
+        }
+
+        public void setSlowCallRate(float slowCallRate) {
+            this.slowCallRate = slowCallRate;
+        }
+
+        public int getNumberOfBufferedCalls() {
+            return numberOfBufferedCalls;
+        }
+
+        public void setNumberOfBufferedCalls(int numberOfBufferedCalls) {
+            this.numberOfBufferedCalls = numberOfBufferedCalls;
+        }
+
+        public int getNumberOfFailedCalls() {
+            return numberOfFailedCalls;
+        }
+
+        public void setNumberOfFailedCalls(int numberOfFailedCalls) {
+            this.numberOfFailedCalls = numberOfFailedCalls;
+        }
+
+        public int getNumberOfSlowCalls() {
+            return numberOfSlowCalls;
+        }
+
+        public void setNumberOfSlowCalls(int numberOfSlowCalls) {
+            this.numberOfSlowCalls = numberOfSlowCalls;
+        }
+
+        public int getNumberOfSuccessfulCalls() {
+            return numberOfSuccessfulCalls;
+        }
+
+        public void setNumberOfSuccessfulCalls(int numberOfSuccessfulCalls) {
+            this.numberOfSuccessfulCalls = numberOfSuccessfulCalls;
+        }
+
+        // Builder pattern
+        public static CircuitBreakerHealthStatusBuilder builder() {
+            return new CircuitBreakerHealthStatusBuilder();
+        }
+
+        public static class CircuitBreakerHealthStatusBuilder {
+            private String adapterType;
+            private String adapterId;
+            private String state;
+            private float failureRate;
+            private float slowCallRate;
+            private int numberOfBufferedCalls;
+            private int numberOfFailedCalls;
+            private int numberOfSlowCalls;
+            private int numberOfSuccessfulCalls;
+
+            public CircuitBreakerHealthStatusBuilder adapterType(String adapterType) {
+                this.adapterType = adapterType;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder adapterId(String adapterId) {
+                this.adapterId = adapterId;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder state(String state) {
+                this.state = state;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder failureRate(float failureRate) {
+                this.failureRate = failureRate;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder slowCallRate(float slowCallRate) {
+                this.slowCallRate = slowCallRate;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder numberOfBufferedCalls(int numberOfBufferedCalls) {
+                this.numberOfBufferedCalls = numberOfBufferedCalls;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder numberOfFailedCalls(int numberOfFailedCalls) {
+                this.numberOfFailedCalls = numberOfFailedCalls;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder numberOfSlowCalls(int numberOfSlowCalls) {
+                this.numberOfSlowCalls = numberOfSlowCalls;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatusBuilder numberOfSuccessfulCalls(int numberOfSuccessfulCalls) {
+                this.numberOfSuccessfulCalls = numberOfSuccessfulCalls;
+                return this;
+            }
+
+            public CircuitBreakerHealthStatus build() {
+                CircuitBreakerHealthStatus status = new CircuitBreakerHealthStatus();
+                status.adapterType = this.adapterType;
+                status.adapterId = this.adapterId;
+                status.state = this.state;
+                status.failureRate = this.failureRate;
+                status.slowCallRate = this.slowCallRate;
+                status.numberOfBufferedCalls = this.numberOfBufferedCalls;
+                status.numberOfFailedCalls = this.numberOfFailedCalls;
+                status.numberOfSlowCalls = this.numberOfSlowCalls;
+                status.numberOfSuccessfulCalls = this.numberOfSuccessfulCalls;
+                return status;
+            }
+        }
     }
 }

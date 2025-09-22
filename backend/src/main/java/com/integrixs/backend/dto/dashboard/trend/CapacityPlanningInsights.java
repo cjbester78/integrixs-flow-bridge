@@ -31,4 +31,20 @@ public class CapacityPlanningInsights {
     public void setRecommendations(List<String> recommendations) {
         this.recommendations = recommendations;
     }
+
+    public Map<String, ResourceTrend> getResourceTrends() {
+        return resourceTrends;
+    }
+
+    public void setResourceTrends(Map<String, ResourceTrend> resourceTrends) {
+        this.resourceTrends = resourceTrends;
+    }
+
+    public Map<String, CapacityProjection> getCapacityProjections() {
+        return capacityProjections;
+    }
+
+    public void setCapacityProjections(Map<String, CapacityProjection> capacityProjections) {
+        this.capacityProjections = capacityProjections;
+    }
 }

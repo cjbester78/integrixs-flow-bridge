@@ -6,13 +6,13 @@ import com.integrixs.backend.annotation.AuditUpdate;
 import com.integrixs.backend.api.dto.request.CreateFlowRequest;
 import com.integrixs.backend.api.dto.request.UpdateFlowRequest;
 import com.integrixs.backend.api.dto.response.FlowResponse;
-import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
 import com.integrixs.backend.domain.service.FlowValidationService;
 import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.FlowStatus;
+import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.repository.FlowStructureRepository;
 import org.springframework.stereotype.Service;
@@ -34,12 +34,23 @@ public class IntegrationFlowService {
 
     private static final Logger log = LoggerFactory.getLogger(IntegrationFlowService.class);
 
-
     private final IntegrationFlowRepository flowRepository;
     private final FlowValidationService validationService;
     private final AuditTrailService auditTrailService;
     private final CommunicationAdapterRepository adapterRepository;
     private final FlowStructureRepository structureRepository;
+    
+    public IntegrationFlowService(IntegrationFlowRepository flowRepository,
+                                FlowValidationService validationService,
+                                AuditTrailService auditTrailService,
+                                CommunicationAdapterRepository adapterRepository,
+                                FlowStructureRepository structureRepository) {
+        this.flowRepository = flowRepository;
+        this.validationService = validationService;
+        this.auditTrailService = auditTrailService;
+        this.adapterRepository = adapterRepository;
+        this.structureRepository = structureRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<FlowResponse> getAllFlows() {
@@ -238,5 +249,17 @@ public class IntegrationFlowService {
         }
 
         return builder.build();
+    }
+    
+    @Transactional
+    public IntegrationFlow createIntegrationFlow(IntegrationFlow flow) {
+        // Save the integration flow
+        return flowRepository.save(flow);
+    }
+    
+    @Transactional
+    public void deleteIntegrationFlow(UUID flowId) {
+        // Delete the integration flow
+        flowRepository.deleteById(flowId);
     }
 }

@@ -25,6 +25,10 @@ public class FlowTransformationController {
 
     private final FlowTransformationApplicationService transformationService;
 
+    public FlowTransformationController(FlowTransformationApplicationService transformationService) {
+        this.transformationService = transformationService;
+    }
+
     /**
      * Get all transformations for a flow
      * @param flowId The flow ID

@@ -74,4 +74,12 @@ public class PerformanceSnapshot {
     public void setErrorRate(double errorRate) {
         this.errorRate = errorRate;
     }
+
+    public List<Map<String, Object>> getComponentSummaries() {
+        return componentSummaries;
+    }
+
+    public void setComponentSummaries(List<Map<String, Object>> componentSummaries) {
+        this.componentSummaries = componentSummaries;
+    }
 }

@@ -32,6 +32,10 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
     private String authorizationUrl;
     private String tokenUrl;
     private String userInfoUrl;
+    
+    // Retry configuration
+    private int maxRetryAttempts = 3;
+    private int retryDelayMs = 1000;
 
         public static class SlackFeatures {
         private boolean enableMessaging = true;
@@ -270,7 +274,7 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
 
         // App features
         COMMANDS("commands"),
-        INCOMING_WEBHOOK("incoming - webhook"),
+        INCOMING_WEBHOOK("incoming-webhook"),
         WORKFLOW_STEPS_EXECUTE("workflow.steps:execute"),
         APP_MENTIONS_READ("app_mentions:read"),
 
@@ -809,5 +813,21 @@ public class SlackApiConfig extends SocialMediaAdapterConfig {
     
     public void setUserInfoUrl(String userInfoUrl) {
         this.userInfoUrl = userInfoUrl;
+    }
+    
+    public int getMaxRetryAttempts() {
+        return maxRetryAttempts;
+    }
+    
+    public void setMaxRetryAttempts(int maxRetryAttempts) {
+        this.maxRetryAttempts = maxRetryAttempts;
+    }
+    
+    public int getRetryDelayMs() {
+        return retryDelayMs;
+    }
+    
+    public void setRetryDelayMs(int retryDelayMs) {
+        this.retryDelayMs = retryDelayMs;
     }
 }

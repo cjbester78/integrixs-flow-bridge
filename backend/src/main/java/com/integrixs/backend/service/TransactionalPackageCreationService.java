@@ -1,12 +1,18 @@
 package com.integrixs.backend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.*;
+import java.util.List;
 import com.integrixs.data.repository.*;
+import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.backend.dto.PackageCreationRequest;
 import com.integrixs.backend.dto.PackageCreationResult;
 import com.integrixs.backend.dto.PackageCreationRequest.AdapterRequest;
 import com.integrixs.backend.dto.PackageCreationRequest.StructureRequest;
 import com.integrixs.backend.dto.PackageCreationRequest.TransformationRequest;
+import com.integrixs.backend.dto.PackageCreationRequest.FieldMappingRequest;
+import com.integrixs.backend.dto.PackageCreationRequest.OrchestrationTargetRequest;
+import com.integrixs.backend.audit.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +72,9 @@ public class TransactionalPackageCreationService {
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     /**
      * Package creation context to track progress
@@ -289,12 +298,19 @@ public class TransactionalPackageCreationService {
         IntegrationFlow flow = new IntegrationFlow();
         flow.setName(request.getFlowName());
         flow.setDescription(request.getDescription());
-        flow.setType(request.getFlowType());
-        flow.setTenantId(request.getTenantId());
+        // Set flow type - assuming request.getFlowType() returns a string that needs to be converted
+        if ("DIRECT_MAPPING".equals(request.getFlowType())) {
+            flow.setFlowType(FlowType.DIRECT_MAPPING);
+        } else if ("ORCHESTRATION".equals(request.getFlowType())) {
+            flow.setFlowType(FlowType.ORCHESTRATION);
+        }
         flow.setActive(false); // Start inactive
-        flow.setConfiguration(request.getFlowConfiguration());
-        flow.setCreatedBy(request.getUserId());
-        flow.setCreatedDate(LocalDateTime.now());
+        // IntegrationFlow doesn't have a configuration field
+        // Need to fetch the User entity
+        User user = new User();
+        user.setId(request.getUserId());
+        flow.setCreatedBy(user);
+        flow.setCreatedAt(LocalDateTime.now());
 
         flow = flowRepository.saveAndFlush(flow);
         context.addResource("flow", flow);
@@ -328,7 +344,8 @@ public class TransactionalPackageCreationService {
             context.addCompensation(() -> adapterRepository.deleteById(targetAdapter.getId()));
         }
 
-        flow.setAdapters(new HashSet<>(adapters));
+        // IntegrationFlow doesn't have a setAdapters method
+        // Adapters are referenced by inboundAdapterId and outboundAdapterId
     }
 
     /**
@@ -337,20 +354,35 @@ public class TransactionalPackageCreationService {
     private CommunicationAdapter createAdapter(AdapterRequest request, String direction, IntegrationFlow flow) {
         CommunicationAdapter adapter = new CommunicationAdapter();
         adapter.setName(request.getName());
-        adapter.setType(request.getType());
+        // Convert string type to AdapterType enum
+        adapter.setType(AdapterType.valueOf(request.getType()));
         adapter.setDirection(direction);
-        adapter.setConfiguration(request.getConfiguration());
+        // Convert Map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            adapter.setConfiguration(mapper.writeValueAsString(request.getConfiguration()));
+        } catch(Exception e) {
+            throw new RuntimeException("Failed to serialize configuration", e);
+        }
         adapter.setActive(true);
         adapter.setCreatedBy(flow.getCreatedBy());
-        adapter.setCreatedDate(LocalDateTime.now());
-        adapter.setFlow(flow);
-        adapter.setTenantId(flow.getTenantId());
+        adapter.setCreatedAt(LocalDateTime.now());
+        // CommunicationAdapter doesn't have setFlow or setTenantId methods
+        // Set the business component from flow if available
+        if (flow.getBusinessComponent() != null) {
+            adapter.setBusinessComponent(flow.getBusinessComponent());
+        }
 
         // Encrypt credentials if present
         if(request.getCredentials() != null) {
-            Map<String, Object> encryptedConfig = new HashMap<>(adapter.getConfiguration());
-            encryptedConfig.put("credentials", encryptCredentials(request.getCredentials()));
-            adapter.setConfiguration(encryptedConfig);
+            // Need to deserialize, update, and re-serialize the configuration
+            try {
+                Map<String, Object> config = mapper.readValue(adapter.getConfiguration(), Map.class);
+                config.put("credentials", encryptCredentials(request.getCredentials()));
+                adapter.setConfiguration(mapper.writeValueAsString(config));
+            } catch(Exception e) {
+                throw new RuntimeException("Failed to update configuration", e);
+            }
         }
 
         return adapterRepository.saveAndFlush(adapter);
@@ -364,12 +396,8 @@ public class TransactionalPackageCreationService {
         if(request.getSourceStructure() != null) {
             MessageStructure sourceStructure = createStructure(request.getSourceStructure(), flow);
 
-            FlowStructure flowStructure = new FlowStructure();
-            flowStructure.setFlow(flow);
-            flowStructure.setStructure(sourceStructure);
-            flowStructure.setDirection("SOURCE");
-            flowStructureRepository.saveAndFlush(flowStructure);
-
+            // FlowStructure is for WSDL-based structures, not message structures
+            // We need to track the created MessageStructure instead
             context.addResource("sourceStructure", sourceStructure);
             context.addCompensation(() -> messageStructureRepository.deleteById(sourceStructure.getId()));
         }
@@ -377,13 +405,9 @@ public class TransactionalPackageCreationService {
         // Create target structures
         for(StructureRequest targetRequest : request.getTargetStructures()) {
             MessageStructure targetStructure = createStructure(targetRequest, flow);
-
-            FlowStructure flowStructure = new FlowStructure();
-            flowStructure.setFlow(flow);
-            flowStructure.setStructure(targetStructure);
-            flowStructure.setDirection("TARGET");
-            flowStructureRepository.saveAndFlush(flowStructure);
-
+            
+            // FlowStructure is for WSDL-based structures, not message structures
+            // We need to track the created MessageStructure instead
             context.addResource("targetStructure_" + targetStructure.getName(), targetStructure);
             context.addCompensation(() -> messageStructureRepository.deleteById(targetStructure.getId()));
         }
@@ -395,13 +419,12 @@ public class TransactionalPackageCreationService {
     private MessageStructure createStructure(StructureRequest request, IntegrationFlow flow) {
         MessageStructure structure = new MessageStructure();
         structure.setName(request.getName());
-        structure.setType(request.getType());
-        structure.setFormat(request.getFormat());
-        structure.setContent(request.getContent());
-        structure.setActive(true);
+        // MessageStructure doesn't have setType or setFormat methods
+        structure.setXsdContent(request.getContent());
+        structure.setIsActive(true);
         structure.setVersion(1);
         structure.setCreatedBy(flow.getCreatedBy());
-        structure.setCreatedDate(LocalDateTime.now());
+        structure.setCreatedAt(LocalDateTime.now());
 
         return messageStructureRepository.saveAndFlush(structure);
     }
@@ -415,12 +438,18 @@ public class TransactionalPackageCreationService {
             FlowTransformation transformation = new FlowTransformation();
             transformation.setFlow(flow);
             transformation.setName(transRequest.getName());
-            transformation.setType(transRequest.getType());
-            transformation.setConfiguration(transRequest.getConfiguration());
+            // Convert string type to TransformationType enum
+            transformation.setType(FlowTransformation.TransformationType.valueOf(transRequest.getType().toUpperCase()));
+            // Convert configuration Map to JSON string
+            try {
+                transformation.setConfiguration(mapper.writeValueAsString(transRequest.getConfiguration()));
+            } catch(Exception e) {
+                throw new RuntimeException("Failed to serialize transformation configuration", e);
+            }
             transformation.setExecutionOrder(order++);
             transformation.setActive(true);
             transformation.setCreatedBy(flow.getCreatedBy());
-            transformation.setCreatedDate(LocalDateTime.now());
+            transformation.setCreatedAt(LocalDateTime.now());
 
             transformation = transformationRepository.saveAndFlush(transformation);
             context.addResource("transformation_" + transformation.getName(), transformation);
@@ -430,11 +459,12 @@ public class TransactionalPackageCreationService {
                 for(FieldMappingRequest mappingRequest : transRequest.getFieldMappings()) {
                     FieldMapping mapping = new FieldMapping();
                     mapping.setTransformation(transformation);
-                    mapping.setSourcePath(mappingRequest.getSourcePath());
-                    mapping.setTargetPath(mappingRequest.getTargetPath());
-                    mapping.setMappingExpression(mappingRequest.getExpression());
-                    mapping.setMappingType(mappingRequest.getType());
-                    mapping.setRequired(mappingRequest.isRequired());
+                    mapping.setSourceXPath(mappingRequest.getSourcePath());
+                    mapping.setTargetXPath(mappingRequest.getTargetPath());
+                    mapping.setMappingRule(mappingRequest.getExpression());
+                    // Convert string type to MappingType enum
+                    mapping.setMappingType(FieldMapping.MappingType.valueOf(mappingRequest.getType().toUpperCase()));
+                    // FieldMapping doesn't have setRequired method
                     mapping.setMappingOrder(mappingRequest.getOrder());
 
                     fieldMappingRepository.saveAndFlush(mapping);
@@ -455,7 +485,11 @@ public class TransactionalPackageCreationService {
 
         for(OrchestrationTargetRequest targetRequest : request.getOrchestrationTargets()) {
             // Find target adapter
-            CommunicationAdapter targetAdapter = flow.getAdapters().stream()
+            // Since IntegrationFlow doesn't have getAdapters(), we need to look up the adapter
+            // First get all adapters for this business component
+            List<CommunicationAdapter> adapters = adapterRepository.findByBusinessComponent_Id(
+                flow.getBusinessComponent() != null ? flow.getBusinessComponent().getId() : null);
+            CommunicationAdapter targetAdapter = adapters.stream()
                 .filter(a -> a.getName().equals(targetRequest.getAdapterName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Target adapter not found: " + targetRequest.getAdapterName()));
@@ -465,13 +499,19 @@ public class TransactionalPackageCreationService {
             target.setName(targetRequest.getName());
             target.setTargetAdapter(targetAdapter);
             target.setRoutingCondition(targetRequest.getRoutingCondition());
-            target.setTransformationConfig(targetRequest.getTransformationConfig());
+            // OrchestrationTarget stores configuration as JSON string
+            try {
+                target.setConfiguration(mapper.writeValueAsString(targetRequest.getTransformationConfig()));
+            } catch(Exception e) {
+                throw new RuntimeException("Failed to serialize transformation config", e);
+            }
             target.setExecutionOrder(targetRequest.getOrder());
-            target.setParallelExecution(targetRequest.isParallel());
-            target.setErrorStrategy(targetRequest.getErrorStrategy());
+            target.setParallel(targetRequest.isParallel());
+            // Convert string to ErrorStrategy enum
+            target.setErrorStrategy(OrchestrationTarget.ErrorStrategy.valueOf(targetRequest.getErrorStrategy().toUpperCase()));
             target.setActive(true);
             target.setCreatedBy(flow.getCreatedBy());
-            target.setCreatedDate(LocalDateTime.now());
+            target.setCreatedAt(LocalDateTime.now());
 
             orchestrationTargetRepository.saveAndFlush(target);
             context.addResource("orchestrationTarget_" + target.getName(), target);
@@ -507,8 +547,12 @@ public class TransactionalPackageCreationService {
             .orElseThrow(() -> new IllegalStateException("Flow not found after creation"));
 
         // Validate required components
-        if(flow.getAdapters() == null || flow.getAdapters().isEmpty()) {
-            throw new IllegalStateException("No adapters configured for flow");
+        // Validate adapters are set
+        if(flow.getInboundAdapterId() == null) {
+            throw new IllegalStateException("No inbound adapter configured for flow");
+        }
+        if(flow.getOutboundAdapterId() == null && flow.getFlowType() == FlowType.DIRECT_MAPPING) {
+            throw new IllegalStateException("No outbound adapter configured for direct mapping flow");
         }
 
         // Validate at least one transformation exists

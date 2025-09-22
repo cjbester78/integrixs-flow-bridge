@@ -65,9 +65,8 @@ public class EnhancedHttpAdapterFactory {
         } catch(Exception e) {
             logger.error("Failed to create adapter: {}", adapterConfig.getName(), e);
             throw new AdapterException(
-                com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterTypeEnum.valueOf(adapterConfig.getType().name()),
-                adapterConfig.getMode(),
-                "Failed to create adapter with authentication", e);
+                "Failed to create adapter with authentication for " + adapterConfig.getType() + " in " + adapterConfig.getMode() + " mode", 
+                e);
         }
     }
 

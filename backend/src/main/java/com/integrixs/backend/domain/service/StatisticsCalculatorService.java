@@ -1,9 +1,10 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.domain.repository.DomainMessageRepository;
-import com.integrixs.backend.domain.repository.DomainFlowExecutionRepository;
+import com.integrixs.data.repository.MessageRepository;
+import com.integrixs.data.repository.FlowExecutionRepository;
 import com.integrixs.data.model.Message.MessageStatus;
 import com.integrixs.data.model.FlowExecution.ExecutionStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,8 +18,14 @@ import java.util.UUID;
 @Service
 public class StatisticsCalculatorService {
 
-    private final DomainMessageRepository messageRepository;
-    private final DomainFlowExecutionRepository flowExecutionRepository;
+    private final MessageRepository messageRepository;
+    private final FlowExecutionRepository flowExecutionRepository;
+
+    public StatisticsCalculatorService(MessageRepository messageRepository, 
+                                     FlowExecutionRepository flowExecutionRepository) {
+        this.messageRepository = messageRepository;
+        this.flowExecutionRepository = flowExecutionRepository;
+    }
 
     /**
      * Count messages processed today
@@ -27,7 +34,8 @@ public class StatisticsCalculatorService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        return messageRepository.countByDateRange(startOfDay, endOfDay);
+        // Use existing repository method with pagination
+        return messageRepository.findByReceivedAtBetween(startOfDay, endOfDay, Pageable.unpaged()).getTotalElements();
     }
 
     /**
@@ -37,7 +45,15 @@ public class StatisticsCalculatorService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        return messageRepository.countByBusinessComponentAndDateRange(businessComponentId, startOfDay, endOfDay);
+        // Simplified implementation - would need custom query in real scenario
+        return messageRepository.findByReceivedAtBetween(startOfDay, endOfDay, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .filter(msg -> msg.getFlowExecution() != null && 
+                             msg.getFlowExecution().getFlow() != null &&
+                             msg.getFlowExecution().getFlow().getBusinessComponent() != null &&
+                             msg.getFlowExecution().getFlow().getBusinessComponent().getId().equals(businessComponentId))
+                .count();
     }
 
     /**
@@ -47,12 +63,16 @@ public class StatisticsCalculatorService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        long totalMessages = messageRepository.countByDateRange(startOfDay, endOfDay);
+        long totalMessages = messageRepository.findByReceivedAtBetween(startOfDay, endOfDay, Pageable.unpaged()).getTotalElements();
         if(totalMessages == 0) {
             return 100.0; // No messages means 100% success
         }
 
-        long successfulMessages = messageRepository.countByStatusAndDateRange(MessageStatus.PROCESSED, startOfDay, endOfDay);
+        long successfulMessages = messageRepository.findByStatus(MessageStatus.PROCESSED).stream()
+                .filter(msg -> msg.getReceivedAt() != null && 
+                             msg.getReceivedAt().isAfter(startOfDay) && 
+                             msg.getReceivedAt().isBefore(endOfDay))
+                .count();
 
         return(successfulMessages * 100.0) / totalMessages;
     }
@@ -64,15 +84,25 @@ public class StatisticsCalculatorService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        long totalMessages = messageRepository.countByBusinessComponentAndDateRange(businessComponentId, startOfDay, endOfDay);
-        if(totalMessages == 0) {
+        // Get all messages for the time period and filter
+        var allMessages = messageRepository.findByReceivedAtBetween(startOfDay, endOfDay, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .filter(msg -> msg.getFlowExecution() != null && 
+                             msg.getFlowExecution().getFlow() != null &&
+                             msg.getFlowExecution().getFlow().getBusinessComponent() != null &&
+                             msg.getFlowExecution().getFlow().getBusinessComponent().getId().equals(businessComponentId))
+                .toList();
+
+        if(allMessages.isEmpty()) {
             return 100.0; // No messages means 100% success
         }
 
-        long successfulMessages = messageRepository.countByBusinessComponentStatusAndDateRange(
-            businessComponentId, MessageStatus.PROCESSED, startOfDay, endOfDay);
+        long successfulMessages = allMessages.stream()
+                .filter(msg -> msg.getStatus() == MessageStatus.PROCESSED)
+                .count();
 
-        return(successfulMessages * 100.0) / totalMessages;
+        return(successfulMessages * 100.0) / allMessages.size();
     }
 
     /**
@@ -82,7 +112,8 @@ public class StatisticsCalculatorService {
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-        Double avgTime = flowExecutionRepository.getAverageExecutionTimeForDateRange(startOfDay, endOfDay);
+        // Use existing repository method for calculating average processing time
+        Double avgTime = messageRepository.calculateAverageProcessingTimeForPeriod(startOfDay, endOfDay);
 
         return avgTime != null ? avgTime.longValue() : 0L;
     }
@@ -91,11 +122,8 @@ public class StatisticsCalculatorService {
      * Calculate average response time for a specific business component
      */
     public long calculateAverageResponseTimeForBusinessComponent(UUID businessComponentId) {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1);
-
-        Double avgTime = flowExecutionRepository.getAverageExecutionTimeForBusinessComponentAndDateRange(
-            businessComponentId, startOfDay, endOfDay);
+        // Use existing repository method that calculates by business component
+        Double avgTime = messageRepository.calculateAverageProcessingTimeByBusinessComponent(businessComponentId.toString());
 
         return avgTime != null ? avgTime.longValue() : 0L;
     }

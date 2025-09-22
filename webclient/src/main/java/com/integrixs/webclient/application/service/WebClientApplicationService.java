@@ -6,7 +6,7 @@ import com.integrixs.webclient.domain.model.ProcessingResult;
 import com.integrixs.webclient.domain.model.ValidationResult;
 import com.integrixs.webclient.domain.repository.InboundMessageRepository;
 import com.integrixs.webclient.domain.service.InboundMessageService;
-import com.integrixs.webclient.domain.service.MessageRoutingService;
+import com.integrixs.webclient.domain.service.WebMessageRoutingService;
 import com.integrixs.webclient.domain.service.MessageValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +28,13 @@ public class WebClientApplicationService {
 
     private final InboundMessageService inboundMessageService;
     private final MessageValidationService validationService;
-    private final MessageRoutingService routingService;
+    private final WebMessageRoutingService routingService;
     private final InboundMessageRepository repository;
 
     public WebClientApplicationService(
             InboundMessageService inboundMessageService,
             MessageValidationService validationService,
-            MessageRoutingService routingService,
+            WebMessageRoutingService routingService,
             InboundMessageRepository repository) {
         this.inboundMessageService = inboundMessageService;
         this.validationService = validationService;

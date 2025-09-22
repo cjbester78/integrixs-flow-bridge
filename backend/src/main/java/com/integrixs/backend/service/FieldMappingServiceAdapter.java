@@ -80,7 +80,7 @@ public class FieldMappingServiceAdapter {
     @Transactional
     public void createMapping(FieldMappingDTO dto) {
         // Get system user or first admin user
-        User systemUser = userRepository.findByUsername("system");
+        User systemUser = userRepository.findByUsername("system").orElse(null);
         if (systemUser == null) {
             systemUser = userRepository.findAll().stream()
                 .filter(u -> u.getUsername() != null)

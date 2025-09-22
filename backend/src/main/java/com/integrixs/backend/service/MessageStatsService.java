@@ -18,11 +18,14 @@ import java.util.UUID;
 /**
  * Service for message statistics
  */
-@Service
 @Transactional(readOnly = true)
-public class MessageStatsService {
+public abstract class MessageStatsService {
 
-    private final MessageRepository messageRepository;
+    protected final MessageRepository messageRepository;
+    
+    protected MessageStatsService(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
+    }
 
     public MessageStatsDTO getMessageStats(Map<String, String> filters) {
         MessageStatsDTO stats = new MessageStatsDTO();

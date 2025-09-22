@@ -2,6 +2,7 @@ package com.integrixs.backend.service;
 
 import com.integrixs.engine.transformation.FieldMappingProcessor;
 import com.integrixs.shared.dto.TestFieldMappingsRequestDTO;
+import com.integrixs.shared.dto.FieldMappingDTO;
 import com.integrixs.shared.dto.TestFieldMappingsResponseDTO;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -57,7 +58,7 @@ public class TestMappingService {
             // Apply field mappings
             if(request.getMappings() != null) {
                 log.info("Applying {} mappings", request.getMappings().size());
-                for(TestFieldMappingsRequestDTO.TestMappingDTO mapping : request.getMappings()) {
+                for(FieldMappingDTO mapping : request.getMappings()) {
                     try {
                         log.debug("Applying mapping: {} -> {}", mapping.getSourceFields(), mapping.getTargetField());
                         applyMapping(inputDoc, outputDoc, mapping);
@@ -230,15 +231,16 @@ public class TestMappingService {
         }
     }
 
-    private void applyMapping(Document inputDoc, Document outputDoc, TestFieldMappingsRequestDTO.TestMappingDTO mapping) throws Exception {
+    private void applyMapping(Document inputDoc, Document outputDoc, FieldMappingDTO mapping) throws Exception {
         log.info("Applying mapping - sourceFields: {}, targetField: {}, sourcePaths: {}, targetPath: {}, function: {}, requiresTransformation: {}",
                 mapping.getSourceFields(), mapping.getTargetField(), mapping.getSourcePaths(), mapping.getTargetPath(), mapping.getJavaFunction(), mapping.isRequiresTransformation());
 
         // Log visual flow data if present
-        if(mapping.getVisualFlowData() != null) {
+        if(mapping.getVisualFlowData() != null && mapping.getVisualFlowData() instanceof TestFieldMappingsRequestDTO.VisualFlowData) {
+            TestFieldMappingsRequestDTO.VisualFlowData visualData = (TestFieldMappingsRequestDTO.VisualFlowData) mapping.getVisualFlowData();
             log.info("Visual flow data present with {} nodes and {} edges",
-                    mapping.getVisualFlowData().getNodes() != null ? mapping.getVisualFlowData().getNodes().size() : 0,
-                    mapping.getVisualFlowData().getEdges() != null ? mapping.getVisualFlowData().getEdges().size() : 0);
+                    visualData.getNodes() != null ? visualData.getNodes().size() : 0,
+                    visualData.getEdges() != null ? visualData.getEdges().size() : 0);
         }
 
         // Skip nodeMapping functions - they are for structural mapping, not value mapping
@@ -312,7 +314,7 @@ public class TestMappingService {
             // Check if this is a visual flow transformation
             if("visual_flow".equals(mapping.getJavaFunction()) && mapping.getVisualFlowData() != null) {
                 try {
-                    resultValue = processVisualFlow(inputDoc, mapping.getVisualFlowData());
+                    resultValue = processVisualFlow(inputDoc, (TestFieldMappingsRequestDTO.VisualFlowData) mapping.getVisualFlowData());
                     log.info("Applied visual flow transformation, result: ' {}'", resultValue);
                 } catch(Exception e) {
                     log.warn("Failed to apply visual flow transformation: {}", e.getMessage(), e);

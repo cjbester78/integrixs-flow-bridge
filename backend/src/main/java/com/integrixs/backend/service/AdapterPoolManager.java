@@ -619,15 +619,16 @@ public class AdapterPoolManager {
                     config.putIfAbsent("pollInterval", 60000);
                     break;
 
-                case DATABASE:
+                case JDBC:
                     // Ensure required database fields
                     config.putIfAbsent("connectionUrl", config.getOrDefault("url", ""));
                     config.putIfAbsent("driverClass", config.getOrDefault("driver", ""));
                     config.putIfAbsent("poolSize", 5);
                     break;
 
-                case MQ:
                 case IBMMQ:
+                case RABBITMQ:
+                case AMQP:
                     // Ensure required messaging fields
                     config.putIfAbsent("queueName", config.getOrDefault("queue", ""));
                     config.putIfAbsent("connectionFactory", config.getOrDefault("factory", ""));

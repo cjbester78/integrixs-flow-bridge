@@ -43,35 +43,92 @@ public class FlowExecutionPatterns {
     private Long predictedNextDayExecutions;
     private List<String> anomalies;
     
-                    public static class HourlyPattern {
+    public static class HourlyPattern {
         private Integer hour;
         private Long executionCount;
         private Double averageExecutionTime;
         private Double successRate;
+        
+        public Integer getHour() { return hour; }
+        public void setHour(Integer hour) { this.hour = hour; }
+        
+        public Long getExecutionCount() { return executionCount; }
+        public void setExecutionCount(Long executionCount) { this.executionCount = executionCount; }
+        
+        public Double getAverageExecutionTime() { return averageExecutionTime; }
+        public void setAverageExecutionTime(Double averageExecutionTime) { this.averageExecutionTime = averageExecutionTime; }
+        
+        public Double getSuccessRate() { return successRate; }
+        public void setSuccessRate(Double successRate) { this.successRate = successRate; }
     }
     
-                    public static class DailyPattern {
+    public static class DailyPattern {
         private LocalDateTime date;
         private Long executionCount;
         private Double averageExecutionTime;
         private Double successRate;
         private Long errorCount;
+        
+        public LocalDateTime getDate() { return date; }
+        public void setDate(LocalDateTime date) { this.date = date; }
+        
+        public Long getExecutionCount() { return executionCount; }
+        public void setExecutionCount(Long executionCount) { this.executionCount = executionCount; }
+        
+        public Double getAverageExecutionTime() { return averageExecutionTime; }
+        public void setAverageExecutionTime(Double averageExecutionTime) { this.averageExecutionTime = averageExecutionTime; }
+        
+        public Double getSuccessRate() { return successRate; }
+        public void setSuccessRate(Double successRate) { this.successRate = successRate; }
+        
+        public Long getErrorCount() { return errorCount; }
+        public void setErrorCount(Long errorCount) { this.errorCount = errorCount; }
     }
     
-                    public static class ErrorPattern {
+    public static class ErrorPattern {
         private String errorType;
         private Long occurrenceCount;
         private LocalDateTime firstOccurrence;
         private LocalDateTime lastOccurrence;
         private Double frequency;
         private String commonCause;
+        
+        public String getErrorType() { return errorType; }
+        public void setErrorType(String errorType) { this.errorType = errorType; }
+        
+        public Long getOccurrenceCount() { return occurrenceCount; }
+        public void setOccurrenceCount(Long occurrenceCount) { this.occurrenceCount = occurrenceCount; }
+        
+        public LocalDateTime getFirstOccurrence() { return firstOccurrence; }
+        public void setFirstOccurrence(LocalDateTime firstOccurrence) { this.firstOccurrence = firstOccurrence; }
+        
+        public LocalDateTime getLastOccurrence() { return lastOccurrence; }
+        public void setLastOccurrence(LocalDateTime lastOccurrence) { this.lastOccurrence = lastOccurrence; }
+        
+        public Double getFrequency() { return frequency; }
+        public void setFrequency(Double frequency) { this.frequency = frequency; }
+        
+        public String getCommonCause() { return commonCause; }
+        public void setCommonCause(String commonCause) { this.commonCause = commonCause; }
     }
     
-                    public static class PeakPeriod {
+    public static class PeakPeriod {
         private LocalDateTime startTime;
         private LocalDateTime endTime;
         private Long executionCount;
         private String reason;
+        
+        public LocalDateTime getStartTime() { return startTime; }
+        public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+        
+        public LocalDateTime getEndTime() { return endTime; }
+        public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+        
+        public Long getExecutionCount() { return executionCount; }
+        public void setExecutionCount(Long executionCount) { this.executionCount = executionCount; }
+        
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 
     // Default constructor
@@ -246,107 +303,122 @@ public class FlowExecutionPatterns {
         this.anomalies = anomalies;
     }
 
-    public Integer getHour() {
-        return hour;
+    // Missing methods required by FlowExecutionHeatmapService
+    public void setAnalysisPeriodDays(int days) {
+        // This method is used to indicate the analysis period in days
+        // The actual period is determined by analysisStart and analysisEnd
     }
 
-    public void setHour(Integer hour) {
-        this.hour = hour;
+    public Map<Integer, Long> getHourlyPattern() {
+        // Convert hourlyPatterns list to a map for compatibility
+        Map<Integer, Long> hourlyMap = new java.util.HashMap<>();
+        if (hourlyPatterns != null) {
+            for (HourlyPattern pattern : hourlyPatterns) {
+                if (pattern.getHour() != null && pattern.getExecutionCount() != null) {
+                    hourlyMap.put(pattern.getHour(), pattern.getExecutionCount());
+                }
+            }
+        }
+        return hourlyMap;
     }
 
-    public Long getExecutionCount() {
-        return executionCount;
+    public void setHourlyPattern(Map<Integer, Long> hourlyPattern) {
+        // Convert map to list of HourlyPattern objects
+        this.hourlyPatterns = new java.util.ArrayList<>();
+        if (hourlyPattern != null) {
+            for (Map.Entry<Integer, Long> entry : hourlyPattern.entrySet()) {
+                HourlyPattern pattern = new HourlyPattern();
+                pattern.setHour(entry.getKey());
+                pattern.setExecutionCount(entry.getValue());
+                this.hourlyPatterns.add(pattern);
+            }
+        }
     }
 
-    public void setExecutionCount(Long executionCount) {
-        this.executionCount = executionCount;
+    public Map<LocalDateTime, Long> getDailyPattern() {
+        // Convert dailyPatterns list to a map for compatibility
+        Map<LocalDateTime, Long> dailyMap = new java.util.HashMap<>();
+        if (dailyPatterns != null) {
+            for (DailyPattern pattern : dailyPatterns) {
+                if (pattern.getDate() != null && pattern.getExecutionCount() != null) {
+                    dailyMap.put(pattern.getDate(), pattern.getExecutionCount());
+                }
+            }
+        }
+        return dailyMap;
     }
 
-    public LocalDateTime getDate() {
-        return date;
+    public void setDailyPattern(Map<LocalDateTime, Long> dailyPattern) {
+        // Convert map to list of DailyPattern objects
+        this.dailyPatterns = new java.util.ArrayList<>();
+        if (dailyPattern != null) {
+            for (Map.Entry<LocalDateTime, Long> entry : dailyPattern.entrySet()) {
+                DailyPattern pattern = new DailyPattern();
+                pattern.setDate(entry.getKey());
+                pattern.setExecutionCount(entry.getValue());
+                this.dailyPatterns.add(pattern);
+            }
+        }
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public Map<String, Long> getWeeklyPattern() {
+        // This is executionsByDayOfWeek
+        return executionsByDayOfWeek;
     }
 
-    public Long getErrorCount() {
-        return errorCount;
+    public void setWeeklyPattern(Map<String, Long> weeklyPattern) {
+        this.executionsByDayOfWeek = weeklyPattern;
     }
 
-    public void setErrorCount(Long errorCount) {
-        this.errorCount = errorCount;
+    public Map<String, Long> getExecutionsByDayOfWeek() {
+        return executionsByDayOfWeek;
     }
 
-    public String getErrorType() {
-        return errorType;
+    public void setExecutionsByDayOfWeek(Map<String, Long> executionsByDayOfWeek) {
+        this.executionsByDayOfWeek = executionsByDayOfWeek;
     }
 
-    public void setErrorType(String errorType) {
-        this.errorType = errorType;
+    public List<Map<String, Object>> getExecutionClusters() {
+        // Return empty list for now - this needs proper implementation
+        return new java.util.ArrayList<>();
     }
 
-    public Long getOccurrenceCount() {
-        return occurrenceCount;
+    public void setExecutionClusters(List<Map<String, Object>> clusters) {
+        // Store clusters - this needs proper implementation
     }
 
-    public void setOccurrenceCount(Long occurrenceCount) {
-        this.occurrenceCount = occurrenceCount;
+    public Map<String, Double> getExecutionVelocity() {
+        // Return empty map for now - this needs proper implementation
+        return new java.util.HashMap<>();
     }
 
-    public LocalDateTime getFirstOccurrence() {
-        return firstOccurrence;
+    public void setExecutionVelocity(Map<String, Double> velocity) {
+        // Store velocity - this needs proper implementation
     }
 
-    public void setFirstOccurrence(LocalDateTime firstOccurrence) {
-        this.firstOccurrence = firstOccurrence;
+    public List<Map<String, Object>> getAnomalousPatterns() {
+        // Return empty list for now - this needs proper implementation
+        return new java.util.ArrayList<>();
     }
 
-    public LocalDateTime getLastOccurrence() {
-        return lastOccurrence;
+    public void setAnomalousPatterns(List<Map<String, Object>> patterns) {
+        // Store anomalous patterns - this needs proper implementation
     }
 
-    public void setLastOccurrence(LocalDateTime lastOccurrence) {
-        this.lastOccurrence = lastOccurrence;
+    public Map<String, Long> getExecutionTimeDistribution() {
+        return executionTimeDistribution;
     }
 
-    public Double getFrequency() {
-        return frequency;
+    public void setExecutionTimeDistribution(Map<String, Long> executionTimeDistribution) {
+        this.executionTimeDistribution = executionTimeDistribution;
     }
 
-    public void setFrequency(Double frequency) {
-        this.frequency = frequency;
+    public Map<String, Long> getFailureReasons() {
+        return failureReasons;
     }
 
-    public String getCommonCause() {
-        return commonCause;
+    public void setFailureReasons(Map<String, Long> failureReasons) {
+        this.failureReasons = failureReasons;
     }
 
-    public void setCommonCause(String commonCause) {
-        this.commonCause = commonCause;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
 }

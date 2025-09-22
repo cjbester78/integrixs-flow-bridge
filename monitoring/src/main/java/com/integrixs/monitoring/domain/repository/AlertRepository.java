@@ -1,8 +1,8 @@
 package com.integrixs.monitoring.domain.repository;
 
 import com.integrixs.monitoring.domain.model.Alert;
-import com.integrixs.monitoring.domain.service.AlertingService.AlertQueryCriteria;
-import com.integrixs.monitoring.domain.service.AlertingService.AlertRule;
+import com.integrixs.monitoring.domain.service.MonitoringAlertService.AlertQueryCriteria;
+import com.integrixs.monitoring.domain.service.MonitoringAlertService.AlertRule;
 
 import java.util.List;
 import java.util.Optional;

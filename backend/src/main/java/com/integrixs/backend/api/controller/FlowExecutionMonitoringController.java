@@ -31,6 +31,10 @@ public class FlowExecutionMonitoringController {
 
     private final FlowExecutionMonitoringService monitoringService;
 
+    public FlowExecutionMonitoringController(FlowExecutionMonitoringService monitoringService) {
+        this.monitoringService = monitoringService;
+    }
+
     @PostMapping("/start")
     @Operation(summary = "Start monitoring a flow execution", description = "Begin monitoring a new flow execution")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")

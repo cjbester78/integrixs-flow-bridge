@@ -19,6 +19,14 @@ public class ResilienceController {
     private final BulkheadService bulkheadService;
     private final ErrorClassificationService errorClassificationService;
 
+    public ResilienceController(RetryService retryService,
+                               BulkheadService bulkheadService,
+                               ErrorClassificationService errorClassificationService) {
+        this.retryService = retryService;
+        this.bulkheadService = bulkheadService;
+        this.errorClassificationService = errorClassificationService;
+    }
+
     // Retry endpoints
 
     @GetMapping("/retry/metrics")
@@ -121,9 +129,25 @@ public class ResilienceController {
         }
     }
 
-    @lombok.Data
     public static class ErrorClassificationRequest {
         private String exceptionClass;
         private String message;
+
+        // Getters and Setters
+        public String getExceptionClass() {
+            return exceptionClass;
+        }
+
+        public void setExceptionClass(String exceptionClass) {
+            this.exceptionClass = exceptionClass;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 }

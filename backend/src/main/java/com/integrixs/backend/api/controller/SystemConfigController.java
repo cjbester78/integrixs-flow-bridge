@@ -4,9 +4,9 @@ import com.integrixs.backend.api.dto.request.UpdateTimezoneRequest;
 import com.integrixs.backend.api.dto.response.SystemConfigResponse;
 import com.integrixs.backend.api.dto.response.TimezoneResponse;
 import com.integrixs.backend.application.service.SystemConfigurationApplicationService;
-import com.integrixs.backend.domain.repository.UserRepository;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
+import com.integrixs.data.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +33,12 @@ public class SystemConfigController {
 
     private final SystemConfigurationApplicationService systemConfigurationService;
     private final UserRepository userRepository;
+
+    public SystemConfigController(SystemConfigurationApplicationService systemConfigurationService,
+                                  UserRepository userRepository) {
+        this.systemConfigurationService = systemConfigurationService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Get all system configurations

@@ -2,13 +2,13 @@ package com.integrixs.backend.application.service;
 
 import com.integrixs.backend.api.dto.request.QueueMessageRequest;
 import com.integrixs.backend.api.dto.response.MessageResponse;
-import com.integrixs.backend.domain.repository.MessageRepository;
 import com.integrixs.backend.domain.service.MessageProcessingService;
 import com.integrixs.backend.infrastructure.messaging.MessageQueue;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.repository.MessageRepository;
 import com.integrixs.data.repository.SystemLogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +38,20 @@ public class MessageQueueManagementService {
 
     private static final int DEFAULT_PRIORITY = 5;
     private static final int MAX_RETRY_COUNT = 3;
+
+    public MessageQueueManagementService(MessageRepository messageRepository,
+                                         IntegrationFlowRepository flowRepository,
+                                         SystemLogRepository systemLogRepository,
+                                         MessageProcessingService processingService,
+                                         MessageQueue messageQueue,
+                                         FlowExecutionApplicationService flowExecutionService) {
+        this.messageRepository = messageRepository;
+        this.flowRepository = flowRepository;
+        this.systemLogRepository = systemLogRepository;
+        this.processingService = processingService;
+        this.messageQueue = messageQueue;
+        this.flowExecutionService = flowExecutionService;
+    }
 
     @Transactional
     public MessageResponse queueMessage(QueueMessageRequest request) {
@@ -163,7 +177,10 @@ public class MessageQueueManagementService {
     public List<MessageResponse> getPendingMessages(int limit) {
         log.debug("Getting pending messages, limit: {}", limit);
 
-        List<Message> messages = messageRepository.findPendingMessages(limit);
+        List<Message> messages = messageRepository.findByStatusOrderByPriorityAndReceivedAt(Message.MessageStatus.PENDING)
+            .stream()
+            .limit(limit)
+            .collect(Collectors.toList());
 
         return messages.stream()
             .map(this::convertToResponse)
@@ -187,7 +204,10 @@ public class MessageQueueManagementService {
 
     @Transactional
     public void processNextInQueue() {
-        List<Message> pendingMessages = messageRepository.findPendingMessages(1);
+        List<Message> pendingMessages = messageRepository.findByStatusOrderByPriorityAndReceivedAt(Message.MessageStatus.PENDING)
+            .stream()
+            .limit(1)
+            .collect(Collectors.toList());
 
         if(!pendingMessages.isEmpty()) {
             Message message = pendingMessages.get(0);

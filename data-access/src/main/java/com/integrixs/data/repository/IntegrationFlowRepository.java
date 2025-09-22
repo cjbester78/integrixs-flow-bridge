@@ -93,4 +93,9 @@ public interface IntegrationFlowRepository extends JpaRepository<IntegrationFlow
     List<IntegrationFlow> findBySourceAdapterId(UUID inboundAdapterId);
 
     List<IntegrationFlow> findByTargetAdapterId(UUID outboundAdapterId);
+    
+    // Tenant-related queries
+    long countByTenantId(UUID tenantId);
+    
+    long countByTenantIdAndIsActive(UUID tenantId, boolean isActive);
 }

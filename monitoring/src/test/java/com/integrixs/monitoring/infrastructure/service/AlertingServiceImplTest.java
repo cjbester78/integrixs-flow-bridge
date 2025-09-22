@@ -2,6 +2,7 @@ package com.integrixs.monitoring.infrastructure.service;
 
 import com.integrixs.monitoring.domain.model.Alert;
 import com.integrixs.monitoring.domain.repository.AlertRepository;
+import com.integrixs.monitoring.infrastructure.service.MonitoringAlertServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for AlertingServiceImpl notification methods
+ * Unit tests for MonitoringAlertServiceImpl notification methods
  */
 @ExtendWith(MockitoExtension.class)
 class AlertingServiceImplTest {
@@ -40,7 +41,7 @@ class AlertingServiceImplTest {
     private MimeMessage mimeMessage;
 
     @InjectMocks
-    private AlertingServiceImpl alertingService;
+    private MonitoringAlertServiceImpl alertingService;
 
     @BeforeEach
     void setUp() {
@@ -49,9 +50,13 @@ class AlertingServiceImplTest {
         ReflectionTestUtils.setField(alertingService, "fromEmail", "test@integrix.com");
         ReflectionTestUtils.setField(alertingService, "webhookEnabled", true);
         ReflectionTestUtils.setField(alertingService, "smsEnabled", true);
-        ReflectionTestUtils.setField(alertingService, "twilioAccountSid", "test - account");
-        ReflectionTestUtils.setField(alertingService, "twilioAuthToken", "test - token");
-        ReflectionTestUtils.setField(alertingService, "twilioFromNumber", " + 1234567890");
+        ReflectionTestUtils.setField(alertingService, "twilioAccountSid", "test-account");
+        ReflectionTestUtils.setField(alertingService, "twilioAuthToken", "test-token");
+        ReflectionTestUtils.setField(alertingService, "twilioFromNumber", "+1234567890");
+        
+        // Inject the mocked dependencies
+        ReflectionTestUtils.setField(alertingService, "mailSender", mailSender);
+        ReflectionTestUtils.setField(alertingService, "restTemplate", restTemplate);
     }
 
     @Test
@@ -80,7 +85,7 @@ class AlertingServiceImplTest {
         webhookParams.put("url", "https://api.test.com/alerts");
         webhookParams.put("method", "POST");
         webhookParams.put("auth_type", "bearer");
-        webhookParams.put("auth_token", "test - bearer - token");
+        webhookParams.put("auth_token", "test-bearer-token");
 
         Alert alert = createTestAlert(Alert.AlertAction.ActionType.WEBHOOK, webhookParams);
 
@@ -107,8 +112,8 @@ class AlertingServiceImplTest {
         Map<String, String> webhookParams = new HashMap<>();
         webhookParams.put("url", "https://api.test.com/alerts");
         webhookParams.put("auth_type", "api_key");
-        webhookParams.put("api_key_header", "X - API - Key");
-        webhookParams.put("api_key_value", "secret - key");
+        webhookParams.put("api_key_header", "X-API-Key");
+        webhookParams.put("api_key_value", "secret-key");
 
         Alert alert = createTestAlert(Alert.AlertAction.ActionType.WEBHOOK, webhookParams);
 
@@ -126,8 +131,8 @@ class AlertingServiceImplTest {
             any(HttpMethod.class),
             argThat(entity -> {
                 HttpEntity<?> httpEntity = (HttpEntity<?>) entity;
-                return httpEntity.getHeaders().containsKey("X - API - Key") &&
-                       httpEntity.getHeaders().get("X - API - Key").contains("secret - key");
+                return httpEntity.getHeaders().containsKey("X-API-Key") &&
+                       httpEntity.getHeaders().get("X-API-Key").contains("secret-key");
             }),
             eq(String.class)
        );
@@ -158,7 +163,7 @@ class AlertingServiceImplTest {
         Alert alert = Alert.builder()
                 .alertName("Test Alert")
                 .alertType(Alert.AlertType.THRESHOLD)
-                .severity(Alert.AlertSeverity.HIGH)
+                .severity(Alert.AlertSeverity.CRITICAL)
                 .status(Alert.AlertStatus.TRIGGERED)
                 .source("Test")
                 .message("Test message")
@@ -182,7 +187,7 @@ class AlertingServiceImplTest {
                 .alertId("test-123")
                 .alertName("Test Alert")
                 .alertType(Alert.AlertType.THRESHOLD)
-                .severity(Alert.AlertSeverity.HIGH)
+                .severity(Alert.AlertSeverity.CRITICAL)
                 .status(Alert.AlertStatus.TRIGGERED)
                 .source("Test")
                 .message("Test alert message")

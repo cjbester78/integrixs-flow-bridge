@@ -2,6 +2,7 @@ package com.integrixs.shared.dto;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Request DTO for testing field mappings
@@ -116,6 +117,8 @@ public class TestFieldMappingsRequestDTO {
         private String flowName;
         private String flowData;
         private String nodeData;
+        private List<VisualFlowNode> nodes;
+        private List<VisualFlowEdge> edges;
 
         public String getFlowId() { return flowId; }
         public void setFlowId(String flowId) { this.flowId = flowId; }
@@ -128,5 +131,55 @@ public class TestFieldMappingsRequestDTO {
         
         public String getNodeData() { return nodeData; }
         public void setNodeData(String nodeData) { this.nodeData = nodeData; }
+        
+        public List<VisualFlowNode> getNodes() { return nodes; }
+        public void setNodes(List<VisualFlowNode> nodes) { this.nodes = nodes; }
+        
+        public List<VisualFlowEdge> getEdges() { return edges; }
+        public void setEdges(List<VisualFlowEdge> edges) { this.edges = edges; }
+    }
+    
+    // Inner class for visual flow node
+    public static class VisualFlowNode {
+        private String id;
+        private String type;
+        private String label;
+        private Map<String, Object> data;
+        
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+        
+        public Map<String, Object> getData() { return data; }
+        public void setData(Map<String, Object> data) { this.data = data; }
+    }
+    
+    // Inner class for visual flow edge
+    public static class VisualFlowEdge {
+        private String id;
+        private String source;
+        private String target;
+        private String label;
+        private String targetHandle;
+        
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getSource() { return source; }
+        public void setSource(String source) { this.source = source; }
+        
+        public String getTarget() { return target; }
+        public void setTarget(String target) { this.target = target; }
+        
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+        
+        public String getTargetHandle() { return targetHandle; }
+        public void setTargetHandle(String targetHandle) { this.targetHandle = targetHandle; }
     }
 }

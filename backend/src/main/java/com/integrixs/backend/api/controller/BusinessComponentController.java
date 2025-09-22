@@ -4,7 +4,7 @@ import com.integrixs.backend.api.dto.request.CreateBusinessComponentRequest;
 import com.integrixs.backend.api.dto.request.UpdateBusinessComponentRequest;
 import com.integrixs.backend.api.dto.response.BusinessComponentResponse;
 import com.integrixs.backend.application.service.BusinessComponentApplicationService;
-import com.integrixs.backend.domain.repository.UserRepository;
+import com.integrixs.data.repository.UserRepository;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +30,12 @@ public class BusinessComponentController {
 
     private final BusinessComponentApplicationService businessComponentService;
     private final UserRepository userRepository;
+
+    public BusinessComponentController(BusinessComponentApplicationService businessComponentService,
+                                      UserRepository userRepository) {
+        this.businessComponentService = businessComponentService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Create a new business component

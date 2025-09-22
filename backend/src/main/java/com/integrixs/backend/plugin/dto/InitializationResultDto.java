@@ -60,4 +60,45 @@ public class InitializationResultDto {
     public void setError(String error) {
         this.error = error;
     }
+
+    // Builder pattern
+    public static InitializationResultDtoBuilder builder() {
+        return new InitializationResultDtoBuilder();
+    }
+
+    public static class InitializationResultDtoBuilder {
+        private boolean successful;
+        private String pluginId;
+        private String message;
+        private String error;
+
+        public InitializationResultDtoBuilder successful(boolean successful) {
+            this.successful = successful;
+            return this;
+        }
+
+        public InitializationResultDtoBuilder pluginId(String pluginId) {
+            this.pluginId = pluginId;
+            return this;
+        }
+
+        public InitializationResultDtoBuilder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public InitializationResultDtoBuilder error(String error) {
+            this.error = error;
+            return this;
+        }
+
+        public InitializationResultDto build() {
+            InitializationResultDto dto = new InitializationResultDto();
+            dto.successful = this.successful;
+            dto.pluginId = this.pluginId;
+            dto.message = this.message;
+            dto.error = this.error;
+            return dto;
+        }
+    }
 }

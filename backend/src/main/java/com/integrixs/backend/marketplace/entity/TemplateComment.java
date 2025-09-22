@@ -66,13 +66,11 @@ public class TemplateComment extends BaseEntity {
 
     @PrePersist
     public void prePersist() {
-        super.prePersist();
         postedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        super.preUpdate();
         if(!deleted && content != null) {
             editedAt = LocalDateTime.now();
         }

@@ -46,4 +46,93 @@ public class StepResult<T> {
                 .errorMessage(errorMessage)
                 .build();
     }
+
+    // Getters and Setters
+    public String getStepName() {
+        return stepName;
+    }
+
+    public void setStepName(String stepName) {
+        this.stepName = stepName;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public long getExecutionTimeMs() {
+        return executionTimeMs;
+    }
+
+    public void setExecutionTimeMs(long executionTimeMs) {
+        this.executionTimeMs = executionTimeMs;
+    }
+
+    // Builder pattern
+    public static <T> StepResultBuilder<T> builder() {
+        return new StepResultBuilder<T>();
+    }
+
+    public static class StepResultBuilder<T> {
+        private String stepName;
+        private boolean success;
+        private T data;
+        private String errorMessage;
+        private long executionTimeMs;
+
+        public StepResultBuilder<T> stepName(String stepName) {
+            this.stepName = stepName;
+            return this;
+        }
+
+        public StepResultBuilder<T> success(boolean success) {
+            this.success = success;
+            return this;
+        }
+
+        public StepResultBuilder<T> data(T data) {
+            this.data = data;
+            return this;
+        }
+
+        public StepResultBuilder<T> errorMessage(String errorMessage) {
+            this.errorMessage = errorMessage;
+            return this;
+        }
+
+        public StepResultBuilder<T> executionTimeMs(long executionTimeMs) {
+            this.executionTimeMs = executionTimeMs;
+            return this;
+        }
+
+        public StepResult<T> build() {
+            StepResult<T> result = new StepResult<>();
+            result.stepName = this.stepName;
+            result.success = this.success;
+            result.data = this.data;
+            result.errorMessage = this.errorMessage;
+            result.executionTimeMs = this.executionTimeMs;
+            return result;
+        }
+    }
 }

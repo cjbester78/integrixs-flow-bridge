@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.UserRepository;
+import com.integrixs.backend.domain.repository.UserRepositoryPort;
 import com.integrixs.data.model.User;
 import org.springframework.stereotype.Repository;
 
@@ -12,9 +12,13 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("backendUserRepository")
-public class UserRepositoryImpl implements UserRepository {
+public class UserRepositoryImpl implements UserRepositoryPort {
 
     private final com.integrixs.data.repository.UserRepository jpaRepository;
+    
+    public UserRepositoryImpl(com.integrixs.data.repository.UserRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public Optional<User> findById(UUID id) {
@@ -23,14 +27,12 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> findByUsername(String username) {
-        User user = jpaRepository.findByUsername(username);
-        return Optional.ofNullable(user);
+        return jpaRepository.findByUsername(username);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        User user = jpaRepository.findByEmail(email);
-        return Optional.ofNullable(user);
+        return Optional.ofNullable(jpaRepository.findByEmail(email));
     }
 
     @Override

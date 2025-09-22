@@ -1,6 +1,6 @@
 package com.integrixs.engine.impl;
 
-import com.integrixs.shared.exception.AdapterException;
+import com.integrixs.shared.exceptions.AdapterException;
 import com.integrixs.adapters.domain.model.AdapterConfiguration;
 import com.integrixs.adapters.domain.model.AdapterOperationResult;
 import com.integrixs.adapters.domain.model.FetchRequest;

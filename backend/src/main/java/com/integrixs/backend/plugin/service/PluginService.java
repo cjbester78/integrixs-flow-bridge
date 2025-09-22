@@ -43,6 +43,21 @@ public class PluginService {
     @Value("$ {plugin.temp.directory:$ {java.io.tmpdir}/integrix - plugins}")
     private String pluginTempDirectory;
 
+    // Constructor
+    public PluginService(PluginRegistry pluginRegistry, 
+                        PluginLoader pluginLoader,
+                        PluginValidator pluginValidator,
+                        PluginSecurityScanner securityScanner,
+                        PluginVersionManager versionManager,
+                        PlatformVersionService platformVersionService) {
+        this.pluginRegistry = pluginRegistry;
+        this.pluginLoader = pluginLoader;
+        this.pluginValidator = pluginValidator;
+        this.securityScanner = securityScanner;
+        this.versionManager = versionManager;
+        this.platformVersionService = platformVersionService;
+    }
+
     /**
      * Upload and register a new plugin
      */
@@ -82,8 +97,8 @@ public class PluginService {
             }
 
             // Load plugin to get metadata
-            AdapterPlugin plugin = pluginLoader.loadPlugin(tempFile);
-            AdapterMetadata metadata = plugin.getMetadata();
+            var descriptor = pluginLoader.loadPluginFromJar(tempFile);
+            AdapterMetadata metadata = descriptor.getMetadata();
 
             // Check if plugin already exists
             if(pluginRegistry.getRegisteredPlugins().containsKey(metadata.getId())) {
@@ -101,7 +116,12 @@ public class PluginService {
             Files.move(tempFile, permanentFile, StandardCopyOption.REPLACE_EXISTING);
 
             // Register plugin
-            pluginRegistry.registerPlugin(plugin.getClass(), metadata);
+            try {
+                pluginRegistry.registerPlugin(descriptor);
+            } catch (ClassNotFoundException e) {
+                Files.deleteIfExists(permanentFile);
+                return UploadResultDto.failure("Failed to load plugin class: " + e.getMessage());
+            }
 
             // Register version
             versionManager.registerVersion(metadata.getId(), metadata, permanentFile.toString());
@@ -384,11 +404,11 @@ public class PluginService {
         if(field.getType().equals("number")) {
             double numValue = ((Number) value).doubleValue();
 
-            if(validation.getMin() != null && numValue < validation.getMin()) {
+            if(validation.getMin() != null && numValue < validation.getMin().doubleValue()) {
                 return "Minimum value is " + validation.getMin();
             }
 
-            if(validation.getMax() != null && numValue > validation.getMax()) {
+            if(validation.getMax() != null && numValue > validation.getMax().doubleValue()) {
                 return "Maximum value is " + validation.getMax();
             }
         }

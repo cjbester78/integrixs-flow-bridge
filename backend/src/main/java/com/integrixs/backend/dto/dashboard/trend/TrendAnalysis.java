@@ -77,4 +77,20 @@ public class TrendAnalysis {
     public void setPredictions(List<Prediction> predictions) {
         this.predictions = predictions;
     }
+
+    public Map<String, Double> getStatistics() {
+        return statistics;
+    }
+
+    public void setStatistics(Map<String, Double> statistics) {
+        this.statistics = statistics;
+    }
+
+    public Map<String, Double> getCorrelations() {
+        return correlations;
+    }
+
+    public void setCorrelations(Map<String, Double> correlations) {
+        this.correlations = correlations;
+    }
 }

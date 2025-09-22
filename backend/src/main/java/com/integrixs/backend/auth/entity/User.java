@@ -8,6 +8,11 @@ public class User {
     private String email;
     private String firstName;
     private String lastName;
+    private String displayName;
+    private String avatarUrl;
+    private String role;
+    private UUID tenantId;
+    private boolean active = true;
 
     // Default constructor
     public User() {
@@ -51,5 +56,45 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+    
+    public UUID getTenantId() {
+        return tenantId;
+    }
+    
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
+    }
+    
+    public boolean isActive() {
+        return active;
+    }
+    
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

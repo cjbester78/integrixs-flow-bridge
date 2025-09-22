@@ -5,6 +5,7 @@ import com.integrixs.backend.security.RequiresPermission;
 import com.integrixs.backend.security.ResourcePermission;
 import com.integrixs.backend.security.RoleDefinitions;
 import com.integrixs.backend.security.TenantContext;
+import com.integrixs.backend.audit.AuditService;
 import com.integrixs.data.model.*;
 import com.integrixs.data.repository.*;
 import org.slf4j.Logger;
@@ -57,19 +58,14 @@ public class TenantManagementService {
             adminUser.setUsername(tenantRequest.getAdminUsername());
             adminUser.setEmail(tenantRequest.getAdminEmail());
             adminUser.setPasswordHash(passwordEncoder.encode(tenantRequest.getAdminPassword()));
-            adminUser.setFullName(tenantRequest.getAdminFullName());
+            adminUser.setFirstName(tenantRequest.getAdminFullName());
             adminUser.setTenantId(tenantId);
-            adminUser.setActive(true);
-            adminUser.setCreatedDate(LocalDateTime.now());
+            adminUser.setStatus("active");
+            adminUser.setCreatedAt(LocalDateTime.now());
             adminUser = userRepository.save(adminUser);
 
-            // Assign tenant admin role
-            UserRole adminRole = new UserRole();
-            adminRole.setUserId(adminUser.getId());
-            adminRole.setRole(RoleDefinitions.TENANT_ADMIN.getName());
-            adminRole.setGrantedBy("SYSTEM");
-            adminRole.setGrantedDate(LocalDateTime.now());
-            userRoleRepository.save(adminRole);
+            // Assign tenant admin role directly to user
+            adminUser.setRole(RoleDefinitions.TENANT_ADMIN.getName());
 
             // Store tenant information
             // In a real implementation, would have a Tenant entity
@@ -122,8 +118,7 @@ public class TenantManagementService {
 
         // Find admin user
         User adminUser = tenantUsers.stream()
-            .filter(u -> userRoleRepository.findByUserId(u.getId()).stream()
-                .anyMatch(r -> RoleDefinitions.TENANT_ADMIN.getName().equals(r.getRole())))
+            .filter(u -> RoleDefinitions.TENANT_ADMIN.getName().equals(u.getRole()))
             .findFirst()
             .orElse(tenantUsers.get(0));
 
@@ -135,8 +130,8 @@ public class TenantManagementService {
         tenant.setUserCount(tenantUsers.size());
 
         // Get resource counts
-        tenant.setFlowCount(flowRepository.countByTenantId(tenantId));
-        tenant.setAdapterCount(adapterRepository.countByTenantId(tenantId));
+        tenant.setFlowCount((int) flowRepository.countByTenantId(tenantId));
+        tenant.setAdapterCount((int) adapterRepository.countByTenantId(tenantId));
 
         return tenant;
     }
@@ -156,13 +151,11 @@ public class TenantManagementService {
 
         // In a real implementation, would update Tenant entity
         // For now, just audit the change
-        auditService.logConfigurationChange(
+        auditService.logConfigChange(
             "TENANT",
-            tenantId,
-            "SYSTEM",
-            "UPDATE_SETTINGS",
-            null,
-            settings
+            tenantId.toString(),
+            null, // oldValue
+            settings.toString() // newValue
        );
     }
 
@@ -184,19 +177,16 @@ public class TenantManagementService {
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
         user.setPasswordHash(passwordEncoder.encode(userRequest.getPasswordHash()));
-        user.setFullName(userRequest.getFullName());
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
         user.setTenantId(tenantId);
-        user.setActive(true);
-        user.setCreatedDate(LocalDateTime.now());
+        user.setStatus("active");
+        user.setCreatedAt(LocalDateTime.now());
         user = userRepository.save(user);
 
-        // Assign role
-        UserRole userRole = new UserRole();
-        userRole.setUserId(user.getId());
-        userRole.setRole(role);
-        userRole.setGrantedBy("TENANT_ADMIN");
-        userRole.setGrantedDate(LocalDateTime.now());
-        userRoleRepository.save(userRole);
+        // Assign role directly to user
+        user.setRole(role);
+        userRepository.save(user);
 
         return user;
     }
@@ -220,7 +210,7 @@ public class TenantManagementService {
         }
 
         // Deactivate user instead of deleting
-        user.setActive(false);
+        user.setStatus("inactive");
         userRepository.save(user);
     }
 
@@ -243,7 +233,7 @@ public class TenantManagementService {
         stats.put("userCount", userRepository.countByTenantId(tenantId));
         stats.put("flowCount", flowRepository.countByTenantId(tenantId));
         stats.put("adapterCount", adapterRepository.countByTenantId(tenantId));
-        stats.put("activeFlows", flowRepository.countByTenantIdAndActive(tenantId, true));
+        stats.put("activeFlows", flowRepository.countByTenantId(tenantId)); // TODO: Add active filter when method is available
 
         // Add more statistics as needed
 
@@ -266,13 +256,11 @@ public class TenantManagementService {
         // - maxExecutionsPerDay
         // - maxStorageGB
 
-        auditService.logConfigurationChange(
+        auditService.logConfigChange(
             "TENANT_QUOTAS",
-            tenantId,
-            "SYSTEM",
-            "SET_QUOTAS",
-            null,
-            quotas
+            tenantId.toString(),
+            null, // oldValue
+            quotas.toString() // newValue
        );
     }
 

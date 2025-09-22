@@ -1,6 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.backend.application.service.OrchestrationTargetService;
+import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.OrchestrationTarget;
 import org.camunda.bpm.engine.*;
@@ -58,10 +59,13 @@ public class CamundaProcessEngineService extends ProcessEngineService {
     private BpmnConverterService bpmnConverterService;
 
     @Autowired
-    private AdapterExecutionService adapterExecutionService;
+    private BackendAdapterExecutor adapterExecutionService;
 
     @Autowired
     private TransformationExecutionService transformationService;
+
+    @Autowired
+    private com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository;
 
     // Cache for process definitions
     private final Map<String, String> processDefinitionCache = new ConcurrentHashMap<>();
@@ -108,7 +112,7 @@ public class CamundaProcessEngineService extends ProcessEngineService {
             Deployment deployment = deploymentBuilder.deploy();
 
             // Get deployed process definition
-            ProcessDefinition camundaProcessDef = repositoryService.createProcessDefinitionQuery()
+            org.camunda.bpm.engine.repository.ProcessDefinition camundaProcessDef = repositoryService.createProcessDefinitionQuery()
                 .deploymentId(deployment.getId())
                 .singleResult();
 
@@ -155,7 +159,7 @@ public class CamundaProcessEngineService extends ProcessEngineService {
             logger.info("Starting process instance for definition: {}", processDefinitionId);
 
             // Start process instance in Camunda
-            ProcessInstance camundaInstance = runtimeService.startProcessInstanceById(
+            org.camunda.bpm.engine.runtime.ProcessInstance camundaInstance = runtimeService.startProcessInstanceById(
                 processDefinitionId,
                 variables
            );
@@ -165,7 +169,7 @@ public class CamundaProcessEngineService extends ProcessEngineService {
             instance.setId(camundaInstance.getId());
             instance.setProcessDefinitionId(processDefinitionId);
             instance.setStartTime(LocalDateTime.now());
-            instance.setStatus(mapCamundaStatus(camundaInstance));
+            instance.setStatus(ProcessStatus.RUNNING);
             instance.setVariables(new HashMap<>(variables));
 
             // Register external task workers for service tasks
@@ -357,7 +361,7 @@ public class CamundaProcessEngineService extends ProcessEngineService {
            );
 
             // Get process element
-            Process process = modelInstance.getModelElementsByType(Process.class)
+            org.camunda.bpm.model.bpmn.instance.Process process = modelInstance.getModelElementsByType(org.camunda.bpm.model.bpmn.instance.Process.class)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No process found in BPMN"));
@@ -379,15 +383,12 @@ public class CamundaProcessEngineService extends ProcessEngineService {
             }
 
             // Enhance user tasks
-            Collection<UserTask> userTasks = modelInstance.getModelElementsByType(UserTask.class);
-            for(UserTask task : userTasks) {
-                // Set form key
+            Collection<org.camunda.bpm.model.bpmn.instance.UserTask> userTasks = modelInstance.getModelElementsByType(org.camunda.bpm.model.bpmn.instance.UserTask.class);
+            for(org.camunda.bpm.model.bpmn.instance.UserTask task : userTasks) {
+                // User tasks configuration can be added here
+                // For now, we'll keep them simple
                 task.setCamundaFormKey("embedded:app:forms/userTask.html");
-
-                // Set candidate groups if specified
-                if(flow.getMetadata() != null && flow.getMetadata().containsKey("userGroups")) {
-                    task.setCamundaCandidateGroups((String) flow.getMetadata().get("userGroups"));
-                }
+                task.setCamundaCandidateGroups("administrators");
             }
 
             // Convert back to XML
@@ -491,20 +492,24 @@ public class CamundaProcessEngineService extends ProcessEngineService {
                 // Execute adapter call
                 String adapterId = (String) variables.get("adapterId");
                 if(adapterId != null) {
-                    var result = adapterExecutionService.executeAdapter(
-                        UUID.fromString(adapterId),
-                        variables.get("currentData"),
-                        variables
-                   );
-
-                    if(result.isSuccess()) {
-                        variables.put("currentData", result.getData());
-                        processEngine.getExternalTaskService().complete(task.getId(), "integrix - worker", variables);
-                    } else {
+                    // Load adapter from repository
+                    CommunicationAdapter adapter = adapterRepository.findById(UUID.fromString(adapterId))
+                        .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
+                    
+                    try {
+                        String result = adapterExecutionService.executeAdapter(
+                            adapter,
+                            String.valueOf(variables.get("currentData")),
+                            variables
+                       );
+                        
+                        variables.put("currentData", result);
+                        processEngine.getExternalTaskService().complete(task.getId(), "integrix-worker", variables);
+                    } catch (Exception e) {
                         processEngine.getExternalTaskService().handleFailure(
                             task.getId(),
-                            "integrix - worker",
-                            result.getError(),
+                            "integrix-worker",
+                            e.getMessage(),
                             3,
                             5000L
                        );

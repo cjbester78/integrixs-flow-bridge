@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.BusinessComponentRepository;
+import com.integrixs.backend.domain.repository.BusinessComponentRepositoryPort;
 import com.integrixs.data.model.BusinessComponent;
 import org.springframework.stereotype.Repository;
 
@@ -13,10 +13,16 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainBusinessComponentRepository")
-public class BusinessComponentRepositoryImpl implements BusinessComponentRepository {
+public class BusinessComponentRepositoryImpl implements BusinessComponentRepositoryPort {
 
     private final com.integrixs.data.repository.BusinessComponentRepository jpaRepository;
     private final com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository;
+
+    public BusinessComponentRepositoryImpl(com.integrixs.data.repository.BusinessComponentRepository jpaRepository,
+                                          com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository) {
+        this.jpaRepository = jpaRepository;
+        this.adapterRepository = adapterRepository;
+    }
 
     @Override
     public List<BusinessComponent> findAll() {

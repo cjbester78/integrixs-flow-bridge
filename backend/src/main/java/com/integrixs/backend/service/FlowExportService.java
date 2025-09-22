@@ -11,6 +11,7 @@ import com.integrixs.shared.dto.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.certificate.CertificateDTO;
 import com.integrixs.shared.dto.export.*;
+import com.integrixs.shared.dto.flow.FlowTransformationDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -166,10 +167,10 @@ public class FlowExportService {
                 .exportVersion("1.0")
                 .applicationVersion(applicationVersion)
                 .exportDate(LocalDateTime.now())
-                .exportedBy(SecurityUtils.getCurrentUserId())
+                .exportedBy(SecurityUtils.getCurrentUserId() != null ? SecurityUtils.getCurrentUserId().toString() : null)
                 .exportedByUsername(SecurityUtils.getCurrentUsernameStatic())
-                .environment(options.getEnvironment())
-                .description(options.getDescription())
+                .environment(request.getEnvironment())
+                .description(request.getDescription())
                 .tags(tags)
                 .build();
     }
@@ -211,13 +212,10 @@ public class FlowExportService {
     private FlowExportDTO.CertificateReferenceDTO createCertificateReference(String certificateId) {
         return certificateRepository.findById(UUID.fromString(certificateId))
                 .map(cert -> FlowExportDTO.CertificateReferenceDTO.builder()
-                        .id(cert.getId().toString())
-                        .name(cert.getName())
-                        .type(cert.getType())
-                        .format(cert.getFormat())
-                        .fileName(cert.getFileName())
-                        .passwordProtected(cert.getPassword() != null)
-                        .checksum(calculateChecksum(cert.getContent()))
+                        .certificateId(cert.getId().toString())
+                        .certificateName(cert.getName())
+                        .certificateType(cert.getType())
+                        .usedByAdapterIds("")
                         .build())
                 .orElse(null);
     }
@@ -247,7 +245,7 @@ public class FlowExportService {
                     .details(objectMapper.writeValueAsString(details))
                     .source("EXPORT_SERVICE")
                     .category("FLOW_EXPORT")
-                    .userId(SecurityUtils.getCurrentUserId() != null ? UUID.fromString(SecurityUtils.getCurrentUserId()) : null)
+                    .userId(SecurityUtils.getCurrentUserId())
                     .username(SecurityUtils.getCurrentUsernameStatic())
                     .domainType("INTEGRATION_FLOW")
                     .domainReferenceId(flow.getId().toString())
@@ -312,9 +310,9 @@ public class FlowExportService {
                 .flowId(transformation.getFlow().getId().toString())
                 .name(transformation.getName())
                 .description(transformation.getDescription())
-                .transformationType(com.integrixs.shared.enums.TransformationType.valueOf(transformation.getType().name()))
+                .type(transformation.getType().name())
                 .configuration(transformation.getConfiguration())
-                .sequence(transformation.getExecutionOrder())
+                .executionOrder(transformation.getExecutionOrder())
                 .isActive(transformation.isActive())
                 .createdAt(transformation.getCreatedAt())
                 .updatedAt(transformation.getUpdatedAt())

@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
+import com.integrixs.backend.domain.repository.IntegrationFlowRepositoryPort;
 import com.integrixs.data.model.IntegrationFlow;
 import org.springframework.stereotype.Repository;
 
@@ -13,9 +13,13 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainIntegrationFlowRepository")
-public class IntegrationFlowRepositoryImpl implements IntegrationFlowRepository {
+public class IntegrationFlowRepositoryImpl implements IntegrationFlowRepositoryPort {
 
     private final com.integrixs.data.repository.IntegrationFlowRepository jpaRepository;
+    
+    public IntegrationFlowRepositoryImpl(com.integrixs.data.repository.IntegrationFlowRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public List<IntegrationFlow> findAll() {

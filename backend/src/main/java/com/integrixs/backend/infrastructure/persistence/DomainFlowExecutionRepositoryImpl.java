@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.DomainFlowExecutionRepository;
+import com.integrixs.backend.domain.repository.DomainFlowExecutionRepositoryPort;
 import com.integrixs.data.model.FlowExecution;
 import com.integrixs.data.model.FlowExecution.ExecutionStatus;
 import com.integrixs.data.repository.FlowExecutionRepository;
@@ -17,9 +17,13 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainFlowExecutionRepositoryImpl")
-public class DomainFlowExecutionRepositoryImpl implements DomainFlowExecutionRepository {
+public class DomainFlowExecutionRepositoryImpl implements DomainFlowExecutionRepositoryPort {
 
     private final FlowExecutionRepository jpaRepository;
+
+    public DomainFlowExecutionRepositoryImpl(FlowExecutionRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public List<FlowExecution> findAll() {

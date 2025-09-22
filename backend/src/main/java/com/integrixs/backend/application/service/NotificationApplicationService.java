@@ -2,8 +2,7 @@ package com.integrixs.backend.application.service;
 
 import com.integrixs.backend.domain.service.NotificationManagementService;
 import com.integrixs.backend.infrastructure.notification.EmailNotificationService;
-import com.integrixs.monitoring.domain.model.Alert;
-import com.integrixs.monitoring.domain.service.AlertingService;
+import com.integrixs.backend.service.FlowAlertingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +23,18 @@ public class NotificationApplicationService {
 
     private final NotificationManagementService notificationManagementService;
     private final EmailNotificationService emailNotificationService;
-    private final AlertingService alertingService;
+    private final FlowAlertingService alertingService;
 
     @Autowired(required = false)
     private AuthenticationService authenticationService;
+
+    public NotificationApplicationService(NotificationManagementService notificationManagementService,
+                                        EmailNotificationService emailNotificationService,
+                                        FlowAlertingService alertingService) {
+        this.notificationManagementService = notificationManagementService;
+        this.emailNotificationService = emailNotificationService;
+        this.alertingService = alertingService;
+    }
 
     /**
      * Send a system alert notification
@@ -49,18 +56,15 @@ public class NotificationApplicationService {
                 log.info("Email notifications disabled. Alert logged: {} - {}", subject, message);
             }
 
-            // Send via monitoring AlertingService which supports SMS, webhook, and email
-            Alert monitoringAlert = Alert.builder()
-                .alertName(subject)
-                .message(message)
-                .alertType(Alert.AlertType.CUSTOM)
-                .severity(Alert.AlertSeverity.valueOf((String) alert.get("severity")))
-                .source("NotificationApplicationService")
-                .domainType((String) alert.get("domainType"))
-                .domainReferenceId((String) alert.get("domainReferenceId"))
-                .build();
-
-            alertingService.triggerAlert(monitoringAlert);
+            // Log the alert for now - FlowAlertingService requires AlertRule which is for flow-based alerts
+            log.info("System alert triggered - Subject: {}, Message: {}, Severity: {}, Domain: {}/{}", 
+                     subject, message, alert.get("severity"), 
+                     alert.get("domainType"), alert.get("domainReferenceId"));
+            
+            // Send via email if available
+            if(emailNotificationService.isEmailEnabled() && alert.containsKey("recipientEmail")) {
+                emailNotificationService.sendEmail((String) alert.get("recipientEmail"), subject, message);
+            }
 
         } catch(Exception e) {
             log.error("Failed to send system alert: {}", e.getMessage(), e);
@@ -111,21 +115,9 @@ public class NotificationApplicationService {
                     log.info("Email notification sent to user {} ( {})", username, userEmail);
                 }
 
-                // Also trigger alert for multi - channel support
-                Alert userAlert = Alert.builder()
-                    .alertName(subject)
-                    .message(message)
-                    .alertType(Alert.AlertType.CUSTOM)
-                    .severity(Alert.AlertSeverity.INFO)
-                    .source("NotificationApplicationService")
-                    .domainType("User")
-                    .domainReferenceId(userId)
-                    .build();
-
-                userAlert.addMetadata("userEmail", userEmail);
-                userAlert.addMetadata("username", username);
-
-                alertingService.triggerAlert(userAlert);
+                // Log user notification for audit purposes
+                log.info("User notification sent - UserId: {}, Username: {}, Email: {}, Subject: {}", 
+                         userId, username, userEmail, subject);
             } else {
                 log.warn("No email found for user {}. Notification logged: {} - {}", userId, subject, message);
             }

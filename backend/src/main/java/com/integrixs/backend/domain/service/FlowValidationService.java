@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
 import com.integrixs.data.model.IntegrationFlow;
+import com.integrixs.data.repository.IntegrationFlowRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -13,6 +13,10 @@ import java.util.UUID;
 public class FlowValidationService {
 
     private final IntegrationFlowRepository flowRepository;
+
+    public FlowValidationService(IntegrationFlowRepository flowRepository) {
+        this.flowRepository = flowRepository;
+    }
 
     /**
      * Validates that flow name is unique

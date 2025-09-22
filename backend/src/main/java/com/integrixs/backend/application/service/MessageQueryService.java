@@ -37,6 +37,16 @@ public class MessageQueryService {
     private final IntegrationFlowRepository flowRepository;
     private final MessageStatisticsService statisticsService;
 
+    public MessageQueryService(SystemLogRepository systemLogRepository,
+                             AdapterPayloadRepository payloadRepository,
+                             IntegrationFlowRepository flowRepository,
+                             MessageStatisticsService statisticsService) {
+        this.systemLogRepository = systemLogRepository;
+        this.payloadRepository = payloadRepository;
+        this.flowRepository = flowRepository;
+        this.statisticsService = statisticsService;
+    }
+
     @Transactional(readOnly = true)
     public PagedMessageResponse getMessages(MessageQueryRequest request) {
         log.debug("Querying messages with filters: {}", request);

@@ -25,6 +25,14 @@ public class AlertNotificationService {
     private final EmailConfiguration emailConfig;
     private final IntegrationFlowRepository flowRepository;
 
+    public AlertNotificationService(EmailService emailService,
+                                  EmailConfiguration emailConfig,
+                                  IntegrationFlowRepository flowRepository) {
+        this.emailService = emailService;
+        this.emailConfig = emailConfig;
+        this.flowRepository = flowRepository;
+    }
+
     /**
      * Send failure alert for execution trace
      */

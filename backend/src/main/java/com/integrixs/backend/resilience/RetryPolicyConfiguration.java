@@ -123,13 +123,13 @@ public class RetryPolicyConfiguration {
             .intervalFunction(io.github.resilience4j.core.IntervalFunction
                 .ofExponentialBackoff(200, 2)) // 200ms, 400ms, 800ms, 1.6s, 3.2s
             .retryExceptions(
-                javax.jms.JMSException.class,
-                org.apache.kafka.common.errors.RetriableException.class,
-                org.springframework.messaging.MessagingException.class
+                org.springframework.messaging.MessagingException.class,
+                java.io.IOException.class,
+                java.lang.RuntimeException.class
            )
             .ignoreExceptions(
-                javax.jms.InvalidDestinationException.class,
-                org.apache.kafka.common.errors.SerializationException.class
+                java.lang.IllegalArgumentException.class,
+                java.lang.IllegalStateException.class
            )
             .build();
     }
@@ -147,7 +147,7 @@ public class RetryPolicyConfiguration {
            )
             .ignoreExceptions(
                 java.io.FileNotFoundException.class,
-                java.security.AccessControlException.class
+                java.nio.file.AccessDeniedException.class
            )
             .retryOnException(e -> {
                 // Don't retry on permission errors

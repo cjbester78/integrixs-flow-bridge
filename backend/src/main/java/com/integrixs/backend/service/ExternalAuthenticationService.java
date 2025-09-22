@@ -889,7 +889,7 @@ public class ExternalAuthenticationService {
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated()) {
-            return userRepository.findByUsername(auth.getName());
+            return userRepository.findByUsername(auth.getName()).orElse(null);
         }
         return null;
     }

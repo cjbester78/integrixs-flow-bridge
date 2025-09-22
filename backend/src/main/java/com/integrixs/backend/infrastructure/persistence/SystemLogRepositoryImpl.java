@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.SystemLogRepository;
+import com.integrixs.backend.domain.repository.SystemLogRepositoryPort;
 import com.integrixs.data.model.SystemLog;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
@@ -15,9 +15,13 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainSystemLogRepository")
-public class SystemLogRepositoryImpl implements SystemLogRepository {
+public class SystemLogRepositoryImpl implements SystemLogRepositoryPort {
 
     private final com.integrixs.data.repository.SystemLogRepository jpaRepository;
+    
+    public SystemLogRepositoryImpl(com.integrixs.data.repository.SystemLogRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public SystemLog save(SystemLog log) {

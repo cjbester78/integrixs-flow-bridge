@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.CertificateRepository;
+import com.integrixs.backend.domain.repository.CertificateRepositoryPort;
 import com.integrixs.data.model.Certificate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,9 +15,13 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainCertificateRepository")
-public class CertificateRepositoryImpl implements CertificateRepository {
+public class CertificateRepositoryImpl implements CertificateRepositoryPort {
 
     private final com.integrixs.data.repository.CertificateRepository jpaRepository;
+
+    public CertificateRepositoryImpl(com.integrixs.data.repository.CertificateRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public Certificate save(Certificate certificate) {

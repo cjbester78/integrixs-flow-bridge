@@ -1,8 +1,11 @@
 package com.integrixs.backend.plugin.test;
 
 import com.integrixs.backend.plugin.api.*;
+import com.integrixs.backend.plugin.api.AdapterPlugin.Direction;
 import java.util.*;
 import java.util.concurrent.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Automated test runner for plugins
@@ -100,7 +103,7 @@ public class PluginTestRunner {
         assertNotNull(metadata.getCategory(), "Plugin category is null");
 
         // Validate version format
-        assertTrue(metadata.getVersion().matches("\\d + \\.\\d + \\.\\d + .*"),
+        assertTrue(metadata.getVersion().matches("\\d+\\.\\d+\\.\\d+.*"),
             "Invalid version format: " + metadata.getVersion());
     }
 
@@ -246,23 +249,161 @@ public class PluginTestRunner {
     /**
      * Test result
      */
-            public static class TestResult {
+    public static class TestResult {
         private String testName;
         private boolean passed;
         private String error;
         private String stackTrace;
         private long duration;
+        
+        // Default constructor
+        public TestResult() {
+        }
+        
+        // Getters and setters
+        public String getTestName() {
+            return testName;
+        }
+        
+        public void setTestName(String testName) {
+            this.testName = testName;
+        }
+        
+        public boolean isPassed() {
+            return passed;
+        }
+        
+        public void setPassed(boolean passed) {
+            this.passed = passed;
+        }
+        
+        public String getError() {
+            return error;
+        }
+        
+        public void setError(String error) {
+            this.error = error;
+        }
+        
+        public String getStackTrace() {
+            return stackTrace;
+        }
+        
+        public void setStackTrace(String stackTrace) {
+            this.stackTrace = stackTrace;
+        }
+        
+        public long getDuration() {
+            return duration;
+        }
+        
+        public void setDuration(long duration) {
+            this.duration = duration;
+        }
+        
+        // Builder
+        public static TestResultBuilder builder() {
+            return new TestResultBuilder();
+        }
+        
+        public static class TestResultBuilder {
+            private String testName;
+            private boolean passed;
+            private String error;
+            private String stackTrace;
+            private long duration;
+            
+            public TestResultBuilder testName(String testName) {
+                this.testName = testName;
+                return this;
+            }
+            
+            public TestResultBuilder passed(boolean passed) {
+                this.passed = passed;
+                return this;
+            }
+            
+            public TestResultBuilder error(String error) {
+                this.error = error;
+                return this;
+            }
+            
+            public TestResultBuilder stackTrace(String stackTrace) {
+                this.stackTrace = stackTrace;
+                return this;
+            }
+            
+            public TestResultBuilder duration(long duration) {
+                this.duration = duration;
+                return this;
+            }
+            
+            public TestResult build() {
+                TestResult result = new TestResult();
+                result.testName = this.testName;
+                result.passed = this.passed;
+                result.error = this.error;
+                result.stackTrace = this.stackTrace;
+                result.duration = this.duration;
+                return result;
+            }
+        }
     }
 
     /**
      * Test report
      */
-            public static class TestReport {
+    public static class TestReport {
         private List<TestResult> results;
         private int totalTests;
         private int passedTests;
         private int failedTests;
         private long duration;
+        
+        // Default constructor
+        public TestReport() {
+        }
+        
+        // Getters and setters
+        public List<TestResult> getResults() {
+            return results;
+        }
+        
+        public void setResults(List<TestResult> results) {
+            this.results = results;
+        }
+        
+        public int getTotalTests() {
+            return totalTests;
+        }
+        
+        public void setTotalTests(int totalTests) {
+            this.totalTests = totalTests;
+        }
+        
+        public int getPassedTests() {
+            return passedTests;
+        }
+        
+        public void setPassedTests(int passedTests) {
+            this.passedTests = passedTests;
+        }
+        
+        public int getFailedTests() {
+            return failedTests;
+        }
+        
+        public void setFailedTests(int failedTests) {
+            this.failedTests = failedTests;
+        }
+        
+        public long getDuration() {
+            return duration;
+        }
+        
+        public void setDuration(long duration) {
+            this.duration = duration;
+        }
 
         public double getSuccessRate() {
             return totalTests > 0 ? (double) passedTests / totalTests * 100 : 0;
@@ -283,6 +424,54 @@ public class PluginTestRunner {
                         .forEach(r -> {
                             System.out.println(" - " + r.getTestName() + ": " + r.getError());
                         });
+            }
+        }
+        
+        // Builder
+        public static TestReportBuilder builder() {
+            return new TestReportBuilder();
+        }
+        
+        public static class TestReportBuilder {
+            private List<TestResult> results;
+            private int totalTests;
+            private int passedTests;
+            private int failedTests;
+            private long duration;
+            
+            public TestReportBuilder results(List<TestResult> results) {
+                this.results = results;
+                return this;
+            }
+            
+            public TestReportBuilder totalTests(int totalTests) {
+                this.totalTests = totalTests;
+                return this;
+            }
+            
+            public TestReportBuilder passedTests(int passedTests) {
+                this.passedTests = passedTests;
+                return this;
+            }
+            
+            public TestReportBuilder failedTests(int failedTests) {
+                this.failedTests = failedTests;
+                return this;
+            }
+            
+            public TestReportBuilder duration(long duration) {
+                this.duration = duration;
+                return this;
+            }
+            
+            public TestReport build() {
+                TestReport report = new TestReport();
+                report.results = this.results;
+                report.totalTests = this.totalTests;
+                report.passedTests = this.passedTests;
+                report.failedTests = this.failedTests;
+                report.duration = this.duration;
+                return report;
             }
         }
     }

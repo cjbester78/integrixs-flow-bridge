@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,23 +35,30 @@ public class RetryService {
 
     // Cache of active retry instances
     private final Map<String, Retry> retryCache = new ConcurrentHashMap<>();
+    
+    // Executor for async retries
+    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10);
 
     @PostConstruct
     public void init() {
         // Register event listeners for all retry instances
         retryRegistry.getEventPublisher()
-            .onRetry(event -> {
-                log.debug("Retry attempt {} for {}",
-                    event.getNumberOfRetryAttempts(), event.getName());
-                recordMetric("retry", event.getName());
-            })
-            .onSuccess(event -> recordMetric("success", event.getName()))
-            .onError(event -> {
-                log.warn("Retry exhausted for {} after {} attempts",
-                    event.getName(), event.getNumberOfRetryAttempts());
-                recordMetric("exhausted", event.getName());
-            })
-            .onIgnoredError(event -> recordMetric("ignored", event.getName()));
+            .onEntryAdded(event -> {
+                Retry retry = event.getAddedEntry();
+                retry.getEventPublisher()
+                    .onRetry(evt -> {
+                        log.debug("Retry attempt {} for {}",
+                            evt.getNumberOfRetryAttempts(), evt.getName());
+                        recordMetric("retry", evt.getName());
+                    })
+                    .onSuccess(evt -> recordMetric("success", evt.getName()))
+                    .onError(evt -> {
+                        log.warn("Retry exhausted for {} after {} attempts",
+                            evt.getName(), evt.getNumberOfRetryAttempts());
+                        recordMetric("exhausted", evt.getName());
+                    })
+                    .onIgnoredError(evt -> recordMetric("ignored", evt.getName()));
+            });
     }
 
     /**
@@ -90,7 +99,7 @@ public class RetryService {
                                                 Supplier<CompletableFuture<T>> operation) {
         Retry retry = getOrCreateRetry(adapterType, adapterId);
 
-        return Retry.decorateCompletionStage(retry, () -> operation.get())
+        return Retry.decorateCompletionStage(retry, executorService, () -> operation.get())
             .get()
             .toCompletableFuture();
     }
@@ -155,13 +164,9 @@ public class RetryService {
         return RetryConfigInfo.builder()
             .adapterType(adapterType)
             .maxAttempts(config.getMaxAttempts())
-            .waitDuration(config.getWaitDuration().toMillis())
-            .retryExceptions(config.getRetryExceptions().stream()
-                .map(Class::getSimpleName)
-                .toList())
-            .ignoreExceptions(config.getIgnoreExceptions().stream()
-                .map(Class::getSimpleName)
-                .toList())
+            .waitDuration(1000L) // Default 1 second wait duration
+            .retryExceptions(List.of("Exception")) // Default retry on all exceptions
+            .ignoreExceptions(List.of()) // No ignored exceptions by default
             .build();
     }
 
@@ -193,8 +198,6 @@ public class RetryService {
             "name", retryName).increment();
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class RetryMetrics {
         private String adapterType;
         private String adapterId;
@@ -202,15 +205,206 @@ public class RetryService {
         private long numberOfSuccessfulCallsWithRetryAttempt;
         private long numberOfFailedCallsWithoutRetryAttempt;
         private long numberOfFailedCallsWithRetryAttempt;
+
+        // Getters and Setters
+        public String getAdapterType() {
+            return adapterType;
+        }
+
+        public void setAdapterType(String adapterType) {
+            this.adapterType = adapterType;
+        }
+
+        public String getAdapterId() {
+            return adapterId;
+        }
+
+        public void setAdapterId(String adapterId) {
+            this.adapterId = adapterId;
+        }
+
+        public long getNumberOfSuccessfulCallsWithoutRetryAttempt() {
+            return numberOfSuccessfulCallsWithoutRetryAttempt;
+        }
+
+        public void setNumberOfSuccessfulCallsWithoutRetryAttempt(long numberOfSuccessfulCallsWithoutRetryAttempt) {
+            this.numberOfSuccessfulCallsWithoutRetryAttempt = numberOfSuccessfulCallsWithoutRetryAttempt;
+        }
+
+        public long getNumberOfSuccessfulCallsWithRetryAttempt() {
+            return numberOfSuccessfulCallsWithRetryAttempt;
+        }
+
+        public void setNumberOfSuccessfulCallsWithRetryAttempt(long numberOfSuccessfulCallsWithRetryAttempt) {
+            this.numberOfSuccessfulCallsWithRetryAttempt = numberOfSuccessfulCallsWithRetryAttempt;
+        }
+
+        public long getNumberOfFailedCallsWithoutRetryAttempt() {
+            return numberOfFailedCallsWithoutRetryAttempt;
+        }
+
+        public void setNumberOfFailedCallsWithoutRetryAttempt(long numberOfFailedCallsWithoutRetryAttempt) {
+            this.numberOfFailedCallsWithoutRetryAttempt = numberOfFailedCallsWithoutRetryAttempt;
+        }
+
+        public long getNumberOfFailedCallsWithRetryAttempt() {
+            return numberOfFailedCallsWithRetryAttempt;
+        }
+
+        public void setNumberOfFailedCallsWithRetryAttempt(long numberOfFailedCallsWithRetryAttempt) {
+            this.numberOfFailedCallsWithRetryAttempt = numberOfFailedCallsWithRetryAttempt;
+        }
+
+        // Builder pattern
+        public static RetryMetricsBuilder builder() {
+            return new RetryMetricsBuilder();
+        }
+
+        public static class RetryMetricsBuilder {
+            private String adapterType;
+            private String adapterId;
+            private long numberOfSuccessfulCallsWithoutRetryAttempt;
+            private long numberOfSuccessfulCallsWithRetryAttempt;
+            private long numberOfFailedCallsWithoutRetryAttempt;
+            private long numberOfFailedCallsWithRetryAttempt;
+
+            public RetryMetricsBuilder adapterType(String adapterType) {
+                this.adapterType = adapterType;
+                return this;
+            }
+
+            public RetryMetricsBuilder adapterId(String adapterId) {
+                this.adapterId = adapterId;
+                return this;
+            }
+
+            public RetryMetricsBuilder numberOfSuccessfulCallsWithoutRetryAttempt(long numberOfSuccessfulCallsWithoutRetryAttempt) {
+                this.numberOfSuccessfulCallsWithoutRetryAttempt = numberOfSuccessfulCallsWithoutRetryAttempt;
+                return this;
+            }
+
+            public RetryMetricsBuilder numberOfSuccessfulCallsWithRetryAttempt(long numberOfSuccessfulCallsWithRetryAttempt) {
+                this.numberOfSuccessfulCallsWithRetryAttempt = numberOfSuccessfulCallsWithRetryAttempt;
+                return this;
+            }
+
+            public RetryMetricsBuilder numberOfFailedCallsWithoutRetryAttempt(long numberOfFailedCallsWithoutRetryAttempt) {
+                this.numberOfFailedCallsWithoutRetryAttempt = numberOfFailedCallsWithoutRetryAttempt;
+                return this;
+            }
+
+            public RetryMetricsBuilder numberOfFailedCallsWithRetryAttempt(long numberOfFailedCallsWithRetryAttempt) {
+                this.numberOfFailedCallsWithRetryAttempt = numberOfFailedCallsWithRetryAttempt;
+                return this;
+            }
+
+            public RetryMetrics build() {
+                RetryMetrics metrics = new RetryMetrics();
+                metrics.adapterType = this.adapterType;
+                metrics.adapterId = this.adapterId;
+                metrics.numberOfSuccessfulCallsWithoutRetryAttempt = this.numberOfSuccessfulCallsWithoutRetryAttempt;
+                metrics.numberOfSuccessfulCallsWithRetryAttempt = this.numberOfSuccessfulCallsWithRetryAttempt;
+                metrics.numberOfFailedCallsWithoutRetryAttempt = this.numberOfFailedCallsWithoutRetryAttempt;
+                metrics.numberOfFailedCallsWithRetryAttempt = this.numberOfFailedCallsWithRetryAttempt;
+                return metrics;
+            }
+        }
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class RetryConfigInfo {
         private String adapterType;
         private int maxAttempts;
         private long waitDuration;
         private List<String> retryExceptions;
         private List<String> ignoreExceptions;
+
+        // Getters and Setters
+        public String getAdapterType() {
+            return adapterType;
+        }
+
+        public void setAdapterType(String adapterType) {
+            this.adapterType = adapterType;
+        }
+
+        public int getMaxAttempts() {
+            return maxAttempts;
+        }
+
+        public void setMaxAttempts(int maxAttempts) {
+            this.maxAttempts = maxAttempts;
+        }
+
+        public long getWaitDuration() {
+            return waitDuration;
+        }
+
+        public void setWaitDuration(long waitDuration) {
+            this.waitDuration = waitDuration;
+        }
+
+        public List<String> getRetryExceptions() {
+            return retryExceptions;
+        }
+
+        public void setRetryExceptions(List<String> retryExceptions) {
+            this.retryExceptions = retryExceptions;
+        }
+
+        public List<String> getIgnoreExceptions() {
+            return ignoreExceptions;
+        }
+
+        public void setIgnoreExceptions(List<String> ignoreExceptions) {
+            this.ignoreExceptions = ignoreExceptions;
+        }
+
+        // Builder pattern
+        public static RetryConfigInfoBuilder builder() {
+            return new RetryConfigInfoBuilder();
+        }
+
+        public static class RetryConfigInfoBuilder {
+            private String adapterType;
+            private int maxAttempts;
+            private long waitDuration;
+            private List<String> retryExceptions;
+            private List<String> ignoreExceptions;
+
+            public RetryConfigInfoBuilder adapterType(String adapterType) {
+                this.adapterType = adapterType;
+                return this;
+            }
+
+            public RetryConfigInfoBuilder maxAttempts(int maxAttempts) {
+                this.maxAttempts = maxAttempts;
+                return this;
+            }
+
+            public RetryConfigInfoBuilder waitDuration(long waitDuration) {
+                this.waitDuration = waitDuration;
+                return this;
+            }
+
+            public RetryConfigInfoBuilder retryExceptions(List<String> retryExceptions) {
+                this.retryExceptions = retryExceptions;
+                return this;
+            }
+
+            public RetryConfigInfoBuilder ignoreExceptions(List<String> ignoreExceptions) {
+                this.ignoreExceptions = ignoreExceptions;
+                return this;
+            }
+
+            public RetryConfigInfo build() {
+                RetryConfigInfo info = new RetryConfigInfo();
+                info.adapterType = this.adapterType;
+                info.maxAttempts = this.maxAttempts;
+                info.waitDuration = this.waitDuration;
+                info.retryExceptions = this.retryExceptions;
+                info.ignoreExceptions = this.ignoreExceptions;
+                return info;
+            }
+        }
     }
 }

@@ -40,6 +40,12 @@ public class AuditService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
+    @Autowired
+    private com.integrixs.data.repository.SystemLogRepository systemLogRepository;
+
+    @Autowired
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
     @Value("$ {audit.async.enabled:true}")
     private boolean asyncEnabled;
 
@@ -269,6 +275,232 @@ public class AuditService {
      */
     public AuditContext createContext(String action) {
         return new AuditContext(action);
+    }
+
+    /**
+     * Log package creation audit event (from service version)
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logPackageCreation(UUID correlationId, String status, String message, Map<String, Object> resources) {
+        try {
+            com.integrixs.data.model.SystemLog log = new com.integrixs.data.model.SystemLog();
+            log.setComponent("PACKAGE_CREATION");
+            log.setAction("CREATE_PACKAGE");
+            // Map status to LogLevel
+            if ("SUCCESS".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            } else if ("ERROR".equals(status) || "FAILURE".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+            } else {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            }
+            log.setMessage(message);
+            log.setCorrelationId(correlationId.toString());
+            log.setTimestamp(java.time.LocalDateTime.now());
+
+            // Add details
+            Map<String, Object> details = new HashMap<>();
+            details.put("correlationId", correlationId);
+            details.put("status", status);
+            details.put("resourceCount", resources.size());
+            details.put("resourceTypes", resources.keySet());
+
+            // Add resource IDs
+            Map<String, String> resourceIds = new HashMap<>();
+            resources.forEach((key, value) -> {
+                if(value != null) {
+                    try {
+                        // Extract ID if possible
+                        var idField = value.getClass().getDeclaredField("id");
+                        idField.setAccessible(true);
+                        Object id = idField.get(value);
+                        if(id != null) {
+                            resourceIds.put(key, id.toString());
+                        }
+                    } catch(Exception e) {
+                        // Ignore if can't get ID
+                    }
+                }
+            });
+            details.put("resourceIds", resourceIds);
+
+            log.setDetails(objectMapper.writeValueAsString(details));
+            systemLogRepository.save(log);
+
+        } catch(Exception e) {
+            logger.error("Failed to create audit log", e);
+        }
+    }
+
+    /**
+     * Log adapter execution audit event (from service version)
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logAdapterExecution(UUID adapterId, String adapterName, String direction,
+                                  String status, String message, long duration) {
+        try {
+            com.integrixs.data.model.SystemLog log = new com.integrixs.data.model.SystemLog();
+            log.setComponent("ADAPTER");
+            log.setAction("EXECUTE_ADAPTER");
+            if ("SUCCESS".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            } else if ("ERROR".equals(status) || "FAILURE".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+            } else {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            }
+            log.setMessage(message);
+            log.setTimestamp(java.time.LocalDateTime.now());
+
+            Map<String, Object> details = new HashMap<>();
+            details.put("adapterId", adapterId);
+            details.put("adapterName", adapterName);
+            details.put("direction", direction);
+            details.put("duration", duration);
+
+            log.setDetails(objectMapper.writeValueAsString(details));
+            systemLogRepository.save(log);
+
+        } catch(Exception e) {
+            logger.error("Failed to create adapter execution audit log", e);
+        }
+    }
+
+    /**
+     * Log transformation execution audit event (from service version)
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logTransformationExecution(String transformationId, String status,
+                                         String message, Map<String, Object> metrics) {
+        try {
+            com.integrixs.data.model.SystemLog log = new com.integrixs.data.model.SystemLog();
+            log.setComponent("TRANSFORMATION");
+            log.setAction("EXECUTE_TRANSFORMATION");
+            if ("SUCCESS".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            } else if ("ERROR".equals(status) || "FAILURE".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+            } else {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            }
+            log.setMessage(message);
+            log.setTimestamp(java.time.LocalDateTime.now());
+
+            Map<String, Object> details = new HashMap<>();
+            details.put("transformationId", transformationId);
+            if(metrics != null) {
+                details.putAll(metrics);
+            }
+
+            log.setDetails(objectMapper.writeValueAsString(details));
+            systemLogRepository.save(log);
+
+        } catch(Exception e) {
+            logger.error("Failed to create transformation execution audit log", e);
+        }
+    }
+
+    /**
+     * Log error event (from service version)
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logError(String module, String action, String errorMessage,
+                       String stackTrace, Map<String, Object> context) {
+        try {
+            com.integrixs.data.model.SystemLog log = new com.integrixs.data.model.SystemLog();
+            log.setComponent(module);
+            log.setAction(action);
+            log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+            log.setMessage(errorMessage);
+            log.setTimestamp(java.time.LocalDateTime.now());
+
+            Map<String, Object> details = new HashMap<>();
+            details.put("errorMessage", errorMessage);
+            if(stackTrace != null) {
+                details.put("stackTrace", stackTrace);
+            }
+            if(context != null) {
+                details.put("context", context);
+            }
+
+            log.setDetails(objectMapper.writeValueAsString(details));
+            systemLogRepository.save(log);
+
+        } catch(Exception e) {
+            logger.error("Failed to create error audit log", e);
+        }
+    }
+
+    /**
+     * Log security event (compatibility method for service version)
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)  
+    public void logSecurityEvent(String eventType, String userId, String status,
+                                String message, Map<String, Object> context) {
+        try {
+            com.integrixs.data.model.SystemLog log = new com.integrixs.data.model.SystemLog();
+            log.setComponent("SECURITY");
+            log.setAction(eventType);
+            if ("SUCCESS".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            } else if ("ERROR".equals(status) || "FAILURE".equals(status)) {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.ERROR);
+            } else {
+                log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            }
+            log.setMessage(message);
+            if (userId != null && !"SYSTEM".equals(userId)) {
+                try {
+                    log.setUserId(UUID.fromString(userId));
+                } catch (IllegalArgumentException e) {
+                    // Skip if not a valid UUID
+                }
+            }
+            log.setTimestamp(java.time.LocalDateTime.now());
+
+            if(context != null) {
+                log.setDetails(objectMapper.writeValueAsString(context));
+            }
+
+            systemLogRepository.save(log);
+
+        } catch(Exception e) {
+            logger.error("Failed to create security audit log", e);
+        }
+    }
+
+    /**
+     * Log performance metrics (from service version)
+     */
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logPerformanceMetrics(String operation, long duration,
+                                    Map<String, Object> metrics) {
+        try {
+            com.integrixs.data.model.SystemLog log = new com.integrixs.data.model.SystemLog();
+            log.setComponent("PERFORMANCE");
+            log.setAction(operation);
+            log.setLevel(com.integrixs.data.model.SystemLog.LogLevel.INFO);
+            log.setMessage(String.format("Operation completed in %d ms", duration));
+            log.setTimestamp(java.time.LocalDateTime.now());
+
+            Map<String, Object> details = new HashMap<>();
+            details.put("duration", duration);
+            if(metrics != null) {
+                details.putAll(metrics);
+            }
+
+            log.setDetails(objectMapper.writeValueAsString(details));
+            systemLogRepository.save(log);
+
+        } catch(Exception e) {
+            logger.error("Failed to create performance audit log", e);
+        }
     }
 
     /**

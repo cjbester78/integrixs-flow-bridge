@@ -4,7 +4,7 @@ import com.integrixs.engine.api.dto.AdapterExecutionRequestDTO;
 import com.integrixs.engine.api.dto.AdapterExecutionResponseDTO;
 import com.integrixs.engine.domain.model.AdapterExecutionContext;
 import com.integrixs.engine.domain.model.AdapterExecutionResult;
-import com.integrixs.engine.domain.service.AdapterExecutionService;
+import com.integrixs.engine.domain.service.FlowAdapterExecutor;
 import com.integrixs.engine.infrastructure.adapter.AdapterRegistry;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,7 @@ public class AdapterExecutionApplicationService {
     private static final Logger log = LoggerFactory.getLogger(AdapterExecutionApplicationService.class);
 
 
-    private final AdapterExecutionService adapterExecutionService;
+    private final FlowAdapterExecutor adapterExecutionService;
     private final AdapterRegistry adapterRegistry;
 
     /**
@@ -31,7 +31,7 @@ public class AdapterExecutionApplicationService {
      * @param request Execution request
      * @return Execution response
      */
-    public AdapterExecutionApplicationService(AdapterExecutionService adapterExecutionService, AdapterRegistry adapterRegistry) {
+    public AdapterExecutionApplicationService(FlowAdapterExecutor adapterExecutionService, AdapterRegistry adapterRegistry) {
         this.adapterExecutionService = adapterExecutionService;
         this.adapterRegistry = adapterRegistry;
     }
@@ -178,10 +178,10 @@ public class AdapterExecutionApplicationService {
     }
 
     public static class AdapterExecutionApplicationServiceBuilder {
-        private AdapterExecutionService adapterExecutionService;
+        private FlowAdapterExecutor adapterExecutionService;
         private AdapterRegistry adapterRegistry;
 
-        public AdapterExecutionApplicationServiceBuilder adapterExecutionService(AdapterExecutionService adapterExecutionService) {
+        public AdapterExecutionApplicationServiceBuilder adapterExecutionService(FlowAdapterExecutor adapterExecutionService) {
             this.adapterExecutionService = adapterExecutionService;
             return this;
         }

@@ -19,4 +19,7 @@ public interface CommunicationAdapterRepository extends JpaRepository<Communicat
 
     // Count adapters by business component
     long countByBusinessComponent_Id(UUID businessComponentId);
+    
+    // Tenant-related queries
+    long countByTenantId(UUID tenantId);
 }

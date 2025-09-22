@@ -25,12 +25,52 @@ public class ComponentPerformance {
     /**
      * Metrics for a specific operation.
      */
-        public static class OperationMetrics {
+    public static class OperationMetrics {
         private String operationName;
         private long count;
         private double meanDuration;
         private double maxDuration;
         private Map<String, Double> percentiles;
+
+        public String getOperationName() {
+            return operationName;
+        }
+
+        public void setOperationName(String operationName) {
+            this.operationName = operationName;
+        }
+
+        public long getCount() {
+            return count;
+        }
+
+        public void setCount(long count) {
+            this.count = count;
+        }
+
+        public double getMeanDuration() {
+            return meanDuration;
+        }
+
+        public void setMeanDuration(double meanDuration) {
+            this.meanDuration = meanDuration;
+        }
+
+        public double getMaxDuration() {
+            return maxDuration;
+        }
+
+        public void setMaxDuration(double maxDuration) {
+            this.maxDuration = maxDuration;
+        }
+
+        public Map<String, Double> getPercentiles() {
+            return percentiles;
+        }
+
+        public void setPercentiles(Map<String, Double> percentiles) {
+            this.percentiles = percentiles;
+        }
     }
 
     // Default constructor
@@ -61,35 +101,19 @@ public class ComponentPerformance {
         this.operationMetrics = operationMetrics;
     }
 
-    public String getOperationName() {
-        return operationName;
+    public Map<String, Object> getResourceUsage() {
+        return resourceUsage;
     }
 
-    public void setOperationName(String operationName) {
-        this.operationName = operationName;
+    public void setResourceUsage(Map<String, Object> resourceUsage) {
+        this.resourceUsage = resourceUsage;
     }
 
-    public long getCount() {
-        return count;
+    public Map<String, Object> getErrorStatistics() {
+        return errorStatistics;
     }
 
-    public void setCount(long count) {
-        this.count = count;
-    }
-
-    public double getMeanDuration() {
-        return meanDuration;
-    }
-
-    public void setMeanDuration(double meanDuration) {
-        this.meanDuration = meanDuration;
-    }
-
-    public double getMaxDuration() {
-        return maxDuration;
-    }
-
-    public void setMaxDuration(double maxDuration) {
-        this.maxDuration = maxDuration;
+    public void setErrorStatistics(Map<String, Object> errorStatistics) {
+        this.errorStatistics = errorStatistics;
     }
 }

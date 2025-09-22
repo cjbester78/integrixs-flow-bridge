@@ -40,6 +40,20 @@ public class OrchestrationTargetService {
     private final TargetFieldMappingRepository fieldMappingRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    
+    public OrchestrationTargetService(OrchestrationTargetRepository orchestrationTargetRepository,
+                                    IntegrationFlowRepository integrationFlowRepository,
+                                    CommunicationAdapterRepository adapterRepository,
+                                    TargetFieldMappingRepository fieldMappingRepository,
+                                    UserRepository userRepository,
+                                    ObjectMapper objectMapper) {
+        this.orchestrationTargetRepository = orchestrationTargetRepository;
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.adapterRepository = adapterRepository;
+        this.fieldMappingRepository = fieldMappingRepository;
+        this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Get all targets for a flow
@@ -140,8 +154,9 @@ public class OrchestrationTargetService {
 
         // Set user info
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username);
-        if (user != null) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
             target.setCreatedBy(user);
             target.setUpdatedBy(user);
         }
@@ -234,9 +249,9 @@ public class OrchestrationTargetService {
 
                     // Update user info
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                    User updateUser = userRepository.findByUsername(username);
-                    if (updateUser != null) {
-                        target.setUpdatedBy(updateUser);
+                    Optional<User> updateUserOptional = userRepository.findByUsername(username);
+                    if (updateUserOptional.isPresent()) {
+                        target.setUpdatedBy(updateUserOptional.get());
                     }
 
                     target = orchestrationTargetRepository.save(target);
@@ -352,9 +367,9 @@ public class OrchestrationTargetService {
                     target.setActive(active);
 
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                    User orderUpdateUser = userRepository.findByUsername(username);
-                    if (orderUpdateUser != null) {
-                        target.setUpdatedBy(orderUpdateUser);
+                    Optional<User> orderUpdateUserOptional = userRepository.findByUsername(username);
+                    if (orderUpdateUserOptional.isPresent()) {
+                        target.setUpdatedBy(orderUpdateUserOptional.get());
                     }
 
                     target = orchestrationTargetRepository.save(target);
@@ -391,8 +406,8 @@ public class OrchestrationTargetService {
         // Check user has access to the business component
         // TODO: Implement proper access control based on business component membership
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByUsername(username);
-        boolean hasAccess = currentUser != null && flow.getBusinessComponent() != null;
+        Optional<User> currentUserOptional = userRepository.findByUsername(username);
+        boolean hasAccess = currentUserOptional.isPresent() && flow.getBusinessComponent() != null;
 
         if(!hasAccess) {
             throw new AccessDeniedException("Access denied to flow: " + flowId);

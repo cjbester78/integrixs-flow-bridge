@@ -30,6 +30,10 @@ public class IntegrationFlowController {
 
     private final IntegrationFlowService integrationFlowService;
 
+    public IntegrationFlowController(IntegrationFlowService integrationFlowService) {
+        this.integrationFlowService = integrationFlowService;
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "FLOW.LIST", module = "FlowManagement")

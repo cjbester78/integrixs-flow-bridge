@@ -49,4 +49,20 @@ public class TemporalPatterns {
     public void setSeasonalityScore(double seasonalityScore) {
         this.seasonalityScore = seasonalityScore;
     }
+
+    public Map<Integer, HourlyStats> getHourlyPatterns() {
+        return hourlyPatterns;
+    }
+
+    public void setHourlyPatterns(Map<Integer, HourlyStats> hourlyPatterns) {
+        this.hourlyPatterns = hourlyPatterns;
+    }
+
+    public Map<String, DailyStats> getDailyPatterns() {
+        return dailyPatterns;
+    }
+
+    public void setDailyPatterns(Map<String, DailyStats> dailyPatterns) {
+        this.dailyPatterns = dailyPatterns;
+    }
 }

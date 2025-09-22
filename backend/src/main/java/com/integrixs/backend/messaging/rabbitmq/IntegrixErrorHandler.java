@@ -16,6 +16,14 @@ public class IntegrixErrorHandler implements RabbitListenerErrorHandler {
     private static final Logger logger = LoggerFactory.getLogger(IntegrixErrorHandler.class);
 
     @Override
+    public Object handleError(Message amqpMessage, com.rabbitmq.client.Channel channel,
+                            org.springframework.messaging.Message<?> message,
+                            ListenerExecutionFailedException exception) throws Exception {
+        // Call the main error handling logic
+        return handleError(amqpMessage, message, exception);
+    }
+
+    // This is the main error handling method
     public Object handleError(Message amqpMessage, org.springframework.messaging.Message<?> message,
                             ListenerExecutionFailedException exception) throws Exception {
 

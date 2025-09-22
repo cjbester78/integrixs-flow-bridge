@@ -4,7 +4,7 @@ import com.integrixs.monitoring.api.dto.*;
 import com.integrixs.monitoring.domain.model.Alert;
 import com.integrixs.monitoring.domain.model.MetricSnapshot;
 import com.integrixs.monitoring.domain.model.MonitoringEvent;
-import com.integrixs.monitoring.domain.service.AlertingService;
+import com.integrixs.monitoring.domain.service.MonitoringAlertService;
 import com.integrixs.monitoring.domain.service.EventLoggingService;
 import com.integrixs.monitoring.domain.service.MetricsCollectorService;
 import org.slf4j.Logger;
@@ -28,11 +28,11 @@ public class MonitoringApplicationService {
     private static final Logger log = LoggerFactory.getLogger(MonitoringApplicationService.class);
     private final EventLoggingService eventLoggingService;
     private final MetricsCollectorService metricsCollectorService;
-    private final AlertingService alertingService;
+    private final MonitoringAlertService alertingService;
     
     public MonitoringApplicationService(EventLoggingService eventLoggingService,
                                      MetricsCollectorService metricsCollectorService,
-                                     AlertingService alertingService) {
+                                     MonitoringAlertService alertingService) {
         this.eventLoggingService = eventLoggingService;
         this.metricsCollectorService = metricsCollectorService;
         this.alertingService = alertingService;
@@ -315,7 +315,7 @@ public class MonitoringApplicationService {
     public AlertRuleOperationResponseDTO createAlertRule(CreateAlertRuleRequestDTO request) {
         try {
             // Convert to domain model
-            AlertingService.AlertRule rule = new AlertingService.AlertRule();
+            MonitoringAlertService.AlertRule rule = new MonitoringAlertService.AlertRule();
             rule.setRuleName(request.getRuleName());
             rule.setCondition(request.getCondition());
             rule.setAlertType(Alert.AlertType.valueOf(request.getAlertType()));

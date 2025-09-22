@@ -216,7 +216,7 @@ public class PluginDocumentationGenerator {
         pw.println();
     }
 
-    private void generateCapabilitiesSection(PrintWriter pw, Map<String, Object> capabilities) {
+    private void generateCapabilitiesSection(PrintWriter pw, Map<String, Boolean> capabilities) {
         pw.println("## Capabilities");
         pw.println();
 

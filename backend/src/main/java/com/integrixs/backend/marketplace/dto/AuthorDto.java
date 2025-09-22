@@ -1,5 +1,7 @@
 package com.integrixs.backend.marketplace.dto;
 
+import java.util.UUID;
+
 /**
  * DTO for author information
  */
@@ -79,6 +81,11 @@ public class AuthorDto {
         
         public AuthorDtoBuilder id(String id) {
             this.id = id;
+            return this;
+        }
+        
+        public AuthorDtoBuilder id(UUID id) {
+            this.id = id != null ? id.toString() : null;
             return this;
         }
         

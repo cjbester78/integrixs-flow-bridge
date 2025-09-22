@@ -7,6 +7,7 @@ import io.github.resilience4j.bulkhead.ThreadPoolBulkheadRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
@@ -36,18 +37,45 @@ public class BulkheadService {
     // Cache of active bulkheads
     private final Map<String, Bulkhead> bulkheadCache = new ConcurrentHashMap<>();
     private final Map<String, ThreadPoolBulkhead> threadPoolBulkheadCache = new ConcurrentHashMap<>();
+    
+    // Configuration values
+    @Value("${resilience.bulkhead.thread-pool.core-size:10}")
+    private int defaultCoreThreadPoolSize;
+    
+    @Value("${resilience.bulkhead.thread-pool.size:20}")
+    private int defaultThreadPoolSize;
+    
+    @Value("${resilience.bulkhead.thread-pool.max-size:30}")
+    private int defaultMaxThreadPoolSize;
+    
+    @Value("${resilience.bulkhead.utilization.threshold:100}")
+    private double utilizationThreshold;
+    
+    public BulkheadService(BulkheadRegistry bulkheadRegistry,
+                          ThreadPoolBulkheadRegistry threadPoolBulkheadRegistry,
+                          BulkheadConfiguration configuration,
+                          MeterRegistry meterRegistry) {
+        this.bulkheadRegistry = bulkheadRegistry;
+        this.threadPoolBulkheadRegistry = threadPoolBulkheadRegistry;
+        this.configuration = configuration;
+        this.meterRegistry = meterRegistry;
+    }
 
     @PostConstruct
     public void init() {
-        // Register event listeners for all bulkheads
+        // Register event listeners for bulkhead creation
         bulkheadRegistry.getEventPublisher()
-            .onCallPermitted(event -> recordMetric("permitted", event.getBulkheadName()))
-            .onCallRejected(event -> {
-                log.warn("Bulkhead {} rejected call - max concurrent calls reached",
-                    event.getBulkheadName());
-                recordMetric("rejected", event.getBulkheadName());
-            })
-            .onCallFinished(event -> recordMetric("finished", event.getBulkheadName()));
+            .onEntryAdded(event -> {
+                Bulkhead bulkhead = event.getAddedEntry();
+                bulkhead.getEventPublisher()
+                    .onCallPermitted(e -> recordMetric("permitted", bulkhead.getName()))
+                    .onCallRejected(e -> {
+                        log.warn("Bulkhead {} rejected call - max concurrent calls reached",
+                            bulkhead.getName());
+                        recordMetric("rejected", bulkhead.getName());
+                    })
+                    .onCallFinished(e -> recordMetric("finished", bulkhead.getName()));
+            });
     }
 
     /**
@@ -88,7 +116,7 @@ public class BulkheadService {
                                                 Callable<T> operation) {
         ThreadPoolBulkhead bulkhead = getOrCreateThreadPoolBulkhead(adapterType, adapterId);
 
-        return bulkhead.executeCallable(operation);
+        return bulkhead.executeCallable(operation).toCompletableFuture();
     }
 
     /**
@@ -116,9 +144,9 @@ public class BulkheadService {
         return ThreadPoolBulkheadMetrics.builder()
             .adapterType(adapterType)
             .adapterId(adapterId)
-            .coreThreadPoolSize(metrics.getCoreThreadPoolSize())
-            .threadPoolSize(metrics.getThreadPoolSize())
-            .maxThreadPoolSize(metrics.getMaxThreadPoolSize())
+            .coreThreadPoolSize(defaultCoreThreadPoolSize)
+            .threadPoolSize(defaultThreadPoolSize)
+            .maxThreadPoolSize(defaultMaxThreadPoolSize)
             .queueDepth(metrics.getQueueDepth())
             .remainingQueueCapacity(metrics.getRemainingQueueCapacity())
             .build();
@@ -156,7 +184,7 @@ public class BulkheadService {
         Bulkhead.Metrics metrics = bulkhead.getMetrics();
 
         int used = metrics.getMaxAllowedConcurrentCalls() - metrics.getAvailableConcurrentCalls();
-        return(double) used / metrics.getMaxAllowedConcurrentCalls() * 100;
+        return (double) used / metrics.getMaxAllowedConcurrentCalls() * utilizationThreshold;
     }
 
     private Bulkhead getOrCreateBulkhead(String adapterType, String adapterId) {
@@ -210,17 +238,87 @@ public class BulkheadService {
             "name", bulkheadName).increment();
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class BulkheadMetrics {
         private String adapterType;
         private String adapterId;
         private int availableConcurrentCalls;
         private int maxAllowedConcurrentCalls;
+
+        // Getters and Setters
+        public String getAdapterType() {
+            return adapterType;
+        }
+
+        public void setAdapterType(String adapterType) {
+            this.adapterType = adapterType;
+        }
+
+        public String getAdapterId() {
+            return adapterId;
+        }
+
+        public void setAdapterId(String adapterId) {
+            this.adapterId = adapterId;
+        }
+
+        public int getAvailableConcurrentCalls() {
+            return availableConcurrentCalls;
+        }
+
+        public void setAvailableConcurrentCalls(int availableConcurrentCalls) {
+            this.availableConcurrentCalls = availableConcurrentCalls;
+        }
+
+        public int getMaxAllowedConcurrentCalls() {
+            return maxAllowedConcurrentCalls;
+        }
+
+        public void setMaxAllowedConcurrentCalls(int maxAllowedConcurrentCalls) {
+            this.maxAllowedConcurrentCalls = maxAllowedConcurrentCalls;
+        }
+
+        // Builder pattern
+        public static BulkheadMetricsBuilder builder() {
+            return new BulkheadMetricsBuilder();
+        }
+
+        public static class BulkheadMetricsBuilder {
+            private String adapterType;
+            private String adapterId;
+            private int availableConcurrentCalls;
+            private int maxAllowedConcurrentCalls;
+
+            public BulkheadMetricsBuilder adapterType(String adapterType) {
+                this.adapterType = adapterType;
+                return this;
+            }
+
+            public BulkheadMetricsBuilder adapterId(String adapterId) {
+                this.adapterId = adapterId;
+                return this;
+            }
+
+            public BulkheadMetricsBuilder availableConcurrentCalls(int availableConcurrentCalls) {
+                this.availableConcurrentCalls = availableConcurrentCalls;
+                return this;
+            }
+
+            public BulkheadMetricsBuilder maxAllowedConcurrentCalls(int maxAllowedConcurrentCalls) {
+                this.maxAllowedConcurrentCalls = maxAllowedConcurrentCalls;
+                return this;
+            }
+
+            public BulkheadMetrics build() {
+                BulkheadMetrics metrics = new BulkheadMetrics();
+                metrics.adapterType = this.adapterType;
+                metrics.adapterId = this.adapterId;
+                metrics.availableConcurrentCalls = this.availableConcurrentCalls;
+                metrics.maxAllowedConcurrentCalls = this.maxAllowedConcurrentCalls;
+                return metrics;
+            }
+        }
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class ThreadPoolBulkheadMetrics {
         private String adapterType;
         private String adapterId;
@@ -229,5 +327,124 @@ public class BulkheadService {
         private int maxThreadPoolSize;
         private int queueDepth;
         private int remainingQueueCapacity;
+
+        // Getters and Setters
+        public String getAdapterType() {
+            return adapterType;
+        }
+
+        public void setAdapterType(String adapterType) {
+            this.adapterType = adapterType;
+        }
+
+        public String getAdapterId() {
+            return adapterId;
+        }
+
+        public void setAdapterId(String adapterId) {
+            this.adapterId = adapterId;
+        }
+
+        public int getCoreThreadPoolSize() {
+            return coreThreadPoolSize;
+        }
+
+        public void setCoreThreadPoolSize(int coreThreadPoolSize) {
+            this.coreThreadPoolSize = coreThreadPoolSize;
+        }
+
+        public int getThreadPoolSize() {
+            return threadPoolSize;
+        }
+
+        public void setThreadPoolSize(int threadPoolSize) {
+            this.threadPoolSize = threadPoolSize;
+        }
+
+        public int getMaxThreadPoolSize() {
+            return maxThreadPoolSize;
+        }
+
+        public void setMaxThreadPoolSize(int maxThreadPoolSize) {
+            this.maxThreadPoolSize = maxThreadPoolSize;
+        }
+
+        public int getQueueDepth() {
+            return queueDepth;
+        }
+
+        public void setQueueDepth(int queueDepth) {
+            this.queueDepth = queueDepth;
+        }
+
+        public int getRemainingQueueCapacity() {
+            return remainingQueueCapacity;
+        }
+
+        public void setRemainingQueueCapacity(int remainingQueueCapacity) {
+            this.remainingQueueCapacity = remainingQueueCapacity;
+        }
+
+        // Builder pattern
+        public static ThreadPoolBulkheadMetricsBuilder builder() {
+            return new ThreadPoolBulkheadMetricsBuilder();
+        }
+
+        public static class ThreadPoolBulkheadMetricsBuilder {
+            private String adapterType;
+            private String adapterId;
+            private int coreThreadPoolSize;
+            private int threadPoolSize;
+            private int maxThreadPoolSize;
+            private int queueDepth;
+            private int remainingQueueCapacity;
+
+            public ThreadPoolBulkheadMetricsBuilder adapterType(String adapterType) {
+                this.adapterType = adapterType;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetricsBuilder adapterId(String adapterId) {
+                this.adapterId = adapterId;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetricsBuilder coreThreadPoolSize(int coreThreadPoolSize) {
+                this.coreThreadPoolSize = coreThreadPoolSize;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetricsBuilder threadPoolSize(int threadPoolSize) {
+                this.threadPoolSize = threadPoolSize;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetricsBuilder maxThreadPoolSize(int maxThreadPoolSize) {
+                this.maxThreadPoolSize = maxThreadPoolSize;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetricsBuilder queueDepth(int queueDepth) {
+                this.queueDepth = queueDepth;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetricsBuilder remainingQueueCapacity(int remainingQueueCapacity) {
+                this.remainingQueueCapacity = remainingQueueCapacity;
+                return this;
+            }
+
+            public ThreadPoolBulkheadMetrics build() {
+                ThreadPoolBulkheadMetrics metrics = new ThreadPoolBulkheadMetrics();
+                metrics.adapterType = this.adapterType;
+                metrics.adapterId = this.adapterId;
+                metrics.coreThreadPoolSize = this.coreThreadPoolSize;
+                metrics.threadPoolSize = this.threadPoolSize;
+                metrics.maxThreadPoolSize = this.maxThreadPoolSize;
+                metrics.queueDepth = this.queueDepth;
+                metrics.remainingQueueCapacity = this.remainingQueueCapacity;
+                return metrics;
+            }
+        }
     }
 }

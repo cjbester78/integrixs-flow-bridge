@@ -9,6 +9,12 @@ public class AnomalousPattern {
     private double anomalyScore;
     private String description;
     private String recommendation;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String severity;
+    private LocalDateTime timestamp;
+    private double value;
+    private double expectedValue;
 
     // Default constructor
     public AnomalousPattern() {
@@ -60,5 +66,53 @@ public class AnomalousPattern {
 
     public void setRecommendation(String recommendation) {
         this.recommendation = recommendation;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
+    
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+    
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+    
+    public double getValue() {
+        return value;
+    }
+    
+    public void setValue(double value) {
+        this.value = value;
+    }
+    
+    public double getExpectedValue() {
+        return expectedValue;
+    }
+    
+    public void setExpectedValue(double expectedValue) {
+        this.expectedValue = expectedValue;
     }
 }

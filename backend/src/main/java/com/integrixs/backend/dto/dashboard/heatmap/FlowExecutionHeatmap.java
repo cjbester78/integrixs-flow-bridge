@@ -57,6 +57,11 @@ public class FlowExecutionHeatmap {
         this.executionGrid = executionGrid;
     }
 
+    // Alias method for compatibility
+    public void setPerformanceGrid(double[][] performanceGrid) {
+        this.executionGrid = performanceGrid;
+    }
+
     public double[][] getSuccessRateGrid() {
         return successRateGrid;
     }

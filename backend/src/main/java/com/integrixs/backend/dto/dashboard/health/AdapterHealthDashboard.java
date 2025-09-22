@@ -15,8 +15,12 @@ public class AdapterHealthDashboard {
     private int inactiveAdapters;
     private int overallHealthScore; // 0-100
     private List<AdapterHealthDetail> adapterHealthDetails;
+    private List<AdapterHealthSummary> adapterHealthSummaries;
     private HealthTrends healthTrends;
     private List<CriticalAlert> criticalAlerts;
+    private int criticalAdapters;
+    private List<CriticalIssue> criticalIssues;
+    private List<String> recommendations;
 
     // Default constructor
     public AdapterHealthDashboard() {
@@ -100,5 +104,37 @@ public class AdapterHealthDashboard {
 
     public void setCriticalAlerts(List<CriticalAlert> criticalAlerts) {
         this.criticalAlerts = criticalAlerts;
+    }
+
+    public List<AdapterHealthSummary> getAdapterHealthSummaries() {
+        return adapterHealthSummaries;
+    }
+
+    public void setAdapterHealthSummaries(List<AdapterHealthSummary> adapterHealthSummaries) {
+        this.adapterHealthSummaries = adapterHealthSummaries;
+    }
+
+    public int getCriticalAdapters() {
+        return criticalAdapters;
+    }
+
+    public void setCriticalAdapters(int criticalAdapters) {
+        this.criticalAdapters = criticalAdapters;
+    }
+
+    public List<CriticalIssue> getCriticalIssues() {
+        return criticalIssues;
+    }
+
+    public void setCriticalIssues(List<CriticalIssue> criticalIssues) {
+        this.criticalIssues = criticalIssues;
+    }
+
+    public List<String> getRecommendations() {
+        return recommendations;
+    }
+
+    public void setRecommendations(List<String> recommendations) {
+        this.recommendations = recommendations;
     }
 }

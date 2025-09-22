@@ -29,6 +29,14 @@ public class OrchestrationExecutor {
     private final AdapterExecutor adapterExecutor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public OrchestrationExecutor(TransformationExecutionService transformationService,
+                               CommunicationAdapterRepository adapterRepository,
+                               AdapterExecutor adapterExecutor) {
+        this.transformationService = transformationService;
+        this.adapterRepository = adapterRepository;
+        this.adapterExecutor = adapterExecutor;
+    }
+
     /**
      * Initialize adapters for execution
      * @param execution The orchestration execution

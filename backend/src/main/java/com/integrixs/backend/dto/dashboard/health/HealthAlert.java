@@ -1,14 +1,19 @@
 package com.integrixs.backend.dto.dashboard.health;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class HealthAlert {
     private UUID adapterId;
+    private String adapterIdString; // For string-based adapter IDs
+    private String adapterName;
     private String severity;
     private String message;
     private String type;
+    private String alertType;
     private Instant timestamp;
+    private LocalDateTime timestampLocal;
     private String category;
     private String recommendation;
     private String alertId;
@@ -93,5 +98,66 @@ public class HealthAlert {
 
     public void setAlertId(String alertId) {
         this.alertId = alertId;
+    }
+    
+    public String getAdapterIdString() {
+        return adapterIdString;
+    }
+    
+    public void setAdapterIdString(String adapterIdString) {
+        this.adapterIdString = adapterIdString;
+    }
+    
+    // Convenience method for setting adapterId as string
+    public void setAdapterId(String adapterId) {
+        this.adapterIdString = adapterId;
+        try {
+            this.adapterId = UUID.fromString(adapterId);
+        } catch (Exception e) {
+            // Ignore if not a valid UUID
+        }
+    }
+    
+    public String getAdapterName() {
+        return adapterName;
+    }
+    
+    public void setAdapterName(String adapterName) {
+        this.adapterName = adapterName;
+    }
+    
+    public String getAlertType() {
+        return alertType;
+    }
+    
+    public void setAlertType(String alertType) {
+        this.alertType = alertType;
+    }
+    
+    public LocalDateTime getTimestampLocal() {
+        return timestampLocal;
+    }
+    
+    public void setTimestampLocal(LocalDateTime timestampLocal) {
+        this.timestampLocal = timestampLocal;
+    }
+    
+    // Convenience method for getting timestamp as LocalDateTime
+    public LocalDateTime getTimestampAsLocalDateTime() {
+        if (timestampLocal != null) {
+            return timestampLocal;
+        }
+        if (timestamp != null) {
+            return LocalDateTime.ofInstant(timestamp, java.time.ZoneId.systemDefault());
+        }
+        return null;
+    }
+    
+    // Overloaded setter for LocalDateTime
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestampLocal = timestamp;
+        if (timestamp != null) {
+            this.timestamp = timestamp.atZone(java.time.ZoneId.systemDefault()).toInstant();
+        }
     }
 }

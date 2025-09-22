@@ -149,8 +149,24 @@ public class JarFile {
     public boolean isIsActive() {
         return isActive;
     }
+    
+    public boolean isActive() {
+        return isActive;
+    }
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+    
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+    
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+    
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 }

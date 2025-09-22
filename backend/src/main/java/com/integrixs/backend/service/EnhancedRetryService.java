@@ -239,7 +239,7 @@ public class EnhancedRetryService {
         policy.setInitialIntervalMs(defaultInitialInterval);
         policy.setMultiplier(2.0);
         policy.setMaxIntervalMs(defaultMaxInterval);
-        policy.setStrategy(RetryStrategy.EXPONENTIAL_BACKOFF.name());
+        policy.setRetryStrategy(RetryPolicy.RetryStrategy.EXPONENTIAL_BACKOFF);
         return policy;
     }
 

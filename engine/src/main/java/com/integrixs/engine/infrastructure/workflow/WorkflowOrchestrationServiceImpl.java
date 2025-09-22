@@ -9,7 +9,7 @@ import com.integrixs.engine.domain.model.WorkflowEvent;
 import com.integrixs.engine.domain.model.WorkflowStep;
 import com.integrixs.engine.domain.repository.WorkflowEventRepository;
 import com.integrixs.engine.domain.repository.WorkflowRepository;
-import com.integrixs.engine.domain.service.AdapterExecutionService;
+import com.integrixs.engine.domain.service.FlowAdapterExecutor;
 import com.integrixs.engine.domain.service.FlowExecutionService;
 import com.integrixs.engine.domain.service.WorkflowOrchestrationService;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
 
 
     private final FlowExecutionService flowExecutionService;
-    private final AdapterExecutionService adapterExecutionService;
+    private final FlowAdapterExecutor adapterExecutionService;
     private final FieldMappingRepository fieldMappingRepository;
     private final WorkflowRepository workflowRepository;
     private final WorkflowEventRepository workflowEventRepository;
@@ -43,7 +43,7 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
     // Track active workflows
     private final Map<String, WorkflowContext> activeWorkflows = new ConcurrentHashMap<>();
 
-    public WorkflowOrchestrationServiceImpl(FlowExecutionService flowExecutionService, AdapterExecutionService adapterExecutionService, FieldMappingRepository fieldMappingRepository, WorkflowRepository workflowRepository, WorkflowEventRepository workflowEventRepository) {
+    public WorkflowOrchestrationServiceImpl(FlowExecutionService flowExecutionService, FlowAdapterExecutor adapterExecutionService, FieldMappingRepository fieldMappingRepository, WorkflowRepository workflowRepository, WorkflowEventRepository workflowEventRepository) {
         this.flowExecutionService = flowExecutionService;
         this.adapterExecutionService = adapterExecutionService;
         this.fieldMappingRepository = fieldMappingRepository;

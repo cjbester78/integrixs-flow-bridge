@@ -8,6 +8,7 @@ import com.integrixs.backend.dto.dashboard.ComponentPerformance;
 import io.micrometer.core.instrument.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -39,6 +40,16 @@ public class PerformanceDashboardService {
 
     // Update interval in seconds
     private static final int UPDATE_INTERVAL = 5;
+
+    // Constructor
+    @Autowired
+    public PerformanceDashboardService(MeterRegistry meterRegistry, 
+                                     PerformanceMetricsCollector metricsCollector,
+                                     SLAMonitoringService slaMonitoringService) {
+        this.meterRegistry = meterRegistry;
+        this.metricsCollector = metricsCollector;
+        this.slaMonitoringService = slaMonitoringService;
+    }
 
     /**
      * Get real - time performance metrics.
@@ -94,8 +105,8 @@ public class PerformanceDashboardService {
             .meters();
 
         for(Meter meter : meters) {
-            if(meter instanceof Timer) {
-                Timer timer = (Timer) meter;
+            if(meter instanceof io.micrometer.core.instrument.Timer) {
+                io.micrometer.core.instrument.Timer timer = (io.micrometer.core.instrument.Timer) meter;
 
                 ComponentPerformance.OperationMetrics opMetrics = new ComponentPerformance.OperationMetrics();
                 opMetrics.setOperationName(meter.getId().getTag("operation"));
@@ -206,7 +217,7 @@ public class PerformanceDashboardService {
             }
 
             // Average response time
-            Timer timer = meterRegistry.find("adapter.operation.duration")
+            io.micrometer.core.instrument.Timer timer = meterRegistry.find("adapter.operation.duration")
                 .tag("adapter.type", adapterType)
                 .timer();
 
@@ -405,7 +416,7 @@ public class PerformanceDashboardService {
      */
     private double estimateComponentMemoryUsage(String componentId) {
         // This is a rough estimate based on operations
-        Timer timer = meterRegistry.find("adapter.operation.duration")
+        io.micrometer.core.instrument.Timer timer = meterRegistry.find("adapter.operation.duration")
             .tag("adapter.type", componentId)
             .timer();
 

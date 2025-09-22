@@ -21,6 +21,14 @@ public class ConfigurationSchemaDTO {
         this.direction = direction;
     }
 
+    public Map<String, Object> getSchema() {
+        return schema;
+    }
+
+    public void setSchema(Map<String, Object> schema) {
+        this.schema = schema;
+    }
+
     public boolean isHasAdvancedOptions() {
         return hasAdvancedOptions;
     }
@@ -43,5 +51,53 @@ public class ConfigurationSchemaDTO {
 
     public void setSupportedAuthMethods(String[] supportedAuthMethods) {
         this.supportedAuthMethods = supportedAuthMethods;
+    }
+    
+    // Builder
+    public static ConfigurationSchemaDTOBuilder builder() {
+        return new ConfigurationSchemaDTOBuilder();
+    }
+    
+    public static class ConfigurationSchemaDTOBuilder {
+        private String direction;
+        private Map<String, Object> schema;
+        private boolean hasAdvancedOptions;
+        private boolean requiresAuthentication;
+        private String[] supportedAuthMethods;
+        
+        public ConfigurationSchemaDTOBuilder direction(String direction) {
+            this.direction = direction;
+            return this;
+        }
+        
+        public ConfigurationSchemaDTOBuilder schema(Map<String, Object> schema) {
+            this.schema = schema;
+            return this;
+        }
+        
+        public ConfigurationSchemaDTOBuilder hasAdvancedOptions(boolean hasAdvancedOptions) {
+            this.hasAdvancedOptions = hasAdvancedOptions;
+            return this;
+        }
+        
+        public ConfigurationSchemaDTOBuilder requiresAuthentication(boolean requiresAuthentication) {
+            this.requiresAuthentication = requiresAuthentication;
+            return this;
+        }
+        
+        public ConfigurationSchemaDTOBuilder supportedAuthMethods(String[] supportedAuthMethods) {
+            this.supportedAuthMethods = supportedAuthMethods;
+            return this;
+        }
+        
+        public ConfigurationSchemaDTO build() {
+            ConfigurationSchemaDTO dto = new ConfigurationSchemaDTO();
+            dto.setDirection(direction);
+            dto.setSchema(schema);
+            dto.setHasAdvancedOptions(hasAdvancedOptions);
+            dto.setRequiresAuthentication(requiresAuthentication);
+            dto.setSupportedAuthMethods(supportedAuthMethods);
+            return dto;
+        }
     }
 }

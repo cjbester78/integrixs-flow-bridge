@@ -3,8 +3,10 @@ package com.integrixs.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.application.service.OrchestrationTargetService;
+import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.OrchestrationTarget;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +15,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-@Service
-public class ProcessEngineService {
+public abstract class ProcessEngineService {
 
     @Autowired
     private BpmnConverterService bpmnConverterService;
@@ -26,7 +27,10 @@ public class ProcessEngineService {
     private TransformationExecutionService transformationService;
 
     @Autowired
-    private AdapterExecutionService adapterExecutionService;
+    private BackendAdapterExecutor adapterExecutionService;
+    
+    @Autowired
+    private CommunicationAdapterRepository adapterRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -327,18 +331,24 @@ public class ProcessEngineService {
 
         instance.addExecutionLog("Executing adapter call: " + step.getName());
 
-        // Use adapter execution service
-        var result = adapterExecutionService.executeAdapter(
-            UUID.fromString(adapterId),
-            messageData != null ? messageData : instance.getVariables(),
-            instance.getVariables()
-       );
-
-        if(result.isSuccess()) {
-            instance.setVariable("currentData", result.getData());
-            instance.setVariable(step.getId() + "_result", result.getData());
-        } else {
-            throw new Exception("Adapter execution failed: " + result.getError());
+        // Use adapter execution service - need to fetch the adapter first
+        CommunicationAdapter adapter = adapterRepository.findById(UUID.fromString(adapterId))
+            .orElseThrow(() -> new IllegalArgumentException("Adapter not found: " + adapterId));
+        // Convert message data to string
+        String messageString = messageData != null ? messageData.toString() : 
+            objectMapper.writeValueAsString(instance.getVariables());
+        
+        try {
+            String result = adapterExecutionService.executeAdapter(
+                adapter,
+                messageString,
+                instance.getVariables()
+            );
+            
+            instance.setVariable("currentData", result);
+            instance.setVariable(step.getId() + "_result", result);
+        } catch(Exception e) {
+            throw new Exception("Adapter execution failed: " + e.getMessage(), e);
         }
     }
 

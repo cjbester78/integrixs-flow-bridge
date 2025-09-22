@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,10 @@ public class UserContextFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
 
+    public UserContextFilter(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                   HttpServletResponse response,
@@ -46,8 +51,9 @@ public class UserContextFilter extends OncePerRequestFilter {
 
                 // Try to get user from database
                 try {
-                    User user = userRepository.findByUsername(username);
-                    if(user != null) {
+                    Optional<User> userOpt = userRepository.findByUsername(username);
+                    if(userOpt.isPresent()) {
+                        User user = userOpt.get();
                         // Set user context for audit
                         UserContext.setCurrentUser(user.getId(), user.getEmail());
                         log.debug("Set UserContext for user: {}", username);

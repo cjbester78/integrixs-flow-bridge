@@ -31,6 +31,10 @@ public class CertificateManagementController {
     
     private final CertificateManagementApplicationService certificateManagementApplicationService;
 
+    public CertificateManagementController(CertificateManagementApplicationService certificateManagementApplicationService) {
+        this.certificateManagementApplicationService = certificateManagementApplicationService;
+    }
+
     /**
      * Upload a new certificate
      */

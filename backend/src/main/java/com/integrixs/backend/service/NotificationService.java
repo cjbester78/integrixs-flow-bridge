@@ -35,6 +35,14 @@ public class NotificationService {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
 
+    public NotificationService(NotificationChannelRepository channelRepository,
+                             JavaMailSender mailSender,
+                             RestTemplate restTemplate) {
+        this.channelRepository = channelRepository;
+        this.mailSender = mailSender;
+        this.restTemplate = restTemplate;
+    }
+
     /**
      * Send notification for an alert
      */

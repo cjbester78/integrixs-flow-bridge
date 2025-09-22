@@ -81,6 +81,9 @@ public class CommunicationAdapter {
     @Column(name = "last_health_check")
     private LocalDateTime lastHealthCheck;
 
+    @Column(name = "tenant_id")
+    private UUID tenantId;
+
     // === Getters and Setters ===
 
     public UUID getId() {
@@ -229,6 +232,14 @@ public class CommunicationAdapter {
 
     public void setLastHealthCheck(LocalDateTime lastHealthCheck) {
         this.lastHealthCheck = lastHealthCheck;
+    }
+
+    public UUID getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
     }
 
     // Direction enum for adapter types

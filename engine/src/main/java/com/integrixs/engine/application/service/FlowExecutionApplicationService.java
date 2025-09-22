@@ -11,7 +11,7 @@ import com.integrixs.engine.api.dto.FlowExecutionResponseDTO;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
 import com.integrixs.engine.domain.model.FlowExecutionResult;
 import com.integrixs.engine.domain.service.FlowExecutionService;
-import com.integrixs.engine.service.AlertingService;
+import com.integrixs.engine.service.FlowAlertingPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +39,7 @@ public class FlowExecutionApplicationService {
     private final FlowExecutionRepository flowExecutionRepository;
 
     @Autowired(required = false)
-    private AlertingService alertingService;
+    private FlowAlertingPort alertingService;
 
     public FlowExecutionApplicationService(FlowExecutionService flowExecutionService, IntegrationFlowRepository integrationFlowRepository, FieldMappingRepository fieldMappingRepository, FlowExecutionRepository flowExecutionRepository) {
         this.flowExecutionService = flowExecutionService;
@@ -215,7 +215,7 @@ public class FlowExecutionApplicationService {
         private IntegrationFlowRepository integrationFlowRepository;
         private FieldMappingRepository fieldMappingRepository;
         private FlowExecutionRepository flowExecutionRepository;
-        private AlertingService alertingService;
+        private FlowAlertingPort alertingService;
 
         public FlowExecutionApplicationServiceBuilder flowExecutionService(FlowExecutionService flowExecutionService) {
             this.flowExecutionService = flowExecutionService;
@@ -237,7 +237,7 @@ public class FlowExecutionApplicationService {
             return this;
         }
 
-        public FlowExecutionApplicationServiceBuilder alertingService(AlertingService alertingService) {
+        public FlowExecutionApplicationServiceBuilder alertingService(FlowAlertingPort alertingService) {
             this.alertingService = alertingService;
             return this;
         }

@@ -91,7 +91,7 @@ public class FieldMappingDTO {
     public String getMappingRule() { return mappingRule; }
     public String getSourceXPath() { return sourceXPath; }
     public String getTargetXPath() { return targetXPath; }
-    public boolean isIsArrayMapping() { return isArrayMapping; }
+    public boolean isArrayMapping() { return isArrayMapping; }
     public String getArrayContextPath() { return arrayContextPath; }
     public boolean isNamespaceAware() { return namespaceAware; }
     public String getInputTypes() { return inputTypes; }
@@ -99,7 +99,7 @@ public class FieldMappingDTO {
     public String getDescription() { return description; }
     public String getVersion() { return version; }
     public String getFunctionName() { return functionName; }
-    public boolean isIsActive() { return isActive; }
+    public boolean isActive() { return isActive; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public String getName() { return name; }
@@ -122,7 +122,7 @@ public class FieldMappingDTO {
     public void setMappingRule(String mappingRule) { this.mappingRule = mappingRule; }
     public void setSourceXPath(String sourceXPath) { this.sourceXPath = sourceXPath; }
     public void setTargetXPath(String targetXPath) { this.targetXPath = targetXPath; }
-    public void setIsArrayMapping(boolean isArrayMapping) { this.isArrayMapping = isArrayMapping; }
+    public void setArrayMapping(boolean isArrayMapping) { this.isArrayMapping = isArrayMapping; }
     public void setArrayContextPath(String arrayContextPath) { this.arrayContextPath = arrayContextPath; }
     public void setNamespaceAware(boolean namespaceAware) { this.namespaceAware = namespaceAware; }
     public void setInputTypes(String inputTypes) { this.inputTypes = inputTypes; }
@@ -130,7 +130,7 @@ public class FieldMappingDTO {
     public void setDescription(String description) { this.description = description; }
     public void setVersion(String version) { this.version = version; }
     public void setFunctionName(String functionName) { this.functionName = functionName; }
-    public void setIsActive(boolean isActive) { this.isActive = isActive; }
+    public void setActive(boolean isActive) { this.isActive = isActive; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public void setName(String name) { this.name = name; }

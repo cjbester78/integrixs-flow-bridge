@@ -10,8 +10,13 @@ public class UpdateTemplateRequest {
     @NotBlank
     private String description;
     
+    private String detailedDescription;
     private String category;
     private List<String> tags;
+    private List<String> requirements;
+    private String visibility;
+    private String documentationUrl;
+    private String sourceRepositoryUrl;
     private String icon;
     private String templateData;
     private String documentation;
@@ -74,5 +79,45 @@ public class UpdateTemplateRequest {
 
     public void setDocumentation(String documentation) {
         this.documentation = documentation;
+    }
+    
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+    
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+    
+    public List<String> getRequirements() {
+        return requirements;
+    }
+    
+    public void setRequirements(List<String> requirements) {
+        this.requirements = requirements;
+    }
+    
+    public String getVisibility() {
+        return visibility;
+    }
+    
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
+    }
+    
+    public String getDocumentationUrl() {
+        return documentationUrl;
+    }
+    
+    public void setDocumentationUrl(String documentationUrl) {
+        this.documentationUrl = documentationUrl;
+    }
+    
+    public String getSourceRepositoryUrl() {
+        return sourceRepositoryUrl;
+    }
+    
+    public void setSourceRepositoryUrl(String sourceRepositoryUrl) {
+        this.sourceRepositoryUrl = sourceRepositoryUrl;
     }
 }

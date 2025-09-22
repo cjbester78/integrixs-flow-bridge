@@ -157,6 +157,82 @@ public class FlowImportValidationDTO {
         public void setCertificateReferenceCount(int certificateReferenceCount) { this.certificateReferenceCount = certificateReferenceCount; }
         public Map<String, Integer> getObjectCounts() { return objectCounts; }
         public void setObjectCounts(Map<String, Integer> objectCounts) { this.objectCounts = objectCounts; }
+        
+        // Builder
+        public static ImportPreviewBuilder builder() {
+            return new ImportPreviewBuilder();
+        }
+        
+        public static class ImportPreviewBuilder {
+            private String flowName;
+            private String flowDescription;
+            private String businessComponentName;
+            private String inboundAdapterName;
+            private String outboundAdapterName;
+            private int transformationCount;
+            private int fieldMappingCount;
+            private int certificateReferenceCount;
+            private Map<String, Integer> objectCounts = new HashMap<>();
+            
+            public ImportPreviewBuilder flowName(String flowName) {
+                this.flowName = flowName;
+                return this;
+            }
+            
+            public ImportPreviewBuilder flowDescription(String flowDescription) {
+                this.flowDescription = flowDescription;
+                return this;
+            }
+            
+            public ImportPreviewBuilder businessComponentName(String businessComponentName) {
+                this.businessComponentName = businessComponentName;
+                return this;
+            }
+            
+            public ImportPreviewBuilder inboundAdapterName(String inboundAdapterName) {
+                this.inboundAdapterName = inboundAdapterName;
+                return this;
+            }
+            
+            public ImportPreviewBuilder outboundAdapterName(String outboundAdapterName) {
+                this.outboundAdapterName = outboundAdapterName;
+                return this;
+            }
+            
+            public ImportPreviewBuilder transformationCount(int transformationCount) {
+                this.transformationCount = transformationCount;
+                return this;
+            }
+            
+            public ImportPreviewBuilder fieldMappingCount(int fieldMappingCount) {
+                this.fieldMappingCount = fieldMappingCount;
+                return this;
+            }
+            
+            public ImportPreviewBuilder certificateReferenceCount(int certificateReferenceCount) {
+                this.certificateReferenceCount = certificateReferenceCount;
+                return this;
+            }
+            
+            public ImportPreviewBuilder objectCounts(Map<String, Integer> objectCounts) {
+                this.objectCounts = objectCounts;
+                return this;
+            }
+            
+            public ImportPreview build() {
+                ImportPreview preview = new ImportPreview();
+                preview.flowName = this.flowName;
+                preview.flowDescription = this.flowDescription;
+                preview.businessComponentName = this.businessComponentName;
+                preview.inboundAdapterName = this.inboundAdapterName;
+                preview.outboundAdapterName = this.outboundAdapterName;
+                preview.transformationCount = this.transformationCount;
+                preview.fieldMappingCount = this.fieldMappingCount;
+                preview.certificateReferenceCount = this.certificateReferenceCount;
+                preview.objectCounts = this.objectCounts;
+                return preview;
+            }
+        }
     }
 
     /**
@@ -190,6 +266,68 @@ public class FlowImportValidationDTO {
         public void setSeverity(Severity severity) { this.severity = severity; }
         public Map<String, Object> getContext() { return context; }
         public void setContext(Map<String, Object> context) { this.context = context; }
+        
+        // Builder
+        public static ValidationIssueBuilder builder() {
+            return new ValidationIssueBuilder();
+        }
+        
+        public static class ValidationIssueBuilder {
+            private String code;
+            private String message;
+            private String field;
+            private String objectType;
+            private String objectId;
+            private Severity severity;
+            private Map<String, Object> context = new HashMap<>();
+            
+            public ValidationIssueBuilder code(String code) {
+                this.code = code;
+                return this;
+            }
+            
+            public ValidationIssueBuilder message(String message) {
+                this.message = message;
+                return this;
+            }
+            
+            public ValidationIssueBuilder field(String field) {
+                this.field = field;
+                return this;
+            }
+            
+            public ValidationIssueBuilder objectType(String objectType) {
+                this.objectType = objectType;
+                return this;
+            }
+            
+            public ValidationIssueBuilder objectId(String objectId) {
+                this.objectId = objectId;
+                return this;
+            }
+            
+            public ValidationIssueBuilder severity(Severity severity) {
+                this.severity = severity;
+                return this;
+            }
+            
+            public ValidationIssueBuilder context(Map<String, Object> context) {
+                this.context = context;
+                return this;
+            }
+            
+            public ValidationIssue build() {
+                ValidationIssue issue = new ValidationIssue();
+                issue.code = this.code;
+                issue.message = this.message;
+                issue.field = this.field;
+                issue.objectType = this.objectType;
+                issue.objectId = this.objectId;
+                issue.severity = this.severity;
+                issue.context = this.context;
+                return issue;
+            }
+        }
     }
 
     /**
@@ -223,6 +361,68 @@ public class FlowImportValidationDTO {
         public void setType(ConflictType type) { this.type = type; }
         public List<String> getResolutionOptions() { return resolutionOptions; }
         public void setResolutionOptions(List<String> resolutionOptions) { this.resolutionOptions = resolutionOptions; }
+        
+        // Builder
+        public static ConflictBuilder builder() {
+            return new ConflictBuilder();
+        }
+        
+        public static class ConflictBuilder {
+            private String objectType;
+            private String importId;
+            private String importName;
+            private String existingId;
+            private String existingName;
+            private ConflictType type;
+            private List<String> resolutionOptions = new ArrayList<>();
+            
+            public ConflictBuilder objectType(String objectType) {
+                this.objectType = objectType;
+                return this;
+            }
+            
+            public ConflictBuilder importId(String importId) {
+                this.importId = importId;
+                return this;
+            }
+            
+            public ConflictBuilder importName(String importName) {
+                this.importName = importName;
+                return this;
+            }
+            
+            public ConflictBuilder existingId(String existingId) {
+                this.existingId = existingId;
+                return this;
+            }
+            
+            public ConflictBuilder existingName(String existingName) {
+                this.existingName = existingName;
+                return this;
+            }
+            
+            public ConflictBuilder type(ConflictType type) {
+                this.type = type;
+                return this;
+            }
+            
+            public ConflictBuilder resolutionOptions(List<String> resolutionOptions) {
+                this.resolutionOptions = resolutionOptions;
+                return this;
+            }
+            
+            public Conflict build() {
+                Conflict conflict = new Conflict();
+                conflict.objectType = this.objectType;
+                conflict.importId = this.importId;
+                conflict.importName = this.importName;
+                conflict.existingId = this.existingId;
+                conflict.existingName = this.existingName;
+                conflict.type = this.type;
+                conflict.resolutionOptions = this.resolutionOptions;
+                return conflict;
+            }
+        }
     }
 
     /**
@@ -254,6 +454,61 @@ public class FlowImportValidationDTO {
         public void setMigrationSteps(List<String> migrationSteps) { this.migrationSteps = migrationSteps; }
         public List<String> getBreakingChanges() { return breakingChanges; }
         public void setBreakingChanges(List<String> breakingChanges) { this.breakingChanges = breakingChanges; }
+        
+        // Builder
+        public static VersionCompatibilityBuilder builder() {
+            return new VersionCompatibilityBuilder();
+        }
+        
+        public static class VersionCompatibilityBuilder {
+            private String exportVersion;
+            private String currentVersion;
+            private boolean isCompatible;
+            private boolean requiresMigration;
+            private List<String> migrationSteps = new ArrayList<>();
+            private List<String> breakingChanges = new ArrayList<>();
+            
+            public VersionCompatibilityBuilder exportVersion(String exportVersion) {
+                this.exportVersion = exportVersion;
+                return this;
+            }
+            
+            public VersionCompatibilityBuilder currentVersion(String currentVersion) {
+                this.currentVersion = currentVersion;
+                return this;
+            }
+            
+            public VersionCompatibilityBuilder isCompatible(boolean isCompatible) {
+                this.isCompatible = isCompatible;
+                return this;
+            }
+            
+            public VersionCompatibilityBuilder requiresMigration(boolean requiresMigration) {
+                this.requiresMigration = requiresMigration;
+                return this;
+            }
+            
+            public VersionCompatibilityBuilder migrationSteps(List<String> migrationSteps) {
+                this.migrationSteps = migrationSteps;
+                return this;
+            }
+            
+            public VersionCompatibilityBuilder breakingChanges(List<String> breakingChanges) {
+                this.breakingChanges = breakingChanges;
+                return this;
+            }
+            
+            public VersionCompatibility build() {
+                VersionCompatibility compatibility = new VersionCompatibility();
+                compatibility.exportVersion = this.exportVersion;
+                compatibility.currentVersion = this.currentVersion;
+                compatibility.isCompatible = this.isCompatible;
+                compatibility.requiresMigration = this.requiresMigration;
+                compatibility.migrationSteps = this.migrationSteps;
+                compatibility.breakingChanges = this.breakingChanges;
+                return compatibility;
+            }
+        }
     }
 
     /**

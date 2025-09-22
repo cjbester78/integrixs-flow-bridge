@@ -1,6 +1,6 @@
 package com.integrixs.backend.infrastructure.persistence;
 
-import com.integrixs.backend.domain.repository.DomainMessageRepository;
+import com.integrixs.backend.domain.repository.DomainMessageRepositoryPort;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.Message.MessageStatus;
 import com.integrixs.data.repository.MessageRepository;
@@ -17,9 +17,13 @@ import java.util.UUID;
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainMessageRepositoryImpl")
-public class DomainMessageRepositoryImpl implements DomainMessageRepository {
+public class DomainMessageRepositoryImpl implements DomainMessageRepositoryPort {
 
     private final MessageRepository jpaRepository;
+    
+    public DomainMessageRepositoryImpl(MessageRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
 
     @Override
     public List<Message> findAll() {

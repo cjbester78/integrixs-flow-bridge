@@ -1,6 +1,6 @@
 package com.integrixs.backend.api.dto.request;
 
-import com.integrixs.data.model.RouteCondition.ConditionType;
+import com.integrixs.backend.service.ConditionEvaluationService.EvaluationConditionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
@@ -11,7 +11,7 @@ public class TestConditionRequest {
     private String condition;
 
     @NotNull(message = "Condition type is required")
-    private ConditionType conditionType;
+    private EvaluationConditionType conditionType;
 
     @NotNull(message = "Payload is required")
     private Map<String, Object> payload;
@@ -32,11 +32,11 @@ public class TestConditionRequest {
         this.condition = condition;
     }
 
-    public ConditionType getConditionType() {
+    public EvaluationConditionType getConditionType() {
         return conditionType;
     }
 
-    public void setConditionType(ConditionType conditionType) {
+    public void setConditionType(EvaluationConditionType conditionType) {
         this.conditionType = conditionType;
     }
 

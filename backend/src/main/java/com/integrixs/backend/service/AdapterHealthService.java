@@ -84,7 +84,8 @@ public class AdapterHealthService {
      */
     @Transactional(readOnly = true)
     public AdapterHealthDetail getAdapterHealth(String adapterId) {
-        AdapterStatus status = adapterStatusRepository.findById(adapterId)
+        UUID adapterUuid = UUID.fromString(adapterId);
+        AdapterStatus status = adapterStatusRepository.findById(adapterUuid)
             .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
 
         return createDetailedHealthInfo(status);
@@ -306,25 +307,25 @@ public class AdapterHealthService {
 
     private AdapterHealthDetail createHealthDetail(AdapterStatus status) {
         AdapterHealthDetail detail = new AdapterHealthDetail();
-        detail.setAdapterId(status.getId());
-        detail.setAdapterName(status.getAdapterName());
-        detail.setAdapterType(status.getAdapterType());
+        detail.setAdapterId(status.getId().toString());
+        detail.setAdapterName(status.getAdapter().getName());
+        detail.setAdapterType(status.getAdapter().getType().toString());
         detail.setStatus(status.getStatus());
-        detail.setLastChecked(status.getLastCheck());
+        detail.setLastChecked(status.getLastHealthCheck());
 
         // Calculate health score
         int healthScore = calculateAdapterHealthScore(status);
         detail.setHealthScore(healthScore);
 
         // Get current metrics
-        AdapterHealthMetrics metrics = getOrCalculateHealthMetrics(status.getId());
+        AdapterHealthMetrics metrics = getOrCalculateHealthMetrics(status.getId().toString());
         detail.setCurrentMetrics(metrics);
 
         // Get connection pool info
-        detail.setConnectionPoolMetrics(getConnectionPoolMetrics(status.getId()));
+        detail.setConnectionPoolMetrics(getConnectionPoolMetrics(status.getId().toString()));
 
         // Get resource usage
-        detail.setResourceUsageMetrics(getResourceUsageMetrics(status.getId()));
+        detail.setResourceUsageMetrics(getResourceUsageMetrics(status.getId().toString()));
 
         return detail;
     }
@@ -335,7 +336,7 @@ public class AdapterHealthService {
         // Add recent errors
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
         List<SystemLog> recentErrors = systemLogRepository.findBySourceAndLevelAndTimestampAfter(
-            status.getId(), SystemLog.LogLevel.ERROR, oneHourAgo);
+            status.getId().toString(), SystemLog.LogLevel.ERROR, oneHourAgo);
 
         List<RecentError> errors = recentErrors.stream()
             .map(log -> {
@@ -350,7 +351,7 @@ public class AdapterHealthService {
         detail.setRecentErrors(errors);
 
         // Add performance trends
-        detail.setPerformanceTrends(calculatePerformanceTrends(status.getId()));
+        detail.setPerformanceTrends(calculatePerformanceTrends(status.getId().toString()));
 
         return detail;
     }
@@ -398,15 +399,15 @@ public class AdapterHealthService {
         // Recent errors impact
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
         long errorCount = systemLogRepository.countByComponentIdAndLevelAndTimestampAfter(
-            status.getId(), SystemLog.LogLevel.ERROR, oneHourAgo);
+            status.getId().toString(), SystemLog.LogLevel.ERROR, oneHourAgo);
 
         if(errorCount > 10) score -= 20;
         else if(errorCount > 5) score -= 10;
         else if(errorCount > 0) score -= 5;
 
         // Last check time impact
-        if(status.getLastCheck() != null) {
-            long minutesSinceCheck = ChronoUnit.MINUTES.between(status.getLastCheck(), LocalDateTime.now());
+        if(status.getLastHealthCheck() != null) {
+            long minutesSinceCheck = ChronoUnit.MINUTES.between(status.getLastHealthCheck(), LocalDateTime.now());
             if(minutesSinceCheck > 60) score -= 10;
             else if(minutesSinceCheck > 30) score -= 5;
         }
@@ -460,21 +461,21 @@ public class AdapterHealthService {
             // Check for error status
             if("ERROR".equals(status.getStatus())) {
                 CriticalAlert alert = new CriticalAlert();
-                alert.setAdapterId(status.getId());
-                alert.setAdapterName(status.getAdapterName());
+                alert.setAdapterId(status.getId().toString());
+                alert.setAdapterName(status.getAdapter().getName());
                 alert.setSeverity("CRITICAL");
                 alert.setMessage("Adapter is in ERROR state");
-                alert.setTimestamp(status.getLastCheck());
+                alert.setTimestamp(status.getLastHealthCheck());
                 alert.setActionRequired("Investigate and restart adapter");
                 alerts.add(alert);
             }
 
             // Check for high error rate
-            AdapterHealthMetrics metrics = currentHealthMetrics.get(status.getId());
+            AdapterHealthMetrics metrics = currentHealthMetrics.get(status.getId().toString());
             if(metrics != null && metrics.getErrorRate() > 20) {
                 CriticalAlert alert = new CriticalAlert();
-                alert.setAdapterId(status.getId());
-                alert.setAdapterName(status.getAdapterName());
+                alert.setAdapterId(status.getId().toString());
+                alert.setAdapterName(status.getAdapter().getName());
                 alert.setSeverity("HIGH");
                 alert.setMessage(String.format("High error rate: %.1f%%", metrics.getErrorRate()));
                 alert.setTimestamp(LocalDateTime.now());
@@ -483,11 +484,11 @@ public class AdapterHealthService {
             }
 
             // Check for connection pool exhaustion
-            ConnectionPoolMetrics poolMetrics = connectionPoolMetrics.get(status.getId());
+            ConnectionPoolMetrics poolMetrics = connectionPoolMetrics.get(status.getId().toString());
             if(poolMetrics != null && poolMetrics.getConnectionUtilization() > 90) {
                 CriticalAlert alert = new CriticalAlert();
-                alert.setAdapterId(status.getId());
-                alert.setAdapterName(status.getAdapterName());
+                alert.setAdapterId(status.getId().toString());
+                alert.setAdapterName(status.getAdapter().getName());
                 alert.setSeverity("MEDIUM");
                 alert.setMessage("Connection pool near exhaustion");
                 alert.setTimestamp(LocalDateTime.now());
@@ -503,7 +504,7 @@ public class AdapterHealthService {
         HealthCheckItem item = new HealthCheckItem();
         item.setCheckName("Connection Check");
 
-        AdapterStatus status = adapterStatusRepository.findById(adapterId).orElse(null);
+        AdapterStatus status = adapterStatusRepository.findById(UUID.fromString(adapterId)).orElse(null);
         if(status == null || !"ACTIVE".equals(status.getStatus())) {
             item.setStatus("ERROR");
             item.setMessage("Adapter is not active");
@@ -511,7 +512,7 @@ public class AdapterHealthService {
         } else {
             item.setStatus("OK");
             item.setMessage("Connection is healthy");
-            item.setDetails("Last successful check: " + status.getLastCheck());
+            item.setDetails("Last successful check: " + status.getLastHealthCheck());
         }
 
         return item;
@@ -692,7 +693,7 @@ public class AdapterHealthService {
     }
 
     private void updateAdapterHealthStatus(String adapterId, HealthCheckResult result) {
-        AdapterStatus status = adapterStatusRepository.findById(adapterId).orElse(null);
+        AdapterStatus status = adapterStatusRepository.findById(UUID.fromString(adapterId)).orElse(null);
         if(status != null) {
             // Update status based on health check
             if("UNHEALTHY".equals(result.getOverallStatus())) {
@@ -703,7 +704,7 @@ public class AdapterHealthService {
                 status.setStatus("ACTIVE");
             }
 
-            status.setLastCheck(LocalDateTime.now());
+            status.setLastHealthCheck(LocalDateTime.now());
             adapterStatusRepository.save(status);
         }
     }

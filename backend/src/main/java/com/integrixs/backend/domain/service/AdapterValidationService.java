@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
 import com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum;
-import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.shared.enums.AdapterType;
 import static com.integrixs.shared.enums.AdapterType.*;
@@ -18,16 +18,26 @@ public class AdapterValidationService {
 
     private final CommunicationAdapterRepository adapterRepository;
 
+    public AdapterValidationService(CommunicationAdapterRepository adapterRepository) {
+        this.adapterRepository = adapterRepository;
+    }
+
     /**
      * Validates that adapter name is unique
      */
     public void validateAdapterNameUniqueness(String name, UUID excludeId) {
-        boolean exists = excludeId == null ?
-            adapterRepository.existsByName(name) :
-            adapterRepository.existsByNameAndIdNot(name, excludeId);
-
-        if(exists) {
-            throw new IllegalArgumentException("An adapter with the name '" + name + "' already exists");
+        if(excludeId == null) {
+            if(adapterRepository.existsByName(name)) {
+                throw new IllegalArgumentException("An adapter with the name '" + name + "' already exists");
+            }
+        } else {
+            // Check if another adapter with same name exists (excluding the current one)
+            boolean exists = adapterRepository.findAll().stream()
+                .anyMatch(adapter -> adapter.getName().equals(name) && !adapter.getId().equals(excludeId));
+            
+            if(exists) {
+                throw new IllegalArgumentException("An adapter with the name '" + name + "' already exists");
+            }
         }
     }
 

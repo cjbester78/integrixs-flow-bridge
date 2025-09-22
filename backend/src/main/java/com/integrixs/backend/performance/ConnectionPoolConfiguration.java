@@ -58,6 +58,83 @@ public class ConnectionPoolConfiguration {
 
     @Value("$ {http.connection.pool.socket - timeout:30000}")
     private int httpSocketTimeout;
+    
+    @Value("${connection-pool.database.leak-detection-threshold:60000}")
+    private long dbLeakDetectionThreshold;
+    
+    // PostgreSQL specific
+    @Value("${connection-pool.database.postgresql.prepare-threshold:3}")
+    private int pgPrepareThreshold;
+    
+    @Value("${connection-pool.database.postgresql.prepared-statement-cache-queries:256}")
+    private int pgPreparedStatementCacheQueries;
+    
+    @Value("${connection-pool.database.postgresql.prepared-statement-cache-size-mib:5}")
+    private int pgPreparedStatementCacheSizeMiB;
+    
+    // MySQL specific
+    @Value("${connection-pool.database.mysql.cache-prep-stmts:true}")
+    private boolean mysqlCachePrepStmts;
+    
+    @Value("${connection-pool.database.mysql.prep-stmt-cache-size:256}")
+    private int mysqlPrepStmtCacheSize;
+    
+    @Value("${connection-pool.database.mysql.prep-stmt-cache-sql-limit:2048}")
+    private int mysqlPrepStmtCacheSqlLimit;
+    
+    @Value("${connection-pool.database.mysql.use-server-prep-stmts:true}")
+    private boolean mysqlUseServerPrepStmts;
+    
+    // HTTP pool
+    @Value("${connection-pool.http.idle-connection-timeout:30}")
+    private long httpIdleConnectionTimeout;
+    
+    @Value("${connection-pool.http.connection-ttl-minutes:5}")
+    private long httpConnectionTtlMinutes;
+    
+    // JMS pool
+    @Value("${connection-pool.jms.max-connections:10}")
+    private int jmsMaxConnections;
+    
+    @Value("${connection-pool.jms.idle-timeout:300000}")
+    private long jmsIdleTimeout;
+    
+    @Value("${connection-pool.jms.expiry-timeout:0}")
+    private long jmsExpiryTimeout;
+    
+    @Value("${connection-pool.jms.time-between-expiration-check-millis:60000}")
+    private long jmsTimeBetweenExpirationCheckMillis;
+    
+    @Value("${connection-pool.jms.block-if-session-pool-is-full:true}")
+    private boolean jmsBlockIfSessionPoolIsFull;
+    
+    @Value("${connection-pool.jms.block-if-session-pool-is-full-timeout:5000}")
+    private long jmsBlockIfSessionPoolIsFullTimeout;
+    
+    @Value("${connection-pool.jms.use-anonymous-producers:true}")
+    private boolean jmsUseAnonymousProducers;
+    
+    // FTP/SFTP pool
+    @Value("${connection-pool.file-transfer.max-total:10}")
+    private int ftpMaxTotal;
+    
+    @Value("${connection-pool.file-transfer.max-per-host:5}")
+    private int ftpMaxPerHost;
+    
+    @Value("${connection-pool.file-transfer.min-evictable-idle-time-millis:300000}")
+    private long ftpMinEvictableIdleTimeMillis;
+    
+    @Value("${connection-pool.file-transfer.time-between-eviction-runs-millis:60000}")
+    private long ftpTimeBetweenEvictionRunsMillis;
+    
+    @Value("${connection-pool.file-transfer.connection-timeout:30000}")
+    private int ftpConnectionTimeout;
+    
+    @Value("${connection-pool.file-transfer.data-timeout:120000}")
+    private int ftpDataTimeout;
+    
+    @Value("${connection-pool.file-transfer.keep-alive-timeout:60000}")
+    private int ftpKeepAliveTimeout;
 
     /**
      * Optimized database connection pool configuration.
@@ -94,7 +171,7 @@ public class ConnectionPoolConfiguration {
         // Performance optimizations
         config.setAutoCommit(false); // Explicit transaction management
         config.setConnectionTestQuery("SELECT 1"); // Lightweight validation query
-        config.setLeakDetectionThreshold(60000); // Detect connection leaks after 1 minute
+        config.setLeakDetectionThreshold(dbLeakDetectionThreshold); // Detect connection leaks
 
         // Connection pool name for monitoring
         config.setPoolName("IntegrixsFlowBridge - DB - Pool");
@@ -104,14 +181,14 @@ public class ConnectionPoolConfiguration {
 
         // Additional optimizations based on database type
         if(driverClassName.contains("postgresql")) {
-            config.addDataSourceProperty("prepareThreshold", "3");
-            config.addDataSourceProperty("preparedStatementCacheQueries", "256");
-            config.addDataSourceProperty("preparedStatementCacheSizeMiB", "5");
+            config.addDataSourceProperty("prepareThreshold", String.valueOf(pgPrepareThreshold));
+            config.addDataSourceProperty("preparedStatementCacheQueries", String.valueOf(pgPreparedStatementCacheQueries));
+            config.addDataSourceProperty("preparedStatementCacheSizeMiB", String.valueOf(pgPreparedStatementCacheSizeMiB));
         } else if(driverClassName.contains("mysql")) {
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "256");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            config.addDataSourceProperty("useServerPrepStmts", "true");
+            config.addDataSourceProperty("cachePrepStmts", String.valueOf(mysqlCachePrepStmts));
+            config.addDataSourceProperty("prepStmtCacheSize", String.valueOf(mysqlPrepStmtCacheSize));
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", String.valueOf(mysqlPrepStmtCacheSqlLimit));
+            config.addDataSourceProperty("useServerPrepStmts", String.valueOf(mysqlUseServerPrepStmts));
         }
 
         HikariDataSource dataSource = new HikariDataSource(config);
@@ -136,7 +213,7 @@ public class ConnectionPoolConfiguration {
         connectionManager.setValidateAfterInactivity(httpValidateAfterInactivity);
 
         // Clean up idle connections periodically
-        connectionManager.closeIdleConnections(30, TimeUnit.SECONDS);
+        connectionManager.closeIdleConnections(httpIdleConnectionTimeout, TimeUnit.SECONDS);
 
         // Register metrics
         meterRegistry.gauge("http.connection.pool.total", connectionManager,
@@ -162,9 +239,9 @@ public class ConnectionPoolConfiguration {
         return HttpClients.custom()
             .setConnectionManager(connectionManager)
             .setConnectionManagerShared(true)
-            .evictIdleConnections(30, TimeUnit.SECONDS)
+            .evictIdleConnections(httpIdleConnectionTimeout, TimeUnit.SECONDS)
             .evictExpiredConnections()
-            .setConnectionTimeToLive(5, TimeUnit.MINUTES)
+            .setConnectionTimeToLive(httpConnectionTtlMinutes, TimeUnit.MINUTES)
             .build();
     }
 
@@ -175,13 +252,13 @@ public class ConnectionPoolConfiguration {
     @ConditionalOnProperty(name = "jms.pool.optimization.enabled", havingValue = "true")
     public JmsConnectionPoolSettings jmsConnectionPoolSettings() {
         return JmsConnectionPoolSettings.builder()
-            .maxConnections(10)
-            .idleTimeout(300000) // 5 minutes
-            .expiryTimeout(0) // No expiry
-            .timeBetweenExpirationCheckMillis(60000) // Check every minute
-            .blockIfSessionPoolIsFull(true)
-            .blockIfSessionPoolIsFullTimeout(5000)
-            .useAnonymousProducers(true) // Reuse producers
+            .maxConnections(jmsMaxConnections)
+            .idleTimeout(jmsIdleTimeout)
+            .expiryTimeout(jmsExpiryTimeout)
+            .timeBetweenExpirationCheckMillis(jmsTimeBetweenExpirationCheckMillis)
+            .blockIfSessionPoolIsFull(jmsBlockIfSessionPoolIsFull)
+            .blockIfSessionPoolIsFullTimeout(jmsBlockIfSessionPoolIsFullTimeout)
+            .useAnonymousProducers(jmsUseAnonymousProducers)
             .build();
     }
 
@@ -191,13 +268,13 @@ public class ConnectionPoolConfiguration {
     @Bean
     public FileTransferConnectionPoolSettings fileTransferConnectionPoolSettings() {
         return FileTransferConnectionPoolSettings.builder()
-            .maxTotal(10)
-            .maxPerHost(5)
-            .minEvictableIdleTimeMillis(300000) // 5 minutes
-            .timeBetweenEvictionRunsMillis(60000) // Check every minute
-            .connectionTimeout(30000) // 30 seconds
-            .dataTimeout(120000) // 2 minutes for data transfer
-            .keepAliveTimeout(60000) // Keep alive every minute
+            .maxTotal(ftpMaxTotal)
+            .maxPerHost(ftpMaxPerHost)
+            .minEvictableIdleTimeMillis(ftpMinEvictableIdleTimeMillis)
+            .timeBetweenEvictionRunsMillis(ftpTimeBetweenEvictionRunsMillis)
+            .connectionTimeout(ftpConnectionTimeout)
+            .dataTimeout(ftpDataTimeout)
+            .keepAliveTimeout(ftpKeepAliveTimeout)
             .build();
     }
 
@@ -214,8 +291,6 @@ public class ConnectionPoolConfiguration {
         return new ConnectionPoolTuner(dataSource, httpConnectionManager, meterRegistry);
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class JmsConnectionPoolSettings {
         private int maxConnections;
         private long idleTimeout;
@@ -224,10 +299,96 @@ public class ConnectionPoolConfiguration {
         private boolean blockIfSessionPoolIsFull;
         private long blockIfSessionPoolIsFullTimeout;
         private boolean useAnonymousProducers;
+        
+        // Default constructor
+        public JmsConnectionPoolSettings() {}
+        
+        // Builder pattern
+        public static JmsConnectionPoolSettingsBuilder builder() {
+            return new JmsConnectionPoolSettingsBuilder();
+        }
+        
+        // Getters and setters
+        public int getMaxConnections() { return maxConnections; }
+        public void setMaxConnections(int maxConnections) { this.maxConnections = maxConnections; }
+        
+        public long getIdleTimeout() { return idleTimeout; }
+        public void setIdleTimeout(long idleTimeout) { this.idleTimeout = idleTimeout; }
+        
+        public long getExpiryTimeout() { return expiryTimeout; }
+        public void setExpiryTimeout(long expiryTimeout) { this.expiryTimeout = expiryTimeout; }
+        
+        public long getTimeBetweenExpirationCheckMillis() { return timeBetweenExpirationCheckMillis; }
+        public void setTimeBetweenExpirationCheckMillis(long timeBetweenExpirationCheckMillis) { this.timeBetweenExpirationCheckMillis = timeBetweenExpirationCheckMillis; }
+        
+        public boolean isBlockIfSessionPoolIsFull() { return blockIfSessionPoolIsFull; }
+        public void setBlockIfSessionPoolIsFull(boolean blockIfSessionPoolIsFull) { this.blockIfSessionPoolIsFull = blockIfSessionPoolIsFull; }
+        
+        public long getBlockIfSessionPoolIsFullTimeout() { return blockIfSessionPoolIsFullTimeout; }
+        public void setBlockIfSessionPoolIsFullTimeout(long blockIfSessionPoolIsFullTimeout) { this.blockIfSessionPoolIsFullTimeout = blockIfSessionPoolIsFullTimeout; }
+        
+        public boolean isUseAnonymousProducers() { return useAnonymousProducers; }
+        public void setUseAnonymousProducers(boolean useAnonymousProducers) { this.useAnonymousProducers = useAnonymousProducers; }
+        
+        // Builder class
+        public static class JmsConnectionPoolSettingsBuilder {
+            private int maxConnections;
+            private long idleTimeout;
+            private long expiryTimeout;
+            private long timeBetweenExpirationCheckMillis;
+            private boolean blockIfSessionPoolIsFull;
+            private long blockIfSessionPoolIsFullTimeout;
+            private boolean useAnonymousProducers;
+            
+            public JmsConnectionPoolSettingsBuilder maxConnections(int maxConnections) {
+                this.maxConnections = maxConnections;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettingsBuilder idleTimeout(long idleTimeout) {
+                this.idleTimeout = idleTimeout;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettingsBuilder expiryTimeout(long expiryTimeout) {
+                this.expiryTimeout = expiryTimeout;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettingsBuilder timeBetweenExpirationCheckMillis(long timeBetweenExpirationCheckMillis) {
+                this.timeBetweenExpirationCheckMillis = timeBetweenExpirationCheckMillis;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettingsBuilder blockIfSessionPoolIsFull(boolean blockIfSessionPoolIsFull) {
+                this.blockIfSessionPoolIsFull = blockIfSessionPoolIsFull;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettingsBuilder blockIfSessionPoolIsFullTimeout(long blockIfSessionPoolIsFullTimeout) {
+                this.blockIfSessionPoolIsFullTimeout = blockIfSessionPoolIsFullTimeout;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettingsBuilder useAnonymousProducers(boolean useAnonymousProducers) {
+                this.useAnonymousProducers = useAnonymousProducers;
+                return this;
+            }
+            
+            public JmsConnectionPoolSettings build() {
+                JmsConnectionPoolSettings settings = new JmsConnectionPoolSettings();
+                settings.setMaxConnections(this.maxConnections);
+                settings.setIdleTimeout(this.idleTimeout);
+                settings.setExpiryTimeout(this.expiryTimeout);
+                settings.setTimeBetweenExpirationCheckMillis(this.timeBetweenExpirationCheckMillis);
+                settings.setBlockIfSessionPoolIsFull(this.blockIfSessionPoolIsFull);
+                settings.setBlockIfSessionPoolIsFullTimeout(this.blockIfSessionPoolIsFullTimeout);
+                settings.setUseAnonymousProducers(this.useAnonymousProducers);
+                return settings;
+            }
+        }
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class FileTransferConnectionPoolSettings {
         private int maxTotal;
         private int maxPerHost;
@@ -236,5 +397,93 @@ public class ConnectionPoolConfiguration {
         private int connectionTimeout;
         private int dataTimeout;
         private int keepAliveTimeout;
+        
+        // Default constructor
+        public FileTransferConnectionPoolSettings() {}
+        
+        // Builder pattern
+        public static FileTransferConnectionPoolSettingsBuilder builder() {
+            return new FileTransferConnectionPoolSettingsBuilder();
+        }
+        
+        // Getters and setters
+        public int getMaxTotal() { return maxTotal; }
+        public void setMaxTotal(int maxTotal) { this.maxTotal = maxTotal; }
+        
+        public int getMaxPerHost() { return maxPerHost; }
+        public void setMaxPerHost(int maxPerHost) { this.maxPerHost = maxPerHost; }
+        
+        public long getMinEvictableIdleTimeMillis() { return minEvictableIdleTimeMillis; }
+        public void setMinEvictableIdleTimeMillis(long minEvictableIdleTimeMillis) { this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis; }
+        
+        public long getTimeBetweenEvictionRunsMillis() { return timeBetweenEvictionRunsMillis; }
+        public void setTimeBetweenEvictionRunsMillis(long timeBetweenEvictionRunsMillis) { this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis; }
+        
+        public int getConnectionTimeout() { return connectionTimeout; }
+        public void setConnectionTimeout(int connectionTimeout) { this.connectionTimeout = connectionTimeout; }
+        
+        public int getDataTimeout() { return dataTimeout; }
+        public void setDataTimeout(int dataTimeout) { this.dataTimeout = dataTimeout; }
+        
+        public int getKeepAliveTimeout() { return keepAliveTimeout; }
+        public void setKeepAliveTimeout(int keepAliveTimeout) { this.keepAliveTimeout = keepAliveTimeout; }
+        
+        // Builder class
+        public static class FileTransferConnectionPoolSettingsBuilder {
+            private int maxTotal;
+            private int maxPerHost;
+            private long minEvictableIdleTimeMillis;
+            private long timeBetweenEvictionRunsMillis;
+            private int connectionTimeout;
+            private int dataTimeout;
+            private int keepAliveTimeout;
+            
+            public FileTransferConnectionPoolSettingsBuilder maxTotal(int maxTotal) {
+                this.maxTotal = maxTotal;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettingsBuilder maxPerHost(int maxPerHost) {
+                this.maxPerHost = maxPerHost;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettingsBuilder minEvictableIdleTimeMillis(long minEvictableIdleTimeMillis) {
+                this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettingsBuilder timeBetweenEvictionRunsMillis(long timeBetweenEvictionRunsMillis) {
+                this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettingsBuilder connectionTimeout(int connectionTimeout) {
+                this.connectionTimeout = connectionTimeout;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettingsBuilder dataTimeout(int dataTimeout) {
+                this.dataTimeout = dataTimeout;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettingsBuilder keepAliveTimeout(int keepAliveTimeout) {
+                this.keepAliveTimeout = keepAliveTimeout;
+                return this;
+            }
+            
+            public FileTransferConnectionPoolSettings build() {
+                FileTransferConnectionPoolSettings settings = new FileTransferConnectionPoolSettings();
+                settings.setMaxTotal(this.maxTotal);
+                settings.setMaxPerHost(this.maxPerHost);
+                settings.setMinEvictableIdleTimeMillis(this.minEvictableIdleTimeMillis);
+                settings.setTimeBetweenEvictionRunsMillis(this.timeBetweenEvictionRunsMillis);
+                settings.setConnectionTimeout(this.connectionTimeout);
+                settings.setDataTimeout(this.dataTimeout);
+                settings.setKeepAliveTimeout(this.keepAliveTimeout);
+                return settings;
+            }
+        }
     }
 }

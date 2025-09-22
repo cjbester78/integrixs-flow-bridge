@@ -4,8 +4,13 @@ import java.util.List;
 
 public class TemplateSearchRequest {
     private String query;
-    private List<String> categories;
+    private String category;
+    private String type;
     private List<String> tags;
+    private Double minRating;
+    private boolean certifiedOnly;
+    private String authorId;
+    private String organizationId;
     private Boolean featured;
     private Boolean certified;
     private String sortBy;
@@ -23,12 +28,20 @@ public class TemplateSearchRequest {
         this.query = query;
     }
 
-    public List<String> getCategories() {
-        return categories;
+    public String getCategory() {
+        return category;
     }
 
-    public void setCategories(List<String> categories) {
-        this.categories = categories;
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<String> getTags() {
@@ -37,6 +50,38 @@ public class TemplateSearchRequest {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public Double getMinRating() {
+        return minRating;
+    }
+
+    public void setMinRating(Double minRating) {
+        this.minRating = minRating;
+    }
+
+    public boolean isCertifiedOnly() {
+        return certifiedOnly;
+    }
+
+    public void setCertifiedOnly(boolean certifiedOnly) {
+        this.certifiedOnly = certifiedOnly;
+    }
+
+    public String getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(String authorId) {
+        this.authorId = authorId;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public Boolean isFeatured() {

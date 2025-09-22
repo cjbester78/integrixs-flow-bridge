@@ -1,0 +1,64 @@
+# ======================================
+# Resilience Configuration
+# ======================================
+# This file contains circuit breaker, bulkhead, retry, and other
+# resilience pattern configurations for fault tolerance
+
+# ✅ Circuit Breaker configuration
+resilience:
+  circuit-breaker:
+    instances:
+      default:
+        sliding-window-size: 100
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60000
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 60000
+        permitted-calls-in-half-open-state: 3
+        minimum-number-of-calls: 10
+  bulkhead:
+    instances:
+      default:
+        max-concurrent-calls: 10
+        max-wait-duration: 0
+    thread-pool:
+      core-size: 10
+      size: 20
+      max-size: 30
+    utilization:
+      threshold: 100
+  retry:
+    instances:
+      default:
+        max-attempts: 3
+        wait-duration: 1000
+        exponential-backoff-multiplier: 2.0
+        retry-exceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+
+# ✅ Retry configuration
+retry:
+  default:
+    max-attempts: 3
+    initial-delay-ms: 1000
+    max-delay-ms: 30000
+    multiplier: 2.0
+  adapter:
+    max-attempts: 5
+    initial-delay-ms: 2000
+  message:
+    max-attempts: 3
+    initial-delay-ms: 5000
+
+# ✅ Cache configuration
+cache:
+  default:
+    ttl-seconds: 3600
+    max-entries: 1000
+  transformation:
+    ttl-seconds: 7200
+    max-entries: 500
+  field-mapping:
+    ttl-seconds: 3600
+    max-entries: 200

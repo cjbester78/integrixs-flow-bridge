@@ -23,6 +23,12 @@ public class DashboardApplicationService {
     private final MetricsAggregatorService metricsAggregator;
     private final StatisticsCalculatorService statisticsCalculator;
 
+    public DashboardApplicationService(MetricsAggregatorService metricsAggregator, 
+                                     StatisticsCalculatorService statisticsCalculator) {
+        this.metricsAggregator = metricsAggregator;
+        this.statisticsCalculator = statisticsCalculator;
+    }
+
     /**
      * Get comprehensive dashboard statistics
      */

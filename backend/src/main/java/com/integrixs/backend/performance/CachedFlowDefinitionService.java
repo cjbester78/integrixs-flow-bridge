@@ -37,13 +37,13 @@ public class CachedFlowDefinitionService {
     }
 
     /**
-     * Get flow definition by name with caching.
+     * Check if flow exists by name with caching.
      */
-    @Cacheable(value = "flowDefinitions", key = "'name:' + #name")
+    @Cacheable(value = "flowDefinitions", key = "'exists:' + #name")
     @Transactional(readOnly = true)
-    public Optional<IntegrationFlow> findByName(String name) {
-        log.debug("Loading flow definition by name from database: {}", name);
-        return flowDefinitionRepository.findByName(name);
+    public boolean existsByName(String name) {
+        log.debug("Checking if flow exists by name: {}", name);
+        return flowDefinitionRepository.existsByName(name);
     }
 
     /**
@@ -51,27 +51,20 @@ public class CachedFlowDefinitionService {
      */
     @Cacheable(value = "flowDefinitions", key = "'active:all'")
     @Transactional(readOnly = true)
-    public List<FlowDefinition> findAllActive() {
+    public List<IntegrationFlow> findAllActive() {
         log.debug("Loading all active flow definitions from database");
-        return flowDefinitionRepository.findByIsActiveTrue();
+        return flowDefinitionRepository.findByIsActive(true);
     }
 
     /**
      * Save flow definition and update cache.
      */
-    @CachePut(value = "flowDefinitions", key = "#flowDefinition.id.toString()")
+    @CachePut(value = "flowDefinitions", key = "#flow.id.toString()")
     @CacheEvict(value = "flowDefinitions", key = "'active:all'")
     @Transactional
-    public FlowDefinition save(FlowDefinition flowDefinition) {
-        log.debug("Saving flow definition: {}", flowDefinition.getName());
-        FlowDefinition saved = flowDefinitionRepository.save(flowDefinition);
-
-        // Also update the name - based cache
-        if(saved.getName() != null) {
-            updateNameCache(saved);
-        }
-
-        return saved;
+    public IntegrationFlow save(IntegrationFlow flow) {
+        log.debug("Saving flow definition: {}", flow.getName());
+        return flowDefinitionRepository.save(flow);
     }
 
     /**
@@ -101,7 +94,7 @@ public class CachedFlowDefinitionService {
      * Refresh cache for a specific flow.
      */
     @CachePut(value = "flowDefinitions", key = "#id.toString()")
-    public Optional<FlowDefinition> refreshCache(UUID id) {
+    public Optional<IntegrationFlow> refreshCache(UUID id) {
         log.debug("Refreshing cache for flow definition: {}", id);
         return flowDefinitionRepository.findById(id);
     }
@@ -121,17 +114,14 @@ public class CachedFlowDefinitionService {
         log.info("Preloading flow definitions into cache");
 
         // Load all active flows
-        List<FlowDefinition> activeFlows = findAllActive();
+        List<IntegrationFlow> activeFlows = findAllActive();
         log.info("Preloaded {} active flow definitions", activeFlows.size());
 
         // Load individual flows to populate ID - based cache
-        for(FlowDefinition flow : activeFlows) {
+        for(IntegrationFlow flow : activeFlows) {
             findById(flow.getId());
         }
     }
 
-    @CachePut(value = "flowDefinitions", key = "'name:' + #flow.name")
-    private FlowDefinition updateNameCache(FlowDefinition flow) {
-        return flow;
-    }
+    // Removed updateNameCache as IntegrationFlowRepository doesn't support findByName
 }

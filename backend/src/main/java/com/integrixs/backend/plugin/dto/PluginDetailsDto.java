@@ -47,4 +47,45 @@ public class PluginDetailsDto {
     public void setIsInitialized(boolean isInitialized) {
         this.isInitialized = isInitialized;
     }
+
+    // Builder pattern
+    public static PluginDetailsDtoBuilder builder() {
+        return new PluginDetailsDtoBuilder();
+    }
+
+    public static class PluginDetailsDtoBuilder {
+        private AdapterMetadata metadata;
+        private ConfigurationSchema configurationSchema;
+        private HealthStatus health;
+        private boolean isInitialized;
+
+        public PluginDetailsDtoBuilder metadata(AdapterMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public PluginDetailsDtoBuilder configurationSchema(ConfigurationSchema configurationSchema) {
+            this.configurationSchema = configurationSchema;
+            return this;
+        }
+
+        public PluginDetailsDtoBuilder health(HealthStatus health) {
+            this.health = health;
+            return this;
+        }
+
+        public PluginDetailsDtoBuilder isInitialized(boolean isInitialized) {
+            this.isInitialized = isInitialized;
+            return this;
+        }
+
+        public PluginDetailsDto build() {
+            PluginDetailsDto dto = new PluginDetailsDto();
+            dto.setMetadata(this.metadata);
+            dto.setConfigurationSchema(this.configurationSchema);
+            dto.setHealth(this.health);
+            dto.setIsInitialized(this.isInitialized);
+            return dto;
+        }
+    }
 }

@@ -173,4 +173,143 @@ public class TemplateDto {
     public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
     }
+    
+    // Builder
+    public static TemplateDtoBuilder builder() {
+        return new TemplateDtoBuilder();
+    }
+    
+    public static class TemplateDtoBuilder {
+        private UUID id;
+        private String slug;
+        private String name;
+        private String description;
+        private TemplateCategory category;
+        private TemplateType type;
+        private AuthorDto author;
+        private OrganizationDto organization;
+        private String version;
+        private String iconUrl;
+        private List<String> tags;
+        private Long downloadCount;
+        private Long installCount;
+        private Double averageRating;
+        private Long ratingCount;
+        private boolean certified;
+        private boolean featured;
+        private LocalDateTime publishedAt;
+        
+        public TemplateDtoBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+        
+        public TemplateDtoBuilder slug(String slug) {
+            this.slug = slug;
+            return this;
+        }
+        
+        public TemplateDtoBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+        
+        public TemplateDtoBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+        
+        public TemplateDtoBuilder category(TemplateCategory category) {
+            this.category = category;
+            return this;
+        }
+        
+        public TemplateDtoBuilder type(TemplateType type) {
+            this.type = type;
+            return this;
+        }
+        
+        public TemplateDtoBuilder author(AuthorDto author) {
+            this.author = author;
+            return this;
+        }
+        
+        public TemplateDtoBuilder organization(OrganizationDto organization) {
+            this.organization = organization;
+            return this;
+        }
+        
+        public TemplateDtoBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+        
+        public TemplateDtoBuilder iconUrl(String iconUrl) {
+            this.iconUrl = iconUrl;
+            return this;
+        }
+        
+        public TemplateDtoBuilder tags(List<String> tags) {
+            this.tags = tags;
+            return this;
+        }
+        
+        public TemplateDtoBuilder downloadCount(Long downloadCount) {
+            this.downloadCount = downloadCount;
+            return this;
+        }
+        
+        public TemplateDtoBuilder installCount(Long installCount) {
+            this.installCount = installCount;
+            return this;
+        }
+        
+        public TemplateDtoBuilder averageRating(Double averageRating) {
+            this.averageRating = averageRating;
+            return this;
+        }
+        
+        public TemplateDtoBuilder ratingCount(Long ratingCount) {
+            this.ratingCount = ratingCount;
+            return this;
+        }
+        
+        public TemplateDtoBuilder certified(boolean certified) {
+            this.certified = certified;
+            return this;
+        }
+        
+        public TemplateDtoBuilder featured(boolean featured) {
+            this.featured = featured;
+            return this;
+        }
+        
+        public TemplateDtoBuilder publishedAt(LocalDateTime publishedAt) {
+            this.publishedAt = publishedAt;
+            return this;
+        }
+        
+        public TemplateDto build() {
+            TemplateDto dto = new TemplateDto();
+            dto.setId(this.id);
+            dto.setSlug(this.slug);
+            dto.setName(this.name);
+            dto.setDescription(this.description);
+            dto.setCategory(this.category);
+            dto.setType(this.type);
+            dto.setAuthor(this.author);
+            dto.setOrganization(this.organization);
+            dto.setVersion(this.version);
+            dto.setIconUrl(this.iconUrl);
+            dto.setTags(this.tags);
+            dto.setDownloadCount(this.downloadCount);
+            dto.setInstallCount(this.installCount);
+            dto.setAverageRating(this.averageRating);
+            dto.setRatingCount(this.ratingCount);
+            dto.setCertified(this.certified);
+            dto.setFeatured(this.featured);
+            dto.setPublishedAt(this.publishedAt);
+            return dto;
+        }
+    }
 }

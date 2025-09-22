@@ -121,9 +121,8 @@ public class CircuitBreakerConfiguration {
             .slowCallRateThreshold(60)
             .slowCallDurationThreshold(Duration.ofSeconds(5))
             .recordExceptions(
-                javax.jms.JMSException.class,
-                org.apache.kafka.common.KafkaException.class,
-                org.springframework.messaging.MessagingException.class
+                org.springframework.messaging.MessagingException.class,
+                java.io.IOException.class
            )
             .ignoreExceptions()
             .build();
@@ -161,8 +160,8 @@ public class CircuitBreakerConfiguration {
             .slowCallRateThreshold(95)
             .slowCallDurationThreshold(Duration.ofMinutes(5)) // SAP can be very slow
             .recordExceptions(
-                com.sap.conn.jco.JCoException.class,
-                com.sap.conn.jco.JCoRuntimeException.class
+                RuntimeException.class,
+                java.sql.SQLException.class
            )
             .ignoreExceptions()
             .build();

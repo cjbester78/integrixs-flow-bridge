@@ -37,6 +37,16 @@ public class OrchestrationApplicationService {
 
     private final Map<String, OrchestrationExecution> activeExecutions = new ConcurrentHashMap<>();
 
+    public OrchestrationApplicationService(OrchestrationManagementService orchestrationManagementService,
+                                         OrchestrationExecutor orchestrationExecutor,
+                                         IntegrationFlowRepository integrationFlowRepository,
+                                         TransformationExecutionService transformationService) {
+        this.orchestrationManagementService = orchestrationManagementService;
+        this.orchestrationExecutor = orchestrationExecutor;
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.transformationService = transformationService;
+    }
+
     /**
      * Execute an orchestration flow synchronously
      */

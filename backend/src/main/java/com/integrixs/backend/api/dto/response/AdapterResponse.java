@@ -288,6 +288,14 @@ public class AdapterResponse {
     public void setLastTestResult(String lastTestResult) {
         this.lastTestResult = lastTestResult;
     }
+    
+    public Map<String, Object> getConfiguration() {
+        return configuration;
+    }
+    
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.configuration = configuration;
+    }
 
     public Integer getUsageCount() {
         return usageCount;

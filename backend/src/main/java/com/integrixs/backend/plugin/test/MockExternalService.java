@@ -242,21 +242,152 @@ public class MockExternalService {
     /**
      * Mock response configuration
      */
-        @lombok.Builder
     public static class MockResponse {
         private int statusCode;
         private String body;
         private Map<String, String> headers;
+
+        // Getters and Setters
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public void setStatusCode(int statusCode) {
+            this.statusCode = statusCode;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+        }
+
+        public Map<String, String> getHeaders() {
+            return headers;
+        }
+
+        public void setHeaders(Map<String, String> headers) {
+            this.headers = headers;
+        }
+
+        // Builder pattern
+        public static MockResponseBuilder builder() {
+            return new MockResponseBuilder();
+        }
+
+        public static class MockResponseBuilder {
+            private int statusCode;
+            private String body;
+            private Map<String, String> headers;
+
+            public MockResponseBuilder statusCode(int statusCode) {
+                this.statusCode = statusCode;
+                return this;
+            }
+
+            public MockResponseBuilder body(String body) {
+                this.body = body;
+                return this;
+            }
+
+            public MockResponseBuilder headers(Map<String, String> headers) {
+                this.headers = headers;
+                return this;
+            }
+
+            public MockResponse build() {
+                MockResponse response = new MockResponse();
+                response.statusCode = this.statusCode;
+                response.body = this.body;
+                response.headers = this.headers;
+                return response;
+            }
+        }
     }
 
     /**
      * Received message
      */
-        @lombok.Builder
     public static class ReceivedMessage {
         private String path;
         private Map<String, List<String>> headers;
         private String body;
         private long timestamp;
+
+        // Getters and Setters
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public Map<String, List<String>> getHeaders() {
+            return headers;
+        }
+
+        public void setHeaders(Map<String, List<String>> headers) {
+            this.headers = headers;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        // Builder pattern
+        public static ReceivedMessageBuilder builder() {
+            return new ReceivedMessageBuilder();
+        }
+
+        public static class ReceivedMessageBuilder {
+            private String path;
+            private Map<String, List<String>> headers;
+            private String body;
+            private long timestamp;
+
+            public ReceivedMessageBuilder path(String path) {
+                this.path = path;
+                return this;
+            }
+
+            public ReceivedMessageBuilder headers(Map<String, List<String>> headers) {
+                this.headers = headers;
+                return this;
+            }
+
+            public ReceivedMessageBuilder body(String body) {
+                this.body = body;
+                return this;
+            }
+
+            public ReceivedMessageBuilder timestamp(long timestamp) {
+                this.timestamp = timestamp;
+                return this;
+            }
+
+            public ReceivedMessage build() {
+                ReceivedMessage message = new ReceivedMessage();
+                message.path = this.path;
+                message.headers = this.headers;
+                message.body = this.body;
+                message.timestamp = this.timestamp;
+                return message;
+            }
+        }
     }
 }

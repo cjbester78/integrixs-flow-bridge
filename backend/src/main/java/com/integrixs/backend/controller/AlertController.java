@@ -1,6 +1,6 @@
 package com.integrixs.backend.controller;
 
-import com.integrixs.backend.service.AlertingService;
+import com.integrixs.backend.service.FlowAlertingService;
 import com.integrixs.data.model.Alert;
 import com.integrixs.data.model.AlertRule;
 import com.integrixs.data.repository.AlertRepository;
@@ -24,7 +24,7 @@ public class AlertController {
 
     private final AlertRepository alertRepository;
     private final AlertRuleRepository alertRuleRepository;
-    private final AlertingService alertingService;
+    private final FlowAlertingService alertingService;
 
     /**
      * Get all alerts with pagination
@@ -195,7 +195,7 @@ public class AlertController {
 
         rule.setId(null); // Ensure new entity
         rule.setCreatedAt(LocalDateTime.now());
-        rule.setModifiedAt(LocalDateTime.now());
+        rule.setUpdatedAt(LocalDateTime.now());
 
         AlertRule saved = alertRuleRepository.save(rule);
         return ResponseEntity.ok(saved);
@@ -232,7 +232,7 @@ public class AlertController {
                     existing.setEscalationAfterMinutes(rule.getEscalationAfterMinutes());
                     existing.setEscalationChannelIds(rule.getEscalationChannelIds());
                     existing.setTags(rule.getTags());
-                    existing.setModifiedAt(LocalDateTime.now());
+                    existing.setUpdatedAt(LocalDateTime.now());
                     existing.setModifiedBy(rule.getModifiedBy());
 
                     return ResponseEntity.ok(alertRuleRepository.save(existing));
@@ -265,7 +265,7 @@ public class AlertController {
         return alertRuleRepository.findById(ruleId)
                 .map(rule -> {
                     rule.setEnabled(enabled);
-                    rule.setModifiedAt(LocalDateTime.now());
+                    rule.setUpdatedAt(LocalDateTime.now());
                     return ResponseEntity.ok(alertRuleRepository.save(rule));
                 })
                 .orElse(ResponseEntity.notFound().build());

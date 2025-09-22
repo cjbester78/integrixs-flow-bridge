@@ -243,11 +243,11 @@ public class DevelopmentFunctionService {
         }
 
         if(request.getIsSafe() != null) {
-            function.setSafe(request.getIsSafe());
+            function.setIsSafe(request.getIsSafe());
         }
 
         if(request.getIsPublic() != null) {
-            function.setPublic(request.getIsPublic());
+            function.setIsPublic(request.getIsPublic());
         }
 
         if(request.getPerformanceClass() != null) {

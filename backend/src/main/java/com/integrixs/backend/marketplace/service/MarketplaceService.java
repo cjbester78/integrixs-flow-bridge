@@ -73,7 +73,7 @@ public class MarketplaceService {
      * Search templates with filters
      */
     public Page<TemplateDto> searchTemplates(TemplateSearchRequest request, Pageable pageable) {
-        Specification<FlowTemplate> spec = Specification.where(TemplateSpecifications.isActive())
+        Specification<FlowTemplate> spec = TemplateSpecifications.isActive()
             .and(TemplateSpecifications.isPublic());
 
         if(request.getQuery() != null && !request.getQuery().isEmpty()) {

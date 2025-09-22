@@ -82,7 +82,7 @@ public class QueryOptimizationConfig {
 
             // Fetch optimization
             hibernateProperties.put(AvailableSettings.DEFAULT_BATCH_FETCH_SIZE, 16);
-            hibernateProperties.put(AvailableSettings.USE_STREAMS_FOR_BINARY, true);
+            hibernateProperties.put("hibernate.jdbc.use_streams_for_binary", true);
 
             // Statistics for monitoring
             hibernateProperties.put(AvailableSettings.GENERATE_STATISTICS, false); // Enable in dev only

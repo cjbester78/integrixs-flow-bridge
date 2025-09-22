@@ -1,6 +1,6 @@
 package com.integrixs.backend.application.service;
 
-import com.integrixs.backend.domain.repository.CertificateRepository;
+import com.integrixs.data.repository.CertificateRepository;
 import com.integrixs.backend.domain.service.CertificateManagementService;
 import com.integrixs.backend.exception.ConflictException;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -34,6 +34,16 @@ public class CertificateManagementApplicationService {
     private final CertificateManagementService certificateManagementService;
     private final CertificateStorageService certificateStorageService;
     private final AuditTrailService auditTrailService;
+
+    public CertificateManagementApplicationService(CertificateRepository certificateRepository,
+                                                   CertificateManagementService certificateManagementService,
+                                                   CertificateStorageService certificateStorageService,
+                                                   AuditTrailService auditTrailService) {
+        this.certificateRepository = certificateRepository;
+        this.certificateManagementService = certificateManagementService;
+        this.certificateStorageService = certificateStorageService;
+        this.auditTrailService = auditTrailService;
+    }
 
     /**
      * Upload and save a new certificate

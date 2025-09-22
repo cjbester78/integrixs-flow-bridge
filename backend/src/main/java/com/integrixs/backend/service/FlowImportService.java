@@ -11,6 +11,7 @@ import com.integrixs.data.repository.*;
 import com.integrixs.shared.dto.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.export.*;
+import com.integrixs.shared.dto.flow.FlowTransformationDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -369,7 +370,7 @@ public class FlowImportService {
                     // Configuration field removed - using native columns instead
                     .isActive(false) // Start inactive
                     .mappingMode(com.integrixs.data.model.MappingMode.valueOf(dto.getMappingMode()))
-                    .createdBy(userRepository.findByUsername(SecurityUtils.getCurrentUsernameStatic()))
+                    .createdBy(userRepository.findByUsername(SecurityUtils.getCurrentUsernameStatic()).orElse(null))
                     .build();
 
             if(businessComponentId != null) {
@@ -407,9 +408,9 @@ public class FlowImportService {
                         .flow(importedFlow)
                         .name(transDto.getName())
                         .description(transDto.getDescription())
-                        .type(com.integrixs.data.model.FlowTransformation.TransformationType.valueOf(transDto.getTransformationType().name()))
+                        .type(com.integrixs.data.model.FlowTransformation.TransformationType.valueOf(transDto.getType()))
                         .configuration(transDto.getConfiguration())
-                        .executionOrder(transDto.getSequence())
+                        .executionOrder(transDto.getExecutionOrder())
                         .isActive(transDto.isActive())
                         .build();
 
@@ -556,7 +557,7 @@ public class FlowImportService {
                     .details(objectMapper.writeValueAsString(details))
                     .source("IMPORT_SERVICE")
                     .category("FLOW_IMPORT")
-                    .userId(SecurityUtils.getCurrentUserId() != null ? UUID.fromString(SecurityUtils.getCurrentUserId()) : null)
+                    .userId(SecurityUtils.getCurrentUserId())
                     .username(SecurityUtils.getCurrentUsernameStatic())
                     .domainType("INTEGRATION_FLOW")
                     .domainReferenceId(flow != null ? flow.getId().toString() : null)
@@ -578,7 +579,7 @@ public class FlowImportService {
                 .objectType(objectType)
                 .importId(importId)
                 .importName(importName)
-                .type(FlowImportValidationDTO.Conflict.ConflictType.NAME_EXISTS)
+                .type(FlowImportValidationDTO.ConflictType.NAME_CONFLICT)
                 .resolutionOptions(Arrays.asList("SKIP", "CREATE_NEW", "UPDATE_EXISTING"))
                 .build();
     }
@@ -590,7 +591,7 @@ public class FlowImportService {
                 .objectType(objectType)
                 .importId(importId)
                 .importName(importName)
-                .type(FlowImportValidationDTO.Conflict.ConflictType.REFERENCE_MISSING)
+                .type(FlowImportValidationDTO.ConflictType.DEPENDENCY_CONFLICT)
                 .resolutionOptions(Arrays.asList("SKIP", "CREATE_PLACEHOLDER"))
                 .build();
     }
@@ -600,7 +601,7 @@ public class FlowImportService {
         return FlowImportValidationDTO.ValidationIssue.builder()
                 .code(code)
                 .message(message)
-                .severity(FlowImportValidationDTO.ValidationIssue.Severity.ERROR)
+                .severity(FlowImportValidationDTO.Severity.ERROR)
                 .build();
     }
 

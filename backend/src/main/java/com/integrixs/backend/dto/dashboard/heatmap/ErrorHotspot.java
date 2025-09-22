@@ -1,6 +1,9 @@
 package com.integrixs.backend.dto.dashboard.heatmap;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ErrorHotspot {
     private String location;
@@ -8,6 +11,8 @@ public class ErrorHotspot {
     private List<String> errorTypes;
     private double errorRate;
     private List<ErrorEvent> recentErrors;
+    private String component;
+    private LocalDateTime timestamp;
 
     // Default constructor
     public ErrorHotspot() {
@@ -51,5 +56,30 @@ public class ErrorHotspot {
 
     public void setRecentErrors(List<ErrorEvent> recentErrors) {
         this.recentErrors = recentErrors;
+    }
+
+    public String getComponent() {
+        return component;
+    }
+
+    public void setComponent(String component) {
+        this.component = component;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setErrorCount(long errorCount) {
+        this.errorCount = (int) errorCount;
+    }
+
+    public void setErrorTypes(Map<String, Long> errorTypes) {
+        // Convert map to list of error type strings
+        this.errorTypes = new ArrayList<>(errorTypes.keySet());
     }
 }

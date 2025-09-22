@@ -29,6 +29,23 @@ public class TimeSlot {
         this.end = end;
     }
 
+    // Alias methods for compatibility with services expecting different names
+    public LocalDateTime getStartTime() {
+        return start;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.start = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return end;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.end = endTime;
+    }
+
     public String getLabel() {
         return label;
     }

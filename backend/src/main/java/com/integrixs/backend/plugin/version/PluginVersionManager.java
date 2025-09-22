@@ -201,16 +201,194 @@ public class PluginVersionManager {
         private String changelog;
         private String checksum;
         private long fileSize;
+
+        // Getters and Setters
+        public String getPluginId() {
+            return pluginId;
+        }
+
+        public void setPluginId(String pluginId) {
+            this.pluginId = pluginId;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
+
+        public AdapterMetadata getMetadata() {
+            return metadata;
+        }
+
+        public void setMetadata(AdapterMetadata metadata) {
+            this.metadata = metadata;
+        }
+
+        public String getJarPath() {
+            return jarPath;
+        }
+
+        public void setJarPath(String jarPath) {
+            this.jarPath = jarPath;
+        }
+
+        public LocalDateTime getReleaseDate() {
+            return releaseDate;
+        }
+
+        public void setReleaseDate(LocalDateTime releaseDate) {
+            this.releaseDate = releaseDate;
+        }
+
+        public String getChangelog() {
+            return changelog;
+        }
+
+        public void setChangelog(String changelog) {
+            this.changelog = changelog;
+        }
+
+        public String getChecksum() {
+            return checksum;
+        }
+
+        public void setChecksum(String checksum) {
+            this.checksum = checksum;
+        }
+
+        public long getFileSize() {
+            return fileSize;
+        }
+
+        public void setFileSize(long fileSize) {
+            this.fileSize = fileSize;
+        }
+
+        // Builder pattern
+        public static PluginVersionBuilder builder() {
+            return new PluginVersionBuilder();
+        }
+
+        public static class PluginVersionBuilder {
+            private String pluginId;
+            private String version;
+            private AdapterMetadata metadata;
+            private String jarPath;
+            private LocalDateTime releaseDate;
+            private String changelog;
+            private String checksum;
+            private long fileSize;
+
+            public PluginVersionBuilder pluginId(String pluginId) {
+                this.pluginId = pluginId;
+                return this;
+            }
+
+            public PluginVersionBuilder version(String version) {
+                this.version = version;
+                return this;
+            }
+
+            public PluginVersionBuilder metadata(AdapterMetadata metadata) {
+                this.metadata = metadata;
+                return this;
+            }
+
+            public PluginVersionBuilder jarPath(String jarPath) {
+                this.jarPath = jarPath;
+                return this;
+            }
+
+            public PluginVersionBuilder releaseDate(LocalDateTime releaseDate) {
+                this.releaseDate = releaseDate;
+                return this;
+            }
+
+            public PluginVersionBuilder changelog(String changelog) {
+                this.changelog = changelog;
+                return this;
+            }
+
+            public PluginVersionBuilder checksum(String checksum) {
+                this.checksum = checksum;
+                return this;
+            }
+
+            public PluginVersionBuilder fileSize(long fileSize) {
+                this.fileSize = fileSize;
+                return this;
+            }
+
+            public PluginVersion build() {
+                PluginVersion version = new PluginVersion();
+                version.pluginId = this.pluginId;
+                version.version = this.version;
+                version.metadata = this.metadata;
+                version.jarPath = this.jarPath;
+                version.releaseDate = this.releaseDate;
+                version.changelog = this.changelog;
+                version.checksum = this.checksum;
+                version.fileSize = this.fileSize;
+                return version;
+            }
+        }
     }
 
     /**
      * Semantic version representation
      */
-            private static class SemanticVersion {
+    private static class SemanticVersion {
         private int major;
         private int minor;
         private int patch;
         private String preRelease;
+
+        // Constructor
+        public SemanticVersion(int major, int minor, int patch, String preRelease) {
+            this.major = major;
+            this.minor = minor;
+            this.patch = patch;
+            this.preRelease = preRelease;
+        }
+
+        // Builder pattern
+        public static SemanticVersionBuilder builder() {
+            return new SemanticVersionBuilder();
+        }
+
+        public static class SemanticVersionBuilder {
+            private int major;
+            private int minor;
+            private int patch;
+            private String preRelease;
+
+            public SemanticVersionBuilder major(int major) {
+                this.major = major;
+                return this;
+            }
+
+            public SemanticVersionBuilder minor(int minor) {
+                this.minor = minor;
+                return this;
+            }
+
+            public SemanticVersionBuilder patch(int patch) {
+                this.patch = patch;
+                return this;
+            }
+
+            public SemanticVersionBuilder preRelease(String preRelease) {
+                this.preRelease = preRelease;
+                return this;
+            }
+
+            public SemanticVersion build() {
+                return new SemanticVersion(major, minor, patch, preRelease);
+            }
+        }
     }
 
     /**
@@ -224,17 +402,225 @@ public class PluginVersionManager {
         private String changelog;
         private UpdatePolicy updatePolicy;
         private String message;
+
+        // Getters and Setters
+        public boolean isUpdateAvailable() {
+            return updateAvailable;
+        }
+
+        public void setUpdateAvailable(boolean updateAvailable) {
+            this.updateAvailable = updateAvailable;
+        }
+
+        public String getCurrentVersion() {
+            return currentVersion;
+        }
+
+        public void setCurrentVersion(String currentVersion) {
+            this.currentVersion = currentVersion;
+        }
+
+        public String getLatestVersion() {
+            return latestVersion;
+        }
+
+        public void setLatestVersion(String latestVersion) {
+            this.latestVersion = latestVersion;
+        }
+
+        public LocalDateTime getReleaseDate() {
+            return releaseDate;
+        }
+
+        public void setReleaseDate(LocalDateTime releaseDate) {
+            this.releaseDate = releaseDate;
+        }
+
+        public String getChangelog() {
+            return changelog;
+        }
+
+        public void setChangelog(String changelog) {
+            this.changelog = changelog;
+        }
+
+        public UpdatePolicy getUpdatePolicy() {
+            return updatePolicy;
+        }
+
+        public void setUpdatePolicy(UpdatePolicy updatePolicy) {
+            this.updatePolicy = updatePolicy;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        // Builder pattern
+        public static UpdateCheckResultBuilder builder() {
+            return new UpdateCheckResultBuilder();
+        }
+
+        public static class UpdateCheckResultBuilder {
+            private boolean updateAvailable;
+            private String currentVersion;
+            private String latestVersion;
+            private LocalDateTime releaseDate;
+            private String changelog;
+            private UpdatePolicy updatePolicy;
+            private String message;
+
+            public UpdateCheckResultBuilder updateAvailable(boolean updateAvailable) {
+                this.updateAvailable = updateAvailable;
+                return this;
+            }
+
+            public UpdateCheckResultBuilder currentVersion(String currentVersion) {
+                this.currentVersion = currentVersion;
+                return this;
+            }
+
+            public UpdateCheckResultBuilder latestVersion(String latestVersion) {
+                this.latestVersion = latestVersion;
+                return this;
+            }
+
+            public UpdateCheckResultBuilder releaseDate(LocalDateTime releaseDate) {
+                this.releaseDate = releaseDate;
+                return this;
+            }
+
+            public UpdateCheckResultBuilder changelog(String changelog) {
+                this.changelog = changelog;
+                return this;
+            }
+
+            public UpdateCheckResultBuilder updatePolicy(UpdatePolicy updatePolicy) {
+                this.updatePolicy = updatePolicy;
+                return this;
+            }
+
+            public UpdateCheckResultBuilder message(String message) {
+                this.message = message;
+                return this;
+            }
+
+            public UpdateCheckResult build() {
+                UpdateCheckResult result = new UpdateCheckResult();
+                result.updateAvailable = this.updateAvailable;
+                result.currentVersion = this.currentVersion;
+                result.latestVersion = this.latestVersion;
+                result.releaseDate = this.releaseDate;
+                result.changelog = this.changelog;
+                result.updatePolicy = this.updatePolicy;
+                result.message = this.message;
+                return result;
+            }
+        }
     }
 
     /**
      * Update information
      */
-            public static class UpdateInfo {
+    public static class UpdateInfo {
         private String pluginId;
         private String currentVersion;
         private String latestVersion;
         private LocalDateTime releaseDate;
         private UpdatePolicy updatePolicy;
+
+        // Getters and Setters
+        public String getPluginId() {
+            return pluginId;
+        }
+
+        public void setPluginId(String pluginId) {
+            this.pluginId = pluginId;
+        }
+
+        public String getCurrentVersion() {
+            return currentVersion;
+        }
+
+        public void setCurrentVersion(String currentVersion) {
+            this.currentVersion = currentVersion;
+        }
+
+        public String getLatestVersion() {
+            return latestVersion;
+        }
+
+        public void setLatestVersion(String latestVersion) {
+            this.latestVersion = latestVersion;
+        }
+
+        public LocalDateTime getReleaseDate() {
+            return releaseDate;
+        }
+
+        public void setReleaseDate(LocalDateTime releaseDate) {
+            this.releaseDate = releaseDate;
+        }
+
+        public UpdatePolicy getUpdatePolicy() {
+            return updatePolicy;
+        }
+
+        public void setUpdatePolicy(UpdatePolicy updatePolicy) {
+            this.updatePolicy = updatePolicy;
+        }
+
+        // Builder pattern
+        public static UpdateInfoBuilder builder() {
+            return new UpdateInfoBuilder();
+        }
+
+        public static class UpdateInfoBuilder {
+            private String pluginId;
+            private String currentVersion;
+            private String latestVersion;
+            private LocalDateTime releaseDate;
+            private UpdatePolicy updatePolicy;
+
+            public UpdateInfoBuilder pluginId(String pluginId) {
+                this.pluginId = pluginId;
+                return this;
+            }
+
+            public UpdateInfoBuilder currentVersion(String currentVersion) {
+                this.currentVersion = currentVersion;
+                return this;
+            }
+
+            public UpdateInfoBuilder latestVersion(String latestVersion) {
+                this.latestVersion = latestVersion;
+                return this;
+            }
+
+            public UpdateInfoBuilder releaseDate(LocalDateTime releaseDate) {
+                this.releaseDate = releaseDate;
+                return this;
+            }
+
+            public UpdateInfoBuilder updatePolicy(UpdatePolicy updatePolicy) {
+                this.updatePolicy = updatePolicy;
+                return this;
+            }
+
+            public UpdateInfo build() {
+                UpdateInfo info = new UpdateInfo();
+                info.pluginId = this.pluginId;
+                info.currentVersion = this.currentVersion;
+                info.latestVersion = this.latestVersion;
+                info.releaseDate = this.releaseDate;
+                info.updatePolicy = this.updatePolicy;
+                return info;
+            }
+        }
     }
 
     /**

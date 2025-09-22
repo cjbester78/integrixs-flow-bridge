@@ -202,6 +202,38 @@ public class AdapterType {
         this.supportsBidirectional = supportsBidirectional;
     }
 
+    public Map<String, Object> getInboundConfigSchema() {
+        return inboundConfigSchema;
+    }
+
+    public void setInboundConfigSchema(Map<String, Object> inboundConfigSchema) {
+        this.inboundConfigSchema = inboundConfigSchema;
+    }
+
+    public Map<String, Object> getOutboundConfigSchema() {
+        return outboundConfigSchema;
+    }
+
+    public void setOutboundConfigSchema(Map<String, Object> outboundConfigSchema) {
+        this.outboundConfigSchema = outboundConfigSchema;
+    }
+
+    public Map<String, Object> getCommonConfigSchema() {
+        return commonConfigSchema;
+    }
+
+    public void setCommonConfigSchema(Map<String, Object> commonConfigSchema) {
+        this.commonConfigSchema = commonConfigSchema;
+    }
+
+    public Map<String, Object> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(Map<String, Object> capabilities) {
+        this.capabilities = capabilities;
+    }
+
     public String[] getSupportedProtocols() {
         return supportedProtocols;
     }
@@ -258,11 +290,11 @@ public class AdapterType {
         this.status = status;
     }
 
-    public boolean isIsCertified() {
+    public boolean isCertified() {
         return isCertified;
     }
 
-    public void setIsCertified(boolean isCertified) {
+    public void setCertified(boolean isCertified) {
         this.isCertified = isCertified;
     }
 

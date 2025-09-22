@@ -22,6 +22,12 @@ public class NotificationChannelController {
     private final NotificationChannelRepository channelRepository;
     private final NotificationService notificationService;
 
+    public NotificationChannelController(NotificationChannelRepository channelRepository, 
+                                       NotificationService notificationService) {
+        this.channelRepository = channelRepository;
+        this.notificationService = notificationService;
+    }
+
     /**
      * Get all notification channels
      */
@@ -112,7 +118,7 @@ public class NotificationChannelController {
      */
     @PostMapping("/ {channelId}/test")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> testChannel(@PathVariable Long channelId) {
+    public ResponseEntity<?> testChannel(@PathVariable Long channelId) {
         return channelRepository.findById(channelId)
                 .map(channel -> {
                     boolean success = false;
@@ -138,11 +144,12 @@ public class NotificationChannelController {
                         channelRepository.save(channel);
                     }
 
-                    return ResponseEntity.ok(Map.of(
+                    Map<String, Object> response = Map.of(
                             "success", success,
                             "message", message,
                             "testedAt", LocalDateTime.now()
-                   ));
+                   );
+                    return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -26,6 +26,10 @@ public class FlowExecutionController {
 
     private final FlowExecutionApplicationService flowExecutionApplicationService;
 
+    public FlowExecutionController(FlowExecutionApplicationService flowExecutionApplicationService) {
+        this.flowExecutionApplicationService = flowExecutionApplicationService;
+    }
+
     /**
      * Execute a flow asynchronously
      * @param flowId The ID of the flow to execute

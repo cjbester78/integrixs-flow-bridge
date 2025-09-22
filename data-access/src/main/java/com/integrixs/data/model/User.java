@@ -104,6 +104,12 @@ public class User {
     private String permissions;
 
     /**
+     * Tenant ID for multi-tenancy support
+     */
+    @Column(name = "tenant_id")
+    private UUID tenantId;
+
+    /**
      * Timestamp of entity creation
      */
     @Column(name = "created_at", updatable = false)
@@ -287,6 +293,14 @@ public class User {
         this.passwordResetExpiresAt = passwordResetExpiresAt;
     }
 
+    public UUID getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
+    }
+
     // Builder
     public static UserBuilder builder() {
         return new UserBuilder();
@@ -303,6 +317,7 @@ public class User {
         private String role;
         private String status;
         private String permissions;
+        private UUID tenantId;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime lastLoginAt;
@@ -359,6 +374,11 @@ public class User {
             return this;
         }
 
+        public UserBuilder tenantId(UUID tenantId) {
+            this.tenantId = tenantId;
+            return this;
+        }
+
         public UserBuilder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -396,6 +416,7 @@ public class User {
             instance.setRole(this.role);
             instance.setStatus(this.status);
             instance.setPermissions(this.permissions);
+            instance.setTenantId(this.tenantId);
             instance.setCreatedAt(this.createdAt);
             instance.setUpdatedAt(this.updatedAt);
             instance.setLastLoginAt(this.lastLoginAt);

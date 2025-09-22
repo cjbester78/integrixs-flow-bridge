@@ -93,8 +93,7 @@ public class ErrorClassificationService {
             return ErrorCategory.CONNECTION;
         }
 
-        if(exception instanceof SecurityException ||
-            exception instanceof javax.security.auth.login.LoginException) {
+        if(exception instanceof SecurityException) {
             return ErrorCategory.AUTHENTICATION;
         }
 
@@ -103,8 +102,7 @@ public class ErrorClassificationService {
             return ErrorCategory.VALIDATION;
         }
 
-        if(exception instanceof OutOfMemoryError ||
-            exception instanceof java.nio.file.FileSystemException) {
+        if(exception instanceof java.nio.file.FileSystemException) {
             return ErrorCategory.RESOURCE;
         }
 
@@ -167,8 +165,7 @@ public class ErrorClassificationService {
 
     private ErrorSeverity determineSeverity(Exception exception, ErrorCategory category) {
         // Critical errors
-        if(exception instanceof OutOfMemoryError ||
-            category == ErrorCategory.RESOURCE ||
+        if(category == ErrorCategory.RESOURCE ||
             category == ErrorCategory.PERMISSION) {
             return ErrorSeverity.CRITICAL;
         }
@@ -352,5 +349,70 @@ public class ErrorClassificationService {
         private boolean circuitBreakerCandidate;
         private List<String> recoverySuggestions;
         private long estimatedRecoveryTimeMs;
+
+        // Getters and Setters
+        public String getExceptionClass() {
+            return exceptionClass;
+        }
+
+        public void setExceptionClass(String exceptionClass) {
+            this.exceptionClass = exceptionClass;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public ErrorCategory getCategory() {
+            return category;
+        }
+
+        public void setCategory(ErrorCategory category) {
+            this.category = category;
+        }
+
+        public ErrorSeverity getSeverity() {
+            return severity;
+        }
+
+        public void setSeverity(ErrorSeverity severity) {
+            this.severity = severity;
+        }
+
+        public boolean isRetryable() {
+            return retryable;
+        }
+
+        public void setRetryable(boolean retryable) {
+            this.retryable = retryable;
+        }
+
+        public boolean isCircuitBreakerCandidate() {
+            return circuitBreakerCandidate;
+        }
+
+        public void setCircuitBreakerCandidate(boolean circuitBreakerCandidate) {
+            this.circuitBreakerCandidate = circuitBreakerCandidate;
+        }
+
+        public List<String> getRecoverySuggestions() {
+            return recoverySuggestions;
+        }
+
+        public void setRecoverySuggestions(List<String> recoverySuggestions) {
+            this.recoverySuggestions = recoverySuggestions;
+        }
+
+        public long getEstimatedRecoveryTimeMs() {
+            return estimatedRecoveryTimeMs;
+        }
+
+        public void setEstimatedRecoveryTimeMs(long estimatedRecoveryTimeMs) {
+            this.estimatedRecoveryTimeMs = estimatedRecoveryTimeMs;
+        }
     }
 }

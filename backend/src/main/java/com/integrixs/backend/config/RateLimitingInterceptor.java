@@ -10,6 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Interceptor for rate limiting API requests.
@@ -27,18 +28,37 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
 
     private final RateLimitingConfig.RateLimiterService rateLimiterService;
 
-    // Rate limit configurations
-    private static final int ANONYMOUS_CAPACITY = 20;
-    private static final int ANONYMOUS_REFILL = 20;
-    private static final Duration ANONYMOUS_PERIOD = Duration.ofMinutes(1);
+    // Rate limit configurations from application.yml
+    @Value("${rate.limit.anonymous.capacity:20}")
+    private int anonymousCapacity;
+    
+    @Value("${rate.limit.anonymous.refill.tokens:20}")
+    private int anonymousRefill;
+    
+    @Value("${rate.limit.anonymous.refill.period:60}")
+    private int anonymousPeriodSeconds;
 
-    private static final int AUTHENTICATED_CAPACITY = 100;
-    private static final int AUTHENTICATED_REFILL = 100;
-    private static final Duration AUTHENTICATED_PERIOD = Duration.ofMinutes(1);
+    @Value("${rate.limit.authenticated.capacity:100}")
+    private int authenticatedCapacity;
+    
+    @Value("${rate.limit.authenticated.refill.tokens:100}")
+    private int authenticatedRefill;
+    
+    @Value("${rate.limit.authenticated.refill.period:60}")
+    private int authenticatedPeriodSeconds;
 
-    private static final int ADMIN_CAPACITY = 1000;
-    private static final int ADMIN_REFILL = 1000;
-    private static final Duration ADMIN_PERIOD = Duration.ofMinutes(1);
+    @Value("${rate.limit.admin.capacity:1000}")
+    private int adminCapacity;
+    
+    @Value("${rate.limit.admin.refill.tokens:1000}")
+    private int adminRefill;
+    
+    @Value("${rate.limit.admin.refill.period:60}")
+    private int adminPeriodSeconds;
+
+    public RateLimitingInterceptor(RateLimitingConfig.RateLimiterService rateLimiterService) {
+        this.rateLimiterService = rateLimiterService;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
@@ -112,17 +132,17 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         // Check if admin
         if(request.isUserInRole("ADMINISTRATOR")) {
             return rateLimiterService.resolveBucket(key,
-                ADMIN_CAPACITY, ADMIN_REFILL, ADMIN_PERIOD);
+                adminCapacity, adminRefill, Duration.ofSeconds(adminPeriodSeconds));
         }
 
         // Check if authenticated
         if(request.getRemoteUser() != null) {
             return rateLimiterService.resolveBucket(key,
-                AUTHENTICATED_CAPACITY, AUTHENTICATED_REFILL, AUTHENTICATED_PERIOD);
+                authenticatedCapacity, authenticatedRefill, Duration.ofSeconds(authenticatedPeriodSeconds));
         }
 
         // Anonymous user
         return rateLimiterService.resolveBucket(key,
-            ANONYMOUS_CAPACITY, ANONYMOUS_REFILL, ANONYMOUS_PERIOD);
+            anonymousCapacity, anonymousRefill, Duration.ofSeconds(anonymousPeriodSeconds));
     }
 }

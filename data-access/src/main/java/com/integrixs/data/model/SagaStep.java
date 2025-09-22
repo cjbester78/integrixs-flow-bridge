@@ -2,6 +2,10 @@ package com.integrixs.data.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * Entity representing a step in a saga transaction
@@ -205,6 +209,37 @@ public class SagaStep extends BaseEntity {
         // Store in completedAt when compensated
         if(this.compensated) {
             this.completedAt = compensationTime;
+        }
+    }
+    
+    // Helper method to get parameters from actionData
+    public Map<String, Object> getParameters() {
+        if (actionData == null || actionData.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(actionData, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            // If parsing fails, return empty map
+            return new HashMap<>();
+        }
+    }
+    
+    // Helper method to set parameters
+    public void setParameters(Map<String, Object> parameters) {
+        if (parameters == null) {
+            this.actionData = null;
+            return;
+        }
+        
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            this.actionData = mapper.writeValueAsString(parameters);
+        } catch (Exception e) {
+            // If serialization fails, set to null
+            this.actionData = null;
         }
     }
 }

@@ -131,4 +131,6 @@ public interface FlowTemplateRepository extends JpaRepository<FlowTemplate, UUID
            "LEFT JOIN FETCH t.screenshots " +
            "WHERE t.slug = :slug")
     Optional<FlowTemplate> findBySlugWithDetails(@Param("slug") String slug);
+    
+    Page<FlowTemplate> findByAuthor(com.integrixs.backend.auth.entity.User author, Pageable pageable);
 }

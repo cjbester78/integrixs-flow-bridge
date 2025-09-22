@@ -264,4 +264,18 @@ public class ExecutionStats {
     public void setThroughput(Double throughput) {
         this.throughput = throughput;
     }
+
+    // Alias method for compatibility
+    public Long getCount() {
+        return totalExecutions;
+    }
+    
+    // Additional alias methods for FlowExecutionHeatmapService compatibility
+    public void setCount(int count) {
+        this.totalExecutions = Long.valueOf(count);
+    }
+    
+    public void setAverageDuration(double duration) {
+        this.averageExecutionTime = Duration.ofMillis((long) duration);
+    }
 }

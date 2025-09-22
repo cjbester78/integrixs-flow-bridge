@@ -8,6 +8,7 @@ import java.util.Map;
  * Result DTO for template installation
  */
 public class InstallationResultDto {
+    private boolean success;
     private String installationId;
     private String templateId;
     private String templateName;
@@ -26,6 +27,13 @@ public class InstallationResultDto {
     }
     
     // Getters and setters
+    public boolean isSuccess() {
+        return success;
+    }
+    
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
     public String getInstallationId() {
         return installationId;
     }
@@ -128,6 +136,7 @@ public class InstallationResultDto {
     }
     
     public static class InstallationResultDtoBuilder {
+        private boolean success;
         private String installationId;
         private String templateId;
         private String templateName;
@@ -140,6 +149,11 @@ public class InstallationResultDto {
         private List<String> createdResources;
         private Map<String, Object> configuration;
         private String message;
+        
+        public InstallationResultDtoBuilder success(boolean success) {
+            this.success = success;
+            return this;
+        }
         
         public InstallationResultDtoBuilder installationId(String installationId) {
             this.installationId = installationId;
@@ -203,6 +217,7 @@ public class InstallationResultDto {
         
         public InstallationResultDto build() {
             InstallationResultDto dto = new InstallationResultDto();
+            dto.setSuccess(this.success);
             dto.setInstallationId(this.installationId);
             dto.setTemplateId(this.templateId);
             dto.setTemplateName(this.templateName);

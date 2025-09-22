@@ -1,6 +1,6 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.backend.shared.exception.SessionException;
+import com.integrixs.shared.exceptions.SessionException;
 import com.integrixs.data.model.User;
 import com.integrixs.data.model.UserSession;
 import com.integrixs.data.repository.UserSessionRepository;
@@ -16,6 +16,10 @@ import java.util.UUID;
 public class UserSessionService {
 
     private final UserSessionRepository sessionRepository;
+
+    public UserSessionService(UserSessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
+    }
 
     /**
      * Create a new user session

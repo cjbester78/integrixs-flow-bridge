@@ -22,4 +22,6 @@ public interface FieldMappingRepository extends JpaRepository<FieldMapping, UUID
     List<FieldMapping> findByTransformationFlowIdAndIsActiveTrueOrderByTransformationExecutionOrder(UUID flowId);
 
     long countByTransformationId(UUID transformationId);
+    
+    List<FieldMapping> findByIsActiveTrue();
 }

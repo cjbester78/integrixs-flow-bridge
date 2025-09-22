@@ -38,6 +38,12 @@ public class MessageController {
     private final MessageQueryService queryService;
     private final MessageQueueManagementService queueService;
 
+    public MessageController(MessageQueryService queryService,
+                           MessageQueueManagementService queueService) {
+        this.queryService = queryService;
+        this.queueService = queueService;
+    }
+
     @GetMapping
     @Operation(summary = "Query messages", description = "Query messages with filtering, sorting and pagination")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")

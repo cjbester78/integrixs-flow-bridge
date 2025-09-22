@@ -7,11 +7,13 @@ import java.util.Map;
  */
 public class InstallTemplateRequest {
     private String templateId;
-    private String versionId;
+    private String version;
     private String targetBusinessComponentId;
     private String name;
     private String description;
     private Map<String, Object> configuration;
+    private boolean enableAutoUpdate;
+    private String organizationId;
     
     // Default constructor
     public InstallTemplateRequest() {
@@ -26,12 +28,12 @@ public class InstallTemplateRequest {
         this.templateId = templateId;
     }
     
-    public String getVersionId() {
-        return versionId;
+    public String getVersion() {
+        return version;
     }
     
-    public void setVersionId(String versionId) {
-        this.versionId = versionId;
+    public void setVersion(String version) {
+        this.version = version;
     }
     
     public String getTargetBusinessComponentId() {
@@ -64,5 +66,21 @@ public class InstallTemplateRequest {
     
     public void setConfiguration(Map<String, Object> configuration) {
         this.configuration = configuration;
+    }
+    
+    public boolean isEnableAutoUpdate() {
+        return enableAutoUpdate;
+    }
+    
+    public void setEnableAutoUpdate(boolean enableAutoUpdate) {
+        this.enableAutoUpdate = enableAutoUpdate;
+    }
+    
+    public String getOrganizationId() {
+        return organizationId;
+    }
+    
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 }

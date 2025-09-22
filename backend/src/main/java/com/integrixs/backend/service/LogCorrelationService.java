@@ -4,6 +4,7 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
 import com.integrixs.shared.dto.log.CorrelatedLogGroup;
 import com.integrixs.shared.dto.log.FlowExecutionTimeline;
+import com.integrixs.shared.dto.system.SystemLogDTO;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -50,10 +51,13 @@ public class LogCorrelationService {
         // Sort by timestamp
         logs.sort(Comparator.comparing(SystemLog::getTimestamp));
 
+        // Convert entities to DTOs
+        List<SystemLogDTO> logDTOs = convertToDTO(logs);
+        
         // Build correlated group
         CorrelatedLogGroup group = new CorrelatedLogGroup();
         group.setCorrelationId(correlationId);
-        group.setLogs(logs);
+        group.setLogs(logDTOs);
         group.setStartTime(logs.get(0).getTimestamp());
         group.setEndTime(logs.get(logs.size() - 1).getTimestamp());
         group.setDuration(Duration.between(group.getStartTime(), group.getEndTime()));
@@ -111,7 +115,7 @@ public class LogCorrelationService {
             step.setStartTime(componentLogList.get(0).getTimestamp());
             step.setEndTime(componentLogList.get(componentLogList.size() - 1).getTimestamp());
             step.setDuration(Duration.between(step.getStartTime(), step.getEndTime()));
-            step.setLogs(componentLogList);
+            step.setLogs(convertToDTO(componentLogList));
 
             // Determine step status
             boolean hasError = componentLogList.stream()
@@ -171,7 +175,7 @@ public class LogCorrelationService {
             if(!relatedLogs.isEmpty()) {
                 CorrelatedLogGroup group = new CorrelatedLogGroup();
                 group.setCorrelationId("extracted-" + id);
-                group.setLogs(relatedLogs);
+                group.setLogs(convertToDTO(relatedLogs));
                 group.setRelationType("ID_MATCH");
                 relatedGroups.add(group);
             }
@@ -192,7 +196,7 @@ public class LogCorrelationService {
             if(!proximityLogs.isEmpty()) {
                 CorrelatedLogGroup group = new CorrelatedLogGroup();
                 group.setCorrelationId("proximity-" + baseLog.getId());
-                group.setLogs(proximityLogs);
+                group.setLogs(convertToDTO(proximityLogs));
                 group.setRelationType("TIME_PROXIMITY");
                 relatedGroups.add(group);
             }
@@ -292,7 +296,7 @@ public class LogCorrelationService {
 
             CorrelatedLogGroup.TimelineEntry entry = new CorrelatedLogGroup.TimelineEntry();
             entry.setTimestamp(log.getTimestamp());
-            entry.setLevel(log.getLevel());
+            entry.setLevel(log.getLevel().name());
             entry.setMessage(log.getMessage());
             entry.setCategory(log.getCategory());
 
@@ -562,5 +566,38 @@ public class LogCorrelationService {
             .stream()
             .limit(50)
             .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convert SystemLog entities to SystemLogDTO objects.
+     */
+    private List<SystemLogDTO> convertToDTO(List<SystemLog> logs) {
+        return logs.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convert a single SystemLog entity to SystemLogDTO.
+     */
+    private SystemLogDTO convertToDTO(SystemLog log) {
+        SystemLogDTO dto = new SystemLogDTO();
+        dto.setId(log.getId() != null ? log.getId().toString() : null);
+        dto.setTimestamp(log.getTimestamp());
+        dto.setLevel(log.getLevel() != null ? log.getLevel().name() : null);
+        dto.setMessage(log.getMessage());
+        dto.setDetails(log.getDetails());
+        dto.setSource(log.getSource());
+        dto.setSourceId(log.getSourceId());
+        dto.setSourceName(log.getSourceName());
+        dto.setComponent(log.getComponent());
+        dto.setComponentId(log.getComponentId());
+        dto.setDomainType(log.getDomainType());
+        dto.setDomainReferenceId(log.getDomainReferenceId());
+        dto.setUserId(log.getUserId() != null ? log.getUserId().toString() : null);
+        dto.setCreatedAt(log.getCreatedAt());
+        dto.setCorrelationId(log.getCorrelationId());
+        dto.setClientIp(log.getIpAddress());
+        return dto;
     }
 }

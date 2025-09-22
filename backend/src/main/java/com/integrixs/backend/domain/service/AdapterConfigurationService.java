@@ -24,6 +24,10 @@ public class AdapterConfigurationService {
     private final CredentialEncryptionService encryptionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public AdapterConfigurationService(CredentialEncryptionService encryptionService) {
+        this.encryptionService = encryptionService;
+    }
+
     // Fields that contain sensitive data and should be encrypted
     private static final List<String> SENSITIVE_FIELDS = Arrays.asList(
         "password", "apiKey", "secret", "token", "privateKey",

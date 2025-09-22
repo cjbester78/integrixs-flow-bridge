@@ -3,6 +3,7 @@ package com.integrixs.backend.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.application.service.OrchestrationTargetService;
+import com.integrixs.backend.api.dto.response.OrchestrationTargetResponse;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.OrchestrationTarget;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -333,9 +334,9 @@ public class BpmnConverterService {
     }
 
     private void addOrchestrationTargets(Document doc, Element process, IntegrationFlow flow, Map<String, String> nodeMapping) {
-        List<OrchestrationTarget> targets = orchestrationTargetService.getTargetsByFlowId(flow.getId());
+        List<OrchestrationTargetResponse> targets = orchestrationTargetService.getFlowTargets(flow.getId().toString());
 
-        for(OrchestrationTarget target : targets) {
+        for(OrchestrationTargetResponse target : targets) {
             String targetId = "Target_" + target.getId();
 
             // Skip if already in visual flow
@@ -346,13 +347,13 @@ public class BpmnConverterService {
             // Create service task for target
             Element serviceTask = doc.createElementNS("http://www.omg.org/spec/BPMN/20100524/MODEL", "bpmn:serviceTask");
             serviceTask.setAttribute("id", targetId);
-            serviceTask.setAttribute("name", target.getTargetAdapter().getName());
+            serviceTask.setAttribute("name", target.getTargetAdapter() != null ? target.getTargetAdapter().getName() : "Target");
             serviceTask.setAttribute("implementation", "##WebService");
 
             // Add extension elements with target details
             Element extensionElements = doc.createElementNS("http://www.omg.org/spec/BPMN/20100524/MODEL", "bpmn:extensionElements");
             Element targetConfig = doc.createElement("integrixs:targetConfig");
-            targetConfig.setAttribute("adapterId", target.getTargetAdapter().getId().toString());
+            targetConfig.setAttribute("adapterId", target.getTargetAdapter() != null ? target.getTargetAdapter().getId() : "");
             targetConfig.setAttribute("executionOrder", String.valueOf(target.getExecutionOrder()));
             targetConfig.setAttribute("parallel", String.valueOf(target.isParallel()));
 

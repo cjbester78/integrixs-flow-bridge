@@ -23,6 +23,12 @@ public class MessageService {
     private final SystemLogRepository systemLogRepository;
     private final AdapterPayloadRepository adapterPayloadRepository;
 
+    public MessageService(SystemLogRepository systemLogRepository, 
+                         AdapterPayloadRepository adapterPayloadRepository) {
+        this.systemLogRepository = systemLogRepository;
+        this.adapterPayloadRepository = adapterPayloadRepository;
+    }
+
     /**
      * Log a processing step for a flow execution
      */

@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.integrixs.data.repository.UserRepository;
@@ -85,7 +86,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // Load the User entity from the database
                 User user = null;
                 if(userRepository != null) {
-                    user = userRepository.findByUsername(username);
+                    Optional<User> userOpt = userRepository.findByUsername(username);
+                    if(userOpt.isPresent()) {
+                        user = userOpt.get();
+                    }
                 }
 
                 // Create authorities list with ROLE_ prefix for Spring Security

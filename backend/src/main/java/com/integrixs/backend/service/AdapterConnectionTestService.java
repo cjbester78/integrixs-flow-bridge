@@ -56,7 +56,7 @@ public class AdapterConnectionTestService {
                     return testRestConnection(request, diagnostics);
                 case SOAP:
                     return testSoapConnection(request, diagnostics);
-                case DATABASE:
+                case JDBC:
                     return testDatabaseConnection(request, diagnostics);
                 case FILE:
                     return testFileConnection(request, diagnostics);

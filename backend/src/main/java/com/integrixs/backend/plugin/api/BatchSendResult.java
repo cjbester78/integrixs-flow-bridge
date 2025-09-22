@@ -63,4 +63,123 @@ public class BatchSendResult {
     public boolean isPartialSuccess() {
         return successCount > 0 && failureCount > 0;
     }
+
+    // Getters and Setters
+    public int getTotalMessages() {
+        return totalMessages;
+    }
+
+    public void setTotalMessages(int totalMessages) {
+        this.totalMessages = totalMessages;
+    }
+
+    public int getSuccessCount() {
+        return successCount;
+    }
+
+    public void setSuccessCount(int successCount) {
+        this.successCount = successCount;
+    }
+
+    public int getFailureCount() {
+        return failureCount;
+    }
+
+    public void setFailureCount(int failureCount) {
+        this.failureCount = failureCount;
+    }
+
+    public List<SendResult> getResults() {
+        return results;
+    }
+
+    public void setResults(List<SendResult> results) {
+        this.results = results;
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    // Builder pattern
+    public static BatchSendResultBuilder builder() {
+        return new BatchSendResultBuilder();
+    }
+
+    public static class BatchSendResultBuilder {
+        private int totalMessages;
+        private int successCount;
+        private int failureCount;
+        private List<SendResult> results;
+        private String batchId;
+        private String message;
+        private Map<String, Object> metadata;
+
+        public BatchSendResultBuilder totalMessages(int totalMessages) {
+            this.totalMessages = totalMessages;
+            return this;
+        }
+
+        public BatchSendResultBuilder successCount(int successCount) {
+            this.successCount = successCount;
+            return this;
+        }
+
+        public BatchSendResultBuilder failureCount(int failureCount) {
+            this.failureCount = failureCount;
+            return this;
+        }
+
+        public BatchSendResultBuilder results(List<SendResult> results) {
+            this.results = results;
+            return this;
+        }
+
+        public BatchSendResultBuilder batchId(String batchId) {
+            this.batchId = batchId;
+            return this;
+        }
+
+        public BatchSendResultBuilder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public BatchSendResultBuilder metadata(Map<String, Object> metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public BatchSendResult build() {
+            BatchSendResult result = new BatchSendResult();
+            result.totalMessages = this.totalMessages;
+            result.successCount = this.successCount;
+            result.failureCount = this.failureCount;
+            result.results = this.results;
+            result.batchId = this.batchId;
+            result.message = this.message;
+            result.metadata = this.metadata;
+            return result;
+        }
+    }
 }

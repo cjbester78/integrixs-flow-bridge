@@ -2,8 +2,8 @@ package com.integrixs.monitoring.infrastructure.persistence;
 
 import com.integrixs.monitoring.domain.model.Alert;
 import com.integrixs.monitoring.domain.repository.AlertRepository;
-import com.integrixs.monitoring.domain.service.AlertingService.AlertQueryCriteria;
-import com.integrixs.monitoring.domain.service.AlertingService.AlertRule;
+import com.integrixs.monitoring.domain.service.MonitoringAlertService.AlertQueryCriteria;
+import com.integrixs.monitoring.domain.service.MonitoringAlertService.AlertRule;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;

@@ -2,8 +2,8 @@ package com.integrixs.backend.application.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.api.dto.response.DeploymentInfoResponse;
-import com.integrixs.backend.domain.repository.CommunicationAdapterRepository;
-import com.integrixs.backend.domain.repository.IntegrationFlowRepository;
+import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.repository.IntegrationFlowRepository;
 import com.integrixs.backend.domain.service.DeploymentOrchestrator;
 import com.integrixs.backend.domain.service.DeploymentValidator;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -36,6 +36,20 @@ public class FlowDeploymentApplicationService {
     private final DeploymentValidator deploymentValidator;
     private final AuditTrailService auditTrailService;
     private final ObjectMapper objectMapper;
+    
+    public FlowDeploymentApplicationService(IntegrationFlowRepository flowRepository,
+                                          CommunicationAdapterRepository adapterRepository,
+                                          DeploymentOrchestrator deploymentOrchestrator,
+                                          DeploymentValidator deploymentValidator,
+                                          AuditTrailService auditTrailService,
+                                          ObjectMapper objectMapper) {
+        this.flowRepository = flowRepository;
+        this.adapterRepository = adapterRepository;
+        this.deploymentOrchestrator = deploymentOrchestrator;
+        this.deploymentValidator = deploymentValidator;
+        this.auditTrailService = auditTrailService;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Deploy an integration flow

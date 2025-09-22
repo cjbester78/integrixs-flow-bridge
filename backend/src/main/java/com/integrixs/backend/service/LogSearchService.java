@@ -4,6 +4,8 @@ import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.repository.SystemLogRepository;
 import com.integrixs.shared.dto.log.LogSearchCriteria;
 import com.integrixs.shared.dto.log.LogSearchResult;
+import com.integrixs.shared.dto.system.SystemLogDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +47,7 @@ public class LogSearchService {
 
         // Build search result
         LogSearchResult result = new LogSearchResult();
-        result.setLogs(logsPage.getContent());
+        result.setLogs(convertToSystemLogDTOs(logsPage.getContent()));
         result.setTotalElements(logsPage.getTotalElements());
         result.setTotalPages(logsPage.getTotalPages());
         result.setCurrentPage(logsPage.getNumber());
@@ -75,12 +77,10 @@ public class LogSearchService {
      * Get logs for a specific flow execution.
      */
     public List<SystemLog> getFlowExecutionLogs(String flowId, LocalDateTime startTime, LocalDateTime endTime) {
-        Specification<SystemLog> spec = Specification.where(
-            (root, query, cb) -> cb.and(
+        Specification<SystemLog> spec = (root, query, cb) -> cb.and(
                 cb.like(root.get("message"), "%flow: " + flowId + "%"),
                 cb.between(root.get("timestamp"), startTime, endTime)
-           )
-       );
+           );
 
         return systemLogRepository.findAll(spec, Sort.by("timestamp"));
     }
@@ -281,11 +281,11 @@ public class LogSearchService {
 
         switch(format.toLowerCase()) {
             case "csv":
-                return exportToCsv(searchResult.getLogs());
+                return exportToCsv(convertToSystemLogs(searchResult.getLogs()));
             case "json":
-                return exportToJson(searchResult.getLogs());
+                return exportToJson(convertToSystemLogs(searchResult.getLogs()));
             case "text":
-                return exportToText(searchResult.getLogs());
+                return exportToText(convertToSystemLogs(searchResult.getLogs()));
             default:
                 throw new IllegalArgumentException("Unsupported export format: " + format);
         }
@@ -348,5 +348,72 @@ public class LogSearchService {
         }
 
         return text.toString().getBytes();
+    }
+    
+    /**
+     * Convert SystemLog entities to SystemLogDTOs
+     */
+    private List<SystemLogDTO> convertToSystemLogDTOs(List<SystemLog> logs) {
+        List<SystemLogDTO> dtos = new ArrayList<>();
+        for (SystemLog log : logs) {
+            SystemLogDTO dto = new SystemLogDTO();
+            dto.setId(log.getId() != null ? log.getId().toString() : null);
+            dto.setTimestamp(log.getCreatedAt());
+            dto.setLevel(log.getLevel() != null ? log.getLevel().name() : null);
+            dto.setMessage(log.getMessage());
+            dto.setDetails(log.getDetails());
+            dto.setSource(log.getSource());
+            dto.setSourceId(log.getSourceId());
+            dto.setSourceName(log.getSourceName());
+            dto.setComponent(log.getComponent());
+            dto.setComponentId(log.getComponentId());
+            dto.setDomainType(log.getDomainType());
+            dto.setDomainReferenceId(log.getDomainReferenceId());
+            dto.setUserId(log.getUserId() != null ? log.getUserId().toString() : null);
+            dto.setCreatedAt(log.getCreatedAt());
+            dto.setCorrelationId(log.getCorrelationId());
+            dto.setClientIp(log.getIpAddress());
+            
+            // Note: SystemLog doesn't have context data field, leaving context empty
+            
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+    
+    /**
+     * Convert SystemLogDTOs to SystemLog entities
+     */
+    private List<SystemLog> convertToSystemLogs(List<SystemLogDTO> dtos) {
+        List<SystemLog> logs = new ArrayList<>();
+        for (SystemLogDTO dto : dtos) {
+            SystemLog log = new SystemLog();
+            if (dto.getId() != null) {
+                log.setId(UUID.fromString(dto.getId()));
+            }
+            log.setCreatedAt(dto.getTimestamp());
+            if (dto.getLevel() != null) {
+                log.setLevel(SystemLog.LogLevel.valueOf(dto.getLevel()));
+            }
+            log.setMessage(dto.getMessage());
+            log.setDetails(dto.getDetails());
+            log.setSource(dto.getSource());
+            log.setSourceId(dto.getSourceId());
+            log.setSourceName(dto.getSourceName());
+            log.setComponent(dto.getComponent());
+            log.setComponentId(dto.getComponentId());
+            log.setDomainType(dto.getDomainType());
+            log.setDomainReferenceId(dto.getDomainReferenceId());
+            if (dto.getUserId() != null) {
+                log.setUserId(UUID.fromString(dto.getUserId()));
+            }
+            log.setCorrelationId(dto.getCorrelationId());
+            log.setIpAddress(dto.getClientIp());
+            
+            // Note: SystemLog doesn't have context data field
+            
+            logs.add(log);
+        }
+        return logs;
     }
 }

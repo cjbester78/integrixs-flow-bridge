@@ -1,6 +1,6 @@
 package com.integrixs.backend.camunda;
 
-import com.integrixs.backend.service.AdapterExecutionService;
+import com.integrixs.backend.service.BackendAdapterExecutor;
 import com.integrixs.backend.service.TransformationExecutionService;
 import com.integrixs.backend.application.service.OrchestrationTargetService;
 import com.integrixs.data.model.CommunicationAdapter;
@@ -53,7 +53,7 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private TransformationExecutionService transformationService;
 
     @Autowired
-    private AdapterExecutionService adapterExecutionService;
+    private BackendAdapterExecutor adapterExecutionService;
 
     @Autowired
     private OrchestrationTargetService orchestrationTargetService;

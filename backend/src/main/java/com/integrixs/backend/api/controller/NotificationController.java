@@ -23,6 +23,10 @@ public class NotificationController {
 
     private final NotificationApplicationService notificationApplicationService;
 
+    public NotificationController(NotificationApplicationService notificationApplicationService) {
+        this.notificationApplicationService = notificationApplicationService;
+    }
+
     /**
      * Test notification configuration
      */

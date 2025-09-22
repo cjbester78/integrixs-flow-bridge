@@ -10,6 +10,8 @@ public class ErrorEvent {
     private String errorMessage;
     private String severity;
     private int errorCode;
+    private String componentId;
+    private String correlationId;
 
     // Default constructor
     public ErrorEvent() {
@@ -61,5 +63,21 @@ public class ErrorEvent {
 
     public void setErrorCode(int errorCode) {
         this.errorCode = errorCode;
+    }
+    
+    public String getComponentId() {
+        return componentId;
+    }
+    
+    public void setComponentId(String componentId) {
+        this.componentId = componentId;
+    }
+    
+    public String getCorrelationId() {
+        return correlationId;
+    }
+    
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 }

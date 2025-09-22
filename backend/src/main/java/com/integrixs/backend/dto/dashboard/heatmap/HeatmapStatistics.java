@@ -8,6 +8,7 @@ public class HeatmapStatistics {
     private double averageDuration;
     private LocalDateTime peakExecutionTime;
     private long peakExecutionCount;
+    private Integer peakExecutionHour;
 
     // Default constructor
     public HeatmapStatistics() {
@@ -51,5 +52,13 @@ public class HeatmapStatistics {
 
     public void setPeakExecutionCount(long peakExecutionCount) {
         this.peakExecutionCount = peakExecutionCount;
+    }
+
+    public Integer getPeakExecutionHour() {
+        return peakExecutionHour;
+    }
+
+    public void setPeakExecutionHour(Integer peakExecutionHour) {
+        this.peakExecutionHour = peakExecutionHour;
     }
 }

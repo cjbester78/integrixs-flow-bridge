@@ -555,11 +555,11 @@ public class ExternalAuthentication {
         this.customHeaders = customHeaders;
     }
 
-    public boolean isIsActive() {
+    public boolean isActive() {
         return isActive;
     }
 
-    public void setIsActive(boolean isActive) {
+    public void setActive(boolean isActive) {
         this.isActive = isActive;
     }
 
@@ -935,7 +935,7 @@ public class ExternalAuthentication {
             instance.setCertificateType(this.certificateType);
             instance.setTrustStorePath(this.trustStorePath);
             instance.setEncryptedTrustStorePassword(this.encryptedTrustStorePassword);
-            instance.setIsActive(this.isActive);
+            instance.setActive(this.isActive);
             instance.setLastUsedAt(this.lastUsedAt);
             instance.setUsageCount(this.usageCount);
             instance.setErrorCount(this.errorCount);

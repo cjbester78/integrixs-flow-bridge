@@ -3,8 +3,8 @@ package com.integrixs.backend.application.service;
 import com.integrixs.backend.api.dto.request.CreateFieldMappingRequest;
 import com.integrixs.backend.api.dto.request.UpdateFieldMappingRequest;
 import com.integrixs.backend.api.dto.response.FieldMappingResponse;
-import com.integrixs.backend.domain.repository.FieldMappingRepository;
-import com.integrixs.backend.domain.repository.FlowTransformationRepository;
+import com.integrixs.data.repository.FieldMappingRepository;
+import com.integrixs.data.repository.FlowTransformationRepository;
 import com.integrixs.backend.domain.service.MappingEngineService;
 import com.integrixs.backend.exception.ResourceNotFoundException;
 import com.integrixs.backend.service.AuditTrailService;
@@ -33,6 +33,16 @@ public class FieldMappingApplicationService {
     private final FlowTransformationRepository transformationRepository;
     private final MappingEngineService mappingEngineService;
     private final AuditTrailService auditTrailService;
+    
+    public FieldMappingApplicationService(FieldMappingRepository fieldMappingRepository,
+                                        FlowTransformationRepository transformationRepository,
+                                        MappingEngineService mappingEngineService,
+                                        AuditTrailService auditTrailService) {
+        this.fieldMappingRepository = fieldMappingRepository;
+        this.transformationRepository = transformationRepository;
+        this.mappingEngineService = mappingEngineService;
+        this.auditTrailService = auditTrailService;
+    }
 
     /**
      * Get all field mappings for a transformation

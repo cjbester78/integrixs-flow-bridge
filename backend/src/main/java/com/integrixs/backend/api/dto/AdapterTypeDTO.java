@@ -1,5 +1,6 @@
 package com.integrixs.backend.api.dto;
 
+import com.integrixs.data.model.AdapterType;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -145,6 +146,38 @@ public class AdapterTypeDTO {
         this.supportsBidirectional = supportsBidirectional;
     }
 
+    public Map<String, Object> getInboundConfigSchema() {
+        return inboundConfigSchema;
+    }
+
+    public void setInboundConfigSchema(Map<String, Object> inboundConfigSchema) {
+        this.inboundConfigSchema = inboundConfigSchema;
+    }
+
+    public Map<String, Object> getOutboundConfigSchema() {
+        return outboundConfigSchema;
+    }
+
+    public void setOutboundConfigSchema(Map<String, Object> outboundConfigSchema) {
+        this.outboundConfigSchema = outboundConfigSchema;
+    }
+
+    public Map<String, Object> getCommonConfigSchema() {
+        return commonConfigSchema;
+    }
+
+    public void setCommonConfigSchema(Map<String, Object> commonConfigSchema) {
+        this.commonConfigSchema = commonConfigSchema;
+    }
+
+    public Map<String, Object> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(Map<String, Object> capabilities) {
+        this.capabilities = capabilities;
+    }
+
     public String[] getSupportedProtocols() {
         return supportedProtocols;
     }
@@ -201,7 +234,7 @@ public class AdapterTypeDTO {
         this.status = status;
     }
 
-    public boolean isIsCertified() {
+    public boolean isCertified() {
         return isCertified;
     }
 
@@ -231,5 +264,40 @@ public class AdapterTypeDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    // Static factory method to convert from entity
+    public static AdapterTypeDTO from(AdapterType adapterType) {
+        AdapterTypeDTO dto = new AdapterTypeDTO();
+        dto.setId(adapterType.getId());
+        dto.setCode(adapterType.getCode());
+        dto.setName(adapterType.getName());
+        if (adapterType.getCategory() != null) {
+            dto.setCategoryId(adapterType.getCategory().getId());
+            dto.setCategoryName(adapterType.getCategory().getName());
+        }
+        dto.setVendor(adapterType.getVendor());
+        dto.setVersion(adapterType.getVersion());
+        dto.setDescription(adapterType.getDescription());
+        dto.setIcon(adapterType.getIcon());
+        dto.setSupportsInbound(adapterType.isSupportsInbound());
+        dto.setSupportsOutbound(adapterType.isSupportsOutbound());
+        dto.setSupportsBidirectional(adapterType.isSupportsBidirectional());
+        dto.setInboundConfigSchema(adapterType.getInboundConfigSchema());
+        dto.setOutboundConfigSchema(adapterType.getOutboundConfigSchema());
+        dto.setCommonConfigSchema(adapterType.getCommonConfigSchema());
+        dto.setCapabilities(adapterType.getCapabilities());
+        dto.setSupportedProtocols(adapterType.getSupportedProtocols());
+        dto.setSupportedFormats(adapterType.getSupportedFormats());
+        dto.setAuthenticationMethods(adapterType.getAuthenticationMethods());
+        dto.setDocumentationUrl(adapterType.getDocumentationUrl());
+        dto.setSupportUrl(adapterType.getSupportUrl());
+        dto.setPricingTier(adapterType.getPricingTier());
+        dto.setStatus(adapterType.getStatus());
+        dto.setIsCertified(adapterType.isCertified());
+        dto.setCertificationDate(adapterType.getCertificationDate());
+        dto.setCreatedAt(adapterType.getCreatedAt());
+        dto.setUpdatedAt(adapterType.getUpdatedAt());
+        return dto;
     }
 }

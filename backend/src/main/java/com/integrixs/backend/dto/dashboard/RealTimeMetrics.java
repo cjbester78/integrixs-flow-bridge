@@ -40,4 +40,52 @@ public class RealTimeMetrics {
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
+
+    public Map<String, Object> getSystemMetrics() {
+        return systemMetrics;
+    }
+
+    public void setSystemMetrics(Map<String, Object> systemMetrics) {
+        this.systemMetrics = systemMetrics;
+    }
+
+    public List<Map<String, Object>> getComponentPerformance() {
+        return componentPerformance;
+    }
+
+    public void setComponentPerformance(List<Map<String, Object>> componentPerformance) {
+        this.componentPerformance = componentPerformance;
+    }
+
+    public List<Map<String, Object>> getActiveOperations() {
+        return activeOperations;
+    }
+
+    public void setActiveOperations(List<Map<String, Object>> activeOperations) {
+        this.activeOperations = activeOperations;
+    }
+
+    public List<Map<String, Object>> getRecentErrors() {
+        return recentErrors;
+    }
+
+    public void setRecentErrors(List<Map<String, Object>> recentErrors) {
+        this.recentErrors = recentErrors;
+    }
+
+    public Map<String, Object> getSlaCompliance() {
+        return slaCompliance;
+    }
+
+    public void setSlaCompliance(Map<String, Object> slaCompliance) {
+        this.slaCompliance = slaCompliance;
+    }
+
+    public Map<String, Double> getThroughputRates() {
+        return throughputRates;
+    }
+
+    public void setThroughputRates(Map<String, Double> throughputRates) {
+        this.throughputRates = throughputRates;
+    }
 }

@@ -3,11 +3,11 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.DeadLetterMessage;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.IntegrationFlow;
+import com.integrixs.data.model.ErrorRecord;
 import com.integrixs.data.repository.DeadLetterMessageRepository;
 import com.integrixs.data.repository.MessageRepository;
 import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.monitoring.domain.model.Alert;
-import com.integrixs.monitoring.domain.service.AlertingService;
+import com.integrixs.data.model.Alert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -39,7 +39,7 @@ public class DeadLetterQueueService {
     private final EnhancedRetryService retryService;
 
     @Autowired(required = false)
-    private AlertingService alertingService;
+    private FlowAlertingService alertingService;
 
     @Value("$ {integrix.dlq.auto - retry.enabled:true}")
     private boolean autoRetryEnabled;
@@ -242,7 +242,7 @@ public class DeadLetterQueueService {
         // Group by error type
         Map<String, Long> errorTypeCounts = messages.stream()
             .collect(Collectors.groupingBy(
-                m -> m.getErrorType() != null ? m.getErrorType() : "UNKNOWN",
+                m -> m.getErrorType() != null ? m.getErrorType().name() : "UNKNOWN",
                 Collectors.counting()
            ));
 
@@ -283,7 +283,7 @@ public class DeadLetterQueueService {
     public void cleanupOldMessages() {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(retentionDays);
 
-        int deleted = deadLetterRepository.deleteByQueuedAtBeforeAndStatus(
+        long deleted = deadLetterRepository.deleteByQueuedAtBeforeAndStatus(
             cutoffDate,
             DeadLetterMessage.Status.RESOLVED
        );
@@ -302,20 +302,20 @@ public class DeadLetterQueueService {
         }
 
         // Check error type for retryable errors
-        String errorType = dlqMessage.getErrorType();
+        ErrorRecord.ErrorType errorType = dlqMessage.getErrorType();
         return isRetryableError(errorType);
     }
 
     /**
      * Check if error type is retryable
      */
-    private boolean isRetryableError(String errorType) {
+    private boolean isRetryableError(ErrorRecord.ErrorType errorType) {
         if(errorType == null) return true;
 
-        Set<String> nonRetryableErrors = Set.of(
-            "AUTHENTICATION_ERROR",
-            "VALIDATION_ERROR",
-            "CONFIGURATION_ERROR"
+        Set<ErrorRecord.ErrorType> nonRetryableErrors = Set.of(
+            ErrorRecord.ErrorType.AUTHENTICATION_ERROR,
+            ErrorRecord.ErrorType.VALIDATION_ERROR,
+            ErrorRecord.ErrorType.CONFIGURATION_ERROR
        );
 
         return !nonRetryableErrors.contains(errorType);
@@ -324,8 +324,8 @@ public class DeadLetterQueueService {
     /**
      * Categorize error type
      */
-    private String categorizeError(Exception error) {
-        if(error == null) return "UNKNOWN";
+    private ErrorRecord.ErrorType categorizeError(Exception error) {
+        if(error == null) return ErrorRecord.ErrorType.UNKNOWN_ERROR;
 
         String className = error.getClass().getSimpleName();
         String message = error.getMessage() != null ? error.getMessage().toLowerCase() : "";
@@ -333,17 +333,17 @@ public class DeadLetterQueueService {
         if(error instanceof java.net.ConnectException ||
             error instanceof java.net.SocketException ||
             message.contains("connection")) {
-            return "CONNECTION_ERROR";
+            return ErrorRecord.ErrorType.CONNECTION_ERROR;
         } else if(message.contains("timeout")) {
-            return "TIMEOUT_ERROR";
+            return ErrorRecord.ErrorType.TIMEOUT_ERROR;
         } else if(message.contains("auth") || message.contains("credential")) {
-            return "AUTHENTICATION_ERROR";
+            return ErrorRecord.ErrorType.AUTHENTICATION_ERROR;
         } else if(message.contains("validation") || message.contains("invalid")) {
-            return "VALIDATION_ERROR";
+            return ErrorRecord.ErrorType.VALIDATION_ERROR;
         } else if(message.contains("transform")) {
-            return "TRANSFORMATION_ERROR";
+            return ErrorRecord.ErrorType.TRANSFORMATION_ERROR;
         } else {
-            return "SYSTEM_ERROR";
+            return ErrorRecord.ErrorType.SYSTEM_ERROR;
         }
     }
 
@@ -353,11 +353,24 @@ public class DeadLetterQueueService {
     private boolean isCriticalError(Exception error) {
         if(error == null) return false;
 
-        return error instanceof OutOfMemoryError ||
-               error instanceof StackOverflowError ||
-               error.getMessage() != null &&
-               (error.getMessage().contains("critical") ||
-                error.getMessage().contains("fatal"));
+        // Check the exception itself
+        if(error.getMessage() != null &&
+           (error.getMessage().contains("critical") ||
+            error.getMessage().contains("fatal"))) {
+            return true;
+        }
+
+        // Check if the cause is a critical error
+        Throwable cause = error.getCause();
+        while(cause != null) {
+            if(cause instanceof OutOfMemoryError ||
+               cause instanceof StackOverflowError) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 
     /**
@@ -372,23 +385,27 @@ public class DeadLetterQueueService {
             String flowName = message.getFlow() != null ?
                 message.getFlow().getName() : "Unknown Flow";
 
-            Alert alert = Alert.builder()
-                .alertName("Critical DLQ Error")
-                .alertType(Alert.AlertType.ERROR_RATE)
-                .severity(Alert.AlertSeverity.CRITICAL)
-                .source("DeadLetterQueueService")
-                .message(String.format(
-                    "Critical error in flow '%s': %s. Message moved to DLQ.",
-                    flowName, reason
-               ))
-                .domainType("Message")
-                .domainReferenceId(message.getMessageId())
-                .build();
+            Map<String, String> details = new HashMap<>();
+            details.put("errorType", error.getClass().getName());
+            details.put("errorMessage", error.getMessage());
+            details.put("messageId", message.getMessageId());
+            details.put("flowName", flowName);
 
-            alert.addMetadata("errorType", error.getClass().getName());
-            alert.addMetadata("errorMessage", error.getMessage());
+            // Create alert using the alerting service method
+            String alertMessage = String.format(
+                "Critical error in flow '%s': %s. Message moved to DLQ.",
+                flowName, reason
+            );
 
-            alertingService.triggerAlert(alert);
+            // For critical errors, we'll use the flow as the source if available
+            if(message.getFlow() != null) {
+                alertingService.createAlert(null, "Critical DLQ Error", alertMessage,
+                    com.integrixs.data.model.Alert.SourceType.FLOW,
+                    message.getFlow().getId().toString(), details);
+            } else {
+                // Log if we can't create alert
+                log.error("Cannot create alert - no flow associated with message");
+            }
 
         } catch(Exception e) {
             log.error("Failed to send critical error alert", e);

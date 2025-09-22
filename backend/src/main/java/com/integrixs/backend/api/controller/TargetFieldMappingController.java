@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  * REST controller for target - specific field mapping management
  */
 @RestController
-@RequestMapping("/api/flows/ {flowId}/targets/ {targetId}/mappings")
+@RequestMapping("/api/flows/{flowId}/targets/{targetId}/mappings")
 @Tag(name = "Target Field Mappings", description = "Manage field mappings for orchestration targets")
 public class TargetFieldMappingController {
 
@@ -30,6 +30,10 @@ public class TargetFieldMappingController {
 
 
     private final TargetFieldMappingService mappingService;
+    
+    public TargetFieldMappingController(TargetFieldMappingService mappingService) {
+        this.mappingService = mappingService;
+    }
 
     @GetMapping
     @Operation(summary = "Get all mappings for a target", description = "Retrieve all field mappings for a specific orchestration target")
@@ -45,7 +49,7 @@ public class TargetFieldMappingController {
         return ResponseEntity.ok(mappings);
     }
 
-    @GetMapping("/ {mappingId}")
+    @GetMapping("/{mappingId}")
     @Operation(summary = "Get mapping by ID", description = "Retrieve a specific field mapping")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "TARGET.MAPPING.GET", module = "FieldMapping")
@@ -74,7 +78,7 @@ public class TargetFieldMappingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mapping);
     }
 
-    @PutMapping("/ {mappingId}")
+    @PutMapping("/{mappingId}")
     @Operation(summary = "Update field mapping", description = "Update an existing field mapping")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "TARGET.MAPPING.UPDATE", module = "FieldMapping", logInput = true)
@@ -90,7 +94,7 @@ public class TargetFieldMappingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/ {mappingId}")
+    @DeleteMapping("/{mappingId}")
     @Operation(summary = "Delete field mapping", description = "Delete a field mapping from a target")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER')")
     @BusinessOperation(value = "TARGET.MAPPING.DELETE", module = "FieldMapping")
@@ -131,7 +135,7 @@ public class TargetFieldMappingController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/ {mappingId}/activate")
+    @PostMapping("/{mappingId}/activate")
     @Operation(summary = "Activate mapping", description = "Activate a field mapping")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "TARGET.MAPPING.ACTIVATE", module = "FieldMapping")
@@ -146,7 +150,7 @@ public class TargetFieldMappingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/ {mappingId}/deactivate")
+    @PostMapping("/{mappingId}/deactivate")
     @Operation(summary = "Deactivate mapping", description = "Deactivate a field mapping")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "TARGET.MAPPING.DEACTIVATE", module = "FieldMapping")

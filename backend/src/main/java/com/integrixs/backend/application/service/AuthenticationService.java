@@ -35,6 +35,16 @@ public class AuthenticationService {
     // private final UserService userService;
     private final AuditTrailService auditTrailService;
 
+    public AuthenticationService(UserAuthenticationService authService,
+                                 UserSessionService sessionService,
+                                 JwtUtil jwtUtil,
+                                 AuditTrailService auditTrailService) {
+        this.authService = authService;
+        this.sessionService = sessionService;
+        this.jwtUtil = jwtUtil;
+        this.auditTrailService = auditTrailService;
+    }
+
     /**
      * Handle user login
      */

@@ -213,7 +213,7 @@ public class OptimizedIntegrationFlowRepository extends OptimizedRepositoryImpl<
         query.where(
             cb.and(
                 cb.like(root.get("deploymentEndpoint"), "%" + path + "%"),
-                cb.equal(root.get("status"), FlowStatus.DEPLOYED)
+                cb.equal(root.get("status"), FlowStatus.DEPLOYED_ACTIVE)
            )
        );
 
