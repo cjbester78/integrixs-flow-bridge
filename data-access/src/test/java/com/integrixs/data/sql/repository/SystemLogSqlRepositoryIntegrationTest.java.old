@@ -1,0 +1,233 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.SystemLog;
+import com.integrixs.data.model.SystemLog.LogLevel;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for SystemLogSqlRepository.
+ */
+public class SystemLogSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private SystemLogSqlRepository systemLogRepository;
+
+    @Override
+    protected void setUp() {
+        systemLogRepository = new SystemLogSqlRepository(sqlQueryExecutor);
+        setupTestLogs();
+    }
+
+    private void setupTestLogs() {
+        createLog(LogLevel.INFO, "FLOW_EXECUTION", "Flow started", "flow-001");
+        createLog(LogLevel.ERROR, "ADAPTER_ERROR", "Connection failed", "adapter-001");
+        createLog(LogLevel.WARN, "PERFORMANCE", "Slow query detected", null);
+        createLog(LogLevel.DEBUG, "FLOW_EXECUTION", "Processing message", "flow-001");
+        createLog(LogLevel.ERROR, "SECURITY", "Authentication failed", null);
+        
+        // Create some old logs for retention testing
+        SystemLog oldLog = createLog(LogLevel.INFO, "CLEANUP", "Old log entry", null);
+        oldLog.setTimestamp(LocalDateTime.now().minusDays(100));
+        systemLogRepository.update(oldLog);
+    }
+
+    private SystemLog createLog(LogLevel level, String category, String message, String correlationId) {
+        SystemLog log = SystemLog.builder()
+                .timestamp(LocalDateTime.now())
+                .level(level)
+                .category(category)
+                .message(message)
+                .source("TEST")
+                .correlationId(correlationId != null ? correlationId : UUID.randomUUID().toString())
+                .build();
+        return systemLogRepository.save(log);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        SystemLog log = createLog(LogLevel.INFO, "TEST", "Test message", "test-001");
+
+        // When
+        var found = systemLogRepository.findById(log.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test message", found.get().getMessage());
+        assertEquals("test-001", found.get().getCorrelationId());
+    }
+
+    @Test
+    void testFindByCorrelationId() {
+        // When
+        List<SystemLog> logs = systemLogRepository.findByCorrelationIdOrderByTimestamp("flow-001");
+
+        // Then
+        assertEquals(2, logs.size());
+        assertTrue(logs.get(0).getTimestamp().isBefore(logs.get(1).getTimestamp()) || 
+                  logs.get(0).getTimestamp().isEqual(logs.get(1).getTimestamp()));
+    }
+
+    @Test
+    void testFindByLevel() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<SystemLog> errorLogs = systemLogRepository.findByLevel(LogLevel.ERROR, pageRequest);
+
+        // Then
+        assertEquals(2, errorLogs.getTotalElements());
+        assertTrue(errorLogs.getContent().stream()
+                .allMatch(log -> log.getLevel() == LogLevel.ERROR));
+    }
+
+    @Test
+    void testFindByCategory() {
+        // When
+        List<SystemLog> flowLogs = systemLogRepository.findByCategory("FLOW_EXECUTION");
+
+        // Then
+        assertEquals(2, flowLogs.size());
+        assertTrue(flowLogs.stream()
+                .allMatch(log -> "FLOW_EXECUTION".equals(log.getCategory())));
+    }
+
+    @Test
+    void testFindBySourceAndLevelAndTimestampAfter() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(5);
+
+        // When
+        List<SystemLog> recentErrors = systemLogRepository
+                .findBySourceAndLevelAndTimestampAfter("TEST", LogLevel.ERROR, cutoff);
+
+        // Then
+        assertEquals(2, recentErrors.size()); // Both error logs are recent
+    }
+
+    @Test
+    void testFindByCategoryAndTimestampBetween() {
+        // Given
+        LocalDateTime start = LocalDateTime.now().minusHours(1);
+        LocalDateTime end = LocalDateTime.now().plusHours(1);
+
+        // When
+        List<SystemLog> securityLogs = systemLogRepository
+                .findByCategoryAndTimestampBetween("SECURITY", start, end);
+
+        // Then
+        assertEquals(1, securityLogs.size());
+        assertEquals("Authentication failed", securityLogs.get(0).getMessage());
+    }
+
+    @Test
+    void testDeleteByTimestampBefore() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+        long countBefore = countRowsInTable("system_logs");
+
+        // When
+        int deleted = systemLogRepository.deleteByTimestampBefore(cutoff);
+
+        // Then
+        assertEquals(1, deleted); // Only the old log
+        assertEquals(countBefore - 1, countRowsInTable("system_logs"));
+    }
+
+    @Test
+    void testCountByLevelAndTimestampAfter() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(10);
+
+        // When
+        long errorCount = systemLogRepository.countByLevelAndTimestampAfter(LogLevel.ERROR, cutoff);
+
+        // Then
+        assertEquals(2L, errorCount);
+    }
+
+    @Test
+    void testComplexLogWithDetails() {
+        // Given
+        SystemLog complexLog = SystemLog.builder()
+                .timestamp(LocalDateTime.now())
+                .level(LogLevel.ERROR)
+                .category("INTEGRATION")
+                .message("Complex error occurred")
+                .source("ADAPTER")
+                .sourceId("adapter-123")
+                .sourceName("HTTP Adapter")
+                .component("HttpHandler")
+                .componentId("handler-456")
+                .domainType("CommunicationAdapter")
+                .domainReferenceId("ref-789")
+                .correlationId(UUID.randomUUID().toString())
+                .sessionId("session-001")
+                .userId(UUID.randomUUID())
+                .username("testuser")
+                .ipAddress("192.168.1.100")
+                .userAgent("TestAgent/1.0")
+                .url("/api/test")
+                .httpMethod("POST")
+                .responseStatus(500)
+                .executionTime(1500L)
+                .errorCode("ERR_CONNECTION")
+                .stackTrace("java.net.ConnectException: Connection refused\n\tat java.net...")
+                .details("{\"host\":\"example.com\",\"port\":8080}")
+                .build();
+
+        // When
+        SystemLog saved = systemLogRepository.save(complexLog);
+        SystemLog retrieved = systemLogRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertEquals("Complex error occurred", retrieved.getMessage());
+        assertEquals("adapter-123", retrieved.getSourceId());
+        assertEquals("HttpHandler", retrieved.getComponent());
+        assertEquals(1500L, retrieved.getExecutionTime());
+        assertNotNull(retrieved.getStackTrace());
+        assertEquals("{\"host\":\"example.com\",\"port\":8080}", retrieved.getDetails());
+    }
+
+    @Test
+    void testPaginationAndSorting() {
+        // Given
+        for (int i = 0; i < 20; i++) {
+            createLog(LogLevel.INFO, "BULK_TEST", "Message " + i, null);
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(1, 10); // Second page
+        Page<SystemLog> page = systemLogRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(26, page.getTotalElements()); // 6 setup + 20 bulk
+        assertEquals(3, page.getTotalPages());
+        assertEquals(10, page.getContent().size());
+    }
+
+    @Test
+    void testUpdateLog() {
+        // Given
+        SystemLog log = createLog(LogLevel.INFO, "UPDATE_TEST", "Original message", null);
+
+        // When
+        log.setMessage("Updated message");
+        log.setLevel(LogLevel.WARN);
+        SystemLog updated = systemLogRepository.update(log);
+
+        // Then
+        assertEquals("Updated message", updated.getMessage());
+        assertEquals(LogLevel.WARN, updated.getLevel());
+
+        // Verify in database
+        SystemLog fromDb = systemLogRepository.findById(log.getId()).orElseThrow();
+        assertEquals("Updated message", fromDb.getMessage());
+    }
+}

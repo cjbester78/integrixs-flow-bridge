@@ -1,7 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.Message;
-import com.integrixs.data.repository.MessageRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
 import com.integrixs.shared.dto.MessageStatsDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +21,9 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public abstract class MessageStatsService {
 
-    protected final MessageRepository messageRepository;
+    protected final MessageSqlRepository messageRepository;
     
-    protected MessageStatsService(MessageRepository messageRepository) {
+    protected MessageStatsService(MessageSqlRepository messageRepository) {
         this.messageRepository = messageRepository;
     }
 

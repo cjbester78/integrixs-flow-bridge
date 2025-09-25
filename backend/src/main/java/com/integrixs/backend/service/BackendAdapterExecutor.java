@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.shared.enums.AdapterType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class BackendAdapterExecutor {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
     private MessageService messageService;

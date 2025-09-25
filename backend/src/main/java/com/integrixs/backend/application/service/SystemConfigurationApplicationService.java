@@ -28,11 +28,11 @@ public class SystemConfigurationApplicationService {
 
     private final ConfigurationManagementService configurationService;
     private final AuditTrailService auditTrailService;
-    private final com.integrixs.data.repository.SystemConfigurationRepository systemConfigurationRepository;
+    private final com.integrixs.data.sql.repository.SystemConfigurationSqlRepository systemConfigurationRepository;
 
     public SystemConfigurationApplicationService(ConfigurationManagementService configurationService,
                                                AuditTrailService auditTrailService,
-                                               com.integrixs.data.repository.SystemConfigurationRepository systemConfigurationRepository) {
+                                               com.integrixs.data.sql.repository.SystemConfigurationSqlRepository systemConfigurationRepository) {
         this.configurationService = configurationService;
         this.auditTrailService = auditTrailService;
         this.systemConfigurationRepository = systemConfigurationRepository;

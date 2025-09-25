@@ -1,7 +1,7 @@
 package com.integrixs.backend.application.service;
 
-import com.integrixs.data.repository.FlowTransformationRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.FlowTransformationSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.backend.domain.service.FlowTransformationManagementService;
 import com.integrixs.data.model.FlowTransformation;
 import com.integrixs.data.model.IntegrationFlow;
@@ -27,12 +27,12 @@ public class FlowTransformationApplicationService {
 
 
     private final FlowTransformationManagementService transformationManagementService;
-    private final FlowTransformationRepository transformationRepository;
-    private final IntegrationFlowRepository flowRepository;
+    private final FlowTransformationSqlRepository transformationRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
     
     public FlowTransformationApplicationService(FlowTransformationManagementService transformationManagementService,
-                                              FlowTransformationRepository transformationRepository,
-                                              IntegrationFlowRepository flowRepository) {
+                                              FlowTransformationSqlRepository transformationRepository,
+                                              IntegrationFlowSqlRepository flowRepository) {
         this.transformationManagementService = transformationManagementService;
         this.transformationRepository = transformationRepository;
         this.flowRepository = flowRepository;

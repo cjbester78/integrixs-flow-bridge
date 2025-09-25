@@ -1,7 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.FieldMapping;
-import com.integrixs.data.repository.FieldMappingRepository;
+import com.integrixs.data.sql.repository.FieldMappingSqlRepository;
 import com.integrixs.backend.service.transformation.EnrichmentTransformationService;
 import com.integrixs.backend.service.transformation.FilterTransformationService;
 import com.integrixs.backend.service.transformation.ValidationTransformationService;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class TransformationExecutionService {
 
     @Autowired
-    private FieldMappingRepository fieldMappingRepository;
+    private FieldMappingSqlRepository fieldMappingRepository;
 
     @Autowired
     private EnrichmentTransformationService enrichmentService;

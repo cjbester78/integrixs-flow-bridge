@@ -65,10 +65,11 @@ public class CamundaIntegrationTest {
         testFlow.setActive(true);
 
         // Add flow configuration
-        Map<String, Object> config = new HashMap<>();
-        config.put("source", "test - source");
-        config.put("target", "test - target");
-        testFlow.setConfiguration(config);
+        // Configuration field was removed from IntegrationFlow model
+        // Map<String, Object> config = new HashMap<>();
+        // config.put("source", "test - source");
+        // config.put("target", "test - target");
+        // testFlow.setConfiguration(config);
     }
 
     @Test

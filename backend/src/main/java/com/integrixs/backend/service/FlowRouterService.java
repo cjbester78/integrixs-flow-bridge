@@ -4,8 +4,8 @@ import com.integrixs.backend.service.FlowContextService.FlowContext;
 import com.integrixs.data.model.RouteCondition.SourceType;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.FlowRouter;
-import com.integrixs.data.repository.FlowRouterRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.FlowRouterSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -39,10 +39,10 @@ public class FlowRouterService {
 
 
     @Autowired
-    private FlowRouterRepository routerRepository;
+    private FlowRouterSqlRepository routerRepository;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
     private EnhancedSagaTransactionService sagaService;

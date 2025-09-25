@@ -34,6 +34,10 @@ public class UserController {
 
 
     private final UserManagementApplicationService userService;
+    
+    public UserController(UserManagementApplicationService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping
     @Operation(summary = "Create a new user", description = "Create a new user account")

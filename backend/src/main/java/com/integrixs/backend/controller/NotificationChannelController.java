@@ -2,7 +2,7 @@ package com.integrixs.backend.controller;
 
 import com.integrixs.backend.service.NotificationService;
 import com.integrixs.data.model.NotificationChannel;
-import com.integrixs.data.repository.NotificationChannelRepository;
+import com.integrixs.data.sql.repository.NotificationChannelSqlRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * REST controller for managing notification channels
@@ -19,10 +20,10 @@ import java.util.Map;
 @RequestMapping("/api/v2/notification - channels")
 public class NotificationChannelController {
 
-    private final NotificationChannelRepository channelRepository;
+    private final NotificationChannelSqlRepository channelRepository;
     private final NotificationService notificationService;
 
-    public NotificationChannelController(NotificationChannelRepository channelRepository, 
+    public NotificationChannelController(NotificationChannelSqlRepository channelRepository, 
                                        NotificationService notificationService) {
         this.channelRepository = channelRepository;
         this.notificationService = notificationService;
@@ -50,9 +51,9 @@ public class NotificationChannelController {
     /**
      * Get notification channel by ID
      */
-    @GetMapping("/ {channelId}")
+    @GetMapping("/{channelId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<NotificationChannel> getChannel(@PathVariable Long channelId) {
+    public ResponseEntity<NotificationChannel> getChannel(@PathVariable UUID channelId) {
         return channelRepository.findById(channelId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -82,7 +83,7 @@ public class NotificationChannelController {
     @PutMapping("/ {channelId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<NotificationChannel> updateChannel(
-            @PathVariable Long channelId,
+            @PathVariable UUID channelId,
             @RequestBody NotificationChannel channel) {
 
         return channelRepository.findById(channelId)
@@ -105,7 +106,7 @@ public class NotificationChannelController {
      */
     @DeleteMapping("/ {channelId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteChannel(@PathVariable Long channelId) {
+    public ResponseEntity<Void> deleteChannel(@PathVariable UUID channelId) {
         if(channelRepository.existsById(channelId)) {
             channelRepository.deleteById(channelId);
             return ResponseEntity.noContent().build();
@@ -118,7 +119,7 @@ public class NotificationChannelController {
      */
     @PostMapping("/ {channelId}/test")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> testChannel(@PathVariable Long channelId) {
+    public ResponseEntity<?> testChannel(@PathVariable UUID channelId) {
         return channelRepository.findById(channelId)
                 .map(channel -> {
                     boolean success = false;
@@ -174,7 +175,7 @@ public class NotificationChannelController {
     @PatchMapping("/ {channelId}/enabled")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<NotificationChannel> toggleChannel(
-            @PathVariable Long channelId,
+            @PathVariable UUID channelId,
             @RequestParam boolean enabled) {
 
         return channelRepository.findById(channelId)

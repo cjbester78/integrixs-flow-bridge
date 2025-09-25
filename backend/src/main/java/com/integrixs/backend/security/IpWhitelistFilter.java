@@ -27,13 +27,13 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(IpWhitelistFilter.class);
 
 
-    @Value("$ {security.ip.whitelist.addresses:127.0.0.1,::1}")
+    @Value("${security.ip.whitelist.addresses:127.0.0.1,::1}")
     private String whitelistedIps;
 
-    @Value("$ {security.ip.whitelist.bypass - paths:/api/auth/login,/api/health,/actuator/health}")
+    @Value("${security.ip.whitelist.bypass-paths:/api/auth/login,/api/health,/actuator/health}")
     private String bypassPaths;
 
-    @Value("$ {security.ip.whitelist.enforcement - mode:STRICT}")
+    @Value("${security.ip.whitelist.enforcement-mode:STRICT}")
     private EnforcementMode enforcementMode;
 
     private Set<String> whitelistedIpSet;
@@ -41,7 +41,7 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
     private Set<String> bypassPathSet;
 
     public enum EnforcementMode {
-        STRICT,   // Block all non - whitelisted IPs
+        STRICT,   // Block all non-whitelisted IPs
         PERMISSIVE // Log warnings but allow access
     }
 
@@ -130,13 +130,13 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
             clientIp, request.getRequestURI());
 
         if(enforcementMode == EnforcementMode.STRICT) {
-            log.warn("BLOCKED - {}", message);
+            log.warn("BLOCKED-{}", message);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write(" {\"error\":\"Access denied from your IP address\"}");
             response.getWriter().flush();
         } else {
-            log.warn("ALLOWED(Permissive mode) - {}", message);
+            log.warn("ALLOWED(Permissive mode)-{}", message);
         }
     }
 
@@ -145,10 +145,10 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
      */
     private String getClientIpAddress(HttpServletRequest request) {
         String[] headerNames = {
-            "X - Forwarded - For",
-            "X - Real - IP",
-            "Proxy - Client - IP",
-            "WL - Proxy - Client - IP",
+            "X-Forwarded-For",
+            "X-Real-IP",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
             "HTTP_X_FORWARDED_FOR",
             "HTTP_X_FORWARDED",
             "HTTP_X_CLUSTER_CLIENT_IP",
@@ -162,7 +162,7 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
         for(String header : headerNames) {
             String ip = request.getHeader(header);
             if(ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
-                // Handle multiple IPs in X - Forwarded - For
+                // Handle multiple IPs in X-Forwarded-For
                 if(ip.contains(",")) {
                     return ip.split(",")[0].trim();
                 }
@@ -194,7 +194,7 @@ public class IpWhitelistFilter extends OncePerRequestFilter {
             int prefixLength = Integer.parseInt(parts[1]);
 
             long ipLong = ipToLong(ip);
-            long mask = -1L << (32 - prefixLength);
+            long mask = -1L << (32-prefixLength);
 
             long start = ipLong & mask;
             long end = start + (~mask);

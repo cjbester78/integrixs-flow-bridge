@@ -2,8 +2,8 @@ package com.integrixs.backend.application.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.api.dto.response.DeploymentInfoResponse;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.backend.domain.service.DeploymentOrchestrator;
 import com.integrixs.backend.domain.service.DeploymentValidator;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -30,15 +30,15 @@ public class FlowDeploymentApplicationService {
     private static final Logger log = LoggerFactory.getLogger(FlowDeploymentApplicationService.class);
 
 
-    private final IntegrationFlowRepository flowRepository;
-    private final CommunicationAdapterRepository adapterRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
     private final DeploymentOrchestrator deploymentOrchestrator;
     private final DeploymentValidator deploymentValidator;
     private final AuditTrailService auditTrailService;
     private final ObjectMapper objectMapper;
     
-    public FlowDeploymentApplicationService(IntegrationFlowRepository flowRepository,
-                                          CommunicationAdapterRepository adapterRepository,
+    public FlowDeploymentApplicationService(IntegrationFlowSqlRepository flowRepository,
+                                          CommunicationAdapterSqlRepository adapterRepository,
                                           DeploymentOrchestrator deploymentOrchestrator,
                                           DeploymentValidator deploymentValidator,
                                           AuditTrailService auditTrailService,
@@ -93,7 +93,7 @@ public class FlowDeploymentApplicationService {
 
             // Save flow
             flow = flowRepository.save(flow);
-            flowRepository.flush();
+            // SQL repository saves are immediate, no flush needed
 
             // Audit
             auditTrailService.logUserAction(

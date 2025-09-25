@@ -1,6 +1,6 @@
 package com.integrixs.backend.marketplace.service;
 
-import com.integrixs.backend.marketplace.entity.FlowTemplate;
+import com.integrixs.data.model.FlowTemplate;
 import com.integrixs.backend.marketplace.dto.CreateTemplateRequest;
 import com.integrixs.backend.marketplace.dto.PublishVersionRequest;
 import org.springframework.stereotype.Service;

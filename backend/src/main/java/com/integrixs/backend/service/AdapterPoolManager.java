@@ -3,7 +3,7 @@ package com.integrixs.backend.service;
 import com.integrixs.adapters.core.*;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.shared.enums.AdapterType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ public class AdapterPoolManager {
     private static final Logger logger = LoggerFactory.getLogger(AdapterPoolManager.class);
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     private AdapterHealthMonitor healthMonitor;
 

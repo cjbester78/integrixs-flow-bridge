@@ -26,7 +26,7 @@ public class FlowCompositionController {
     public ResponseEntity<?> createDirectMappingFlow(@RequestBody DirectMappingFlowRequest request) {
         try {
             IntegrationFlow flow = flowCompositionService.createDirectMappingFlow(request);
-            // Convert to DTO to avoid Hibernate proxy serialization issues
+            // Convert to DTO to avoid proxy serialization issues
             return ResponseEntity.ok(integrationFlowService.getFlowById(flow.getId().toString()));
         } catch(IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse("Validation Error", e.getMessage()));
@@ -58,7 +58,7 @@ public class FlowCompositionController {
     public ResponseEntity<?> updateDirectMappingFlow(@PathVariable String flowId, @RequestBody DirectMappingFlowRequest request) {
         try {
             IntegrationFlow flow = flowCompositionService.updateDirectMappingFlow(flowId, request);
-            // Convert to DTO to avoid Hibernate proxy serialization issues
+            // Convert to DTO to avoid proxy serialization issues
             return ResponseEntity.ok(integrationFlowService.getFlowById(flow.getId().toString()));
         } catch(IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse("Validation Error", e.getMessage()));

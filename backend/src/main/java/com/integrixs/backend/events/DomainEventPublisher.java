@@ -27,6 +27,10 @@ public class DomainEventPublisher {
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ThreadLocal<List<DomainEvent>> pendingEvents = ThreadLocal.withInitial(ArrayList::new);
+    
+    public DomainEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
 
     /**
      * Publishes a domain event.

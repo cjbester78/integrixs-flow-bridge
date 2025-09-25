@@ -1,23 +1,11 @@
 package com.integrixs.data.model;
 
-import jakarta.persistence.*;
-@Entity
-@Table(name = "flow_structure_messages")
-@IdClass(FlowStructureMessageId.class)
 public class FlowStructureMessage {
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_structure_id", nullable = false)
     private FlowStructure flowStructure;
 
-    @Id
-    @Enumerated(EnumType.STRING)
-    @Column(name = "message_type", nullable = false)
     private MessageType messageType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "message_structure_id", nullable = false)
     private MessageStructure messageStructure;
 
     public enum MessageType {

@@ -31,6 +31,10 @@ public class StructureCompatibilityService {
 
     private final ObjectMapper objectMapper;
 
+    public StructureCompatibilityService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     public StructureCompatibilityResponse analyzeCompatibility(StructureCompatibilityRequest request) {
         try {
             log.info("Analyzing compatibility between {} and {} structures",

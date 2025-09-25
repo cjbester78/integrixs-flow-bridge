@@ -1,0 +1,520 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for IntegrationFlowSqlRepository.
+ * Tests the most complex entity with multiple @ManyToOne relationships,
+ * @OneToMany relationships to FlowTransformation and OrchestrationTarget,
+ * and complex business logic.
+ */
+public class IntegrationFlowSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private IntegrationFlowSqlRepository integrationFlowRepository;
+    private FlowTransformationSqlRepository flowTransformationRepository;
+    private OrchestrationTargetSqlRepository orchestrationTargetRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
+    private FlowStructureSqlRepository flowStructureRepository;
+    private UserSqlRepository userRepository;
+    
+    private User testUser;
+    private CommunicationAdapter inboundAdapter;
+    private CommunicationAdapter outboundAdapter;
+    private FlowStructure sourceStructure;
+    private FlowStructure targetStructure;
+
+    @Override
+    protected void setUp() {
+        integrationFlowRepository = new IntegrationFlowSqlRepository(sqlQueryExecutor);
+        flowTransformationRepository = new FlowTransformationSqlRepository(sqlQueryExecutor);
+        orchestrationTargetRepository = new OrchestrationTargetSqlRepository(sqlQueryExecutor);
+        adapterRepository = new CommunicationAdapterSqlRepository(sqlQueryExecutor);
+        flowStructureRepository = new FlowStructureSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create test user
+        testUser = User.builder()
+                .username("flowuser")
+                .email("flow@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Flow")
+                .lastName("User")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+        testUser = userRepository.save(testUser);
+
+        // Create business component
+        BusinessComponent businessComponent = BusinessComponent.builder()
+                .name("Integration Hub")
+                .description("Central integration component")
+                .type("HUB")
+                .active(true)
+                .build();
+        BusinessComponentSqlRepository bcRepo = new BusinessComponentSqlRepository(sqlQueryExecutor);
+        businessComponent = bcRepo.save(businessComponent);
+
+        // Create adapters
+        inboundAdapter = createAdapter("HTTP Receiver", AdapterType.HTTP, 
+                                     AdapterConfiguration.AdapterModeEnum.INBOUND, businessComponent);
+        outboundAdapter = createAdapter("SOAP Sender", AdapterType.SOAP,
+                                      AdapterConfiguration.AdapterModeEnum.OUTBOUND, businessComponent);
+
+        // Create flow structures
+        sourceStructure = createFlowStructure("Order XML", FlowStructure.FlowStructureType.MESSAGE,
+                                            FlowStructure.StructureFormat.XSD, businessComponent);
+        targetStructure = createFlowStructure("Order SOAP", FlowStructure.FlowStructureType.SOAP,
+                                            FlowStructure.StructureFormat.WSDL, businessComponent);
+
+        // Create test flows
+        createTestFlows();
+    }
+
+    private CommunicationAdapter createAdapter(String name, AdapterType type,
+                                             AdapterConfiguration.AdapterModeEnum mode,
+                                             BusinessComponent businessComponent) {
+        CommunicationAdapter adapter = CommunicationAdapter.builder()
+                .name(name)
+                .type(type)
+                .mode(mode)
+                .direction(mode == AdapterConfiguration.AdapterModeEnum.INBOUND ? "OUTBOUND" : "INBOUND")
+                .description("Test adapter")
+                .configuration("{\"test\": true}")
+                .active(true)
+                .healthy(true)
+                .businessComponent(businessComponent)
+                .build();
+        return adapterRepository.save(adapter);
+    }
+
+    private FlowStructure createFlowStructure(String name, FlowStructure.FlowStructureType type,
+                                            FlowStructure.StructureFormat format,
+                                            BusinessComponent businessComponent) {
+        FlowStructure structure = FlowStructure.builder()
+                .name(name)
+                .type(type)
+                .format(format)
+                .definition("<definition>test</definition>")
+                .active(true)
+                .businessComponent(businessComponent)
+                .build();
+        return flowStructureRepository.save(structure);
+    }
+
+    private void createTestFlows() {
+        createFlow("Order Processing Flow", FlowStatus.DEPLOYED, true, FlowType.STANDARD, MappingMode.XSLT);
+        createFlow("Customer Sync Flow", FlowStatus.DRAFT, false, FlowType.STANDARD, MappingMode.GRAPHICAL);
+        createFlow("Inventory Update Flow", FlowStatus.DEPLOYED, true, FlowType.ORCHESTRATION, MappingMode.CUSTOM);
+        createFlow("Error Handler Flow", FlowStatus.ERROR, false, FlowType.ERROR_HANDLER, MappingMode.XSLT);
+        createFlow("Batch Processing Flow", FlowStatus.DEPLOYED, true, FlowType.BATCH, MappingMode.GRAPHICAL);
+    }
+
+    private IntegrationFlow createFlow(String name, FlowStatus status, boolean active,
+                                     FlowType flowType, MappingMode mappingMode) {
+        IntegrationFlow flow = IntegrationFlow.builder()
+                .name(name)
+                .description("Test flow: " + name)
+                .status(status)
+                .active(active)
+                .flowType(flowType)
+                .mappingMode(mappingMode)
+                .inboundAdapterId(inboundAdapter.getId())
+                .outboundAdapterId(outboundAdapter.getId())
+                .sourceFlowStructureId(sourceStructure.getId())
+                .targetFlowStructureId(targetStructure.getId())
+                .configuration("{\"retryEnabled\": true, \"maxRetries\": 3}")
+                .executionCount(flowType == FlowType.BATCH ? 100 : 10)
+                .successCount(flowType == FlowType.BATCH ? 95 : 8)
+                .errorCount(flowType == FlowType.BATCH ? 5 : 2)
+                .lastExecutionAt(active ? LocalDateTime.now().minusHours(1) : null)
+                .build();
+        
+        flow.setCreatedBy(testUser);
+        flow.setUpdatedBy(testUser);
+        
+        IntegrationFlow saved = integrationFlowRepository.save(flow);
+        
+        // Add transformations for some flows
+        if (mappingMode == MappingMode.XSLT || mappingMode == MappingMode.CUSTOM) {
+            addTransformations(saved);
+        }
+        
+        // Add orchestration targets for orchestration flows
+        if (flowType == FlowType.ORCHESTRATION) {
+            addOrchestrationTargets(saved);
+        }
+        
+        return saved;
+    }
+
+    private void addTransformations(IntegrationFlow flow) {
+        FlowTransformation xsltTransform = FlowTransformation.builder()
+                .flow(flow)
+                .transformationType(FlowTransformation.TransformationType.XSLT)
+                .executionOrder(1)
+                .configuration("{\"xsltPath\": \"/templates/order-transform.xsl\"}")
+                .active(true)
+                .build();
+        flowTransformationRepository.save(xsltTransform);
+
+        FlowTransformation enrichTransform = FlowTransformation.builder()
+                .flow(flow)
+                .transformationType(FlowTransformation.TransformationType.ENRICHMENT)
+                .executionOrder(2)
+                .configuration("{\"enrichmentFields\": [\"timestamp\", \"correlationId\"]}")
+                .active(true)
+                .build();
+        flowTransformationRepository.save(enrichTransform);
+    }
+
+    private void addOrchestrationTargets(IntegrationFlow flow) {
+        // Create additional adapters for orchestration
+        CommunicationAdapter dbAdapter = createAdapter("Database Writer", AdapterType.JDBC,
+                                                     AdapterConfiguration.AdapterModeEnum.OUTBOUND,
+                                                     inboundAdapter.getBusinessComponent());
+        
+        OrchestrationTarget dbTarget = OrchestrationTarget.builder()
+                .flow(flow)
+                .targetType(OrchestrationTarget.TargetType.ADAPTER)
+                .targetAdapterId(dbAdapter.getId())
+                .executionOrder(1)
+                .conditionExpression("payload.amount > 1000")
+                .active(true)
+                .build();
+        
+        // Set retry policy
+        OrchestrationTarget.RetryPolicy retryPolicy = new OrchestrationTarget.RetryPolicy();
+        retryPolicy.setMaxAttempts(3);
+        retryPolicy.setRetryDelaySeconds(60);
+        retryPolicy.setTimeoutSeconds(300);
+        dbTarget.setRetryPolicy(retryPolicy);
+        
+        orchestrationTargetRepository.save(dbTarget);
+
+        OrchestrationTarget flowTarget = OrchestrationTarget.builder()
+                .flow(flow)
+                .targetType(OrchestrationTarget.TargetType.FLOW)
+                .targetFlowId(flow.getId()) // Self-reference for testing
+                .executionOrder(2)
+                .active(true)
+                .build();
+        orchestrationTargetRepository.save(flowTarget);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        IntegrationFlow flow = createFlow("Test Flow", FlowStatus.DRAFT, false,
+                                        FlowType.STANDARD, MappingMode.GRAPHICAL);
+
+        // When
+        var found = integrationFlowRepository.findById(flow.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test Flow", found.get().getName());
+        assertEquals(FlowStatus.DRAFT, found.get().getStatus());
+        assertEquals(inboundAdapter.getId(), found.get().getInboundAdapterId());
+        assertEquals(outboundAdapter.getId(), found.get().getOutboundAdapterId());
+    }
+
+    @Test
+    void testFindByName() {
+        // When
+        var found = integrationFlowRepository.findByName("Order Processing Flow");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals(FlowStatus.DEPLOYED, found.get().getStatus());
+        assertTrue(found.get().isActive());
+    }
+
+    @Test
+    void testExistsByName() {
+        // Then
+        assertTrue(integrationFlowRepository.existsByName("Customer Sync Flow"));
+        assertFalse(integrationFlowRepository.existsByName("Non-existent Flow"));
+    }
+
+    @Test
+    void testFindByStatus() {
+        // When
+        List<IntegrationFlow> deployedFlows = integrationFlowRepository.findByStatus(FlowStatus.DEPLOYED);
+
+        // Then
+        assertEquals(3, deployedFlows.size()); // Order, Inventory, Batch
+        assertTrue(deployedFlows.stream()
+                .allMatch(f -> f.getStatus() == FlowStatus.DEPLOYED));
+    }
+
+    @Test
+    void testFindActiveFlows() {
+        // When
+        List<IntegrationFlow> activeFlows = integrationFlowRepository.findByActive(true);
+
+        // Then
+        assertEquals(3, activeFlows.size());
+        assertTrue(activeFlows.stream().allMatch(IntegrationFlow::isActive));
+    }
+
+    @Test
+    void testFindByInboundAdapter() {
+        // When
+        List<IntegrationFlow> flows = integrationFlowRepository
+                .findByInboundAdapterId(inboundAdapter.getId());
+
+        // Then
+        assertEquals(6, flows.size()); // All test flows use the same inbound adapter
+    }
+
+    @Test
+    void testFindByOutboundAdapter() {
+        // When
+        List<IntegrationFlow> flows = integrationFlowRepository
+                .findByOutboundAdapterId(outboundAdapter.getId());
+
+        // Then
+        assertEquals(6, flows.size()); // All test flows use the same outbound adapter
+    }
+
+    @Test
+    void testLoadChildEntities() {
+        // Given
+        IntegrationFlow orderFlow = integrationFlowRepository
+                .findByName("Order Processing Flow").orElseThrow();
+
+        // When - Load transformations
+        List<FlowTransformation> transformations = integrationFlowRepository
+                .loadTransformations(orderFlow.getId());
+
+        // Then
+        assertEquals(2, transformations.size());
+        assertEquals(1, transformations.get(0).getExecutionOrder());
+        assertEquals(2, transformations.get(1).getExecutionOrder());
+        assertEquals(FlowTransformation.TransformationType.XSLT, 
+                    transformations.get(0).getTransformationType());
+
+        // Given
+        IntegrationFlow orchestrationFlow = integrationFlowRepository
+                .findByName("Inventory Update Flow").orElseThrow();
+
+        // When - Load orchestration targets
+        List<OrchestrationTarget> targets = integrationFlowRepository
+                .loadOrchestrationTargets(orchestrationFlow.getId());
+
+        // Then
+        assertEquals(2, targets.size());
+        assertTrue(targets.stream()
+                .anyMatch(t -> t.getTargetType() == OrchestrationTarget.TargetType.ADAPTER));
+        assertTrue(targets.stream()
+                .anyMatch(t -> t.getTargetType() == OrchestrationTarget.TargetType.FLOW));
+    }
+
+    @Test
+    void testUpdateFlow() {
+        // Given
+        IntegrationFlow flow = integrationFlowRepository
+                .findByName("Customer Sync Flow").orElseThrow();
+
+        // When
+        flow.setStatus(FlowStatus.DEPLOYED);
+        flow.setActive(true);
+        flow.setDescription("Updated customer synchronization flow");
+        flow.setConfiguration("{\"batchSize\": 100, \"parallel\": true}");
+        IntegrationFlow updated = integrationFlowRepository.update(flow);
+
+        // Then
+        assertEquals(FlowStatus.DEPLOYED, updated.getStatus());
+        assertTrue(updated.isActive());
+        assertTrue(updated.getConfiguration().contains("batchSize"));
+        assertNotNull(updated.getUpdatedAt());
+    }
+
+    @Test
+    void testExecutionCounters() {
+        // Given
+        IntegrationFlow batchFlow = integrationFlowRepository
+                .findByName("Batch Processing Flow").orElseThrow();
+
+        // When
+        batchFlow.setExecutionCount(batchFlow.getExecutionCount() + 10);
+        batchFlow.setSuccessCount(batchFlow.getSuccessCount() + 9);
+        batchFlow.setErrorCount(batchFlow.getErrorCount() + 1);
+        batchFlow.setLastExecutionAt(LocalDateTime.now());
+        IntegrationFlow updated = integrationFlowRepository.update(batchFlow);
+
+        // Then
+        assertEquals(110, updated.getExecutionCount());
+        assertEquals(104, updated.getSuccessCount());
+        assertEquals(6, updated.getErrorCount());
+        assertNotNull(updated.getLastExecutionAt());
+    }
+
+    @Test
+    void testComplexFlowWithAllRelationships() {
+        // Given - Create a complex flow with all features
+        IntegrationFlow complexFlow = IntegrationFlow.builder()
+                .name("Complex Multi-Step Flow")
+                .description("Flow with all features enabled")
+                .status(FlowStatus.DEPLOYED)
+                .active(true)
+                .flowType(FlowType.ORCHESTRATION)
+                .mappingMode(MappingMode.GRAPHICAL)
+                .inboundAdapterId(inboundAdapter.getId())
+                .outboundAdapterId(outboundAdapter.getId())
+                .sourceFlowStructureId(sourceStructure.getId())
+                .targetFlowStructureId(targetStructure.getId())
+                .configuration("""
+                        {
+                            "retryEnabled": true,
+                            "maxRetries": 5,
+                            "errorHandling": "dead-letter-queue",
+                            "monitoring": {
+                                "alertThreshold": 10,
+                                "metricsEnabled": true
+                            }
+                        }
+                        """)
+                .executionCount(0)
+                .successCount(0)
+                .errorCount(0)
+                .build();
+        complexFlow.setCreatedBy(testUser);
+        complexFlow.setUpdatedBy(testUser);
+
+        // When
+        IntegrationFlow saved = integrationFlowRepository.save(complexFlow);
+        
+        // Add multiple transformations
+        for (int i = 1; i <= 5; i++) {
+            FlowTransformation transform = FlowTransformation.builder()
+                    .flow(saved)
+                    .transformationType(FlowTransformation.TransformationType.CUSTOM)
+                    .executionOrder(i)
+                    .configuration("{\"step\": " + i + "}")
+                    .active(true)
+                    .build();
+            flowTransformationRepository.save(transform);
+        }
+        
+        // Add multiple orchestration targets
+        for (int i = 1; i <= 3; i++) {
+            OrchestrationTarget target = OrchestrationTarget.builder()
+                    .flow(saved)
+                    .targetType(OrchestrationTarget.TargetType.ADAPTER)
+                    .targetAdapterId(outboundAdapter.getId())
+                    .executionOrder(i)
+                    .conditionExpression("step == " + i)
+                    .active(true)
+                    .build();
+            orchestrationTargetRepository.save(target);
+        }
+
+        // Then - Verify everything was saved
+        IntegrationFlow retrieved = integrationFlowRepository.findById(saved.getId()).orElseThrow();
+        assertNotNull(retrieved);
+        assertEquals("Complex Multi-Step Flow", retrieved.getName());
+        
+        List<FlowTransformation> transforms = integrationFlowRepository
+                .loadTransformations(saved.getId());
+        assertEquals(5, transforms.size());
+        
+        List<OrchestrationTarget> targets = integrationFlowRepository
+                .loadOrchestrationTargets(saved.getId());
+        assertEquals(3, targets.size());
+    }
+
+    @Test
+    void testDeleteFlow() {
+        // Given
+        IntegrationFlow flow = createFlow("ToDelete", FlowStatus.DRAFT, false,
+                                        FlowType.STANDARD, MappingMode.XSLT);
+        UUID flowId = flow.getId();
+        
+        // Verify child entities exist
+        assertTrue(integrationFlowRepository.loadTransformations(flowId).size() > 0);
+
+        // When
+        integrationFlowRepository.deleteById(flowId);
+
+        // Then
+        assertFalse(integrationFlowRepository.findById(flowId).isPresent());
+        
+        // Verify child entities were deleted (cascade)
+        assertEquals(0, flowTransformationRepository.findByFlowId(flowId).size());
+    }
+
+    @Test
+    void testPaginationWithSorting() {
+        // Given - Create additional flows
+        for (int i = 0; i < 10; i++) {
+            createFlow("Bulk Flow " + i, FlowStatus.DRAFT, false,
+                     FlowType.STANDARD, MappingMode.GRAPHICAL);
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 5, Sort.by("name"));
+        Page<IntegrationFlow> page = integrationFlowRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(5, page.getContent().size());
+        assertTrue(page.getTotalElements() >= 16); // Original + test + bulk
+        assertTrue(page.getContent().get(0).getName().compareTo(page.getContent().get(1).getName()) < 0);
+    }
+
+    @Test
+    void testFindByFlowType() {
+        // When
+        List<IntegrationFlow> orchestrationFlows = integrationFlowRepository
+                .findByFlowType(FlowType.ORCHESTRATION);
+
+        // Then
+        assertEquals(1, orchestrationFlows.size());
+        assertEquals("Inventory Update Flow", orchestrationFlows.get(0).getName());
+    }
+
+    @Test
+    void testFindDeployedAndActiveFlows() {
+        // When
+        List<IntegrationFlow> readyFlows = integrationFlowRepository
+                .findByStatusAndActive(FlowStatus.DEPLOYED, true);
+
+        // Then
+        assertEquals(3, readyFlows.size());
+        assertTrue(readyFlows.stream()
+                .allMatch(f -> f.getStatus() == FlowStatus.DEPLOYED && f.isActive()));
+    }
+
+    @Test
+    void testFlowMetrics() {
+        // When
+        long totalFlows = integrationFlowRepository.count();
+        long deployedCount = integrationFlowRepository.findByStatus(FlowStatus.DEPLOYED).size();
+        long activeCount = integrationFlowRepository.findByActive(true).size();
+        
+        IntegrationFlow mostExecuted = integrationFlowRepository.findAll().stream()
+                .max((f1, f2) -> Integer.compare(f1.getExecutionCount(), f2.getExecutionCount()))
+                .orElseThrow();
+
+        // Then
+        assertTrue(totalFlows >= 6);
+        assertTrue(deployedCount >= 3);
+        assertTrue(activeCount >= 3);
+        assertEquals("Batch Processing Flow", mostExecuted.getName());
+        assertEquals(100, mostExecuted.getExecutionCount());
+    }
+}

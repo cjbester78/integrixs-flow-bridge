@@ -28,6 +28,10 @@ public class StructureCompatibilityController {
 
     private final StructureCompatibilityService compatibilityService;
 
+    public StructureCompatibilityController(StructureCompatibilityService compatibilityService) {
+        this.compatibilityService = compatibilityService;
+    }
+
     @PostMapping("/analyze")
     @Operation(
             summary = "Analyze structure compatibility",

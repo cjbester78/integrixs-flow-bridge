@@ -41,7 +41,14 @@ public class PackageCreationJobExecutor implements JobExecutor {
         logger.info("Starting package creation job: {}", job.getId());
 
         // Extract parameters
-        String requestJson = job.getParameters().get("request");
+        String parametersJson = job.getParameters();
+        if(parametersJson == null) {
+            throw new IllegalArgumentException("Missing parameters");
+        }
+        
+        // Deserialize parameters to get request JSON
+        Map<String, String> params = objectMapper.readValue(parametersJson, new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {});
+        String requestJson = params.get("request");
         if(requestJson == null) {
             throw new IllegalArgumentException("Missing request parameter");
         }
@@ -51,7 +58,7 @@ public class PackageCreationJobExecutor implements JobExecutor {
 
         // Set user and tenant from job
         if(request.getUserId() == null && job.getCreatedBy() != null) {
-            request.setUserId(job.getCreatedBy());
+            request.setUserId(job.getCreatedBy().getId());
         }
         if(request.getTenantId() == null && job.getTenantId() != null) {
             request.setTenantId(job.getTenantId());

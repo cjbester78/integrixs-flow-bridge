@@ -24,6 +24,10 @@ public class EncryptionAspect {
 
 
     private final FieldEncryptionService encryptionService;
+    
+    public EncryptionAspect(FieldEncryptionService encryptionService) {
+        this.encryptionService = encryptionService;
+    }
 
     /**
      * Intercept repository save methods to encrypt fields.

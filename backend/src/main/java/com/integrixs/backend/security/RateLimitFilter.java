@@ -33,6 +33,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitService rateLimitService;
     private final ObjectMapper objectMapper;
+    
+    public RateLimitFilter(RateLimitService rateLimitService, ObjectMapper objectMapper) {
+        this.rateLimitService = rateLimitService;
+        this.objectMapper = objectMapper;
+    }
 
     // Paths to exclude from rate limiting
     private static final String[] EXCLUDED_PATHS = {

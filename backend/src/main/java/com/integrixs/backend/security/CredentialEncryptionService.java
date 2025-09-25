@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  * Service for encrypting and decrypting sensitive credentials
- * Uses AES-256 - GCM encryption with PBKDF2 key derivation
+ * Uses AES-256-GCM encryption with PBKDF2 key derivation
  */
 @Service
 public class CredentialEncryptionService {
@@ -32,10 +32,10 @@ public class CredentialEncryptionService {
     private static final int ITERATION_COUNT = 65536;
     private static final int KEY_LENGTH = 256;
 
-    @Value("$ {integrix.security.master - key:# {null}}")
+    @Value("${integrix.security.master-key:# {null}}")
     private String masterKey;
 
-    @Value("$ {integrix.security.encryption.enabled:true}")
+    @Value("${integrix.security.encryption.enabled:true}")
     private boolean encryptionEnabled;
 
     private SecretKey secretKey;
@@ -45,7 +45,7 @@ public class CredentialEncryptionService {
         if(encryptionEnabled) {
             if(masterKey == null || masterKey.isEmpty()) {
                 throw new IllegalStateException(
-                    "Master key not configured. Please set integrix.security.master - key in application properties"
+                    "Master key not configured. Please set integrix.security.master-key in application properties"
                );
             }
 
@@ -111,7 +111,7 @@ public class CredentialEncryptionService {
 
         // Check if it's encrypted(starts with ENC:)
         if(!encryptedText.startsWith("ENC:")) {
-            return encryptedText; // Return as - is if not encrypted
+            return encryptedText; // Return as-is if not encrypted
         }
 
         try {
@@ -122,7 +122,7 @@ public class CredentialEncryptionService {
             // Extract salt, IV and ciphertext
             byte[] salt = new byte[SALT_LENGTH_BYTE];
             byte[] iv = new byte[IV_LENGTH_BYTE];
-            byte[] cipherText = new byte[combined.length - SALT_LENGTH_BYTE - IV_LENGTH_BYTE];
+            byte[] cipherText = new byte[combined.length-SALT_LENGTH_BYTE-IV_LENGTH_BYTE];
 
             System.arraycopy(combined, 0, salt, 0, salt.length);
             System.arraycopy(combined, salt.length, iv, 0, iv.length);

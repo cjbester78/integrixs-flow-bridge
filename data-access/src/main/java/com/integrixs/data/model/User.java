@@ -1,11 +1,5 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,26 +12,16 @@ import java.util.UUID;
  * @author Integration Team
  * @since 1.0.0
  */
-@Entity
-@Table(name = "users", indexes = {
-    @Index(name = "idx_username", columnList = "username"),
-    @Index(name = "idx_email", columnList = "email"),
-    @Index(name = "idx_role", columnList = "role"),
-    @Index(name = "idx_status", columnList = "status")
-})
 public class User {
 
     /**
      * Unique identifier(UUID) for the entity
      */
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     /**
      * Unique username for authentication
      */
-    @Column(unique = true, nullable = false, length = 50)
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @Pattern(regexp = "^[a - zA - Z0-9_] + $", message = "Username can only contain letters, numbers, and underscores")
@@ -46,7 +30,6 @@ public class User {
     /**
      * User email address
      */
-    @Column(nullable = false, length = 255)
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     @Size(max = 255, message = "Email cannot exceed 255 characters")
@@ -55,34 +38,29 @@ public class User {
     /**
      * Hashed password(BCrypt)
      */
-    @Column(name = "password_hash", nullable = false, length = 255)
     @NotBlank(message = "Password is required")
     private String passwordHash;
 
     /**
      * User's first name
      */
-    @Column(name = "first_name", length = 100)
     @Size(max = 100, message = "First name cannot exceed 100 characters")
     private String firstName;
 
     /**
      * User's last name
      */
-    @Column(name = "last_name", length = 100)
     @Size(max = 100, message = "Last name cannot exceed 100 characters")
     private String lastName;
 
     /**
      * Role ID reference
      */
-    @Column(name = "role_id", columnDefinition = "UUID")
     private UUID roleId;
 
     /**
      * User role(ADMINISTRATOR, DEVELOPER, INTEGRATOR, VIEWER)
      */
-    @Column(length = 50)
     @NotBlank(message = "Role is required")
     @Pattern(regexp = "^(ADMINISTRATOR|DEVELOPER|INTEGRATOR|VIEWER|administrator|developer|integrator|viewer)$",
              message = "Role must be ADMINISTRATOR, DEVELOPER, INTEGRATOR, or VIEWER")
@@ -91,7 +69,6 @@ public class User {
     /**
      * User account status(active, inactive, locked)
      */
-    @Column(length = 50)
     @NotBlank(message = "Status is required")
     @Pattern(regexp = "^(active|inactive|locked)$",
              message = "Status must be active, inactive, or locked")
@@ -100,51 +77,41 @@ public class User {
     /**
      * JSON string containing user permissions
      */
-    @Column(columnDefinition = "json")
     private String permissions;
 
     /**
      * Tenant ID for multi-tenancy support
      */
-    @Column(name = "tenant_id")
     private UUID tenantId;
 
     /**
      * Timestamp of entity creation
      */
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+        private LocalDateTime createdAt;
 
     /**
      * Timestamp of last entity update
      */
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+        private LocalDateTime updatedAt;
 
     /**
      * Timestamp of last successful login
      */
-    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
     /**
      * Token for password reset
      */
-    @Column(name = "password_reset_token")
     private String passwordResetToken;
 
     /**
      * Expiration time for password reset token
      */
-    @Column(name = "password_reset_expires_at")
     private LocalDateTime passwordResetExpiresAt;
 
     /**
      * Lifecycle callback to ensure timestamps are set
      */
-    @PrePersist
     protected void onCreate() {
         if(createdAt == null) {
             createdAt = LocalDateTime.now();
@@ -157,7 +124,6 @@ public class User {
     /**
      * Lifecycle callback to update timestamp
      */
-    @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }

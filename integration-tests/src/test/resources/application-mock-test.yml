@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: integrix-flow-bridge-mock-tests
+  
+  # Use H2 in-memory database for tests without Docker
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+  
+  h2:
+    console:
+      enabled: false
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+        show_sql: false
+    open-in-view: false
+  
+  flyway:
+    enabled: false  # Disable for H2 mock tests
+  
+  security:
+    jwt:
+      secret-key: IntegrixFlowBridge2024TestSecretKey
+      expiration: 3600000
+      refresh-expiration: 86400000
+  
+  cache:
+    type: simple
+
+# Logging
+logging:
+  level:
+    root: WARN
+    com.integrixs: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+
+# Integrix specific
+integrix:
+  master-key: IntegrixFlowBridge2024TestMasterKey
+  encryption:
+    enabled: true
+    algorithm: AES
+  
+  file:
+    upload-dir: /tmp/integrix-test-uploads
+    max-size: 10MB
+  
+  async:
+    core-pool-size: 2
+    max-pool-size: 5
+    queue-capacity: 100
+
+# Monitoring
+monitoring:
+  enabled: false
+  metrics:
+    export:
+      enabled: false
+
+# Disable TestContainers
+spring.testcontainers.enabled: false

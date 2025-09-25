@@ -410,6 +410,9 @@ public class DistributedCacheService {
 
         try {
             return operation.execute();
+        } catch (Exception e) {
+            logger.error("Error executing operation with lock: {}", lockKey, e);
+            throw new RuntimeException("Failed to execute operation with lock", e);
         } finally {
             releaseLock(lockKey, lockValue);
         }

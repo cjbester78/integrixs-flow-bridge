@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Service for managing retry policies across adapters.
  * Provides centralized retry operations with monitoring.
  */
-@Service
+@Service("backendRetryService")
 public class RetryService {
 
     private static final Logger log = LoggerFactory.getLogger(RetryService.class);
@@ -38,6 +38,14 @@ public class RetryService {
     
     // Executor for async retries
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10);
+    
+    public RetryService(RetryRegistry retryRegistry,
+                       RetryPolicyConfiguration configuration,
+                       MeterRegistry meterRegistry) {
+        this.retryRegistry = retryRegistry;
+        this.configuration = configuration;
+        this.meterRegistry = meterRegistry;
+    }
 
     @PostConstruct
     public void init() {

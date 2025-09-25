@@ -41,6 +41,14 @@ public class LogExportService {
     private final LogSearchService logSearchService;
     private final LogCorrelationService logCorrelationService;
     private final ObjectMapper objectMapper;
+    
+    public LogExportService(LogSearchService logSearchService,
+                           LogCorrelationService logCorrelationService,
+                           ObjectMapper objectMapper) {
+        this.logSearchService = logSearchService;
+        this.logCorrelationService = logCorrelationService;
+        this.objectMapper = objectMapper;
+    }
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
 

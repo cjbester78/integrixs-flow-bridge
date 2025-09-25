@@ -6,9 +6,9 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.FlowExecution;
 import com.integrixs.data.model.Message;
-import com.integrixs.data.repository.FlowExecutionRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.MessageRepository;
+import com.integrixs.data.sql.repository.FlowExecutionSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +35,13 @@ public class MessageQueueService {
     private static final Logger logger = LoggerFactory.getLogger(MessageQueueService.class);
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
-    private FlowExecutionRepository executionRepository;
+    private FlowExecutionSqlRepository executionRepository;
 
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageSqlRepository messageRepository;
 
     // @Autowired
     // private FlowExecutionAsyncService flowExecutionService;
@@ -58,13 +58,13 @@ public class MessageQueueService {
     // @Autowired
     // private FlowExecutionMonitoringService monitoringService;
 
-    @Value("$ {integrix.queue.worker.threads:5}")
+    @Value("${integrix.queue.worker.threads:5}")
     private int workerThreads;
 
-    @Value("$ {integrix.queue.poll.interval:1000}")
+    @Value("${integrix.queue.poll.interval:1000}")
     private long pollIntervalMs;
 
-    @Value("$ {integrix.queue.batch.size:10}")
+    @Value("${integrix.queue.batch.size:10}")
     private int batchSize;
 
     private ExecutorService workerPool;
@@ -73,7 +73,7 @@ public class MessageQueueService {
     private final AtomicLong processedMessages = new AtomicLong(0);
     private final AtomicLong failedMessages = new AtomicLong(0);
 
-    // In - memory priority queue for fast processing
+    // In-memory priority queue for fast processing
     private final PriorityBlockingQueue<QueuedMessage> priorityQueue =
         new PriorityBlockingQueue<>(1000, (m1, m2) -> {
             // Higher priority first, then older messages first
@@ -192,7 +192,7 @@ public class MessageQueueService {
 
             executionRepository.save(execution);
 
-            // Add to in - memory queue
+            // Add to in-memory queue
             QueuedMessage queuedMessage = new QueuedMessage(
                 message.getId().toString(),
                 flowId,
@@ -396,7 +396,7 @@ public class MessageQueueService {
      * Log queue statistics
      */
     private void logStatistics() {
-        logger.info("Message Queue Statistics - Queue Size: {}, Processed: {}, Failed: {}",
+        logger.info("Message Queue Statistics-Queue Size: {}, Processed: {}, Failed: {}",
             priorityQueue.size(),
             processedMessages.get(),
             failedMessages.get()

@@ -44,6 +44,14 @@ public class FlowControllerV1 {
     private final FlowCompositionService flowCompositionService;
     private final IntegrationFlowService integrationFlowService;
     private final FlowDomainService flowDomainService;
+    
+    public FlowControllerV1(FlowCompositionService flowCompositionService,
+                            IntegrationFlowService integrationFlowService,
+                            FlowDomainService flowDomainService) {
+        this.flowCompositionService = flowCompositionService;
+        this.integrationFlowService = integrationFlowService;
+        this.flowDomainService = flowDomainService;
+    }
 
     /**
      * Gets all integration flows with pagination.

@@ -3,9 +3,9 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.OrchestrationTarget;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.OrchestrationTargetRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.OrchestrationTargetSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.backend.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +22,22 @@ import java.util.stream.Collectors;
  * Service for managing orchestration targets
  * Handles the configuration and execution of orchestration flows
  */
-@Service
+@Service("orchestrationTargetServiceImpl")
 public class OrchestrationTargetService {
 
     private static final Logger log = LoggerFactory.getLogger(OrchestrationTargetService.class);
     
-    private final OrchestrationTargetRepository orchestrationTargetRepository;
-    private final IntegrationFlowRepository integrationFlowRepository;
-    private final CommunicationAdapterRepository communicationAdapterRepository;
+    private final OrchestrationTargetSqlRepository orchestrationTargetRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
+    
+    public OrchestrationTargetService(OrchestrationTargetSqlRepository orchestrationTargetRepository,
+                                     IntegrationFlowSqlRepository integrationFlowRepository,
+                                     CommunicationAdapterSqlRepository communicationAdapterRepository) {
+        this.orchestrationTargetRepository = orchestrationTargetRepository;
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.communicationAdapterRepository = communicationAdapterRepository;
+    }
     
     /**
      * Create a new orchestration target

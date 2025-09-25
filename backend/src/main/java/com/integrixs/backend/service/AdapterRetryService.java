@@ -16,6 +16,10 @@ public class AdapterRetryService {
 
     private final SystemSettingService systemSettingService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    public AdapterRetryService(SystemSettingService systemSettingService) {
+        this.systemSettingService = systemSettingService;
+    }
 
     /**
      * Get effective retry settings for an adapter.

@@ -40,8 +40,8 @@ public class FlowContextService {
     // In - memory context storage(can be replaced with Redis for distributed systems)
     private final Map<String, FlowContext> activeContexts = new ConcurrentHashMap<>();
 
-    // Pattern for variable references $ {variableName}
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\ {([^}] + )\\}");
+    // Pattern for variable references ${variableName}
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
 
     /**
      * Create a new flow context

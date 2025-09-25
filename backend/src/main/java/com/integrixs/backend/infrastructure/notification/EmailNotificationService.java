@@ -27,13 +27,13 @@ public class EmailNotificationService {
         this.mailSender = mailSender;
     }
 
-    @Value("$ {notifications.email.enabled:false}")
+    @Value("${notifications.email.enabled:false}")
     private boolean emailEnabled;
 
-    @Value("$ {notifications.email.from:noreply@integrix.com}")
+    @Value("${notifications.email.from:noreply@integrix.com}")
     private String fromEmail;
 
-    @Value("$ {notifications.email.admin:admin@integrix.com}")
+    @Value("${notifications.email.admin:admin@integrix.com}")
     private String adminEmail;
 
     /**
@@ -42,7 +42,7 @@ public class EmailNotificationService {
     @Async
     public void sendEmail(String to, String subject, String message) {
         if(!emailEnabled) {
-            log.info("Email notifications disabled. Would have sent: {} - {} to {}", subject, message, to);
+            log.info("Email notifications disabled. Would have sent: {}-{} to {}", subject, message, to);
             return;
         }
 

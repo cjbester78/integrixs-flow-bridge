@@ -2,7 +2,7 @@ package com.integrixs.backend.service;
 
 import com.integrixs.backend.security.CredentialEncryptionService;
 import com.integrixs.data.model.ExternalAuthentication;
-import com.integrixs.data.repository.ExternalAuthenticationRepository;
+import com.integrixs.data.sql.repository.ExternalAuthenticationSqlRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class OAuth2TokenRefreshService {
     private static final Logger logger = LoggerFactory.getLogger(OAuth2TokenRefreshService.class);
 
     @Autowired
-    private ExternalAuthenticationRepository authRepository;
+    private ExternalAuthenticationSqlRepository authRepository;
 
     @Autowired
     private CredentialEncryptionService encryptionService;

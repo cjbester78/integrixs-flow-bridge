@@ -5,7 +5,7 @@ import com.integrixs.backend.events.DomainEventPublisher;
 import com.integrixs.data.model.FlowStatus;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.shared.events.flow.FlowCreatedEvent;
 import com.integrixs.shared.events.flow.FlowStatusChangedEvent;
 import com.integrixs.shared.exceptions.BusinessException;
@@ -31,8 +31,14 @@ public class FlowDomainService {
     private static final Logger log = LoggerFactory.getLogger(FlowDomainService.class);
 
 
-    private final IntegrationFlowRepository flowRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
     private final DomainEventPublisher eventPublisher;
+    
+    public FlowDomainService(IntegrationFlowSqlRepository flowRepository,
+                            DomainEventPublisher eventPublisher) {
+        this.flowRepository = flowRepository;
+        this.eventPublisher = eventPublisher;
+    }
 
     /**
      * Creates a new integration flow.

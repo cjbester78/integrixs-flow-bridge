@@ -5,8 +5,8 @@ import com.integrixs.backend.service.TransformationExecutionService;
 import com.integrixs.backend.application.service.OrchestrationTargetService;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.OrchestrationTarget;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.OrchestrationTargetRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.OrchestrationTargetSqlRepository;
 import org.camunda.bpm.client.ExternalTaskClient;
 import org.camunda.bpm.client.task.ExternalTask;
 import org.camunda.bpm.client.task.ExternalTaskHandler;
@@ -34,19 +34,19 @@ public class ExternalTaskClientService implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ExternalTaskClientService.class);
 
-    @Value("$ {camunda.bpm.client.base - url:http://localhost:8080/engine - rest}")
+    @Value("${camunda.bpm.client.base-url:http://localhost:8080/engine-rest}")
     private String baseUrl;
 
-    @Value("$ {camunda.bpm.client.worker - id:integrix - worker}")
+    @Value("${camunda.bpm.client.worker-id:integrix-worker}")
     private String workerId;
 
-    @Value("$ {camunda.bpm.client.max - tasks:10}")
+    @Value("${camunda.bpm.client.max-tasks:10}")
     private int maxTasks;
 
-    @Value("$ {camunda.bpm.client.lock - duration:60000}")
+    @Value("${camunda.bpm.client.lock-duration:60000}")
     private long lockDuration;
 
-    @Value("$ {camunda.bpm.client.async - response - timeout:30000}")
+    @Value("${camunda.bpm.client.async-response-timeout:30000}")
     private long asyncResponseTimeout;
 
     @Autowired
@@ -59,10 +59,10 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private OrchestrationTargetService orchestrationTargetService;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private OrchestrationTargetRepository orchestrationTargetRepository;
+    private OrchestrationTargetSqlRepository orchestrationTargetRepository;
 
     private final Map<String, ExternalTaskClient> clients = new ConcurrentHashMap<>();
 
@@ -92,13 +92,13 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private void createTransformationTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + " - transformation")
+            .workerId(workerId + "-transformation")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
 
-        client.subscribe("integrix - transformation")
+        client.subscribe("integrix-transformation")
             .handler(new TransformationTaskHandler())
             .open();
 
@@ -112,13 +112,13 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private void createAdapterTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + " - adapter")
+            .workerId(workerId + "-adapter")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
 
-        client.subscribe("integrix - adapter")
+        client.subscribe("integrix-adapter")
             .handler(new AdapterTaskHandler())
             .open();
 
@@ -132,13 +132,13 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private void createOrchestrationTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + " - orchestration")
+            .workerId(workerId + "-orchestration")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
 
-        client.subscribe("integrix - orchestration")
+        client.subscribe("integrix-orchestration")
             .handler(new OrchestrationTaskHandler())
             .open();
 
@@ -152,13 +152,13 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private void createRoutingTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + " - routing")
+            .workerId(workerId + "-routing")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
             .build();
 
-        client.subscribe("integrix - routing")
+        client.subscribe("integrix-routing")
             .handler(new RoutingTaskHandler())
             .open();
 
@@ -172,7 +172,7 @@ public class ExternalTaskClientService implements CommandLineRunner {
     private void createGenericServiceTaskClient() {
         ExternalTaskClient client = ExternalTaskClient.create()
             .baseUrl(baseUrl)
-            .workerId(workerId + " - generic")
+            .workerId(workerId + "-generic")
             .maxTasks(maxTasks)
             .lockDuration(lockDuration)
             .asyncResponseTimeout(asyncResponseTimeout)
@@ -180,10 +180,10 @@ public class ExternalTaskClientService implements CommandLineRunner {
 
         // Subscribe to multiple generic topics
         String[] genericTopics = {
-            "integrix - service",
-            "integrix - enrichment",
-            "integrix - validation",
-            "integrix - logging"
+            "integrix-service",
+            "integrix-enrichment",
+            "integrix-validation",
+            "integrix-logging"
         };
 
         for(String topic : genericTopics) {
@@ -415,7 +415,7 @@ public class ExternalTaskClientService implements CommandLineRunner {
         }
 
         private String evaluateRouting(String rules, Object data, Map<String, Object> variables) {
-            // Simple implementation - in production would parse and evaluate rules
+            // Simple implementation-in production would parse and evaluate rules
             if(rules == null || rules.isEmpty()) {
                 return "default";
             }
@@ -449,13 +449,13 @@ public class ExternalTaskClientService implements CommandLineRunner {
                 // Process based on topic
                 String topic = externalTask.getTopicName();
                 switch(topic) {
-                    case "integrix - enrichment":
+                    case "integrix-enrichment":
                         handleEnrichment(externalTask, variables);
                         break;
-                    case "integrix - validation":
+                    case "integrix-validation":
                         handleValidation(externalTask, variables);
                         break;
-                    case "integrix - logging":
+                    case "integrix-logging":
                         handleLogging(externalTask, variables);
                         break;
                     default:
@@ -500,7 +500,7 @@ public class ExternalTaskClientService implements CommandLineRunner {
 
         private void handleLogging(ExternalTask task, Map<String, Object> variables) {
             // Log process data
-            logger.info("Process logging - Instance: {}, Activity: {}, Variables: {}",
+            logger.info("Process logging-Instance: {}, Activity: {}, Variables: {}",
                 task.getProcessInstanceId(),
                 task.getActivityId(),
                 task.getAllVariables().keySet()

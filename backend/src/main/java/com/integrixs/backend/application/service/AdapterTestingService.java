@@ -6,7 +6,7 @@ import com.integrixs.adapters.core.BaseAdapter;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.backend.api.dto.request.TestAdapterRequest;
 import com.integrixs.backend.api.dto.response.AdapterTestResponse;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.backend.domain.service.AdapterConfigurationService;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Service;
@@ -28,11 +28,11 @@ public class AdapterTestingService {
     private static final Logger log = LoggerFactory.getLogger(AdapterTestingService.class);
 
 
-    private final CommunicationAdapterRepository adapterRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
     private final AdapterConfigurationService configurationService;
     private final AdapterFactoryManager factoryManager = AdapterFactoryManager.getInstance();
 
-    public AdapterTestingService(CommunicationAdapterRepository adapterRepository,
+    public AdapterTestingService(CommunicationAdapterSqlRepository adapterRepository,
                                  AdapterConfigurationService configurationService) {
         this.adapterRepository = adapterRepository;
         this.configurationService = configurationService;

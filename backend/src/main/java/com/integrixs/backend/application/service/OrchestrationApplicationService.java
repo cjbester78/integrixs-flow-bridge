@@ -8,7 +8,7 @@ import com.integrixs.backend.domain.service.OrchestrationManagementService;
 import com.integrixs.backend.infrastructure.orchestration.OrchestrationExecutor;
 import com.integrixs.backend.service.TransformationExecutionService;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +32,14 @@ public class OrchestrationApplicationService {
 
     private final OrchestrationManagementService orchestrationManagementService;
     private final OrchestrationExecutor orchestrationExecutor;
-    private final IntegrationFlowRepository integrationFlowRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
     private final TransformationExecutionService transformationService;
 
     private final Map<String, OrchestrationExecution> activeExecutions = new ConcurrentHashMap<>();
 
     public OrchestrationApplicationService(OrchestrationManagementService orchestrationManagementService,
                                          OrchestrationExecutor orchestrationExecutor,
-                                         IntegrationFlowRepository integrationFlowRepository,
+                                         IntegrationFlowSqlRepository integrationFlowRepository,
                                          TransformationExecutionService transformationService) {
         this.orchestrationManagementService = orchestrationManagementService;
         this.orchestrationExecutor = orchestrationExecutor;

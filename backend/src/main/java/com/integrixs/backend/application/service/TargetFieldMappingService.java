@@ -5,7 +5,7 @@ import com.integrixs.backend.api.dto.request.UpdateTargetFieldMappingRequest;
 import com.integrixs.backend.api.dto.response.TargetFieldMappingResponse;
 import com.integrixs.backend.api.controller.TargetFieldMappingController;
 import com.integrixs.data.model.TargetFieldMapping;
-import com.integrixs.data.repository.TargetFieldMappingRepository;
+import com.integrixs.data.sql.repository.TargetFieldMappingSqlRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +17,11 @@ import java.util.stream.Collectors;
 @Service
 public class TargetFieldMappingService {
     
-    private final TargetFieldMappingRepository targetFieldMappingRepository;
+    private final TargetFieldMappingSqlRepository targetFieldMappingRepository;
+    
+    public TargetFieldMappingService(TargetFieldMappingSqlRepository targetFieldMappingRepository) {
+        this.targetFieldMappingRepository = targetFieldMappingRepository;
+    }
     
     @Transactional
     public TargetFieldMappingResponse createTargetFieldMapping(UUID targetId, CreateTargetFieldMappingRequest request) {
@@ -52,11 +56,6 @@ public class TargetFieldMappingService {
     public Optional<TargetFieldMappingResponse> getMapping(String flowId, String targetId, String mappingId) {
         // Placeholder implementation - convert string IDs to UUIDs and retrieve specific mapping
         return Optional.empty();
-    }
-
-    // Constructor
-    public TargetFieldMappingService(TargetFieldMappingRepository targetFieldMappingRepository) {
-        this.targetFieldMappingRepository = targetFieldMappingRepository;
     }
     
     @Transactional

@@ -1,11 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -13,70 +6,45 @@ import java.util.UUID;
 /**
  * Entity representing an orchestration step in a flow
  */
-@Entity
-@Table(name = "flow_orchestration_steps")
 public class FlowOrchestrationStep {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id", nullable = false)
     private IntegrationFlow flow;
 
-    @Column(name = "step_type", nullable = false)
     private String stepType;
 
-    @Column(name = "step_name")
     private String stepName;
 
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "execution_order", nullable = false)
     private Integer executionOrder;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "configuration", columnDefinition = "jsonb")
     private Map<String, Object> configuration;
 
-    @Column(name = "condition_expression")
     private String conditionExpression;
 
-    @Column(name = "is_conditional")
     private Boolean isConditional = false;
 
-    @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "timeout_seconds")
     private Integer timeoutSeconds;
 
-    @Column(name = "retry_attempts")
     private Integer retryAttempts = 0;
 
-    @Column(name = "retry_delay_seconds")
     private Integer retryDelaySeconds = 60;
 
     // For routing steps
-    @Column(name = "target_adapter_id")
     private UUID targetAdapterId;
 
-    @Column(name = "target_flow_structure_id")
     private UUID targetFlowStructureId;
 
     // For transformation steps
-    @Column(name = "transformation_id")
     private UUID transformationId;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+        private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+        private LocalDateTime updatedAt;
 
     /**
      * Step types enum

@@ -30,6 +30,10 @@ public class SchedulingConfig implements SchedulingConfigurer {
 
     private final MDCTaskDecorator mdcTaskDecorator;
 
+    public SchedulingConfig(MDCTaskDecorator mdcTaskDecorator) {
+        this.mdcTaskDecorator = mdcTaskDecorator;
+    }
+
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
         taskRegistrar.setScheduler(taskScheduler());

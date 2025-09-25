@@ -3,8 +3,8 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SagaTransaction;
 import com.integrixs.data.model.SagaStep;
-import com.integrixs.data.repository.SagaTransactionRepository;
-import com.integrixs.data.repository.SagaStepRepository;
+import com.integrixs.data.sql.repository.SagaTransactionSqlRepository;
+import com.integrixs.data.sql.repository.SagaStepSqlRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +28,10 @@ public class EnhancedSagaTransactionService extends SagaTransactionService {
     private static final Logger logger = LoggerFactory.getLogger(EnhancedSagaTransactionService.class);
 
     @Autowired
-    private SagaTransactionRepository transactionRepository;
+    private SagaTransactionSqlRepository transactionRepository;
 
     @Autowired
-    private SagaStepRepository stepRepository;
+    private SagaStepSqlRepository stepRepository;
 
     // Executor for parallel step execution
     private final ExecutorService parallelExecutor = Executors.newCachedThreadPool();

@@ -34,6 +34,14 @@ public class PluginController {
     private final PluginService pluginService;
     private final PluginPerformanceMonitor performanceMonitor;
     private final PluginDocumentationGenerator documentationGenerator = new PluginDocumentationGenerator();
+    
+    public PluginController(PluginRegistry pluginRegistry, 
+                           PluginService pluginService,
+                           PluginPerformanceMonitor performanceMonitor) {
+        this.pluginRegistry = pluginRegistry;
+        this.pluginService = pluginService;
+        this.performanceMonitor = performanceMonitor;
+    }
 
     @GetMapping
     public ResponseEntity<List<PluginDto>> getAllPlugins() {

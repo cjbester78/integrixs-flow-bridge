@@ -26,6 +26,10 @@ public class PerformanceDashboardController {
 
     private final PerformanceDashboardService dashboardService;
 
+    public PerformanceDashboardController(PerformanceDashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
+
     /**
      * Get real - time performance metrics.
      */

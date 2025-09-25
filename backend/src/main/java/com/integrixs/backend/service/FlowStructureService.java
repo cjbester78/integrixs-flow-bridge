@@ -10,11 +10,11 @@ import com.integrixs.data.model.MessageStructureNamespace;
 import com.integrixs.data.model.User;
 import com.integrixs.data.model.FlowStructure.ProcessingMode;
 import com.integrixs.data.model.FlowStructureMessage.MessageType;
-import com.integrixs.data.repository.BusinessComponentRepository;
-import com.integrixs.data.repository.FlowStructureMessageRepository;
-import com.integrixs.data.repository.FlowStructureRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.MessageStructureRepository;
+import com.integrixs.data.sql.repository.BusinessComponentSqlRepository;
+import com.integrixs.data.sql.repository.FlowStructureMessageSqlRepository;
+import com.integrixs.data.sql.repository.FlowStructureSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.MessageStructureSqlRepository;
 import com.integrixs.shared.dto.structure.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.user.UserDTO;
@@ -22,9 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.hibernate.Hibernate;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,6 +33,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
 import java.util.*;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -46,31 +44,26 @@ public class FlowStructureService {
 
     private static final Logger log = LoggerFactory.getLogger(FlowStructureService.class);
 
-
-    private final FlowStructureRepository flowStructureRepository;
-    private final MessageStructureRepository messageStructureRepository;
-    private final FlowStructureMessageRepository flowStructureMessageRepository;
-    private final BusinessComponentRepository businessComponentRepository;
+    private final FlowStructureSqlRepository flowStructureRepository;
+    private final MessageStructureSqlRepository messageStructureRepository;
+    private final FlowStructureMessageSqlRepository flowStructureMessageRepository;
+    private final BusinessComponentSqlRepository businessComponentRepository;
     private final EnvironmentPermissionService environmentPermissionService;
-    private final IntegrationFlowRepository integrationFlowRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final EntityManager entityManager;
-
-    public FlowStructureService(FlowStructureRepository flowStructureRepository,
-                              MessageStructureRepository messageStructureRepository,
-                              FlowStructureMessageRepository flowStructureMessageRepository,
-                              BusinessComponentRepository businessComponentRepository,
+        public FlowStructureService(FlowStructureSqlRepository flowStructureRepository,
+                              MessageStructureSqlRepository messageStructureRepository,
+                              FlowStructureMessageSqlRepository flowStructureMessageRepository,
+                              BusinessComponentSqlRepository businessComponentRepository,
                               EnvironmentPermissionService environmentPermissionService,
-                              IntegrationFlowRepository integrationFlowRepository,
-                              EntityManager entityManager) {
+                              IntegrationFlowSqlRepository integrationFlowRepository) {
         this.flowStructureRepository = flowStructureRepository;
         this.messageStructureRepository = messageStructureRepository;
         this.flowStructureMessageRepository = flowStructureMessageRepository;
         this.businessComponentRepository = businessComponentRepository;
         this.environmentPermissionService = environmentPermissionService;
         this.integrationFlowRepository = integrationFlowRepository;
-        this.entityManager = entityManager;
-    }
+            }
 
     @Transactional
     public FlowStructureDTO create(FlowStructureCreateRequestDTO request, User currentUser) {
@@ -115,8 +108,6 @@ public class FlowStructureService {
             log.info("Created flow structure messages for flow structure: {}", flowStructure.getId());
 
             // Clear the persistence context to ensure fresh load
-            entityManager.flush();
-            entityManager.clear();
             log.info("Flushed and cleared entity manager");
 
             // Reload the flow structure with associations
@@ -128,10 +119,10 @@ public class FlowStructureService {
 
             // Initialize associations
             if(flowStructure.getFlowStructureMessages() != null) {
-                Hibernate.initialize(flowStructure.getFlowStructureMessages());
+                // Collections are already loaded by SQL repository
                 log.info("Initialized flow structure messages, count: {}", flowStructure.getFlowStructureMessages().size());
                 for(FlowStructureMessage fsm : flowStructure.getFlowStructureMessages()) {
-                    Hibernate.initialize(fsm.getMessageStructure());
+                    // Message structure already loaded by SQL repository
                     log.info("Initialized message structure: {} for type: {}",
                         fsm.getMessageStructure() != null ? fsm.getMessageStructure().getName() : "null",
                         fsm.getMessageType());
@@ -188,16 +179,14 @@ public class FlowStructureService {
         if(request.getMessageStructureIds() != null) {
             createFlowStructureMessages(flowStructure, request.getMessageStructureIds());
             // Clear the persistence context to ensure fresh load
-            entityManager.flush();
-            entityManager.clear();
             // Reload the flow structure with associations
             flowStructure = flowStructureRepository.findById(flowStructure.getId())
                     .orElseThrow(() -> new RuntimeException("Flow structure not found after update"));
             // Initialize associations
             if(flowStructure.getFlowStructureMessages() != null) {
-                Hibernate.initialize(flowStructure.getFlowStructureMessages());
+                // Collections are already loaded by SQL repository
                 for(FlowStructureMessage fsm : flowStructure.getFlowStructureMessages()) {
-                    Hibernate.initialize(fsm.getMessageStructure());
+                    // Message structure already loaded by SQL repository
                 }
             }
         }
@@ -301,7 +290,7 @@ public class FlowStructureService {
 
         // Perform hard delete - this will cascade delete flow_structure_messages due to CASCADE constraint
         flowStructureRepository.delete(flowStructure);
-        flowStructureRepository.flush();
+        // SQL repositories don't have flush() - operations are immediate
     }
 
     private void createFlowStructureMessages(FlowStructure flowStructure,
@@ -325,9 +314,9 @@ public class FlowStructureService {
 
         // Ensure flow structure messages are initialized
         if(flowStructure.getFlowStructureMessages() != null) {
-            Hibernate.initialize(flowStructure.getFlowStructureMessages());
+            // Collections are already loaded by SQL repository
             for(FlowStructureMessage fsm : flowStructure.getFlowStructureMessages()) {
-                Hibernate.initialize(fsm.getMessageStructure());
+                // Message structure already loaded by SQL repository
             }
         }
 
@@ -580,10 +569,10 @@ public class FlowStructureService {
 
         // Initialize associations
         if(flowStructure.getFlowStructureMessages() != null) {
-            Hibernate.initialize(flowStructure.getFlowStructureMessages());
+            // Collections are already loaded by SQL repository
             log.info("Loaded {} message associations", flowStructure.getFlowStructureMessages().size());
             for(FlowStructureMessage fsm : flowStructure.getFlowStructureMessages()) {
-                Hibernate.initialize(fsm.getMessageStructure());
+                // Message structure already loaded by SQL repository
                 log.info("Message structure: {} (type: {})",
                     fsm.getMessageStructure().getName(), fsm.getMessageType());
             }
@@ -606,9 +595,9 @@ public class FlowStructureService {
 
                 // Initialize associations
                 if(flowStructure.getFlowStructureMessages() != null) {
-                    Hibernate.initialize(flowStructure.getFlowStructureMessages());
+                    // Collections are already loaded by SQL repository
                     for(FlowStructureMessage fsm : flowStructure.getFlowStructureMessages()) {
-                        Hibernate.initialize(fsm.getMessageStructure());
+                        // Message structure already loaded by SQL repository
                     }
                 }
 

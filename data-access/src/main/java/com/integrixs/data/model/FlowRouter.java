@@ -1,6 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -8,45 +6,26 @@ import java.util.UUID;
 /**
  * Entity representing a flow router configuration
  */
-@Entity
-@Table(name = "flow_routers")
 public class FlowRouter extends BaseEntity {
 
-
-    @Column(name = "router_name", unique = true, nullable = false)
     private String routerName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id")
     private IntegrationFlow flow;
 
-    @Column(name = "router_type", nullable = false)
-    @Enumerated(EnumType.STRING)
     private RouterType routerType;
 
-    @Column(name = "configuration", columnDefinition = "TEXT")
     private String configuration;
 
-    @Column(name = "is_active")
     private boolean active = true;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "input_channel")
     private String inputChannel;
 
-    @Column(name = "default_output_channel")
     private String defaultOutputChannel;
 
-    @ElementCollection
-    @CollectionTable(name = "router_channel_mappings",
-                     joinColumns = @JoinColumn(name = "router_id"))
-    @MapKeyColumn(name = "condition_value")
-    @Column(name = "output_channel")
     private Map<String, String> channelMappings = new HashMap<>();
 
-    @Column(name = "evaluation_order")
     private Integer evaluationOrder = 0;
 
     public enum RouterType {

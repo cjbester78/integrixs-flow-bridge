@@ -3,7 +3,7 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.application.service.FlowTransformationApplicationService;
 import com.integrixs.backend.application.service.FieldMappingApplicationService;
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import com.integrixs.shared.dto.flow.FlowTransformationDTO;
 import com.integrixs.shared.dto.FieldMappingDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,19 +29,19 @@ public class FlowCompositionService {
 
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
-    private BusinessComponentRepository businessComponentRepository;
+    private BusinessComponentSqlRepository businessComponentRepository;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private FlowTransformationRepository transformationRepository;
+    private FlowTransformationSqlRepository transformationRepository;
 
     @Autowired
-    private FieldMappingRepository fieldMappingRepository;
+    private FieldMappingSqlRepository fieldMappingRepository;
 
     @Autowired
     private FlowTransformationApplicationService transformationService;
@@ -53,10 +53,10 @@ public class FlowCompositionService {
     private FieldMappingServiceAdapter fieldMappingServiceAdapter;
 
     @Autowired
-    private FlowOrchestrationStepRepository orchestrationStepRepository;
+    private FlowOrchestrationStepSqlRepository orchestrationStepRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserSqlRepository userRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -288,7 +288,7 @@ public class FlowCompositionService {
             // Delete field mappings for this transformation
             List<FieldMapping> mappings = fieldMappingRepository.findByTransformationId(UUID.fromString(transformation.getId()));
             for(FieldMapping mapping : mappings) {
-                fieldMappingRepository.delete(mapping);
+                fieldMappingRepository.deleteById(mapping.getId());
             }
             // Delete the transformation
             transformationService.delete(transformation.getId());
@@ -553,7 +553,7 @@ public class FlowCompositionService {
             transformationRepository.deleteByFlowId(flow.getId());
 
             // Delete the flow
-            flowRepository.delete(flow);
+            flowRepository.deleteById(flow.getId());
 
             return true;
         }).orElse(false);

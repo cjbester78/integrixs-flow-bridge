@@ -5,7 +5,7 @@ import com.integrixs.backend.domain.model.OrchestrationExecution;
 import com.integrixs.backend.service.TransformationExecutionService;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.engine.AdapterExecutor;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +25,12 @@ public class OrchestrationExecutor {
 
 
     private final TransformationExecutionService transformationService;
-    private final CommunicationAdapterRepository adapterRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
     private final AdapterExecutor adapterExecutor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public OrchestrationExecutor(TransformationExecutionService transformationService,
-                               CommunicationAdapterRepository adapterRepository,
+                               CommunicationAdapterSqlRepository adapterRepository,
                                AdapterExecutor adapterExecutor) {
         this.transformationService = transformationService;
         this.adapterRepository = adapterRepository;

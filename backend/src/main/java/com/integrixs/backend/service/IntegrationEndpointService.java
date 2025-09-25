@@ -6,10 +6,10 @@ import com.integrixs.data.model.FlowStatus;
 import com.integrixs.data.model.FlowStructure;
 import com.integrixs.data.model.FlowTransformation;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.FlowStructureRepository;
-import com.integrixs.data.repository.FlowTransformationRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.FlowStructureSqlRepository;
+import com.integrixs.data.sql.repository.FlowTransformationSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,16 +42,16 @@ public class IntegrationEndpointService {
     private static final Logger logger = LoggerFactory.getLogger(IntegrationEndpointService.class);
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
-    private FlowTransformationRepository transformationRepository;
+    private FlowTransformationSqlRepository transformationRepository;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private FlowStructureRepository flowStructureRepository;
+    private FlowStructureSqlRepository flowStructureRepository;
 
     @Autowired
     private FlowExecutionSyncService flowExecutionSyncService;
@@ -244,8 +244,10 @@ public class IntegrationEndpointService {
         logger.info("Looking for deployed flow with path containing: {}", flowPath);
 
         // Find deployed flow with transformations eagerly loaded
-        Optional<IntegrationFlow> flow = flowRepository.findByDeploymentEndpointContainingAndStatus(
+        List<IntegrationFlow> flows = flowRepository.findByDeploymentEndpointContainingAndStatus(
             flowPath, FlowStatus.DEPLOYED_ACTIVE);
+        
+        Optional<IntegrationFlow> flow = flows.isEmpty() ? Optional.empty() : Optional.of(flows.get(0));
 
         if(flow.isEmpty()) {
             // Log all deployed flows for debugging

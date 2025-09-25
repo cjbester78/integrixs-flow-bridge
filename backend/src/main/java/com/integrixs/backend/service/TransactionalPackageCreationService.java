@@ -3,7 +3,7 @@ package com.integrixs.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.*;
 import java.util.List;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import com.integrixs.shared.enums.AdapterType;
 import com.integrixs.backend.dto.PackageCreationRequest;
 import com.integrixs.backend.dto.PackageCreationResult;
@@ -24,10 +24,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -40,32 +39,29 @@ public class TransactionalPackageCreationService {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionalPackageCreationService.class);
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Autowired
     private PlatformTransactionManager transactionManager;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private FlowStructureRepository flowStructureRepository;
+    private FlowStructureSqlRepository flowStructureRepository;
 
     @Autowired
-    private MessageStructureRepository messageStructureRepository;
+    private MessageStructureSqlRepository messageStructureRepository;
 
     @Autowired
-    private FlowTransformationRepository transformationRepository;
+    private FlowTransformationSqlRepository transformationRepository;
 
     @Autowired
-    private FieldMappingRepository fieldMappingRepository;
+    private FieldMappingSqlRepository fieldMappingRepository;
 
     @Autowired
-    private OrchestrationTargetRepository orchestrationTargetRepository;
+    private OrchestrationTargetSqlRepository orchestrationTargetRepository;
 
     @Autowired
     private ProcessEngineService processEngineService;
@@ -194,8 +190,7 @@ public class TransactionalPackageCreationService {
                 context.checkpoint("deployed_to_engine");
             }
 
-            // Flush all changes
-            entityManager.flush();
+            // Note: SQL repositories don't have a flush mechanism - changes are immediate
 
             // Final validation
             context.updateProgress(95, "Validating package");
@@ -312,7 +307,7 @@ public class TransactionalPackageCreationService {
         flow.setCreatedBy(user);
         flow.setCreatedAt(LocalDateTime.now());
 
-        flow = flowRepository.saveAndFlush(flow);
+        flow = flowRepository.save(flow);
         context.addResource("flow", flow);
 
         return flow;
@@ -385,7 +380,7 @@ public class TransactionalPackageCreationService {
             }
         }
 
-        return adapterRepository.saveAndFlush(adapter);
+        return adapterRepository.save(adapter);
     }
 
     /**
@@ -426,7 +421,7 @@ public class TransactionalPackageCreationService {
         structure.setCreatedBy(flow.getCreatedBy());
         structure.setCreatedAt(LocalDateTime.now());
 
-        return messageStructureRepository.saveAndFlush(structure);
+        return messageStructureRepository.save(structure);
     }
 
     /**
@@ -451,7 +446,8 @@ public class TransactionalPackageCreationService {
             transformation.setCreatedBy(flow.getCreatedBy());
             transformation.setCreatedAt(LocalDateTime.now());
 
-            transformation = transformationRepository.saveAndFlush(transformation);
+            transformation = transformationRepository.save(transformation);
+            final FlowTransformation savedTransformation = transformation;
             context.addResource("transformation_" + transformation.getName(), transformation);
 
             // Create field mappings
@@ -467,11 +463,11 @@ public class TransactionalPackageCreationService {
                     // FieldMapping doesn't have setRequired method
                     mapping.setMappingOrder(mappingRequest.getOrder());
 
-                    fieldMappingRepository.saveAndFlush(mapping);
+                    fieldMappingRepository.save(mapping);
                 }
             }
 
-            context.addCompensation(() -> transformationRepository.deleteById(transformation.getId()));
+            context.addCompensation(() -> transformationRepository.deleteById(savedTransformation.getId()));
         }
     }
 
@@ -513,7 +509,7 @@ public class TransactionalPackageCreationService {
             target.setCreatedBy(flow.getCreatedBy());
             target.setCreatedAt(LocalDateTime.now());
 
-            orchestrationTargetRepository.saveAndFlush(target);
+            orchestrationTargetRepository.save(target);
             context.addResource("orchestrationTarget_" + target.getName(), target);
             context.addCompensation(() -> orchestrationTargetRepository.deleteById(target.getId()));
         }

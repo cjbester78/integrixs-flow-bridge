@@ -1,6 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,48 +7,30 @@ import java.util.UUID;
 /**
  * Entity representing a saga transaction for distributed transactions
  */
-@Entity
-@Table(name = "saga_transactions")
 public class SagaTransaction extends BaseEntity {
 
-
-    @Column(name = "saga_id", unique = true, nullable = false)
     private String sagaId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id")
     private IntegrationFlow flow;
 
-    @Column(name = "transaction_type", nullable = false)
     private String transactionType;
 
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
     private SagaStatus status = SagaStatus.STARTED;
 
-    @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
 
-    @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "current_step")
     private Integer currentStep = 0;
 
-    @Column(name = "correlation_id")
     private String correlationId;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "retry_count")
     private Integer retryCount = 0;
 
-    @OneToMany(mappedBy = "sagaTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("stepOrder ASC")
     private List<SagaStep> steps = new ArrayList<>();
 
-    @Column(name = "context_data", columnDefinition = "TEXT")
     private String contextData;
 
     public enum SagaStatus {

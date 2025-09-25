@@ -9,70 +9,70 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Implementation of IntegrationFlowRepository using JPA
+ * Implementation of IntegrationFlowSqlRepository using JPA
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainIntegrationFlowRepository")
 public class IntegrationFlowRepositoryImpl implements IntegrationFlowRepositoryPort {
 
-    private final com.integrixs.data.repository.IntegrationFlowRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.IntegrationFlowSqlRepository sqlRepository;
     
-    public IntegrationFlowRepositoryImpl(com.integrixs.data.repository.IntegrationFlowRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public IntegrationFlowRepositoryImpl(com.integrixs.data.sql.repository.IntegrationFlowSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public List<IntegrationFlow> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public Optional<IntegrationFlow> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return jpaRepository.existsById(id);
+        return sqlRepository.existsById(id);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return jpaRepository.existsByName(name);
+        return sqlRepository.existsByName(name);
     }
 
     @Override
     public boolean existsByNameAndIdNot(String name, UUID excludeId) {
-        return jpaRepository.existsByNameAndIdNot(name, excludeId);
+        return sqlRepository.existsByNameAndIdNot(name, excludeId);
     }
 
     @Override
     public IntegrationFlow save(IntegrationFlow flow) {
-        return jpaRepository.save(flow);
+        return sqlRepository.save(flow);
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override
     public List<IntegrationFlow> findByIsActive(boolean active) {
-        return jpaRepository.findByIsActive(active);
+        return sqlRepository.findByIsActive(active);
     }
 
     @Override
     public List<IntegrationFlow> findBySourceAdapterId(UUID inboundAdapterId) {
-        return jpaRepository.findBySourceAdapterId(inboundAdapterId);
+        return sqlRepository.findBySourceAdapterId(inboundAdapterId);
     }
 
     @Override
     public List<IntegrationFlow> findByTargetAdapterId(UUID outboundAdapterId) {
-        return jpaRepository.findByTargetAdapterId(outboundAdapterId);
+        return sqlRepository.findByTargetAdapterId(outboundAdapterId);
     }
 
     @Override
     public void flush() {
-        jpaRepository.flush();
+        sqlRepository.flush();
     }
 }

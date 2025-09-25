@@ -1,0 +1,265 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for UserSqlRepository.
+ * Tests CRUD operations and custom queries against a real database.
+ */
+public class UserSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private UserSqlRepository userRepository;
+
+    @Override
+    protected void setUp() {
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        setupTestUsers();
+    }
+
+    private void setupTestUsers() {
+        // Create test users
+        createUser("admin", "admin@example.com", "ADMINISTRATOR", true);
+        createUser("developer1", "dev1@example.com", "DEVELOPER", true);
+        createUser("developer2", "dev2@example.com", "DEVELOPER", false);
+        createUser("viewer", "viewer@example.com", "VIEWER", true);
+        createUser("integrator", "integrator@example.com", "INTEGRATOR", true);
+    }
+
+    private User createUser(String username, String email, String role, boolean active) {
+        User user = User.builder()
+                .username(username)
+                .email(email)
+                .passwordHash("$2a$10$dummyhash")
+                .firstName("First")
+                .lastName("Last")
+                .role(role)
+                .status(active ? "active" : "inactive")
+                .lastLoginAt(LocalDateTime.now().minusDays(1))
+                .build();
+        return userRepository.save(user);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        User savedUser = createUser("testuser", "test@example.com", "DEVELOPER", true);
+
+        // When
+        Optional<User> found = userRepository.findById(savedUser.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("testuser", found.get().getUsername());
+        assertEquals("test@example.com", found.get().getEmail());
+    }
+
+    @Test
+    void testFindByUsername() {
+        // When
+        Optional<User> found = userRepository.findByUsername("admin");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("admin@example.com", found.get().getEmail());
+        assertEquals("ADMINISTRATOR", found.get().getRole());
+    }
+
+    @Test
+    void testFindByEmail() {
+        // When
+        Optional<User> found = userRepository.findByEmail("dev1@example.com");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("developer1", found.get().getUsername());
+    }
+
+    @Test
+    void testExistsByUsername() {
+        // Then
+        assertTrue(userRepository.existsByUsername("admin"));
+        assertFalse(userRepository.existsByUsername("nonexistent"));
+    }
+
+    @Test
+    void testExistsByEmail() {
+        // Then
+        assertTrue(userRepository.existsByEmail("viewer@example.com"));
+        assertFalse(userRepository.existsByEmail("nonexistent@example.com"));
+    }
+
+    @Test
+    void testFindByRole() {
+        // When
+        List<User> developers = userRepository.findByRole("DEVELOPER");
+
+        // Then
+        assertEquals(2, developers.size());
+        assertTrue(developers.stream().allMatch(u -> "DEVELOPER".equals(u.getRole())));
+    }
+
+    @Test
+    void testCountByRole() {
+        // Then
+        assertEquals(2L, userRepository.countByRole("DEVELOPER"));
+        assertEquals(1L, userRepository.countByRole("ADMINISTRATOR"));
+        assertEquals(1L, userRepository.countByRole("VIEWER"));
+        assertEquals(0L, userRepository.countByRole("NONEXISTENT"));
+    }
+
+    @Test
+    void testFindActiveUsers() {
+        // When
+        List<User> activeUsers = userRepository.findActiveUsers();
+
+        // Then
+        assertEquals(4, activeUsers.size());
+        assertTrue(activeUsers.stream().allMatch(u -> "active".equals(u.getStatus())));
+        assertFalse(activeUsers.stream().anyMatch(u -> "developer2".equals(u.getUsername())));
+    }
+
+    @Test
+    void testFindByLastLoginBefore() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now();
+
+        // When
+        List<User> users = userRepository.findByLastLoginBefore(cutoff);
+
+        // Then
+        assertEquals(5, users.size()); // All test users logged in before now
+    }
+
+    @Test
+    void testFindInactiveUsersSince() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+
+        // When
+        List<User> inactiveUsers = userRepository.findInactiveUsersSince(cutoff);
+
+        // Then
+        assertTrue(inactiveUsers.size() > 0);
+        assertTrue(inactiveUsers.stream()
+                .allMatch(u -> u.getLastLoginAt() == null || u.getLastLoginAt().isBefore(cutoff)));
+    }
+
+    @Test
+    void testUpdateUser() {
+        // Given
+        User user = userRepository.findByUsername("viewer").orElseThrow();
+        String originalEmail = user.getEmail();
+
+        // When
+        user.setEmail("updated@example.com");
+        user.setFirstName("UpdatedFirst");
+        User updated = userRepository.update(user);
+
+        // Then
+        assertEquals("updated@example.com", updated.getEmail());
+        assertEquals("UpdatedFirst", updated.getFirstName());
+        assertNotNull(updated.getUpdatedAt());
+
+        // Verify in database
+        User fromDb = userRepository.findById(user.getId()).orElseThrow();
+        assertEquals("updated@example.com", fromDb.getEmail());
+    }
+
+    @Test
+    void testDeleteUser() {
+        // Given
+        User user = createUser("tobedeleted", "delete@example.com", "VIEWER", true);
+        UUID userId = user.getId();
+
+        // When
+        userRepository.deleteById(userId);
+
+        // Then
+        Optional<User> deleted = userRepository.findById(userId);
+        assertFalse(deleted.isPresent());
+        assertEquals(5, countRowsInTable("users")); // Original 5 users remain
+    }
+
+    @Test
+    void testFindAllWithPagination() {
+        // Given
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by("username"));
+
+        // When
+        Page<User> page = userRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(6, page.getTotalElements()); // 5 setup + 1 from previous tests
+        assertEquals(2, page.getTotalPages());
+        assertEquals(3, page.getContent().size());
+        assertEquals("admin", page.getContent().get(0).getUsername()); // Sorted by username
+    }
+
+    @Test
+    void testSaveNewUser() {
+        // Given
+        User newUser = User.builder()
+                .username("newuser")
+                .email("new@example.com")
+                .passwordHash("$2a$10$newhash")
+                .firstName("New")
+                .lastName("User")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+
+        // When
+        User saved = userRepository.save(newUser);
+
+        // Then
+        assertNotNull(saved.getId());
+        assertNotNull(saved.getCreatedAt());
+        assertNotNull(saved.getUpdatedAt());
+        assertEquals("newuser", saved.getUsername());
+
+        // Verify in database
+        assertTrue(userRepository.existsByUsername("newuser"));
+    }
+
+    @Test
+    void testUpdateLastLogin() {
+        // Given
+        User user = userRepository.findByUsername("integrator").orElseThrow();
+        LocalDateTime oldLoginTime = user.getLastLoginAt();
+
+        // When
+        LocalDateTime newLoginTime = LocalDateTime.now();
+        user.setLastLoginAt(newLoginTime);
+        userRepository.update(user);
+
+        // Then
+        User updated = userRepository.findById(user.getId()).orElseThrow();
+        assertEquals(newLoginTime.withNano(0), updated.getLastLoginAt().withNano(0)); // Compare without nanos
+        assertNotEquals(oldLoginTime, updated.getLastLoginAt());
+    }
+
+    @Test
+    void testComplexQuery() {
+        // Test combining multiple conditions
+        // When
+        List<User> activeDevelopers = userRepository.findAll().stream()
+                .filter(u -> "DEVELOPER".equals(u.getRole()))
+                .filter(u -> "active".equals(u.getStatus()))
+                .toList();
+
+        // Then
+        assertEquals(1, activeDevelopers.size());
+        assertEquals("developer1", activeDevelopers.get(0).getUsername());
+    }
+}

@@ -3,7 +3,7 @@ package com.integrixs.backend.infrastructure.persistence;
 import com.integrixs.backend.domain.repository.DomainMessageRepositoryPort;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.Message.MessageStatus;
-import com.integrixs.data.repository.MessageRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
@@ -13,36 +13,36 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Implementation of DomainMessageRepository using JPA
- * Bridges between domain repository interface and JPA repository
+ * Implementation of DomainMessageRepository using SQL
+ * Bridges between domain repository interface and SQL repository
  */
 @Repository("domainMessageRepositoryImpl")
 public class DomainMessageRepositoryImpl implements DomainMessageRepositoryPort {
 
-    private final MessageRepository jpaRepository;
+    private final MessageSqlRepository sqlRepository;
     
-    public DomainMessageRepositoryImpl(MessageRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public DomainMessageRepositoryImpl(MessageSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public List<Message> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public Optional<Message> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public Message save(Message message) {
-        return jpaRepository.save(message);
+        return sqlRepository.save(message);
     }
 
     @Override
     public long countByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
+        return sqlRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
             .getTotalElements();
     }
 
@@ -50,14 +50,14 @@ public class DomainMessageRepositoryImpl implements DomainMessageRepositoryPort 
     public long countByBusinessComponentAndDateRange(UUID businessComponentId, LocalDateTime startDate, LocalDateTime endDate) {
         // This is a simplified implementation - in reality would need a custom query
         // that joins with flow and adapter tables to filter by business component
-        return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
+        return sqlRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, 1))
             .getTotalElements();
     }
 
     @Override
     public long countByStatusAndDateRange(MessageStatus status, LocalDateTime startDate, LocalDateTime endDate) {
-        // This would need a custom query in the JPA repository
-        return jpaRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))
+        // Custom implementation needed
+        return sqlRepository.findByReceivedAtBetween(startDate, endDate, PageRequest.of(0, Integer.MAX_VALUE))
             .stream()
             .filter(m -> m.getStatus() == status)
             .count();

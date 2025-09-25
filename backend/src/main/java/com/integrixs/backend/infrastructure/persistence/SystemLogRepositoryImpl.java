@@ -11,61 +11,61 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Implementation of SystemLogRepository using JPA
- * Bridges between domain repository interface and JPA repository
+ * Implementation of SystemLogRepository using SQL
+ * Bridges between domain repository interface and SQL repository
  */
 @Repository("domainSystemLogRepository")
 public class SystemLogRepositoryImpl implements SystemLogRepositoryPort {
 
-    private final com.integrixs.data.repository.SystemLogRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.SystemLogSqlRepository sqlRepository;
     
-    public SystemLogRepositoryImpl(com.integrixs.data.repository.SystemLogRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public SystemLogRepositoryImpl(com.integrixs.data.sql.repository.SystemLogSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public SystemLog save(SystemLog log) {
-        return jpaRepository.save(log);
+        return sqlRepository.save(log);
     }
 
     @Override
     public Optional<SystemLog> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public List<SystemLog> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public List<SystemLog> findBySource(String source) {
-        // This would need a custom query method in JPA repository
-        return jpaRepository.findAll().stream()
+        // Custom implementation using in-memory filtering
+        return sqlRepository.findAll().stream()
             .filter(log -> source.equals(log.getSource()))
             .toList();
     }
 
     @Override
     public List<SystemLog> findByLevel(SystemLog.LogLevel level) {
-        // This would need a custom query method in JPA repository
-        return jpaRepository.findAll().stream()
+        // Custom implementation using in-memory filtering
+        return sqlRepository.findAll().stream()
             .filter(log -> level.equals(log.getLevel()))
             .toList();
     }
 
     @Override
     public List<SystemLog> findByUserId(UUID userId) {
-        // This would need a custom query method in JPA repository
-        return jpaRepository.findAll().stream()
+        // Custom implementation using in-memory filtering
+        return sqlRepository.findAll().stream()
             .filter(log -> userId != null && userId.equals(log.getUserId()))
             .toList();
     }
 
     @Override
     public List<SystemLog> findByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        // This would need a custom query method in JPA repository
-        return jpaRepository.findAll().stream()
+        // Custom implementation using in-memory filtering
+        return sqlRepository.findAll().stream()
             .filter(log -> {
                 LocalDateTime timestamp = log.getTimestamp();
                 return timestamp != null &&
@@ -77,8 +77,8 @@ public class SystemLogRepositoryImpl implements SystemLogRepositoryPort {
 
     @Override
     public List<SystemLog> findByDomainTypeAndReferenceId(String domainType, String domainReferenceId) {
-        // This would need a custom query method in JPA repository
-        return jpaRepository.findAll().stream()
+        // Custom implementation using in-memory filtering
+        return sqlRepository.findAll().stream()
             .filter(log -> domainType.equals(log.getDomainType()) &&
                           domainReferenceId.equals(log.getDomainReferenceId()))
             .toList();
@@ -86,11 +86,11 @@ public class SystemLogRepositoryImpl implements SystemLogRepositoryPort {
 
     @Override
     public List<SystemLog> findByCorrelationId(String correlationId) {
-        return jpaRepository.findByCorrelationId(correlationId);
+        return sqlRepository.findByCorrelationId(correlationId);
     }
 
     @Override
     public long countByLevelAndDateRange(SystemLog.LogLevel level, LocalDateTime startDate, LocalDateTime endDate) {
-        return jpaRepository.countByLevelAndTimestampAfter(level, startDate);
+        return sqlRepository.countByLevelAndTimestampAfter(level, startDate);
     }
 }

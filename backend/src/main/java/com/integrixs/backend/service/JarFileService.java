@@ -1,7 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.JarFile;
-import com.integrixs.data.repository.JarFileRepository;
+import com.integrixs.data.sql.repository.JarFileSqlRepository;
 import com.integrixs.shared.dto.JarFileDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +29,14 @@ public class JarFileService {
 
     private static final Logger logger = LoggerFactory.getLogger(JarFileService.class);
 
-    private final JarFileRepository jarFileRepository;
+    private final JarFileSqlRepository jarFileRepository;
 
-    @Value("$ {jar.max.size:52428800}") // 50MB default
+    @Value("${jar.max.size:52428800}") // 50MB default
     private long maxFileSize;
+    
+    public JarFileService(JarFileSqlRepository jarFileRepository) {
+        this.jarFileRepository = jarFileRepository;
+    }
 
     /**
      * Get all active JAR files
@@ -153,7 +157,7 @@ public class JarFileService {
                 .orElseThrow(() -> new NoSuchElementException("JAR file not found with ID: " + id));
 
         // Delete from database(file content is stored in DB)
-        jarFileRepository.delete(jarFile);
+        jarFileRepository.deleteById(jarFile.getId());
 
         logger.info("JAR file permanently deleted: {}", id);
     }

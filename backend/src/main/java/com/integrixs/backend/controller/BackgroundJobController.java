@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,16 +63,17 @@ public class BackgroundJobController {
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         if(status != null && jobType != null) {
-            return jobRepository.findAll((root, query, cb) ->
-                cb.and(
-                    cb.equal(root.get("status"), status),
-                    cb.equal(root.get("jobType"), jobType)
-               ), pageable);
+            // For combined filter, we need to fetch all and filter in memory
+            // In production, this should be a custom SQL query
+            Page<BackgroundJob> allJobs = jobRepository.findByStatus(status, pageable);
+            List<BackgroundJob> filtered = allJobs.getContent().stream()
+                .filter(job -> jobType.equals(job.getJobType()))
+                .toList();
+            return new PageImpl<>(filtered, pageable, filtered.size());
         } else if(status != null) {
             return jobRepository.findByStatus(status, pageable);
         } else if(jobType != null) {
-            return jobRepository.findAll((root, query, cb) ->
-                cb.equal(root.get("jobType"), jobType), pageable);
+            return jobRepository.findByJobType(jobType, pageable);
         } else {
             return jobRepository.findAll(pageable);
         }

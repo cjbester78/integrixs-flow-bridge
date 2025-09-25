@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Service for managing bulkheads across adapters.
  * Provides resource isolation and concurrency control.
  */
-@Service
+@Service("backendBulkheadService")
 public class BulkheadService {
 
     private static final Logger log = LoggerFactory.getLogger(BulkheadService.class);

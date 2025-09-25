@@ -23,6 +23,10 @@ public class AsyncConfig implements AsyncConfigurer {
 
     private final MDCTaskDecorator mdcTaskDecorator;
 
+    public AsyncConfig(MDCTaskDecorator mdcTaskDecorator) {
+        this.mdcTaskDecorator = mdcTaskDecorator;
+    }
+
     @Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

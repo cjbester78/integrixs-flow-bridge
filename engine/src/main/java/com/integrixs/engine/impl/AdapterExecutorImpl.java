@@ -10,7 +10,7 @@ import com.integrixs.adapters.domain.port.InboundAdapterPort;
 import com.integrixs.adapters.domain.port.StreamingAdapterPort;
 import com.integrixs.adapters.factory.AdapterFactoryManager;
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.engine.AdapterExecutor;
 import com.integrixs.shared.enums.AdapterType;
 import org.springframework.stereotype.Component;
@@ -36,9 +36,9 @@ public class AdapterExecutorImpl implements AdapterExecutor {
 
 
     private final AdapterFactoryManager adapterFactoryManager;
-    private final CommunicationAdapterRepository adapterRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
 
-    public AdapterExecutorImpl(AdapterFactoryManager adapterFactoryManager, CommunicationAdapterRepository adapterRepository) {
+    public AdapterExecutorImpl(AdapterFactoryManager adapterFactoryManager, CommunicationAdapterSqlRepository adapterRepository) {
         this.adapterFactoryManager = adapterFactoryManager;
         this.adapterRepository = adapterRepository;
     }
@@ -373,14 +373,14 @@ public class AdapterExecutorImpl implements AdapterExecutor {
 
     public static class AdapterExecutorImplBuilder {
         private AdapterFactoryManager adapterFactoryManager;
-        private CommunicationAdapterRepository adapterRepository;
+        private CommunicationAdapterSqlRepository adapterRepository;
 
         public AdapterExecutorImplBuilder adapterFactoryManager(AdapterFactoryManager adapterFactoryManager) {
             this.adapterFactoryManager = adapterFactoryManager;
             return this;
         }
 
-        public AdapterExecutorImplBuilder adapterRepository(CommunicationAdapterRepository adapterRepository) {
+        public AdapterExecutorImplBuilder adapterRepository(CommunicationAdapterSqlRepository adapterRepository) {
             this.adapterRepository = adapterRepository;
             return this;
         }

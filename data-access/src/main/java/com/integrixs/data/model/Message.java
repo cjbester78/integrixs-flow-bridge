@@ -1,72 +1,46 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * Entity representing a message in the system
  */
-@Entity
-@Table(name = "messages")
 public class Message extends BaseEntity {
 
-
-    @Column(name = "message_id", unique = true, nullable = false)
     private String messageId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id")
     private IntegrationFlow flow;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_execution_id")
     private FlowExecution flowExecution;
 
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
     private MessageStatus status = MessageStatus.RECEIVED;
 
-    @Column(name = "source_system")
     private String sourceSystem;
 
-    @Column(name = "target_system")
     private String targetSystem;
 
-    @Column(name = "message_type")
     private String messageType;
 
-    @Column(name = "content_type")
     private String contentType;
 
-    @Column(name = "message_content", columnDefinition = "TEXT")
     private String messageContent;
 
-    @Column(name = "headers", columnDefinition = "TEXT")
     private String headers;
 
-    @Column(name = "properties", columnDefinition = "TEXT")
     private String properties;
 
-    @Column(name = "received_at", nullable = false)
     private LocalDateTime receivedAt;
 
-    @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "retry_count")
     private Integer retryCount = 0;
 
-    @Column(name = "correlation_id")
     private String correlationId;
 
-    @Column(name = "priority")
     private Integer priority = 5;
 
-    @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
     public enum MessageStatus {

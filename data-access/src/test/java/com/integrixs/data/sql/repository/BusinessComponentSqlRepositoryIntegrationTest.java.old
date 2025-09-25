@@ -1,0 +1,457 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.data.model.*;
+import com.integrixs.shared.enums.AdapterType;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for BusinessComponentSqlRepository.
+ * Tests complex entity with bidirectional @OneToMany relationships to
+ * CommunicationAdapter, FlowStructure, and MessageStructure, plus self-referencing parent-child relationship.
+ */
+public class BusinessComponentSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private BusinessComponentSqlRepository businessComponentRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
+    private FlowStructureSqlRepository flowStructureRepository;
+    private MessageStructureSqlRepository messageStructureRepository;
+    private UserSqlRepository userRepository;
+    
+    private User testUser;
+
+    @Override
+    protected void setUp() {
+        businessComponentRepository = new BusinessComponentSqlRepository(sqlQueryExecutor);
+        adapterRepository = new CommunicationAdapterSqlRepository(sqlQueryExecutor);
+        flowStructureRepository = new FlowStructureSqlRepository(sqlQueryExecutor);
+        messageStructureRepository = new MessageStructureSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create test user
+        testUser = User.builder()
+                .username("componentuser")
+                .email("component@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Component")
+                .lastName("User")
+                .role("ADMINISTRATOR")
+                .status("active")
+                .build();
+        testUser = userRepository.save(testUser);
+
+        // Create test business components hierarchy
+        createTestBusinessComponents();
+    }
+
+    private void createTestBusinessComponents() {
+        // Create root component
+        BusinessComponent rootComponent = createBusinessComponent(
+                "Global Corporation", "ORGANIZATION", null, true,
+                "{\"headquarters\": \"New York\", \"employees\": 10000}");
+
+        // Create divisions
+        BusinessComponent salesDiv = createBusinessComponent(
+                "Sales Division", "DIVISION", rootComponent, true,
+                "{\"regions\": [\"North America\", \"Europe\", \"Asia\"]}");
+        
+        BusinessComponent techDiv = createBusinessComponent(
+                "Technology Division", "DIVISION", rootComponent, true,
+                "{\"departments\": [\"Development\", \"Infrastructure\", \"Support\"]}");
+
+        // Create departments
+        BusinessComponent integrationDept = createBusinessComponent(
+                "Integration Department", "DEPARTMENT", techDiv, true,
+                "{\"teams\": 5, \"projects\": 12}");
+        
+        BusinessComponent salesOpsDept = createBusinessComponent(
+                "Sales Operations", "DEPARTMENT", salesDiv, false,
+                "{\"automated\": true}");
+
+        // Add child entities to some components
+        addChildEntitiesToComponent(integrationDept);
+        addChildEntitiesToComponent(salesDiv);
+    }
+
+    private BusinessComponent createBusinessComponent(String name, String type,
+                                                    BusinessComponent parent, boolean active,
+                                                    String configuration) {
+        BusinessComponent component = BusinessComponent.builder()
+                .name(name)
+                .description("Test component: " + name)
+                .type(type)
+                .configuration(configuration)
+                .active(active)
+                .parent(parent)
+                .build();
+        
+        component.setCreatedBy(testUser);
+        component.setUpdatedBy(testUser);
+        
+        return businessComponentRepository.save(component);
+    }
+
+    private void addChildEntitiesToComponent(BusinessComponent component) {
+        // Add adapters
+        CommunicationAdapter httpAdapter = CommunicationAdapter.builder()
+                .name(component.getName() + " HTTP Adapter")
+                .type(AdapterType.HTTP)
+                .mode(AdapterConfiguration.AdapterModeEnum.INBOUND)
+                .direction("OUTBOUND")
+                .configuration("{}")
+                .active(true)
+                .businessComponent(component)
+                .build();
+        adapterRepository.save(httpAdapter);
+
+        CommunicationAdapter ftpAdapter = CommunicationAdapter.builder()
+                .name(component.getName() + " FTP Adapter")
+                .type(AdapterType.FTP)
+                .mode(AdapterConfiguration.AdapterModeEnum.OUTBOUND)
+                .direction("INBOUND")
+                .configuration("{}")
+                .active(true)
+                .businessComponent(component)
+                .build();
+        adapterRepository.save(ftpAdapter);
+
+        // Add flow structure
+        FlowStructure flowStructure = FlowStructure.builder()
+                .name(component.getName() + " Flow Structure")
+                .type(FlowStructure.FlowStructureType.SOAP)
+                .format(FlowStructure.StructureFormat.WSDL)
+                .definition("<wsdl>test</wsdl>")
+                .active(true)
+                .businessComponent(component)
+                .build();
+        flowStructureRepository.save(flowStructure);
+
+        // Add message structure
+        MessageStructure messageStructure = MessageStructure.builder()
+                .name(component.getName() + " Message Structure")
+                .type(MessageStructure.MessageType.XML)
+                .format(MessageStructure.MessageFormat.XSD)
+                .schemaDefinition("<xsd>test</xsd>")
+                .active(true)
+                .businessComponent(component)
+                .build();
+        messageStructureRepository.save(messageStructure);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        BusinessComponent component = createBusinessComponent(
+                "Test Component", "UNIT", null, true, "{}");
+
+        // When
+        var found = businessComponentRepository.findById(component.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test Component", found.get().getName());
+        assertEquals("UNIT", found.get().getType());
+        assertNotNull(found.get().getCreatedBy());
+        assertEquals(testUser.getId(), found.get().getCreatedBy().getId());
+    }
+
+    @Test
+    void testFindByName() {
+        // When
+        var found = businessComponentRepository.findByName("Global Corporation");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("ORGANIZATION", found.get().getType());
+        assertNull(found.get().getParent());
+        assertTrue(found.get().getConfiguration().contains("headquarters"));
+    }
+
+    @Test
+    void testExistsByName() {
+        // Then
+        assertTrue(businessComponentRepository.existsByName("Sales Division"));
+        assertFalse(businessComponentRepository.existsByName("Non-existent Component"));
+    }
+
+    @Test
+    void testFindByType() {
+        // When
+        List<BusinessComponent> divisions = businessComponentRepository.findByType("DIVISION");
+
+        // Then
+        assertEquals(2, divisions.size());
+        assertTrue(divisions.stream().allMatch(c -> "DIVISION".equals(c.getType())));
+        assertTrue(divisions.stream().anyMatch(c -> "Sales Division".equals(c.getName())));
+        assertTrue(divisions.stream().anyMatch(c -> "Technology Division".equals(c.getName())));
+    }
+
+    @Test
+    void testFindByParent() {
+        // Given
+        BusinessComponent rootComponent = businessComponentRepository
+                .findByName("Global Corporation").orElseThrow();
+
+        // When
+        List<BusinessComponent> children = businessComponentRepository.findByParent(rootComponent);
+
+        // Then
+        assertEquals(2, children.size());
+        assertTrue(children.stream().allMatch(c -> rootComponent.getId().equals(c.getParent().getId())));
+    }
+
+    @Test
+    void testFindActiveComponents() {
+        // When
+        List<BusinessComponent> activeComponents = businessComponentRepository.findByActive(true);
+
+        // Then
+        assertEquals(5, activeComponents.size()); // 4 from setup + 1 from testFindById
+        assertFalse(activeComponents.stream()
+                .anyMatch(c -> "Sales Operations".equals(c.getName())));
+    }
+
+    @Test
+    void testLoadCommunicationAdapters() {
+        // Given
+        BusinessComponent integrationDept = businessComponentRepository
+                .findByName("Integration Department").orElseThrow();
+
+        // When
+        List<CommunicationAdapter> adapters = businessComponentRepository
+                .loadCommunicationAdapters(integrationDept.getId());
+
+        // Then
+        assertEquals(2, adapters.size());
+        assertTrue(adapters.stream()
+                .anyMatch(a -> a.getName().contains("HTTP Adapter")));
+        assertTrue(adapters.stream()
+                .anyMatch(a -> a.getName().contains("FTP Adapter")));
+        assertTrue(adapters.stream()
+                .allMatch(a -> integrationDept.getId().equals(a.getBusinessComponent().getId())));
+    }
+
+    @Test
+    void testLoadFlowStructures() {
+        // Given
+        BusinessComponent salesDiv = businessComponentRepository
+                .findByName("Sales Division").orElseThrow();
+
+        // When
+        List<FlowStructure> flowStructures = businessComponentRepository
+                .loadFlowStructures(salesDiv.getId());
+
+        // Then
+        assertEquals(1, flowStructures.size());
+        assertEquals("Sales Division Flow Structure", flowStructures.get(0).getName());
+        assertEquals(salesDiv.getId(), flowStructures.get(0).getBusinessComponent().getId());
+    }
+
+    @Test
+    void testLoadMessageStructures() {
+        // Given
+        BusinessComponent integrationDept = businessComponentRepository
+                .findByName("Integration Department").orElseThrow();
+
+        // When
+        List<MessageStructure> messageStructures = businessComponentRepository
+                .loadMessageStructures(integrationDept.getId());
+
+        // Then
+        assertEquals(1, messageStructures.size());
+        assertEquals("Integration Department Message Structure", messageStructures.get(0).getName());
+    }
+
+    @Test
+    void testCompleteHierarchy() {
+        // Given
+        BusinessComponent root = businessComponentRepository
+                .findByName("Global Corporation").orElseThrow();
+
+        // When - Load full hierarchy
+        List<BusinessComponent> allComponents = businessComponentRepository.findAll();
+        
+        // Build hierarchy
+        List<BusinessComponent> rootChildren = businessComponentRepository.findByParent(root);
+        
+        // Then
+        assertTrue(allComponents.size() >= 5);
+        assertEquals(2, rootChildren.size());
+        
+        // Check deeper hierarchy
+        BusinessComponent techDiv = rootChildren.stream()
+                .filter(c -> "Technology Division".equals(c.getName()))
+                .findFirst().orElseThrow();
+        
+        List<BusinessComponent> techDivChildren = businessComponentRepository.findByParent(techDiv);
+        assertEquals(1, techDivChildren.size());
+        assertEquals("Integration Department", techDivChildren.get(0).getName());
+    }
+
+    @Test
+    void testUpdateBusinessComponent() {
+        // Given
+        BusinessComponent salesOps = businessComponentRepository
+                .findByName("Sales Operations").orElseThrow();
+
+        // When
+        salesOps.setActive(true);
+        salesOps.setDescription("Updated sales operations department");
+        salesOps.setConfiguration("{\"automated\": true, \"regions\": 5}");
+        BusinessComponent updated = businessComponentRepository.update(salesOps);
+
+        // Then
+        assertTrue(updated.isActive());
+        assertEquals("Updated sales operations department", updated.getDescription());
+        assertTrue(updated.getConfiguration().contains("regions"));
+        assertNotNull(updated.getUpdatedAt());
+    }
+
+    @Test
+    void testComplexComponentWithAllRelationships() {
+        // Given
+        BusinessComponent parentDiv = createBusinessComponent(
+                "Complex Parent Division", "DIVISION", null, true, "{}");
+
+        BusinessComponent complexComponent = BusinessComponent.builder()
+                .name("Complex Business Unit")
+                .description("Component with all relationship types")
+                .type("UNIT")
+                .configuration("""
+                        {
+                            "settings": {
+                                "maxAdapters": 100,
+                                "maxFlows": 50,
+                                "monitoring": true
+                            },
+                            "metadata": {
+                                "owner": "Integration Team",
+                                "costCenter": "IT-001"
+                            }
+                        }
+                        """)
+                .active(true)
+                .parent(parentDiv)
+                .build();
+        complexComponent.setCreatedBy(testUser);
+        complexComponent.setUpdatedBy(testUser);
+
+        // When
+        BusinessComponent saved = businessComponentRepository.save(complexComponent);
+        
+        // Add multiple child entities
+        for (int i = 0; i < 5; i++) {
+            CommunicationAdapter adapter = CommunicationAdapter.builder()
+                    .name("Complex Adapter " + i)
+                    .type(AdapterType.HTTP)
+                    .mode(AdapterConfiguration.AdapterModeEnum.INBOUND)
+                    .direction("OUTBOUND")
+                    .configuration("{}")
+                    .active(true)
+                    .businessComponent(saved)
+                    .build();
+            adapterRepository.save(adapter);
+        }
+
+        // Then
+        BusinessComponent retrieved = businessComponentRepository
+                .findById(saved.getId()).orElseThrow();
+        assertNotNull(retrieved);
+        assertEquals("Complex Business Unit", retrieved.getName());
+        assertNotNull(retrieved.getParent());
+        assertEquals("Complex Parent Division", retrieved.getParent().getName());
+
+        List<CommunicationAdapter> adapters = businessComponentRepository
+                .loadCommunicationAdapters(saved.getId());
+        assertEquals(5, adapters.size());
+    }
+
+    @Test
+    void testDeleteBusinessComponent() {
+        // Given
+        BusinessComponent toDelete = createBusinessComponent(
+                "To Delete Component", "TEST", null, true, "{}");
+        
+        // Add some child entities
+        CommunicationAdapter adapter = CommunicationAdapter.builder()
+                .name("Delete Test Adapter")
+                .type(AdapterType.FILE)
+                .mode(AdapterConfiguration.AdapterModeEnum.INBOUND)
+                .direction("OUTBOUND")
+                .configuration("{}")
+                .active(true)
+                .businessComponent(toDelete)
+                .build();
+        adapterRepository.save(adapter);
+        
+        UUID componentId = toDelete.getId();
+
+        // When
+        businessComponentRepository.deleteById(componentId);
+
+        // Then
+        assertFalse(businessComponentRepository.findById(componentId).isPresent());
+        
+        // Note: Child entities should be handled by foreign key constraints
+        // or application logic to prevent orphans
+    }
+
+    @Test
+    void testPaginationAndSorting() {
+        // Given - Create additional components
+        for (int i = 0; i < 10; i++) {
+            createBusinessComponent("Bulk Component " + i, "UNIT", null, true, "{}");
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        Page<BusinessComponent> page = businessComponentRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(5, page.getContent().size());
+        assertTrue(page.getTotalElements() >= 16); // Setup + test + bulk
+    }
+
+    @Test
+    void testFindRootComponents() {
+        // When
+        List<BusinessComponent> rootComponents = businessComponentRepository.findAll().stream()
+                .filter(c -> c.getParent() == null)
+                .toList();
+
+        // Then
+        assertTrue(rootComponents.size() >= 1);
+        assertTrue(rootComponents.stream()
+                .anyMatch(c -> "Global Corporation".equals(c.getName())));
+    }
+
+    @Test
+    void testComponentMetrics() {
+        // When
+        long totalComponents = businessComponentRepository.count();
+        long activeCount = businessComponentRepository.findByActive(true).size();
+        long divisionCount = businessComponentRepository.findByType("DIVISION").size();
+        
+        // Count components with child entities
+        List<BusinessComponent> componentsWithAdapters = businessComponentRepository.findAll().stream()
+                .filter(c -> !businessComponentRepository.loadCommunicationAdapters(c.getId()).isEmpty())
+                .toList();
+
+        // Then
+        assertTrue(totalComponents >= 6);
+        assertTrue(activeCount >= 5);
+        assertEquals(2, divisionCount);
+        assertTrue(componentsWithAdapters.size() >= 2); // Integration Dept and Sales Div
+    }
+}

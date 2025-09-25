@@ -1,0 +1,391 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for MessageStructureSqlRepository.
+ * Tests entity with @ManyToOne relationships and @ElementCollection for namespaces.
+ */
+public class MessageStructureSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private MessageStructureSqlRepository messageStructureRepository;
+    private BusinessComponentSqlRepository businessComponentRepository;
+    private UserSqlRepository userRepository;
+    
+    private BusinessComponent testBusinessComponent;
+    private User testUser;
+
+    @Override
+    protected void setUp() {
+        messageStructureRepository = new MessageStructureSqlRepository(sqlQueryExecutor);
+        businessComponentRepository = new BusinessComponentSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create test user
+        testUser = User.builder()
+                .username("messageuser")
+                .email("message@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Message")
+                .lastName("User")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+        testUser = userRepository.save(testUser);
+
+        // Create test business component
+        testBusinessComponent = BusinessComponent.builder()
+                .name("Message Business Unit")
+                .description("Test business component for message structures")
+                .type("UNIT")
+                .active(true)
+                .build();
+        testBusinessComponent = businessComponentRepository.save(testBusinessComponent);
+
+        // Create test message structures
+        createTestMessageStructures();
+    }
+
+    private void createTestMessageStructures() {
+        createMessageStructure("Order XML v1.0", MessageStructure.MessageType.XML, 
+                             MessageStructure.MessageFormat.XSD, "1.0", true);
+        createMessageStructure("Customer JSON", MessageStructure.MessageType.JSON,
+                             MessageStructure.MessageFormat.JSON_SCHEMA, "2.1", true);
+        createMessageStructure("Invoice CSV", MessageStructure.MessageType.CSV,
+                             MessageStructure.MessageFormat.CUSTOM, "1.5", false);
+        createMessageStructure("Product EDI", MessageStructure.MessageType.EDI,
+                             MessageStructure.MessageFormat.EDIFACT, "D96A", true);
+        createMessageStructure("Legacy Fixed Format", MessageStructure.MessageType.FIXED,
+                             MessageStructure.MessageFormat.CUSTOM, null, true);
+    }
+
+    private MessageStructure createMessageStructure(String name, MessageStructure.MessageType type,
+                                                   MessageStructure.MessageFormat format, 
+                                                   String version, boolean active) {
+        MessageStructure structure = MessageStructure.builder()
+                .name(name)
+                .version(version)
+                .type(type)
+                .format(format)
+                .schemaDefinition(generateTestSchema(type, format))
+                .sampleMessage(generateSampleMessage(type))
+                .validationRules(generateValidationRules(type))
+                .transformationRules("{\"uppercase\": [\"name\", \"code\"]}")
+                .active(active)
+                .businessComponent(testBusinessComponent)
+                .build();
+        
+        // Set audit fields
+        structure.setCreatedBy(testUser);
+        structure.setUpdatedBy(testUser);
+        
+        // Add namespaces for XML types
+        if (type == MessageStructure.MessageType.XML) {
+            Set<MessageStructureNamespace> namespaces = new HashSet<>();
+            namespaces.add(new MessageStructureNamespace("", "http://example.com/order"));
+            namespaces.add(new MessageStructureNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance"));
+            structure.setNamespaces(namespaces);
+        }
+        
+        return messageStructureRepository.save(structure);
+    }
+
+    private String generateTestSchema(MessageStructure.MessageType type, 
+                                    MessageStructure.MessageFormat format) {
+        return switch (format) {
+            case XSD -> """
+                    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                        <xs:element name="order">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="id" type="xs:string"/>
+                                    <xs:element name="amount" type="xs:decimal"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:schema>
+                    """;
+            case JSON_SCHEMA -> """
+                    {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "name": {"type": "string"}
+                        }
+                    }
+                    """;
+            case CUSTOM -> "{\"fields\": [{\"name\": \"field1\", \"type\": \"string\", \"length\": 10}]}";
+            default -> "{}";
+        };
+    }
+
+    private String generateSampleMessage(MessageStructure.MessageType type) {
+        return switch (type) {
+            case XML -> "<order><id>ORD123</id><amount>99.99</amount></order>";
+            case JSON -> "{\"id\": \"CUST456\", \"name\": \"John Doe\"}";
+            case CSV -> "id,name,amount\\nORD789,Test Order,150.00";
+            case EDI -> "UNH+1+ORDERS:D:96A:UN'BGM+220+ORDER123'";
+            case FIXED -> "ORDER123  CUST456   000099.99";
+            default -> "";
+        };
+    }
+
+    private String generateValidationRules(MessageStructure.MessageType type) {
+        return switch (type) {
+            case XML -> "{\"required\": [\"id\"], \"maxOccurs\": {\"item\": 100}}";
+            case JSON -> "{\"required\": [\"id\", \"name\"], \"pattern\": {\"id\": \"^[A-Z0-9]+$\"}}";
+            case CSV -> "{\"columns\": 3, \"delimiter\": \",\", \"hasHeader\": true}";
+            default -> "{\"strict\": true}";
+        };
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        MessageStructure structure = createMessageStructure("Test Message", 
+                                                          MessageStructure.MessageType.JSON,
+                                                          MessageStructure.MessageFormat.JSON_SCHEMA,
+                                                          "1.0", true);
+
+        // When
+        var found = messageStructureRepository.findById(structure.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test Message", found.get().getName());
+        assertEquals(MessageStructure.MessageType.JSON, found.get().getType());
+        assertNotNull(found.get().getBusinessComponent());
+        assertEquals(testBusinessComponent.getId(), found.get().getBusinessComponent().getId());
+    }
+
+    @Test
+    void testFindByName() {
+        // When
+        var found = messageStructureRepository.findByName("Order XML v1.0");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("1.0", found.get().getVersion());
+        assertEquals(MessageStructure.MessageType.XML, found.get().getType());
+    }
+
+    @Test
+    void testFindByNameAndVersion() {
+        // When
+        var found = messageStructureRepository.findByNameAndVersion("Customer JSON", "2.1");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals(MessageStructure.MessageFormat.JSON_SCHEMA, found.get().getFormat());
+    }
+
+    @Test
+    void testExistsByName() {
+        // Then
+        assertTrue(messageStructureRepository.existsByName("Product EDI"));
+        assertFalse(messageStructureRepository.existsByName("Non-existent Structure"));
+    }
+
+    @Test
+    void testFindByType() {
+        // When
+        List<MessageStructure> xmlStructures = messageStructureRepository
+                .findByType(MessageStructure.MessageType.XML);
+
+        // Then
+        assertEquals(1, xmlStructures.size());
+        assertEquals("Order XML v1.0", xmlStructures.get(0).getName());
+    }
+
+    @Test
+    void testFindByBusinessComponent() {
+        // When
+        List<MessageStructure> structures = messageStructureRepository
+                .findByBusinessComponent(testBusinessComponent);
+
+        // Then
+        assertEquals(6, structures.size()); // 5 from setup + 1 from testFindById
+        assertTrue(structures.stream()
+                .allMatch(s -> testBusinessComponent.getId().equals(s.getBusinessComponent().getId())));
+    }
+
+    @Test
+    void testFindActiveStructures() {
+        // When
+        List<MessageStructure> activeStructures = messageStructureRepository.findByActive(true);
+
+        // Then
+        assertEquals(5, activeStructures.size()); // 4 active from setup + 1 from testFindById
+        assertFalse(activeStructures.stream()
+                .anyMatch(s -> "Invoice CSV".equals(s.getName())));
+    }
+
+    @Test
+    void testLoadNamespaces() {
+        // Given
+        MessageStructure xmlStructure = messageStructureRepository
+                .findByName("Order XML v1.0").orElseThrow();
+
+        // When
+        List<MessageStructureNamespace> namespaces = messageStructureRepository
+                .loadNamespaces(xmlStructure.getId());
+
+        // Then
+        assertEquals(2, namespaces.size());
+        assertTrue(namespaces.stream()
+                .anyMatch(ns -> "xsi".equals(ns.getPrefix())));
+        assertTrue(namespaces.stream()
+                .anyMatch(ns -> "http://example.com/order".equals(ns.getNamespaceUri())));
+    }
+
+    @Test
+    void testUpdateMessageStructure() {
+        // Given
+        MessageStructure structure = messageStructureRepository
+                .findByName("Legacy Fixed Format").orElseThrow();
+
+        // When
+        structure.setVersion("2.0");
+        structure.setDescription("Updated legacy format for new system");
+        structure.setSchemaDefinition("{\"fields\": [{\"name\": \"field1\", \"type\": \"string\", \"length\": 20}]}");
+        MessageStructure updated = messageStructureRepository.update(structure);
+
+        // Then
+        assertEquals("2.0", updated.getVersion());
+        assertEquals("Updated legacy format for new system", updated.getDescription());
+        assertTrue(updated.getSchemaDefinition().contains("\"length\": 20"));
+        assertNotNull(updated.getUpdatedAt());
+    }
+
+    @Test
+    void testComplexMessageStructureWithNamespaces() {
+        // Given
+        MessageStructure complexStructure = MessageStructure.builder()
+                .name("Complex SOAP Message")
+                .version("3.0")
+                .type(MessageStructure.MessageType.XML)
+                .format(MessageStructure.MessageFormat.XSD)
+                .schemaDefinition("<xs:schema>complex</xs:schema>")
+                .sampleMessage("<soap:Envelope>...</soap:Envelope>")
+                .validationRules("{\"soapVersion\": \"1.2\"}")
+                .transformationRules("{\"removeNamespaces\": false}")
+                .active(true)
+                .businessComponent(testBusinessComponent)
+                .build();
+        complexStructure.setCreatedBy(testUser);
+        complexStructure.setUpdatedBy(testUser);
+
+        // Add multiple namespaces
+        Set<MessageStructureNamespace> namespaces = new HashSet<>();
+        namespaces.add(new MessageStructureNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/"));
+        namespaces.add(new MessageStructureNamespace("wsa", "http://www.w3.org/2005/08/addressing"));
+        namespaces.add(new MessageStructureNamespace("app", "http://example.com/application"));
+        complexStructure.setNamespaces(namespaces);
+
+        // When
+        MessageStructure saved = messageStructureRepository.save(complexStructure);
+        MessageStructure retrieved = messageStructureRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertNotNull(retrieved);
+        assertEquals("Complex SOAP Message", retrieved.getName());
+        
+        // Verify namespaces were saved
+        List<MessageStructureNamespace> savedNamespaces = messageStructureRepository
+                .loadNamespaces(saved.getId());
+        assertEquals(3, savedNamespaces.size());
+        assertTrue(savedNamespaces.stream()
+                .anyMatch(ns -> "soap".equals(ns.getPrefix())));
+    }
+
+    @Test
+    void testDeleteMessageStructure() {
+        // Given
+        MessageStructure structure = createMessageStructure("ToDelete",
+                                                          MessageStructure.MessageType.CSV,
+                                                          MessageStructure.MessageFormat.CUSTOM,
+                                                          "1.0", true);
+        UUID structureId = structure.getId();
+
+        // When
+        messageStructureRepository.deleteById(structureId);
+
+        // Then
+        assertFalse(messageStructureRepository.findById(structureId).isPresent());
+        
+        // Verify namespaces were also deleted (cascade)
+        assertEquals(0, messageStructureRepository.loadNamespaces(structureId).size());
+    }
+
+    @Test
+    void testPaginationWithFiltering() {
+        // Given - Create additional structures
+        for (int i = 0; i < 10; i++) {
+            createMessageStructure("Bulk JSON " + i,
+                                 MessageStructure.MessageType.JSON,
+                                 MessageStructure.MessageFormat.JSON_SCHEMA,
+                                 "1." + i, true);
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<MessageStructure> page = messageStructureRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(10, page.getContent().size());
+        assertTrue(page.getTotalElements() >= 16); // Setup + test + bulk
+    }
+
+    @Test
+    void testFindByFormat() {
+        // When
+        List<MessageStructure> customFormats = messageStructureRepository.findAll().stream()
+                .filter(s -> s.getFormat() == MessageStructure.MessageFormat.CUSTOM)
+                .toList();
+
+        // Then
+        assertTrue(customFormats.size() >= 2); // Invoice CSV and Legacy Fixed Format
+        assertTrue(customFormats.stream()
+                .allMatch(s -> s.getFormat() == MessageStructure.MessageFormat.CUSTOM));
+    }
+
+    @Test
+    void testVersionedStructures() {
+        // Given - Create multiple versions of same structure
+        MessageStructure v1 = createMessageStructure("API Schema", 
+                                                   MessageStructure.MessageType.JSON,
+                                                   MessageStructure.MessageFormat.JSON_SCHEMA,
+                                                   "1.0", false); // Old version inactive
+        
+        MessageStructure v2 = createMessageStructure("API Schema",
+                                                   MessageStructure.MessageType.JSON,
+                                                   MessageStructure.MessageFormat.JSON_SCHEMA,
+                                                   "2.0", true); // Current version active
+
+        // When
+        List<MessageStructure> allVersions = messageStructureRepository.findByName("API Schema");
+        List<MessageStructure> activeVersion = messageStructureRepository.findByActive(true).stream()
+                .filter(s -> "API Schema".equals(s.getName()))
+                .toList();
+
+        // Then
+        assertEquals(2, allVersions.size());
+        assertEquals(1, activeVersion.size());
+        assertEquals("2.0", activeVersion.get(0).getVersion());
+    }
+}

@@ -1,48 +1,28 @@
 package com.integrixs.data.model;
 
-import jakarta.persistence.*;
-
 /**
  * Entity representing a condition for a flow route
  */
-@Entity
-@Table(name = "route_conditions")
 public class RouteCondition extends BaseEntity {
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_route_id", nullable = false)
     private FlowRoute flowRoute;
 
-    @Column(name = "condition_type", nullable = false)
-    @Enumerated(EnumType.STRING)
     private ConditionType conditionType;
 
-    @Column(name = "field_path", nullable = false)
     private String fieldPath;
 
-    @Column(name = "operator", nullable = false)
-    @Enumerated(EnumType.STRING)
     private Operator operator;
 
-    @Column(name = "expected_value")
     private String expectedValue;
 
-    @Column(name = "logical_operator")
-    @Enumerated(EnumType.STRING)
     private LogicalOperator logicalOperator = LogicalOperator.AND;
 
-    @Column(name = "condition_order")
     private Integer order = 0;
 
-    @Column(name = "is_active")
     private boolean active = true;
 
-    @Column(name = "source_type")
-    @Enumerated(EnumType.STRING)
     private SourceType sourceType = SourceType.VARIABLE;
 
-    @Column(name = "source_path")
     private String sourcePath;
 
     public enum ConditionType {

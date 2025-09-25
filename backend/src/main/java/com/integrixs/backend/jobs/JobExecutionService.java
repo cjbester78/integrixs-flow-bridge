@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.integrixs.backend.jobs.BackgroundJob;
+import com.integrixs.data.model.User;
+import com.integrixs.backend.repository.BackgroundJobSqlRepository;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
@@ -33,6 +38,8 @@ public class JobExecutionService {
 
     @Autowired
     private BackgroundJobRepository jobRepository;
+    
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -40,16 +47,16 @@ public class JobExecutionService {
     @Autowired(required = false)
     private JobProgressWebSocketHandler webSocketHandler;
 
-    @Value("$ {jobs.executor.threads:10}")
+    @Value("${jobs.executor.threads:10}")
     private int executorThreads;
 
-    @Value("$ {jobs.executor.queue - size:100}")
+    @Value("${jobs.executor.queue-size:100}")
     private int queueSize;
 
-    @Value("$ {jobs.executor.stuck - job - timeout:3600000}") // 1 hour
+    @Value("${jobs.executor.stuck-job-timeout:3600000}") // 1 hour
     private long stuckJobTimeout;
 
-    @Value("$ {jobs.executor.cleanup - age - days:30}")
+    @Value("${jobs.executor.cleanup-age-days:30}")
     private int cleanupAgeDays;
 
     private ExecutorService executorService;
@@ -69,7 +76,7 @@ public class JobExecutionService {
                 private int counter = 0;
                 @Override
                 public Thread newThread(Runnable r) {
-                    Thread thread = new Thread(r, "job - executor-" + counter++);
+                    Thread thread = new Thread(r, "job-executor-" + counter++);
                     thread.setDaemon(true);
                     return thread;
                 }
@@ -122,8 +129,12 @@ public class JobExecutionService {
         // Create job entity
         BackgroundJob job = new BackgroundJob();
         job.setJobType(jobType);
-        job.setParameters(parameters);
-        job.setCreatedBy(userId);
+        job.setParameters(convertMapToJson(parameters));
+        if (userId != null) {
+            User user = new User();
+            user.setId(userId);
+            job.setCreatedBy(user);
+        }
         job.setTenantId(tenantId);
         job.setStatus(JobStatus.PENDING);
 
@@ -199,10 +210,11 @@ public class JobExecutionService {
     public void processNextJobs() {
         try {
             // Find pending jobs
-            List<BackgroundJob> pendingJobs = jobRepository.findPendingJobs(
+            Page<BackgroundJob> pendingJobsPage = jobRepository.findPendingJobs(
                 LocalDateTime.now(),
                 PageRequest.of(0, executorThreads * 2)
            );
+            List<BackgroundJob> pendingJobs = pendingJobsPage.getContent();
 
             for(BackgroundJob job : pendingJobs) {
                 if(runningJobs.size() >= executorThreads) {
@@ -397,23 +409,58 @@ public class JobExecutionService {
 
         // Get counts by status
         for(JobStatus status : JobStatus.values()) {
-            long count = jobRepository.count((root, query, cb) -> cb.equal(root.get("status"), status));
+            long count = jobRepository.countByStatus(status);
             stats.put("count_" + status.name().toLowerCase(), count);
         }
 
-        // Get statistics by type
-        List<BackgroundJobRepository.JobStatistics> typeStats = jobRepository.getJobStatistics();
-        Map<String, Map<String, Long>> byType = new HashMap<>();
-
-        for(BackgroundJobRepository.JobStatistics stat : typeStats) {
-            byType.computeIfAbsent(stat.getType(), k -> new HashMap<>())
-                .put(stat.getStatus().name().toLowerCase(), stat.getCount());
-        }
-
-        stats.put("by_type", byType);
+        // Get total count
+        stats.put("total_count", jobRepository.count());
         stats.put("running_jobs", runningJobs.size());
         stats.put("executor_threads", executorThreads);
 
         return stats;
     }
+    
+    /**
+     * Convert Map to JSON string
+     */
+    private String convertMapToJson(Map<String, String> map) {
+        if (map == null || map.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (Exception e) {
+            logger.error("Error converting map to JSON", e);
+            return null;
+        }
+    }
+    
+    /**
+     * Check stuck jobs and update their status
+     */
+    @Scheduled(fixedDelay = 300000) // Every 5 minutes
+    public void checkStuckJobs() {
+        try {
+            LocalDateTime stuckThreshold = LocalDateTime.now().minus(stuckJobTimeout, java.time.temporal.ChronoUnit.MILLIS);
+            List<BackgroundJob> stuckJobs = jobRepository.findByStatusInAndStartedAtBefore(
+                Arrays.asList(JobStatus.RUNNING),
+                stuckThreshold
+            );
+            
+            for (BackgroundJob job : stuckJobs) {
+                logger.warn("Marking job {} as failed due to timeout", job.getId());
+                job.setStatus(JobStatus.FAILED);
+                job.setErrorMessage("Job timed out after " + (stuckJobTimeout / 1000) + " seconds");
+                job.setCompletedAt(LocalDateTime.now());
+                jobRepository.save(job);
+                
+                // Remove from running jobs
+                runningJobs.remove(job.getId());
+            }
+        } catch (Exception e) {
+            logger.error("Error checking stuck jobs", e);
+        }
+    }
+    
 }

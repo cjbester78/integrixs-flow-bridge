@@ -1,7 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,17 +14,23 @@ import org.slf4j.LoggerFactory;
 /**
  * Service for monitoring flow execution progress and providing real - time updates
  */
-@Service
+@Service("flowMonitoringService")
 public class FlowExecutionMonitoringService {
 
     private static final Logger log = LoggerFactory.getLogger(FlowExecutionMonitoringService.class);
 
 
-    private final SystemLogRepository systemLogRepository;
-    private final IntegrationFlowRepository flowRepository;
+    private final SystemLogSqlRepository systemLogRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
 
     // In - memory cache for active executions
     private final Map<String, ExecutionProgress> activeExecutions = new ConcurrentHashMap<>();
+    
+    public FlowExecutionMonitoringService(SystemLogSqlRepository systemLogRepository,
+                                         IntegrationFlowSqlRepository flowRepository) {
+        this.systemLogRepository = systemLogRepository;
+        this.flowRepository = flowRepository;
+    }
 
     /**
      * Start monitoring a flow execution

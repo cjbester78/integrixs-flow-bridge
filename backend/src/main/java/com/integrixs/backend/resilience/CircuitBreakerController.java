@@ -16,6 +16,10 @@ import java.util.Map;
 public class CircuitBreakerController {
 
     private final CircuitBreakerService circuitBreakerService;
+    
+    public CircuitBreakerController(CircuitBreakerService circuitBreakerService) {
+        this.circuitBreakerService = circuitBreakerService;
+    }
 
     @GetMapping
     @Operation(summary = "Get all circuit breaker statuses")

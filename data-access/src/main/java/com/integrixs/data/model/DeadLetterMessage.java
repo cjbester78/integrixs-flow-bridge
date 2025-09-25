@@ -1,81 +1,52 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * Entity representing a dead letter message
  */
-@Entity
-@Table(name = "dead_letter_messages")
 public class DeadLetterMessage extends BaseEntity {
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "original_message_id")
     private Message originalMessage;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id")
     private IntegrationFlow flow;
 
-    @Column(name = "message_id", nullable = false)
     private String messageId;
 
-    @Column(name = "message_content", columnDefinition = "TEXT", nullable = false)
     private String messageContent;
 
-    @Column(name = "headers", columnDefinition = "TEXT")
     private String headers;
 
-    @Column(name = "properties", columnDefinition = "TEXT")
     private String properties;
 
-    @Column(name = "error_reason", columnDefinition = "TEXT", nullable = false)
     private String errorReason;
 
-    @Column(name = "error_details", columnDefinition = "TEXT")
     private String errorDetails;
 
-    @Column(name = "last_error_type")
-    @Enumerated(EnumType.STRING)
     private ErrorRecord.ErrorType lastErrorType;
 
-    @Column(name = "retry_count")
     private Integer retryCount = 0;
 
-    @Column(name = "queued_at", nullable = false)
     private LocalDateTime queuedAt;
 
-    @Column(name = "last_retry_at")
     private LocalDateTime lastRetryAt;
 
-    @Column(name = "is_reprocessed")
     private boolean reprocessed = false;
 
-    @Column(name = "reprocessed_at")
     private LocalDateTime reprocessedAt;
 
-    @Column(name = "reprocessed_by")
     private String reprocessedBy;
 
-    @Column(name = "reprocess_result")
     private String reprocessResult;
 
-    @Column(name = "correlation_id")
     private String correlationId;
 
-    @Column(name = "source_system")
     private String sourceSystem;
 
-    @Column(name = "target_system")
     private String targetSystem;
-    
-    @Column(name = "retry_message_id")
+
     private String retryMessageId;
-    
-    @Column(name = "failed_at")
+
     private LocalDateTime failedAt;
 
     // Getters and setters
@@ -271,8 +242,6 @@ public class DeadLetterMessage extends BaseEntity {
         RESOLVED
     }
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
     private Status status = Status.QUEUED;
 
     public Status getStatus() {
@@ -287,11 +256,11 @@ public class DeadLetterMessage extends BaseEntity {
     public void setErrorMessage(String errorMessage) {
         this.errorDetails = errorMessage;
     }
-    
+
     public String getErrorMessage() {
         return this.errorDetails;
     }
-    
+
     public void setErrorStackTrace(String errorStackTrace) {
         // Store stack trace as part of error details
         if (this.errorDetails == null || this.errorDetails.isEmpty()) {
@@ -300,7 +269,7 @@ public class DeadLetterMessage extends BaseEntity {
             this.errorDetails = this.errorDetails + "\n\nStack Trace:\n" + errorStackTrace;
         }
     }
-    
+
     public String getErrorStackTrace() {
         // Extract stack trace from error details if present
         if (this.errorDetails != null && this.errorDetails.contains("Stack Trace:")) {
@@ -309,38 +278,38 @@ public class DeadLetterMessage extends BaseEntity {
         }
         return null;
     }
-    
+
     public void setOriginalReceivedAt(LocalDateTime originalReceivedAt) {
         // Store as part of queuedAt if not already set
         if (this.queuedAt == null) {
             this.queuedAt = originalReceivedAt;
         }
     }
-    
+
     public LocalDateTime getOriginalReceivedAt() {
         return this.queuedAt;
     }
-    
+
     public void setErrorType(ErrorRecord.ErrorType errorType) {
         this.lastErrorType = errorType;
     }
-    
+
     public ErrorRecord.ErrorType getErrorType() {
         return this.lastErrorType;
     }
-    
+
     public String getRetryMessageId() {
         return retryMessageId;
     }
-    
+
     public void setRetryMessageId(String retryMessageId) {
         this.retryMessageId = retryMessageId;
     }
-    
+
     public LocalDateTime getFailedAt() {
         return failedAt;
     }
-    
+
     public void setFailedAt(LocalDateTime failedAt) {
         this.failedAt = failedAt;
     }

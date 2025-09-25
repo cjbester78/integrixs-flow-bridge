@@ -1,6 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,48 +7,31 @@ import java.util.Map;
  * Entity for Notification Channels
  * Defines various channels for sending alert notifications
  */
-@Entity
-@Table(name = "notification_channels")
 public class NotificationChannel extends BaseEntity {
 
-    @Column(name = "channel_name", nullable = false, unique = true)
     private String channelName;
 
-    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "channel_type", nullable = false)
-    @Enumerated(EnumType.STRING)
     private ChannelType channelType;
 
-    @Column(name = "is_enabled", nullable = false)
     private boolean enabled = true;
 
     // Channel Configuration(stored as JSON)
-    @ElementCollection
-    @CollectionTable(name = "notification_channel_config", joinColumns = @JoinColumn(name = "channel_id"))
-    @MapKeyColumn(name = "config_key")
-    @Column(name = "config_value", columnDefinition = "TEXT")
     private Map<String, String> configuration = new HashMap<>();
 
     // Rate Limiting
-    @Column(name = "rate_limit_per_hour")
     private Integer rateLimitPerHour;
 
-    @Column(name = "last_notification_at")
     private LocalDateTime lastNotificationAt;
 
-    @Column(name = "notification_count_current_hour")
     private Integer notificationCountCurrentHour = 0;
 
     // Testing and Validation
-    @Column(name = "last_test_at")
     private LocalDateTime lastTestAt;
 
-    @Column(name = "last_test_success")
     private Boolean lastTestSuccess;
 
-    @Column(name = "last_test_message")
     private String lastTestMessage;
 
     /**
@@ -217,11 +198,11 @@ public class NotificationChannel extends BaseEntity {
     public void setLastTestMessage(String lastTestMessage) {
         this.lastTestMessage = lastTestMessage;
     }
-    
+
     public Map<String, String> getConfiguration() {
         return configuration;
     }
-    
+
     public void setConfiguration(Map<String, String> configuration) {
         this.configuration = configuration;
     }

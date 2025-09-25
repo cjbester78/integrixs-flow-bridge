@@ -4,7 +4,7 @@ import com.integrixs.backend.TestBackendApplication;
 import com.integrixs.backend.config.TestAdapterConfiguration;
 import com.integrixs.backend.config.TestWebSocketConfiguration;
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,19 +34,19 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FieldMappingIntegrationTest {
 
     @Autowired
-    private IntegrationFlowRepository integrationFlowRepository;
+    private IntegrationFlowSqlRepository integrationFlowRepository;
 
     @Autowired
-    private FlowTransformationRepository flowTransformationRepository;
+    private FlowTransformationSqlRepository flowTransformationRepository;
 
     @Autowired
-    private FieldMappingRepository fieldMappingRepository;
+    private FieldMappingSqlRepository fieldMappingRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserSqlRepository userRepository;
 
     @Autowired
-    private BusinessComponentRepository businessComponentRepository;
+    private BusinessComponentSqlRepository businessComponentRepository;
 
     private User testUser;
     private BusinessComponent testBusinessComponent;

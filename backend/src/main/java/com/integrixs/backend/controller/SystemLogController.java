@@ -1,8 +1,8 @@
 package com.integrixs.backend.controller;
 
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.SystemLogRepository;
-import com.integrixs.data.specification.SystemLogSpecifications;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
+// Specifications removed - using SQL repository methods
 import com.integrixs.shared.dto.system.SystemLogCreateRequestDTO;
 import com.integrixs.shared.dto.system.SystemLogDTO;
 
@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class SystemLogController {
 
-    private final SystemLogRepository systemLogRepository;
+    private final SystemLogSqlRepository systemLogRepository;
 
-    public SystemLogController(SystemLogRepository systemLogRepository) {
+    public SystemLogController(SystemLogSqlRepository systemLogRepository) {
         this.systemLogRepository = systemLogRepository;
     }
 
@@ -60,11 +60,17 @@ public class SystemLogController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
    ) {
         SystemLog.LogLevel logLevel = level != null ? SystemLog.LogLevel.valueOf(level) : null;
-        List<SystemLog> logs = systemLogRepository.findAll(
-            SystemLogSpecifications.withFilters(source, null, logLevel, userId, from, to)
-                .and(SystemLogSpecifications.withDomainType(domainType))
-                .and(SystemLogSpecifications.withDomainReferenceId(domainReferenceId))
-       );
+        
+        // Use custom SQL repository method with filters
+        List<SystemLog> logs = systemLogRepository.findWithFilters(
+            level != null ? logLevel.name() : null,
+            source,
+            userId,
+            domainType,
+            domainReferenceId,
+            from,
+            to
+        );
 
         List<SystemLogDTO> dtos = logs.stream().map(log -> {
             SystemLogDTO dto = new SystemLogDTO();
@@ -105,7 +111,7 @@ public class SystemLogController {
             logs = systemLogRepository.findByCategoryOrderByTimestampDesc(category);
         } else {
             Pageable pageable = PageRequest.of(0, limit);
-            logs = systemLogRepository.findAllByOrderByTimestampDesc(pageable);
+            logs = systemLogRepository.findAllByOrderByTimestampDesc(pageable).getContent();
         }
 
         // Apply limit(for non - pageable methods)

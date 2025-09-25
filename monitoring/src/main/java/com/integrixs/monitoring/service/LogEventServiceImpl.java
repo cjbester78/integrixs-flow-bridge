@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.monitoring.model.LogLevel;
 import com.integrixs.monitoring.model.LogSource;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class LogEventServiceImpl implements LogEventService {
 
     @Autowired
-    private SystemLogRepository systemLogRepository;
+    private SystemLogSqlRepository systemLogRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

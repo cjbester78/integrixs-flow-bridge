@@ -1,6 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -9,94 +7,58 @@ import java.util.Set;
  * Entity for Alert Rules
  * Defines conditions and actions for system alerts
  */
-@Entity
-@Table(name = "alert_rules")
 public class AlertRule extends BaseEntity {
 
-    @Column(name = "rule_name", nullable = false, unique = true)
     private String ruleName;
 
-    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "alert_type", nullable = false)
-    @Enumerated(EnumType.STRING)
     private AlertType alertType;
 
-    @Column(name = "severity", nullable = false)
-    @Enumerated(EnumType.STRING)
     private AlertSeverity severity;
 
-    @Column(name = "is_enabled", nullable = false)
     private boolean enabled = true;
 
     // Alert Condition Configuration
-    @Column(name = "condition_type", nullable = false)
-    @Enumerated(EnumType.STRING)
     private ConditionType conditionType;
 
-    @Column(name = "condition_expression", columnDefinition = "TEXT")
     private String conditionExpression;
 
-    @Column(name = "threshold_value")
     private Double thresholdValue;
 
-    @Column(name = "threshold_operator")
-    @Enumerated(EnumType.STRING)
     private ThresholdOperator thresholdOperator;
 
-    @Column(name = "time_window_minutes")
     private Integer timeWindowMinutes;
 
-    @Column(name = "occurrence_count")
     private Integer occurrenceCount;
 
     // Target Configuration
-    @Column(name = "target_type")
-    @Enumerated(EnumType.STRING)
     private TargetType targetType;
 
-    @Column(name = "target_id")
     private String targetId; // Flow ID, Adapter ID, etc.
 
     // Notification Configuration
-    @ElementCollection
-    @CollectionTable(name = "alert_rule_channels", joinColumns = @JoinColumn(name = "alert_rule_id"))
-    @Column(name = "channel_id")
     private Set<String> notificationChannelIds = new HashSet<>();
 
     // Alert Suppression
-    @Column(name = "suppression_duration_minutes")
     private Integer suppressionDurationMinutes;
 
-    @Column(name = "last_triggered_at")
     private LocalDateTime lastTriggeredAt;
 
-    @Column(name = "trigger_count")
     private Integer triggerCount = 0;
 
     // Escalation Configuration
-    @Column(name = "escalation_enabled")
     private boolean escalationEnabled = false;
 
-    @Column(name = "escalation_after_minutes")
     private Integer escalationAfterMinutes;
 
-    @ElementCollection
-    @CollectionTable(name = "alert_rule_escalation_channels", joinColumns = @JoinColumn(name = "alert_rule_id"))
-    @Column(name = "channel_id")
     private Set<String> escalationChannelIds = new HashSet<>();
 
     // Additional Metadata
-    @ElementCollection
-    @CollectionTable(name = "alert_rule_tags", joinColumns = @JoinColumn(name = "alert_rule_id"))
-    @Column(name = "tag")
     private Set<String> tags = new HashSet<>();
 
-    @Column(name = "created_by_user")
     private String createdByUser;
 
-    @Column(name = "modified_by")
     private String modifiedBy;
 
     /**

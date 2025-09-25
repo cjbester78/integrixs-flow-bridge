@@ -4,8 +4,8 @@ import com.integrixs.backend.api.dto.AdapterTypeDTO;
 import com.integrixs.backend.api.dto.ConfigurationSchemaDTO;
 import com.integrixs.data.model.AdapterType;
 import com.integrixs.data.model.AdapterCategory;
-import com.integrixs.data.repository.AdapterTypeRepository;
-import com.integrixs.data.repository.AdapterCategoryRepository;
+import com.integrixs.data.sql.repository.AdapterTypeSqlRepository;
+import com.integrixs.data.sql.repository.AdapterCategorySqlRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,8 +24,14 @@ public class AdapterTypeService {
     private static final Logger log = LoggerFactory.getLogger(AdapterTypeService.class);
 
 
-    private final AdapterTypeRepository adapterTypeRepository;
-    private final AdapterCategoryRepository adapterCategoryRepository;
+    private final AdapterTypeSqlRepository adapterTypeRepository;
+    private final AdapterCategorySqlRepository adapterCategoryRepository;
+
+    public AdapterTypeService(AdapterTypeSqlRepository adapterTypeRepository,
+                              AdapterCategorySqlRepository adapterCategoryRepository) {
+        this.adapterTypeRepository = adapterTypeRepository;
+        this.adapterCategoryRepository = adapterCategoryRepository;
+    }
 
     /**
      * Get paginated list of adapter types with optional filters

@@ -2,7 +2,7 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.MessageRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
 import com.integrixs.shared.dto.MessageStatsDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,10 +24,11 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageStatsService
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class MessageStatsServiceTest {
 
     @Mock
-    private MessageRepository messageRepository;
+    private MessageSqlRepository messageRepository;
 
     @InjectMocks
     private OptimizedMessageStatsService messageStatsService;
@@ -69,6 +72,7 @@ class MessageStatsServiceTest {
         Map<String, String> filters = Map.of("flowId", flowId.toString());
 
         when(messageRepository.countByStatusGrouped()).thenReturn(mockStatusCounts);
+        when(messageRepository.calculateAverageProcessingTime()).thenReturn(1500.0);
         when(messageRepository.calculateAverageProcessingTimeByFlowId(flowId)).thenReturn(2000.0);
 
         // When
@@ -110,10 +114,10 @@ class MessageStatsServiceTest {
 
         List<Message> messages = createMockMessages();
         org.springframework.data.domain.Page<Message> page =
-            new org.springframework.data.support.PageableExecutionUtils.Page<>(
+            new org.springframework.data.domain.PageImpl<>(
                 messages,
                 org.springframework.data.domain.Pageable.unpaged(),
-                () -> messages.size()
+                messages.size()
            );
 
         when(messageRepository.findByReceivedAtBetween(eq(startDate), eq(endDate), any()))

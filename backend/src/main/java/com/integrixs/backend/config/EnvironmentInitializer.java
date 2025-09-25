@@ -1,7 +1,7 @@
 package com.integrixs.backend.config;
 
 import com.integrixs.data.model.SystemConfiguration;
-import com.integrixs.data.repository.SystemConfigurationRepository;
+import com.integrixs.data.sql.repository.SystemConfigurationSqlRepository;
 import com.integrixs.shared.enums.EnvironmentType;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -21,10 +21,16 @@ public class EnvironmentInitializer {
 
 
     private final EnvironmentConfig environmentConfig;
-    private final SystemConfigurationRepository systemConfigurationRepository;
+    private final SystemConfigurationSqlRepository systemConfigurationRepository;
 
     private static final String ENVIRONMENT_TYPE_KEY = "environment.type";
     private static final String ENFORCE_RESTRICTIONS_KEY = "environment.enforceRestrictions";
+
+    public EnvironmentInitializer(EnvironmentConfig environmentConfig,
+                                 SystemConfigurationSqlRepository systemConfigurationRepository) {
+        this.environmentConfig = environmentConfig;
+        this.systemConfigurationRepository = systemConfigurationRepository;
+    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeEnvironment() {

@@ -2,7 +2,7 @@ package com.integrixs.engine.infrastructure.workflow;
 
 import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.FieldMappingRepository;
+import com.integrixs.data.sql.repository.FieldMappingSqlRepository;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
 import com.integrixs.engine.domain.model.WorkflowContext;
 import com.integrixs.engine.domain.model.WorkflowEvent;
@@ -36,14 +36,14 @@ public class WorkflowOrchestrationServiceImpl implements WorkflowOrchestrationSe
 
     private final FlowExecutionService flowExecutionService;
     private final FlowAdapterExecutor adapterExecutionService;
-    private final FieldMappingRepository fieldMappingRepository;
+    private final FieldMappingSqlRepository fieldMappingRepository;
     private final WorkflowRepository workflowRepository;
     private final WorkflowEventRepository workflowEventRepository;
 
     // Track active workflows
     private final Map<String, WorkflowContext> activeWorkflows = new ConcurrentHashMap<>();
 
-    public WorkflowOrchestrationServiceImpl(FlowExecutionService flowExecutionService, FlowAdapterExecutor adapterExecutionService, FieldMappingRepository fieldMappingRepository, WorkflowRepository workflowRepository, WorkflowEventRepository workflowEventRepository) {
+    public WorkflowOrchestrationServiceImpl(FlowExecutionService flowExecutionService, FlowAdapterExecutor adapterExecutionService, FieldMappingSqlRepository fieldMappingRepository, WorkflowRepository workflowRepository, WorkflowEventRepository workflowEventRepository) {
         this.flowExecutionService = flowExecutionService;
         this.adapterExecutionService = adapterExecutionService;
         this.fieldMappingRepository = fieldMappingRepository;

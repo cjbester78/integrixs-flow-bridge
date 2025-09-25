@@ -1,0 +1,122 @@
+package com.integrixs.data.benchmark;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+/**
+ * Base class for repository performance benchmarks.
+ * Provides utility methods for measuring performance and generating reports.
+ */
+@SpringJUnitConfig(BenchmarkConfig.class)
+@ActiveProfiles("benchmark")
+public abstract class BaseBenchmark {
+
+    protected JdbcTemplate jdbcTemplate;
+
+    /**
+     * Benchmark result containing performance metrics
+     */
+    public static class BenchmarkResult {
+        private final String operation;
+        private final int iterations;
+        private final long totalTimeMs;
+        private final long minTimeMs;
+        private final long maxTimeMs;
+        private final double avgTimeMs;
+        private final int recordCount;
+
+        public BenchmarkResult(String operation, List<Long> timings, int recordCount) {
+            this.operation = operation;
+            this.iterations = timings.size();
+            this.recordCount = recordCount;
+            this.totalTimeMs = timings.stream().mapToLong(Long::longValue).sum();
+            this.minTimeMs = timings.stream().mapToLong(Long::longValue).min().orElse(0);
+            this.maxTimeMs = timings.stream().mapToLong(Long::longValue).max().orElse(0);
+            this.avgTimeMs = timings.isEmpty() ? 0 : (double) totalTimeMs / iterations;
+        }
+
+        public String getOperation() { return operation; }
+        public int getIterations() { return iterations; }
+        public long getTotalTimeMs() { return totalTimeMs; }
+        public long getMinTimeMs() { return minTimeMs; }
+        public long getMaxTimeMs() { return maxTimeMs; }
+        public double getAvgTimeMs() { return avgTimeMs; }
+        public int getRecordCount() { return recordCount; }
+        public double getOpsPerSecond() { 
+            return avgTimeMs > 0 ? (1000.0 * recordCount) / avgTimeMs : 0;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(
+                "%s: Records=%d, Avg=%.2fms, Min=%dms, Max=%dms, Ops/sec=%.2f",
+                operation, recordCount, avgTimeMs, minTimeMs, maxTimeMs, getOpsPerSecond()
+            );
+        }
+    }
+
+    /**
+     * Measures the execution time of an operation
+     */
+    protected <T> T measureTime(String operationName, Supplier<T> operation) {
+        Instant start = Instant.now();
+        T result = operation.get();
+        Duration duration = Duration.between(start, Instant.now());
+        System.out.printf("%s completed in %dms%n", operationName, duration.toMillis());
+        return result;
+    }
+
+    /**
+     * Runs a benchmark with warmup and measurement phases
+     */
+    protected BenchmarkResult runBenchmark(String operationName, Runnable operation, int recordCount) {
+        // Warmup phase
+        System.out.printf("Warming up %s...%n", operationName);
+        for (int i = 0; i < BenchmarkConfig.BenchmarkSettings.WARMUP_ITERATIONS; i++) {
+            operation.run();
+        }
+
+        // Measurement phase
+        System.out.printf("Measuring %s...%n", operationName);
+        List<Long> timings = new ArrayList<>();
+        
+        for (int i = 0; i < BenchmarkConfig.BenchmarkSettings.MEASUREMENT_ITERATIONS; i++) {
+            Instant start = Instant.now();
+            operation.run();
+            Duration duration = Duration.between(start, Instant.now());
+            timings.add(duration.toMillis());
+        }
+
+        return new BenchmarkResult(operationName, timings, recordCount);
+    }
+
+    /**
+     * Compares two benchmark results and returns the performance difference
+     */
+    protected String compareResults(BenchmarkResult sqlResult, BenchmarkResult jpaResult) {
+        double speedup = jpaResult.getAvgTimeMs() / sqlResult.getAvgTimeMs();
+        double percentImprovement = ((jpaResult.getAvgTimeMs() - sqlResult.getAvgTimeMs()) / jpaResult.getAvgTimeMs()) * 100;
+
+        return String.format(
+            "SQL vs JPA: %.2fx speedup, %.1f%% improvement (SQL: %.2fms, JPA: %.2fms)",
+            speedup, percentImprovement, sqlResult.getAvgTimeMs(), jpaResult.getAvgTimeMs()
+        );
+    }
+
+    /**
+     * Cleans up test data between benchmarks
+     */
+    protected abstract void cleanupData();
+
+    /**
+     * Generates test data for benchmarking
+     */
+    protected abstract void generateTestData(int size);
+}

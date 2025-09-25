@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Service;
@@ -22,11 +22,11 @@ public class MetricsAggregatorService {
     private static final Logger log = LoggerFactory.getLogger(MetricsAggregatorService.class);
 
 
-    private final IntegrationFlowRepository flowRepository;
-    private final CommunicationAdapterRepository adapterRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
     
-    public MetricsAggregatorService(IntegrationFlowRepository flowRepository, 
-                                  CommunicationAdapterRepository adapterRepository) {
+    public MetricsAggregatorService(IntegrationFlowSqlRepository flowRepository, 
+                                  CommunicationAdapterSqlRepository adapterRepository) {
         this.flowRepository = flowRepository;
         this.adapterRepository = adapterRepository;
     }

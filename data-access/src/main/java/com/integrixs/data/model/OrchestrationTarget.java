@@ -1,10 +1,5 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,24 +7,13 @@ import java.util.UUID;
  * Entity representing a target adapter in an orchestration flow.
  * Supports multiple target adapters per integration flow with routing conditions.
  */
-@Entity
-@Table(name = "orchestration_targets",
-    indexes = {
-        @Index(name = "idx_orch_target_flow", columnList = "flow_id"),
-        @Index(name = "idx_orch_target_adapter", columnList = "target_adapter_id"),
-        @Index(name = "idx_orch_target_order", columnList = "flow_id,execution_order")
-    }
-)
 public class OrchestrationTarget {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     /**
      * Name of this orchestration target
      */
-    @Column(name = "name", nullable = false, length = 255)
     @NotBlank(message = "Target name is required")
     @Size(max = 255, message = "Target name cannot exceed 255 characters")
     private String name;
@@ -37,76 +21,61 @@ public class OrchestrationTarget {
     /**
      * The orchestration flow this target belongs to
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id", nullable = false)
     @NotNull(message = "Flow is required")
     private IntegrationFlow flow;
 
     /**
      * The target adapter
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_adapter_id")
     private CommunicationAdapter targetAdapter;
 
     /**
      * The target flow (alternative to target adapter)
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_flow_id")
     private IntegrationFlow targetFlow;
 
     /**
      * Execution order(for sequential processing)
      * Lower numbers execute first
      */
-    @Column(name = "execution_order", nullable = false)
     @Min(value = 0, message = "Execution order must be non - negative")
     private Integer executionOrder = 0;
 
     /**
      * Whether this target executes in parallel with others at the same order level
      */
-    @Column(name = "is_parallel")
     private boolean parallel = false;
 
     /**
      * Routing condition(e.g., "payload.type == 'ORDER'")
      * If null, always routes to this target
      */
-    @Column(name = "routing_condition", columnDefinition = "TEXT")
     @Size(max = 1000, message = "Routing condition cannot exceed 1000 characters")
     private String routingCondition;
 
     /**
      * Condition type(EXPRESSION, HEADER_MATCH, CONTENT_TYPE, etc.)
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "condition_type", length = 50)
     private ConditionType conditionType = ConditionType.ALWAYS;
 
     /**
      * Target data structure ID for this specific target
      */
-    @Column(name = "structure_id")
     private UUID structureId;
 
     /**
      * Response structure ID for synchronous calls to this target
      */
-    @Column(name = "response_structure_id")
     private UUID responseStructureId;
 
     /**
      * Whether to wait for response from this target
      */
-    @Column(name = "await_response")
     private boolean awaitResponse = false;
 
     /**
      * Timeout in milliseconds for this target
      */
-    @Column(name = "timeout_ms")
     @Min(value = 0, message = "Timeout must be non - negative")
     @Max(value = 3600000, message = "Timeout cannot exceed 1 hour")
     private Long timeoutMs = 30000L; // 30 seconds default
@@ -114,67 +83,51 @@ public class OrchestrationTarget {
     /**
      * Retry policy for this target
      */
-    @Embedded
     private RetryPolicy retryPolicy;
 
     /**
      * Error handling strategy
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "error_strategy", length = 50)
     private ErrorStrategy errorStrategy = ErrorStrategy.FAIL_FLOW;
 
     /**
      * Whether this target is active
      */
-    @Column(name = "is_active")
     private boolean active = true;
 
     /**
      * Status of this target
      */
-    @Column(name = "status", length = 50)
     private String status = "ACTIVE";
 
     /**
      * Priority for execution ordering (higher values execute first)
      */
-    @Column(name = "priority")
     private Integer priority = 0;
 
     /**
      * Configuration specific to this target(JSON)
      */
-    @Column(name = "configuration", columnDefinition = "TEXT")
     private String configuration;
 
     /**
      * Description of this target's purpose
      */
-    @Column(length = 500)
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+        private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+        private LocalDateTime updatedAt;
 
     /**
      * User who created this target
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
     private User createdBy;
 
     /**
      * User who last updated this target
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
     private User updatedBy;
 
     /**
@@ -206,30 +159,24 @@ public class OrchestrationTarget {
     /**
      * Embedded retry policy
      */
-    @Embeddable
     public static class RetryPolicy {
 
-        @Column(name = "max_attempts")
         @Min(0)
         @Max(10)
         private Integer maxAttempts = 3;
 
-        @Column(name = "retry_delay_ms")
         @Min(0)
         @Max(300000) // 5 minutes max
         private Long retryDelayMs = 1000L;
 
-        @Column(name = "backoff_multiplier")
         @Min(1)
         @Max(10)
         private Double backoffMultiplier = 2.0;
 
-        @Column(name = "max_retry_delay_ms")
         @Min(0)
         @Max(3600000) // 1 hour max
         private Long maxRetryDelayMs = 60000L; // 1 minute
 
-        @Column(name = "retry_on_errors", length = 500)
         private String retryOnErrors; // Comma - separated error types
 
         // Default constructor

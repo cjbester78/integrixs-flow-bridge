@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.data.model.User;
 import com.integrixs.backend.logging.EnhancedAuthenticationLogger;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
     private final JwtUtil jwtUtil;
-    private UserRepository userRepository;
+    private UserSqlRepository userRepository;
     private EnhancedAuthenticationLogger authLogger;
 
     @Autowired
@@ -38,7 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Autowired
-    public void setUserRepository(UserRepository userRepository) {
+    public void setUserRepository(UserSqlRepository userRepository) {
         this.userRepository = userRepository;
     }
 

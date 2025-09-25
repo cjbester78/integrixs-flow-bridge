@@ -24,8 +24,11 @@ public class RegistrationController {
 
     private static final Logger log = LoggerFactory.getLogger(RegistrationController.class);
 
-
     private final AuthenticationService authenticationService;
+
+    public RegistrationController(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
 
     /**
      * Create new user endpoint(Admin only)

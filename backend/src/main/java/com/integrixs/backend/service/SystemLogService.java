@@ -3,10 +3,10 @@ package com.integrixs.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.security.AuditLogEncryptionService;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.specification.SystemLogSpecifications;
+// Removed unused import: SystemLogSpecifications
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.SystemLogRepository;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.shared.dto.log.FrontendLogBatchRequest;
 import com.integrixs.shared.dto.log.FrontendLogEntry;
 import com.integrixs.shared.dto.system.SystemLogDTO;
@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,28 +38,28 @@ public class SystemLogService {
     private static final Logger log = LoggerFactory.getLogger(SystemLogService.class);
 
 
-    private final SystemLogRepository systemLogRepository;
-    private final UserRepository userRepository;
+    private final SystemLogSqlRepository systemLogRepository;
+    private final UserSqlRepository userRepository;
     private final ObjectMapper objectMapper;
 
     @Autowired(required = false)
     private AuditLogEncryptionService auditLogEncryptionService;
 
-    public SystemLogService(SystemLogRepository systemLogRepository,
-                          UserRepository userRepository,
+    public SystemLogService(SystemLogSqlRepository systemLogRepository,
+                          UserSqlRepository userRepository,
                           ObjectMapper objectMapper) {
         this.systemLogRepository = systemLogRepository;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
     }
 
-    @Value("$ {logging.frontend.level:INFO}")
+    @Value("${logging.frontend.level:INFO}")
     private String frontendLogLevel;
 
-    @Value("$ {logging.frontend.enabled - categories:ALL}")
+    @Value("${logging.frontend.enabled-categories:ALL}")
     private String enabledCategories;
 
-    @Value("$ {systemlog.encryption.enabled:false}")
+    @Value("${systemlog.encryption.enabled:false}")
     private boolean encryptionEnabled;
 
     /**
@@ -94,11 +95,11 @@ public class SystemLogService {
 
             // Log to server logs as well for debugging
             if("ERROR".equals(entry.getLevel()) || "FATAL".equals(entry.getLevel())) {
-                log.error("Frontend error: {} - {}", entry.getCategory(), entry.getMessage());
+                log.error("Frontend error: {}-{}", entry.getCategory(), entry.getMessage());
             } else if("WARN".equals(entry.getLevel())) {
-                log.warn("Frontend warning: {} - {}", entry.getCategory(), entry.getMessage());
+                log.warn("Frontend warning: {}-{}", entry.getCategory(), entry.getMessage());
             } else if("DEBUG".equals(entry.getLevel())) {
-                log.debug("Frontend debug: {} - {}", entry.getCategory(), entry.getMessage());
+                log.debug("Frontend debug: {}-{}", entry.getCategory(), entry.getMessage());
             }
 
         } catch(Exception e) {
@@ -160,7 +161,7 @@ public class SystemLogService {
                 entry.getStackTrace() != null ? entry.getStackTrace() : "N/A"
            );
 
-            log.error("System alert: {} - {}", subject, message);
+            log.error("System alert: {}-{}", subject, message);
 
         } catch(Exception e) {
             log.error("Failed to send error alert: {}", e.getMessage());
@@ -291,20 +292,23 @@ public class SystemLogService {
     public List<SystemLog> queryFrontendLogs(String category, String level, String userId,
                                             LocalDateTime startDate, LocalDateTime endDate) {
         // Build query based on filters
+        final String finalCategory;
         if(category != null) {
-            category = "FRONTEND_" + category;
+            finalCategory = "FRONTEND_" + category;
+        } else {
+            finalCategory = null;
         }
 
-        List<SystemLog> logs = systemLogRepository.findAll(
-            SystemLogSpecifications.withFilters(
-                "FRONTEND",
-                category,
-                level != null ? SystemLog.LogLevel.valueOf(level) : null,
-                userId,
-                startDate,
-                endDate
-           )
-       );
+        // Custom filtering implementation
+        List<SystemLog> logs = systemLogRepository.findAll()
+            .stream()
+            .filter(log -> "FRONTEND".equals(log.getSource()))
+            .filter(log -> finalCategory == null || finalCategory.equals(log.getCategory()))
+            .filter(log -> level == null || SystemLog.LogLevel.valueOf(level).equals(log.getLevel()))
+            .filter(log -> userId == null || (log.getUserId() != null && log.getUserId().toString().equals(userId)))
+            .filter(log -> startDate == null || (log.getTimestamp() != null && !log.getTimestamp().isBefore(startDate)))
+            .filter(log -> endDate == null || (log.getTimestamp() != null && !log.getTimestamp().isAfter(endDate)))
+            .collect(Collectors.toList());
 
         // Decrypt sensitive data if enabled
         if(encryptionEnabled && auditLogEncryptionService != null) {
@@ -392,24 +396,8 @@ public class SystemLogService {
     public Page<SystemLogDTO> getAdapterLogs(String adapterId, Pageable pageable) {
         log.debug("Fetching logs for adapter: {}", adapterId);
 
-        // Use JPA Specification to query logs where:
-        // 1. domainReferenceId matches the adapterId(for adapter activity logs)
-        // 2. OR it's part of a flow execution involving this adapter
-        Page<SystemLog> logs = systemLogRepository.findAll(
-            (root, query, cb) -> cb.or(
-                // Direct adapter activity logs
-                cb.and(
-                    cb.equal(root.get("domainType"), "CommunicationAdapter"),
-                    cb.equal(root.get("domainReferenceId"), adapterId)
-               ),
-                // Flow execution logs where this adapter is involved
-                cb.and(
-                    cb.equal(root.get("category"), "FLOW_EXECUTION"),
-                    root.get("details").isNotNull()
-               )
-           ),
-            pageable
-       );
+        // Use the findByComponentId method for adapter logs
+        Page<SystemLog> logs = systemLogRepository.findByComponentId(adapterId, pageable);
 
         // Decrypt sensitive data if enabled before converting to DTOs
         if(encryptionEnabled && auditLogEncryptionService != null) {

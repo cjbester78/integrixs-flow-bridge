@@ -1,22 +1,23 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import com.integrixs.shared.dto.log.CorrelatedLogGroup;
 import com.integrixs.shared.dto.log.FlowExecutionTimeline;
 import com.integrixs.shared.dto.system.SystemLogDTO;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,11 @@ public class LogCorrelationService {
 
     private static final Logger log = LoggerFactory.getLogger(LogCorrelationService.class);
 
-
-    private final SystemLogRepository systemLogRepository;
+    private final SystemLogSqlRepository systemLogRepository;
+    
+    public LogCorrelationService(SystemLogSqlRepository systemLogRepository) {
+        this.systemLogRepository = systemLogRepository;
+    }
 
     // Patterns for extracting IDs from log messages
     private static final Pattern FLOW_ID_PATTERN = Pattern.compile("flow:\\s*([a - zA - Z0-9 - ] + )");
@@ -84,12 +88,7 @@ public class LogCorrelationService {
                                                          LocalDateTime startTime,
                                                          LocalDateTime endTime) {
         // Find all logs related to this flow execution
-        Specification<SystemLog> spec = (root, query, cb) -> cb.and(
-            cb.like(root.get("message"), "%flow: " + flowId + "%"),
-            cb.between(root.get("timestamp"), startTime, endTime)
-       );
-
-        List<SystemLog> logs = systemLogRepository.findAll(spec, Sort.by("timestamp"));
+        List<SystemLog> logs = systemLogRepository.findByFlowIdAndTimestampBetween(flowId, startTime, endTime);
 
         if(logs.isEmpty()) {
             return null;
@@ -217,12 +216,7 @@ public class LogCorrelationService {
 
         // Find all logs for the given flows
         for(String flowId : flowIds) {
-            Specification<SystemLog> spec = (root, query, cb) -> cb.and(
-                cb.like(root.get("message"), "%flow: " + flowId + "%"),
-                cb.between(root.get("timestamp"), startTime, endTime)
-           );
-
-            List<SystemLog> flowLogs = systemLogRepository.findAll(spec);
+            List<SystemLog> flowLogs = systemLogRepository.findByFlowIdAndTimestampBetween(flowId, startTime, endTime);
             correlatedLogs.put(flowId, flowLogs);
         }
 
@@ -529,12 +523,7 @@ public class LogCorrelationService {
         LocalDateTime startTime = baseTime.minusMinutes(5);
         LocalDateTime endTime = baseTime.plusMinutes(5);
 
-        Specification<SystemLog> spec = (root, query, cb) -> cb.and(
-            cb.like(root.get("message"), "%" + id + "%"),
-            cb.between(root.get("timestamp"), startTime, endTime)
-       );
-
-        return systemLogRepository.findAll(spec, Sort.by("timestamp"));
+        return systemLogRepository.findByMessageContainingAndTimestampBetween(id, startTime, endTime);
     }
 
     /**
@@ -546,26 +535,7 @@ public class LogCorrelationService {
         LocalDateTime startTime = baseTime.minusSeconds(10);
         LocalDateTime endTime = baseTime.plusSeconds(10);
 
-        Specification<SystemLog> spec = (root, query, cb) -> {
-            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
-
-            predicates.add(cb.between(root.get("timestamp"), startTime, endTime));
-
-            if(source != null) {
-                predicates.add(cb.equal(root.get("source"), source));
-            }
-
-            if(category != null) {
-                predicates.add(cb.equal(root.get("category"), category));
-            }
-
-            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-        };
-
-        return systemLogRepository.findAll(spec, Sort.by("timestamp"))
-            .stream()
-            .limit(50)
-            .collect(Collectors.toList());
+        return systemLogRepository.findByTimestampBetween(startTime, endTime, source, category);
     }
     
     /**

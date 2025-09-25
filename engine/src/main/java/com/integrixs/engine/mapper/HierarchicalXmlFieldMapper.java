@@ -2,7 +2,7 @@ package com.integrixs.engine.mapper;
 
 import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.TransformationCustomFunction;
-import com.integrixs.data.repository.TransformationCustomFunctionRepository;
+import com.integrixs.data.sql.repository.TransformationCustomFunctionSqlRepository;
 import com.integrixs.engine.transformation.TransformationFunctionExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class HierarchicalXmlFieldMapper {
     private TransformationFunctionExecutor functionExecutor;
 
     @Autowired
-    private TransformationCustomFunctionRepository functionRepository;
+    private TransformationCustomFunctionSqlRepository functionRepository;
 
     /**
      * Map source XML to target XML using field mappings

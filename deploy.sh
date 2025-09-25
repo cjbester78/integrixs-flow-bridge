@@ -16,16 +16,16 @@ rm -rf backend/src/main/resources/public/*
 
 # 3. Build frontend
 echo "🏗️  Building frontend..."
-cd ../integrix-flow-bridge-frontend
+cd frontend
 npm run build
 
 # 4. Copy frontend to backend
 echo "📋 Copying frontend to backend..."
-cp -r dist/* ../integrix-flow-bridge-backend/backend/src/main/resources/public/
+cp -r dist/* ../backend/src/main/resources/public/
 
 # 5. Start backend
 echo "🚀 Starting backend..."
-cd ../integrix-flow-bridge-backend/backend
+cd ../backend
 mvn spring-boot:run -Dspring-boot.run.arguments="--spring.main.allow-circular-references=true" &
 
 echo "✅ Deployment complete!"

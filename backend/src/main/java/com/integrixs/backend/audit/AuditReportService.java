@@ -1,5 +1,7 @@
 package com.integrixs.backend.audit;
 
+import com.integrixs.data.model.AuditEvent;
+import com.integrixs.data.sql.repository.AuditEventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -51,11 +53,13 @@ public class AuditReportService {
         // Success/failure ratio
         long successCount = auditRepository.findByOutcomeInOrderByEventTimestampDesc(
             List.of(AuditEvent.AuditOutcome.SUCCESS),
+            startTime, endTime,
             PageRequest.of(0, 1)
        ).getTotalElements();
 
         long failureCount = auditRepository.findByOutcomeInOrderByEventTimestampDesc(
-            List.of(AuditEvent.AuditOutcome.FAILURE, AuditEvent.AuditOutcome.ERROR),
+            List.of(AuditEvent.AuditOutcome.FAILURE),
+            startTime, endTime,
             PageRequest.of(0, 1)
        ).getTotalElements();
 
@@ -95,9 +99,14 @@ public class AuditReportService {
             boolean hasMore = true;
 
             while(hasMore) {
-                var events = auditRepository.searchAuditEvents(
-                    username, eventType, category, null, null, null,
-                    startTime, endTime, PageRequest.of(page, size)
+                LocalDateTime startDateTime = startTime != null ? 
+                    LocalDateTime.ofInstant(startTime, ZoneId.systemDefault()) : null;
+                LocalDateTime endDateTime = endTime != null ? 
+                    LocalDateTime.ofInstant(endTime, ZoneId.systemDefault()) : null;
+                    
+                var events = auditRepository.searchEvents(
+                    username, eventType, category, null, null,
+                    startDateTime, endDateTime, PageRequest.of(page, size)
                );
 
                 for(AuditEvent event : events) {
@@ -139,8 +148,6 @@ public class AuditReportService {
         Map<String, Object> dataAccess = new HashMap<>();
         dataAccess.put("creates", countEventType(
             AuditEvent.AuditEventType.CREATE, startTime, endTime));
-        dataAccess.put("reads", countEventType(
-            AuditEvent.AuditEventType.READ, startTime, endTime));
         dataAccess.put("updates", countEventType(
             AuditEvent.AuditEventType.UPDATE, startTime, endTime));
         dataAccess.put("deletes", countEventType(
@@ -148,7 +155,10 @@ public class AuditReportService {
         report.put("dataAccess", dataAccess);
 
         // Security incidents
-        var securityEvents = auditRepository.findSecurityEvents(PageRequest.of(0, 100));
+        var securityEvents = auditRepository.searchEvents(
+            null, null, AuditEvent.AuditCategory.AUTHENTICATION, null, null,
+            null, null, PageRequest.of(0, 100)
+        );
         Map<String, Object> securitySummary = new HashMap<>();
         securitySummary.put("totalIncidents", securityEvents.getTotalElements());
         securitySummary.put("recentIncidents", securityEvents.getContent().stream()
@@ -197,7 +207,7 @@ public class AuditReportService {
             escapeCsv(event.getEntityName()),
             escapeCsv(event.getAction()),
             event.getOutcome().toString(),
-            String.valueOf(event.getDurationMs()),
+            "", // Duration not available in AuditEvent
             escapeCsv(event.getErrorMessage())
        );
     }
@@ -218,9 +228,11 @@ public class AuditReportService {
     /**
      * Format timestamp
      */
-    private String formatTimestamp(Instant timestamp) {
-        return LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault())
-            .format(DATE_FORMATTER);
+    private String formatTimestamp(LocalDateTime timestamp) {
+        if (timestamp == null) {
+            return "";
+        }
+        return timestamp.format(DATE_FORMATTER);
     }
 
     /**
@@ -228,8 +240,14 @@ public class AuditReportService {
      */
     private long countEventType(AuditEvent.AuditEventType type,
                                Instant startTime, Instant endTime) {
-        return auditRepository.searchAuditEvents(
-            null, type, null, null, null, null, startTime, endTime,
+        LocalDateTime start = startTime != null ? 
+            LocalDateTime.ofInstant(startTime, ZoneId.systemDefault()) : null;
+        LocalDateTime end = endTime != null ? 
+            LocalDateTime.ofInstant(endTime, ZoneId.systemDefault()) : null;
+            
+        return auditRepository.searchEvents(
+            null, type, null, null, null,
+            start, end,
             PageRequest.of(0, 1)
        ).getTotalElements();
     }

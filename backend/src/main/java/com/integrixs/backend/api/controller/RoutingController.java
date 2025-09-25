@@ -30,8 +30,11 @@ public class RoutingController {
 
     private static final Logger log = LoggerFactory.getLogger(RoutingController.class);
 
-
     private final RoutingApplicationService routingApplicationService;
+
+    public RoutingController(RoutingApplicationService routingApplicationService) {
+        this.routingApplicationService = routingApplicationService;
+    }
 
     /**
      * Evaluate routing decision for a flow step

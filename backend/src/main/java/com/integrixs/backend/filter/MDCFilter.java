@@ -38,6 +38,11 @@ public class MDCFilter extends OncePerRequestFilter {
     private final BusinessLoggingConfig loggingConfig;
     private final JwtTokenProvider jwtTokenProvider;
 
+    public MDCFilter(BusinessLoggingConfig loggingConfig, JwtTokenProvider jwtTokenProvider) {
+        this.loggingConfig = loggingConfig;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                   FilterChain filterChain) throws ServletException, IOException {

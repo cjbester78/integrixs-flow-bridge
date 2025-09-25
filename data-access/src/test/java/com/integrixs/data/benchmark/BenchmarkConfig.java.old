@@ -1,0 +1,54 @@
+package com.integrixs.data.benchmark;
+
+import com.integrixs.data.sql.core.SqlQueryExecutor;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+
+import javax.sql.DataSource;
+
+/**
+ * Configuration for performance benchmark tests.
+ * Provides H2 in-memory database for consistent benchmarking.
+ */
+@TestConfiguration
+public class BenchmarkConfig {
+
+    @Bean
+    @Primary
+    public DataSource benchmarkDataSource() {
+        // Use H2 in-memory database with optimized settings for benchmarking
+        return new EmbeddedDatabaseBuilder()
+                .setType(EmbeddedDatabaseType.H2)
+                .addScript("classpath:schema-h2.sql")
+                .build();
+    }
+
+    @Bean
+    public JdbcTemplate benchmarkJdbcTemplate(DataSource dataSource) {
+        JdbcTemplate template = new JdbcTemplate(dataSource);
+        // Set fetch size for consistent performance
+        template.setFetchSize(1000);
+        return template;
+    }
+
+    @Bean
+    public SqlQueryExecutor benchmarkSqlQueryExecutor(JdbcTemplate jdbcTemplate) {
+        return new SqlQueryExecutor(jdbcTemplate);
+    }
+
+    /**
+     * Benchmark settings for consistent test execution
+     */
+    public static class BenchmarkSettings {
+        public static final int WARMUP_ITERATIONS = 5;
+        public static final int MEASUREMENT_ITERATIONS = 10;
+        public static final int BULK_SIZE_SMALL = 100;
+        public static final int BULK_SIZE_MEDIUM = 1000;
+        public static final int BULK_SIZE_LARGE = 10000;
+    }
+}

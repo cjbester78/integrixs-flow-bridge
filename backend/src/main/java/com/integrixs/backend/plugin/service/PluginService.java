@@ -37,10 +37,10 @@ public class PluginService {
     private final PluginVersionManager versionManager;
     private final PlatformVersionService platformVersionService;
 
-    @Value("$ {plugin.upload.directory:$ {user.home}/.integrix/plugins}")
+    @Value("${plugin.upload.directory:$ {user.home}/.integrix/plugins}")
     private String pluginUploadDirectory;
 
-    @Value("$ {plugin.temp.directory:$ {java.io.tmpdir}/integrix - plugins}")
+    @Value("${plugin.temp.directory:$ {java.io.tmpdir}/integrix-plugins}")
     private String pluginTempDirectory;
 
     // Constructor
@@ -432,8 +432,8 @@ public class PluginService {
     /**
      * Validate date format
      * Supports ISO-8601 formats:
-     * - Date: yyyy - MM - dd
-     * - DateTime: yyyy - MM - dd'T'HH:mm:ss(with optional timezone)
+     *-Date: yyyy-MM-dd
+     *-DateTime: yyyy-MM-dd'T'HH:mm:ss(with optional timezone)
      */
     private boolean isValidDateFormat(String dateStr, boolean includeTime) {
         if(dateStr == null || dateStr.trim().isEmpty()) {
@@ -452,12 +452,12 @@ public class PluginService {
                     return true;
                 }
             } else {
-                // Parse as LocalDate(yyyy - MM - dd)
+                // Parse as LocalDate(yyyy-MM-dd)
                 java.time.LocalDate.parse(dateStr);
                 return true;
             }
         } catch(java.time.format.DateTimeParseException e) {
-            log.debug("Invalid date format: {} - {}", dateStr, e.getMessage());
+            log.debug("Invalid date format: {}-{}", dateStr, e.getMessage());
             return false;
         }
     }

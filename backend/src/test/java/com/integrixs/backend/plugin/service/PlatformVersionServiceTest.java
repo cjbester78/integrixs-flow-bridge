@@ -37,10 +37,10 @@ class PlatformVersionServiceTest {
         // Test equal versions
         assertEquals(0, platformVersionService.compareVersions("1.0.0", "1.0.0"));
 
-        // Test pre - release versions
-        assertTrue(platformVersionService.compareVersions("1.0.0", "1.0.0 - alpha") > 0);
-        assertTrue(platformVersionService.compareVersions("1.0.0 - alpha", "1.0.0") < 0);
-        assertTrue(platformVersionService.compareVersions("1.0.0 - beta", "1.0.0 - alpha") > 0);
+        // Test pre-release versions
+        assertTrue(platformVersionService.compareVersions("1.0.0", "1.0.0-alpha") > 0);
+        assertTrue(platformVersionService.compareVersions("1.0.0-alpha", "1.0.0") < 0);
+        assertTrue(platformVersionService.compareVersions("1.0.0-beta", "1.0.0-alpha") > 0);
     }
 
     @Test
@@ -113,6 +113,6 @@ class PlatformVersionServiceTest {
         assertNotNull(version);
         assertFalse(version.isEmpty());
         // Should be a valid semantic version
-        assertTrue(version.matches("\\d + \\.\\d + \\.\\d + (-.*)?"));
+        assertTrue(version.matches("\\d+\\.\\d+\\.\\d+(-.*)?"));
     }
 }

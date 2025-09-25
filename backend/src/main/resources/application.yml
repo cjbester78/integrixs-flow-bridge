@@ -4,6 +4,23 @@
 # This is the main configuration file that imports other
 # specialized configuration files for better organization
 
+# ======================================
+# Repository Implementation Configuration
+# ======================================
+integrix:
+  repository:
+    # Switch between JPA and native SQL implementations
+    # Options: "jpa" (default) or "sql"
+    implementation: sql
+  # Configuration loading
+  config:
+    load-from-database: false  # Set to true to load configs from database
+  # Message lazy loading configuration (used by MessageLazyLoadingService)
+  message:
+    payload:
+      size-threshold: ${MESSAGE_PAYLOAD_SIZE_THRESHOLD:1048576}  # 1MB default
+      storage-path: ${MESSAGE_PAYLOAD_STORAGE_PATH:./data/payloads}
+
 server:
   port: 8080
   address: 0.0.0.0
@@ -17,6 +34,8 @@ server:
 spring:
   application:
     name: integrixs-flow-bridge
+  config:
+    use-database: false  # Set to true to load configurations from database
   profiles:
     # Import all configuration profiles
     include:
@@ -68,7 +87,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 121
-    locations: classpath:db/migration
+    locations: classpath:db/migration  # This will read from db module's resources
     sql-migration-prefix: V
     sql-migration-separator: __
     sql-migration-suffixes: .sql
@@ -102,6 +121,7 @@ spring:
         # Connection handling
         connection:
           handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
+          provider_disables_autocommit: true
         # Second-level cache configuration
         cache:
           use_second_level_cache: false
@@ -110,15 +130,6 @@ spring:
           #   factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
         # Statistics (disable in production)
         generate_statistics: false
-        # Connection handling
-        connection:
-          provider_disables_autocommit: true
-        # Query plan cache
-        query:
-          plan_cache_max_size: 2048
-          plan_parameter_metadata_max_size: 128
-        # Default fetch settings
-        default_batch_fetch_size: 16
         # Enable lazy loading outside transactions (use with caution)
         enable_lazy_load_no_trans: false
 
@@ -151,6 +162,8 @@ payload:
     enabled: ${PAYLOAD_COMPRESSION_ENABLED:true}  # Enable GZIP compression for external payloads
   cleanup:
     days-to-keep: ${PAYLOAD_CLEANUP_DAYS:30}  # Keep external payloads for 30 days
+
+# Message lazy loading configuration is now under the main integrix: section above
 
 # ✅ Email configuration
 mail:

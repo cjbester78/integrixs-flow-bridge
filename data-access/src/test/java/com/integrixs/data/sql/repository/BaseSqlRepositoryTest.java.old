@@ -1,0 +1,85 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.sql.config.TestDatabaseConfig;
+import com.integrixs.data.sql.core.SqlQueryExecutor;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Base class for SQL repository integration tests.
+ * Provides common test configuration and utilities.
+ */
+@JdbcTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestDatabaseConfig.class)
+@ActiveProfiles("test")
+@Transactional
+public abstract class BaseSqlRepositoryTest {
+
+    @Autowired
+    protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    protected SqlQueryExecutor sqlQueryExecutor;
+
+    @BeforeEach
+    public void setUpBase() {
+        // Clear any existing test data
+        clearDatabase();
+        // Let subclasses set up their specific test data
+        setUp();
+    }
+
+    /**
+     * Override this method to set up test-specific data
+     */
+    protected abstract void setUp();
+
+    /**
+     * Clear all data from tables in the correct order to avoid FK constraints
+     */
+    protected void clearDatabase() {
+        // Clear in reverse dependency order
+        jdbcTemplate.execute("DELETE FROM flow_transformations");
+        jdbcTemplate.execute("DELETE FROM orchestration_targets");
+        jdbcTemplate.execute("DELETE FROM flow_structure_messages");
+        jdbcTemplate.execute("DELETE FROM flow_structure_namespaces");
+        jdbcTemplate.execute("DELETE FROM message_structure_namespaces");
+        jdbcTemplate.execute("DELETE FROM integration_flows");
+        jdbcTemplate.execute("DELETE FROM flow_structures");
+        jdbcTemplate.execute("DELETE FROM message_structures");
+        jdbcTemplate.execute("DELETE FROM communication_adapters");
+        jdbcTemplate.execute("DELETE FROM business_components");
+        jdbcTemplate.execute("DELETE FROM messages");
+        jdbcTemplate.execute("DELETE FROM system_logs");
+        jdbcTemplate.execute("DELETE FROM audit_trails");
+        jdbcTemplate.execute("DELETE FROM event_store");
+        jdbcTemplate.execute("DELETE FROM adapter_payloads");
+        jdbcTemplate.execute("DELETE FROM alerts");
+        jdbcTemplate.execute("DELETE FROM alert_rules");
+        jdbcTemplate.execute("DELETE FROM error_records");
+        jdbcTemplate.execute("DELETE FROM flow_executions");
+        jdbcTemplate.execute("DELETE FROM user_sessions");
+        jdbcTemplate.execute("DELETE FROM user_preferences");
+        jdbcTemplate.execute("DELETE FROM user_roles");
+        jdbcTemplate.execute("DELETE FROM users");
+        jdbcTemplate.execute("DELETE FROM roles");
+        jdbcTemplate.execute("DELETE FROM external_authentications");
+        jdbcTemplate.execute("DELETE FROM system_configurations");
+        jdbcTemplate.execute("DELETE FROM notification_channels");
+        jdbcTemplate.execute("DELETE FROM jar_files");
+    }
+
+    /**
+     * Utility method to count rows in a table
+     */
+    protected long countRowsInTable(String tableName) {
+        return jdbcTemplate.getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM " + tableName, Long.class);
+    }
+}

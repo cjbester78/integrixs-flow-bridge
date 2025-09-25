@@ -2,7 +2,7 @@ package com.integrixs.backend.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.EventStore;
-import com.integrixs.data.repository.EventStoreRepository;
+import com.integrixs.data.sql.repository.EventStoreSqlRepository;
 import com.integrixs.shared.events.DomainEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -30,10 +30,15 @@ public class EventSourcingService {
     private static final Logger log = LoggerFactory.getLogger(EventSourcingService.class);
 
 
-    private final EventStoreRepository eventStoreRepository;
+    private final EventStoreSqlRepository eventStoreRepository;
     private final ObjectMapper objectMapper;
 
     private static final ThreadLocal<String> correlationId = new ThreadLocal<>();
+    
+    public EventSourcingService(EventStoreSqlRepository eventStoreRepository, ObjectMapper objectMapper) {
+        this.eventStoreRepository = eventStoreRepository;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Stores a domain event.

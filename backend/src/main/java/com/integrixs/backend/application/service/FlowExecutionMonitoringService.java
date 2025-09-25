@@ -8,7 +8,7 @@ import com.integrixs.backend.domain.service.ExecutionMetricsCalculator;
 import com.integrixs.backend.infrastructure.websocket.FlowExecutionWebSocketService;
 import com.integrixs.backend.infrastructure.notification.AlertNotificationService;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ public class FlowExecutionMonitoringService {
     private final ExecutionMetricsCalculator metricsCalculator;
     private final FlowExecutionWebSocketService webSocketService;
     private final AlertNotificationService alertService;
-    private final IntegrationFlowRepository flowRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
 
     // In - memory storage(in production, these would be persisted)
     private final Map<String, ExecutionTrace> activeTraces = new ConcurrentHashMap<>();
@@ -43,7 +43,7 @@ public class FlowExecutionMonitoringService {
                                         ExecutionMetricsCalculator metricsCalculator,
                                         FlowExecutionWebSocketService webSocketService,
                                         AlertNotificationService alertService,
-                                        IntegrationFlowRepository flowRepository) {
+                                        IntegrationFlowSqlRepository flowRepository) {
         this.traceManager = traceManager;
         this.metricsCalculator = metricsCalculator;
         this.webSocketService = webSocketService;

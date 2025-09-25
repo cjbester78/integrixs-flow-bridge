@@ -27,6 +27,10 @@ public class AdapterConnectionTestController {
 
 
     private final AdapterConnectionTestService connectionTestService;
+    
+    public AdapterConnectionTestController(AdapterConnectionTestService connectionTestService) {
+        this.connectionTestService = connectionTestService;
+    }
 
     @PostMapping("/test")
     @Operation(

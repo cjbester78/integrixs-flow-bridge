@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
 import com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.shared.enums.AdapterType;
 import static com.integrixs.shared.enums.AdapterType.*;
@@ -16,9 +16,9 @@ import java.util.UUID;
 @Service
 public class AdapterValidationService {
 
-    private final CommunicationAdapterRepository adapterRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
 
-    public AdapterValidationService(CommunicationAdapterRepository adapterRepository) {
+    public AdapterValidationService(CommunicationAdapterSqlRepository adapterRepository) {
         this.adapterRepository = adapterRepository;
     }
 

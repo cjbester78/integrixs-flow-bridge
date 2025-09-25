@@ -2,7 +2,7 @@ package com.integrixs.backend.auth.service;
 
 import com.integrixs.backend.auth.entity.User;
 import com.integrixs.backend.security.JwtUtil;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class AuthService {
     
     @Autowired
-    private UserRepository userRepository;
+    private UserSqlRepository userRepository;
 
     @Autowired
     private JwtUtil jwtUtil;

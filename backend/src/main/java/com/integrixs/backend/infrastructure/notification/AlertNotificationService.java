@@ -5,7 +5,7 @@ import com.integrixs.backend.domain.model.ExecutionAlert;
 import com.integrixs.backend.domain.model.ExecutionTrace;
 import com.integrixs.backend.infrastructure.email.EmailService;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +23,11 @@ public class AlertNotificationService {
 
     private final EmailService emailService;
     private final EmailConfiguration emailConfig;
-    private final IntegrationFlowRepository flowRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
 
     public AlertNotificationService(EmailService emailService,
                                   EmailConfiguration emailConfig,
-                                  IntegrationFlowRepository flowRepository) {
+                                  IntegrationFlowSqlRepository flowRepository) {
         this.emailService = emailService;
         this.emailConfig = emailConfig;
         this.flowRepository = flowRepository;

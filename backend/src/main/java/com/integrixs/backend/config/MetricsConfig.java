@@ -32,13 +32,13 @@ public class MetricsConfig implements WebMvcConfigurer {
     private static final Logger log = LoggerFactory.getLogger(MetricsConfig.class);
 
 
-    @Value("$ {spring.application.name:integrixs - flow - bridge}")
+    @Value("${spring.application.name:integrixs-flow-bridge}")
     private String applicationName;
 
-    @Value("$ {integrix.metrics.tags.environment:development}")
+    @Value("${integrix.metrics.tags.environment:development}")
     private String environment;
 
-    @Value("$ {integrix.metrics.tags.region:default}")
+    @Value("${integrix.metrics.tags.region:default}")
     private String region;
 
     /**
@@ -192,7 +192,7 @@ public class MetricsConfig implements WebMvcConfigurer {
      */
     private static class HttpMetricsInterceptor implements HandlerInterceptor {
 
-        private static final String START_TIME_ATTR = "http - request - start - time";
+        private static final String START_TIME_ATTR = "http-request-start-time";
 
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -205,8 +205,8 @@ public class MetricsConfig implements WebMvcConfigurer {
                                    Object handler, Exception ex) {
             Long startTime = (Long) request.getAttribute(START_TIME_ATTR);
             if(startTime != null) {
-                long duration = System.currentTimeMillis() - startTime;
-                log.trace("HTTP {} {} - {} in {}ms",
+                long duration = System.currentTimeMillis()-startTime;
+                log.trace("HTTP {} {}-{} in {}ms",
                     request.getMethod(),
                     request.getRequestURI(),
                     response.getStatus(),

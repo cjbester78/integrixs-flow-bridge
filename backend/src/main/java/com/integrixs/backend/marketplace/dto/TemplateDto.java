@@ -1,7 +1,7 @@
 package com.integrixs.backend.marketplace.dto;
 
-import com.integrixs.backend.marketplace.entity.FlowTemplate.TemplateCategory;
-import com.integrixs.backend.marketplace.entity.FlowTemplate.TemplateType;
+import com.integrixs.data.model.FlowTemplate.TemplateCategory;
+import com.integrixs.data.model.FlowTemplate.TemplateType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

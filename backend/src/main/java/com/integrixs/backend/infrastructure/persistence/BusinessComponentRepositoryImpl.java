@@ -9,54 +9,54 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Implementation of BusinessComponentRepository using JPA
+ * Implementation of BusinessComponentSqlRepository using JPA
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("domainBusinessComponentRepository")
 public class BusinessComponentRepositoryImpl implements BusinessComponentRepositoryPort {
 
-    private final com.integrixs.data.repository.BusinessComponentRepository jpaRepository;
-    private final com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository;
+    private final com.integrixs.data.sql.repository.BusinessComponentSqlRepository sqlRepository;
+    private final com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository adapterRepository;
 
-    public BusinessComponentRepositoryImpl(com.integrixs.data.repository.BusinessComponentRepository jpaRepository,
-                                          com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository) {
-        this.jpaRepository = jpaRepository;
+    public BusinessComponentRepositoryImpl(com.integrixs.data.sql.repository.BusinessComponentSqlRepository sqlRepository,
+                                          com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository adapterRepository) {
+        this.sqlRepository = sqlRepository;
         this.adapterRepository = adapterRepository;
     }
 
     @Override
     public List<BusinessComponent> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public Optional<BusinessComponent> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return jpaRepository.existsById(id);
+        return sqlRepository.existsById(id);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return jpaRepository.existsByName(name);
+        return sqlRepository.existsByName(name);
     }
 
     @Override
     public boolean existsByNameAndIdNot(String name, UUID excludeId) {
-        return jpaRepository.existsByNameAndIdNot(name, excludeId);
+        return sqlRepository.existsByNameAndIdNot(name, excludeId);
     }
 
     @Override
     public BusinessComponent save(BusinessComponent component) {
-        return jpaRepository.save(component);
+        return sqlRepository.save(component);
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override

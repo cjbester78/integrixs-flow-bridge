@@ -26,13 +26,13 @@ import java.util.stream.Stream;
 public class PluginLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(PluginLoader.class);
-    private static final String PLUGIN_DESCRIPTOR_FILE = "META - INF/integrix - plugin.properties";
+    private static final String PLUGIN_DESCRIPTOR_FILE = "META-INF/integrix-plugin.properties";
     private static final String PLUGIN_CLASS_PROPERTY = "plugin.class";
 
-    @Value("$ {integrix.plugins.directory:plugins}")
+    @Value("${integrix.plugins.directory:plugins}")
     private String pluginsDirectory;
 
-    @Value("$ {integrix.plugins.scan - classpath:true}")
+    @Value("${integrix.plugins.scan-classpath:true}")
     private boolean scanClasspath;
 
     private final Map<String, PluginClassLoader> classLoaders = new HashMap<>();
@@ -154,7 +154,7 @@ public class PluginLoader {
 
     private List<PluginDescriptor> scanClasspath() {
         // This would scan for plugins in the classpath
-        // Implementation depends on how built - in plugins are packaged
+        // Implementation depends on how built-in plugins are packaged
         return new ArrayList<>();
     }
 

@@ -12,7 +12,7 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 /**
  * WebSocket configuration
  */
-@Configuration
+@Configuration("websocketHandlerConfig")
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
@@ -28,12 +28,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
 
     @Bean
-    public WebSocketHandler jobProgressWebSocketHandler() {
+    public JobProgressWebSocketHandler jobProgressWebSocketHandler() {
         return new JobProgressWebSocketHandler();
     }
 
     @Bean
-    public WebSocketHandler flowExecutionWebSocketHandler() {
+    public FlowExecutionWebSocketHandler flowExecutionWebSocketHandler() {
         return new FlowExecutionWebSocketHandler();
     }
 

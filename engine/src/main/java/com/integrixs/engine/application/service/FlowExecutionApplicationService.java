@@ -3,9 +3,9 @@ package com.integrixs.engine.application.service;
 import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.FlowExecution;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.FieldMappingRepository;
-import com.integrixs.data.repository.FlowExecutionRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.FieldMappingSqlRepository;
+import com.integrixs.data.sql.repository.FlowExecutionSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.engine.api.dto.FlowExecutionRequestDTO;
 import com.integrixs.engine.api.dto.FlowExecutionResponseDTO;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
@@ -34,14 +34,14 @@ public class FlowExecutionApplicationService {
 
 
     private final FlowExecutionService flowExecutionService;
-    private final IntegrationFlowRepository integrationFlowRepository;
-    private final FieldMappingRepository fieldMappingRepository;
-    private final FlowExecutionRepository flowExecutionRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
+    private final FieldMappingSqlRepository fieldMappingRepository;
+    private final FlowExecutionSqlRepository flowExecutionRepository;
 
     @Autowired(required = false)
     private FlowAlertingPort alertingService;
 
-    public FlowExecutionApplicationService(FlowExecutionService flowExecutionService, IntegrationFlowRepository integrationFlowRepository, FieldMappingRepository fieldMappingRepository, FlowExecutionRepository flowExecutionRepository) {
+    public FlowExecutionApplicationService(FlowExecutionService flowExecutionService, IntegrationFlowSqlRepository integrationFlowRepository, FieldMappingSqlRepository fieldMappingRepository, FlowExecutionSqlRepository flowExecutionRepository) {
         this.flowExecutionService = flowExecutionService;
         this.integrationFlowRepository = integrationFlowRepository;
         this.fieldMappingRepository = fieldMappingRepository;
@@ -212,9 +212,9 @@ public class FlowExecutionApplicationService {
 
     public static class FlowExecutionApplicationServiceBuilder {
         private FlowExecutionService flowExecutionService;
-        private IntegrationFlowRepository integrationFlowRepository;
-        private FieldMappingRepository fieldMappingRepository;
-        private FlowExecutionRepository flowExecutionRepository;
+        private IntegrationFlowSqlRepository integrationFlowRepository;
+        private FieldMappingSqlRepository fieldMappingRepository;
+        private FlowExecutionSqlRepository flowExecutionRepository;
         private FlowAlertingPort alertingService;
 
         public FlowExecutionApplicationServiceBuilder flowExecutionService(FlowExecutionService flowExecutionService) {
@@ -222,17 +222,17 @@ public class FlowExecutionApplicationService {
             return this;
         }
 
-        public FlowExecutionApplicationServiceBuilder integrationFlowRepository(IntegrationFlowRepository integrationFlowRepository) {
+        public FlowExecutionApplicationServiceBuilder integrationFlowRepository(IntegrationFlowSqlRepository integrationFlowRepository) {
             this.integrationFlowRepository = integrationFlowRepository;
             return this;
         }
 
-        public FlowExecutionApplicationServiceBuilder fieldMappingRepository(FieldMappingRepository fieldMappingRepository) {
+        public FlowExecutionApplicationServiceBuilder fieldMappingRepository(FieldMappingSqlRepository fieldMappingRepository) {
             this.fieldMappingRepository = fieldMappingRepository;
             return this;
         }
 
-        public FlowExecutionApplicationServiceBuilder flowExecutionRepository(FlowExecutionRepository flowExecutionRepository) {
+        public FlowExecutionApplicationServiceBuilder flowExecutionRepository(FlowExecutionSqlRepository flowExecutionRepository) {
             this.flowExecutionRepository = flowExecutionRepository;
             return this;
         }

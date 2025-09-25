@@ -29,6 +29,10 @@ public class AdapterTypeController {
 
     private final AdapterTypeService adapterTypeService;
 
+    public AdapterTypeController(AdapterTypeService adapterTypeService) {
+        this.adapterTypeService = adapterTypeService;
+    }
+
     @GetMapping
     @Operation(summary = "Get adapter types with pagination and filters")
     @PreAuthorize("hasAuthority('ROLE_USER')")

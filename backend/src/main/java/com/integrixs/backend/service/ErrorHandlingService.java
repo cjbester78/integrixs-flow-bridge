@@ -5,10 +5,10 @@ import com.integrixs.data.model.ErrorRecord;
 import com.integrixs.data.model.RetryPolicy;
 import com.integrixs.data.model.DeadLetterMessage;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.ErrorRecordRepository;
-import com.integrixs.data.repository.RetryPolicyRepository;
-import com.integrixs.data.repository.DeadLetterMessageRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.ErrorRecordSqlRepository;
+import com.integrixs.data.sql.repository.RetryPolicySqlRepository;
+import com.integrixs.data.sql.repository.DeadLetterMessageSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -42,20 +42,20 @@ public class ErrorHandlingService {
 
     private static final Logger logger = LoggerFactory.getLogger(ErrorHandlingService.class);
 
-    private final ErrorRecordRepository errorRecordRepository;
-    private final RetryPolicyRepository retryPolicyRepository;
-    private final DeadLetterMessageRepository deadLetterRepository;
+    private final ErrorRecordSqlRepository errorRecordRepository;
+    private final RetryPolicySqlRepository retryPolicyRepository;
+    private final DeadLetterMessageSqlRepository deadLetterRepository;
     private final FlowAlertingService alertingService;
     private final MessageQueueService messageQueueService;
-    private final IntegrationFlowRepository flowRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
     
     @Autowired
-    public ErrorHandlingService(ErrorRecordRepository errorRecordRepository,
-                              RetryPolicyRepository retryPolicyRepository,
-                              DeadLetterMessageRepository deadLetterRepository,
+    public ErrorHandlingService(ErrorRecordSqlRepository errorRecordRepository,
+                              RetryPolicySqlRepository retryPolicyRepository,
+                              DeadLetterMessageSqlRepository deadLetterRepository,
                               @Autowired(required = false) FlowAlertingService alertingService,
                               MessageQueueService messageQueueService,
-                              IntegrationFlowRepository flowRepository) {
+                              IntegrationFlowSqlRepository flowRepository) {
         this.errorRecordRepository = errorRecordRepository;
         this.retryPolicyRepository = retryPolicyRepository;
         this.deadLetterRepository = deadLetterRepository;

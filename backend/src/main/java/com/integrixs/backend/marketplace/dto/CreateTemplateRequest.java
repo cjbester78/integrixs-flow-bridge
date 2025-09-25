@@ -1,8 +1,8 @@
 package com.integrixs.backend.marketplace.dto;
 
-import com.integrixs.backend.marketplace.entity.FlowTemplate.TemplateCategory;
-import com.integrixs.backend.marketplace.entity.FlowTemplate.TemplateType;
-import com.integrixs.backend.marketplace.entity.FlowTemplate.TemplateVisibility;
+import com.integrixs.data.model.FlowTemplate.TemplateCategory;
+import com.integrixs.data.model.FlowTemplate.TemplateType;
+import com.integrixs.data.model.FlowTemplate.TemplateVisibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

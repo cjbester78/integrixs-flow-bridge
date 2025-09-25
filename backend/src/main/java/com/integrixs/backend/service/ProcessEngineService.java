@@ -6,7 +6,7 @@ import com.integrixs.backend.application.service.OrchestrationTargetService;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.OrchestrationTarget;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +30,7 @@ public abstract class ProcessEngineService {
     private BackendAdapterExecutor adapterExecutionService;
     
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

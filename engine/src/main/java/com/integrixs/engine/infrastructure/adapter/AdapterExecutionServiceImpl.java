@@ -4,7 +4,7 @@ import com.integrixs.engine.AdapterExecutor;
 import com.integrixs.engine.domain.model.AdapterExecutionContext;
 import com.integrixs.engine.domain.model.AdapterExecutionResult;
 import com.integrixs.engine.domain.service.FlowAdapterExecutor;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.data.model.CommunicationAdapter;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +28,12 @@ public class AdapterExecutionServiceImpl implements FlowAdapterExecutor {
 
 
     private final AdapterExecutor adapterExecutor;
-    private final CommunicationAdapterRepository communicationAdapterRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
 
     // Cache adapter capabilities
     private final Map<String, Map<String, Object>> capabilitiesCache = new ConcurrentHashMap<>();
 
-    public AdapterExecutionServiceImpl(AdapterExecutor adapterExecutor, CommunicationAdapterRepository communicationAdapterRepository) {
+    public AdapterExecutionServiceImpl(AdapterExecutor adapterExecutor, CommunicationAdapterSqlRepository communicationAdapterRepository) {
         this.adapterExecutor = adapterExecutor;
         this.communicationAdapterRepository = communicationAdapterRepository;
     }
@@ -394,14 +394,14 @@ public class AdapterExecutionServiceImpl implements FlowAdapterExecutor {
 
     public static class AdapterExecutionServiceImplBuilder {
         private AdapterExecutor adapterExecutor;
-        private CommunicationAdapterRepository communicationAdapterRepository;
+        private CommunicationAdapterSqlRepository communicationAdapterRepository;
 
         public AdapterExecutionServiceImplBuilder adapterExecutor(AdapterExecutor adapterExecutor) {
             this.adapterExecutor = adapterExecutor;
             return this;
         }
 
-        public AdapterExecutionServiceImplBuilder communicationAdapterRepository(CommunicationAdapterRepository communicationAdapterRepository) {
+        public AdapterExecutionServiceImplBuilder communicationAdapterRepository(CommunicationAdapterSqlRepository communicationAdapterRepository) {
             this.communicationAdapterRepository = communicationAdapterRepository;
             return this;
         }

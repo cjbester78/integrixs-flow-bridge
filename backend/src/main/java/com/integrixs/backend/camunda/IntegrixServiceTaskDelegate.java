@@ -6,8 +6,8 @@ import com.integrixs.backend.service.OrchestrationTargetService;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.OrchestrationTarget;
 import static com.integrixs.data.model.OrchestrationTarget.ErrorStrategy.*;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.OrchestrationTargetRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.OrchestrationTargetSqlRepository;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.slf4j.Logger;
@@ -38,10 +38,10 @@ public class IntegrixServiceTaskDelegate implements JavaDelegate {
     private OrchestrationTargetService orchestrationTargetService;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private OrchestrationTargetRepository orchestrationTargetRepository;
+    private OrchestrationTargetSqlRepository orchestrationTargetRepository;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {

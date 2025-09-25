@@ -1,7 +1,7 @@
 package com.integrixs.backend.application.service;
 
-import com.integrixs.data.repository.RoleRepository;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.RoleSqlRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.backend.domain.service.RoleManagementService;
 import com.integrixs.backend.exception.ConflictException;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -31,13 +31,13 @@ public class RoleManagementApplicationService {
     private static final Logger log = LoggerFactory.getLogger(RoleManagementApplicationService.class);
 
 
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
+    private final RoleSqlRepository roleRepository;
+    private final UserSqlRepository userRepository;
     private final RoleManagementService roleManagementService;
     private final AuditTrailService auditTrailService;
 
-    public RoleManagementApplicationService(RoleRepository roleRepository,
-                                          UserRepository userRepository,
+    public RoleManagementApplicationService(RoleSqlRepository roleRepository,
+                                          UserSqlRepository userRepository,
                                           RoleManagementService roleManagementService,
                                           AuditTrailService auditTrailService) {
         this.roleRepository = roleRepository;

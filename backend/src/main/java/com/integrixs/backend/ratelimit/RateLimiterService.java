@@ -24,13 +24,13 @@ public class RateLimiterService {
     @Autowired(required = false)
     private DistributedCacheService cacheService;
 
-    @Value("$ {api.ratelimit.default.capacity:100}")
+    @Value("${api.ratelimit.default.capacity:100}")
     private int defaultCapacity;
 
-    @Value("$ {api.ratelimit.default.refill - rate:10}")
+    @Value("${api.ratelimit.default.refill-rate:10}")
     private int defaultRefillRate;
 
-    @Value("$ {api.ratelimit.default.refill - period:60}")
+    @Value("${api.ratelimit.default.refill-period:60}")
     private int defaultRefillPeriod;
 
     // Local cache for when Redis is not available
@@ -233,13 +233,13 @@ public class RateLimiterService {
 
         public synchronized void refill() {
             long now = System.currentTimeMillis();
-            long timeSinceLastRefill = now - lastRefillTimestamp;
+            long timeSinceLastRefill = now-lastRefillTimestamp;
 
             if(timeSinceLastRefill >= refillPeriodMillis) {
                 long periodsElapsed = timeSinceLastRefill / refillPeriodMillis;
                 double tokensToAdd = periodsElapsed * refillTokens;
                 tokens = Math.min(capacity, tokens + tokensToAdd);
-                lastRefillTimestamp = now - (timeSinceLastRefill % refillPeriodMillis);
+                lastRefillTimestamp = now-(timeSinceLastRefill % refillPeriodMillis);
             }
         }
 
@@ -304,7 +304,7 @@ public class RateLimiterService {
             if(allowed) {
                 return 0;
             }
-            return Math.max(0, resetTime - System.currentTimeMillis()) / 1000;
+            return Math.max(0, resetTime-System.currentTimeMillis()) / 1000;
         }
     }
 

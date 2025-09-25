@@ -11,6 +11,10 @@ public class JwtTokenProvider {
 
     private final JwtUtil jwtUtil;
 
+    public JwtTokenProvider(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
     public boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
     }

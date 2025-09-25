@@ -15,8 +15,8 @@ import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.data.model.Alert;
 import com.integrixs.data.model.AlertRule;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.engine.mapper.HierarchicalXmlFieldMapper;
 // import com.integrixs.engine.service.MessageProcessingEngine;
 import com.integrixs.engine.service.FormatConversionService;
@@ -58,10 +58,10 @@ public class EnhancedAdapterExecutionService {
     private HierarchicalXmlFieldMapper xmlFieldMapper;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
     @Qualifier("enhancedSagaTransactionService")

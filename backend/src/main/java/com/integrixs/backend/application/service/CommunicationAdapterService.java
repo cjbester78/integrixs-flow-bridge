@@ -7,7 +7,7 @@ import com.integrixs.backend.annotation.AuditUpdate;
 import com.integrixs.backend.api.dto.request.CreateAdapterRequest;
 import com.integrixs.backend.api.dto.request.UpdateAdapterRequest;
 import com.integrixs.backend.api.dto.response.AdapterResponse;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.backend.domain.service.AdapterConfigurationService;
 import com.integrixs.backend.domain.service.AdapterValidationService;
 import com.integrixs.backend.service.AuditTrailService;
@@ -15,8 +15,8 @@ import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.BusinessComponent;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.ExternalAuthentication;
-import com.integrixs.data.repository.BusinessComponentRepository;
-import com.integrixs.data.repository.ExternalAuthenticationRepository;
+import com.integrixs.data.sql.repository.BusinessComponentSqlRepository;
+import com.integrixs.data.sql.repository.ExternalAuthenticationSqlRepository;
 import com.integrixs.shared.enums.AdapterType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,19 +38,19 @@ public class CommunicationAdapterService {
     private static final Logger log = LoggerFactory.getLogger(CommunicationAdapterService.class);
 
 
-    private final CommunicationAdapterRepository adapterRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
     private final AdapterValidationService validationService;
     private final AdapterConfigurationService configurationService;
     private final AuditTrailService auditTrailService;
-    private final BusinessComponentRepository businessComponentRepository;
-    private final ExternalAuthenticationRepository externalAuthRepository;
+    private final BusinessComponentSqlRepository businessComponentRepository;
+    private final ExternalAuthenticationSqlRepository externalAuthRepository;
 
-    public CommunicationAdapterService(CommunicationAdapterRepository adapterRepository,
+    public CommunicationAdapterService(CommunicationAdapterSqlRepository adapterRepository,
                                        AdapterValidationService validationService,
                                        AdapterConfigurationService configurationService,
                                        AuditTrailService auditTrailService,
-                                       BusinessComponentRepository businessComponentRepository,
-                                       ExternalAuthenticationRepository externalAuthRepository) {
+                                       BusinessComponentSqlRepository businessComponentRepository,
+                                       ExternalAuthenticationSqlRepository externalAuthRepository) {
         this.adapterRepository = adapterRepository;
         this.validationService = validationService;
         this.configurationService = configurationService;

@@ -4,9 +4,9 @@ import com.integrixs.data.model.DeadLetterMessage;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.ErrorRecord;
-import com.integrixs.data.repository.DeadLetterMessageRepository;
-import com.integrixs.data.repository.MessageRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.DeadLetterMessageSqlRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.data.model.Alert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,25 +32,37 @@ public class DeadLetterQueueService {
     private static final Logger log = LoggerFactory.getLogger(DeadLetterQueueService.class);
 
 
-    private final DeadLetterMessageRepository deadLetterRepository;
-    private final MessageRepository messageRepository;
-    private final IntegrationFlowRepository flowRepository;
+    private final DeadLetterMessageSqlRepository deadLetterRepository;
+    private final MessageSqlRepository messageRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
     private final MessageQueueService messageQueueService;
     private final EnhancedRetryService retryService;
 
     @Autowired(required = false)
     private FlowAlertingService alertingService;
+    
+    public DeadLetterQueueService(DeadLetterMessageSqlRepository deadLetterRepository,
+                                 MessageSqlRepository messageRepository,
+                                 IntegrationFlowSqlRepository flowRepository,
+                                 MessageQueueService messageQueueService,
+                                 EnhancedRetryService retryService) {
+        this.deadLetterRepository = deadLetterRepository;
+        this.messageRepository = messageRepository;
+        this.flowRepository = flowRepository;
+        this.messageQueueService = messageQueueService;
+        this.retryService = retryService;
+    }
 
-    @Value("$ {integrix.dlq.auto - retry.enabled:true}")
+    @Value("${integrix.dlq.auto-retry.enabled:true}")
     private boolean autoRetryEnabled;
 
-    @Value("$ {integrix.dlq.auto - retry.max - attempts:3}")
+    @Value("${integrix.dlq.auto-retry.max-attempts:3}")
     private int maxAutoRetryAttempts;
 
-    @Value("$ {integrix.dlq.retention - days:30}")
+    @Value("${integrix.dlq.retention-days:30}")
     private int retentionDays;
 
-    @Value("$ {integrix.dlq.batch - size:100}")
+    @Value("${integrix.dlq.batch-size:100}")
     private int batchSize;
 
     /**
@@ -180,7 +192,7 @@ public class DeadLetterQueueService {
                 log.error("Failed to retry DLQ message {}", dlqMessage.getMessageId(), e);
 
                 // Mark as permanently failed after max retries
-                if(dlqMessage.getRetryCount() >= maxAutoRetryAttempts - 1) {
+                if(dlqMessage.getRetryCount() >= maxAutoRetryAttempts-1) {
                     dlqMessage.setStatus(DeadLetterMessage.Status.FAILED);
                     dlqMessage.setFailedAt(LocalDateTime.now());
                     deadLetterRepository.save(dlqMessage);
@@ -404,7 +416,7 @@ public class DeadLetterQueueService {
                     message.getFlow().getId().toString(), details);
             } else {
                 // Log if we can't create alert
-                log.error("Cannot create alert - no flow associated with message");
+                log.error("Cannot create alert-no flow associated with message");
             }
 
         } catch(Exception e) {

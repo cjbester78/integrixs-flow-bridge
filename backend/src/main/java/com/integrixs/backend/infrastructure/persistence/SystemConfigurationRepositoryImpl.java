@@ -14,39 +14,39 @@ import java.util.UUID;
 @Repository("domainSystemConfigurationRepository")
 public class SystemConfigurationRepositoryImpl implements SystemConfigurationRepositoryPort {
 
-    private final com.integrixs.data.repository.SystemConfigurationRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.SystemConfigurationSqlRepository sqlRepository;
     
-    public SystemConfigurationRepositoryImpl(com.integrixs.data.repository.SystemConfigurationRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public SystemConfigurationRepositoryImpl(com.integrixs.data.sql.repository.SystemConfigurationSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public Optional<SystemConfiguration> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public Optional<SystemConfiguration> findByConfigKey(String configKey) {
-        return jpaRepository.findByConfigKey(configKey);
+        return sqlRepository.findByConfigKey(configKey);
     }
 
     @Override
     public List<SystemConfiguration> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public SystemConfiguration save(SystemConfiguration configuration) {
-        return jpaRepository.save(configuration);
+        return sqlRepository.save(configuration);
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override
     public boolean existsByConfigKey(String configKey) {
-        return jpaRepository.existsByConfigKey(configKey);
+        return sqlRepository.existsByConfigKey(configKey);
     }
 }

@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.data.repository.BusinessComponentRepository;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.BusinessComponentSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.data.model.BusinessComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +17,11 @@ import java.util.UUID;
 public class ComponentManagementService {
 
     private static final Logger log = LoggerFactory.getLogger(ComponentManagementService.class);
-    private final BusinessComponentRepository businessComponentRepository;
-    private final CommunicationAdapterRepository communicationAdapterRepository;
+    private final BusinessComponentSqlRepository businessComponentRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
 
-    public ComponentManagementService(BusinessComponentRepository businessComponentRepository,
-                                     CommunicationAdapterRepository communicationAdapterRepository) {
+    public ComponentManagementService(BusinessComponentSqlRepository businessComponentRepository,
+                                     CommunicationAdapterSqlRepository communicationAdapterRepository) {
         this.businessComponentRepository = businessComponentRepository;
         this.communicationAdapterRepository = communicationAdapterRepository;
     }

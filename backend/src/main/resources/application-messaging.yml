@@ -17,8 +17,8 @@ spring:
         size: ${RABBITMQ_CHANNEL_CACHE_SIZE:50}
         checkout-timeout: ${RABBITMQ_CHANNEL_CHECKOUT_TIMEOUT:10000}
       connection:
-        mode: ${RABBITMQ_CONNECTION_MODE:channel}
-        size: ${RABBITMQ_CONNECTION_CACHE_SIZE:10}
+        mode: ${RABBITMQ_CONNECTION_MODE:connection}
+        size: ${RABBITMQ_CONNECTION_CACHE_SIZE:1}
     
     # Publisher settings
     publisher-confirms: true

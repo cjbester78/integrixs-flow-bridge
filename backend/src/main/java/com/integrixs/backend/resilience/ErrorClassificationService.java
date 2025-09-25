@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * Service for classifying errors and exceptions to determine appropriate handling strategies.
  * Provides intelligent error categorization for better resilience decisions.
  */
-@Service
+@Service("backendErrorClassificationService")
 public class ErrorClassificationService {
 
     // Cache for classification results

@@ -8,9 +8,9 @@ import com.integrixs.data.model.BusinessComponent;
 import com.integrixs.data.model.FlowStructure;
 import com.integrixs.data.model.MessageStructure;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.BusinessComponentRepository;
-import com.integrixs.data.repository.FlowStructureMessageRepository;
-import com.integrixs.data.repository.MessageStructureRepository;
+import com.integrixs.data.sql.repository.BusinessComponentSqlRepository;
+import com.integrixs.data.sql.repository.FlowStructureMessageSqlRepository;
+import com.integrixs.data.sql.repository.MessageStructureSqlRepository;
 import com.integrixs.shared.dto.structure.MessageStructureCreateRequestDTO;
 import com.integrixs.shared.dto.structure.MessageStructureDTO;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
@@ -40,10 +40,20 @@ public class MessageStructureService {
     private static final Logger log = LoggerFactory.getLogger(MessageStructureService.class);
 
 
-    private final MessageStructureRepository messageStructureRepository;
-    private final BusinessComponentRepository businessComponentRepository;
-    private final FlowStructureMessageRepository flowStructureMessageRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final MessageStructureSqlRepository messageStructureRepository;
+    private final BusinessComponentSqlRepository businessComponentRepository;
+    private final FlowStructureMessageSqlRepository flowStructureMessageRepository;
+    private final ObjectMapper objectMapper;
+    
+    public MessageStructureService(MessageStructureSqlRepository messageStructureRepository,
+                                   BusinessComponentSqlRepository businessComponentRepository,
+                                   FlowStructureMessageSqlRepository flowStructureMessageRepository,
+                                   ObjectMapper objectMapper) {
+        this.messageStructureRepository = messageStructureRepository;
+        this.businessComponentRepository = businessComponentRepository;
+        this.flowStructureMessageRepository = flowStructureMessageRepository;
+        this.objectMapper = objectMapper;
+    }
 
     @Transactional
     public MessageStructureDTO create(MessageStructureCreateRequestDTO request, User currentUser) {

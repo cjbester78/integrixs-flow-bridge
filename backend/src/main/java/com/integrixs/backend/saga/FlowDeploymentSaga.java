@@ -26,6 +26,10 @@ public class FlowDeploymentSaga implements Saga<IntegrationFlowDTO> {
 
 
     private final DomainEventPublisher eventPublisher;
+    
+    public FlowDeploymentSaga(DomainEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     public String getSagaId() {

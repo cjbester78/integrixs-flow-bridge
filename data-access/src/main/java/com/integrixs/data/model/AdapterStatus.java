@@ -1,71 +1,47 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * Entity representing the real-time status of a communication adapter
  */
-@Entity
-@Table(name = "adapter_status")
 public class AdapterStatus extends BaseEntity {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+
     private UUID id;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "adapter_id", nullable = false)
+
     private CommunicationAdapter adapter;
-    
-    @Column(name = "status", nullable = false, length = 50)
+
     private String status; // ACTIVE, INACTIVE, ERROR, WARNING
-    
-    @Column(name = "health_score")
+
     private Integer healthScore; // 0-100
-    
-    @Column(name = "last_activity")
+
     private LocalDateTime lastActivity;
-    
-    @Column(name = "last_error")
+
     private LocalDateTime lastError;
-    
-    @Column(name = "last_error_message", columnDefinition = "TEXT")
+
     private String lastErrorMessage;
-    
-    @Column(name = "total_messages_processed")
+
     private Long totalMessagesProcessed;
-    
-    @Column(name = "messages_processed_today")
+
     private Long messagesProcessedToday;
-    
-    @Column(name = "error_count_today")
+
     private Long errorCountToday;
-    
-    @Column(name = "average_response_time")
+
     private Long averageResponseTime; // in milliseconds
-    
-    @Column(name = "is_connected")
+
     private Boolean isConnected;
-    
-    @Column(name = "connection_details", columnDefinition = "TEXT")
+
     private String connectionDetails;
-    
-    @Column(name = "last_health_check")
+
     private LocalDateTime lastHealthCheck;
-    
-    @Column(name = "next_health_check")
+
     private LocalDateTime nextHealthCheck;
-    
-    @Column(name = "metadata", columnDefinition = "JSONB")
+
     private String metadata; // Additional status information as JSON
     
     /**
      * Update health score based on various factors
      */
-    @PrePersist
-    @PreUpdate
     public void updateHealthScore() {
         if (this.status == null) {
             this.healthScore = 0;

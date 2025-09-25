@@ -2,7 +2,7 @@ package com.integrixs.backend.service;
 
 import com.integrixs.backend.exception.BusinessException;
 import com.integrixs.data.model.TransformationCustomFunction;
-import com.integrixs.data.repository.TransformationCustomFunctionRepository;
+import com.integrixs.data.sql.repository.TransformationCustomFunctionSqlRepository;
 import org.springframework.stereotype.Service;
 
 import javax.tools.*;
@@ -28,13 +28,13 @@ public class JavaTransformationEngine {
     private static final Logger log = LoggerFactory.getLogger(JavaTransformationEngine.class);
 
 
-    private final TransformationCustomFunctionRepository functionRepository;
+    private final TransformationCustomFunctionSqlRepository functionRepository;
     private final JavaCompilationService compilationService;
 
     // Cache for compiled classes
     private final Map<String, Class<?>> compiledFunctionCache = new ConcurrentHashMap<>();
 
-    public JavaTransformationEngine(TransformationCustomFunctionRepository functionRepository,
+    public JavaTransformationEngine(TransformationCustomFunctionSqlRepository functionRepository,
                                    JavaCompilationService compilationService) {
         this.functionRepository = functionRepository;
         this.compilationService = compilationService;

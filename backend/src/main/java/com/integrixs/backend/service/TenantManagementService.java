@@ -7,7 +7,9 @@ import com.integrixs.backend.security.RoleDefinitions;
 import com.integrixs.backend.security.TenantContext;
 import com.integrixs.backend.audit.AuditService;
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.UserSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +30,13 @@ public class TenantManagementService {
     private static final Logger logger = LoggerFactory.getLogger(TenantManagementService.class);
 
     @Autowired
-    private UserRepository userRepository;
+    private UserSqlRepository userRepository;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;

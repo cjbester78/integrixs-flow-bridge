@@ -1,10 +1,10 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.backend.security.AuditLogEncryptionService;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.AuditTrailRepository;
+import com.integrixs.data.sql.repository.AuditTrailSqlRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,15 +45,15 @@ public class AuditTrailService {
     private static final Logger log = LoggerFactory.getLogger(AuditTrailService.class);
 
     @Autowired
-    private AuditTrailRepository auditTrailRepository;
+    private AuditTrailSqlRepository auditTrailRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserSqlRepository userRepository;
 
     @Autowired(required = false)
     private AuditLogEncryptionService auditLogEncryptionService;
 
-    @Value("$ {audit.encryption.enabled:false}")
+    @Value("${audit.encryption.enabled:false}")
     private boolean encryptionEnabled;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -175,7 +175,7 @@ public class AuditTrailService {
             if(attrs != null) {
                 HttpServletRequest request = attrs.getRequest();
                 audit.setUserIp(extractClientIp(request));
-                audit.setUserAgent(request.getHeader("User - Agent"));
+                audit.setUserAgent(request.getHeader("User-Agent"));
             }
 
             // Encrypt sensitive data if enabled
@@ -194,12 +194,12 @@ public class AuditTrailService {
      * Extract client IP address from request
      */
     private String extractClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X - Forwarded - For");
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
         if(xForwardedFor != null && !xForwardedFor.isEmpty()) {
             return xForwardedFor.split(",")[0].trim();
         }
 
-        String xRealIp = request.getHeader("X - Real - IP");
+        String xRealIp = request.getHeader("X-Real-IP");
         if(xRealIp != null && !xRealIp.isEmpty()) {
             return xRealIp;
         }
@@ -237,7 +237,7 @@ public class AuditTrailService {
         if(attr != null) {
             HttpServletRequest request = attr.getRequest();
             audit.setUserIp(getClientIpAddress(request));
-            audit.setUserAgent(request.getHeader("User - Agent"));
+            audit.setUserAgent(request.getHeader("User-Agent"));
         }
 
         return audit;
@@ -248,9 +248,9 @@ public class AuditTrailService {
      */
     private String getClientIpAddress(HttpServletRequest request) {
         String[] headerNames = {
-            "X - Forwarded - For",
-            "Proxy - Client - IP",
-            "WL - Proxy - Client - IP",
+            "X-Forwarded-For",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
             "HTTP_X_FORWARDED_FOR",
             "HTTP_X_FORWARDED",
             "HTTP_X_CLUSTER_CLIENT_IP",
@@ -264,7 +264,7 @@ public class AuditTrailService {
         for(String header : headerNames) {
             String ip = request.getHeader(header);
             if(ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
-                // Handle multiple IPs in X - Forwarded - For
+                // Handle multiple IPs in X-Forwarded-For
                 if(ip.contains(",")) {
                     return ip.split(",")[0].trim();
                 }

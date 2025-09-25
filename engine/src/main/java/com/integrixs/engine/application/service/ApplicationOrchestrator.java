@@ -1,7 +1,7 @@
 package com.integrixs.engine.application.service;
 
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.engine.api.dto.WorkflowExecutionRequestDTO;
 import com.integrixs.engine.api.dto.WorkflowExecutionResponseDTO;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
@@ -30,14 +30,14 @@ public class ApplicationOrchestrator {
 
     private final WorkflowOrchestrationService workflowOrchestrationService;
     private final FlowExecutionService flowExecutionService;
-    private final IntegrationFlowRepository integrationFlowRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
     private final AdapterExecutionApplicationService adapterExecutionApplicationService;
     private final FlowExecutionApplicationService flowExecutionApplicationService;
 
     // Track active workflows
     private final Map<String, WorkflowContext> activeWorkflows = new ConcurrentHashMap<>();
 
-    public ApplicationOrchestrator(WorkflowOrchestrationService workflowOrchestrationService, FlowExecutionService flowExecutionService, IntegrationFlowRepository integrationFlowRepository, AdapterExecutionApplicationService adapterExecutionApplicationService, FlowExecutionApplicationService flowExecutionApplicationService) {
+    public ApplicationOrchestrator(WorkflowOrchestrationService workflowOrchestrationService, FlowExecutionService flowExecutionService, IntegrationFlowSqlRepository integrationFlowRepository, AdapterExecutionApplicationService adapterExecutionApplicationService, FlowExecutionApplicationService flowExecutionApplicationService) {
         this.workflowOrchestrationService = workflowOrchestrationService;
         this.flowExecutionService = flowExecutionService;
         this.integrationFlowRepository = integrationFlowRepository;
@@ -258,7 +258,7 @@ public class ApplicationOrchestrator {
     public static class ApplicationOrchestratorBuilder {
         private WorkflowOrchestrationService workflowOrchestrationService;
         private FlowExecutionService flowExecutionService;
-        private IntegrationFlowRepository integrationFlowRepository;
+        private IntegrationFlowSqlRepository integrationFlowRepository;
         private AdapterExecutionApplicationService adapterExecutionApplicationService;
         private FlowExecutionApplicationService flowExecutionApplicationService;
 
@@ -272,7 +272,7 @@ public class ApplicationOrchestrator {
             return this;
         }
 
-        public ApplicationOrchestratorBuilder integrationFlowRepository(IntegrationFlowRepository integrationFlowRepository) {
+        public ApplicationOrchestratorBuilder integrationFlowRepository(IntegrationFlowSqlRepository integrationFlowRepository) {
             this.integrationFlowRepository = integrationFlowRepository;
             return this;
         }

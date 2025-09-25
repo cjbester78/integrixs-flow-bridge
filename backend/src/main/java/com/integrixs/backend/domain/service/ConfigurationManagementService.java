@@ -1,6 +1,6 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.data.repository.SystemConfigurationRepository;
+import com.integrixs.data.sql.repository.SystemConfigurationSqlRepository;
 import com.integrixs.data.model.SystemConfiguration;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +14,9 @@ import java.util.Optional;
 @Service
 public class ConfigurationManagementService {
 
-    private final SystemConfigurationRepository configurationRepository;
+    private final SystemConfigurationSqlRepository configurationRepository;
 
-    public ConfigurationManagementService(SystemConfigurationRepository configurationRepository) {
+    public ConfigurationManagementService(SystemConfigurationSqlRepository configurationRepository) {
         this.configurationRepository = configurationRepository;
     }
 

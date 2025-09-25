@@ -7,8 +7,8 @@
 
     <parent>
         <groupId>com.integrixs</groupId>
-        <artifactId>flow-bridge-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>integrixs-flow-bridge</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -80,8 +80,8 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8-standalone</artifactId>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock</artifactId>
             <version>${wiremock.version}</version>
         </dependency>
 
@@ -109,6 +109,12 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>rabbitmq</artifactId>
             <version>${testcontainers.version}</version>
         </dependency>
         
@@ -171,13 +177,13 @@
         <!-- Integrixs Dependencies -->
         <dependency>
             <groupId>com.integrixs</groupId>
-            <artifactId>integrixs-data-access</artifactId>
+            <artifactId>data-access</artifactId>
             <version>${project.version}</version>
         </dependency>
         
         <dependency>
             <groupId>com.integrixs</groupId>
-            <artifactId>integrixs-backend</artifactId>
+            <artifactId>backend</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

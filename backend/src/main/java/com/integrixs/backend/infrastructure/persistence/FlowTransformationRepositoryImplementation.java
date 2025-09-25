@@ -2,7 +2,7 @@ package com.integrixs.backend.infrastructure.persistence;
 
 import com.integrixs.backend.domain.repository.FlowTransformationDomainRepositoryPort;
 import com.integrixs.data.model.FlowTransformation;
-import com.integrixs.data.repository.FlowTransformationRepository;
+import com.integrixs.data.sql.repository.FlowTransformationSqlRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,49 +15,49 @@ import java.util.UUID;
 @Repository
 public class FlowTransformationRepositoryImplementation implements FlowTransformationDomainRepositoryPort {
 
-    private final FlowTransformationRepository jpaRepository;
+    private final FlowTransformationSqlRepository sqlRepository;
     
-    public FlowTransformationRepositoryImplementation(FlowTransformationRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public FlowTransformationRepositoryImplementation(FlowTransformationSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public Optional<FlowTransformation> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public List<FlowTransformation> findByFlowId(UUID flowId) {
-        return jpaRepository.findByFlowId(flowId);
+        return sqlRepository.findByFlowId(flowId);
     }
 
     @Override
     public List<FlowTransformation> findByFlowIdOrderByExecutionOrder(UUID flowId) {
-        return jpaRepository.findByFlowIdOrderByExecutionOrder(flowId);
+        return sqlRepository.findByFlowIdOrderByExecutionOrder(flowId);
     }
 
     @Override
     public FlowTransformation save(FlowTransformation transformation) {
-        return jpaRepository.save(transformation);
+        return sqlRepository.save(transformation);
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override
     public void deleteByFlowId(UUID flowId) {
-        jpaRepository.deleteByFlowId(flowId);
+        sqlRepository.deleteByFlowId(flowId);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return jpaRepository.existsById(id);
+        return sqlRepository.existsById(id);
     }
 
     @Override
     public long countByFlowId(UUID flowId) {
-        return jpaRepository.countByFlowId(flowId);
+        return sqlRepository.countByFlowId(flowId);
     }
 }

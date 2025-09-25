@@ -1,63 +1,40 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * Entity representing a flow execution instance
  */
-@Entity
-@Table(name = "flow_executions")
 public class FlowExecution extends BaseEntity {
 
-
-    @Column(name = "execution_id", unique = true, nullable = false)
     private String executionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id", nullable = false)
     private IntegrationFlow flow;
 
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
     private ExecutionStatus status = ExecutionStatus.STARTED;
 
-    @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
 
-    @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "trigger_type")
-    @Enumerated(EnumType.STRING)
     private TriggerType triggerType;
 
-    @Column(name = "triggered_by")
     private String triggeredBy;
 
-    @Column(name = "execution_context", columnDefinition = "TEXT")
     private String executionContext;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "error_details", columnDefinition = "TEXT")
     private String errorDetails;
 
-    @Column(name = "messages_processed")
     private Integer messagesProcessed = 0;
 
-    @Column(name = "messages_failed")
     private Integer messagesFailed = 0;
 
-    @Column(name = "execution_time_ms")
     private Long executionTimeMs;
 
-    @Column(name = "current_step")
     private String currentStep;
 
-    @Column(name = "retry_count")
     private Integer retryCount = 0;
 
     public enum ExecutionStatus {

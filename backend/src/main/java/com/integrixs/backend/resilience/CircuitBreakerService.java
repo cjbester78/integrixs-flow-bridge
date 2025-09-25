@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * Service for managing circuit breakers across adapters.
  * Provides centralized circuit breaker operations with monitoring.
  */
-@Service
+@Service("backendCircuitBreakerService")
 public class CircuitBreakerService {
 
     private static final Logger log = LoggerFactory.getLogger(CircuitBreakerService.class);
@@ -31,6 +31,14 @@ public class CircuitBreakerService {
 
     // Cache of active circuit breakers
     private final Map<String, CircuitBreaker> circuitBreakerCache = new ConcurrentHashMap<>();
+    
+    public CircuitBreakerService(CircuitBreakerRegistry circuitBreakerRegistry,
+                                CircuitBreakerConfiguration configuration,
+                                MeterRegistry meterRegistry) {
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
+        this.configuration = configuration;
+        this.meterRegistry = meterRegistry;
+    }
 
     @PostConstruct
     public void init() {

@@ -3,7 +3,7 @@ package com.integrixs.backend.camunda;
 import com.integrixs.backend.service.NotificationService;
 import com.integrixs.data.model.Alert;
 import com.integrixs.data.model.AlertRule;
-import com.integrixs.data.repository.NotificationChannelRepository;
+import com.integrixs.data.sql.repository.NotificationChannelSqlRepository;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public class IntegrixErrorDelegate implements JavaDelegate {
     private NotificationService notificationService;
 
     @Autowired(required = false)
-    private NotificationChannelRepository notificationChannelRepository;
+    private NotificationChannelSqlRepository notificationChannelRepository;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {

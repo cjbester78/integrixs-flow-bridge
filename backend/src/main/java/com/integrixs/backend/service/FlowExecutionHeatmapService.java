@@ -6,13 +6,14 @@ import com.integrixs.backend.dto.ErrorPropagationHeatmap;
 import com.integrixs.backend.dto.ExecutionStats;
 import com.integrixs.backend.config.HeatmapAnalyticsConfig;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -26,11 +27,11 @@ public class FlowExecutionHeatmapService {
 
     private static final Logger log = LoggerFactory.getLogger(FlowExecutionHeatmapService.class);
 
-    private final SystemLogRepository systemLogRepository;
+    private final SystemLogSqlRepository systemLogRepository;
     private final HeatmapAnalyticsConfig heatmapConfig;
     
     @Autowired
-    public FlowExecutionHeatmapService(SystemLogRepository systemLogRepository, 
+    public FlowExecutionHeatmapService(SystemLogSqlRepository systemLogRepository, 
                                      HeatmapAnalyticsConfig heatmapConfig) {
         this.systemLogRepository = systemLogRepository;
         this.heatmapConfig = heatmapConfig;
@@ -259,24 +260,7 @@ public class FlowExecutionHeatmapService {
         List<FlowExecutionData> executionData = new ArrayList<>();
 
         // Query logs for flow executions
-        List<SystemLog> logs = systemLogRepository.findAll((root, query, cb) -> {
-            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
-
-            predicates.add(cb.between(root.get("timestamp"), startTime, endTime));
-            predicates.add(cb.like(root.get("message"), "%flow execution%"));
-
-            if(flowIds != null && !flowIds.isEmpty()) {
-                // Filter by flow IDs
-                jakarta.persistence.criteria.Predicate flowPredicate = cb.disjunction();
-                for(String flowId : flowIds) {
-                    flowPredicate = cb.or(flowPredicate,
-                        cb.like(root.get("message"), "%flow: " + flowId + "%"));
-                }
-                predicates.add(flowPredicate);
-            }
-
-            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-        });
+        List<SystemLog> logs = systemLogRepository.findFlowExecutionLogs(startTime, endTime, flowIds);
 
         // Group logs by correlation ID to reconstruct executions
         Map<String, List<SystemLog>> executionGroups = logs.stream()
@@ -860,12 +844,9 @@ public class FlowExecutionHeatmapService {
         Map<String, Map<String, InteractionMetrics>> interactions = new ConcurrentHashMap<>();
 
         // Query logs with correlation IDs
-        List<SystemLog> logs = systemLogRepository.findAll((root, query, cb) ->
-            cb.and(
-                cb.between(root.get("timestamp"), startTime, endTime),
-                cb.isNotNull(root.get("correlationId"))
-           )
-       );
+        List<SystemLog> logs = systemLogRepository.findByTimestampBetweenAndCorrelationIdNotNull(
+            startTime, endTime
+        );
 
         // Group by correlation ID
         Map<String, List<SystemLog>> correlatedGroups = logs.stream()
@@ -1029,12 +1010,9 @@ public class FlowExecutionHeatmapService {
      * Collect error events.
      */
     private List<ErrorEvent> collectErrorEvents(LocalDateTime startTime, LocalDateTime endTime) {
-        List<SystemLog> errorLogs = systemLogRepository.findAll((root, query, cb) ->
-            cb.and(
-                cb.between(root.get("timestamp"), startTime, endTime),
-                cb.equal(root.get("level"), SystemLog.LogLevel.ERROR)
-           )
-       );
+        List<SystemLog> errorLogs = systemLogRepository.findByLevelAndTimestampBetween(
+            SystemLog.LogLevel.ERROR, startTime, endTime
+        );
 
         return errorLogs.stream()
             .map(this::convertToErrorEvent)

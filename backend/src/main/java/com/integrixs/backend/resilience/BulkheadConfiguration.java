@@ -21,10 +21,10 @@ import java.util.Map;
 @Configuration
 public class BulkheadConfiguration {
 
-    @Value("$ {resilience4j.bulkhead.instances.default.maxConcurrentCalls:25}")
+    @Value("${resilience4j.bulkhead.instances.default.maxConcurrentCalls:25}")
     private int defaultMaxConcurrentCalls;
 
-    @Value("$ {resilience4j.bulkhead.instances.default.maxWaitDuration:5000}")
+    @Value("${resilience4j.bulkhead.instances.default.maxWaitDuration:5000}")
     private long defaultMaxWaitDuration;
 
     @Bean
@@ -34,19 +34,19 @@ public class BulkheadConfiguration {
         // Default configuration
         configs.put("default", createDefaultBulkheadConfig());
 
-        // HTTP/REST adapters - higher concurrency
+        // HTTP/REST adapters-higher concurrency
         configs.put("http", createHttpBulkheadConfig());
 
-        // Database adapters - limited connections
+        // Database adapters-limited connections
         configs.put("database", createDatabaseBulkheadConfig());
 
-        // Message queue adapters - controlled throughput
+        // Message queue adapters-controlled throughput
         configs.put("messaging", createMessagingBulkheadConfig());
 
-        // File transfer adapters - limited parallel operations
+        // File transfer adapters-limited parallel operations
         configs.put("file", createFileBulkheadConfig());
 
-        // SAP adapters - very limited concurrent calls
+        // SAP adapters-very limited concurrent calls
         configs.put("sap", createSapBulkheadConfig());
 
         return BulkheadRegistry.of(configs);
@@ -58,9 +58,9 @@ public class BulkheadConfiguration {
 
         // Thread pool configurations for async operations
         configs.put("default", createDefaultThreadPoolConfig());
-        configs.put("http - async", createHttpThreadPoolConfig());
-        configs.put("messaging - async", createMessagingThreadPoolConfig());
-        configs.put("file - async", createFileThreadPoolConfig());
+        configs.put("http-async", createHttpThreadPoolConfig());
+        configs.put("messaging-async", createMessagingThreadPoolConfig());
+        configs.put("file-async", createFileThreadPoolConfig());
 
         return ThreadPoolBulkheadRegistry.of(configs);
     }
@@ -168,7 +168,7 @@ public class BulkheadConfiguration {
                                                    String adapterType,
                                                    String adapterId) {
         String configName = mapAdapterTypeToThreadPoolConfig(adapterType);
-        String bulkheadName = adapterType + "-" + adapterId + " - async";
+        String bulkheadName = adapterType + "-" + adapterId + "-async";
 
         return registry.bulkhead(bulkheadName, configName);
     }
@@ -207,15 +207,15 @@ public class BulkheadConfiguration {
             case "REST":
             case "SOAP":
             case "ODATA":
-                return "http - async";
+                return "http-async";
 
             case "JMS":
             case "KAFKA":
-                return "messaging - async";
+                return "messaging-async";
 
             case "FTP":
             case "SFTP":
-                return "file - async";
+                return "file-async";
 
             default:
                 return "default";

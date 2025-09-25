@@ -39,6 +39,14 @@ public class FlowExportImportController {
     private final FlowExportService exportService;
     private final FlowImportService importService;
     private final ObjectMapper objectMapper;
+    
+    public FlowExportImportController(FlowExportService exportService, 
+                                      FlowImportService importService, 
+                                      ObjectMapper objectMapper) {
+        this.exportService = exportService;
+        this.importService = importService;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Export a flow to JSON file.

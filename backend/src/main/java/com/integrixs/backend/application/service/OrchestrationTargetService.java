@@ -11,7 +11,7 @@ import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.OrchestrationTarget;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.access.AccessDeniedException;
@@ -34,18 +34,18 @@ public class OrchestrationTargetService {
     private static final Logger log = LoggerFactory.getLogger(OrchestrationTargetService.class);
 
 
-    private final OrchestrationTargetRepository orchestrationTargetRepository;
-    private final IntegrationFlowRepository integrationFlowRepository;
-    private final CommunicationAdapterRepository adapterRepository;
-    private final TargetFieldMappingRepository fieldMappingRepository;
-    private final UserRepository userRepository;
+    private final OrchestrationTargetSqlRepository orchestrationTargetRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
+    private final TargetFieldMappingSqlRepository fieldMappingRepository;
+    private final UserSqlRepository userRepository;
     private final ObjectMapper objectMapper;
     
-    public OrchestrationTargetService(OrchestrationTargetRepository orchestrationTargetRepository,
-                                    IntegrationFlowRepository integrationFlowRepository,
-                                    CommunicationAdapterRepository adapterRepository,
-                                    TargetFieldMappingRepository fieldMappingRepository,
-                                    UserRepository userRepository,
+    public OrchestrationTargetService(OrchestrationTargetSqlRepository orchestrationTargetRepository,
+                                    IntegrationFlowSqlRepository integrationFlowRepository,
+                                    CommunicationAdapterSqlRepository adapterRepository,
+                                    TargetFieldMappingSqlRepository fieldMappingRepository,
+                                    UserSqlRepository userRepository,
                                     ObjectMapper objectMapper) {
         this.orchestrationTargetRepository = orchestrationTargetRepository;
         this.integrationFlowRepository = integrationFlowRepository;
@@ -112,9 +112,8 @@ public class OrchestrationTargetService {
         // Determine execution order if not specified
         Integer executionOrder = request.getExecutionOrder();
         if(executionOrder == null) {
-            executionOrder = orchestrationTargetRepository.getMaxExecutionOrder(flowUuid)
-                    .map(max -> max + 1)
-                    .orElse(0);
+            Integer maxOrder = orchestrationTargetRepository.getMaxExecutionOrder(flowUuid);
+            executionOrder = (maxOrder != null) ? maxOrder + 1 : 0;
         }
 
         OrchestrationTarget target = OrchestrationTarget.builder()

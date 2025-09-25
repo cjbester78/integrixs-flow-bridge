@@ -1,9 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -15,82 +10,58 @@ import java.util.UUID;
  * @author Integration Team
  * @since 1.0.0
  */
-@Entity
-@Table(name = "audit_trail", indexes = {
-    @Index(name = "idx_audit_entity", columnList = "entity_type, entity_id"),
-    @Index(name = "idx_audit_user", columnList = "user_id"),
-    @Index(name = "idx_audit_created_at", columnList = "created_at"),
-    @Index(name = "idx_audit_action", columnList = "action"),
-    @Index(name = "idx_audit_business_component", columnList = "business_component_id")
-})
-public class AuditTrail {
+
+    public class AuditTrail {
 
     /**
      * Unique identifier(UUID) for the audit entry
      */
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "UUID")
-    private UUID id;
+        private UUID id;
 
     /**
      * Type of entity being audited(e.g., IntegrationFlow, CommunicationAdapter)
      */
-    @Column(name = "entity_type", length = 100, nullable = false)
     private String entityType;
 
     /**
      * ID of the entity being audited
      */
-    @Column(name = "entity_id", length = 36, nullable = false)
     private String entityId;
 
     /**
      * Action performed
      */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
     private AuditAction action;
 
     /**
      * JSON representation of changes(before and after values for updates)
      */
-    @Column(columnDefinition = "json")
     private String changes;
 
     /**
      * User who performed the action
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
     private User user;
 
     /**
      * IP address of the user
      */
-    @Column(name = "user_ip", length = 45)
     private String userIp;
 
     /**
      * User agent string
      */
-    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
     /**
      * Business component context
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_component_id")
     private BusinessComponent businessComponent;
 
     /**
      * Timestamp when the action occurred
      */
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+        private LocalDateTime createdAt;
 
     /**
      * Audit actions

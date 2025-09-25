@@ -1,7 +1,7 @@
 package com.integrixs.backend.performance;
 
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,7 +24,11 @@ public class CachedFlowDefinitionService {
     private static final Logger log = LoggerFactory.getLogger(CachedFlowDefinitionService.class);
 
 
-    private final IntegrationFlowRepository flowDefinitionRepository;
+    private final IntegrationFlowSqlRepository flowDefinitionRepository;
+    
+    public CachedFlowDefinitionService(IntegrationFlowSqlRepository flowDefinitionRepository) {
+        this.flowDefinitionRepository = flowDefinitionRepository;
+    }
 
     /**
      * Get flow definition by ID with caching.
@@ -123,5 +127,5 @@ public class CachedFlowDefinitionService {
         }
     }
 
-    // Removed updateNameCache as IntegrationFlowRepository doesn't support findByName
+    // Removed updateNameCache as IntegrationFlowSqlRepository doesn't support findByName
 }

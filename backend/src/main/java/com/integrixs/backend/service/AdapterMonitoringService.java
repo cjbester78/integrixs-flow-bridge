@@ -3,8 +3,8 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.exception.BusinessException;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import com.integrixs.shared.dto.AdapterStatusDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +24,17 @@ public class AdapterMonitoringService {
     private static final Logger log = LoggerFactory.getLogger(AdapterMonitoringService.class);
 
 
-    private final CommunicationAdapterRepository adapterRepository;
-    private final SystemLogRepository systemLogRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
+    private final SystemLogSqlRepository systemLogRepository;
 
     // In - memory status tracking(in production, this would be in a cache or database)
     private final ConcurrentHashMap<String, AdapterStatusDTO> adapterStatuses = new ConcurrentHashMap<>();
+
+    public AdapterMonitoringService(CommunicationAdapterSqlRepository adapterRepository,
+                                    SystemLogSqlRepository systemLogRepository) {
+        this.adapterRepository = adapterRepository;
+        this.systemLogRepository = systemLogRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<AdapterStatusDTO> getAdapterStatuses(String businessComponentId) {

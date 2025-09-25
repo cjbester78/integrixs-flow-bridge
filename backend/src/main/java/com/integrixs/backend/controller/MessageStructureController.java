@@ -37,6 +37,10 @@ public class MessageStructureController {
 
 
     private final MessageStructureService messageStructureService;
+    
+    public MessageStructureController(MessageStructureService messageStructureService) {
+        this.messageStructureService = messageStructureService;
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")

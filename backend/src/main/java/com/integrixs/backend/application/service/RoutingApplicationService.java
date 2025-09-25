@@ -13,9 +13,9 @@ import com.integrixs.backend.service.FlowContextService.FlowContext;
 import com.integrixs.data.model.FlowRoute;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.RouteCondition;
-import com.integrixs.data.repository.FlowRouteRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.RouteConditionRepository;
+import com.integrixs.data.sql.repository.FlowRouteSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.RouteConditionSqlRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,13 +33,26 @@ public class RoutingApplicationService {
 
     private static final Logger log = LoggerFactory.getLogger(RoutingApplicationService.class);
 
-
     private final RoutingManagementService routingManagementService;
     private final RoutingEvaluator routingEvaluator;
     private final FlowContextService contextService;
-    private final FlowRouteRepository routeRepository;
-    private final RouteConditionRepository conditionRepository;
-    private final IntegrationFlowRepository flowRepository;
+    private final FlowRouteSqlRepository routeRepository;
+    private final RouteConditionSqlRepository conditionRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
+
+    public RoutingApplicationService(RoutingManagementService routingManagementService,
+                                   RoutingEvaluator routingEvaluator,
+                                   FlowContextService contextService,
+                                   FlowRouteSqlRepository routeRepository,
+                                   RouteConditionSqlRepository conditionRepository,
+                                   IntegrationFlowSqlRepository flowRepository) {
+        this.routingManagementService = routingManagementService;
+        this.routingEvaluator = routingEvaluator;
+        this.contextService = contextService;
+        this.routeRepository = routeRepository;
+        this.conditionRepository = conditionRepository;
+        this.flowRepository = flowRepository;
+    }
 
     /**
      * Evaluate routing decision for a flow step
@@ -66,7 +79,7 @@ public class RoutingApplicationService {
 
             // Evaluate each route's conditions
             for(FlowRoute route : routes) {
-                List<RouteCondition> conditions = conditionRepository.findByFlowRoute(route);
+                List<RouteCondition> conditions = conditionRepository.findByFlowRouteId(route.getId());
                 if(routingEvaluator.evaluateRouteConditions(route, conditions, context)) {
                     log.info("Route matched: {} for step {}", route.getRouteName(), stepId);
                     return convertToDTO(routingManagementService.createRoutingDecision(route));
@@ -200,7 +213,7 @@ public class RoutingApplicationService {
         IntegrationFlow flow = flowRepository.findById(flowUuid)
             .orElseThrow(() -> new IllegalArgumentException("Flow not found: " + flowId));
 
-        List<FlowRoute> routes = routeRepository.findByFlow(flow);
+        List<FlowRoute> routes = routeRepository.findByFlowId(flowUuid);
         return routes.stream()
             .map(this::convertRouteToDTO)
             .collect(Collectors.toList());

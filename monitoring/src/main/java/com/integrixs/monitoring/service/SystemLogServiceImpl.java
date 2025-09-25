@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.data.model.SystemLog;
 import com.integrixs.monitoring.model.UserManagementError;
 import com.integrixs.monitoring.repository.UserManagementErrorRepository;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 
 @Service
 /**
@@ -21,12 +21,12 @@ import com.integrixs.data.repository.SystemLogRepository;
  */
 public class SystemLogServiceImpl implements SystemLogService {
 
-    private final SystemLogRepository systemLogRepository;
+    private final SystemLogSqlRepository systemLogRepository;
     private final UserManagementErrorRepository userManagementErrorRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    public SystemLogServiceImpl(SystemLogRepository systemLogRepository,
+    public SystemLogServiceImpl(SystemLogSqlRepository systemLogRepository,
                                 UserManagementErrorRepository userManagementErrorRepository) {
         this.systemLogRepository = systemLogRepository;
         this.userManagementErrorRepository = userManagementErrorRepository;

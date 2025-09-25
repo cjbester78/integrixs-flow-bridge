@@ -8,55 +8,55 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Implementation of UserRepository using JPA
+ * Implementation of UserSqlRepository using JPA
  * Bridges between domain repository interface and JPA repository
  */
 @Repository("backendUserRepository")
 public class UserRepositoryImpl implements UserRepositoryPort {
 
-    private final com.integrixs.data.repository.UserRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.UserSqlRepository sqlRepository;
     
-    public UserRepositoryImpl(com.integrixs.data.repository.UserRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public UserRepositoryImpl(com.integrixs.data.sql.repository.UserSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public Optional<User> findByUsername(String username) {
-        return jpaRepository.findByUsername(username);
+        return sqlRepository.findByUsername(username);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return Optional.ofNullable(jpaRepository.findByEmail(email));
+        return sqlRepository.findByEmail(email);
     }
 
     @Override
     public boolean existsByUsername(String username) {
-        return jpaRepository.existsByUsername(username);
+        return sqlRepository.existsByUsername(username);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return jpaRepository.existsByEmail(email);
+        return sqlRepository.existsByEmail(email);
     }
 
     @Override
     public User save(User user) {
-        return jpaRepository.save(user);
+        return sqlRepository.save(user);
     }
 
     @Override
     public void delete(User user) {
-        jpaRepository.delete(user);
+        sqlRepository.delete(user);
     }
 
     @Override
     public long countByRole(String role) {
-        return jpaRepository.countByRole(role);
+        return sqlRepository.countByRole(role);
     }
 }

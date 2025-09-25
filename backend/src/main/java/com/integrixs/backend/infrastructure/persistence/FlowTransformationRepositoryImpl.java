@@ -13,24 +13,24 @@ import java.util.UUID;
 @Repository("domainFlowTransformationRepository")
 public class FlowTransformationRepositoryImpl implements FlowTransformationRepositoryPort {
 
-    private final com.integrixs.data.repository.FlowTransformationRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.FlowTransformationSqlRepository sqlRepository;
     
-    public FlowTransformationRepositoryImpl(com.integrixs.data.repository.FlowTransformationRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public FlowTransformationRepositoryImpl(com.integrixs.data.sql.repository.FlowTransformationSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public Optional<FlowTransformation> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public FlowTransformation save(FlowTransformation transformation) {
-        return jpaRepository.save(transformation);
+        return sqlRepository.save(transformation);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return jpaRepository.existsById(id);
+        return sqlRepository.existsById(id);
     }
 }

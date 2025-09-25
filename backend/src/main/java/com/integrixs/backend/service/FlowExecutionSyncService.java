@@ -7,9 +7,9 @@ import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.FlowStructure;
 import com.integrixs.data.model.FlowTransformation;
 import com.integrixs.data.model.MessageStructure;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.FieldMappingRepository;
-import com.integrixs.data.repository.FlowStructureRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.FieldMappingSqlRepository;
+import com.integrixs.data.sql.repository.FlowStructureSqlRepository;
 import com.integrixs.engine.mapper.HierarchicalXmlFieldMapper;
 import com.integrixs.backend.utils.WsdlNamespaceExtractor;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class FlowExecutionSyncService {
     private static final Logger logger = LoggerFactory.getLogger(FlowExecutionSyncService.class);
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
     private TransformationExecutionService transformationService;
@@ -46,13 +46,13 @@ public class FlowExecutionSyncService {
 
 
     @Autowired
-    private FieldMappingRepository fieldMappingRepository;
+    private FieldMappingSqlRepository fieldMappingRepository;
 
     @Autowired
     private HierarchicalXmlFieldMapper xmlFieldMapper;
 
     @Autowired
-    private FlowStructureRepository flowStructureRepository;
+    private FlowStructureSqlRepository flowStructureRepository;
 
     @Autowired
     private XmlValidationService xmlValidationService;

@@ -14,39 +14,39 @@ import java.util.UUID;
 @Repository("domainFieldMappingRepository")
 public class FieldMappingRepositoryImpl implements FieldMappingRepositoryPort {
 
-    private final com.integrixs.data.repository.FieldMappingRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.FieldMappingSqlRepository sqlRepository;
     
-    public FieldMappingRepositoryImpl(com.integrixs.data.repository.FieldMappingRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public FieldMappingRepositoryImpl(com.integrixs.data.sql.repository.FieldMappingSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public Optional<FieldMapping> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public List<FieldMapping> findByTransformationId(UUID transformationId) {
-        return jpaRepository.findByTransformationId(transformationId);
+        return sqlRepository.findByTransformationId(transformationId);
     }
 
     @Override
     public FieldMapping save(FieldMapping fieldMapping) {
-        return jpaRepository.save(fieldMapping);
+        return sqlRepository.save(fieldMapping);
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return jpaRepository.existsById(id);
+        return sqlRepository.existsById(id);
     }
 
     @Override
     public long countByTransformationId(UUID transformationId) {
-        return jpaRepository.countByTransformationId(transformationId);
+        return sqlRepository.countByTransformationId(transformationId);
     }
 }

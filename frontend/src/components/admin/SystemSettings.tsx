@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Settings, Save, RefreshCw, AlertCircle } from 'lucide-react';
+import { Settings, Save, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EnvironmentConfiguration } from './EnvironmentConfiguration';
 import { apiClient } from '@/lib/api-client';
 import { logger, LogCategory } from '@/lib/logger';
+import { useNavigate } from 'react-router-dom';
 
 interface SystemSetting {
  id: string;
@@ -29,6 +30,7 @@ interface SystemSetting {
 
 export const SystemSettings = () => {
  const { toast } = useToast();
+ const navigate = useNavigate();
  const [settings, setSettings] = useState<SystemSetting[]>([]);
  const [categories, setCategories] = useState<string[]>([]);
  const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -249,6 +251,13 @@ export const SystemSettings = () => {
  onClick={initializeSettings}
  >
  Initialize Defaults
+ </Button>
+ <Button
+ onClick={() => navigate('/system-configuration')}
+ className="ml-2"
+ >
+ <ExternalLink className="h-4 w-4 mr-2" />
+ Advanced Configuration
  </Button>
  </div>
  </div>

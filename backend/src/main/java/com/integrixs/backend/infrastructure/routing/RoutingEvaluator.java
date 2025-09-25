@@ -25,6 +25,12 @@ public class RoutingEvaluator {
 
     private final FlowContextService contextService;
     private final RoutingManagementService routingManagementService;
+    
+    public RoutingEvaluator(FlowContextService contextService, 
+                          RoutingManagementService routingManagementService) {
+        this.contextService = contextService;
+        this.routingManagementService = routingManagementService;
+    }
 
     /**
      * Evaluate route conditions

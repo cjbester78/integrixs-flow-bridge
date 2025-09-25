@@ -1,7 +1,7 @@
 package com.integrixs.backend.security;
 
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.shared.context.UserContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,9 +30,9 @@ public class UserContextFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(UserContextFilter.class);
 
 
-    private final UserRepository userRepository;
+    private final UserSqlRepository userRepository;
 
-    public UserContextFilter(UserRepository userRepository) {
+    public UserContextFilter(UserSqlRepository userRepository) {
         this.userRepository = userRepository;
     }
 

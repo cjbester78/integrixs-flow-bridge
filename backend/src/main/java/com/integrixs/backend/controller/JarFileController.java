@@ -25,6 +25,10 @@ public class JarFileController {
     private static final Logger logger = LoggerFactory.getLogger(JarFileController.class);
 
     private final JarFileService jarFileService;
+    
+    public JarFileController(JarFileService jarFileService) {
+        this.jarFileService = jarFileService;
+    }
 
     /**
      * Get all JAR files

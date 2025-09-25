@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -12,9 +12,9 @@ import java.util.UUID;
 @Service
 public class FlowValidationService {
 
-    private final IntegrationFlowRepository flowRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
 
-    public FlowValidationService(IntegrationFlowRepository flowRepository) {
+    public FlowValidationService(IntegrationFlowSqlRepository flowRepository) {
         this.flowRepository = flowRepository;
     }
 

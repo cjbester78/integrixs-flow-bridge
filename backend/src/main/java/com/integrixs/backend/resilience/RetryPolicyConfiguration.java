@@ -23,10 +23,10 @@ import java.util.concurrent.TimeoutException;
 @Configuration
 public class RetryPolicyConfiguration {
 
-    @Value("$ {resilience4j.retry.instances.default.maxAttempts:3}")
+    @Value("${resilience4j.retry.instances.default.maxAttempts:3}")
     private int defaultMaxAttempts;
 
-    @Value("$ {resilience4j.retry.instances.default.waitDuration:1000}")
+    @Value("${resilience4j.retry.instances.default.waitDuration:1000}")
     private long defaultWaitDuration;
 
     @Bean
@@ -36,19 +36,19 @@ public class RetryPolicyConfiguration {
         // Default configuration
         configs.put("default", createDefaultRetryConfig());
 
-        // HTTP/REST adapters - quick retries with exponential backoff
+        // HTTP/REST adapters-quick retries with exponential backoff
         configs.put("http", createHttpRetryConfig());
 
-        // Database adapters - fewer retries, longer waits
+        // Database adapters-fewer retries, longer waits
         configs.put("database", createDatabaseRetryConfig());
 
-        // Message queue adapters - aggressive retries
+        // Message queue adapters-aggressive retries
         configs.put("messaging", createMessagingRetryConfig());
 
-        // File transfer adapters - patient retries
+        // File transfer adapters-patient retries
         configs.put("file", createFileTransferRetryConfig());
 
-        // SAP adapters - conservative retry approach
+        // SAP adapters-conservative retry approach
         configs.put("sap", createSapRetryConfig());
 
         return RetryRegistry.of(configs);
@@ -166,7 +166,7 @@ public class RetryPolicyConfiguration {
             .intervalFunction(io.github.resilience4j.core.IntervalFunction
                 .ofExponentialBackoff(10000, 1.2)) // 10s, 12s
             .retryOnException(e -> {
-                // Check if it's a SAP exception by class name to avoid compile - time dependency
+                // Check if it's a SAP exception by class name to avoid compile-time dependency
                 if(e.getClass().getName().equals("com.sap.conn.jco.JCoException")) {
                     try {
                         // Use reflection to get the error group

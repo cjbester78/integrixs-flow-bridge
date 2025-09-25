@@ -4,7 +4,7 @@ import com.integrixs.backend.api.dto.request.CreateBusinessComponentRequest;
 import com.integrixs.backend.api.dto.request.UpdateBusinessComponentRequest;
 import com.integrixs.backend.api.dto.response.BusinessComponentResponse;
 import com.integrixs.backend.application.service.BusinessComponentApplicationService;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,10 +29,10 @@ public class BusinessComponentController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BusinessComponentController.class);
 
     private final BusinessComponentApplicationService businessComponentService;
-    private final UserRepository userRepository;
+    private final UserSqlRepository userRepository;
 
     public BusinessComponentController(BusinessComponentApplicationService businessComponentService,
-                                      UserRepository userRepository) {
+                                      UserSqlRepository userRepository) {
         this.businessComponentService = businessComponentService;
         this.userRepository = userRepository;
     }

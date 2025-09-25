@@ -21,9 +21,9 @@ public class PlatformVersionService {
     private static final Logger log = LoggerFactory.getLogger(PlatformVersionService.class);
 
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("^(\\d + )\\.(\\d + )\\.(\\d + )(?:-(. + ))?$");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)(?:-(.+))?$");
 
-    @Value("$ {platform.version:}")
+    @Value("${platform.version:}")
     private String configuredVersion;
 
     private String platformVersion;
@@ -40,13 +40,13 @@ public class PlatformVersionService {
         // Try to get version from Maven properties
         try {
             Properties properties = new Properties();
-            InputStream stream = getClass().getResourceAsStream("/META - INF/maven/com.integrixs/integrix - flow - bridge/pom.properties");
+            InputStream stream = getClass().getResourceAsStream("/META-INF/maven/com.integrixs/integrix-flow-bridge/pom.properties");
             if(stream != null) {
                 properties.load(stream);
                 String version = properties.getProperty("version");
                 if(version != null) {
                     // Remove -SNAPSHOT suffix if present
-                    platformVersion = version.replace(" - SNAPSHOT", "");
+                    platformVersion = version.replace("-SNAPSHOT", "");
                     log.info("Platform version from Maven: {}", platformVersion);
                     return;
                 }
@@ -115,7 +115,7 @@ public class PlatformVersionService {
         result = Integer.compare(v1.patch, v2.patch);
         if(result != 0) return result;
 
-        // Handle pre - release versions
+        // Handle pre-release versions
         if(v1.preRelease == null && v2.preRelease != null) return 1;
         if(v1.preRelease != null && v2.preRelease == null) return -1;
         if(v1.preRelease != null && v2.preRelease != null) {
@@ -160,7 +160,7 @@ public class PlatformVersionService {
     }
 
     /**
-     * Get a human - readable compatibility message
+     * Get a human-readable compatibility message
      */
     public String getCompatibilityMessage(String minVersion, String maxVersion) {
         if(minVersion == null && maxVersion == null) {

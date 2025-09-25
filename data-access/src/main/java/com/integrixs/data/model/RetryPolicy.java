@@ -1,52 +1,32 @@
 package com.integrixs.data.model;
 
-import jakarta.persistence.*;
-
 /**
  * Entity representing a retry policy for error handling
  */
-@Entity
-@Table(name = "retry_policies")
 public class RetryPolicy extends BaseEntity {
 
-
-    @Column(name = "policy_name", unique = true, nullable = false)
     private String policyName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id")
     private IntegrationFlow flow;
 
-    @Column(name = "error_type")
-    @Enumerated(EnumType.STRING)
     private ErrorRecord.ErrorType errorType;
 
-    @Column(name = "max_attempts", nullable = false)
     private Integer maxAttempts = 3;
 
-    @Column(name = "initial_interval_ms", nullable = false)
     private Long initialIntervalMs = 1000L;
 
-    @Column(name = "multiplier", nullable = false)
     private Double multiplier = 2.0;
 
-    @Column(name = "max_interval_ms", nullable = false)
     private Long maxIntervalMs = 60000L;
 
-    @Column(name = "retry_strategy", nullable = false)
-    @Enumerated(EnumType.STRING)
     private RetryStrategy retryStrategy = RetryStrategy.EXPONENTIAL_BACKOFF;
 
-    @Column(name = "is_active")
     private boolean active = true;
 
-    @Column(name = "retry_on_errors", columnDefinition = "TEXT")
     private String retryOnErrors;
 
-    @Column(name = "skip_on_errors", columnDefinition = "TEXT")
     private String skipOnErrors;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
     public enum RetryStrategy {

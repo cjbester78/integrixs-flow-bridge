@@ -27,34 +27,34 @@ public class HazelcastConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(HazelcastConfig.class);
 
-    @Value("$ {hazelcast.cluster.name:integrixs - cluster}")
+    @Value("${hazelcast.cluster.name:integrixs-cluster}")
     private String clusterName;
 
-    @Value("$ {hazelcast.instance.name:integrixs - node}")
+    @Value("${hazelcast.instance.name:integrixs-node}")
     private String instanceName;
 
-    @Value("$ {hazelcast.network.port:5701}")
+    @Value("${hazelcast.network.port:5701}")
     private int networkPort;
 
-    @Value("$ {hazelcast.network.port.auto - increment:true}")
+    @Value("${hazelcast.network.port.auto-increment:true}")
     private boolean portAutoIncrement;
 
-    @Value("$ {hazelcast.network.multicast.enabled:false}")
+    @Value("${hazelcast.network.multicast.enabled:false}")
     private boolean multicastEnabled;
 
-    @Value("$ {hazelcast.network.tcp.enabled:true}")
+    @Value("${hazelcast.network.tcp.enabled:true}")
     private boolean tcpEnabled;
 
-    @Value("$ {hazelcast.network.tcp.members:127.0.0.1}")
+    @Value("${hazelcast.network.tcp.members:127.0.0.1}")
     private String tcpMembers;
 
-    @Value("$ {hazelcast.network.kubernetes.enabled:false}")
+    @Value("${hazelcast.network.kubernetes.enabled:false}")
     private boolean kubernetesEnabled;
 
-    @Value("$ {hazelcast.network.kubernetes.namespace:default}")
+    @Value("${hazelcast.network.kubernetes.namespace:default}")
     private String kubernetesNamespace;
 
-    @Value("$ {hazelcast.network.kubernetes.service - name:integrixs - hazelcast}")
+    @Value("${hazelcast.network.kubernetes.service-name:integrixs-hazelcast}")
     private String kubernetesServiceName;
     
     // Multicast configuration
@@ -211,7 +211,7 @@ public class HazelcastConfig {
             KubernetesConfig k8sConfig = joinConfig.getKubernetesConfig();
             k8sConfig.setEnabled(true);
             k8sConfig.setProperty("namespace", kubernetesNamespace);
-            k8sConfig.setProperty("service - name", kubernetesServiceName);
+            k8sConfig.setProperty("service-name", kubernetesServiceName);
         }
 
         // Configure SSL/TLS if needed
@@ -253,7 +253,7 @@ public class HazelcastConfig {
         config.addMapConfig(sessionMapConfig);
 
         // Cache map configuration
-        MapConfig cacheMapConfig = new MapConfig("distributed - cache-*");
+        MapConfig cacheMapConfig = new MapConfig("distributed-cache-*");
         cacheMapConfig.setTimeToLiveSeconds(cacheMapTtl);
         cacheMapConfig.setEvictionConfig(new EvictionConfig()
             .setEvictionPolicy(EvictionPolicy.LFU)
@@ -265,7 +265,7 @@ public class HazelcastConfig {
         config.addMapConfig(cacheMapConfig);
 
         // Flow state map
-        MapConfig flowStateMapConfig = new MapConfig("flow - state-*");
+        MapConfig flowStateMapConfig = new MapConfig("flow-state-*");
         flowStateMapConfig.setTimeToLiveSeconds(flowStateMapTtl);
         flowStateMapConfig.setBackupCount(flowStateMapBackupCount);
         flowStateMapConfig.setAsyncBackupCount(flowStateMapAsyncBackupCount);
@@ -273,7 +273,7 @@ public class HazelcastConfig {
         config.addMapConfig(flowStateMapConfig);
 
         // Rate limit map
-        MapConfig rateLimitMapConfig = new MapConfig("rate - limit-*");
+        MapConfig rateLimitMapConfig = new MapConfig("rate-limit-*");
         rateLimitMapConfig.setTimeToLiveSeconds(rateLimitMapTtl);
         rateLimitMapConfig.setEvictionConfig(new EvictionConfig()
             .setEvictionPolicy(EvictionPolicy.LRU)
@@ -288,7 +288,7 @@ public class HazelcastConfig {
      */
     private void configureDistributedQueues(Config config) {
         // Job queue configuration
-        QueueConfig jobQueueConfig = new QueueConfig("job - queue-*");
+        QueueConfig jobQueueConfig = new QueueConfig("job-queue-*");
         jobQueueConfig.setMaxSize(jobQueueMaxSize);
         jobQueueConfig.setBackupCount(jobQueueBackupCount);
         jobQueueConfig.setAsyncBackupCount(jobQueueAsyncBackupCount);
@@ -296,7 +296,7 @@ public class HazelcastConfig {
         config.addQueueConfig(jobQueueConfig);
 
         // Message queue configuration
-        QueueConfig messageQueueConfig = new QueueConfig("message - queue-*");
+        QueueConfig messageQueueConfig = new QueueConfig("message-queue-*");
         messageQueueConfig.setMaxSize(messageQueueMaxSize);
         messageQueueConfig.setBackupCount(messageQueueBackupCount);
         messageQueueConfig.setAsyncBackupCount(messageQueueAsyncBackupCount);
@@ -308,13 +308,13 @@ public class HazelcastConfig {
      */
     private void configureDistributedTopics(Config config) {
         // Event topic configuration
-        TopicConfig eventTopicConfig = new TopicConfig("event - topic-*");
+        TopicConfig eventTopicConfig = new TopicConfig("event-topic-*");
         eventTopicConfig.setGlobalOrderingEnabled(true);
         eventTopicConfig.setMultiThreadingEnabled(false);
         config.addTopicConfig(eventTopicConfig);
 
         // Notification topic
-        TopicConfig notificationTopicConfig = new TopicConfig("notification - topic");
+        TopicConfig notificationTopicConfig = new TopicConfig("notification-topic");
         notificationTopicConfig.setGlobalOrderingEnabled(false);
         notificationTopicConfig.setMultiThreadingEnabled(true);
         config.addTopicConfig(notificationTopicConfig);
@@ -345,7 +345,7 @@ public class HazelcastConfig {
         // raftConfig.setAppendRequestBackoffTimeoutInMillis(100);
 
         // // Configure semaphores
-        // cpConfig.addSemaphoreConfig(new SemaphoreConfig("distributed - lock-*")
+        // cpConfig.addSemaphoreConfig(new SemaphoreConfig("distributed-lock-*")
         //     .setInitialPermits(1)
         //     .setJDKCompatible(false));
     }
@@ -359,7 +359,7 @@ public class HazelcastConfig {
 
         // In production, connect to Management Center
         // mcConfig.addTrustedInterface("192.168.1.*");
-        // mcConfig.setUrl("http://localhost:8080/hazelcast - mancenter");
+        // mcConfig.setUrl("http://localhost:8080/hazelcast-mancenter");
     }
 
     /**
@@ -382,7 +382,7 @@ public class HazelcastConfig {
     }
 
     /**
-     * Hazelcast - based cache manager
+     * Hazelcast-based cache manager
      */
     @Bean
     @ConditionalOnProperty(name = "hazelcast.cache.enabled", havingValue = "true", matchIfMissing = true)

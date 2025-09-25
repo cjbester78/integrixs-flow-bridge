@@ -2,6 +2,8 @@ package com.integrixs.backend.audit;
 
 import com.integrixs.backend.config.TenantContext;
 import com.integrixs.backend.security.SecurityUtils;
+import com.integrixs.data.model.AuditEvent;
+import com.integrixs.data.sql.repository.AuditEventRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,15 +43,15 @@ public class AuditService {
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    private com.integrixs.data.repository.SystemLogRepository systemLogRepository;
+    private com.integrixs.data.sql.repository.SystemLogSqlRepository systemLogRepository;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
-    @Value("$ {audit.async.enabled:true}")
+    @Value("${audit.async.enabled:true}")
     private boolean asyncEnabled;
 
-    @Value("$ {audit.sensitive.data.mask:true}")
+    @Value("${audit.sensitive.data.mask:true}")
     private boolean maskSensitiveData;
 
     /**
@@ -106,11 +108,14 @@ public class AuditService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logConfigChange(String configType, String configName,
                                String oldValue, String newValue) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("oldValue", oldValue);
+        details.put("newValue", newValue);
+        
         AuditEvent event = AuditEvent.baseBuilder(AuditEvent.AuditEventType.CONFIG_CHANGE)
             .entityType(configType)
             .entityName(configName)
-            .oldValue(maskSensitiveData ? maskValue(oldValue) : oldValue)
-            .newValue(maskSensitiveData ? maskValue(newValue) : newValue)
+            .details(convertMapToJson(details))
             .action(String.format("Configuration changed: %s.%s", configType, configName))
             .outcome(AuditEvent.AuditOutcome.SUCCESS)
             .build();
@@ -130,7 +135,7 @@ public class AuditService {
         AuditEvent event = AuditEvent.baseBuilder(eventType)
             .action(description)
             .outcome(AuditEvent.AuditOutcome.WARNING)
-            .details(details)
+            .details(convertMapToJson(details))
             .build();
 
         enrichWithSecurityContext(event);
@@ -153,6 +158,11 @@ public class AuditService {
     public CompletableFuture<Void> logFlowExecution(String flowId, String flowName,
                                                    boolean success, Long durationMs,
                                                    String errorMessage) {
+        Map<String, Object> details = new HashMap<>();
+        if (durationMs != null) {
+            details.put("durationMs", durationMs);
+        }
+        
         AuditEvent event = AuditEvent.baseBuilder(
                 success ? AuditEvent.AuditEventType.FLOW_EXECUTED :
                          AuditEvent.AuditEventType.FLOW_ERROR)
@@ -163,7 +173,7 @@ public class AuditService {
                    success ? "executed successfully" : "failed"))
             .outcome(success ? AuditEvent.AuditOutcome.SUCCESS :
                              AuditEvent.AuditOutcome.FAILURE)
-            .durationMs(durationMs)
+            .details(details.isEmpty() ? null : convertMapToJson(details))
             .errorMessage(errorMessage)
             .build();
 
@@ -188,16 +198,21 @@ public class AuditService {
 
         AuditEvent.AuditEventType eventType = statusCode >= 400 ?
             AuditEvent.AuditEventType.ACCESS_DENIED :
-            AuditEvent.AuditEventType.ACCESS_GRANTED;
+            AuditEvent.AuditEventType.CREATE; // Using CREATE as a substitute for ACCESS_GRANTED
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("statusCode", statusCode);
+        if (durationMs != null) {
+            details.put("durationMs", durationMs);
+        }
 
         AuditEvent event = AuditEvent.baseBuilder(eventType)
             .apiEndpoint(endpoint)
             .httpMethod(method)
-            .httpStatus(statusCode)
+            .details(convertMapToJson(details))
             .action(String.format("API %s %s", method, endpoint))
             .outcome(statusCode < 400 ? AuditEvent.AuditOutcome.SUCCESS :
                                        AuditEvent.AuditOutcome.FAILURE)
-            .durationMs(durationMs)
             .build();
 
         enrichWithSecurityContext(event);
@@ -219,16 +234,19 @@ public class AuditService {
             T result = supplier.get();
             return result;
         } catch(Exception e) {
-            outcome = AuditEvent.AuditOutcome.ERROR;
+            outcome = AuditEvent.AuditOutcome.FAILURE;
             errorMessage = e.getMessage();
             throw e;
         } finally {
             Duration duration = Duration.between(start, Instant.now());
 
+            Map<String, Object> details = new HashMap<>();
+            details.put("durationMs", duration.toMillis());
+            
             AuditEvent event = AuditEvent.baseBuilder(AuditEvent.AuditEventType.SYSTEM_START)
                 .action(action)
                 .outcome(outcome)
-                .durationMs(duration.toMillis())
+                .details(convertMapToJson(details))
                 .errorMessage(errorMessage)
                 .build();
 
@@ -263,7 +281,7 @@ public class AuditService {
             .outcome(eventType == AuditEvent.AuditEventType.JOB_FAILED ?
                     AuditEvent.AuditOutcome.FAILURE :
                     AuditEvent.AuditOutcome.SUCCESS)
-            .details(details)
+            .details(details != null ? convertMapToJson(details) : null)
             .build();
 
         enrichWithSecurityContext(event);
@@ -623,11 +641,13 @@ public class AuditService {
             // Log audit event when context closes
             Duration duration = Duration.between(startTime, Instant.now());
 
+            Map<String, String> finalDetails = new HashMap<>(details);
+            finalDetails.put("durationMs", String.valueOf(duration.toMillis()));
+            
             AuditEvent event = AuditEvent.baseBuilder(AuditEvent.AuditEventType.SYSTEM_START)
                 .action(action)
                 .outcome(AuditEvent.AuditOutcome.SUCCESS)
-                .durationMs(duration.toMillis())
-                .details(details)
+                .details(convertMapToJson(finalDetails))
                 .build();
 
             enrichWithSecurityContext(event);
@@ -638,6 +658,18 @@ public class AuditService {
             } else {
                 auditRepository.save(event);
             }
+        }
+    }
+
+    /**
+     * Convert Map to JSON string
+     */
+    private String convertMapToJson(Map<String, ?> map) {
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (Exception e) {
+            logger.error("Failed to convert map to JSON", e);
+            return map.toString();
         }
     }
 

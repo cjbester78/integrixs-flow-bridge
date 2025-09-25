@@ -1,7 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.SystemSetting;
-import com.integrixs.data.repository.SystemSettingRepository;
+import com.integrixs.data.sql.repository.SystemSettingSqlRepository;
 import com.integrixs.shared.dto.system.SystemSettingDTO;
 import com.integrixs.shared.dto.GlobalRetrySettingsDTO;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class SystemSettingService {
     private static final Logger logger = LoggerFactory.getLogger(SystemSettingService.class);
 
     @Autowired
-    private SystemSettingRepository systemSettingRepository;
+    private SystemSettingSqlRepository systemSettingRepository;
 
     /**
      * Get all system settings
@@ -110,7 +110,7 @@ public class SystemSettingService {
             if(setting.get().isReadonly()) {
                 throw new IllegalArgumentException("Cannot delete readonly setting: " + settingKey);
             }
-            systemSettingRepository.delete(setting.get());
+            systemSettingRepository.deleteById(setting.get().getId());
             logger.info("Successfully deleted system setting: {}", settingKey);
         } else {
             throw new IllegalArgumentException("Setting not found: " + settingKey);

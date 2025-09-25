@@ -21,14 +21,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 // import com.integrixs.backend.service.deprecated.UserService;
 
 /**
  * Enhanced security configuration with comprehensive security features.
  *
  * <p>Provides JWT authentication, CORS configuration, security headers,
- * and method - level security.
+ * and method-level security.
  *
  * @author Integration Team
  * @since 1.0.0
@@ -37,21 +37,21 @@ import com.integrixs.data.repository.UserRepository;
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig {
 
-    @Value("$ {app.cors.allowed - origins:http://localhost:3000,http://localhost:8080}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
     private String[] allowedOrigins;
 
     @Autowired(required = false)
     private IpWhitelistFilter ipWhitelistFilter;
 
     @Bean
-    public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil, UserRepository userRepository) {
+    public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil, UserSqlRepository userRepository) {
         JwtAuthFilter filter = new JwtAuthFilter(jwtUtil);
         filter.setUserRepository(userRepository);
         return filter;
     }
 
     @Bean
-    public UserContextFilter userContextFilter(UserRepository userRepository) {
+    public UserContextFilter userContextFilter(UserSqlRepository userRepository) {
         return new UserContextFilter(userRepository);
     }
 
@@ -108,9 +108,9 @@ public class SecurityConfig {
                                 "/api/health",
                                 "/health",
                                 "/actuator/health",
-                                "/v3/api - docs/**",
-                                "/swagger - ui/**",
-                                "/swagger - ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/",
                                 "/index.html",
                                 "/favicon.ico",
@@ -125,22 +125,22 @@ public class SecurityConfig {
                                 "/*.woff2",
                                 "/*.ttf",
                                 "/ws/**",
-                                "/flow - execution",
+                                "/flow-execution",
                                 "/ws/messages",
-                                "/ws/flow - execution",
-                                "/ws/flow - execution - native",
+                                "/ws/flow-execution",
+                                "/ws/flow-execution-native",
                                 "/echo",
-                                "/test - ws",
+                                "/test-ws",
                                 "/wstest",
-                                "/direct - ws",
-                                "/minimal - echo",
+                                "/direct-ws",
+                                "/minimal-echo",
                                 "/basic"
                        ).permitAll()
                         .requestMatchers("/soap/**").permitAll() // Allow SOAP endpoints without authentication
-                        .requestMatchers("/api/test - deployed - flows").permitAll() // Test endpoint
+                        .requestMatchers("/api/test-deployed-flows").permitAll() // Test endpoint
                         .requestMatchers("/api/debug/**").permitAll()
-                        .requestMatchers("/api/websocket - test/**").permitAll()
-                        .requestMatchers("/api/system - settings/**").hasRole("ADMINISTRATOR")
+                        .requestMatchers("/api/websocket-test/**").permitAll()
+                        .requestMatchers("/api/system-settings/**").hasRole("ADMINISTRATOR")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER")
                         .requestMatchers("/api/flows/execute/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER", "INTEGRATOR")
                         .requestMatchers("/api/flows/**").hasAnyRole("ADMINISTRATOR", "DEVELOPER", "VIEWER")
@@ -176,7 +176,7 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS configuration for secure cross - origin requests.
+     * CORS configuration for secure cross-origin requests.
      *
      * @return CORS configuration source
      */
@@ -187,16 +187,16 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
             "Authorization",
-            "Content - Type",
-            "X - Requested - With",
+            "Content-Type",
+            "X-Requested-With",
             "Accept",
             "Origin",
-            "Access - Control - Request - Method",
-            "Access - Control - Request - Headers"
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
        ));
         configuration.setExposedHeaders(Arrays.asList(
-            "Access - Control - Allow - Origin",
-            "Access - Control - Allow - Credentials",
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Credentials",
             "Authorization"
        ));
         configuration.setAllowCredentials(true);

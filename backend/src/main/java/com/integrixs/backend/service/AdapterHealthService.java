@@ -3,8 +3,8 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.dto.dashboard.health.*;
 import com.integrixs.data.model.AdapterStatus;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.AdapterStatusRepository;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.AdapterStatusSqlRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,14 +29,22 @@ public class AdapterHealthService {
     private static final Logger log = LoggerFactory.getLogger(AdapterHealthService.class);
 
 
-    private final AdapterStatusRepository adapterStatusRepository;
-    private final SystemLogRepository systemLogRepository;
+    private final AdapterStatusSqlRepository adapterStatusRepository;
+    private final SystemLogSqlRepository systemLogRepository;
     private final MeterRegistry meterRegistry;
 
     // Real - time health tracking
     private final Map<String, AdapterHealthMetrics> currentHealthMetrics = new ConcurrentHashMap<>();
     private final Map<String, ConnectionPoolMetrics> connectionPoolMetrics = new ConcurrentHashMap<>();
     private final Map<String, ResourceUsageMetrics> resourceUsageMetrics = new ConcurrentHashMap<>();
+
+    public AdapterHealthService(AdapterStatusSqlRepository adapterStatusRepository,
+                                SystemLogSqlRepository systemLogRepository,
+                                MeterRegistry meterRegistry) {
+        this.adapterStatusRepository = adapterStatusRepository;
+        this.systemLogRepository = systemLogRepository;
+        this.meterRegistry = meterRegistry;
+    }
 
     /**
      * Get comprehensive health dashboard for all adapters.

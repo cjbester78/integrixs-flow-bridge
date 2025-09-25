@@ -1,0 +1,367 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.Alert;
+import com.integrixs.data.model.AlertRule;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for AlertSqlRepository.
+ * Tests entity with @ManyToOne relationship to AlertRule.
+ */
+public class AlertSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private AlertSqlRepository alertRepository;
+    private AlertRuleSqlRepository alertRuleRepository;
+    
+    private AlertRule errorRateRule;
+    private AlertRule responseTimeRule;
+    private AlertRule connectionFailureRule;
+
+    @Override
+    protected void setUp() {
+        alertRepository = new AlertSqlRepository(sqlQueryExecutor);
+        alertRuleRepository = new AlertRuleSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create test alert rules
+        createTestAlertRules();
+        
+        // Create test alerts
+        createTestAlerts();
+    }
+
+    private void createTestAlertRules() {
+        errorRateRule = AlertRule.builder()
+                .name("High Error Rate")
+                .description("Alert when error rate exceeds 5%")
+                .ruleType(AlertRule.RuleType.THRESHOLD)
+                .severity(AlertRule.AlertSeverity.HIGH)
+                .conditionExpression("errorRate > 0.05")
+                .thresholdValue(5.0)
+                .thresholdUnit("PERCENT")
+                .timeWindowMinutes(15)
+                .notificationChannels("[\"email\", \"slack\"]")
+                .active(true)
+                .build();
+        errorRateRule = alertRuleRepository.save(errorRateRule);
+
+        responseTimeRule = AlertRule.builder()
+                .name("Slow Response Time")
+                .description("Alert when response time exceeds 5 seconds")
+                .ruleType(AlertRule.RuleType.THRESHOLD)
+                .severity(AlertRule.AlertSeverity.MEDIUM)
+                .conditionExpression("responseTime > 5000")
+                .thresholdValue(5000.0)
+                .thresholdUnit("MILLISECONDS")
+                .timeWindowMinutes(10)
+                .notificationChannels("[\"email\"]")
+                .active(true)
+                .build();
+        responseTimeRule = alertRuleRepository.save(responseTimeRule);
+
+        connectionFailureRule = AlertRule.builder()
+                .name("Connection Failures")
+                .description("Alert on connection failures")
+                .ruleType(AlertRule.RuleType.EVENT)
+                .severity(AlertRule.AlertSeverity.CRITICAL)
+                .conditionExpression("event.type == 'CONNECTION_FAILED'")
+                .notificationChannels("[\"email\", \"sms\", \"pagerduty\"]")
+                .active(true)
+                .build();
+        connectionFailureRule = alertRuleRepository.save(connectionFailureRule);
+    }
+
+    private void createTestAlerts() {
+        // Create alerts for different rules and statuses
+        createAlert(errorRateRule, AlertRule.AlertSeverity.HIGH, Alert.AlertStatus.ACTIVE,
+                   "High error rate detected", Alert.SourceType.FLOW, "flow-123");
+        
+        createAlert(errorRateRule, AlertRule.AlertSeverity.HIGH, Alert.AlertStatus.ACKNOWLEDGED,
+                   "High error rate in payment flow", Alert.SourceType.FLOW, "flow-payment");
+        
+        createAlert(responseTimeRule, AlertRule.AlertSeverity.MEDIUM, Alert.AlertStatus.RESOLVED,
+                   "Response time exceeded threshold", Alert.SourceType.ADAPTER, "adapter-456");
+        
+        createAlert(connectionFailureRule, AlertRule.AlertSeverity.CRITICAL, Alert.AlertStatus.ACTIVE,
+                   "Database connection failed", Alert.SourceType.ADAPTER, "adapter-db");
+        
+        createAlert(null, AlertRule.AlertSeverity.LOW, Alert.AlertStatus.ACTIVE,
+                   "Manual alert - disk space low", Alert.SourceType.SYSTEM, "system");
+    }
+
+    private Alert createAlert(AlertRule rule, AlertRule.AlertSeverity severity,
+                            Alert.AlertStatus status, String title,
+                            Alert.SourceType sourceType, String sourceId) {
+        Alert alert = Alert.builder()
+                .alertId(UUID.randomUUID().toString())
+                .rule(rule)
+                .severity(severity)
+                .status(status)
+                .title(title)
+                .description("Alert details: " + title)
+                .details("{\"value\": 7.5, \"threshold\": 5.0}")
+                .sourceType(sourceType)
+                .sourceId(sourceId)
+                .triggeredAt(LocalDateTime.now().minusMinutes(30))
+                .build();
+        
+        if (status == Alert.AlertStatus.ACKNOWLEDGED) {
+            alert.setAcknowledgedAt(LocalDateTime.now().minusMinutes(20));
+            alert.setAcknowledgedBy("operator1");
+        } else if (status == Alert.AlertStatus.RESOLVED) {
+            alert.setAcknowledgedAt(LocalDateTime.now().minusMinutes(25));
+            alert.setAcknowledgedBy("operator1");
+            alert.setResolvedAt(LocalDateTime.now().minusMinutes(10));
+            alert.setResolvedBy("admin1");
+            alert.setResolutionNotes("Issue resolved by restarting service");
+        }
+        
+        return alertRepository.save(alert);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        Alert alert = createAlert(errorRateRule, AlertRule.AlertSeverity.HIGH,
+                                Alert.AlertStatus.ACTIVE, "Test alert",
+                                Alert.SourceType.FLOW, "test-flow");
+
+        // When
+        var found = alertRepository.findById(alert.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test alert", found.get().getTitle());
+        assertNotNull(found.get().getRule());
+        assertEquals("High Error Rate", found.get().getRule().getName());
+    }
+
+    @Test
+    void testFindByAlertId() {
+        // Given
+        String alertId = UUID.randomUUID().toString();
+        Alert alert = Alert.builder()
+                .alertId(alertId)
+                .rule(responseTimeRule)
+                .severity(AlertRule.AlertSeverity.MEDIUM)
+                .status(Alert.AlertStatus.ACTIVE)
+                .title("Unique alert")
+                .sourceType(Alert.SourceType.ADAPTER)
+                .sourceId("adapter-123")
+                .triggeredAt(LocalDateTime.now())
+                .build();
+        alertRepository.save(alert);
+
+        // When
+        var found = alertRepository.findByAlertId(alertId);
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Unique alert", found.get().getTitle());
+    }
+
+    @Test
+    void testFindByStatus() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Alert> activeAlerts = alertRepository.findByStatus(Alert.AlertStatus.ACTIVE, pageRequest);
+
+        // Then
+        assertEquals(3, activeAlerts.getTotalElements()); // From setup + testFindById
+        assertTrue(activeAlerts.getContent().stream()
+                .allMatch(a -> a.getStatus() == Alert.AlertStatus.ACTIVE));
+    }
+
+    @Test
+    void testFindBySeverity() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Alert> criticalAlerts = alertRepository
+                .findBySeverity(AlertRule.AlertSeverity.CRITICAL, pageRequest);
+
+        // Then
+        assertEquals(1, criticalAlerts.getTotalElements());
+        assertEquals("Database connection failed", criticalAlerts.getContent().get(0).getTitle());
+    }
+
+    @Test
+    void testFindBySourceTypeAndSourceId() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Alert> flowAlerts = alertRepository
+                .findBySourceTypeAndSourceId(Alert.SourceType.FLOW, "flow-123", pageRequest);
+
+        // Then
+        assertEquals(1, flowAlerts.getTotalElements());
+        assertEquals("High error rate detected", flowAlerts.getContent().get(0).getTitle());
+    }
+
+    @Test
+    void testFindUnresolvedAlerts() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Alert> unresolvedAlerts = alertRepository.findUnresolvedAlerts(pageRequest);
+
+        // Then
+        assertEquals(5, unresolvedAlerts.getTotalElements()); // All except resolved one
+        assertTrue(unresolvedAlerts.getContent().stream()
+                .noneMatch(a -> a.getStatus() == Alert.AlertStatus.RESOLVED));
+    }
+
+    @Test
+    void testFindByRuleAndStatus() {
+        // When
+        List<Alert> errorRateAlerts = alertRepository
+                .findByRuleAndStatus(errorRateRule, Alert.AlertStatus.ACTIVE);
+
+        // Then
+        assertEquals(1, errorRateAlerts.size());
+        assertEquals("High error rate detected", errorRateAlerts.get(0).getTitle());
+    }
+
+    @Test
+    void testFindActiveAlertsByRule() {
+        // When
+        List<Alert> activeErrorAlerts = alertRepository.findActiveAlertsByRule(errorRateRule);
+
+        // Then
+        assertEquals(2, activeErrorAlerts.size()); // ACTIVE and ACKNOWLEDGED
+        assertTrue(activeErrorAlerts.stream()
+                .allMatch(a -> a.getStatus() != Alert.AlertStatus.RESOLVED));
+    }
+
+    @Test
+    void testCountByStatusAndSeverity() {
+        // When
+        long criticalActiveCount = alertRepository
+                .countByStatusAndSeverity(Alert.AlertStatus.ACTIVE, AlertRule.AlertSeverity.CRITICAL);
+
+        // Then
+        assertEquals(1L, criticalActiveCount);
+    }
+
+    @Test
+    void testUpdateAlertStatus() {
+        // Given
+        Alert alert = alertRepository.findUnresolvedAlerts(PageRequest.of(0, 1))
+                .getContent().get(0);
+
+        // When - Acknowledge
+        alert.setStatus(Alert.AlertStatus.ACKNOWLEDGED);
+        alert.setAcknowledgedAt(LocalDateTime.now());
+        alert.setAcknowledgedBy("testuser");
+        Alert acknowledged = alertRepository.update(alert);
+
+        // Then
+        assertEquals(Alert.AlertStatus.ACKNOWLEDGED, acknowledged.getStatus());
+        assertNotNull(acknowledged.getAcknowledgedAt());
+        assertEquals("testuser", acknowledged.getAcknowledgedBy());
+
+        // When - Resolve
+        acknowledged.setStatus(Alert.AlertStatus.RESOLVED);
+        acknowledged.setResolvedAt(LocalDateTime.now());
+        acknowledged.setResolvedBy("admin");
+        acknowledged.setResolutionNotes("Fixed the issue");
+        Alert resolved = alertRepository.update(acknowledged);
+
+        // Then
+        assertEquals(Alert.AlertStatus.RESOLVED, resolved.getStatus());
+        assertNotNull(resolved.getResolvedAt());
+        assertEquals("Fixed the issue", resolved.getResolutionNotes());
+    }
+
+    @Test
+    void testComplexAlertWithFullDetails() {
+        // Given
+        Alert complexAlert = Alert.builder()
+                .alertId(UUID.randomUUID().toString())
+                .rule(connectionFailureRule)
+                .severity(AlertRule.AlertSeverity.CRITICAL)
+                .status(Alert.AlertStatus.ACTIVE)
+                .title("Multiple system failures detected")
+                .description("Critical failures in multiple subsystems")
+                .details("""
+                        {
+                            "failures": [
+                                {"system": "database", "error": "connection timeout"},
+                                {"system": "cache", "error": "out of memory"},
+                                {"system": "messaging", "error": "queue full"}
+                            ],
+                            "impactedServices": ["order-processing", "inventory", "notifications"],
+                            "estimatedImpact": "500 transactions per minute"
+                        }
+                        """)
+                .sourceType(Alert.SourceType.SYSTEM)
+                .sourceId("monitoring-service")
+                .triggeredAt(LocalDateTime.now())
+                .build();
+
+        // When
+        Alert saved = alertRepository.save(complexAlert);
+        Alert retrieved = alertRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertNotNull(retrieved.getDetails());
+        assertTrue(retrieved.getDetails().contains("database"));
+        assertTrue(retrieved.getDetails().contains("500 transactions per minute"));
+        assertEquals(AlertRule.AlertSeverity.CRITICAL, retrieved.getSeverity());
+    }
+
+    @Test
+    void testDeleteAlert() {
+        // Given
+        Alert alert = createAlert(null, AlertRule.AlertSeverity.LOW,
+                                Alert.AlertStatus.RESOLVED, "Old resolved alert",
+                                Alert.SourceType.SYSTEM, "cleanup-test");
+        UUID alertId = alert.getId();
+
+        // When
+        alertRepository.deleteById(alertId);
+
+        // Then
+        assertFalse(alertRepository.findById(alertId).isPresent());
+    }
+
+    @Test
+    void testFindRecentAlerts() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(1);
+
+        // When
+        List<Alert> recentAlerts = alertRepository.findAll().stream()
+                .filter(a -> a.getTriggeredAt().isAfter(cutoff))
+                .toList();
+
+        // Then
+        assertTrue(recentAlerts.size() >= 5); // All our test alerts are recent
+    }
+
+    @Test
+    void testAlertMetrics() {
+        // When
+        long totalAlerts = alertRepository.count();
+        long activeCount = alertRepository.findByStatus(Alert.AlertStatus.ACTIVE, 
+                                                      PageRequest.of(0, 100)).getTotalElements();
+        long acknowledgedCount = alertRepository.findByStatus(Alert.AlertStatus.ACKNOWLEDGED,
+                                                            PageRequest.of(0, 100)).getTotalElements();
+        long resolvedCount = alertRepository.findByStatus(Alert.AlertStatus.RESOLVED,
+                                                        PageRequest.of(0, 100)).getTotalElements();
+
+        // Then
+        assertEquals(totalAlerts, activeCount + acknowledgedCount + resolvedCount);
+        assertTrue(activeCount >= 3);
+        assertTrue(acknowledgedCount >= 1);
+        assertTrue(resolvedCount >= 1);
+    }
+}

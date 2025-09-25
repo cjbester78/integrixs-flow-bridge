@@ -22,7 +22,7 @@ public class CertificateStorageService {
 
     private static final Logger log = LoggerFactory.getLogger(CertificateStorageService.class);
     
-    @Value("$ {certificates.storage.path:/opt/integrixlab/certs}")
+    @Value("${certificates.storage.path:/opt/integrixlab/certs}")
     private String certStoragePath;
 
     /**

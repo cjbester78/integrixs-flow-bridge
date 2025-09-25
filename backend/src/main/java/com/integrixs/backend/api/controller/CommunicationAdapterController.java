@@ -24,7 +24,7 @@ import java.util.List;
  * Handles only HTTP concerns, delegates business logic to application service
  */
 @RestController
-@RequestMapping("/api/communication - adapters")
+@RequestMapping("/api/communication-adapters")
 @Validated
 public class CommunicationAdapterController {
 
@@ -42,13 +42,22 @@ public class CommunicationAdapterController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ADAPTER.LIST", module = "AdapterManagement")
-    public ResponseEntity<List<AdapterResponse>> getAllAdapters() {
-        log.debug("Fetching all communication adapters");
+    public ResponseEntity<List<AdapterResponse>> getAllAdapters(
+            @RequestParam(required = false) String mode) {
+        log.debug("Fetching all communication adapters with mode filter: {}", mode);
         List<AdapterResponse> adapters = adapterService.getAllAdapters();
+        
+        // Filter by mode if provided
+        if(mode != null && !mode.isEmpty()) {
+            adapters = adapters.stream()
+                    .filter(a -> mode.equalsIgnoreCase(a.getMode()))
+                    .toList();
+        }
+        
         return ResponseEntity.ok(adapters);
     }
 
-    @GetMapping("/ {id}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR', 'ROLE_VIEWER')")
     @BusinessOperation(value = "ADAPTER.GET", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> getAdapterById(@PathVariable String id) {
@@ -76,7 +85,7 @@ public class CommunicationAdapterController {
         }
     }
 
-    @PutMapping("/ {id}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.UPDATE", module = "AdapterManagement", logInput = true)
     public ResponseEntity<AdapterResponse> updateAdapter(
@@ -95,7 +104,7 @@ public class CommunicationAdapterController {
         }
     }
 
-    @DeleteMapping("/ {id}")
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER')")
     @BusinessOperation(value = "ADAPTER.DELETE", module = "AdapterManagement")
     public ResponseEntity<Void> deleteAdapter(@PathVariable String id) {
@@ -112,7 +121,7 @@ public class CommunicationAdapterController {
         }
     }
 
-    @PostMapping("/ {id}/activate")
+    @PostMapping("/{id}/activate")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.ACTIVATE", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> activateAdapter(@PathVariable String id) {
@@ -129,7 +138,7 @@ public class CommunicationAdapterController {
         }
     }
 
-    @PostMapping("/ {id}/deactivate")
+    @PostMapping("/{id}/deactivate")
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
     @BusinessOperation(value = "ADAPTER.DEACTIVATE", module = "AdapterManagement")
     public ResponseEntity<AdapterResponse> deactivateAdapter(@PathVariable String id) {
@@ -159,7 +168,35 @@ public class CommunicationAdapterController {
             if(e.getMessage().contains("not found")) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(AdapterTestResponse.builder()
+                            .success(false)
+                            .message("Test failed: " + e.getMessage())
+                            .build());
+        }
+    }
+    
+    @PostMapping("/{id}/test")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR', 'ROLE_DEVELOPER', 'ROLE_INTEGRATOR')")
+    @BusinessOperation(value = "ADAPTER.TEST", module = "AdapterManagement", includeMetrics = true)
+    public ResponseEntity<AdapterTestResponse> testAdapterById(
+            @PathVariable String id,
+            @Valid @RequestBody TestAdapterRequest request) {
+        log.debug("Testing adapter connection by ID: {}", id);
+        try {
+            request.setAdapterId(id);
+            AdapterTestResponse result = testingService.testAdapter(request);
+            return ResponseEntity.ok(result);
+        } catch(RuntimeException e) {
+            log.error("Error testing adapter: {}", e.getMessage());
+            if(e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(AdapterTestResponse.builder()
+                            .success(false)
+                            .message("Test failed: " + e.getMessage())
+                            .build());
         }
     }
 }

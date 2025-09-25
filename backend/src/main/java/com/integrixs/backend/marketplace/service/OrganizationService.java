@@ -1,10 +1,10 @@
 package com.integrixs.backend.marketplace.service;
 
 import com.integrixs.backend.marketplace.dto.*;
-import com.integrixs.backend.marketplace.entity.Organization;
-import com.integrixs.backend.marketplace.entity.FlowTemplate;
-import com.integrixs.backend.marketplace.repository.OrganizationRepository;
-import com.integrixs.backend.marketplace.repository.FlowTemplateRepository;
+import com.integrixs.data.model.Organization;
+import com.integrixs.data.model.FlowTemplate;
+import com.integrixs.data.repository.OrganizationRepository;
+import com.integrixs.data.repository.FlowTemplateRepository;
 import com.integrixs.backend.auth.service.AuthService;
 import com.integrixs.backend.auth.entity.User;
 import org.springframework.data.domain.Page;

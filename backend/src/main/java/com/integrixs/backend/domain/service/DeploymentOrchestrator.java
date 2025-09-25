@@ -23,13 +23,13 @@ public class DeploymentOrchestrator {
     private static final Logger log = LoggerFactory.getLogger(DeploymentOrchestrator.class);
 
 
-    @Value("$ {server.host:localhost}")
+    @Value("${server.host:localhost}")
     private String serverHost;
 
-    @Value("$ {server.port:8080}")
+    @Value("${server.port:8080}")
     private String serverPort;
 
-    @Value("$ {server.protocol:http}")
+    @Value("${server.protocol:http}")
     private String serverProtocol;
 
     /**
@@ -85,7 +85,7 @@ public class DeploymentOrchestrator {
         }
 
         // Generate default endpoint based on adapter type
-        String flowPath = flow.getName().toLowerCase().replaceAll("[^a - zA - Z0-9 - ]", "-");
+        String flowPath = flow.getName().toLowerCase().replaceAll("[^a-zA-Z0-9-]", "-");
 
         return switch(inboundAdapter.getType()) {
             case HTTP, REST -> String.format("%s/api/integration/%s", baseUrl, flowPath);
@@ -106,7 +106,7 @@ public class DeploymentOrchestrator {
         metadata.put("adapterMode", inboundAdapter.getMode().toString());
         metadata.put("endpoint", endpoint);
 
-        // Add adapter - specific metadata
+        // Add adapter-specific metadata
         switch(inboundAdapter.getType()) {
             case SOAP -> {
                 metadata.put("wsdlUrl", endpoint + "?wsdl");

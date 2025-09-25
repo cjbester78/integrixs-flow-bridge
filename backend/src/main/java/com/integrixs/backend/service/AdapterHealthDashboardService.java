@@ -5,7 +5,7 @@ import com.integrixs.adapters.monitoring.PerformanceMetricsCollector;
 import com.integrixs.adapters.monitoring.SLAMonitoringService;
 import com.integrixs.backend.dto.dashboard.health.*;
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import io.micrometer.core.instrument.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class AdapterHealthDashboardService {
     private static final Logger log = LoggerFactory.getLogger(AdapterHealthDashboardService.class);
 
 
-    private final CommunicationAdapterRepository adapterRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
     private final AdapterMonitoringService adapterMonitoringService;
     private final MeterRegistry meterRegistry;
     private final PerformanceMetricsCollector metricsCollector;
@@ -36,6 +36,18 @@ public class AdapterHealthDashboardService {
 
     // Health score cache
     private final Map<String, AdapterHealthScore> healthScoreCache = new ConcurrentHashMap<>();
+    
+    public AdapterHealthDashboardService(CommunicationAdapterSqlRepository adapterRepository,
+                                        AdapterMonitoringService adapterMonitoringService,
+                                        MeterRegistry meterRegistry,
+                                        PerformanceMetricsCollector metricsCollector,
+                                        SLAMonitoringService slaMonitoringService) {
+        this.adapterRepository = adapterRepository;
+        this.adapterMonitoringService = adapterMonitoringService;
+        this.meterRegistry = meterRegistry;
+        this.metricsCollector = metricsCollector;
+        this.slaMonitoringService = slaMonitoringService;
+    }
 
     // Health history
     private final Map<String, List<HealthSnapshot>> healthHistory = new ConcurrentHashMap<>();

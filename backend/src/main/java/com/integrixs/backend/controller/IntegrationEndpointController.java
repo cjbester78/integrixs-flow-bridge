@@ -1,9 +1,9 @@
 package com.integrixs.backend.controller;
 
 import com.integrixs.backend.service.IntegrationEndpointService;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import com.integrixs.data.model.FlowStatus;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SystemLog;
@@ -32,14 +32,14 @@ public class IntegrationEndpointController {
     private IntegrationEndpointService endpointService;
 
     @Autowired
-    private SystemLogRepository systemLogRepository;
+    private SystemLogSqlRepository systemLogRepository;
 
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     /**
      * Handle SOAP requests
@@ -218,7 +218,7 @@ public class IntegrationEndpointController {
             testLog.setDetails("Test payload content");
 
             SystemLog saved = systemLogRepository.save(testLog);
-            systemLogRepository.flush();
+            // SQL repositories don't have flush() - operations are immediate
 
             // Query after
             long countAfter = systemLogRepository.count();

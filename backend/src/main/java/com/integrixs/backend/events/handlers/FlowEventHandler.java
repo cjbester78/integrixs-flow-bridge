@@ -24,6 +24,10 @@ public class FlowEventHandler {
 
 
     private final SystemLogService systemLogService;
+    
+    public FlowEventHandler(SystemLogService systemLogService) {
+        this.systemLogService = systemLogService;
+    }
 
     /**
      * Handles flow created events.

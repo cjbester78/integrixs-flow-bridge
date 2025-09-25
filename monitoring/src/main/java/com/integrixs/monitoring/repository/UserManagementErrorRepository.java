@@ -1,11 +1,24 @@
 package com.integrixs.monitoring.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.integrixs.monitoring.model.UserManagementError;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
- * Interface UserManagementErrorRepository - auto - generated documentation.
+ * Repository interface for UserManagementError entities.
  */
-public interface UserManagementErrorRepository extends JpaRepository<UserManagementError, String> {
+public interface UserManagementErrorRepository {
+    
+    UserManagementError save(UserManagementError error);
+    
+    Optional<UserManagementError> findById(UUID id);
+    
+    List<UserManagementError> findAll();
+    
+    List<UserManagementError> findByAction(String action);
+    
+    void deleteById(UUID id);
+    
+    long count();
 }

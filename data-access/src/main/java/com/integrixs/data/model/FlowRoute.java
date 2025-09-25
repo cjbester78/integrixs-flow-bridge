@@ -1,47 +1,30 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Entity representing a flow route for conditional routing
  */
-@Entity
-@Table(name = "flow_routes")
 public class FlowRoute extends BaseEntity {
 
-
-    @Column(name = "route_name", nullable = false)
     private String routeName;
 
-    @Column(name = "route_type", nullable = false)
-    @Enumerated(EnumType.STRING)
     private RouteType routeType = RouteType.CONDITIONAL;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flow_id", nullable = false)
     private IntegrationFlow flow;
 
-    @Column(name = "source_step")
     private String sourceStep;
 
-    @Column(name = "target_step")
     private String targetStep;
 
-    @Column(name = "is_active")
     private boolean active = true;
 
-    @Column(name = "priority")
     private Integer priority = 0;
 
-    @OneToMany(mappedBy = "flowRoute", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RouteCondition> conditions = new ArrayList<>();
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "condition_operator")
     private String conditionOperator = "AND";
 
     public enum RouteType {

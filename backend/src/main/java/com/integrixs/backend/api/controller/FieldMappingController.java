@@ -6,7 +6,7 @@ import com.integrixs.backend.api.dto.response.FieldMappingResponse;
 import com.integrixs.backend.application.service.FieldMappingApplicationService;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -32,10 +32,10 @@ public class FieldMappingController {
 
 
     private final FieldMappingApplicationService fieldMappingService;
-    private final UserRepository userRepository;
+    private final UserSqlRepository userRepository;
 
     public FieldMappingController(FieldMappingApplicationService fieldMappingService,
-                                  UserRepository userRepository) {
+                                  UserSqlRepository userRepository) {
         this.fieldMappingService = fieldMappingService;
         this.userRepository = userRepository;
     }

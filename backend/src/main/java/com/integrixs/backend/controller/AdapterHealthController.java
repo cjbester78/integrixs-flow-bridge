@@ -14,10 +14,14 @@ import java.util.List;
  * REST controller for adapter health monitoring.
  */
 @RestController
-@RequestMapping("/api/adapter - health")
+@RequestMapping("/api/adapter-health")
 public class AdapterHealthController {
 
     private final AdapterHealthService adapterHealthService;
+
+    public AdapterHealthController(AdapterHealthService adapterHealthService) {
+        this.adapterHealthService = adapterHealthService;
+    }
 
     /**
      * Get the main health dashboard.
@@ -30,7 +34,7 @@ public class AdapterHealthController {
     /**
      * Get detailed health information for a specific adapter.
      */
-    @GetMapping("/ {adapterId}")
+    @GetMapping("/{adapterId}")
     public ResponseEntity<AdapterHealthDetail> getAdapterHealth(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getAdapterHealth(adapterId));
     }
@@ -38,7 +42,7 @@ public class AdapterHealthController {
     /**
      * Perform health check on an adapter.
      */
-    @PostMapping("/ {adapterId}/check")
+    @PostMapping("/{adapterId}/check")
     public ResponseEntity<HealthCheckResult> performHealthCheck(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.performHealthCheck(adapterId));
     }
@@ -46,7 +50,7 @@ public class AdapterHealthController {
     /**
      * Get health history for an adapter.
      */
-    @GetMapping("/ {adapterId}/history")
+    @GetMapping("/{adapterId}/history")
     public ResponseEntity<AdapterHealthHistory> getHealthHistory(
             @PathVariable String adapterId,
             @RequestParam(defaultValue = "7") int days) {
@@ -56,7 +60,7 @@ public class AdapterHealthController {
     /**
      * Get recovery suggestions for an adapter.
      */
-    @GetMapping("/ {adapterId}/recovery - suggestions")
+    @GetMapping("/{adapterId}/recovery-suggestions")
     public ResponseEntity<List<RecoverySuggestion>> getRecoverySuggestions(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getRecoverySuggestions(adapterId));
     }
@@ -64,7 +68,7 @@ public class AdapterHealthController {
     /**
      * Get connection pool metrics for an adapter.
      */
-    @GetMapping("/ {adapterId}/connection - pool")
+    @GetMapping("/{adapterId}/connection-pool")
     public ResponseEntity<ConnectionPoolMetrics> getConnectionPoolMetrics(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getConnectionPoolMetrics(adapterId));
     }
@@ -72,7 +76,7 @@ public class AdapterHealthController {
     /**
      * Get resource usage metrics for an adapter.
      */
-    @GetMapping("/ {adapterId}/resource - usage")
+    @GetMapping("/{adapterId}/resource-usage")
     public ResponseEntity<ResourceUsageMetrics> getResourceUsageMetrics(@PathVariable String adapterId) {
         return ResponseEntity.ok(adapterHealthService.getResourceUsageMetrics(adapterId));
     }
@@ -89,7 +93,7 @@ public class AdapterHealthController {
     /**
      * Update connection pool metrics(called by adapters).
      */
-    @PostMapping("/ {adapterId}/connection - pool/update")
+    @PostMapping("/{adapterId}/connection-pool/update")
     public ResponseEntity<Void> updateConnectionPoolMetrics(
             @PathVariable String adapterId,
             @RequestParam int active,
@@ -102,7 +106,7 @@ public class AdapterHealthController {
     /**
      * Update resource usage metrics(called by adapters).
      */
-    @PostMapping("/ {adapterId}/resource - usage/update")
+    @PostMapping("/{adapterId}/resource-usage/update")
     public ResponseEntity<Void> updateResourceUsageMetrics(
             @PathVariable String adapterId,
             @RequestParam double cpuUsage,

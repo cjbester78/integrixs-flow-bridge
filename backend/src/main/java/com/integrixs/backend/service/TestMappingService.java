@@ -36,6 +36,12 @@ public class TestMappingService {
     private final FieldMappingProcessor fieldMappingProcessor;
     private final DevelopmentFunctionService developmentFunctionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    public TestMappingService(FieldMappingProcessor fieldMappingProcessor, 
+                             DevelopmentFunctionService developmentFunctionService) {
+        this.fieldMappingProcessor = fieldMappingProcessor;
+        this.developmentFunctionService = developmentFunctionService;
+    }
 
     public TestFieldMappingsResponseDTO testFieldMappings(TestFieldMappingsRequestDTO request) {
         long startTime = System.currentTimeMillis();

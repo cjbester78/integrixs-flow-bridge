@@ -1,7 +1,7 @@
 package com.integrixs.backend.security;
 
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.backend.config.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +22,10 @@ public class ResourceAccessService {
 
     private static final Logger logger = LoggerFactory.getLogger(ResourceAccessService.class);
 
-    private final UserRepository userRepository;
+    private final UserSqlRepository userRepository;
     
     @Autowired
-    public ResourceAccessService(UserRepository userRepository) {
+    public ResourceAccessService(UserSqlRepository userRepository) {
         this.userRepository = userRepository;
     }
 

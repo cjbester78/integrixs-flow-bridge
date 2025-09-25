@@ -65,7 +65,7 @@ public class CamundaProcessEngineService extends ProcessEngineService {
     private TransformationExecutionService transformationService;
 
     @Autowired
-    private com.integrixs.data.repository.CommunicationAdapterRepository adapterRepository;
+    private com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository adapterRepository;
 
     // Cache for process definitions
     private final Map<String, String> processDefinitionCache = new ConcurrentHashMap<>();

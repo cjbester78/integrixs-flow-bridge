@@ -31,25 +31,25 @@ public class RabbitMQInfrastructureConfig {
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RabbitMQInfrastructureConfig.class);
 
-    @Value("$ {integrix.messaging.queues.inbound.name:integrix.inbound}")
+    @Value("${integrix.messaging.queues.inbound.name:integrix.inbound}")
     private String inboundQueue;
 
-    @Value("$ {integrix.messaging.queues.outbound.name:integrix.outbound}")
+    @Value("${integrix.messaging.queues.outbound.name:integrix.outbound}")
     private String outboundQueue;
 
-    @Value("$ {integrix.messaging.queues.error.name:integrix.error}")
+    @Value("${integrix.messaging.queues.error.name:integrix.error}")
     private String errorQueue;
 
-    @Value("$ {integrix.messaging.routing.default - exchange:integrix.exchange}")
+    @Value("${integrix.messaging.routing.default-exchange:integrix.exchange}")
     private String defaultExchange;
 
-    @Value("$ {integrix.messaging.routing.topic - exchange:integrix.topic}")
+    @Value("${integrix.messaging.routing.topic-exchange:integrix.topic}")
     private String topicExchange;
 
-    @Value("$ {integrix.messaging.dlq.enabled:true}")
+    @Value("${integrix.messaging.dlq.enabled:true}")
     private boolean dlqEnabled;
 
-    @Value("$ {integrix.messaging.dlq.ttl:86400000}")
+    @Value("${integrix.messaging.dlq.ttl:86400000}")
     private long dlqTtl;
 
     /**
@@ -130,8 +130,8 @@ public class RabbitMQInfrastructureConfig {
     public Queue inboundQueue() {
         Map<String, Object> args = new HashMap<>();
         if(dlqEnabled) {
-            args.put("x - dead - letter - exchange", "");
-            args.put("x - dead - letter - routing - key", errorQueue);
+            args.put("x-dead-letter-exchange", "");
+            args.put("x-dead-letter-routing-key", errorQueue);
         }
 
         return new Queue(inboundQueue, true, false, false, args);
@@ -144,8 +144,8 @@ public class RabbitMQInfrastructureConfig {
     public Queue outboundQueue() {
         Map<String, Object> args = new HashMap<>();
         if(dlqEnabled) {
-            args.put("x - dead - letter - exchange", "");
-            args.put("x - dead - letter - routing - key", errorQueue);
+            args.put("x-dead-letter-exchange", "");
+            args.put("x-dead-letter-routing-key", errorQueue);
         }
 
         return new Queue(outboundQueue, true, false, false, args);
@@ -157,7 +157,7 @@ public class RabbitMQInfrastructureConfig {
     @Bean
     public Queue errorQueue() {
         Map<String, Object> args = new HashMap<>();
-        args.put("x - message - ttl", dlqTtl);
+        args.put("x-message-ttl", dlqTtl);
 
         return new Queue(errorQueue, true, false, false, args);
     }

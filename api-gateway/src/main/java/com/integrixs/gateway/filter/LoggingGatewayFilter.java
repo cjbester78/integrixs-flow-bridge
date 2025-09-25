@@ -36,10 +36,8 @@ public class LoggingGatewayFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // Generate or extract request ID
-        String requestId = exchange.getRequest().getHeaders().getFirst(REQUEST_ID_HEADER);
-        if (requestId == null) {
-            requestId = UUID.randomUUID().toString();
-        }
+        String existingRequestId = exchange.getRequest().getHeaders().getFirst(REQUEST_ID_HEADER);
+        final String requestId = existingRequestId != null ? existingRequestId : UUID.randomUUID().toString();
         
         // Set MDC for logging
         MDC.put("requestId", requestId);

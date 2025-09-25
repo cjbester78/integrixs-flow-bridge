@@ -29,6 +29,11 @@ public class ExternalServiceLogger {
 
     // Service call statistics
     private final ConcurrentHashMap<String, ServiceStats> serviceStats = new ConcurrentHashMap<>();
+    
+    public ExternalServiceLogger(ObjectMapper objectMapper, MeterRegistry meterRegistry) {
+        this.objectMapper = objectMapper;
+        this.meterRegistry = meterRegistry;
+    }
 
     /**
      * Log external service request

@@ -19,6 +19,10 @@ import java.util.Map;
 public class RateLimitController {
 
     private final RateLimitService rateLimitService;
+    
+    public RateLimitController(RateLimitService rateLimitService) {
+        this.rateLimitService = rateLimitService;
+    }
 
     @GetMapping("/status")
     @Operation(summary = "Get current user's rate limit status")

@@ -2,6 +2,9 @@ package com.integrixs.backend.audit;
 
 import com.integrixs.backend.security.RequiresPermission;
 import com.integrixs.backend.security.ResourcePermission;
+import com.integrixs.data.model.AuditEvent;
+import com.integrixs.data.model.AuditTrail;
+import com.integrixs.data.sql.repository.AuditEventRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -78,10 +81,14 @@ public class AuditController {
 
             @PageableDefault(sort = "eventTimestamp", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<AuditEvent> events = auditRepository.searchAuditEvents(
+        LocalDateTime startDateTime = startTime != null ? 
+            LocalDateTime.ofInstant(startTime, ZoneId.systemDefault()) : null;
+        LocalDateTime endDateTime = endTime != null ? 
+            LocalDateTime.ofInstant(endTime, ZoneId.systemDefault()) : null;
+            
+        Page<AuditEvent> events = auditRepository.searchEvents(
             username, eventType, category, outcome, entityType,
-            null, // tenantId handled by repository
-            startTime, endTime, pageable
+            startDateTime, endDateTime, pageable
        );
 
         return events.map(this::toDTO);
@@ -99,9 +106,27 @@ public class AuditController {
             @PathVariable String entityId,
             @PageableDefault(sort = "eventTimestamp", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<AuditEvent> events = auditRepository.findByEntityTypeAndEntityIdOrderByEventTimestampDesc(
-            entityType, entityId, pageable
-       );
+        // Get all events for the entity and manually paginate
+        List<AuditEvent> allEvents = auditRepository.findByEntityTypeAndEntityId(entityType, entityId);
+        
+        // Sort by timestamp descending
+        allEvents.sort((e1, e2) -> {
+            LocalDateTime t1 = e1.getEventTimestamp();
+            LocalDateTime t2 = e2.getEventTimestamp();
+            if (t1 == null && t2 == null) return 0;
+            if (t1 == null) return 1;
+            if (t2 == null) return -1;
+            return t2.compareTo(t1);
+        });
+        
+        // Manual pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allEvents.size());
+        List<AuditEvent> pageContent = start < allEvents.size() ? 
+            allEvents.subList(start, end) : new ArrayList<>();
+            
+        Page<AuditEvent> events = new org.springframework.data.domain.PageImpl<>(
+            pageContent, pageable, allEvents.size());
 
         return events.map(this::toDTO);
     }
@@ -116,7 +141,11 @@ public class AuditController {
     public Page<AuditEventDTO> getSecurityEvents(
             @PageableDefault(sort = "eventTimestamp", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<AuditEvent> events = auditRepository.findSecurityEvents(pageable);
+        // Search for security-related event types
+        Page<AuditEvent> events = auditRepository.searchEvents(
+            null, null, AuditEvent.AuditCategory.AUTHENTICATION, null, null,
+            null, null, pageable
+        );
         return events.map(this::toDTO);
     }
 
@@ -228,7 +257,8 @@ public class AuditController {
         long countBefore = auditRepository.count();
 
         // Delete old events
-        auditRepository.deleteByEventTimestampBefore(cutoffTime);
+        LocalDateTime cutoffDateTime = LocalDateTime.ofInstant(cutoffTime, ZoneId.systemDefault());
+        auditRepository.deleteByEventTimestampBefore(cutoffDateTime);
 
         long countAfter = auditRepository.count();
         long deletedCount = countBefore - countAfter;
@@ -245,9 +275,13 @@ public class AuditController {
      * Convert entity to DTO
      */
     private AuditEventDTO toDTO(AuditEvent event) {
+        LocalDateTime timestamp = event.getEventTimestamp();
+        Instant instantTimestamp = timestamp != null ? 
+            timestamp.atZone(ZoneId.systemDefault()).toInstant() : null;
+            
         return AuditEventDTO.builder()
             .id(event.getId())
-            .eventTimestamp(event.getEventTimestamp())
+            .eventTimestamp(instantTimestamp)
             .eventType(event.getEventType())
             .category(event.getCategory())
             .username(event.getUsername())
@@ -258,9 +292,26 @@ public class AuditController {
             .action(event.getAction())
             .outcome(event.getOutcome())
             .errorMessage(event.getErrorMessage())
-            .durationMs(event.getDurationMs())
-            .details(event.getDetails())
+            .details(parseDetailsJson(event.getDetails()))
             .build();
+    }
+
+    /**
+     * Parse details JSON string to Map
+     */
+    private Map<String, String> parseDetailsJson(String detailsJson) {
+        if (detailsJson == null || detailsJson.isEmpty()) {
+            return null;
+        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.core.type.TypeReference<Map<String, String>> typeRef = 
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {};
+            return mapper.readValue(detailsJson, typeRef);
+        } catch (Exception e) {
+            // If parsing fails, return null
+            return null;
+        }
     }
 
     /**

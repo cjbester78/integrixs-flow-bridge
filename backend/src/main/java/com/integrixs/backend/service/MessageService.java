@@ -1,7 +1,8 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
+import com.integrixs.data.sql.repository.AdapterPayloadSqlRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +21,11 @@ public class MessageService {
     private static final Logger log = LoggerFactory.getLogger(MessageService.class);
 
 
-    private final SystemLogRepository systemLogRepository;
-    private final AdapterPayloadRepository adapterPayloadRepository;
+    private final SystemLogSqlRepository systemLogRepository;
+    private final AdapterPayloadSqlRepository adapterPayloadRepository;
 
-    public MessageService(SystemLogRepository systemLogRepository, 
-                         AdapterPayloadRepository adapterPayloadRepository) {
+    public MessageService(SystemLogSqlRepository systemLogRepository, 
+                         AdapterPayloadSqlRepository adapterPayloadRepository) {
         this.systemLogRepository = systemLogRepository;
         this.adapterPayloadRepository = adapterPayloadRepository;
     }

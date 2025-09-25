@@ -31,6 +31,10 @@ public class FrontendLogController {
 
 
     private final SystemLogService systemLogService;
+    
+    public FrontendLogController(SystemLogService systemLogService) {
+        this.systemLogService = systemLogService;
+    }
 
     /**
      * Receive a batch of frontend logs.

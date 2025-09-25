@@ -1,14 +1,12 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -24,30 +22,31 @@ public class LogRetentionService {
 
     private static final Logger log = LoggerFactory.getLogger(LogRetentionService.class);
 
-
-    private final SystemLogRepository systemLogRepository;
-    private final EntityManager entityManager;
+    private final SystemLogSqlRepository systemLogRepository;
+        public LogRetentionService(SystemLogSqlRepository systemLogRepository) {
+        this.systemLogRepository = systemLogRepository;
+            }
 
     // Retention policies(in days)
-    @Value("$ {log.retention.debug:7}")
+    @Value("${log.retention.debug:7}")
     private int debugRetentionDays;
 
-    @Value("$ {log.retention.info:30}")
+    @Value("${log.retention.info:30}")
     private int infoRetentionDays;
 
-    @Value("$ {log.retention.warn:90}")
+    @Value("${log.retention.warn:90}")
     private int warnRetentionDays;
 
-    @Value("$ {log.retention.error:365}")
+    @Value("${log.retention.error:365}")
     private int errorRetentionDays;
 
-    @Value("$ {log.retention.audit:2555}") // 7 years
+    @Value("${log.retention.audit:2555}") // 7 years
     private int auditRetentionDays;
 
-    @Value("$ {log.retention.batch - size:1000}")
+    @Value("${log.retention.batch-size:1000}")
     private int batchSize;
 
-    @Value("$ {log.retention.enabled:true}")
+    @Value("${log.retention.enabled:true}")
     private boolean retentionEnabled;
 
     // Custom retention policies by category
@@ -57,20 +56,20 @@ public class LogRetentionService {
      * Initialize custom retention policies.
      */
     public void initializeRetentionPolicies() {
-        // Security - related logs - keep longer
+        // Security-related logs-keep longer
         categoryRetentionDays.put("SECURITY", 730); // 2 years
         categoryRetentionDays.put("AUTHENTICATION", 730);
         categoryRetentionDays.put("AUTHORIZATION", 730);
 
-        // Transaction logs - keep for compliance
+        // Transaction logs-keep for compliance
         categoryRetentionDays.put("TRANSACTION", 2555); // 7 years
         categoryRetentionDays.put("PAYMENT", 2555);
 
-        // Performance logs - shorter retention
+        // Performance logs-shorter retention
         categoryRetentionDays.put("PERFORMANCE", 30);
         categoryRetentionDays.put("METRICS", 30);
 
-        // Frontend logs - moderate retention
+        // Frontend logs-moderate retention
         categoryRetentionDays.put("FRONTEND_ERROR", 90);
         categoryRetentionDays.put("FRONTEND_INFO", 14);
         categoryRetentionDays.put("FRONTEND_DEBUG", 3);
@@ -79,7 +78,7 @@ public class LogRetentionService {
     }
 
     /**
-     * Execute retention policy - runs daily at 2 AM.
+     * Execute retention policy-runs daily at 2 AM.
      */
     @Scheduled(cron = "0 0 2 * * *")
     @Transactional
@@ -111,7 +110,7 @@ public class LogRetentionService {
             long archived = archiveAuditLogs();
             result.setArchivedCount(archived);
 
-            long duration = System.currentTimeMillis() - startTime;
+            long duration = System.currentTimeMillis()-startTime;
             log.info("Log retention completed in {}ms. Deleted: {}, Archived: {}",
                     duration, result.getTotalDeleted(), result.getArchivedCount());
 
@@ -129,13 +128,7 @@ public class LogRetentionService {
     private long deleteLogsByLevel(SystemLog.LogLevel level, int retentionDays) {
         LocalDateTime cutoffDate = LocalDateTime.now().minus(retentionDays, ChronoUnit.DAYS);
 
-        String deleteQuery = "DELETE FROM system_logs WHERE level = :level AND timestamp < :cutoffDate";
-
-        Query query = entityManager.createNativeQuery(deleteQuery);
-        query.setParameter("level", level.name());
-        query.setParameter("cutoffDate", cutoffDate);
-
-        int deleted = query.executeUpdate();
+        int deleted = systemLogRepository.deleteByLevelAndTimestampBefore(level, cutoffDate);
         log.debug("Deleted {} {} logs older than {}", deleted, level, cutoffDate);
 
         return deleted;
@@ -147,13 +140,7 @@ public class LogRetentionService {
     private long deleteLogsByCategory(String category, int retentionDays) {
         LocalDateTime cutoffDate = LocalDateTime.now().minus(retentionDays, ChronoUnit.DAYS);
 
-        String deleteQuery = "DELETE FROM system_logs WHERE category = :category AND timestamp < :cutoffDate";
-
-        Query query = entityManager.createNativeQuery(deleteQuery);
-        query.setParameter("category", category);
-        query.setParameter("cutoffDate", cutoffDate);
-
-        int deleted = query.executeUpdate();
+        int deleted = systemLogRepository.deleteByCategoryAndTimestampBefore(category, cutoffDate);
         log.debug("Deleted {} logs with category {} older than {}", deleted, category, cutoffDate);
 
         return deleted;
@@ -175,12 +162,7 @@ public class LogRetentionService {
 
         boolean hasMore = true;
         while(hasMore) {
-            Query query = entityManager.createNativeQuery(selectQuery, SystemLog.class);
-            query.setParameter("cutoffDate", archiveCutoff);
-            query.setParameter("batchSize", batchSize);
-
-            @SuppressWarnings("unchecked")
-            List<SystemLog> logsToArchive = query.getResultList();
+            List<SystemLog> logsToArchive = systemLogRepository.findAuditLogsForArchive(archiveCutoff, batchSize);
 
             if(logsToArchive.isEmpty()) {
                 hasMore = false;
@@ -193,15 +175,12 @@ public class LogRetentionService {
                     .map(SystemLog::getId)
                     .collect(java.util.stream.Collectors.toList());
 
-                String deleteQuery = "DELETE FROM system_logs WHERE id IN :ids";
-                Query deleteQ = entityManager.createNativeQuery(deleteQuery);
-                deleteQ.setParameter("ids", idsToDelete);
-                deleteQ.executeUpdate();
+                systemLogRepository.deleteByIds(idsToDelete);
 
                 archivedCount.addAndGet(logsToArchive.size());
 
-                // Clear entity manager to free memory
-                entityManager.clear();
+                // Clear memory after batch processing
+                // Memory management handled by SQL repository
             }
         }
 
@@ -274,14 +253,14 @@ public class LogRetentionService {
     public Map<String, Integer> getRetentionPolicies() {
         Map<String, Integer> policies = new HashMap<>();
 
-        // Level - based policies
+        // Level-based policies
         policies.put("DEBUG", debugRetentionDays);
         policies.put("INFO", infoRetentionDays);
         policies.put("WARN", warnRetentionDays);
         policies.put("ERROR", errorRetentionDays);
         policies.put("AUDIT", auditRetentionDays);
 
-        // Category - based policies
+        // Category-based policies
         policies.putAll(categoryRetentionDays);
 
         return policies;

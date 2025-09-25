@@ -28,35 +28,35 @@ public class ConnectionPoolConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(ConnectionPoolConfiguration.class);
 
-    @Value("$ {spring.datasource.hikari.maximum - pool - size:20}")
+    @Value("${spring.datasource.hikari.maximum-pool-size:20}")
     private int dbMaxPoolSize;
 
-    @Value("$ {spring.datasource.hikari.minimum - idle:5}")
+    @Value("${spring.datasource.hikari.minimum-idle:5}")
     private int dbMinIdle;
 
-    @Value("$ {spring.datasource.hikari.connection - timeout:30000}")
+    @Value("${spring.datasource.hikari.connection-timeout:30000}")
     private long dbConnectionTimeout;
 
-    @Value("$ {spring.datasource.hikari.idle - timeout:600000}")
+    @Value("${spring.datasource.hikari.idle-timeout:600000}")
     private long dbIdleTimeout;
 
-    @Value("$ {spring.datasource.hikari.max - lifetime:1800000}")
+    @Value("${spring.datasource.hikari.max-lifetime:1800000}")
     private long dbMaxLifetime;
 
     // HTTP connection pool settings
-    @Value("$ {http.connection.pool.max - total:200}")
+    @Value("${http.connection.pool.max-total:200}")
     private int httpMaxTotal;
 
-    @Value("$ {http.connection.pool.max - per - route:20}")
+    @Value("${http.connection.pool.max-per-route:20}")
     private int httpMaxPerRoute;
 
-    @Value("$ {http.connection.pool.validate - after - inactivity:2000}")
+    @Value("${http.connection.pool.validate-after-inactivity:2000}")
     private int httpValidateAfterInactivity;
 
-    @Value("$ {http.connection.pool.connection - timeout:5000}")
+    @Value("${http.connection.pool.connection-timeout:5000}")
     private int httpConnectionTimeout;
 
-    @Value("$ {http.connection.pool.socket - timeout:30000}")
+    @Value("${http.connection.pool.socket-timeout:30000}")
     private int httpSocketTimeout;
     
     @Value("${connection-pool.database.leak-detection-threshold:60000}")
@@ -143,10 +143,10 @@ public class ConnectionPoolConfiguration {
     @Primary
     @ConditionalOnProperty(name = "database.pool.optimization.enabled", havingValue = "true", matchIfMissing = true)
     public DataSource optimizedDataSource(
-            @Value("$ {spring.datasource.url}") String jdbcUrl,
-            @Value("$ {spring.datasource.username}") String username,
-            @Value("$ {spring.datasource.password}") String password,
-            @Value("$ {spring.datasource.driver - class - name}") String driverClassName,
+            @Value("${spring.datasource.url}") String jdbcUrl,
+            @Value("${spring.datasource.username}") String username,
+            @Value("${spring.datasource.password}") String password,
+            @Value("${spring.datasource.driver-class-name}") String driverClassName,
             MeterRegistry meterRegistry) {
 
         HikariConfig config = new HikariConfig();
@@ -174,7 +174,7 @@ public class ConnectionPoolConfiguration {
         config.setLeakDetectionThreshold(dbLeakDetectionThreshold); // Detect connection leaks
 
         // Connection pool name for monitoring
-        config.setPoolName("IntegrixsFlowBridge - DB - Pool");
+        config.setPoolName("IntegrixsFlowBridge-DB-Pool");
 
         // Metrics
         config.setMetricRegistry(meterRegistry);

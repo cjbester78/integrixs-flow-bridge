@@ -33,25 +33,25 @@ import java.util.Map;
 @ConditionalOnProperty(name = "spring.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaConfig {
 
-    @Value("$ {spring.kafka.bootstrap - servers:localhost:9092}")
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    @Value("$ {spring.kafka.consumer.group - id:integrix - consumer - group}")
+    @Value("${spring.kafka.consumer.group-id:integrix-consumer-group}")
     private String groupId;
 
-    @Value("$ {integrix.messaging.topics.inbound:integrix - inbound}")
+    @Value("${integrix.messaging.topics.inbound:integrix-inbound}")
     private String inboundTopic;
 
-    @Value("$ {integrix.messaging.topics.outbound:integrix - outbound}")
+    @Value("${integrix.messaging.topics.outbound:integrix-outbound}")
     private String outboundTopic;
 
-    @Value("$ {integrix.messaging.topics.error:integrix - error}")
+    @Value("${integrix.messaging.topics.error:integrix-error}")
     private String errorTopic;
 
-    @Value("$ {integrix.messaging.topics.audit:integrix - audit}")
+    @Value("${integrix.messaging.topics.audit:integrix-audit}")
     private String auditTopic;
 
-    @Value("$ {integrix.messaging.topics.metrics:integrix - metrics}")
+    @Value("${integrix.messaging.topics.metrics:integrix-metrics}")
     private String metricsTopic;
 
     /**
@@ -61,7 +61,7 @@ public class KafkaConfig {
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configs.put(AdminClientConfig.CLIENT_ID_CONFIG, "integrix - admin");
+        configs.put(AdminClientConfig.CLIENT_ID_CONFIG, "integrix-admin");
         return new KafkaAdmin(configs);
     }
 
@@ -121,7 +121,7 @@ public class KafkaConfig {
     public ProducerFactory<String, Object> producerFactory(ObjectMapper objectMapper) {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, "integrix - producer");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, "integrix-producer");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -158,7 +158,7 @@ public class KafkaConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.CLIENT_ID_CONFIG, "integrix - consumer");
+        props.put(ConsumerConfig.CLIENT_ID_CONFIG, "integrix-consumer");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);

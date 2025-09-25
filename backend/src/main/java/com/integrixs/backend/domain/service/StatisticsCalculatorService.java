@@ -1,7 +1,7 @@
 package com.integrixs.backend.domain.service;
 
-import com.integrixs.data.repository.MessageRepository;
-import com.integrixs.data.repository.FlowExecutionRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
+import com.integrixs.data.sql.repository.FlowExecutionSqlRepository;
 import com.integrixs.data.model.Message.MessageStatus;
 import com.integrixs.data.model.FlowExecution.ExecutionStatus;
 import org.springframework.data.domain.Pageable;
@@ -18,11 +18,11 @@ import java.util.UUID;
 @Service
 public class StatisticsCalculatorService {
 
-    private final MessageRepository messageRepository;
-    private final FlowExecutionRepository flowExecutionRepository;
+    private final MessageSqlRepository messageRepository;
+    private final FlowExecutionSqlRepository flowExecutionRepository;
 
-    public StatisticsCalculatorService(MessageRepository messageRepository, 
-                                     FlowExecutionRepository flowExecutionRepository) {
+    public StatisticsCalculatorService(MessageSqlRepository messageRepository, 
+                                     FlowExecutionSqlRepository flowExecutionRepository) {
         this.messageRepository = messageRepository;
         this.flowExecutionRepository = flowExecutionRepository;
     }

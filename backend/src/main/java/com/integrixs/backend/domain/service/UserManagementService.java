@@ -14,6 +14,10 @@ import java.util.UUID;
 public class UserManagementService {
 
     private final PasswordEncoder passwordEncoder;
+    
+    public UserManagementService(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * Creates a new user

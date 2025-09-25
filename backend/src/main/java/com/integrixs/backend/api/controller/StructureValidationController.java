@@ -19,6 +19,12 @@ public class StructureValidationController {
 
     private final WsdlValidationService wsdlValidationService;
     private final JsonSchemaValidationService jsonSchemaValidationService;
+    
+    public StructureValidationController(WsdlValidationService wsdlValidationService,
+                                       JsonSchemaValidationService jsonSchemaValidationService) {
+        this.wsdlValidationService = wsdlValidationService;
+        this.jsonSchemaValidationService = jsonSchemaValidationService;
+    }
 
     @PostMapping("/validate")
     @Operation(summary = "Validate a structure",

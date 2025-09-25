@@ -2,7 +2,7 @@ package com.integrixs.backend.service;
 
 // import com.integrixs.backend.service.deprecated.OrchestrationEngineService;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 public class MessageProcessingEngine {
 
     @Autowired
-    private IntegrationFlowRepository integrationFlowRepository;
+    private IntegrationFlowSqlRepository integrationFlowRepository;
 
     @Autowired
     private TransformationExecutionService transformationService;

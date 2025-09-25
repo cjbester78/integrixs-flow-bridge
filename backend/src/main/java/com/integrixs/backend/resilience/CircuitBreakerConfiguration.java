@@ -19,13 +19,13 @@ import java.util.concurrent.TimeoutException;
 @Configuration
 public class CircuitBreakerConfiguration {
 
-    @Value("$ {resilience4j.circuitbreaker.instances.default.failureRateThreshold:50}")
+    @Value("${resilience4j.circuitbreaker.instances.default.failureRateThreshold:50}")
     private float defaultFailureRateThreshold;
 
-    @Value("$ {resilience4j.circuitbreaker.instances.default.waitDurationInOpenState:60000}")
+    @Value("${resilience4j.circuitbreaker.instances.default.waitDurationInOpenState:60000}")
     private long defaultWaitDurationInOpenState;
 
-    @Value("$ {resilience4j.circuitbreaker.instances.default.slidingWindowSize:100}")
+    @Value("${resilience4j.circuitbreaker.instances.default.slidingWindowSize:100}")
     private int defaultSlidingWindowSize;
 
     @Bean
@@ -36,19 +36,19 @@ public class CircuitBreakerConfiguration {
         // Default configuration
         configs.put("default", createDefaultConfig());
 
-        // HTTP/REST adapters - more sensitive to timeouts
+        // HTTP/REST adapters-more sensitive to timeouts
         configs.put("http", createHttpConfig());
 
-        // Database adapters - longer wait times, fewer retries
+        // Database adapters-longer wait times, fewer retries
         configs.put("database", createDatabaseConfig());
 
-        // Message queue adapters - high throughput, quick recovery
+        // Message queue adapters-high throughput, quick recovery
         configs.put("messaging", createMessagingConfig());
 
-        // File transfer adapters - longer operations, patient recovery
+        // File transfer adapters-longer operations, patient recovery
         configs.put("file", createFileTransferConfig());
 
-        // SAP adapters - critical systems, conservative approach
+        // SAP adapters-critical systems, conservative approach
         configs.put("sap", createSapConfig());
 
         return CircuitBreakerRegistry.of(configs);
@@ -151,7 +151,7 @@ public class CircuitBreakerConfiguration {
 
     private CircuitBreakerConfig createSapConfig() {
         return CircuitBreakerConfig.custom()
-            .failureRateThreshold(80) // Very tolerant - SAP is critical
+            .failureRateThreshold(80) // Very tolerant-SAP is critical
             .waitDurationInOpenState(Duration.ofMinutes(10)) // Long recovery period
             .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
             .slidingWindowSize(10) // Small window for critical systems

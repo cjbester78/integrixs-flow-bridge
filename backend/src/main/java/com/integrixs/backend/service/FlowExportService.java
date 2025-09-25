@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.integrixs.backend.exception.ResourceNotFoundException;
 import com.integrixs.backend.security.SecurityUtils;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import com.integrixs.shared.dto.*;
 import com.integrixs.shared.dto.business.BusinessComponentDTO;
 import com.integrixs.shared.dto.certificate.CertificateDTO;
@@ -34,17 +34,35 @@ public class FlowExportService {
     private static final Logger log = LoggerFactory.getLogger(FlowExportService.class);
 
 
-    private final IntegrationFlowRepository integrationFlowRepository;
-    private final CommunicationAdapterRepository communicationAdapterRepository;
-    private final BusinessComponentRepository businessComponentRepository;
-    private final FlowTransformationRepository flowTransformationRepository;
-    private final FieldMappingRepository fieldMappingRepository;
-    private final CertificateRepository certificateRepository;
-    private final SystemLogRepository systemLogRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
+    private final BusinessComponentSqlRepository businessComponentRepository;
+    private final FlowTransformationSqlRepository flowTransformationRepository;
+    private final FieldMappingSqlRepository fieldMappingRepository;
+    private final CertificateSqlRepository certificateRepository;
+    private final SystemLogSqlRepository systemLogRepository;
     private final ObjectMapper objectMapper;
 
-    @Value("$ {app.version:1.0.0}")
+    @Value("${app.version:1.0.0}")
     private String applicationVersion;
+    
+    public FlowExportService(IntegrationFlowSqlRepository integrationFlowRepository,
+                            CommunicationAdapterSqlRepository communicationAdapterRepository,
+                            BusinessComponentSqlRepository businessComponentRepository,
+                            FlowTransformationSqlRepository flowTransformationRepository,
+                            FieldMappingSqlRepository fieldMappingRepository,
+                            CertificateSqlRepository certificateRepository,
+                            SystemLogSqlRepository systemLogRepository,
+                            ObjectMapper objectMapper) {
+        this.integrationFlowRepository = integrationFlowRepository;
+        this.communicationAdapterRepository = communicationAdapterRepository;
+        this.businessComponentRepository = businessComponentRepository;
+        this.flowTransformationRepository = flowTransformationRepository;
+        this.fieldMappingRepository = fieldMappingRepository;
+        this.certificateRepository = certificateRepository;
+        this.systemLogRepository = systemLogRepository;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Export a flow with all its dependencies.

@@ -3,8 +3,8 @@ package com.integrixs.backend.application.service;
 import com.integrixs.backend.api.dto.request.CreateFieldMappingRequest;
 import com.integrixs.backend.api.dto.request.UpdateFieldMappingRequest;
 import com.integrixs.backend.api.dto.response.FieldMappingResponse;
-import com.integrixs.data.repository.FieldMappingRepository;
-import com.integrixs.data.repository.FlowTransformationRepository;
+import com.integrixs.data.sql.repository.FieldMappingSqlRepository;
+import com.integrixs.data.sql.repository.FlowTransformationSqlRepository;
 import com.integrixs.backend.domain.service.MappingEngineService;
 import com.integrixs.backend.exception.ResourceNotFoundException;
 import com.integrixs.backend.service.AuditTrailService;
@@ -29,13 +29,13 @@ public class FieldMappingApplicationService {
     private static final Logger log = LoggerFactory.getLogger(FieldMappingApplicationService.class);
 
 
-    private final FieldMappingRepository fieldMappingRepository;
-    private final FlowTransformationRepository transformationRepository;
+    private final FieldMappingSqlRepository fieldMappingRepository;
+    private final FlowTransformationSqlRepository transformationRepository;
     private final MappingEngineService mappingEngineService;
     private final AuditTrailService auditTrailService;
     
-    public FieldMappingApplicationService(FieldMappingRepository fieldMappingRepository,
-                                        FlowTransformationRepository transformationRepository,
+    public FieldMappingApplicationService(FieldMappingSqlRepository fieldMappingRepository,
+                                        FlowTransformationSqlRepository transformationRepository,
                                         MappingEngineService mappingEngineService,
                                         AuditTrailService auditTrailService) {
         this.fieldMappingRepository = fieldMappingRepository;

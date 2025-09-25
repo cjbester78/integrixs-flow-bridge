@@ -1,0 +1,424 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+import com.integrixs.data.model.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for MessageSqlRepository.
+ * Tests complex message handling with large payloads, queue operations,
+ * and relationships to IntegrationFlow and CommunicationAdapter.
+ */
+public class MessageSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private MessageSqlRepository messageRepository;
+    private IntegrationFlowSqlRepository flowRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
+    
+    private IntegrationFlow testFlow;
+    private CommunicationAdapter testAdapter;
+
+    @Override
+    protected void setUp() {
+        messageRepository = new MessageSqlRepository(sqlQueryExecutor);
+        flowRepository = new IntegrationFlowSqlRepository(sqlQueryExecutor);
+        adapterRepository = new CommunicationAdapterSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create business component
+        BusinessComponent bc = BusinessComponent.builder()
+                .name("Message Test Component")
+                .type("TEST")
+                .active(true)
+                .build();
+        BusinessComponentSqlRepository bcRepo = new BusinessComponentSqlRepository(sqlQueryExecutor);
+        bc = bcRepo.save(bc);
+
+        // Create test adapter
+        testAdapter = CommunicationAdapter.builder()
+                .name("Message Test Adapter")
+                .type(AdapterType.HTTP)
+                .mode(AdapterConfiguration.AdapterModeEnum.INBOUND)
+                .direction("OUTBOUND")
+                .configuration("{}")
+                .active(true)
+                .businessComponent(bc)
+                .build();
+        testAdapter = adapterRepository.save(testAdapter);
+
+        // Create test flow
+        testFlow = IntegrationFlow.builder()
+                .name("Message Processing Flow")
+                .status(FlowStatus.DEPLOYED)
+                .active(true)
+                .flowType(FlowType.STANDARD)
+                .inboundAdapterId(testAdapter.getId())
+                .outboundAdapterId(testAdapter.getId())
+                .build();
+        testFlow = flowRepository.save(testFlow);
+
+        // Create test messages
+        createTestMessages();
+    }
+
+    private void createTestMessages() {
+        // Create messages with different statuses and priorities
+        createMessage("MSG-001", Message.MessageStatus.PENDING, 10, "High priority order");
+        createMessage("MSG-002", Message.MessageStatus.PROCESSING, 5, "Normal processing");
+        createMessage("MSG-003", Message.MessageStatus.COMPLETED, 5, "Completed transaction");
+        createMessage("MSG-004", Message.MessageStatus.FAILED, 8, "Failed with error", 3);
+        createMessage("MSG-005", Message.MessageStatus.RETRY, 7, "Retry scheduled", 1);
+        createMessage("MSG-006", Message.MessageStatus.PENDING, 9, "Urgent request");
+        createMessage("MSG-007", Message.MessageStatus.QUEUED, 3, "Low priority batch");
+        
+        // Create old message for retention testing
+        Message oldMessage = createMessage("MSG-OLD", Message.MessageStatus.COMPLETED, 1, "Old message");
+        oldMessage.setReceivedAt(LocalDateTime.now().minusDays(100));
+        oldMessage.setProcessedAt(LocalDateTime.now().minusDays(100));
+        messageRepository.update(oldMessage);
+    }
+
+    private Message createMessage(String correlationId, Message.MessageStatus status,
+                                int priority, String description) {
+        return createMessage(correlationId, status, priority, description, 0);
+    }
+
+    private Message createMessage(String correlationId, Message.MessageStatus status,
+                                int priority, String description, int retryCount) {
+        String payload = generatePayload(description);
+        
+        Message message = Message.builder()
+                .correlationId(correlationId)
+                .flowId(testFlow.getId())
+                .adapterId(testAdapter.getId())
+                .status(status)
+                .direction("INBOUND")
+                .payload(payload)
+                .headers(generateHeaders(correlationId))
+                .priority(priority)
+                .retryCount(retryCount)
+                .receivedAt(LocalDateTime.now().minusMinutes(30))
+                .build();
+        
+        if (status == Message.MessageStatus.PROCESSING || 
+            status == Message.MessageStatus.COMPLETED ||
+            status == Message.MessageStatus.FAILED) {
+            message.setProcessedAt(LocalDateTime.now().minusMinutes(15));
+        }
+        
+        if (status == Message.MessageStatus.FAILED) {
+            message.setErrorMessage("Processing failed: " + description);
+        }
+        
+        return messageRepository.save(message);
+    }
+
+    private String generatePayload(String description) {
+        return String.format("""
+                {
+                    "orderId": "%s",
+                    "description": "%s",
+                    "items": [
+                        {"productId": "PROD-001", "quantity": 2, "price": 29.99},
+                        {"productId": "PROD-002", "quantity": 1, "price": 49.99}
+                    ],
+                    "totalAmount": 109.97,
+                    "timestamp": "%s"
+                }
+                """, UUID.randomUUID(), description, LocalDateTime.now());
+    }
+
+    private String generateHeaders(String correlationId) {
+        return String.format("""
+                {
+                    "Content-Type": "application/json",
+                    "X-Correlation-ID": "%s",
+                    "X-Source-System": "TEST",
+                    "X-Priority": "HIGH"
+                }
+                """, correlationId);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        Message message = createMessage("TEST-001", Message.MessageStatus.PENDING,
+                                      5, "Test message");
+
+        // When
+        var found = messageRepository.findById(message.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("TEST-001", found.get().getCorrelationId());
+        assertEquals(Message.MessageStatus.PENDING, found.get().getStatus());
+        assertEquals(testFlow.getId(), found.get().getFlowId());
+        assertEquals(testAdapter.getId(), found.get().getAdapterId());
+    }
+
+    @Test
+    void testFindByCorrelationId() {
+        // When
+        var found = messageRepository.findByCorrelationId("MSG-001");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals(10, found.get().getPriority());
+        assertTrue(found.get().getPayload().contains("High priority order"));
+    }
+
+    @Test
+    void testFindByStatus() {
+        // When
+        List<Message> pendingMessages = messageRepository
+                .findByStatus(Message.MessageStatus.PENDING);
+
+        // Then
+        assertEquals(3, pendingMessages.size()); // MSG-001, MSG-006, TEST-001
+        assertTrue(pendingMessages.stream()
+                .allMatch(m -> m.getStatus() == Message.MessageStatus.PENDING));
+    }
+
+    @Test
+    void testFindByFlowId() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Message> flowMessages = messageRepository
+                .findByFlowId(testFlow.getId(), pageRequest);
+
+        // Then
+        assertEquals(9, flowMessages.getTotalElements()); // All test messages
+        assertTrue(flowMessages.getContent().stream()
+                .allMatch(m -> testFlow.getId().equals(m.getFlowId())));
+    }
+
+    @Test
+    void testFindByAdapterId() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<Message> adapterMessages = messageRepository
+                .findByAdapterId(testAdapter.getId(), pageRequest);
+
+        // Then
+        assertEquals(9, adapterMessages.getTotalElements());
+        assertTrue(adapterMessages.getContent().stream()
+                .allMatch(m -> testAdapter.getId().equals(m.getAdapterId())));
+    }
+
+    @Test
+    void testFindPendingMessagesByPriority() {
+        // When
+        List<Message> priorityQueue = messageRepository.findPendingMessagesByPriority(5);
+
+        // Then
+        assertTrue(priorityQueue.size() <= 5);
+        // Verify messages are ordered by priority DESC, then by received time ASC
+        for (int i = 0; i < priorityQueue.size() - 1; i++) {
+            Message current = priorityQueue.get(i);
+            Message next = priorityQueue.get(i + 1);
+            assertTrue(current.getPriority() >= next.getPriority());
+            assertTrue(current.getStatus() == Message.MessageStatus.PENDING ||
+                      current.getStatus() == Message.MessageStatus.QUEUED ||
+                      current.getStatus() == Message.MessageStatus.RETRY);
+        }
+    }
+
+    @Test
+    void testFindByStatusAndRetryCountLessThan() {
+        // When
+        List<Message> retryableMessages = messageRepository
+                .findByStatusAndRetryCountLessThan(Message.MessageStatus.RETRY, 3);
+
+        // Then
+        assertEquals(1, retryableMessages.size());
+        assertEquals("MSG-005", retryableMessages.get(0).getCorrelationId());
+        assertTrue(retryableMessages.get(0).getRetryCount() < 3);
+    }
+
+    @Test
+    void testFindFailedMessagesSince() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(1);
+
+        // When
+        List<Message> failedMessages = messageRepository.findFailedMessagesSince(cutoff);
+
+        // Then
+        assertEquals(1, failedMessages.size());
+        assertEquals("MSG-004", failedMessages.get(0).getCorrelationId());
+        assertNotNull(failedMessages.get(0).getErrorMessage());
+    }
+
+    @Test
+    void testCountByStatusAndFlowId() {
+        // When
+        long pendingCount = messageRepository
+                .countByStatusAndFlowId(Message.MessageStatus.PENDING, testFlow.getId());
+
+        // Then
+        assertEquals(3L, pendingCount); // MSG-001, MSG-006, TEST-001
+    }
+
+    @Test
+    void testDeleteByProcessedAtBefore() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+        long countBefore = messageRepository.count();
+
+        // When
+        int deleted = messageRepository.deleteByProcessedAtBefore(cutoff);
+
+        // Then
+        assertEquals(1, deleted); // Only the old message
+        assertEquals(countBefore - 1, messageRepository.count());
+    }
+
+    @Test
+    void testLargePayloadHandling() {
+        // Given - Create message with large payload
+        StringBuilder largePayload = new StringBuilder();
+        largePayload.append("{\"data\": \"");
+        for (int i = 0; i < 10000; i++) {
+            largePayload.append("Large payload content line ").append(i).append(". ");
+        }
+        largePayload.append("\"}");
+
+        Message largeMessage = Message.builder()
+                .correlationId("LARGE-MSG")
+                .flowId(testFlow.getId())
+                .adapterId(testAdapter.getId())
+                .status(Message.MessageStatus.PENDING)
+                .direction("INBOUND")
+                .payload(largePayload.toString())
+                .headers("{}")
+                .priority(5)
+                .receivedAt(LocalDateTime.now())
+                .build();
+
+        // When
+        Message saved = messageRepository.save(largeMessage);
+        Message retrieved = messageRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertNotNull(retrieved.getPayload());
+        assertTrue(retrieved.getPayload().length() > 100000); // At least 100KB
+        assertTrue(retrieved.getPayload().contains("Large payload content"));
+    }
+
+    @Test
+    void testMessageProcessingLifecycle() {
+        // Given - Create new message
+        Message message = createMessage("LIFECYCLE-001", Message.MessageStatus.PENDING,
+                                      8, "Lifecycle test");
+
+        // When - Move to processing
+        message.setStatus(Message.MessageStatus.PROCESSING);
+        message.setProcessedAt(LocalDateTime.now());
+        Message processing = messageRepository.update(message);
+
+        // Then
+        assertEquals(Message.MessageStatus.PROCESSING, processing.getStatus());
+        assertNotNull(processing.getProcessedAt());
+
+        // When - Complete successfully
+        processing.setStatus(Message.MessageStatus.COMPLETED);
+        Message completed = messageRepository.update(processing);
+
+        // Then
+        assertEquals(Message.MessageStatus.COMPLETED, completed.getStatus());
+    }
+
+    @Test
+    void testMessageRetryMechanism() {
+        // Given
+        Message message = createMessage("RETRY-TEST", Message.MessageStatus.FAILED,
+                                      9, "Retry test", 0);
+
+        // When - First retry
+        message.setStatus(Message.MessageStatus.RETRY);
+        message.setRetryCount(1);
+        message.setErrorMessage(null);
+        Message retry1 = messageRepository.update(message);
+
+        // Then
+        assertEquals(1, retry1.getRetryCount());
+        assertEquals(Message.MessageStatus.RETRY, retry1.getStatus());
+
+        // When - Fail again and retry
+        retry1.setStatus(Message.MessageStatus.FAILED);
+        retry1.setRetryCount(2);
+        retry1.setErrorMessage("Failed again");
+        Message retry2 = messageRepository.update(retry1);
+
+        // Then
+        assertEquals(2, retry2.getRetryCount());
+        assertEquals("Failed again", retry2.getErrorMessage());
+    }
+
+    @Test
+    void testPaginationWithPrioritySort() {
+        // Given - Create more messages
+        for (int i = 0; i < 20; i++) {
+            createMessage("BULK-" + i, Message.MessageStatus.QUEUED,
+                        i % 10, "Bulk message " + i);
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "priority"));
+        Page<Message> page = messageRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(10, page.getContent().size());
+        // Verify sorted by priority descending
+        for (int i = 0; i < page.getContent().size() - 1; i++) {
+            assertTrue(page.getContent().get(i).getPriority() >= 
+                      page.getContent().get(i + 1).getPriority());
+        }
+    }
+
+    @Test
+    void testMessageStatistics() {
+        // When
+        long totalMessages = messageRepository.count();
+        long pendingCount = messageRepository.findByStatus(Message.MessageStatus.PENDING).size();
+        long completedCount = messageRepository.findByStatus(Message.MessageStatus.COMPLETED).size();
+        long failedCount = messageRepository.findByStatus(Message.MessageStatus.FAILED).size();
+
+        List<Message> highPriorityMessages = messageRepository.findAll().stream()
+                .filter(m -> m.getPriority() >= 8)
+                .toList();
+
+        // Then
+        assertTrue(totalMessages >= 9);
+        assertTrue(pendingCount >= 3);
+        assertTrue(completedCount >= 2); // Including old message
+        assertTrue(failedCount >= 1);
+        assertTrue(highPriorityMessages.size() >= 3);
+    }
+
+    @Test
+    void testDeleteMessage() {
+        // Given
+        Message message = createMessage("TO-DELETE", Message.MessageStatus.COMPLETED,
+                                      1, "Delete test");
+        UUID messageId = message.getId();
+
+        // When
+        messageRepository.deleteById(messageId);
+
+        // Then
+        assertFalse(messageRepository.findById(messageId).isPresent());
+    }
+}

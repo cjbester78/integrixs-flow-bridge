@@ -3,7 +3,7 @@ package com.integrixs.backend.domain.service;
 import com.integrixs.shared.exceptions.SessionException;
 import com.integrixs.data.model.User;
 import com.integrixs.data.model.UserSession;
-import com.integrixs.data.repository.UserSessionRepository;
+import com.integrixs.data.sql.repository.UserSessionSqlRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,9 +15,9 @@ import java.util.UUID;
 @Service
 public class UserSessionService {
 
-    private final UserSessionRepository sessionRepository;
+    private final UserSessionSqlRepository sessionRepository;
 
-    public UserSessionService(UserSessionRepository sessionRepository) {
+    public UserSessionService(UserSessionSqlRepository sessionRepository) {
         this.sessionRepository = sessionRepository;
     }
 

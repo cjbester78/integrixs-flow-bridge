@@ -2,11 +2,10 @@ package com.integrixs.backend.service;
 
 import com.integrixs.backend.exception.BusinessException;
 import com.integrixs.data.model.TransformationCustomFunction;
-import com.integrixs.data.repository.TransformationCustomFunctionRepository;
+import com.integrixs.data.sql.repository.TransformationCustomFunctionSqlRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +30,11 @@ public class DevelopmentFunctionService {
 
     private static final Logger log = LoggerFactory.getLogger(DevelopmentFunctionService.class);
 
-
-    private final TransformationCustomFunctionRepository functionRepository;
+    private final TransformationCustomFunctionSqlRepository functionRepository;
     private final JavaCompilationService compilationService;
     private final org.springframework.core.env.Environment environment;
 
-    public DevelopmentFunctionService(TransformationCustomFunctionRepository functionRepository,
+    public DevelopmentFunctionService(TransformationCustomFunctionSqlRepository functionRepository,
                                       JavaCompilationService compilationService,
                                       org.springframework.core.env.Environment environment) {
         this.functionRepository = functionRepository;
@@ -108,11 +106,8 @@ public class DevelopmentFunctionService {
             log.debug("Found {} built - in functions", builtInFunctions.size());
             response.setBuiltInFunctions(convertToBuiltInFunctions(builtInFunctions));
 
-            // Get custom functions from database(non - built - in)
-            Specification<TransformationCustomFunction> spec = (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("builtIn"), false);
-
-            Page<TransformationCustomFunction> customFunctions = functionRepository.findAll(spec, pageable);
+            // Get custom functions from database (non-built-in)
+            Page<TransformationCustomFunction> customFunctions = functionRepository.findByBuiltInFalse(pageable);
             log.debug("Found {} custom functions", customFunctions.getTotalElements());
             response.setCustomFunctions(CustomFunctionsPage.fromPage(customFunctions));
 

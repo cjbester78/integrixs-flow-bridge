@@ -3,8 +3,8 @@ package com.integrixs.engine.infrastructure.flow;
 import com.integrixs.data.model.FieldMapping;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.MappingMode;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import com.integrixs.engine.domain.model.AdapterExecutionContext;
 import com.integrixs.engine.domain.model.AdapterExecutionResult;
 import com.integrixs.engine.domain.model.FlowExecutionContext;
@@ -36,10 +36,10 @@ public class FlowExecutionServiceImpl implements FlowExecutionService {
     private final FlowAdapterExecutor adapterExecutionService;
     private final FlowMessageProcessor flowMessageProcessor;
     private final HierarchicalXmlFieldMapper xmlFieldMapper;
-    private final IntegrationFlowRepository integrationFlowRepository;
-    private final CommunicationAdapterRepository communicationAdapterRepository;
+    private final IntegrationFlowSqlRepository integrationFlowRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
 
-    public FlowExecutionServiceImpl(FlowAdapterExecutor adapterExecutionService, FlowMessageProcessor flowMessageProcessor, HierarchicalXmlFieldMapper xmlFieldMapper, IntegrationFlowRepository integrationFlowRepository, CommunicationAdapterRepository communicationAdapterRepository) {
+    public FlowExecutionServiceImpl(FlowAdapterExecutor adapterExecutionService, FlowMessageProcessor flowMessageProcessor, HierarchicalXmlFieldMapper xmlFieldMapper, IntegrationFlowSqlRepository integrationFlowRepository, CommunicationAdapterSqlRepository communicationAdapterRepository) {
         this.adapterExecutionService = adapterExecutionService;
         this.flowMessageProcessor = flowMessageProcessor;
         this.xmlFieldMapper = xmlFieldMapper;

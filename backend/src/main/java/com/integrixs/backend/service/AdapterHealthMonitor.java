@@ -2,8 +2,8 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.AdapterHealthRecord;
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.AdapterHealthRecordRepository;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.AdapterHealthRecordSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.shared.enums.AdapterType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jsch.*;
@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Adapter Health Monitor - Monitors the health status of all adapters
+ * Adapter Health Monitor-Monitors the health status of all adapters
  * Performs periodic health checks, tracks metrics, and alerts on failures
  */
 @Service
@@ -58,10 +58,10 @@ public class AdapterHealthMonitor {
     private static final Logger logger = LoggerFactory.getLogger(AdapterHealthMonitor.class);
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     @Autowired
-    private AdapterHealthRecordRepository healthRecordRepository;
+    private AdapterHealthRecordSqlRepository healthRecordRepository;
 
     @Autowired(required = false)
     private RestTemplate restTemplate;
@@ -71,13 +71,13 @@ public class AdapterHealthMonitor {
 
     private AdapterPoolManager poolManager;
 
-    @Value("$ {integrix.health.check.interval:30000}")
+    @Value("${integrix.health.check.interval:30000}")
     private long healthCheckIntervalMs;
 
-    @Value("$ {integrix.health.check.timeout:10000}")
+    @Value("${integrix.health.check.timeout:10000}")
     private long healthCheckTimeoutMs;
 
-    @Value("$ {integrix.health.failure.threshold:3}")
+    @Value("${integrix.health.failure.threshold:3}")
     private int failureThreshold;
 
     // Health check executor
@@ -235,7 +235,7 @@ public class AdapterHealthMonitor {
                     return checkGenericHealth(adapter);
             }
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -278,10 +278,10 @@ public class AdapterHealthMonitor {
                    );
 
                     if(response.getStatusCode().is2xxSuccessful()) {
-                        long responseTime = System.currentTimeMillis() - startTime;
+                        long responseTime = System.currentTimeMillis()-startTime;
                         return HealthCheckResult.healthy(responseTime);
                     } else {
-                        long responseTime = System.currentTimeMillis() - startTime;
+                        long responseTime = System.currentTimeMillis()-startTime;
                         return HealthCheckResult.unhealthy(
                             "HTTP " + response.getStatusCodeValue(),
                             responseTime
@@ -313,21 +313,18 @@ public class AdapterHealthMonitor {
             conn.disconnect();
 
             if(responseCode >= 200 && responseCode < 300) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.healthy(responseTime);
             } else {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "HTTP " + responseCode,
                     responseTime
                );
             }
 
-            long responseTime = System.currentTimeMillis() - startTime;
-            return HealthCheckResult.healthy(responseTime);
-
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -371,21 +368,18 @@ public class AdapterHealthMonitor {
                 jdbcTemplate.setQueryTimeout(timeout / 1000);
                 jdbcTemplate.queryForObject(validationQuery, Integer.class);
 
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.healthy(responseTime);
             } catch(SQLException e) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "Database error: " + e.getMessage(),
                     responseTime
                );
             }
 
-            long responseTime = System.currentTimeMillis() - startTime;
-            return HealthCheckResult.healthy(responseTime);
-
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -409,7 +403,7 @@ public class AdapterHealthMonitor {
             Path path = Paths.get(directory);
 
             if(!Files.exists(path)) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "Directory does not exist: " + directory,
                     responseTime
@@ -417,7 +411,7 @@ public class AdapterHealthMonitor {
             }
 
             if(!Files.isDirectory(path)) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "Path is not a directory: " + directory,
                     responseTime
@@ -430,7 +424,7 @@ public class AdapterHealthMonitor {
 
             String mode = (String) config.getOrDefault("mode", "READ");
             if("WRITE".equalsIgnoreCase(mode) && !canWrite) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "No write permission for directory: " + directory,
                     responseTime
@@ -438,18 +432,18 @@ public class AdapterHealthMonitor {
             }
 
             if(!canRead) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "No read permission for directory: " + directory,
                     responseTime
                );
             }
 
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.healthy(responseTime);
 
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -498,7 +492,7 @@ public class AdapterHealthMonitor {
                     // Try to list root directory
                     channelSftp.ls("/");
 
-                    long responseTime = System.currentTimeMillis() - startTime;
+                    long responseTime = System.currentTimeMillis()-startTime;
                     return HealthCheckResult.healthy(responseTime);
 
                 } finally {
@@ -518,7 +512,7 @@ public class AdapterHealthMonitor {
                         ftpClient.disconnect();
                         return HealthCheckResult.unhealthy(
                             "FTP connection refused",
-                            System.currentTimeMillis() - startTime
+                            System.currentTimeMillis()-startTime
                        );
                     }
 
@@ -530,14 +524,14 @@ public class AdapterHealthMonitor {
                     if(!loggedIn) {
                         return HealthCheckResult.unhealthy(
                             "FTP login failed",
-                            System.currentTimeMillis() - startTime
+                            System.currentTimeMillis()-startTime
                        );
                     }
 
                     // Try to get working directory
                     ftpClient.printWorkingDirectory();
 
-                    long responseTime = System.currentTimeMillis() - startTime;
+                    long responseTime = System.currentTimeMillis()-startTime;
                     return HealthCheckResult.healthy(responseTime);
 
                 } finally {
@@ -548,11 +542,8 @@ public class AdapterHealthMonitor {
                 }
             }
 
-            long responseTime = System.currentTimeMillis() - startTime;
-            return HealthCheckResult.healthy(responseTime);
-
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -587,7 +578,7 @@ public class AdapterHealthMonitor {
             if(host == null || queueManager == null) {
                 return HealthCheckResult.unhealthy(
                     "IBM MQ configuration incomplete(missing host or queue manager)",
-                    System.currentTimeMillis() - startTime
+                    System.currentTimeMillis()-startTime
                );
             }
 
@@ -606,13 +597,13 @@ public class AdapterHealthMonitor {
                 } else {
                     // IBM MQ would be configured here with MQConnectionFactory
                     return HealthCheckResult.healthy(
-                        System.currentTimeMillis() - startTime
+                        System.currentTimeMillis()-startTime
                    );
                 }
             } catch(Exception e) {
                 return HealthCheckResult.unhealthy(
                     "Failed to create IBM MQ connection factory: " + e.getMessage(),
-                    System.currentTimeMillis() - startTime
+                    System.currentTimeMillis()-startTime
                );
             }
 
@@ -639,11 +630,11 @@ public class AdapterHealthMonitor {
                     consumer.close();
                 }
 
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.healthy(responseTime);
 
             } catch(JMSException e) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "JMS error: " + e.getMessage(),
                     responseTime
@@ -656,12 +647,8 @@ public class AdapterHealthMonitor {
                     logger.warn("Error closing JMS resources", e);
                 }
             }
-
-            long responseTime = System.currentTimeMillis() - startTime;
-            return HealthCheckResult.healthy(responseTime);
-
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -686,7 +673,7 @@ public class AdapterHealthMonitor {
             }
 
             try {
-                // Simple SOAP connectivity check - try to fetch WSDL
+                // Simple SOAP connectivity check-try to fetch WSDL
                 if(wsdlUrl != null) {
                     URL url = new URL(wsdlUrl);
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -705,12 +692,12 @@ public class AdapterHealthMonitor {
                     conn.disconnect();
 
                     if(responseCode == 200) {
-                        long responseTime = System.currentTimeMillis() - startTime;
+                        long responseTime = System.currentTimeMillis()-startTime;
                         return HealthCheckResult.healthy(responseTime);
                     } else {
                         return HealthCheckResult.unhealthy(
                             "WSDL fetch failed: HTTP " + responseCode,
-                            System.currentTimeMillis() - startTime
+                            System.currentTimeMillis()-startTime
                        );
                     }
                 } else if(endpoint != null) {
@@ -731,7 +718,7 @@ public class AdapterHealthMonitor {
                     URL url = new URL(endpoint);
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Content - Type", "text/xml; charset = utf-8");
+                    conn.setRequestProperty("Content-Type", "text/xml; charset = utf-8");
                     conn.setRequestProperty("SOAPAction", "");
                     conn.setConnectTimeout(timeout);
                     conn.setReadTimeout(timeout);
@@ -751,12 +738,12 @@ public class AdapterHealthMonitor {
 
                     // Accept any 2xx or 500(SOAP fault) as "connected"
                     if((responseCode >= 200 && responseCode < 300) || responseCode == 500) {
-                        long responseTime = System.currentTimeMillis() - startTime;
+                        long responseTime = System.currentTimeMillis()-startTime;
                         return HealthCheckResult.healthy(responseTime);
                     } else {
                         return HealthCheckResult.unhealthy(
                             "SOAP endpoint returned HTTP " + responseCode,
-                            System.currentTimeMillis() - startTime
+                            System.currentTimeMillis()-startTime
                        );
                     }
                 }
@@ -764,18 +751,14 @@ public class AdapterHealthMonitor {
                 return HealthCheckResult.unhealthy("No valid SOAP configuration", 0);
 
             } catch(Exception e) {
-                long responseTime = System.currentTimeMillis() - startTime;
+                long responseTime = System.currentTimeMillis()-startTime;
                 return HealthCheckResult.unhealthy(
                     "SOAP error: " + e.getMessage(),
                     responseTime
                );
             }
-
-            long responseTime = System.currentTimeMillis() - startTime;
-            return HealthCheckResult.healthy(responseTime);
-
         } catch(Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
+            long responseTime = System.currentTimeMillis()-startTime;
             return HealthCheckResult.unhealthy(e.getMessage(), responseTime);
         }
     }
@@ -784,7 +767,7 @@ public class AdapterHealthMonitor {
      * Generic health check
      */
     private HealthCheckResult checkGenericHealth(CommunicationAdapter adapter) {
-        // Basic check - just verify adapter can be created
+        // Basic check-just verify adapter can be created
         try {
             // Try to get adapter from pool
             var poolStats = poolManager.getPoolStatistics(adapter.getId().toString());
@@ -808,7 +791,7 @@ public class AdapterHealthMonitor {
             adapter.getName(), status.getConsecutiveFailures());
 
         // Send notification
-        logger.error("Adapter health failure notification - adapter: {} ( {}), error: {}",
+        logger.error("Adapter health failure notification-adapter: {} ( {}), error: {}",
             adapter.getName(), adapter.getId(), status.getLastError());
 
         // Mark adapter as unhealthy in database
@@ -999,12 +982,12 @@ public class AdapterHealthMonitor {
         public long getTotalChecks() { return totalChecks.get(); }
         public long getFailedChecks() { return failedChecks.get(); }
         public double getAverageResponseTime() {
-            long checks = totalChecks.get() - failedChecks.get();
+            long checks = totalChecks.get()-failedChecks.get();
             return checks > 0 ? (double) totalResponseTime.get() / checks : 0;
         }
         public double getUptime() {
             long total = totalChecks.get();
-            return total > 0 ? ((double) (total - failedChecks.get()) / total) * 100 : 100;
+            return total > 0 ? ((double) (total-failedChecks.get()) / total) * 100 : 100;
         }
     }
 

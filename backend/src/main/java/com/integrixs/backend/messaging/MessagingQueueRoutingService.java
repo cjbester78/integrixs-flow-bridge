@@ -3,7 +3,7 @@ package com.integrixs.backend.messaging;
 import com.integrixs.backend.service.ProcessEngineService;
 import com.integrixs.backend.service.EnhancedAdapterExecutionService;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -43,7 +43,7 @@ public class MessagingQueueRoutingService {
     private ProcessEngineService processEngineService;
 
     @Autowired
-    private IntegrationFlowRepository flowRepository;
+    private IntegrationFlowSqlRepository flowRepository;
 
     /**
      * RabbitMQ inbound listener

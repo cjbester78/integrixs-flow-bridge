@@ -1,7 +1,9 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.AlertRuleSqlRepository;
+import com.integrixs.data.sql.repository.AlertSqlRepository;
+import com.integrixs.data.sql.repository.NotificationChannelSqlRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,15 +25,15 @@ public class FlowAlertingService {
     private static final Logger log = LoggerFactory.getLogger(FlowAlertingService.class);
 
 
-    private final AlertRuleRepository alertRuleRepository;
-    private final AlertRepository alertRepository;
-    private final NotificationChannelRepository notificationChannelRepository;
+    private final AlertRuleSqlRepository alertRuleRepository;
+    private final AlertSqlRepository alertRepository;
+    private final NotificationChannelSqlRepository notificationChannelRepository;
     private final NotificationService notificationService;
     private final SystemLogService systemLogService;
 
-    public FlowAlertingService(AlertRuleRepository alertRuleRepository,
-                               AlertRepository alertRepository,
-                               NotificationChannelRepository notificationChannelRepository,
+    public FlowAlertingService(AlertRuleSqlRepository alertRuleRepository,
+                               AlertSqlRepository alertRepository,
+                               NotificationChannelSqlRepository notificationChannelRepository,
                                NotificationService notificationService,
                                SystemLogService systemLogService) {
         this.alertRuleRepository = alertRuleRepository;
@@ -341,7 +343,7 @@ public class FlowAlertingService {
 
             List<NotificationChannel> channels = notificationChannelRepository
                     .findEnabledChannelsByIds(channelIds.stream()
-                            .map(Long::valueOf)
+                            .map(UUID::fromString)
                             .collect(Collectors.toList()));
 
             for(NotificationChannel channel : channels) {
@@ -376,7 +378,7 @@ public class FlowAlertingService {
         if(!escalationChannelIds.isEmpty()) {
             List<NotificationChannel> channels = notificationChannelRepository
                     .findEnabledChannelsByIds(escalationChannelIds.stream()
-                            .map(Long::valueOf)
+                            .map(UUID::fromString)
                             .collect(Collectors.toList()));
 
             for(NotificationChannel channel : channels) {

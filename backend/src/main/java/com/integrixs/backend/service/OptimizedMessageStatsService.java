@@ -1,7 +1,7 @@
 package com.integrixs.backend.service;
 
 import com.integrixs.data.model.Message;
-import com.integrixs.data.repository.MessageRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
 import com.integrixs.shared.dto.MessageStatsDTO;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class OptimizedMessageStatsService extends MessageStatsService {
 
     private static final Logger log = LoggerFactory.getLogger(OptimizedMessageStatsService.class);
 
-    public OptimizedMessageStatsService(MessageRepository messageRepository) {
+    public OptimizedMessageStatsService(MessageSqlRepository messageRepository) {
         super(messageRepository);
     }
 

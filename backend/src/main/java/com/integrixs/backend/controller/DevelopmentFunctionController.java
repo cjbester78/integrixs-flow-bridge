@@ -30,6 +30,10 @@ public class DevelopmentFunctionController {
 
     private final DevelopmentFunctionService functionService;
 
+    public DevelopmentFunctionController(DevelopmentFunctionService functionService) {
+        this.functionService = functionService;
+    }
+
     @GetMapping
     @Operation(summary = "Get all functions", description = "Get all built - in and custom functions")
     public ResponseEntity<DevelopmentFunctionService.DevelopmentFunctionsResponse> getAllFunctions(

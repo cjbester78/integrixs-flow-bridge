@@ -36,6 +36,12 @@ public class CacheService {
     // Cache hit/miss tracking
     private final Map<String, AtomicLong> cacheHits = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> cacheMisses = new ConcurrentHashMap<>();
+    
+    public CacheService(CacheManager cacheManager, MeterRegistry meterRegistry) {
+        this.cacheManager = cacheManager;
+        this.meterRegistry = meterRegistry;
+        this.caffeineeCaches = new ConcurrentHashMap<>();
+    }
 
     @PostConstruct
     public void init() {

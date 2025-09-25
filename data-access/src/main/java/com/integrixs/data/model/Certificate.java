@@ -1,54 +1,36 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "certificates")
 /**
  * Entity representing Certificate.
  * This maps to the corresponding table in the database.
  */
 public class Certificate {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "UUID")
-    /** Unique identifier(UUID) for the entity */
+        /** Unique identifier(UUID) for the entity */
     private UUID id;
 
-    @Column(nullable = false)
     /** Name of the component */
     private String name;
 
-    @Column(nullable = false)
     private String format; // e.g., PEM, DER, P12
 
-    @Column(nullable = false)
     private String type;   // e.g., X.509, PKCS12
 
-    @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    @Column(name = "password")
     private String password; // encrypted if present
 
-    @Column(name = "uploaded_by", nullable = false)
     private String uploadedBy;
 
-    @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt;
 
-    @Column(nullable = false, columnDefinition = "BYTEA")
     private byte[] content;
 
     /**
      * Automatically sets creation and update timestamps before persisting.
      */
-    @PrePersist
     public void prePersist() {
         this.uploadedAt = LocalDateTime.now();
     }

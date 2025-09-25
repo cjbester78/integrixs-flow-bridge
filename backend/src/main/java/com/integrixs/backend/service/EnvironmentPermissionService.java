@@ -25,6 +25,10 @@ public class EnvironmentPermissionService {
 
 
     private final EnvironmentConfig environmentConfig;
+    
+    public EnvironmentPermissionService(EnvironmentConfig environmentConfig) {
+        this.environmentConfig = environmentConfig;
+    }
 
     /**
      * Check if a specific action is allowed in the current environment

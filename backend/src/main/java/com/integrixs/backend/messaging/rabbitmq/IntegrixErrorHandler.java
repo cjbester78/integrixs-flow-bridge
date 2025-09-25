@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * Custom error handler for RabbitMQ listeners
  */
-@Component
+@Component("integrixRabbitErrorHandler")
 public class IntegrixErrorHandler implements RabbitListenerErrorHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(IntegrixErrorHandler.class);

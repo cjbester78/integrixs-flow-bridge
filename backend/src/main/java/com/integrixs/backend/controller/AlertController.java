@@ -3,8 +3,8 @@ package com.integrixs.backend.controller;
 import com.integrixs.backend.service.FlowAlertingService;
 import com.integrixs.data.model.Alert;
 import com.integrixs.data.model.AlertRule;
-import com.integrixs.data.repository.AlertRepository;
-import com.integrixs.data.repository.AlertRuleRepository;
+import com.integrixs.data.sql.repository.AlertSqlRepository;
+import com.integrixs.data.sql.repository.AlertRuleSqlRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * REST controller for managing alerts
@@ -22,9 +23,17 @@ import java.util.Map;
 @RequestMapping("/api/v2/alerts")
 public class AlertController {
 
-    private final AlertRepository alertRepository;
-    private final AlertRuleRepository alertRuleRepository;
+    private final AlertSqlRepository alertRepository;
+    private final AlertRuleSqlRepository alertRuleRepository;
     private final FlowAlertingService alertingService;
+
+    public AlertController(AlertSqlRepository alertRepository,
+                           AlertRuleSqlRepository alertRuleRepository,
+                           FlowAlertingService alertingService) {
+        this.alertRepository = alertRepository;
+        this.alertRuleRepository = alertRuleRepository;
+        this.alertingService = alertingService;
+    }
 
     /**
      * Get all alerts with pagination
@@ -177,7 +186,7 @@ public class AlertController {
      */
     @GetMapping("/rules/ {ruleId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<AlertRule> getAlertRule(@PathVariable Long ruleId) {
+    public ResponseEntity<AlertRule> getAlertRule(@PathVariable UUID ruleId) {
         return alertRuleRepository.findById(ruleId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -207,7 +216,7 @@ public class AlertController {
     @PutMapping("/rules/ {ruleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlertRule> updateAlertRule(
-            @PathVariable Long ruleId,
+            @PathVariable UUID ruleId,
             @RequestBody AlertRule rule) {
 
         return alertRuleRepository.findById(ruleId)
@@ -245,7 +254,7 @@ public class AlertController {
      */
     @DeleteMapping("/rules/ {ruleId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteAlertRule(@PathVariable Long ruleId) {
+    public ResponseEntity<Void> deleteAlertRule(@PathVariable UUID ruleId) {
         if(alertRuleRepository.existsById(ruleId)) {
             alertRuleRepository.deleteById(ruleId);
             return ResponseEntity.noContent().build();
@@ -259,7 +268,7 @@ public class AlertController {
     @PatchMapping("/rules/ {ruleId}/enabled")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlertRule> toggleAlertRule(
-            @PathVariable Long ruleId,
+            @PathVariable UUID ruleId,
             @RequestParam boolean enabled) {
 
         return alertRuleRepository.findById(ruleId)

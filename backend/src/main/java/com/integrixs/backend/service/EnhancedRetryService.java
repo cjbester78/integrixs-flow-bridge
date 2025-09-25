@@ -2,8 +2,8 @@ package com.integrixs.backend.service;
 
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.RetryPolicy;
-import com.integrixs.data.repository.MessageRepository;
-import com.integrixs.data.repository.RetryPolicyRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
+import com.integrixs.data.sql.repository.RetryPolicySqlRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,17 +28,25 @@ public class EnhancedRetryService {
     private static final Logger log = LoggerFactory.getLogger(EnhancedRetryService.class);
 
 
-    private final MessageRepository messageRepository;
-    private final RetryPolicyRepository retryPolicyRepository;
+    private final MessageSqlRepository messageRepository;
+    private final RetryPolicySqlRepository retryPolicyRepository;
     private final MessageQueueService messageQueueService;
+    
+    public EnhancedRetryService(MessageSqlRepository messageRepository,
+                               RetryPolicySqlRepository retryPolicyRepository,
+                               MessageQueueService messageQueueService) {
+        this.messageRepository = messageRepository;
+        this.retryPolicyRepository = retryPolicyRepository;
+        this.messageQueueService = messageQueueService;
+    }
 
-    @Value("$ {integrix.retry.max - attempts:5}")
+    @Value("${integrix.retry.max-attempts:5}")
     private int defaultMaxAttempts;
 
-    @Value("$ {integrix.retry.initial - interval:1000}")
+    @Value("${integrix.retry.initial-interval:1000}")
     private long defaultInitialInterval;
 
-    @Value("$ {integrix.retry.max - interval:300000}") // 5 minutes
+    @Value("${integrix.retry.max-interval:300000}") // 5 minutes
     private long defaultMaxInterval;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
@@ -125,7 +133,7 @@ public class EnhancedRetryService {
             log.info("Executing retry for message {} (attempt {})",
                 message.getMessageId(), message.getRetryCount());
 
-            // Re - enqueue message with high priority
+            // Re-enqueue message with high priority
             messageQueueService.enqueueMessage(
                 flowId,
                 message.getMessageContent(),
@@ -168,7 +176,7 @@ public class EnhancedRetryService {
 
             case EXPONENTIAL_BACKOFF:
                 double multiplier = policy.getMultiplier() != null ? policy.getMultiplier() : 2.0;
-                delay = (long) (baseInterval * Math.pow(multiplier, attemptNumber - 1));
+                delay = (long) (baseInterval * Math.pow(multiplier, attemptNumber-1));
                 break;
 
             case LINEAR_BACKOFF:
@@ -272,7 +280,7 @@ public class EnhancedRetryService {
 
         if(future != null && !future.isDone()) {
             boolean cancelled = future.cancel(false);
-            log.info("Cancelled retry for message {} - success: {}", messageId, cancelled);
+            log.info("Cancelled retry for message {}-success: {}", messageId, cancelled);
             return cancelled;
         }
 

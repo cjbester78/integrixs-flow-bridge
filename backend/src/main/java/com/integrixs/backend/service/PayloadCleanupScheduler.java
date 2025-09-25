@@ -16,11 +16,15 @@ public class PayloadCleanupScheduler {
 
 
     private final MessageLazyLoadingService messageLazyLoadingService;
+    
+    public PayloadCleanupScheduler(MessageLazyLoadingService messageLazyLoadingService) {
+        this.messageLazyLoadingService = messageLazyLoadingService;
+    }
 
-    @Value("$ {payload.cleanup.days - to - keep:30}")
+    @Value("${payload.cleanup.days-to-keep:30}")
     private int daysToKeep;
 
-    @Value("$ {payload.cleanup.enabled:true}")
+    @Value("${payload.cleanup.enabled:true}")
     private boolean cleanupEnabled;
 
     /**
@@ -34,7 +38,7 @@ public class PayloadCleanupScheduler {
         }
 
         try {
-            log.info("Starting scheduled payload cleanup - removing files older than {} days", daysToKeep);
+            log.info("Starting scheduled payload cleanup-removing files older than {} days", daysToKeep);
             messageLazyLoadingService.cleanupOrphanedPayloads(daysToKeep);
             log.info("Completed scheduled payload cleanup");
         } catch(Exception e) {

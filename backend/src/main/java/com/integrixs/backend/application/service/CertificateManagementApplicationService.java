@@ -1,6 +1,6 @@
 package com.integrixs.backend.application.service;
 
-import com.integrixs.data.repository.CertificateRepository;
+import com.integrixs.data.sql.repository.CertificateSqlRepository;
 import com.integrixs.backend.domain.service.CertificateManagementService;
 import com.integrixs.backend.exception.ConflictException;
 import com.integrixs.backend.exception.ResourceNotFoundException;
@@ -30,12 +30,12 @@ import java.util.stream.Collectors;
 public class CertificateManagementApplicationService {
 
     private static final Logger log = LoggerFactory.getLogger(CertificateManagementApplicationService.class);
-    private final CertificateRepository certificateRepository;
+    private final CertificateSqlRepository certificateRepository;
     private final CertificateManagementService certificateManagementService;
     private final CertificateStorageService certificateStorageService;
     private final AuditTrailService auditTrailService;
 
-    public CertificateManagementApplicationService(CertificateRepository certificateRepository,
+    public CertificateManagementApplicationService(CertificateSqlRepository certificateRepository,
                                                    CertificateManagementService certificateManagementService,
                                                    CertificateStorageService certificateStorageService,
                                                    AuditTrailService auditTrailService) {

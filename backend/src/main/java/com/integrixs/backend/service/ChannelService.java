@@ -2,7 +2,7 @@ package com.integrixs.backend.service;
 
 import com.integrixs.shared.dto.ChannelStatusDTO;
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ public class ChannelService {
     private static final Logger logger = LoggerFactory.getLogger(ChannelService.class);
 
     @Autowired
-    private CommunicationAdapterRepository adapterRepository;
+    private CommunicationAdapterSqlRepository adapterRepository;
 
     public List<ChannelStatusDTO> getChannelStatuses(String businessComponentId) {
         try {

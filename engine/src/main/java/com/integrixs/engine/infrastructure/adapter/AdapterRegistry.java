@@ -1,7 +1,7 @@
 package com.integrixs.engine.infrastructure.adapter;
 
 import com.integrixs.data.model.CommunicationAdapter;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -19,7 +19,7 @@ public class AdapterRegistry {
     private static final Logger log = LoggerFactory.getLogger(AdapterRegistry.class);
 
 
-    private final CommunicationAdapterRepository communicationAdapterRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
 
     // Cache of registered adapters
     private final Map<String, CommunicationAdapter> adapterCache = new ConcurrentHashMap<>();
@@ -29,7 +29,7 @@ public class AdapterRegistry {
      * @param adapterId Adapter ID
      * @return true if registered
      */
-    public AdapterRegistry(CommunicationAdapterRepository communicationAdapterRepository) {
+    public AdapterRegistry(CommunicationAdapterSqlRepository communicationAdapterRepository) {
         this.communicationAdapterRepository = communicationAdapterRepository;
     }
 

@@ -1,10 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -12,55 +6,32 @@ import java.util.UUID;
 /**
  * Entity representing custom transformation functions that can be used in visual flow and orchestration editors
  */
-@Entity
-@Table(name = "transformation_custom_functions")
 public class TransformationCustomFunction {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "function_id", columnDefinition = "UUID")
-    private UUID functionId;
+        private UUID functionId;
 
-    @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 
-    @Column(name = "description", length = 500)
     private String description;
 
-    @Column(name = "category", length = 50)
     private String category;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "language", nullable = false, length = 20)
     private FunctionLanguage language;
 
-    @Column(name = "function_signature", nullable = false, length = 500)
     private String functionSignature;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "parameters", columnDefinition = "json")
     private String parameters; // JSON representation of function parameters
 
-    @Column(name = "function_body", nullable = false, columnDefinition = "TEXT")
     private String functionBody;
 
-    @ElementCollection
-    @CollectionTable(name = "function_dependencies", joinColumns = @JoinColumn(name = "function_id"))
-    @Column(name = "dependency")
     private List<String> dependencies;
 
-    @ElementCollection
-    @CollectionTable(name = "function_test_cases", joinColumns = @JoinColumn(name = "function_id"))
     private List<TestCase> testCases;
 
-    @Column(name = "is_safe", nullable = false)
     private boolean isSafe = false;
 
-    @Column(name = "is_public", nullable = false)
     private boolean isPublic = true;
 
-    @Column(name = "is_built_in", nullable = false)
     private boolean builtIn = false;
 
     public boolean isBuiltIn() {
@@ -71,23 +42,16 @@ public class TransformationCustomFunction {
         this.builtIn = builtIn;
     }
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "performance_class", nullable = false, length = 20)
     private PerformanceClass performanceClass = PerformanceClass.NORMAL;
 
-    @Column(name = "version", nullable = false)
     private int version = 1;
 
-    @Column(name = "created_by", length = 100)
     private String createdBy;
 
-    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
@@ -105,18 +69,13 @@ public class TransformationCustomFunction {
         SLOW
     }
 
-    @Embeddable
     public static class TestCase {
-        @Column(name = "test_name", length = 100)
         private String testName;
 
-        @Column(name = "input_data", columnDefinition = "TEXT")
         private String inputData;
 
-        @Column(name = "expected_output", columnDefinition = "TEXT")
         private String expectedOutput;
 
-        @Column(name = "test_description", length = 500)
         private String testDescription;
 
         public String getTestName() {

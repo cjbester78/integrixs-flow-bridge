@@ -47,34 +47,34 @@ public class RedisConfig implements CachingConfigurer {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisConfig.class);
 
-    @Value("$ {spring.redis.host:localhost}")
+    @Value("${spring.redis.host:localhost}")
     private String redisHost;
 
-    @Value("$ {spring.redis.port:6379}")
+    @Value("${spring.redis.port:6379}")
     private int redisPort;
 
-    @Value("$ {spring.redis.password:}")
+    @Value("${spring.redis.password:}")
     private String redisPassword;
 
-    @Value("$ {spring.redis.database:0}")
+    @Value("${spring.redis.database:0}")
     private int redisDatabase;
 
-    @Value("$ {spring.redis.timeout:60000}")
+    @Value("${spring.redis.timeout:60000}")
     private long redisTimeout;
 
-    @Value("$ {spring.redis.pool.max - active:8}")
+    @Value("${spring.redis.pool.max-active:8}")
     private int maxActive;
 
-    @Value("$ {spring.redis.pool.max - idle:8}")
+    @Value("${spring.redis.pool.max-idle:8}")
     private int maxIdle;
 
-    @Value("$ {spring.redis.pool.min - idle:0}")
+    @Value("${spring.redis.pool.min-idle:0}")
     private int minIdle;
 
-    @Value("$ {spring.redis.pool.max - wait:-1}")
+    @Value("${spring.redis.pool.max-wait:-1}")
     private long maxWait;
 
-    @Value("$ {spring.redis.cluster.enabled:false}")
+    @Value("${spring.redis.cluster.enabled:false}")
     private boolean clusterEnabled;
 
     /**
@@ -191,35 +191,35 @@ public class RedisConfig implements CachingConfigurer {
         // Configure specific caches with different TTLs
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        // User permissions cache - 15 minutes
+        // User permissions cache-15 minutes
         cacheConfigurations.put("userPermissions",
             defaultConfig.entryTtl(Duration.ofMinutes(15)));
 
-        // Flow metadata cache - 1 hour
+        // Flow metadata cache-1 hour
         cacheConfigurations.put("flowMetadata",
             defaultConfig.entryTtl(Duration.ofHours(1)));
 
-        // Adapter configurations - 2 hours
+        // Adapter configurations-2 hours
         cacheConfigurations.put("adapterConfigs",
             defaultConfig.entryTtl(Duration.ofHours(2)));
 
-        // Message structures - 6 hours
+        // Message structures-6 hours
         cacheConfigurations.put("messageStructures",
             defaultConfig.entryTtl(Duration.ofHours(6)));
 
-        // Transformation mappings - 1 hour
+        // Transformation mappings-1 hour
         cacheConfigurations.put("transformationMappings",
             defaultConfig.entryTtl(Duration.ofHours(1)));
 
-        // Tenant configurations - 30 minutes
+        // Tenant configurations-30 minutes
         cacheConfigurations.put("tenantConfigs",
             defaultConfig.entryTtl(Duration.ofMinutes(30)));
 
-        // Job status - 5 minutes
+        // Job status-5 minutes
         cacheConfigurations.put("jobStatus",
             defaultConfig.entryTtl(Duration.ofMinutes(5)));
 
-        // API rate limits - 1 minute
+        // API rate limits-1 minute
         cacheConfigurations.put("rateLimits",
             defaultConfig.entryTtl(Duration.ofMinutes(1)));
 

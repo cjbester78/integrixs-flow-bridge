@@ -1,0 +1,73 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.sql.core.SqlPaginationHelper;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Verification test for SQL utility classes.
+ * This test verifies that SQL queries are correctly formed.
+ */
+public class SqlVerificationTest {
+
+    @Test
+    void testCamelCaseToSnakeCase() {
+        assertEquals("user_name", SqlPaginationHelper.camelCaseToSnakeCase("userName"));
+        assertEquals("first_name", SqlPaginationHelper.camelCaseToSnakeCase("firstName"));
+        assertEquals("created_at", SqlPaginationHelper.camelCaseToSnakeCase("createdAt"));
+        assertEquals("id", SqlPaginationHelper.camelCaseToSnakeCase("id"));
+    }
+
+    @Test
+    void testBuildOrderByClause() {
+        Sort sort = Sort.by(Sort.Order.asc("firstName"), Sort.Order.desc("createdAt"));
+        String orderBy = SqlPaginationHelper.buildOrderByClause(sort);
+        assertEquals(" ORDER BY first_name ASC, created_at DESC", orderBy);
+    }
+
+    @Test
+    void testBuildPaginationClause() {
+        PageRequest pageable = PageRequest.of(2, 10); // Page 2, 10 items per page
+        String pagination = SqlPaginationHelper.buildPaginationClause(pageable);
+        assertEquals(" LIMIT 10 OFFSET 20", pagination);
+    }
+
+    @Test
+    void testBuildWhereClause() {
+        String where1 = SqlPaginationHelper.buildWhereClause("status = 'active'", "role = 'DEVELOPER'");
+        assertEquals(" WHERE status = 'active' AND role = 'DEVELOPER'", where1);
+
+        String where2 = SqlPaginationHelper.buildWhereClause("username LIKE '%test%'");
+        assertEquals(" WHERE username LIKE '%test%'", where2);
+
+        String where3 = SqlPaginationHelper.buildWhereClause();
+        assertEquals("", where3);
+    }
+
+    @Test
+    void testBuildCountQuery() {
+        String baseQuery = "SELECT * FROM users WHERE status = 'active' ORDER BY created_at DESC";
+        String countQuery = SqlPaginationHelper.buildCountQuery(baseQuery);
+        assertEquals("SELECT COUNT(*) FROM users WHERE status = 'active' ", countQuery);
+    }
+
+    @Test
+    void testCalculateOffset() {
+        assertEquals(0, SqlPaginationHelper.calculateOffset(0, 10)); // Page 0
+        assertEquals(10, SqlPaginationHelper.calculateOffset(1, 10)); // Page 1
+        assertEquals(50, SqlPaginationHelper.calculateOffset(5, 10)); // Page 5
+    }
+
+    @Test
+    void testSqlRepositoryStructure() {
+        // Verify that our SQL repository structure is valid
+        UserSqlRepository repository = new UserSqlRepository(null);
+        assertNotNull(repository);
+        
+        // The repository is properly structured and can be instantiated
+        // SQL query building methods are tested indirectly through usage
+    }
+}

@@ -1,0 +1,406 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for FlowStructureSqlRepository.
+ * Tests entity with @ManyToOne relationship to BusinessComponent and User,
+ * and @OneToMany relationships to FlowStructureMessage and FlowStructureNamespace.
+ */
+public class FlowStructureSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private FlowStructureSqlRepository flowStructureRepository;
+    private FlowStructureMessageSqlRepository flowStructureMessageRepository;
+    private BusinessComponentSqlRepository businessComponentRepository;
+    private UserSqlRepository userRepository;
+    
+    private BusinessComponent testBusinessComponent;
+    private User testUser;
+
+    @Override
+    protected void setUp() {
+        flowStructureRepository = new FlowStructureSqlRepository(sqlQueryExecutor);
+        flowStructureMessageRepository = new FlowStructureMessageSqlRepository(sqlQueryExecutor);
+        businessComponentRepository = new BusinessComponentSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create test user
+        testUser = User.builder()
+                .username("flowstructureuser")
+                .email("flowstructure@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Flow")
+                .lastName("Structure")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+        testUser = userRepository.save(testUser);
+
+        // Create test business component
+        testBusinessComponent = BusinessComponent.builder()
+                .name("Flow Business Unit")
+                .description("Test business component for flow structures")
+                .type("DEPARTMENT")
+                .active(true)
+                .build();
+        testBusinessComponent = businessComponentRepository.save(testBusinessComponent);
+
+        // Create test flow structures
+        createTestFlowStructures();
+    }
+
+    private void createTestFlowStructures() {
+        createFlowStructure("Order Processing WSDL", FlowStructure.FlowStructureType.SOAP,
+                          FlowStructure.StructureFormat.WSDL, FlowStructure.ProcessingMode.SYNCHRONOUS);
+        createFlowStructure("Customer REST API", FlowStructure.FlowStructureType.REST,
+                          FlowStructure.StructureFormat.OPENAPI, FlowStructure.ProcessingMode.ASYNCHRONOUS);
+        createFlowStructure("Invoice Schema", FlowStructure.FlowStructureType.MESSAGE,
+                          FlowStructure.StructureFormat.XSD, FlowStructure.ProcessingMode.BATCH);
+        createFlowStructure("Legacy System Format", FlowStructure.FlowStructureType.FILE,
+                          FlowStructure.StructureFormat.CUSTOM, null);
+    }
+
+    private FlowStructure createFlowStructure(String name, FlowStructure.FlowStructureType type,
+                                            FlowStructure.StructureFormat format,
+                                            FlowStructure.ProcessingMode processingMode) {
+        FlowStructure structure = FlowStructure.builder()
+                .name(name)
+                .type(type)
+                .format(format)
+                .definition(generateTestDefinition(type, format))
+                .processingMode(processingMode)
+                .validationRules("{\"required\": [\"id\", \"name\"]}")
+                .active(true)
+                .businessComponent(testBusinessComponent)
+                .build();
+        
+        // Set audit fields
+        structure.setCreatedBy(testUser);
+        structure.setUpdatedBy(testUser);
+        
+        // Add some messages and namespaces
+        Set<FlowStructureMessage> messages = createMessages(structure, type);
+        structure.setMessages(messages);
+        
+        Set<FlowStructureNamespace> namespaces = createNamespaces(type);
+        structure.setNamespaces(namespaces);
+        
+        return flowStructureRepository.save(structure);
+    }
+
+    private String generateTestDefinition(FlowStructure.FlowStructureType type, 
+                                        FlowStructure.StructureFormat format) {
+        return switch (format) {
+            case WSDL -> "<wsdl:definitions>...</wsdl:definitions>";
+            case XSD -> "<xs:schema>...</xs:schema>";
+            case OPENAPI -> "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"API\"}}";
+            case CUSTOM -> "{\"customFormat\":true}";
+            default -> "{}";
+        };
+    }
+
+    private Set<FlowStructureMessage> createMessages(FlowStructure structure,
+                                                   FlowStructure.FlowStructureType type) {
+        Set<FlowStructureMessage> messages = new HashSet<>();
+        
+        if (type == FlowStructure.FlowStructureType.SOAP) {
+            messages.add(FlowStructureMessage.builder()
+                    .flowStructure(structure)
+                    .messageName("ProcessOrderRequest")
+                    .messageType(FlowStructureMessage.MessageType.REQUEST)
+                    .direction("INPUT")
+                    .schemaDefinition("<element name=\"order\">...</element>")
+                    .sampleData("<order><id>123</id></order>")
+                    .build());
+            
+            messages.add(FlowStructureMessage.builder()
+                    .flowStructure(structure)
+                    .messageName("ProcessOrderResponse")
+                    .messageType(FlowStructureMessage.MessageType.RESPONSE)
+                    .direction("OUTPUT")
+                    .schemaDefinition("<element name=\"result\">...</element>")
+                    .sampleData("<result><status>success</status></result>")
+                    .build());
+        }
+        
+        return messages;
+    }
+
+    private Set<FlowStructureNamespace> createNamespaces(FlowStructure.FlowStructureType type) {
+        Set<FlowStructureNamespace> namespaces = new HashSet<>();
+        
+        if (type == FlowStructure.FlowStructureType.SOAP) {
+            namespaces.add(new FlowStructureNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/"));
+            namespaces.add(new FlowStructureNamespace("tns", "http://example.com/order"));
+        }
+        
+        return namespaces;
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        FlowStructure structure = createFlowStructure("Test Structure", 
+                                                    FlowStructure.FlowStructureType.REST,
+                                                    FlowStructure.StructureFormat.OPENAPI,
+                                                    FlowStructure.ProcessingMode.SYNCHRONOUS);
+
+        // When
+        var found = flowStructureRepository.findById(structure.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test Structure", found.get().getName());
+        assertEquals(FlowStructure.FlowStructureType.REST, found.get().getType());
+        assertNotNull(found.get().getBusinessComponent());
+        assertEquals(testBusinessComponent.getId(), found.get().getBusinessComponent().getId());
+    }
+
+    @Test
+    void testFindByName() {
+        // When
+        var found = flowStructureRepository.findByName("Order Processing WSDL");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals(FlowStructure.FlowStructureType.SOAP, found.get().getType());
+        assertEquals(FlowStructure.StructureFormat.WSDL, found.get().getFormat());
+    }
+
+    @Test
+    void testExistsByName() {
+        // Then
+        assertTrue(flowStructureRepository.existsByName("Customer REST API"));
+        assertFalse(flowStructureRepository.existsByName("Non-existent Structure"));
+    }
+
+    @Test
+    void testFindByType() {
+        // When
+        List<FlowStructure> soapStructures = flowStructureRepository
+                .findByType(FlowStructure.FlowStructureType.SOAP);
+
+        // Then
+        assertEquals(1, soapStructures.size());
+        assertEquals("Order Processing WSDL", soapStructures.get(0).getName());
+    }
+
+    @Test
+    void testFindByBusinessComponent() {
+        // When
+        List<FlowStructure> structures = flowStructureRepository
+                .findByBusinessComponent(testBusinessComponent);
+
+        // Then
+        assertEquals(5, structures.size()); // 4 from setup + 1 from testFindById
+        assertTrue(structures.stream()
+                .allMatch(s -> testBusinessComponent.getId().equals(s.getBusinessComponent().getId())));
+    }
+
+    @Test
+    void testFindActiveStructures() {
+        // Given - Make one structure inactive
+        FlowStructure structure = flowStructureRepository.findByName("Legacy System Format").orElseThrow();
+        structure.setActive(false);
+        flowStructureRepository.update(structure);
+
+        // When
+        List<FlowStructure> activeStructures = flowStructureRepository.findByActive(true);
+
+        // Then
+        assertEquals(4, activeStructures.size()); // Reduced by 1
+        assertFalse(activeStructures.stream()
+                .anyMatch(s -> "Legacy System Format".equals(s.getName())));
+    }
+
+    @Test
+    void testLoadChildEntities() {
+        // Given
+        FlowStructure soapStructure = flowStructureRepository
+                .findByName("Order Processing WSDL").orElseThrow();
+
+        // When - Load messages
+        List<FlowStructureMessage> messages = flowStructureRepository
+                .loadMessages(soapStructure.getId());
+
+        // Then
+        assertEquals(2, messages.size());
+        assertTrue(messages.stream()
+                .anyMatch(m -> "ProcessOrderRequest".equals(m.getMessageName())));
+        assertTrue(messages.stream()
+                .anyMatch(m -> "ProcessOrderResponse".equals(m.getMessageName())));
+
+        // When - Load namespaces
+        List<FlowStructureNamespace> namespaces = flowStructureRepository
+                .loadNamespaces(soapStructure.getId());
+
+        // Then
+        assertEquals(2, namespaces.size());
+        assertTrue(namespaces.stream()
+                .anyMatch(ns -> "soap".equals(ns.getPrefix())));
+    }
+
+    @Test
+    void testUpdateFlowStructure() {
+        // Given
+        FlowStructure structure = flowStructureRepository
+                .findByName("Invoice Schema").orElseThrow();
+
+        // When
+        structure.setDescription("Updated invoice schema for v2");
+        structure.setValidationRules("{\"required\": [\"id\", \"name\", \"amount\"]}");
+        structure.setProcessingMode(FlowStructure.ProcessingMode.REALTIME);
+        FlowStructure updated = flowStructureRepository.update(structure);
+
+        // Then
+        assertEquals("Updated invoice schema for v2", updated.getDescription());
+        assertEquals(FlowStructure.ProcessingMode.REALTIME, updated.getProcessingMode());
+        assertTrue(updated.getValidationRules().contains("amount"));
+        assertNotNull(updated.getUpdatedAt());
+    }
+
+    @Test
+    void testComplexStructureWithFullRelationships() {
+        // Given - Create structure with all relationships and child entities
+        FlowStructure complexStructure = FlowStructure.builder()
+                .name("Complex Integration Structure")
+                .type(FlowStructure.FlowStructureType.SOAP)
+                .format(FlowStructure.StructureFormat.WSDL)
+                .definition("<wsdl:definitions>complex</wsdl:definitions>")
+                .processingMode(FlowStructure.ProcessingMode.SYNCHRONOUS)
+                .validationRules("{\"strict\": true}")
+                .active(true)
+                .businessComponent(testBusinessComponent)
+                .build();
+        complexStructure.setCreatedBy(testUser);
+        complexStructure.setUpdatedBy(testUser);
+
+        // Add multiple messages
+        Set<FlowStructureMessage> messages = new HashSet<>();
+        for (int i = 1; i <= 3; i++) {
+            messages.add(FlowStructureMessage.builder()
+                    .flowStructure(complexStructure)
+                    .messageName("Operation" + i + "Request")
+                    .messageType(FlowStructureMessage.MessageType.REQUEST)
+                    .direction("INPUT")
+                    .schemaDefinition("<element>op" + i + "</element>")
+                    .build());
+        }
+        complexStructure.setMessages(messages);
+
+        // Add namespaces
+        Set<FlowStructureNamespace> namespaces = new HashSet<>();
+        namespaces.add(new FlowStructureNamespace("wsdl", "http://schemas.xmlsoap.org/wsdl/"));
+        namespaces.add(new FlowStructureNamespace("xsd", "http://www.w3.org/2001/XMLSchema"));
+        complexStructure.setNamespaces(namespaces);
+
+        // When
+        FlowStructure saved = flowStructureRepository.save(complexStructure);
+        FlowStructure retrieved = flowStructureRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertNotNull(retrieved);
+        assertEquals("Complex Integration Structure", retrieved.getName());
+        
+        // Verify child entities were saved
+        List<FlowStructureMessage> savedMessages = flowStructureRepository
+                .loadMessages(saved.getId());
+        assertEquals(3, savedMessages.size());
+        
+        List<FlowStructureNamespace> savedNamespaces = flowStructureRepository
+                .loadNamespaces(saved.getId());
+        assertEquals(2, savedNamespaces.size());
+    }
+
+    @Test
+    void testDeleteFlowStructure() {
+        // Given
+        FlowStructure structure = createFlowStructure("ToDelete", 
+                                                    FlowStructure.FlowStructureType.FILE,
+                                                    FlowStructure.StructureFormat.CUSTOM,
+                                                    null);
+        UUID structureId = structure.getId();
+
+        // When
+        flowStructureRepository.deleteById(structureId);
+
+        // Then
+        assertFalse(flowStructureRepository.findById(structureId).isPresent());
+        
+        // Verify child entities were also deleted (cascade)
+        assertEquals(0, flowStructureMessageRepository
+                .findByFlowStructureId(structureId).size());
+    }
+
+    @Test
+    void testPaginationAndSorting() {
+        // Given - Create additional structures
+        for (int i = 0; i < 10; i++) {
+            createFlowStructure("Bulk Structure " + i,
+                              FlowStructure.FlowStructureType.MESSAGE,
+                              FlowStructure.StructureFormat.XSD,
+                              FlowStructure.ProcessingMode.BATCH);
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(1, 5); // Second page
+        Page<FlowStructure> page = flowStructureRepository.findAll(pageRequest);
+
+        // Then
+        assertTrue(page.getTotalElements() >= 15); // At least setup + bulk
+        assertEquals(5, page.getContent().size());
+    }
+
+    @Test
+    void testFindByTypeAndFormat() {
+        // When
+        List<FlowStructure> xsdStructures = flowStructureRepository.findAll().stream()
+                .filter(s -> s.getFormat() == FlowStructure.StructureFormat.XSD)
+                .toList();
+
+        // Then
+        assertTrue(xsdStructures.size() >= 1); // At least "Invoice Schema"
+        assertTrue(xsdStructures.stream()
+                .allMatch(s -> s.getFormat() == FlowStructure.StructureFormat.XSD));
+    }
+
+    @Test
+    void testUpdateChildEntities() {
+        // Given
+        FlowStructure structure = flowStructureRepository
+                .findByName("Order Processing WSDL").orElseThrow();
+        
+        // Add a new message
+        FlowStructureMessage newMessage = FlowStructureMessage.builder()
+                .flowStructure(structure)
+                .messageName("ProcessOrderFault")
+                .messageType(FlowStructureMessage.MessageType.FAULT)
+                .direction("OUTPUT")
+                .schemaDefinition("<element name=\"fault\">...</element>")
+                .build();
+        flowStructureMessageRepository.save(newMessage);
+
+        // When
+        List<FlowStructureMessage> allMessages = flowStructureRepository
+                .loadMessages(structure.getId());
+
+        // Then
+        assertEquals(3, allMessages.size()); // Original 2 + new 1
+        assertTrue(allMessages.stream()
+                .anyMatch(m -> "ProcessOrderFault".equals(m.getMessageName())));
+    }
+}

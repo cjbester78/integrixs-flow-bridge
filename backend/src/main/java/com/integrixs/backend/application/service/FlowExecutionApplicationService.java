@@ -12,7 +12,7 @@ import com.integrixs.backend.util.FieldMapper;
 import com.integrixs.backend.service.JavaTransformationEngine;
 import com.integrixs.backend.util.JavaFunctionRunner;
 import com.integrixs.data.model.*;
-import com.integrixs.data.repository.*;
+import com.integrixs.data.sql.repository.*;
 import com.integrixs.engine.AdapterExecutor;
 import com.integrixs.engine.service.FormatConversionService;
 import com.integrixs.engine.xml.XmlConversionException;
@@ -46,10 +46,10 @@ public class FlowExecutionApplicationService {
 
     private final FlowExecutionService flowExecutionService;
     private final AdapterConfigurationService adapterConfigurationService;
-    private final IntegrationFlowRepository flowRepository;
-    private final CommunicationAdapterRepository adapterRepository;
-    private final FlowTransformationRepository transformationRepository;
-    private final FieldMappingRepository fieldMappingRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
+    private final FlowTransformationSqlRepository transformationRepository;
+    private final FieldMappingSqlRepository fieldMappingRepository;
     private final AdapterExecutor adapterExecutor;
     private final FormatConversionService formatConversionService;
     private final DirectFileTransferService directFileTransferService;
@@ -67,10 +67,10 @@ public class FlowExecutionApplicationService {
     public FlowExecutionApplicationService(
             FlowExecutionService flowExecutionService,
             AdapterConfigurationService adapterConfigurationService,
-            IntegrationFlowRepository flowRepository,
-            CommunicationAdapterRepository adapterRepository,
-            FlowTransformationRepository transformationRepository,
-            FieldMappingRepository fieldMappingRepository,
+            IntegrationFlowSqlRepository flowRepository,
+            CommunicationAdapterSqlRepository adapterRepository,
+            FlowTransformationSqlRepository transformationRepository,
+            FieldMappingSqlRepository fieldMappingRepository,
             AdapterExecutor adapterExecutor,
             FormatConversionService formatConversionService,
             DirectFileTransferService directFileTransferService,

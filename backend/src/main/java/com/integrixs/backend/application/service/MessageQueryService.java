@@ -6,19 +6,19 @@ import com.integrixs.backend.api.dto.response.MessageStatsResponse;
 import com.integrixs.backend.api.dto.response.PagedMessageResponse;
 import com.integrixs.backend.domain.service.MessageStatisticsService;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.AdapterPayloadRepository;
-import com.integrixs.data.repository.SystemLogRepository;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.AdapterPayloadSqlRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.shared.dto.log.LogSearchCriteria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,15 +31,14 @@ public class MessageQueryService {
 
     private static final Logger log = LoggerFactory.getLogger(MessageQueryService.class);
 
-
-    private final SystemLogRepository systemLogRepository;
-    private final AdapterPayloadRepository payloadRepository;
-    private final IntegrationFlowRepository flowRepository;
+    private final SystemLogSqlRepository systemLogRepository;
+    private final AdapterPayloadSqlRepository payloadRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
     private final MessageStatisticsService statisticsService;
 
-    public MessageQueryService(SystemLogRepository systemLogRepository,
-                             AdapterPayloadRepository payloadRepository,
-                             IntegrationFlowRepository flowRepository,
+    public MessageQueryService(SystemLogSqlRepository systemLogRepository,
+                             AdapterPayloadSqlRepository payloadRepository,
+                             IntegrationFlowSqlRepository flowRepository,
                              MessageStatisticsService statisticsService) {
         this.systemLogRepository = systemLogRepository;
         this.payloadRepository = payloadRepository;
@@ -61,11 +60,11 @@ public class MessageQueryService {
             Sort.by(direction, request.getSortBy())
        );
 
-        // Build specification from filters
-        Specification<SystemLog> spec = buildSpecification(request);
+        // Build search criteria from request
+        LogSearchCriteria criteria = buildSearchCriteria(request);
 
         // Execute query
-        Page<SystemLog> logPage = systemLogRepository.findAll(spec, pageRequest);
+        Page<SystemLog> logPage = systemLogRepository.searchLogs(criteria, pageRequest);
 
         // Convert to DTOs
         List<MessageResponse> messages = logPage.getContent().stream()
@@ -103,7 +102,7 @@ public class MessageQueryService {
 
         List<SystemLog> logs;
         if(businessComponentId != null) {
-            logs = systemLogRepository.findByComponentId(businessComponentId, pageRequest);
+            logs = systemLogRepository.findByComponentId(businessComponentId, pageRequest).getContent();
         } else {
             logs = systemLogRepository.findAll(pageRequest).getContent();
         }
@@ -117,9 +116,13 @@ public class MessageQueryService {
     public MessageStatsResponse getMessageStats(MessageQueryRequest request) {
         log.debug("Calculating message statistics with filters: {}", request);
 
-        // Get all logs matching the criteria
-        Specification<SystemLog> spec = buildSpecification(request);
-        List<SystemLog> logs = systemLogRepository.findAll(spec);
+        // Build search criteria from request
+        LogSearchCriteria criteria = buildSearchCriteria(request);
+        
+        // Get all logs matching the criteria - using large page size to get all results
+        PageRequest pageRequest = PageRequest.of(0, Integer.MAX_VALUE);
+        Page<SystemLog> logPage = systemLogRepository.searchLogs(criteria, pageRequest);
+        List<SystemLog> logs = logPage.getContent();
 
         // Calculate statistics
         Map<String, Long> byStatus = statisticsService.calculateMessagesByStatus(logs);
@@ -159,56 +162,48 @@ public class MessageQueryService {
             .build();
     }
 
-    private Specification<SystemLog> buildSpecification(MessageQueryRequest request) {
-        return(root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            // Status filter
-            if(request.getStatus() != null && !request.getStatus().isEmpty()) {
-                predicates.add(root.get("details").in(
-                    request.getStatus().stream()
-                        .map(s -> "%" + s + "%")
-                        .collect(Collectors.toList())
-               ));
-            }
-
-            // Date range filter
-            if(request.getDateFrom() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("timestamp"), request.getDateFrom()));
-            }
-            if(request.getDateTo() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("timestamp"), request.getDateTo()));
-            }
-
-            // Business component filter
-            if(request.getBusinessComponentId() != null) {
-                predicates.add(cb.equal(root.get("componentId"), request.getBusinessComponentId()));
-            }
-
-            // Correlation ID filter
-            if(request.getCorrelationId() != null) {
-                predicates.add(cb.equal(root.get("correlationId"), request.getCorrelationId()));
-            }
-
-            // Search filter
-            if(request.getSearch() != null && !request.getSearch().trim().isEmpty()) {
-                String searchPattern = "%" + request.getSearch().toLowerCase() + "%";
-                predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("message")), searchPattern),
-                    cb.like(cb.lower(root.get("details")), searchPattern),
-                    cb.like(cb.lower(root.get("correlationId")), searchPattern)
-               ));
-            }
-
-            // Category filter for flow execution logs
-            predicates.add(cb.or(
-                cb.equal(root.get("category"), "FLOW_EXECUTION"),
-                cb.equal(root.get("domainType"), "IntegrationFlow"),
-                cb.equal(root.get("domainType"), "Message")
-           ));
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+    private LogSearchCriteria buildSearchCriteria(MessageQueryRequest request) {
+        LogSearchCriteria criteria = new LogSearchCriteria();
+        
+        // Date range filter
+        if (request.getDateFrom() != null) {
+            criteria.setStartTime(request.getDateFrom());
+        }
+        if (request.getDateTo() != null) {
+            criteria.setEndTime(request.getDateTo());
+        }
+        
+        // Business component filter
+        if (request.getBusinessComponentId() != null) {
+            criteria.setComponentIds(Arrays.asList(request.getBusinessComponentId()));
+        }
+        
+        // Correlation ID filter
+        if (request.getCorrelationId() != null) {
+            criteria.setCorrelationId(request.getCorrelationId());
+        }
+        
+        // Search filter
+        if (request.getSearch() != null && !request.getSearch().trim().isEmpty()) {
+            criteria.setSearchText(request.getSearch());
+        }
+        
+        // Category filter for flow execution logs
+        criteria.setCategories(Arrays.asList("FLOW_EXECUTION", "MESSAGE", "ADAPTER"));
+        
+        // Page settings
+        criteria.setPage(request.getPage());
+        criteria.setPageSize(request.getSize());
+        
+        // Sort settings
+        if (request.getSortBy() != null) {
+            criteria.setSortBy(request.getSortBy());
+        }
+        if (request.getSortDirection() != null) {
+            criteria.setAscending("ASC".equalsIgnoreCase(request.getSortDirection()));
+        }
+        
+        return criteria;
     }
 
     private MessageResponse convertToMessageResponse(SystemLog log) {
@@ -228,9 +223,9 @@ public class MessageQueryService {
         }
 
         // Get flow information
-        if(log.getDomainId() != null) {
+        if(log.getDomainReferenceId() != null && "IntegrationFlow".equals(log.getDomainType())) {
             try {
-                flowRepository.findById(UUID.fromString(log.getDomainId())).ifPresent(flow -> {
+                flowRepository.findById(UUID.fromString(log.getDomainReferenceId())).ifPresent(flow -> {
                     builder.flowId(flow.getId().toString());
                     builder.flowName(flow.getName());
                 });

@@ -1,4 +1,6 @@
 spring:
+  redis:
+    enabled: false
   jpa:
     hibernate:
       ddl-auto: none

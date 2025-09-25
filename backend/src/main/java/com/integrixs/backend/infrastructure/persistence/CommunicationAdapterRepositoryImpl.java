@@ -10,81 +10,81 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of CommunicationAdapterRepository using JPA
- * Bridges between domain repository interface and JPA repository
+ * Implementation of CommunicationAdapterSqlRepository using SQL
+ * Bridges between domain repository interface and SQL repository
  */
 @Repository("domainCommunicationAdapterRepository")
 public class CommunicationAdapterRepositoryImpl implements CommunicationAdapterRepositoryPort {
 
-    private final com.integrixs.data.repository.CommunicationAdapterRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository sqlRepository;
 
-    public CommunicationAdapterRepositoryImpl(com.integrixs.data.repository.CommunicationAdapterRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public CommunicationAdapterRepositoryImpl(com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public List<CommunicationAdapter> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public Optional<CommunicationAdapter> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return jpaRepository.existsById(id);
+        return sqlRepository.existsById(id);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return jpaRepository.existsByName(name);
+        return sqlRepository.existsByName(name);
     }
 
     @Override
     public boolean existsByNameAndIdNot(String name, UUID excludeId) {
-        // Since this method doesn't exist in JPA repo, we need to implement it
-        return jpaRepository.findAll().stream()
+        // Custom implementation for this method
+        return sqlRepository.findAll().stream()
                 .anyMatch(adapter -> adapter.getName().equals(name) && !adapter.getId().equals(excludeId));
     }
 
     @Override
     public CommunicationAdapter save(CommunicationAdapter adapter) {
-        return jpaRepository.save(adapter);
+        return sqlRepository.save(adapter);
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override
     public List<CommunicationAdapter> findByActive(boolean active) {
-        return jpaRepository.findByIsActiveTrue();
+        return sqlRepository.findByIsActiveTrue();
     }
 
     @Override
     public List<CommunicationAdapter> findByBusinessComponentId(UUID businessComponentId) {
-        return jpaRepository.findByBusinessComponent_Id(businessComponentId);
+        return sqlRepository.findByBusinessComponent_Id(businessComponentId);
     }
 
     @Override
     public List<CommunicationAdapter> findByType(String type) {
-        return jpaRepository.findAll().stream()
+        return sqlRepository.findAll().stream()
                 .filter(adapter -> adapter.getType().name().equals(type))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<CommunicationAdapter> findByMode(String mode) {
-        return jpaRepository.findAll().stream()
+        return sqlRepository.findAll().stream()
                 .filter(adapter -> adapter.getMode().name().equals(mode))
                 .collect(Collectors.toList());
     }
 
     @Override
     public long countByBusinessComponentId(UUID businessComponentId) {
-        return jpaRepository.findByBusinessComponent_Id(businessComponentId).size();
+        return sqlRepository.findByBusinessComponent_Id(businessComponentId).size();
     }
 }

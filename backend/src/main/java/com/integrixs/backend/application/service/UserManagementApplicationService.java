@@ -10,7 +10,7 @@ import com.integrixs.backend.api.dto.response.UserResponse;
 import com.integrixs.backend.domain.service.UserManagementService;
 import com.integrixs.backend.service.AuditTrailService;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -35,22 +35,32 @@ public class UserManagementApplicationService {
     private static final Logger log = LoggerFactory.getLogger(UserManagementApplicationService.class);
 
 
-    private final UserRepository userRepository;
+    private final UserSqlRepository userRepository;
     private final UserManagementService userManagementService;
     private final AuditTrailService auditTrailService;
     private final ObjectMapper objectMapper;
+    
+    public UserManagementApplicationService(UserSqlRepository userRepository,
+                                          UserManagementService userManagementService,
+                                          AuditTrailService auditTrailService,
+                                          ObjectMapper objectMapper) {
+        this.userRepository = userRepository;
+        this.userManagementService = userManagementService;
+        this.auditTrailService = auditTrailService;
+        this.objectMapper = objectMapper;
+    }
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request, String createdBy) {
         log.debug("Creating new user: {}", request.getUsername());
 
         // Check if username already exists
-        if(userRepository.findByUsername(request.getUsername()) != null) {
+        if(userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
 
         // Check if email already exists
-        if(userRepository.findByEmail(request.getEmail()) != null) {
+        if(userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
@@ -129,8 +139,8 @@ public class UserManagementApplicationService {
         return userRepository.findById(UUID.fromString(id)).map(user -> {
             // Check email uniqueness if changed
             if(request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
-                User existingUser = userRepository.findByEmail(request.getEmail());
-                if(existingUser != null && !existingUser.getId().equals(user.getId())) {
+                Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+                if(existingUser.isPresent() && !existingUser.get().getId().equals(user.getId())) {
                     throw new IllegalArgumentException("Email already exists");
                 }
             }

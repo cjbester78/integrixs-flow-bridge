@@ -1,0 +1,354 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.adapters.domain.model.AdapterConfiguration.AdapterModeEnum;
+import com.integrixs.data.model.BusinessComponent;
+import com.integrixs.data.model.CommunicationAdapter;
+import com.integrixs.data.model.ExternalAuthentication;
+import com.integrixs.data.model.User;
+import com.integrixs.shared.enums.AdapterType;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for CommunicationAdapterSqlRepository.
+ * Tests entity with @ManyToOne relationships to BusinessComponent, User, and ExternalAuthentication.
+ */
+public class CommunicationAdapterSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private CommunicationAdapterSqlRepository adapterRepository;
+    private BusinessComponentSqlRepository businessComponentRepository;
+    private UserSqlRepository userRepository;
+    private ExternalAuthenticationSqlRepository externalAuthRepository;
+    
+    private BusinessComponent testBusinessComponent;
+    private User testUser;
+    private ExternalAuthentication testExternalAuth;
+
+    @Override
+    protected void setUp() {
+        adapterRepository = new CommunicationAdapterSqlRepository(sqlQueryExecutor);
+        businessComponentRepository = new BusinessComponentSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        externalAuthRepository = new ExternalAuthenticationSqlRepository(sqlQueryExecutor);
+        
+        setupTestData();
+    }
+
+    private void setupTestData() {
+        // Create test user
+        testUser = User.builder()
+                .username("adapteruser")
+                .email("adapter@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Adapter")
+                .lastName("User")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+        testUser = userRepository.save(testUser);
+
+        // Create test business component
+        testBusinessComponent = BusinessComponent.builder()
+                .name("Test Business Unit")
+                .description("Test business component for adapters")
+                .type("DIVISION")
+                .active(true)
+                .build();
+        testBusinessComponent = businessComponentRepository.save(testBusinessComponent);
+
+        // Create test external authentication
+        testExternalAuth = ExternalAuthentication.builder()
+                .name("Test OAuth Provider")
+                .type("OAUTH2")
+                .configuration("{\"clientId\":\"test-client\",\"clientSecret\":\"secret\"}")
+                .active(true)
+                .build();
+        testExternalAuth = externalAuthRepository.save(testExternalAuth);
+
+        // Create test adapters
+        createTestAdapters();
+    }
+
+    private void createTestAdapters() {
+        createAdapter("HTTP Inbound", AdapterType.HTTP, AdapterModeEnum.INBOUND, true, null);
+        createAdapter("HTTP Outbound", AdapterType.HTTP, AdapterModeEnum.OUTBOUND, true, testExternalAuth);
+        createAdapter("FTP Adapter", AdapterType.FTP, AdapterModeEnum.INBOUND, true, null);
+        createAdapter("SOAP Service", AdapterType.SOAP, AdapterModeEnum.OUTBOUND, false, null);
+        createAdapter("Database Reader", AdapterType.JDBC, AdapterModeEnum.INBOUND, true, null);
+    }
+
+    private CommunicationAdapter createAdapter(String name, AdapterType type, 
+                                             AdapterModeEnum mode, boolean active,
+                                             ExternalAuthentication externalAuth) {
+        CommunicationAdapter adapter = CommunicationAdapter.builder()
+                .name(name)
+                .type(type)
+                .mode(mode)
+                .direction(mode == AdapterModeEnum.INBOUND ? "OUTBOUND" : "INBOUND") // Reversed convention
+                .description("Test adapter: " + name)
+                .configuration(generateTestConfig(type))
+                .active(active)
+                .healthy(true)
+                .lastHealthCheck(LocalDateTime.now().minusMinutes(5))
+                .businessComponent(testBusinessComponent)
+                .externalAuthentication(externalAuth)
+                .build();
+        
+        // Set audit fields
+        adapter.setCreatedBy(testUser);
+        adapter.setUpdatedBy(testUser);
+        
+        return adapterRepository.save(adapter);
+    }
+
+    private String generateTestConfig(AdapterType type) {
+        return switch (type) {
+            case HTTP -> "{\"url\":\"http://example.com\",\"method\":\"POST\"}";
+            case FTP -> "{\"host\":\"ftp.example.com\",\"port\":21,\"directory\":\"/data\"}";
+            case SOAP -> "{\"wsdlUrl\":\"http://example.com/service?wsdl\",\"operation\":\"process\"}";
+            case JDBC -> "{\"jdbcUrl\":\"jdbc:h2:mem:test\",\"query\":\"SELECT * FROM data\"}";
+            default -> "{}";
+        };
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        CommunicationAdapter adapter = createAdapter("Test Adapter", AdapterType.HTTP, 
+                                                   AdapterModeEnum.INBOUND, true, null);
+
+        // When
+        var found = adapterRepository.findById(adapter.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test Adapter", found.get().getName());
+        assertEquals(AdapterType.HTTP, found.get().getType());
+        assertNotNull(found.get().getBusinessComponent());
+        assertEquals(testBusinessComponent.getId(), found.get().getBusinessComponent().getId());
+    }
+
+    @Test
+    void testFindByName() {
+        // When
+        var found = adapterRepository.findByName("HTTP Inbound");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals(AdapterType.HTTP, found.get().getType());
+        assertEquals(AdapterModeEnum.INBOUND, found.get().getMode());
+    }
+
+    @Test
+    void testExistsByName() {
+        // Then
+        assertTrue(adapterRepository.existsByName("FTP Adapter"));
+        assertFalse(adapterRepository.existsByName("Non-existent Adapter"));
+    }
+
+    @Test
+    void testFindByType() {
+        // When
+        List<CommunicationAdapter> httpAdapters = adapterRepository.findByType(AdapterType.HTTP);
+
+        // Then
+        assertEquals(2, httpAdapters.size()); // HTTP Inbound and Outbound
+        assertTrue(httpAdapters.stream().allMatch(a -> a.getType() == AdapterType.HTTP));
+    }
+
+    @Test
+    void testFindByBusinessComponent() {
+        // When
+        List<CommunicationAdapter> adapters = adapterRepository
+                .findByBusinessComponent(testBusinessComponent);
+
+        // Then
+        assertEquals(6, adapters.size()); // 5 from setup + 1 from testFindById
+        assertTrue(adapters.stream()
+                .allMatch(a -> testBusinessComponent.getId().equals(a.getBusinessComponent().getId())));
+    }
+
+    @Test
+    void testFindActiveAdapters() {
+        // When
+        List<CommunicationAdapter> activeAdapters = adapterRepository.findByActive(true);
+
+        // Then
+        assertEquals(5, activeAdapters.size()); // 4 active from setup + 1 from testFindById
+        assertFalse(activeAdapters.stream()
+                .anyMatch(a -> "SOAP Service".equals(a.getName())));
+    }
+
+    @Test
+    void testFindByTypeAndMode() {
+        // When
+        List<CommunicationAdapter> inboundHttpAdapters = adapterRepository
+                .findByTypeAndMode(AdapterType.HTTP, AdapterModeEnum.INBOUND);
+
+        // Then
+        assertEquals(2, inboundHttpAdapters.size()); // Including the one from testFindById
+        assertTrue(inboundHttpAdapters.stream()
+                .allMatch(a -> a.getType() == AdapterType.HTTP && 
+                             a.getMode() == AdapterModeEnum.INBOUND));
+    }
+
+    @Test
+    void testCountByType() {
+        // Then
+        assertEquals(2, adapterRepository.countByType(AdapterType.HTTP));
+        assertEquals(1, adapterRepository.countByType(AdapterType.FTP));
+        assertEquals(1, adapterRepository.countByType(AdapterType.SOAP));
+        assertEquals(1, adapterRepository.countByType(AdapterType.JDBC));
+    }
+
+    @Test
+    void testFindHealthyAdapters() {
+        // Given - make one adapter unhealthy
+        CommunicationAdapter unhealthyAdapter = adapterRepository.findByName("FTP Adapter").orElseThrow();
+        unhealthyAdapter.setHealthy(false);
+        adapterRepository.update(unhealthyAdapter);
+
+        // When
+        List<CommunicationAdapter> healthyAdapters = adapterRepository.findByHealthy(true);
+
+        // Then
+        assertEquals(5, healthyAdapters.size()); // Reduced by 1
+        assertFalse(healthyAdapters.stream()
+                .anyMatch(a -> "FTP Adapter".equals(a.getName())));
+    }
+
+    @Test
+    void testFindByExternalAuthentication() {
+        // When
+        List<CommunicationAdapter> adaptersWithAuth = adapterRepository
+                .findByExternalAuthentication(testExternalAuth);
+
+        // Then
+        assertEquals(1, adaptersWithAuth.size());
+        assertEquals("HTTP Outbound", adaptersWithAuth.get(0).getName());
+        assertEquals(testExternalAuth.getId(), 
+                    adaptersWithAuth.get(0).getExternalAuthentication().getId());
+    }
+
+    @Test
+    void testUpdateAdapter() {
+        // Given
+        CommunicationAdapter adapter = adapterRepository.findByName("Database Reader").orElseThrow();
+
+        // When
+        adapter.setDescription("Updated description");
+        adapter.setConfiguration("{\"jdbcUrl\":\"jdbc:postgresql://localhost/test\"}");
+        adapter.setHealthy(false);
+        adapter.setLastHealthCheck(LocalDateTime.now());
+        CommunicationAdapter updated = adapterRepository.update(adapter);
+
+        // Then
+        assertEquals("Updated description", updated.getDescription());
+        assertFalse(updated.isHealthy());
+        assertTrue(updated.getConfiguration().contains("postgresql"));
+        assertNotNull(updated.getUpdatedAt());
+    }
+
+    @Test
+    void testComplexRelationships() {
+        // Given - Create adapter with all relationships
+        CommunicationAdapter complexAdapter = CommunicationAdapter.builder()
+                .name("Complex Adapter")
+                .type(AdapterType.SAP)
+                .mode(AdapterModeEnum.OUTBOUND)
+                .direction("INBOUND")
+                .description("Adapter with all relationships")
+                .configuration("{\"sapConfig\":\"complex\"}")
+                .active(true)
+                .healthy(true)
+                .businessComponent(testBusinessComponent)
+                .externalAuthentication(testExternalAuth)
+                .build();
+        complexAdapter.setCreatedBy(testUser);
+        complexAdapter.setUpdatedBy(testUser);
+
+        // When
+        CommunicationAdapter saved = adapterRepository.save(complexAdapter);
+        CommunicationAdapter retrieved = adapterRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertNotNull(retrieved.getBusinessComponent());
+        assertNotNull(retrieved.getExternalAuthentication());
+        assertNotNull(retrieved.getCreatedBy());
+        assertNotNull(retrieved.getUpdatedBy());
+        assertEquals("Test Business Unit", retrieved.getBusinessComponent().getName());
+        assertEquals("Test OAuth Provider", retrieved.getExternalAuthentication().getName());
+        assertEquals("adapteruser", retrieved.getCreatedBy().getUsername());
+    }
+
+    @Test
+    void testDeleteAdapter() {
+        // Given
+        CommunicationAdapter adapter = createAdapter("ToDelete", AdapterType.FILE, 
+                                                   AdapterModeEnum.INBOUND, true, null);
+        UUID adapterId = adapter.getId();
+
+        // When
+        adapterRepository.deleteById(adapterId);
+
+        // Then
+        assertFalse(adapterRepository.findById(adapterId).isPresent());
+    }
+
+    @Test
+    void testPagination() {
+        // Given - Create additional adapters
+        for (int i = 0; i < 10; i++) {
+            createAdapter("Bulk Adapter " + i, AdapterType.FILE, 
+                         AdapterModeEnum.INBOUND, true, null);
+        }
+
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        Page<CommunicationAdapter> page = adapterRepository.findAll(pageRequest);
+
+        // Then
+        assertEquals(17, page.getTotalElements()); // 5 setup + 1 test + 1 complex + 10 bulk
+        assertEquals(4, page.getTotalPages());
+        assertEquals(5, page.getContent().size());
+    }
+
+    @Test
+    void testFindInboundAdapters() {
+        // When
+        List<CommunicationAdapter> inboundAdapters = adapterRepository
+                .findByMode(AdapterModeEnum.INBOUND);
+
+        // Then
+        assertTrue(inboundAdapters.size() >= 3); // HTTP, FTP, JDBC from setup
+        assertTrue(inboundAdapters.stream()
+                .allMatch(a -> a.getMode() == AdapterModeEnum.INBOUND));
+    }
+
+    @Test
+    void testHealthCheckQueries() {
+        // Given - Set some adapters with old health checks
+        LocalDateTime oldCheckTime = LocalDateTime.now().minusDays(1);
+        CommunicationAdapter adapter = adapterRepository.findByName("FTP Adapter").orElseThrow();
+        adapter.setLastHealthCheck(oldCheckTime);
+        adapterRepository.update(adapter);
+
+        // When
+        List<CommunicationAdapter> recentlyChecked = adapterRepository.findAll().stream()
+                .filter(a -> a.getLastHealthCheck() != null && 
+                           a.getLastHealthCheck().isAfter(LocalDateTime.now().minusHours(1)))
+                .toList();
+
+        // Then
+        assertTrue(recentlyChecked.size() >= 4); // Most adapters have recent health checks
+        assertFalse(recentlyChecked.stream()
+                .anyMatch(a -> "FTP Adapter".equals(a.getName())));
+    }
+}

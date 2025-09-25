@@ -2,7 +2,7 @@ package com.integrixs.backend.performance;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.integrixs.data.model.FieldMapping;
-import com.integrixs.data.repository.FieldMappingRepository;
+import com.integrixs.data.sql.repository.FieldMappingSqlRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,7 +31,7 @@ public class CachedTransformationService {
     private static final Logger log = LoggerFactory.getLogger(CachedTransformationService.class);
 
 
-    private final FieldMappingRepository transformationRuleRepository;
+    private final FieldMappingSqlRepository transformationRuleRepository;
     private final Cache<String, Object> transformationCache;
 
     // Cache for compiled scripts
@@ -40,7 +40,7 @@ public class CachedTransformationService {
     private final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     
     // Constructor
-    public CachedTransformationService(FieldMappingRepository transformationRuleRepository, 
+    public CachedTransformationService(FieldMappingSqlRepository transformationRuleRepository, 
                                        Cache<String, Object> transformationCache) {
         this.transformationRuleRepository = transformationRuleRepository;
         this.transformationCache = transformationCache;

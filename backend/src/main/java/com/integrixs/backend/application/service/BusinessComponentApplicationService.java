@@ -3,8 +3,8 @@ package com.integrixs.backend.application.service;
 import com.integrixs.backend.api.dto.request.CreateBusinessComponentRequest;
 import com.integrixs.backend.api.dto.request.UpdateBusinessComponentRequest;
 import com.integrixs.backend.api.dto.response.BusinessComponentResponse;
-import com.integrixs.data.repository.BusinessComponentRepository;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
+import com.integrixs.data.sql.repository.BusinessComponentSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
 import com.integrixs.backend.domain.service.ComponentManagementService;
 import com.integrixs.backend.exception.ResourceNotFoundException;
 import com.integrixs.backend.service.AuditTrailService;
@@ -26,13 +26,13 @@ public class BusinessComponentApplicationService {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BusinessComponentApplicationService.class);
     
-    private final BusinessComponentRepository businessComponentRepository;
-    private final CommunicationAdapterRepository communicationAdapterRepository;
+    private final BusinessComponentSqlRepository businessComponentRepository;
+    private final CommunicationAdapterSqlRepository communicationAdapterRepository;
     private final ComponentManagementService componentManagementService;
     private final AuditTrailService auditTrailService;
 
-    public BusinessComponentApplicationService(BusinessComponentRepository businessComponentRepository,
-                                               CommunicationAdapterRepository communicationAdapterRepository,
+    public BusinessComponentApplicationService(BusinessComponentSqlRepository businessComponentRepository,
+                                               CommunicationAdapterSqlRepository communicationAdapterRepository,
                                                ComponentManagementService componentManagementService,
                                                AuditTrailService auditTrailService) {
         this.businessComponentRepository = businessComponentRepository;

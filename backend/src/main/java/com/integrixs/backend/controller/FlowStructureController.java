@@ -28,6 +28,10 @@ public class FlowStructureController {
 
 
     private final FlowStructureService flowStructureService;
+    
+    public FlowStructureController(FlowStructureService flowStructureService) {
+        this.flowStructureService = flowStructureService;
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")

@@ -1,7 +1,7 @@
 package com.integrixs.backend.application.service;
 
 import com.integrixs.backend.domain.service.LogManagementService;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import com.integrixs.backend.infrastructure.email.EmailService;
 import com.integrixs.data.model.SystemLog;
 import org.springframework.scheduling.annotation.Async;
@@ -25,11 +25,11 @@ public class EmailApplicationService {
 
 
     private final EmailService emailService;
-    private final SystemLogRepository systemLogRepository;
+    private final SystemLogSqlRepository systemLogRepository;
     private final LogManagementService logManagementService;
 
     public EmailApplicationService(EmailService emailService,
-                                   SystemLogRepository systemLogRepository,
+                                   SystemLogSqlRepository systemLogRepository,
                                    LogManagementService logManagementService) {
         this.emailService = emailService;
         this.systemLogRepository = systemLogRepository;

@@ -3,7 +3,7 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.Alert;
 import com.integrixs.data.model.AlertRule;
 import com.integrixs.data.model.NotificationChannel;
-import com.integrixs.data.repository.NotificationChannelRepository;
+import com.integrixs.data.sql.repository.NotificationChannelSqlRepository;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -29,13 +29,13 @@ public class NotificationService {
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
 
-    private final NotificationChannelRepository channelRepository;
+    private final NotificationChannelSqlRepository channelRepository;
     private final JavaMailSender mailSender;
     private final RestTemplate restTemplate;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy - MM - dd HH:mm:ss");
 
-    public NotificationService(NotificationChannelRepository channelRepository,
+    public NotificationService(NotificationChannelSqlRepository channelRepository,
                              JavaMailSender mailSender,
                              RestTemplate restTemplate) {
         this.channelRepository = channelRepository;

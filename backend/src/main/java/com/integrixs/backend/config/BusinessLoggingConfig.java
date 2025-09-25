@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Configuration properties for business logging features.
  */
-@Configuration
 @ConfigurationProperties(prefix = "logging.business")
 public class BusinessLoggingConfig {
 

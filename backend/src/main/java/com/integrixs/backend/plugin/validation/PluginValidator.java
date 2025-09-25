@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("pluginValidationService")
 public class PluginValidator {
     
     public ValidationResult validate(AdapterPlugin plugin) {

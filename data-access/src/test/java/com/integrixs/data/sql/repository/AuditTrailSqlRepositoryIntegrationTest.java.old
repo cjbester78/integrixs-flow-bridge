@@ -1,0 +1,243 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.AuditTrail;
+import com.integrixs.data.model.AuditTrail.AuditAction;
+import com.integrixs.data.model.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for AuditTrailSqlRepository.
+ */
+public class AuditTrailSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private AuditTrailSqlRepository auditTrailRepository;
+    private UserSqlRepository userRepository;
+    private User testUser;
+
+    @Override
+    protected void setUp() {
+        auditTrailRepository = new AuditTrailSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        
+        // Create a test user for audit entries
+        testUser = createTestUser();
+        setupTestAuditTrails();
+    }
+
+    private User createTestUser() {
+        User user = User.builder()
+                .username("audituser")
+                .email("audit@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Audit")
+                .lastName("User")
+                .role("ADMINISTRATOR")
+                .status("active")
+                .build();
+        return userRepository.save(user);
+    }
+
+    private void setupTestAuditTrails() {
+        createAuditEntry("User", "user-001", AuditAction.CREATE, "{\"action\":\"created user\"}");
+        createAuditEntry("User", "user-001", AuditAction.UPDATE, "{\"field\":\"email\",\"old\":\"old@example.com\",\"new\":\"new@example.com\"}");
+        createAuditEntry("IntegrationFlow", "flow-001", AuditAction.CREATE, "{\"name\":\"TestFlow\"}");
+        createAuditEntry("IntegrationFlow", "flow-001", AuditAction.UPDATE, "{\"status\":\"activated\"}");
+        createAuditEntry("IntegrationFlow", "flow-002", AuditAction.DELETE, "{\"reason\":\"obsolete\"}");
+        createAuditEntry("CommunicationAdapter", "adapter-001", AuditAction.CREATE, "{\"type\":\"HTTP\"}");
+    }
+
+    private AuditTrail createAuditEntry(String entityType, String entityId, AuditAction action, String changes) {
+        AuditTrail audit = AuditTrail.builder()
+                .entityType(entityType)
+                .entityId(entityId)
+                .action(action)
+                .changes(changes)
+                .user(testUser)
+                .userIp("127.0.0.1")
+                .userAgent("TestAgent/1.0")
+                .build();
+        return auditTrailRepository.save(audit);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        AuditTrail audit = createAuditEntry("Test", "test-001", AuditAction.CREATE, "{\"test\":true}");
+
+        // When
+        var found = auditTrailRepository.findById(audit.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Test", found.get().getEntityType());
+        assertEquals("{\"test\":true}", found.get().getChanges());
+        assertEquals(testUser.getId(), found.get().getUser().getId());
+    }
+
+    @Test
+    void testFindByEntityTypeAndEntityId() {
+        // When
+        List<AuditTrail> flowAudits = auditTrailRepository
+                .findByEntityTypeAndEntityIdOrderByCreatedAtDesc("IntegrationFlow", "flow-001");
+
+        // Then
+        assertEquals(2, flowAudits.size());
+        assertEquals(AuditAction.UPDATE, flowAudits.get(0).getAction()); // Most recent first
+        assertEquals(AuditAction.CREATE, flowAudits.get(1).getAction());
+    }
+
+    @Test
+    void testFindByUserId() {
+        // Given
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        // When
+        Page<AuditTrail> userAudits = auditTrailRepository
+                .findByUserIdOrderByCreatedAtDesc(testUser.getId(), pageRequest);
+
+        // Then
+        assertEquals(7, userAudits.getTotalElements()); // All test audits + the new one
+        assertTrue(userAudits.getContent().stream()
+                .allMatch(audit -> testUser.getId().equals(audit.getUser().getId())));
+    }
+
+    @Test
+    void testFindByAction() {
+        // When
+        List<AuditTrail> createActions = auditTrailRepository.findByAction(AuditAction.CREATE);
+
+        // Then
+        assertEquals(4, createActions.size()); // 3 from setup + 1 from previous test
+        assertTrue(createActions.stream()
+                .allMatch(audit -> audit.getAction() == AuditAction.CREATE));
+    }
+
+    @Test
+    void testFindByEntityType() {
+        // When
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Page<AuditTrail> userAudits = auditTrailRepository.findByEntityType("User", pageRequest);
+
+        // Then
+        assertEquals(2, userAudits.getTotalElements());
+        assertTrue(userAudits.getContent().stream()
+                .allMatch(audit -> "User".equals(audit.getEntityType())));
+    }
+
+    @Test
+    void testFindByCreatedAtBetween() {
+        // Given
+        LocalDateTime start = LocalDateTime.now().minusHours(1);
+        LocalDateTime end = LocalDateTime.now().plusHours(1);
+
+        // When
+        List<AuditTrail> recentAudits = auditTrailRepository
+                .findByCreatedAtBetweenOrderByCreatedAtDesc(start, end);
+
+        // Then
+        assertTrue(recentAudits.size() >= 6); // At least our setup audits
+    }
+
+    @Test
+    void testSearchAuditTrail() {
+        // Given
+        LocalDateTime start = LocalDateTime.now().minusHours(1);
+        LocalDateTime end = LocalDateTime.now().plusHours(1);
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        // When
+        Page<AuditTrail> searchResults = auditTrailRepository.searchAuditTrail(
+                "IntegrationFlow",
+                AuditAction.UPDATE,
+                testUser.getId(),
+                start,
+                end,
+                pageRequest
+        );
+
+        // Then
+        assertEquals(1, searchResults.getTotalElements());
+        assertEquals("flow-001", searchResults.getContent().get(0).getEntityId());
+    }
+
+    @Test
+    void testComplexAuditTrail() {
+        // Given
+        AuditTrail complexAudit = AuditTrail.builder()
+                .entityType("BusinessTransaction")
+                .entityId(UUID.randomUUID().toString())
+                .action(AuditAction.UPDATE)
+                .changes("{\"amount\":{\"old\":1000,\"new\":1500},\"status\":{\"old\":\"pending\",\"new\":\"approved\"}}")
+                .user(testUser)
+                .userIp("192.168.1.100")
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .requestId(UUID.randomUUID().toString())
+                .sessionId("session-123")
+                .build();
+
+        // When
+        AuditTrail saved = auditTrailRepository.save(complexAudit);
+        AuditTrail retrieved = auditTrailRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertNotNull(retrieved.getCreatedAt());
+        assertEquals("192.168.1.100", retrieved.getUserIp());
+        assertTrue(retrieved.getChanges().contains("\"amount\""));
+        assertEquals("session-123", retrieved.getSessionId());
+    }
+
+    @Test
+    void testDeleteAuditTrail() {
+        // Given
+        AuditTrail audit = createAuditEntry("ToDelete", "del-001", AuditAction.DELETE, "{}");
+        UUID auditId = audit.getId();
+
+        // When
+        auditTrailRepository.deleteById(auditId);
+
+        // Then
+        assertFalse(auditTrailRepository.findById(auditId).isPresent());
+    }
+
+    @Test
+    void testCountByEntityTypeAndAction() {
+        // When
+        long createCount = auditTrailRepository.findByAction(AuditAction.CREATE).size();
+        long updateCount = auditTrailRepository.findByAction(AuditAction.UPDATE).size();
+        long deleteCount = auditTrailRepository.findByAction(AuditAction.DELETE).size();
+
+        // Then
+        assertEquals(4, createCount); // From setup
+        assertEquals(2, updateCount); // From setup  
+        assertEquals(1, deleteCount); // From setup
+    }
+
+    @Test
+    void testAuditTrailWithNullUser() {
+        // Some audit entries might not have a user (system actions)
+        // Given
+        AuditTrail systemAudit = AuditTrail.builder()
+                .entityType("SystemTask")
+                .entityId("task-001")
+                .action(AuditAction.CREATE)
+                .changes("{\"type\":\"scheduled_cleanup\"}")
+                .userIp("system")
+                .build();
+
+        // When
+        AuditTrail saved = auditTrailRepository.save(systemAudit);
+
+        // Then
+        assertNull(saved.getUser());
+        assertEquals("system", saved.getUserIp());
+    }
+}

@@ -1,0 +1,302 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.EventStore;
+import com.integrixs.data.model.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Integration test for EventStoreSqlRepository.
+ */
+public class EventStoreSqlRepositoryIntegrationTest extends BaseSqlRepositoryTest {
+
+    private EventStoreSqlRepository eventStoreRepository;
+    private UserSqlRepository userRepository;
+    private User testUser;
+
+    @Override
+    protected void setUp() {
+        eventStoreRepository = new EventStoreSqlRepository(sqlQueryExecutor);
+        userRepository = new UserSqlRepository(sqlQueryExecutor);
+        
+        // Create a test user for triggered by
+        testUser = createTestUser();
+        setupTestEvents();
+    }
+
+    private User createTestUser() {
+        User user = User.builder()
+                .username("eventuser")
+                .email("event@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Event")
+                .lastName("User")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+        return userRepository.save(user);
+    }
+
+    private void setupTestEvents() {
+        UUID aggregateId1 = UUID.randomUUID();
+        UUID aggregateId2 = UUID.randomUUID();
+        UUID correlationId = UUID.randomUUID();
+
+        // Create events for first aggregate
+        createEvent(aggregateId1, "User", 1L, "UserCreated", correlationId);
+        createEvent(aggregateId1, "User", 2L, "UserUpdated", correlationId);
+        createEvent(aggregateId1, "User", 3L, "UserActivated", correlationId);
+
+        // Create events for second aggregate
+        createEvent(aggregateId2, "IntegrationFlow", 1L, "FlowCreated", UUID.randomUUID());
+        createEvent(aggregateId2, "IntegrationFlow", 2L, "FlowDeployed", UUID.randomUUID());
+
+        // Create an old event for cleanup testing
+        EventStore oldEvent = createEvent(UUID.randomUUID(), "OldAggregate", 1L, "OldEvent", UUID.randomUUID());
+        oldEvent.setOccurredAt(LocalDateTime.now().minusDays(400));
+        eventStoreRepository.update(oldEvent);
+    }
+
+    private EventStore createEvent(UUID aggregateId, String aggregateType, Long version, 
+                                  String eventType, UUID correlationId) {
+        EventStore event = EventStore.builder()
+                .eventId(UUID.randomUUID())
+                .aggregateType(aggregateType)
+                .aggregateId(aggregateId)
+                .aggregateVersion(version)
+                .eventType(eventType)
+                .eventData("{\"type\":\"" + eventType + "\",\"timestamp\":\"" + LocalDateTime.now() + "\"}")
+                .eventMetadata("{\"source\":\"test\",\"version\":\"1.0\"}")
+                .occurredAt(LocalDateTime.now())
+                .triggeredBy(testUser.getId())
+                .correlationId(correlationId)
+                .build();
+        return eventStoreRepository.save(event);
+    }
+
+    @Test
+    void testFindById() {
+        // Given
+        EventStore event = createEvent(UUID.randomUUID(), "TestAggregate", 1L, 
+                                     "TestEvent", UUID.randomUUID());
+
+        // When
+        var found = eventStoreRepository.findById(event.getId());
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("TestEvent", found.get().getEventType());
+        assertEquals("TestAggregate", found.get().getAggregateType());
+        assertEquals(1L, found.get().getAggregateVersion());
+    }
+
+    @Test
+    void testFindByEventId() {
+        // Given
+        UUID eventId = UUID.randomUUID();
+        EventStore event = EventStore.builder()
+                .eventId(eventId)
+                .aggregateType("TestType")
+                .aggregateId(UUID.randomUUID())
+                .aggregateVersion(1L)
+                .eventType("UniqueEvent")
+                .eventData("{}")
+                .occurredAt(LocalDateTime.now())
+                .correlationId(UUID.randomUUID())
+                .build();
+        eventStoreRepository.save(event);
+
+        // When
+        var found = eventStoreRepository.findByEventId(eventId);
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("UniqueEvent", found.get().getEventType());
+    }
+
+    @Test
+    void testFindByAggregateId() {
+        // Given - using aggregate from setup with 3 events
+        UUID aggregateId = eventStoreRepository.findAll().stream()
+                .filter(e -> "User".equals(e.getAggregateType()))
+                .map(EventStore::getAggregateId)
+                .findFirst()
+                .orElseThrow();
+
+        // When
+        List<EventStore> events = eventStoreRepository
+                .findByAggregateIdOrderByAggregateVersionAsc(aggregateId);
+
+        // Then
+        assertEquals(3, events.size());
+        assertEquals(1L, events.get(0).getAggregateVersion());
+        assertEquals(2L, events.get(1).getAggregateVersion());
+        assertEquals(3L, events.get(2).getAggregateVersion());
+        assertEquals("UserCreated", events.get(0).getEventType());
+        assertEquals("UserUpdated", events.get(1).getEventType());
+        assertEquals("UserActivated", events.get(2).getEventType());
+    }
+
+    @Test
+    void testFindByAggregateIdAndAggregateType() {
+        // Given
+        UUID aggregateId = UUID.randomUUID();
+        createEvent(aggregateId, "SpecificType", 1L, "Event1", UUID.randomUUID());
+        createEvent(aggregateId, "SpecificType", 2L, "Event2", UUID.randomUUID());
+        createEvent(aggregateId, "DifferentType", 1L, "Event3", UUID.randomUUID()); // Same ID, different type
+
+        // When
+        List<EventStore> specificTypeEvents = eventStoreRepository
+                .findByAggregateIdAndAggregateTypeOrderByAggregateVersionAsc(aggregateId, "SpecificType");
+
+        // Then
+        assertEquals(2, specificTypeEvents.size());
+        assertTrue(specificTypeEvents.stream().allMatch(e -> "SpecificType".equals(e.getAggregateType())));
+    }
+
+    @Test
+    void testFindByCorrelationId() {
+        // Given - using correlation ID from setup
+        UUID correlationId = eventStoreRepository.findAll().stream()
+                .filter(e -> "User".equals(e.getAggregateType()))
+                .map(EventStore::getCorrelationId)
+                .findFirst()
+                .orElseThrow();
+
+        // When
+        List<EventStore> correlatedEvents = eventStoreRepository.findByCorrelationId(correlationId);
+
+        // Then
+        assertEquals(3, correlatedEvents.size()); // All user events have same correlation ID
+    }
+
+    @Test
+    void testFindByTriggeredByAndOccurredAtBetween() {
+        // Given
+        LocalDateTime start = LocalDateTime.now().minusHours(1);
+        LocalDateTime end = LocalDateTime.now().plusHours(1);
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        // When
+        Page<EventStore> userEvents = eventStoreRepository
+                .findByTriggeredByAndOccurredAtBetween(testUser.getId(), start, end, pageRequest);
+
+        // Then
+        assertTrue(userEvents.getTotalElements() >= 5); // At least our setup events
+        assertTrue(userEvents.getContent().stream()
+                .allMatch(e -> testUser.getId().equals(e.getTriggeredBy())));
+    }
+
+    @Test
+    void testGetLatestVersionForAggregate() {
+        // Given - using aggregate with known versions
+        UUID aggregateId = eventStoreRepository.findAll().stream()
+                .filter(e -> "IntegrationFlow".equals(e.getAggregateType()))
+                .map(EventStore::getAggregateId)
+                .findFirst()
+                .orElseThrow();
+
+        // When
+        Long latestVersion = eventStoreRepository.getLatestVersionForAggregate(aggregateId);
+
+        // Then
+        assertEquals(2L, latestVersion); // FlowCreated (1) and FlowDeployed (2)
+    }
+
+    @Test
+    void testDeleteByOccurredAtBefore() {
+        // Given
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(365);
+        long countBefore = countRowsInTable("event_store");
+
+        // When
+        int deleted = eventStoreRepository.deleteByOccurredAtBefore(cutoff);
+
+        // Then
+        assertEquals(1, deleted); // Only the old event
+        assertEquals(countBefore - 1, countRowsInTable("event_store"));
+    }
+
+    @Test
+    void testComplexEventData() {
+        // Given
+        String complexEventData = """
+                {
+                    "orderId": "12345",
+                    "customerId": "cust-789",
+                    "items": [
+                        {"productId": "prod-1", "quantity": 2, "price": 29.99},
+                        {"productId": "prod-2", "quantity": 1, "price": 49.99}
+                    ],
+                    "totalAmount": 109.97,
+                    "timestamp": "2024-01-15T10:30:00"
+                }
+                """;
+
+        EventStore complexEvent = EventStore.builder()
+                .eventId(UUID.randomUUID())
+                .aggregateType("Order")
+                .aggregateId(UUID.randomUUID())
+                .aggregateVersion(1L)
+                .eventType("OrderPlaced")
+                .eventData(complexEventData)
+                .eventMetadata("{\"channel\":\"web\",\"userId\":\"user-123\"}")
+                .occurredAt(LocalDateTime.now())
+                .correlationId(UUID.randomUUID())
+                .triggeredBy(testUser.getId())
+                .sequenceNumber(12345L)
+                .build();
+
+        // When
+        EventStore saved = eventStoreRepository.save(complexEvent);
+        EventStore retrieved = eventStoreRepository.findById(saved.getId()).orElseThrow();
+
+        // Then
+        assertTrue(retrieved.getEventData().contains("\"orderId\": \"12345\""));
+        assertTrue(retrieved.getEventData().contains("\"totalAmount\": 109.97"));
+        assertEquals(12345L, retrieved.getSequenceNumber());
+    }
+
+    @Test
+    void testFindByEventType() {
+        // When
+        List<EventStore> createdEvents = eventStoreRepository.findAll().stream()
+                .filter(e -> e.getEventType().endsWith("Created"))
+                .toList();
+
+        // Then
+        assertEquals(2, createdEvents.size()); // UserCreated and FlowCreated
+    }
+
+    @Test
+    void testEventOrdering() {
+        // Given
+        UUID aggregateId = UUID.randomUUID();
+        LocalDateTime baseTime = LocalDateTime.now().minusHours(5);
+        
+        for (int i = 1; i <= 5; i++) {
+            EventStore event = createEvent(aggregateId, "OrderedAggregate", (long) i, 
+                                         "Event" + i, UUID.randomUUID());
+            event.setOccurredAt(baseTime.plusMinutes(i * 10));
+            eventStoreRepository.update(event);
+        }
+
+        // When
+        List<EventStore> orderedEvents = eventStoreRepository
+                .findByAggregateIdOrderByAggregateVersionAsc(aggregateId);
+
+        // Then
+        assertEquals(5, orderedEvents.size());
+        for (int i = 0; i < 5; i++) {
+            assertEquals(i + 1, orderedEvents.get(i).getAggregateVersion());
+            assertEquals("Event" + (i + 1), orderedEvents.get(i).getEventType());
+        }
+    }
+}

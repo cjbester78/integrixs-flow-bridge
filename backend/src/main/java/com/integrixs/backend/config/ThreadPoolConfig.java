@@ -24,6 +24,10 @@ public class ThreadPoolConfig {
 
     private final MDCTaskDecorator mdcTaskDecorator;
 
+    public ThreadPoolConfig(MDCTaskDecorator mdcTaskDecorator) {
+        this.mdcTaskDecorator = mdcTaskDecorator;
+    }
+
     /**
      * Primary task executor for general async operations
      */

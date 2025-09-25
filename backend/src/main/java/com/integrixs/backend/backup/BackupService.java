@@ -1,6 +1,6 @@
 package com.integrixs.backend.backup;
 
-import com.integrixs.backend.audit.AuditEvent;
+import com.integrixs.data.model.AuditEvent;
 import com.integrixs.backend.audit.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,26 +43,26 @@ public class BackupService {
     @Autowired(required = false)
     private CloudStorageService cloudStorageService;
 
-    @Value("$ {backup.local.path:/backup}")
+    @Value("${backup.local.path:/backup}")
     private String localBackupPath;
 
-    @Value("$ {backup.retention.days:30}")
+    @Value("${backup.retention.days:30}")
     private int retentionDays;
 
-    @Value("$ {backup.database.enabled:true}")
+    @Value("${backup.database.enabled:true}")
     private boolean databaseBackupEnabled;
 
-    @Value("$ {backup.files.enabled:true}")
+    @Value("${backup.files.enabled:true}")
     private boolean filesBackupEnabled;
 
-    @Value("$ {backup.cloud.enabled:false}")
+    @Value("${backup.cloud.enabled:false}")
     private boolean cloudBackupEnabled;
 
-    @Value("$ {backup.encryption.enabled:true}")
+    @Value("${backup.encryption.enabled:true}")
     private boolean encryptionEnabled;
 
     /**
-     * Scheduled database backup - runs daily at 2 AM
+     * Scheduled database backup-runs daily at 2 AM
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void performScheduledDatabaseBackup() {
@@ -129,11 +129,11 @@ public class BackupService {
             "pg_dump",
             "--host = localhost",
             "--username = postgres",
-            "--no - password",
+            "--no-password",
             "--verbose",
             "--format = plain",
-            "--no - owner",
-            "--no - acl",
+            "--no-owner",
+            "--no-acl",
             "integrixs"
        );
 
@@ -159,7 +159,7 @@ public class BackupService {
         }
 
         long size = Files.size(backupPath);
-        long duration = System.currentTimeMillis() - startTime;
+        long duration = System.currentTimeMillis()-startTime;
 
         // Verify backup
         verifyDatabaseBackup(backupPath);
@@ -189,9 +189,9 @@ public class BackupService {
             // Create tar.gz archive
             ProcessBuilder pb = new ProcessBuilder(
                 "tar",
-                " - czf",
+                "-czf",
                 backupPath.toString(),
-                " - C", "/data/integrixs",
+                "-C", "/data/integrixs",
                 "uploads",
                 "configurations",
                 "templates"
@@ -241,9 +241,9 @@ public class BackupService {
         // Create archive
         ProcessBuilder pb = new ProcessBuilder(
             "tar",
-            " - czf",
+            "-czf",
             backupPath.toString(),
-            " - C", "/etc/integrixs",
+            "-C", "/etc/integrixs",
             "."
        );
 
@@ -255,7 +255,7 @@ public class BackupService {
         }
 
         long size = Files.size(backupPath);
-        long duration = System.currentTimeMillis() - startTime;
+        long duration = System.currentTimeMillis()-startTime;
 
         return BackupResult.success(backupPath.toString(), size, duration);
     }
@@ -311,7 +311,7 @@ public class BackupService {
      * Verify database backup integrity
      */
     private void verifyDatabaseBackup(Path backupPath) throws Exception {
-        // Basic verification - check if file is readable and has content
+        // Basic verification-check if file is readable and has content
         if(!Files.exists(backupPath) || Files.size(backupPath) < 1000) {
             throw new RuntimeException("Backup file is invalid or too small");
         }
@@ -394,7 +394,7 @@ public class BackupService {
      * Convert object to JSON
      */
     private String toJson(Object obj) throws Exception {
-        // Simple JSON conversion - use Jackson in production
+        // Simple JSON conversion-use Jackson in production
         return obj.toString();
     }
 

@@ -12,9 +12,9 @@ import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.CommunicationAdapter;
 import com.integrixs.data.model.AuditTrail;
 import com.integrixs.data.model.FlowStatus;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.CommunicationAdapterRepository;
-import com.integrixs.data.repository.FlowStructureRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.CommunicationAdapterSqlRepository;
+import com.integrixs.data.sql.repository.FlowStructureSqlRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,17 +34,17 @@ public class IntegrationFlowService {
 
     private static final Logger log = LoggerFactory.getLogger(IntegrationFlowService.class);
 
-    private final IntegrationFlowRepository flowRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
     private final FlowValidationService validationService;
     private final AuditTrailService auditTrailService;
-    private final CommunicationAdapterRepository adapterRepository;
-    private final FlowStructureRepository structureRepository;
+    private final CommunicationAdapterSqlRepository adapterRepository;
+    private final FlowStructureSqlRepository structureRepository;
     
-    public IntegrationFlowService(IntegrationFlowRepository flowRepository,
+    public IntegrationFlowService(IntegrationFlowSqlRepository flowRepository,
                                 FlowValidationService validationService,
                                 AuditTrailService auditTrailService,
-                                CommunicationAdapterRepository adapterRepository,
-                                FlowStructureRepository structureRepository) {
+                                CommunicationAdapterSqlRepository adapterRepository,
+                                FlowStructureSqlRepository structureRepository) {
         this.flowRepository = flowRepository;
         this.validationService = validationService;
         this.auditTrailService = auditTrailService;

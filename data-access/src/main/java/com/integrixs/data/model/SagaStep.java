@@ -1,6 +1,4 @@
 package com.integrixs.data.model;
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.HashMap;
@@ -10,53 +8,34 @@ import com.fasterxml.jackson.core.type.TypeReference;
 /**
  * Entity representing a step in a saga transaction
  */
-@Entity
-@Table(name = "saga_steps")
 public class SagaStep extends BaseEntity {
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "saga_transaction_id", nullable = false)
     private SagaTransaction sagaTransaction;
 
-    @Column(name = "step_name", nullable = false)
     private String stepName;
 
-    @Column(name = "step_order", nullable = false)
     private Integer stepOrder;
 
-    @Column(name = "status", nullable = false)
-    @Enumerated(EnumType.STRING)
     private StepStatus status = StepStatus.PENDING;
 
-    @Column(name = "started_at")
     private LocalDateTime startedAt;
 
-    @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "action_type", nullable = false)
     private String actionType;
 
-    @Column(name = "action_data", columnDefinition = "TEXT")
     private String actionData;
 
-    @Column(name = "compensation_type")
     private String compensationType;
 
-    @Column(name = "compensation_data", columnDefinition = "TEXT")
     private String compensationData;
 
-    @Column(name = "result_data", columnDefinition = "TEXT")
     private String resultData;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "retry_count")
     private Integer retryCount = 0;
 
-    @Column(name = "is_compensated")
     private boolean compensated = false;
 
     public enum StepStatus {

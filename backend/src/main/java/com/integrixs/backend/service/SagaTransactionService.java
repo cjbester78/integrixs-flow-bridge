@@ -4,8 +4,8 @@ package com.integrixs.backend.service;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.SagaTransaction;
 import com.integrixs.data.model.SagaStep;
-import com.integrixs.data.repository.SagaTransactionRepository;
-import com.integrixs.data.repository.SagaStepRepository;
+import com.integrixs.data.sql.repository.SagaTransactionSqlRepository;
+import com.integrixs.data.sql.repository.SagaStepSqlRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +27,10 @@ public abstract class SagaTransactionService {
     private static final Logger logger = LoggerFactory.getLogger(SagaTransactionService.class);
 
     @Autowired
-    private SagaTransactionRepository transactionRepository;
+    private SagaTransactionSqlRepository transactionRepository;
 
     @Autowired
-    private SagaStepRepository stepRepository;
+    private SagaStepSqlRepository stepRepository;
 
     // @Autowired
     // private NotificationService notificationService;
@@ -324,7 +324,7 @@ public abstract class SagaTransactionService {
     public List<SagaStep> getTransactionSteps(String transactionId) {
         SagaTransaction transaction = transactionRepository.findById(UUID.fromString(transactionId))
             .orElseThrow(() -> new IllegalArgumentException("Transaction not found: " + transactionId));
-        return stepRepository.findBySagaTransactionOrderByStepOrder(transaction);
+        return stepRepository.findByTransaction(transaction);
     }
 
     // Supporting classes

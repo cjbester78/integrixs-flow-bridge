@@ -19,6 +19,10 @@ public class TestMappingController {
 
 
     private final TestMappingService testMappingService;
+    
+    public TestMappingController(TestMappingService testMappingService) {
+        this.testMappingService = testMappingService;
+    }
 
     /**
      * Test field mappings with sample XML

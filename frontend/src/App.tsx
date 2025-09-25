@@ -36,6 +36,7 @@ const AllInterfaces = lazy(() => import("@/pages/AllInterfaces"));
 const Packages = lazy(() => import("@/pages/Packages").then(m => ({ default: m.Packages })));
 const AdapterMarketplace = lazy(() => import("@/pages/AdapterMarketplace"));
 const PluginMarketplace = lazy(() => import("@/pages/PluginMarketplace").then(m => ({ default: m.PluginMarketplace })));
+const SystemConfiguration = lazy(() => import("@/pages/SystemConfiguration"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Loading component
@@ -187,6 +188,11 @@ const App = () => {
  <Route path="admin" element={
  <Suspense fallback={<PageLoader />}>
  <Admin />
+ </Suspense>
+ } />
+ <Route path="system-configuration" element={
+ <Suspense fallback={<PageLoader />}>
+ <SystemConfiguration />
  </Suspense>
  } />
  <Route path="settings" element={

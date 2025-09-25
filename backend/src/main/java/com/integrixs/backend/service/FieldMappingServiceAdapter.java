@@ -3,7 +3,7 @@ package com.integrixs.backend.service;
 import com.integrixs.backend.api.dto.request.CreateFieldMappingRequest;
 import com.integrixs.backend.application.service.FieldMappingApplicationService;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.UserRepository;
+import com.integrixs.data.sql.repository.UserSqlRepository;
 import com.integrixs.shared.dto.FieldMappingDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,13 @@ public class FieldMappingServiceAdapter {
 
 
     private final FieldMappingApplicationService fieldMappingApplicationService;
-    private final UserRepository userRepository;
+    private final UserSqlRepository userRepository;
+    
+    public FieldMappingServiceAdapter(FieldMappingApplicationService fieldMappingApplicationService, 
+                                      UserSqlRepository userRepository) {
+        this.fieldMappingApplicationService = fieldMappingApplicationService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Create a field mapping from DTO

@@ -1,0 +1,189 @@
+package com.integrixs.data.sql.repository;
+
+import com.integrixs.data.model.User;
+import com.integrixs.data.sql.core.SqlQueryExecutor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Simple unit test for UserSqlRepository without Spring context.
+ * This test verifies the SQL queries are correctly formed.
+ */
+@ExtendWith(MockitoExtension.class)
+public class UserRepositorySimpleTest {
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    private SqlQueryExecutor sqlQueryExecutor;
+    private UserSqlRepository userSqlRepository;
+
+    @BeforeEach
+    void setUp() {
+        sqlQueryExecutor = new SqlQueryExecutor(jdbcTemplate);
+        userSqlRepository = new UserSqlRepository(sqlQueryExecutor);
+    }
+
+    @Test
+    void testFindByUsername() {
+        // Given
+        String username = "testuser";
+        User expectedUser = createTestUser(username);
+        
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), any()))
+                .thenReturn(Arrays.asList(expectedUser));
+
+        // When
+        Optional<User> result = userSqlRepository.findByUsername(username);
+
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals(username, result.get().getUsername());
+        
+        // Verify the SQL query
+        verify(jdbcTemplate).query(
+                eq("SELECT * FROM users WHERE username = ?"), 
+                any(RowMapper.class), 
+                eq(username)
+        );
+    }
+
+    @Test
+    void testExistsByUsername() {
+        // Given
+        String username = "existinguser";
+        when(jdbcTemplate.queryForObject(anyString(), eq(Long.class), any()))
+                .thenReturn(1L);
+
+        // When
+        boolean exists = userSqlRepository.existsByUsername(username);
+
+        // Then
+        assertTrue(exists);
+        
+        // Verify the SQL query
+        verify(jdbcTemplate).queryForObject(
+                eq("SELECT COUNT(*) FROM users WHERE username = ?"), 
+                eq(Long.class), 
+                eq(username)
+        );
+    }
+
+    @Test
+    void testCountByRole() {
+        // Given
+        String role = "DEVELOPER";
+        when(jdbcTemplate.queryForObject(anyString(), eq(Long.class), any()))
+                .thenReturn(5L);
+
+        // When
+        long count = userSqlRepository.countByRole(role);
+
+        // Then
+        assertEquals(5L, count);
+        
+        // Verify the SQL query
+        verify(jdbcTemplate).queryForObject(
+                eq("SELECT COUNT(*) FROM users WHERE role = ?"), 
+                eq(Long.class), 
+                eq(role)
+        );
+    }
+
+    @Test
+    void testSaveNewUser() {
+        // Given
+        User newUser = createTestUser("newuser");
+        newUser.setId(null); // New user has no ID
+
+        // Mock the update call
+        when(jdbcTemplate.update(any(), any(PreparedStatementSetter.class))).thenReturn(1);
+
+        // When
+        User savedUser = userSqlRepository.save(newUser);
+
+        // Then
+        assertNotNull(savedUser.getId());
+        assertNotNull(savedUser.getCreatedAt());
+        assertNotNull(savedUser.getUpdatedAt());
+        assertEquals("newuser", savedUser.getUsername());
+    }
+
+    @Test
+    void testUpdateUser() {
+        // Given
+        User existingUser = createTestUser("existinguser");
+        existingUser.setId(UUID.randomUUID());
+        existingUser.setFirstName("Updated");
+
+        // When
+        User updatedUser = userSqlRepository.update(existingUser);
+
+        // Then
+        assertEquals("Updated", updatedUser.getFirstName());
+        assertNotNull(updatedUser.getUpdatedAt());
+        
+        // Verify update was called
+        verify(jdbcTemplate).update(anyString(), any(Object[].class));
+    }
+
+    @Test
+    void testDeleteById() {
+        // Given
+        UUID userId = UUID.randomUUID();
+
+        // When
+        userSqlRepository.deleteById(userId);
+
+        // Then
+        verify(jdbcTemplate).update(
+                eq("DELETE FROM users WHERE id = ?"), 
+                eq(userId)
+        );
+    }
+
+    @Test
+    void testFindAll() {
+        // Given
+        User user1 = createTestUser("user1");
+        User user2 = createTestUser("user2");
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
+                .thenReturn(Arrays.asList(user1, user2));
+
+        // When
+        var users = userSqlRepository.findAll();
+
+        // Then
+        assertEquals(2, users.size());
+        verify(jdbcTemplate).query(
+                eq("SELECT * FROM users"), 
+                any(RowMapper.class)
+        );
+    }
+
+    private User createTestUser(String username) {
+        return User.builder()
+                .username(username)
+                .email(username + "@example.com")
+                .passwordHash("$2a$10$hash")
+                .firstName("Test")
+                .lastName("User")
+                .role("DEVELOPER")
+                .status("active")
+                .build();
+    }
+}

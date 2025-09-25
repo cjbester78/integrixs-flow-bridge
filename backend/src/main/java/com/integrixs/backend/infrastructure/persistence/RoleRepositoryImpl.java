@@ -11,62 +11,62 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Implementation of RoleRepository using JPA
- * Bridges between domain repository interface and JPA repository
+ * Implementation of RoleRepository using SQL
+ * Bridges between domain repository interface and SQL repository
  */
 @Repository("domainRoleRepository")
 public class RoleRepositoryImpl implements RoleRepositoryPort {
 
-    private final com.integrixs.data.repository.RoleRepository jpaRepository;
+    private final com.integrixs.data.sql.repository.RoleSqlRepository sqlRepository;
     
-    public RoleRepositoryImpl(com.integrixs.data.repository.RoleRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public RoleRepositoryImpl(com.integrixs.data.sql.repository.RoleSqlRepository sqlRepository) {
+        this.sqlRepository = sqlRepository;
     }
 
     @Override
     public Role save(Role role) {
-        return jpaRepository.save(role);
+        return sqlRepository.save(role);
     }
 
     @Override
     public Optional<Role> findById(UUID id) {
-        return jpaRepository.findById(id);
+        return sqlRepository.findById(id);
     }
 
     @Override
     public Optional<Role> findByName(String name) {
-        return jpaRepository.findByName(name);
+        return sqlRepository.findByName(name);
     }
 
     @Override
     public Page<Role> findAll(Pageable pageable) {
-        return jpaRepository.findAll(pageable);
+        return sqlRepository.findAll(pageable);
     }
 
     @Override
     public List<Role> findAll() {
-        return jpaRepository.findAll();
+        return sqlRepository.findAll();
     }
 
     @Override
     public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+        sqlRepository.deleteById(id);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return jpaRepository.existsByName(name);
+        return sqlRepository.existsByName(name);
     }
 
     @Override
     public boolean existsByNameAndIdNot(String name, UUID id) {
-        // This would need a custom query method in JPA repository
-        Optional<Role> existing = jpaRepository.findByName(name);
+        // Custom implementation for this method
+        Optional<Role> existing = sqlRepository.findByName(name);
         return existing.isPresent() && !existing.get().getId().equals(id);
     }
 
     @Override
     public long count() {
-        return jpaRepository.count();
+        return sqlRepository.count();
     }
 }

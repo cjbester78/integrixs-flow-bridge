@@ -1,11 +1,6 @@
 package com.integrixs.data.model;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,32 +15,16 @@ import java.util.UUID;
  * @author Integration Team
  * @since 1.0.0
  */
-@Entity
-@Table(name = "integration_flows",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_flow_name", columnNames = "name")
-    },
-    indexes = {
-        @Index(name = "idx_flow_name", columnList = "name"),
-        @Index(name = "idx_flow_status", columnList = "status"),
-        @Index(name = "idx_flow_active", columnList = "is_active"),
-        @Index(name = "idx_flow_source", columnList = "inbound_adapter_id"),
-        @Index(name = "idx_flow_target", columnList = "outbound_adapter_id")
-    }
-)
 public class IntegrationFlow {
 
     /**
      * Unique identifier(UUID) for the entity
      */
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     /**
      * Name of the integration flow
      */
-    @Column(nullable = false, length = 100)
     @NotBlank(message = "Flow name is required")
     @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
     private String name;
@@ -53,193 +32,155 @@ public class IntegrationFlow {
     /**
      * Detailed description of the flow's purpose
      */
-    @Column(columnDefinition = "TEXT")
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
     
     /**
      * Tenant ID for multi-tenancy support
      */
-    @Column(name = "tenant_id")
     private UUID tenantId;
 
     /**
      * Source adapter ID(sender - receives data FROM external systems)
      */
-    @Column(name = "inbound_adapter_id", nullable = false)
     @NotNull(message = "Source adapter is required")
     private UUID inboundAdapterId;
 
     /**
      * Target adapter ID(receiver - sends data TO external systems)
      */
-    @Column(name = "outbound_adapter_id", nullable = false)
     @NotNull(message = "Target adapter is required")
     private UUID outboundAdapterId;
 
     /**
      * Source flow structure ID(for structured data flows)
      */
-    @Column(name = "source_flow_structure_id")
     private UUID sourceFlowStructureId;
 
     /**
      * Target flow structure ID(for structured data flows)
      */
-    @Column(name = "target_flow_structure_id")
     private UUID targetFlowStructureId;
-
 
     /**
      * Current flow status
      */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     @NotNull(message = "Status is required")
-    private FlowStatus status = FlowStatus.DRAFT;
+    private com.integrixs.data.model.FlowStatus status = com.integrixs.data.model.FlowStatus.DRAFT;
 
     /**
      * Whether the flow is currently active
      */
-    @Column(name = "is_active")
     @NotNull(message = "Active status is required")
     private boolean isActive = true;
 
     /**
      * Mapping mode for the flow
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "mapping_mode", length = 50, nullable = false)
     @NotNull(message = "Mapping mode is required")
-    private MappingMode mappingMode = MappingMode.WITH_MAPPING;
+    private com.integrixs.data.model.MappingMode mappingMode = com.integrixs.data.model.MappingMode.WITH_MAPPING;
 
     /**
      * Skip XML conversion for direct file passthrough
      * When true, files are transferred directly without any format conversion
      */
-    @Column(name = "skip_xml_conversion")
     private boolean skipXmlConversion = false;
 
     /**
      * Version of the flow
      */
-    @Column(name = "version", length = 50)
     private String version = "1.0";
 
     /**
      * Flow type - either DIRECT_MAPPING or ORCHESTRATION
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "flow_type", columnDefinition = "ENUM('DIRECT_MAPPING', 'ORCHESTRATION')")
-    private FlowType flowType = FlowType.DIRECT_MAPPING;
+    private com.integrixs.data.model.FlowType flowType = com.integrixs.data.model.FlowType.DIRECT_MAPPING;
 
     /**
      * Timestamp when flow was deployed
      */
-    @Column(name = "deployed_at")
     private LocalDateTime deployedAt;
 
     /**
      * User who deployed the flow
      */
-    @Column(name = "deployed_by")
     private UUID deployedBy;
 
     /**
      * Deployment endpoint URL
      */
-    @Column(name = "deployment_endpoint", length = 500)
     @Size(max = 500, message = "Deployment endpoint cannot exceed 500 characters")
     private String deploymentEndpoint;
 
     /**
      * Deployment metadata in JSON format(stored as TEXT)
      */
-    @Column(name = "deployment_metadata", columnDefinition = "TEXT")
     private String deploymentMetadata;
 
     /**
      * Timestamp of entity creation
      */
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+        private LocalDateTime createdAt;
 
     /**
      * Timestamp of last entity update
      */
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+        private LocalDateTime updatedAt;
 
     /**
      * User who created the flow
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
     @NotNull(message = "Created by is required")
     private User createdBy;
 
     /**
      * Timestamp of last execution
      */
-    @Column(name = "last_execution_at")
     private LocalDateTime lastExecutionAt;
 
     /**
      * Total number of executions
      */
-    @Column(name = "execution_count")
     @Min(value = 0, message = "Execution count cannot be negative")
     private int executionCount = 0;
 
     /**
      * Number of successful executions
      */
-    @Column(name = "success_count")
     @Min(value = 0, message = "Success count cannot be negative")
     private int successCount = 0;
 
     /**
      * Number of failed executions
      */
-    @Column(name = "error_count")
     @Min(value = 0, message = "Error count cannot be negative")
     private int errorCount = 0;
 
     /**
      * Transformations associated with this flow
      */
-    @OneToMany(mappedBy = "flow", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FlowTransformation> transformations = new ArrayList<>();
 
     /**
      * Orchestration targets for this flow(when flow type is ORCHESTRATION)
      */
-    @OneToMany(mappedBy = "flow", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @OrderBy("executionOrder ASC")
     private List<OrchestrationTarget> orchestrationTargets = new ArrayList<>();
 
     /**
      * Business component that owns this flow
      */
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_component_id")
     private BusinessComponent businessComponent;
 
     /**
      * User who last updated this flow
      */
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
     private User updatedBy;
 
     /**
      * Lifecycle callback to ensure timestamps are set
      */
-    @PrePersist
     protected void onCreate() {
         if(createdAt == null) {
             createdAt = LocalDateTime.now();
@@ -252,7 +193,6 @@ public class IntegrationFlow {
     /**
      * Lifecycle callback to update timestamp
      */
-    @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
@@ -324,11 +264,11 @@ public class IntegrationFlow {
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public UUID getTenantId() {
         return tenantId;
     }
-    
+
     public void setTenantId(UUID tenantId) {
         this.tenantId = tenantId;
     }
@@ -365,11 +305,11 @@ public class IntegrationFlow {
         this.targetFlowStructureId = targetFlowStructureId;
     }
 
-    public FlowStatus getStatus() {
+    public com.integrixs.data.model.FlowStatus getStatus() {
         return status;
     }
 
-    public void setStatus(FlowStatus status) {
+    public void setStatus(com.integrixs.data.model.FlowStatus status) {
         this.status = status;
     }
 
@@ -381,11 +321,11 @@ public class IntegrationFlow {
         this.isActive = isActive;
     }
 
-    public MappingMode getMappingMode() {
+    public com.integrixs.data.model.MappingMode getMappingMode() {
         return mappingMode;
     }
 
-    public void setMappingMode(MappingMode mappingMode) {
+    public void setMappingMode(com.integrixs.data.model.MappingMode mappingMode) {
         this.mappingMode = mappingMode;
     }
 
@@ -405,11 +345,11 @@ public class IntegrationFlow {
         this.version = version;
     }
 
-    public FlowType getFlowType() {
+    public com.integrixs.data.model.FlowType getFlowType() {
         return flowType;
     }
 
-    public void setFlowType(FlowType flowType) {
+    public void setFlowType(com.integrixs.data.model.FlowType flowType) {
         this.flowType = flowType;
     }
 
@@ -546,12 +486,12 @@ public class IntegrationFlow {
         private UUID outboundAdapterId;
         private UUID sourceFlowStructureId;
         private UUID targetFlowStructureId;
-        private FlowStatus status;
+        private com.integrixs.data.model.FlowStatus status;
         private boolean isActive;
-        private MappingMode mappingMode;
+        private com.integrixs.data.model.MappingMode mappingMode;
         private boolean skipXmlConversion;
         private String version;
-        private FlowType flowType;
+        private com.integrixs.data.model.FlowType flowType;
         private LocalDateTime deployedAt;
         private UUID deployedBy;
         private String deploymentEndpoint;
@@ -603,7 +543,7 @@ public class IntegrationFlow {
             return this;
         }
 
-        public IntegrationFlowBuilder status(FlowStatus status) {
+        public IntegrationFlowBuilder status(com.integrixs.data.model.FlowStatus status) {
             this.status = status;
             return this;
         }
@@ -613,7 +553,7 @@ public class IntegrationFlow {
             return this;
         }
 
-        public IntegrationFlowBuilder mappingMode(MappingMode mappingMode) {
+        public IntegrationFlowBuilder mappingMode(com.integrixs.data.model.MappingMode mappingMode) {
             this.mappingMode = mappingMode;
             return this;
         }
@@ -628,7 +568,7 @@ public class IntegrationFlow {
             return this;
         }
 
-        public IntegrationFlowBuilder flowType(FlowType flowType) {
+        public IntegrationFlowBuilder flowType(com.integrixs.data.model.FlowType flowType) {
             this.flowType = flowType;
             return this;
         }

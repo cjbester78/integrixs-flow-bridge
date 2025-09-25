@@ -7,9 +7,9 @@ import com.integrixs.backend.infrastructure.messaging.MessageQueue;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.model.Message;
 import com.integrixs.data.model.SystemLog;
-import com.integrixs.data.repository.IntegrationFlowRepository;
-import com.integrixs.data.repository.MessageRepository;
-import com.integrixs.data.repository.SystemLogRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
+import com.integrixs.data.sql.repository.MessageSqlRepository;
+import com.integrixs.data.sql.repository.SystemLogSqlRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +29,9 @@ public class MessageQueueManagementService {
     private static final Logger log = LoggerFactory.getLogger(MessageQueueManagementService.class);
 
 
-    private final MessageRepository messageRepository;
-    private final IntegrationFlowRepository flowRepository;
-    private final SystemLogRepository systemLogRepository;
+    private final MessageSqlRepository messageRepository;
+    private final IntegrationFlowSqlRepository flowRepository;
+    private final SystemLogSqlRepository systemLogRepository;
     private final MessageProcessingService processingService;
     private final MessageQueue messageQueue;
     private final FlowExecutionApplicationService flowExecutionService;
@@ -39,9 +39,9 @@ public class MessageQueueManagementService {
     private static final int DEFAULT_PRIORITY = 5;
     private static final int MAX_RETRY_COUNT = 3;
 
-    public MessageQueueManagementService(MessageRepository messageRepository,
-                                         IntegrationFlowRepository flowRepository,
-                                         SystemLogRepository systemLogRepository,
+    public MessageQueueManagementService(MessageSqlRepository messageRepository,
+                                         IntegrationFlowSqlRepository flowRepository,
+                                         SystemLogSqlRepository systemLogRepository,
                                          MessageProcessingService processingService,
                                          MessageQueue messageQueue,
                                          FlowExecutionApplicationService flowExecutionService) {

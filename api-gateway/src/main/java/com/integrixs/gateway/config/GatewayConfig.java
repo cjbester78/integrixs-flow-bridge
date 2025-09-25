@@ -50,8 +50,7 @@ public class GatewayConfig {
                     .requestRateLimiter(c -> c
                         .setRateLimiter(redisRateLimiter())
                         .setKeyResolver(apiKeyResolver())
-                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
-                        .setHeaderName("X-RateLimit-Remaining"))
+                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS))
                     .circuitBreaker(c -> c
                         .setName("backend-cb")
                         .setFallbackUri("forward:/fallback/api"))

@@ -3,7 +3,7 @@ package com.integrixs.backend.controller;
 import com.integrixs.backend.service.ProcessEngineService;
 import com.integrixs.backend.service.ProcessEngineService.*;
 import com.integrixs.data.model.IntegrationFlow;
-import com.integrixs.data.repository.IntegrationFlowRepository;
+import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class ProcessEngineController {
     private ProcessEngineService processEngineService;
 
     @Autowired
-    private IntegrationFlowRepository integrationFlowRepository;
+    private IntegrationFlowSqlRepository integrationFlowRepository;
 
     /**
      * Deploy a process from an integration flow

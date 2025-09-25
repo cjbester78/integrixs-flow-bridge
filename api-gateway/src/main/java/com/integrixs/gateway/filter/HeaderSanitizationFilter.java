@@ -39,7 +39,9 @@ public class HeaderSanitizationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
         
         // Remove internal headers from incoming requests
-        HEADERS_TO_REMOVE.forEach(requestBuilder::headers);
+        HEADERS_TO_REMOVE.forEach(header -> 
+            requestBuilder.headers(httpHeaders -> httpHeaders.remove(header))
+        );
         
         // Sanitize specific headers
         HttpHeaders headers = exchange.getRequest().getHeaders();

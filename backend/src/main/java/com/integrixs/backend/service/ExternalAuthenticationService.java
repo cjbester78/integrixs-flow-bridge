@@ -2,12 +2,10 @@ package com.integrixs.backend.service;
 
 import com.integrixs.backend.annotation.*;
 import com.integrixs.backend.security.CredentialEncryptionService;
-import com.integrixs.data.repository.UserRepository;
 import com.integrixs.data.model.ExternalAuthentication;
 import com.integrixs.data.model.ExternalAuthentication.AuthType;
 import com.integrixs.data.model.User;
-import com.integrixs.data.repository.ExternalAuthenticationRepository;
-import com.integrixs.data.repository.BusinessComponentRepository;
+import com.integrixs.data.model.BusinessComponent;
 import com.integrixs.shared.dto.ExternalAuthenticationDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -34,16 +32,16 @@ public class ExternalAuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(ExternalAuthenticationService.class);
 
     @Autowired
-    private ExternalAuthenticationRepository repository;
+    private com.integrixs.data.sql.repository.ExternalAuthenticationSqlRepository repository;
 
     @Autowired
-    private BusinessComponentRepository businessComponentRepository;
+    private com.integrixs.data.sql.repository.BusinessComponentSqlRepository businessComponentRepository;
 
     @Autowired
     private CredentialEncryptionService encryptionService;
 
     @Autowired
-    private com.integrixs.data.repository.UserRepository userRepository;
+    private com.integrixs.data.sql.repository.UserSqlRepository userRepository;
 
     @Autowired
     private AuditTrailService auditTrailService;
@@ -58,8 +56,9 @@ public class ExternalAuthenticationService {
         logger.info("Creating external authentication: {} of type {}", dto.getName(), dto.getAuthType());
 
         // Validate unique name within business component
-        if(repository.existsByNameAndBusinessComponent(dto.getName(),
-                businessComponentRepository.getReferenceById(UUID.fromString(dto.getBusinessComponentId())))) {
+        BusinessComponent businessComponent = businessComponentRepository.findById(UUID.fromString(dto.getBusinessComponentId()))
+                .orElseThrow(() -> new IllegalArgumentException("Business component not found: " + dto.getBusinessComponentId()));
+        if(repository.existsByNameAndBusinessComponent(dto.getName(), businessComponent)) {
             throw new IllegalArgumentException("Authentication configuration with name '" + dto.getName() +
                     "' already exists in this business component");
         }
@@ -68,8 +67,7 @@ public class ExternalAuthenticationService {
         auth.setName(dto.getName());
         auth.setDescription(dto.getDescription());
         auth.setAuthType(AuthType.valueOf(dto.getAuthType()));
-        auth.setBusinessComponent(businessComponentRepository.getReferenceById(
-                UUID.fromString(dto.getBusinessComponentId())));
+        auth.setBusinessComponent(businessComponent);
 
         // Encrypt sensitive fields based on auth type
         populateAndEncryptAuthFields(auth, dto);
@@ -138,7 +136,7 @@ public class ExternalAuthenticationService {
         // Check if authentication is in use by any adapters
         // This would be implemented when we have the adapter - auth relationship
 
-        repository.delete(auth);
+        repository.deleteById(auth.getId());
 
         // Log sensitive operation
         Map<String, Object> auditDetails = new HashMap<>();
@@ -153,7 +151,8 @@ public class ExternalAuthenticationService {
      */
     @Transactional(readOnly = true)
     public List<ExternalAuthenticationDTO> getAuthenticationsByBusinessComponent(String businessComponentId) {
-        var businessComponent = businessComponentRepository.getReferenceById(UUID.fromString(businessComponentId));
+        var businessComponent = businessComponentRepository.findById(UUID.fromString(businessComponentId))
+                .orElseThrow(() -> new IllegalArgumentException("Business component not found: " + businessComponentId));
         return repository.findByBusinessComponentAndIsActiveTrue(businessComponent)
                 .stream()
                 .map(this::toDTO)

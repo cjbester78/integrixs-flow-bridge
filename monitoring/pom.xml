@@ -16,10 +16,6 @@
 
 	<dependencies>
 		<!-- Spring Boot Starter Data JPA -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
 
 		<!-- Shared DTOs or common libraries -->
 		<dependency>
@@ -32,6 +28,12 @@
 			<groupId>com.integrixs</groupId>
 			<artifactId>data-access</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Spring JDBC support -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 
 		<!-- Spring Boot Mail support -->

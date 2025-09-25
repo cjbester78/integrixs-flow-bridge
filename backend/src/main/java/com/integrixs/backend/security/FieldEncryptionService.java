@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service for field - level encryption of sensitive data.
- * Uses AES-256 - GCM for authenticated encryption.
+ * Service for field-level encryption of sensitive data.
+ * Uses AES-256-GCM for authenticated encryption.
  */
 @Service
 public class FieldEncryptionService {
@@ -30,16 +30,16 @@ public class FieldEncryptionService {
     private static final int GCM_IV_LENGTH = 12;
     private static final int KEY_SIZE = 256;
 
-    @Value("$ {encryption.master.key:# {null}}")
+    @Value("${encryption.master.key:# {null}}")
     private String masterKeyBase64;
 
-    @Value("$ {encryption.key.rotation.enabled:false}")
+    @Value("${encryption.key.rotation.enabled:false}")
     private boolean keyRotationEnabled;
 
     private SecretKey masterKey;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    // Cache for field - specific derived keys
+    // Cache for field-specific derived keys
     private final Map<String, SecretKey> fieldKeyCache = new ConcurrentHashMap<>();
 
     // Encryption metadata prefix
@@ -69,7 +69,7 @@ public class FieldEncryptionService {
         }
 
         try {
-            // Get or derive field - specific key
+            // Get or derive field-specific key
             SecretKey fieldKey = getFieldKey(fieldName);
 
             // Generate IV
@@ -110,7 +110,7 @@ public class FieldEncryptionService {
             // Extract encrypted data
             String encrypted = encryptedValue.substring(
                 ENCRYPTED_PREFIX.length(),
-                encryptedValue.length() - ENCRYPTED_SUFFIX.length()
+                encryptedValue.length()-ENCRYPTED_SUFFIX.length()
            );
 
             byte[] encryptedData = Base64.getDecoder().decode(encrypted);
@@ -193,14 +193,14 @@ public class FieldEncryptionService {
 
         // In a real implementation, this would:
         // 1. Generate new master key
-        // 2. Re - encrypt all encrypted data
+        // 2. Re-encrypt all encrypted data
         // 3. Update key version metadata
 
         log.info("Encryption key rotation completed");
     }
 
     /**
-     * Get or derive a field - specific key.
+     * Get or derive a field-specific key.
      */
     private SecretKey getFieldKey(String fieldName) throws Exception {
         return fieldKeyCache.computeIfAbsent(fieldName, field -> {
@@ -209,7 +209,7 @@ public class FieldEncryptionService {
                 byte[] fieldBytes = fieldName.getBytes(StandardCharsets.UTF_8);
                 byte[] masterBytes = masterKey.getEncoded();
 
-                // Simple derivation - in production use proper KDF
+                // Simple derivation-in production use proper KDF
                 byte[] derivedKey = new byte[32];
                 System.arraycopy(masterBytes, 0, derivedKey, 0, Math.min(masterBytes.length, 32));
 
