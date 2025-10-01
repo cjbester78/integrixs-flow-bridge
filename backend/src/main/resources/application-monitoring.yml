@@ -1,0 +1,167 @@
+# ======================================
+# Monitoring & Logging Configuration
+# ======================================
+# This file contains metrics, logging, performance monitoring,
+# health checks, and actuator configurations
+
+# ✅ Logging configuration is in logback-spring.xml
+logging:
+  file:
+    path: ./logs
+    name: ./logs/integrix-flow-bridge.log
+  level:
+    root: INFO
+    com.integrixs: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "#2.0#%d{yyyy MM dd HH:mm:ss:SSS}#+0200#%level#%logger#%X{correlationId:--}#%X{userId:--}#%X{sessionId:--}#%thread#%msg%n"
+  # Business logging configuration
+  business:
+    enable-operation-logging: true
+    enable-authentication-details: true
+    enable-flow-execution-details: true
+    enable-transformation-steps: true
+    enable-adapter-communication: true
+    enable-performance-metrics: true
+    enable-message-routing: true
+    max-payload-length: 1000
+    include-stack-traces: true
+    log-sensitive-data: false
+    enable-structured-format: true
+    performance-threshold-ms: 1000
+    correlation-id-header: X-Correlation-ID
+    mdc:
+      enabled: true
+      include-user-id: true
+      include-flow-id: true
+      include-tenant-id: true
+      include-session-id: true
+
+# ✅ Actuator settings
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        integrix.flow.duration: true
+        integrix.adapter.duration: true
+        integrix.transformation.duration: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+        integrix.flow.duration: 0.5, 0.95, 0.99
+        integrix.adapter.duration: 0.5, 0.95, 0.99
+  info:
+    env:
+      enabled: true
+
+# Integrix metrics configuration
+integrix:
+  # Metrics configuration
+  metrics:
+    tags:
+      environment: ${METRICS_ENVIRONMENT:development}
+      region: ${METRICS_REGION:default}
+  # Health check configuration
+  health:
+    check:
+      interval: 30000
+      timeout: 10000
+      failure:
+        threshold: 3
+  # Business logging configuration
+  business:
+    logging:
+      enabled: true
+      include-stack-trace: false
+      mask-sensitive-data: true
+
+# ✅ Performance Monitoring configuration
+performance:
+  monitoring:
+    utilization-thresholds:
+      low: 0.3
+      medium: 0.8
+      high: 0.95
+    alert-thresholds:
+      cpu: 0.8
+      memory: 0.85
+      disk: 0.9
+    sample-interval-ms: 1000
+    history-retention-hours: 24
+
+# ✅ Scheduled Tasks configuration
+scheduled:
+  tasks:
+    backup:
+      cron: "0 0 2 * * *"
+      enabled: true
+    cleanup:
+      cron: "0 0 3 * * *"
+      retention-days: 30
+      enabled: true
+    health-check:
+      fixed-delay-ms: 30000
+      initial-delay-ms: 10000
+    metrics-aggregation:
+      fixed-rate-ms: 60000
+    session-cleanup:
+      cron: "0 */30 * * * *"
+
+# ✅ Data Processing configuration
+data-processing:
+  buffer-size: 8192
+  string-truncation:
+    default: 200
+    large: 1000
+    max: 4000
+  progress:
+    callback-interval-elements: 100
+    callback-interval-bytes: 10240
+  file:
+    min-size-bytes: 1000
+    max-upload-size-mb: 100
+  batch:
+    default-size: 100
+    max-size: 1000
+    timeout-ms: 30000
+
+# ✅ HTTP configuration
+http:
+  status-codes:
+    success-range-start: 200
+    success-range-end: 299
+    client-error-start: 400
+    server-error-start: 500
+  path-patterns:
+    soap: "/soap/"
+    web-service: "/ws/"
+    static: "/static/"
+    assets: "/assets/"
+  localhost:
+    ipv4: "127.0.0.1"
+    ipv6: "::1"
+
+# ✅ Audit configuration
+audit:
+  enabled: true  # Enable audit aspect for comprehensive logging
+  encryption:
+    enabled: false  # Enable to encrypt sensitive data in audit logs (set to true in production)
+
+# ✅ System log configuration
+systemlog:
+  encryption:
+    enabled: false  # Enable to encrypt sensitive data in system logs (set to true in production)

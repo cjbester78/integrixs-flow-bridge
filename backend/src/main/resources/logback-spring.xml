@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Define properties -->
+    <property name="LOG_PATH" value="${logging.path:-./logs}" />
+    <property name="LOG_FILE" value="integrix-flow-bridge" />
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+    <property name="STRUCTURED_PATTERN" value="#2.0#%d{yyyy MM dd HH:mm:ss:SSS}#+0200#%level#%X{component:-System}#%X{module:-Core}#%X{correlationId:-}#%X{userId:-Guest}#%X{operationId:-}##%logger{36}#%X{operationType:-}##%thread#Plain##%msg#%n" />
+    
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
+    <!-- Main Application File Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/application/application.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <!-- Rolling policy -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rollover with subdirectory -->
+            <fileNamePattern>${LOG_PATH}/application/application-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            
+            <!-- Keep 30 days worth of history -->
+            <maxHistory>30</maxHistory>
+            
+            <!-- Max file size -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            
+            <!-- Total size cap -->
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Spring Boot Startup File Appender -->
+    <appender name="STARTUP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/startup/startup.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/startup/startup-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Structured Application Log Appender -->
+    <appender name="STRUCTURED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/structured/structured.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>${STRUCTURED_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/structured/structured-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Security Log Appender -->
+    <appender name="SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/security/security.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>${STRUCTURED_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/security/security-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>60</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Async Appender for better performance -->
+    <appender name="ASYNC_STRUCTURED" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STRUCTURED_FILE" />
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <!-- Async Security Appender -->
+    <appender name="ASYNC_SECURITY" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SECURITY_FILE" />
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <!-- Deployment Log Appender -->
+    <appender name="DEPLOYMENT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/deployment/deployment.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [DEPLOYMENT] %-5level - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/deployment/deployment-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>90</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Adapter Log Appender -->
+    <appender name="ADAPTER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/adapter/adapter.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{adapterId:-UNKNOWN}] [%X{adapterType:-UNKNOWN}] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/adapter/adapter-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Error Log Appender -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/error/error.log</file>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] ERROR %logger{36} - %msg%n%xEx</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/error/error-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>60</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Frontend Log Appender -->
+    <appender name="FRONTEND_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/frontend/frontend.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [FRONTEND] %-5level - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/frontend/frontend-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>14</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>25MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Async Appenders for better performance -->
+    <appender name="ASYNC_DEPLOYMENT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="DEPLOYMENT_FILE" />
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <appender name="ASYNC_ADAPTER" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ADAPTER_FILE" />
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ERROR_FILE" />
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <appender name="ASYNC_FRONTEND" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FRONTEND_FILE" />
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+    
+    <!-- Set up logging for Spring Boot startup -->
+    <logger name="org.springframework.boot" level="DEBUG" additivity="false">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="STARTUP_FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Enhanced Business Operation Logging -->
+    <logger name="com.integrixs.backend.logging.BusinessOperationLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_STRUCTURED" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Enhanced Authentication Logging -->
+    <logger name="com.integrixs.backend.logging.EnhancedAuthenticationLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_SECURITY" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Enhanced Flow Execution Logging -->
+    <logger name="com.integrixs.backend.logging.EnhancedFlowExecutionLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_STRUCTURED" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Adapter Communication Logging -->
+    <logger name="com.integrixs.adapters" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_ADAPTER" />
+        <appender-ref ref="ASYNC_STRUCTURED" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Deployment Logging -->
+    <logger name="com.integrixs.backend.domain.service.DeploymentOrchestrator" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_DEPLOYMENT" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <logger name="com.integrixs.backend.domain.service.DeploymentValidator" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_DEPLOYMENT" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Frontend Logging -->
+    <logger name="com.integrixs.backend.controller.FrontendLogController" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_FRONTEND" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    
+    <!-- Error Logging for all modules -->
+    <logger name="ROOT" level="ERROR" additivity="true">
+        <appender-ref ref="ASYNC_ERROR" />
+    </logger>
+    
+    <!-- Spring Profile specific configurations -->
+    <springProfile name="dev">
+        <!-- Development logging levels -->
+        <logger name="com.integrixs" level="DEBUG" />
+        <logger name="com.integrixs.backend.service.FlowStructureService" level="DEBUG" />
+        <logger name="org.springframework.web" level="DEBUG" />
+        
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+            <appender-ref ref="ASYNC_ERROR" />
+        </root>
+    </springProfile>
+    
+    <springProfile name="test">
+        <!-- Test logging levels -->
+        <logger name="com.integrixs" level="INFO" />
+        <logger name="org.springframework.web" level="INFO" />
+        
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+            <appender-ref ref="ASYNC_ERROR" />
+        </root>
+    </springProfile>
+    
+    <springProfile name="prod">
+        <!-- Production logging levels -->
+        <logger name="com.integrixs" level="INFO" />
+        <logger name="org.springframework.web" level="WARN" />
+        
+        <root level="WARN">
+            <appender-ref ref="FILE" />
+            <appender-ref ref="ASYNC_ERROR" />
+        </root>
+    </springProfile>
+    
+    <!-- Default configuration if no profile is active -->
+    <springProfile name="!dev,!test,!prod">
+        <logger name="com.integrixs" level="DEBUG" />
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+            <appender-ref ref="ASYNC_ERROR" />
+        </root>
+    </springProfile>
+</configuration>

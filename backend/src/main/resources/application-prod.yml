@@ -1,0 +1,18 @@
+# Production-specific configuration
+spring:
+
+# Production-specific adapter configurations
+integrix:
+  adapters:
+    teams:
+      features:
+        # Production environment may have different feature enablement
+        enable-yammer: false
+        enable-power-apps: false
+        enable-power-automate: false
+      limits:
+        # Production limits might be more restrictive
+        max-message-length: 20000
+        max-file-size-mb: 100
+        rate-limit-per-second: 20
+        rate-limit-per-minute: 300

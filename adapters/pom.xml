@@ -1,0 +1,279 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.integrixs</groupId>
+		<artifactId>integrixs-flow-bridge</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>adapters</artifactId>
+	<packaging>jar</packaging>
+
+	<name>Integrix Flow Bridge Adapters</name>
+
+	<dependencies>
+		<!-- JMS API -->
+
+		<!-- ActiveMQ Client -->
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-client</artifactId>
+			<version>5.18.3</version>
+		</dependency>
+
+		<!-- JavaMail API -->
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>jakarta.mail</artifactId>
+			<version>2.0.1</version>
+		</dependency>
+
+		<!-- Jakarta Activation -->
+		<dependency>
+			<groupId>jakarta.activation</groupId>
+			<artifactId>jakarta.activation-api</artifactId>
+			<version>2.1.2</version>
+		</dependency>
+
+		<!-- Apache Olingo for OData -->
+		<dependency>
+			<groupId>org.apache.olingo</groupId>
+			<artifactId>odata-client-api</artifactId>
+			<version>4.9.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.olingo</groupId>
+			<artifactId>odata-client-core</artifactId>
+			<version>4.9.0</version>
+		</dependency>
+
+		<!-- Jakarta XML WS for SOAP -->
+		<dependency>
+			<groupId>jakarta.xml.ws</groupId>
+			<artifactId>jakarta.xml.ws-api</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
+		<!-- Jakarta SOAP -->
+		<dependency>
+			<groupId>jakarta.xml.soap</groupId>
+			<artifactId>jakarta.xml.soap-api</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
+		<!-- SAAJ Implementation -->
+		<dependency>
+			<groupId>com.sun.xml.messaging.saaj</groupId>
+			<artifactId>saaj-impl</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
+		<!-- JAX-WS Runtime -->
+		<dependency>
+			<groupId>com.sun.xml.ws</groupId>
+			<artifactId>jaxws-rt</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
+		<!-- JSch for SFTP -->
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.55</version>
+		</dependency>
+
+		<!-- Apache Commons Net for FTP -->
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.8.0</version>
+		</dependency>
+
+		<!-- Kafka Client -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+
+		<!-- JMS API for AMQP adapters -->
+		<dependency>
+			<groupId>jakarta.jms</groupId>
+			<artifactId>jakarta.jms-api</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+
+		<!-- RestFB for Facebook/Instagram/WhatsApp adapters -->
+		<dependency>
+			<groupId>com.restfb</groupId>
+			<artifactId>restfb</artifactId>
+			<version>2024.11.0</version>
+		</dependency>
+
+		<!-- OpenCSV for YouTube Analytics -->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.9</version>
+		</dependency>
+
+		<!-- Apache Qpid JMS for AMQP -->
+		<dependency>
+			<groupId>org.apache.qpid</groupId>
+			<artifactId>qpid-jms-client</artifactId>
+			<version>2.5.0</version>
+		</dependency>
+
+		<!-- RabbitMQ Java Client -->
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>5.20.0</version>
+		</dependency>
+
+
+		<!-- SLF4J API for @Slf4j -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<!-- Jakarta XML Bind -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
+		<!-- JAXB Runtime -->
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
+		<!-- Spring Web MVC for REST controllers -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		
+		<!-- Spring Security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
+		<!-- SpringDoc OpenAPI -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		
+		<!-- Spring Transaction -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+
+		<!-- Spring WebSocket for Discord adapter -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<!-- Reactor Core for reactive programming -->
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+		</dependency>
+		
+		<!-- Micrometer for metrics -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+		</dependency>
+		
+		<!-- Resilience4j for circuit breaker and bulkhead -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-circuitbreaker</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-bulkhead</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		
+		<!-- Jakarta Validation -->
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
+		
+		<!-- Hibernate Validator -->
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
+		<!-- HikariCP for database connection pooling -->
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>5.0.1</version>
+		</dependency>
+
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>5.11.0</version> <!-- You can also use a lower version like
+			4.x if you're on older Java -->
+			<scope>test</scope>
+		</dependency> <!-- Your shared or mapping library -->
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>shared-lib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>17</source>
+					<target>17</target>
+					<fork>true</fork>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

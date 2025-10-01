@@ -1,0 +1,111 @@
+# Camunda BPM Configuration
+camunda:
+  bpm:
+    # Admin user configuration
+    admin-user:
+      id: admin
+      password: admin
+      first-name: Admin
+      last-name: User
+      email: admin@integrix.com
+    
+    # Filter configuration
+    filter:
+      create: All Tasks
+    
+    # Authorization
+    authorization:
+      enabled: true
+      enabled-for-custom-code: true
+    
+    # Database configuration
+    database:
+      schema-update: true
+      type: postgres
+    
+    # Job execution configuration
+    job-execution:
+      enabled: true
+      deployment-aware: true
+      core-pool-size: 3
+      max-pool-size: 10
+      queue-capacity: 100
+      wait-time-in-millis: 5000
+      max-wait: 60000
+    
+    # History configuration
+    history-level: full
+    
+    # Process engine configuration
+    process-engine-name: default
+    default-serialization-format: application/json
+    
+    # Deployment configuration
+    deployment-resource-pattern:
+      - classpath*:bpmn/*.bpmn
+      - classpath*:bpmn/*.bpmn20.xml
+      - classpath*:dmn/*.dmn
+    
+    # Metrics
+    metrics:
+      enabled: true
+      db-reporter-activate: false
+    
+    # Webapp configuration
+    webapp:
+      application-path: /camunda
+      index-redirect-enabled: true
+    
+    # REST API
+    rest:
+      enabled: true
+      max-results-limit: 200
+    
+    # External task configuration
+    external-client:
+      base-url: http://localhost:8080/engine-rest
+      max-tasks: 10
+      worker-id: integrix-worker
+      lock-duration: 60000
+      async-response-timeout: 30000
+      disable-auto-fetching: false
+    
+    # Generic properties
+    generic-properties:
+      properties:
+        # Enable MDC logging
+        enable-mdcLogging: true
+        # History cleanup
+        historyCleanupBatchWindowStartTime: "00:00"
+        historyCleanupBatchWindowEndTime: "06:00"
+        historyCleanupDegreeOfParallelism: 2
+        # Failed job retry
+        failedJobRetryTimeCycle: "R3/PT5M"
+        # Process instance migration
+        skipCustomListeners: false
+        skipIoMappings: false
+
+# Spring datasource configuration for Camunda
+spring:
+  datasource:
+    # Camunda will use the same datasource as the application
+    # Connection pool settings optimized for process engine
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 20
+      minimum-idle: 5
+      
+# Logging for Camunda
+logging:
+  level:
+    org.camunda: INFO
+    org.camunda.bpm.engine: DEBUG
+    org.camunda.bpm.engine.cmd: WARN
+    org.camunda.bpm.engine.persistence: WARN
+    org.camunda.bpm.engine.impl.persistence.entity: WARN
+    org.camunda.bpm.engine.impl.history.event: WARN
+    org.camunda.bpm.engine.impl.batch.BatchEntity: WARN
+    org.camunda.bpm.engine.impl.batch.history: WARN
+    org.camunda.bpm.spring.boot: INFO

@@ -1,0 +1,20 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
+  
+  # Disable features that are causing issues
+  cache:
+    type: none
+  
+  redis:
+    enabled: false
+  
+    
+# Disable health checks temporarily
+management:
+  health:
+    defaults:
+      enabled: false

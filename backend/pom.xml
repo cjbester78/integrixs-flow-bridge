@@ -1,0 +1,451 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.integrixs</groupId>
+		<artifactId>integrixs-flow-bridge</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>backend</artifactId>
+	<packaging>jar</packaging>
+
+	<name>Integrix Flow Bridge Backend</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>21</java.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<!-- Internal module dependencies -->
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>db</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.7.1</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Caching -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>3.1.8</version>
+		</dependency>
+
+		<!-- Rate Limiting -->
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-jcache</artifactId>
+			<version>8.7.0</version>
+		</dependency>
+
+		<!-- Input Sanitization -->
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+			<version>20240325.1</version>
+		</dependency>
+
+		<!-- Security Crypto -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+
+		<!-- Jakarta Validation -->
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+
+		<!-- Jakarta Annotations -->
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+
+		<!-- Jakarta WebSocket -->
+		<dependency>
+			<groupId>jakarta.websocket</groupId>
+			<artifactId>jakarta.websocket-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<!-- Spring Boot Mail -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.websocket</groupId>
+			<artifactId>jakarta.websocket-client-api</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		
+		<!-- Tomcat WebSocket -->
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-websocket</artifactId>
+		</dependency>
+
+		<!-- Internal modules -->
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>shared-lib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>adapters</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>monitoring</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>data-access</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>engine</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Resilience4j -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-circuitbreaker</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-retry</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		
+		<!-- Redis for Flow Context (optional - can be removed if not using Redis) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		
+		<!-- Commons Pool 2 for Redis connection pooling -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+		</dependency>
+
+		<!-- Health Check Dependencies -->
+		<!-- Apache Commons Net for FTP -->
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.10.0</version>
+		</dependency>
+		
+		<!-- JSch for SFTP -->
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.55</version>
+		</dependency>
+		
+		<!-- ActiveMQ client for JMS -->
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-client-jakarta</artifactId>
+			<version>5.18.3</version>
+		</dependency>
+		
+		<!-- Spring AMQP for RabbitMQ -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+		
+		<!-- Spring Kafka -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		
+		<!-- SAAJ for SOAP -->
+		<dependency>
+			<groupId>com.sun.xml.messaging.saaj</groupId>
+			<artifactId>saaj-impl</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
+		<!-- Testing -->
+		
+		<!-- Micrometer for metrics and @Timed support -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing-bridge-otel</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+
+		<!-- Spring Boot Actuator for health checks and metrics -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- Flyway for database migrations -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
+		<!-- Swagger/OpenAPI -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<!-- JsonPath for condition evaluation -->
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+		
+		<!-- WSDL4J for WSDL parsing and validation -->
+		<dependency>
+			<groupId>wsdl4j</groupId>
+			<artifactId>wsdl4j</artifactId>
+			<version>1.6.3</version>
+		</dependency>
+		
+		<!-- Hazelcast for clustering support -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-spring</artifactId>
+			<version>5.3.6</version>
+		</dependency>
+		
+		<!-- Spring Session Hazelcast -->
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-hazelcast</artifactId>
+		</dependency>
+		
+		<!-- Camunda BPM Engine -->
+		<dependency>
+			<groupId>org.camunda.bpm.springboot</groupId>
+			<artifactId>camunda-bpm-spring-boot-starter</artifactId>
+			<version>7.19.0</version>
+		</dependency>
+		
+		<!-- Camunda External Task Client -->
+		<dependency>
+			<groupId>org.camunda.bpm</groupId>
+			<artifactId>camunda-external-task-client</artifactId>
+			<version>7.19.0</version>
+		</dependency>
+		
+		<!-- Test Dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Spring Web Services -->
+		<dependency>
+			<groupId>org.springframework.ws</groupId>
+			<artifactId>spring-ws-core</artifactId>
+			<version>4.0.5</version>
+		</dependency>
+
+		<!-- Spring JMS -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+		</dependency>
+
+		<!-- Apache POI for Excel export -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Clean old frontend -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.3.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>
+								${project.basedir}/src/main/resources/static</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+
+			<!-- Frontend Maven Plugin -->
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.12.1</version>
+				<configuration>
+					<workingDirectory>../react-ui</workingDirectory>
+					<installDirectory>target</installDirectory>
+					<skip>true</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>npm install</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<arguments>install</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>npm build</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<arguments>run build</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Copy frontend output -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>copy-react-build</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>
+								${project.basedir}/src/main/resources/static</outputDirectory>
+							<resources>
+								<resource>
+									<directory>../react-ui/dist</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Maven Surefire Plugin for JUnit 5 -->
+
+			<!-- Custom obfuscation will be added later -->
+
+			<!-- Spring Boot Maven Plugin -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring-boot.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>

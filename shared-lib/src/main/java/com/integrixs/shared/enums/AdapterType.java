@@ -1,0 +1,45 @@
+package com.integrixs.shared.enums;
+
+/**
+ * Enum AdapterType - auto - generated documentation.
+ */
+public enum AdapterType {
+    FILE,
+    FTP,
+    SFTP,
+    HTTP,
+    HTTPS,
+    REST,
+    SOAP,
+    IBMMQ,
+    JDBC,
+    IDOC,
+    ODATA,
+    MAIL,
+    EMAIL,
+    RFC,
+    KAFKA,
+    FACEBOOK,
+    FACEBOOK_ADS,
+    INSTAGRAM,
+    WHATSAPP,
+    TWITTER,
+    TWITTER_ADS,
+    LINKEDIN,
+    LINKEDIN_ADS,
+    YOUTUBE,
+    YOUTUBE_ANALYTICS,
+    TIKTOK_BUSINESS,
+    TIKTOK_CONTENT,
+    FACEBOOK_MESSENGER,
+    PINTEREST,
+    REDDIT,
+    SNAPCHAT_ADS,
+    DISCORD,
+    TELEGRAM,
+    SLACK,
+    TEAMS,
+    RABBITMQ,
+    AMQP,
+    SMS
+}

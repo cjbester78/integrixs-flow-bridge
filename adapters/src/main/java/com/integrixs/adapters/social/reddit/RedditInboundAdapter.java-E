@@ -1,0 +1,1008 @@
+package com.integrixs.adapters.social.reddit;
+import com.integrixs.adapters.domain.model.AdapterConfiguration;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.integrixs.adapters.social.base.AbstractSocialMediaInboundAdapter;
+import com.integrixs.adapters.social.base.SocialMediaAdapterConfig;
+import com.integrixs.adapters.social.base.EventType;
+import com.integrixs.shared.dto.MessageDTO;
+import com.integrixs.shared.config.AdapterConfig;
+import com.integrixs.shared.services.RateLimiterService;
+import com.integrixs.shared.services.CredentialEncryptionService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+/**
+ * Inbound adapter for Reddit API integration.
+ * Handles polling for posts, comments, messages, and subreddit activities.
+ */
+@Component
+@ConditionalOnProperty(name = "integrixs.adapters.reddit.enabled", havingValue = "true", matchIfMissing = false)
+public class RedditInboundAdapter extends AbstractSocialMediaInboundAdapter {
+    private static final Logger log = LoggerFactory.getLogger(RedditInboundAdapter.class);
+
+
+    private final RedditApiConfig config;
+    private final Set<String> processedPosts = ConcurrentHashMap.newKeySet();
+    private final Set<String> processedComments = ConcurrentHashMap.newKeySet();
+    private final Set<String> monitoredSubreddits = ConcurrentHashMap.newKeySet();
+    private final Map<String, String> lastSeenItems = new ConcurrentHashMap<>();
+
+    @Autowired
+    public RedditInboundAdapter(
+            RedditApiConfig config,
+            RateLimiterService rateLimiterService,
+            CredentialEncryptionService credentialEncryptionService) {
+        super(rateLimiterService, credentialEncryptionService);
+        this.config = config;
+    }
+
+    @Override
+    protected SocialMediaAdapterConfig getConfig() {
+        return config;
+    }
+
+    @Override
+    public AdapterConfig getAdapterConfig() {
+        return config;
+    }
+
+    /**
+     * Polls for new posts in monitored subreddits
+     */
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.reddit.polling.posts - interval:300000}")
+    public void pollSubredditPosts() {
+        if(!config.getPollingConfig().isEnabled() || !config.getFeatures().isEnableSubredditMonitoring()) {
+            return;
+        }
+
+        try {
+            log.debug("Polling Reddit posts from monitored subreddits");
+
+            // Poll configured subreddits
+            List<String> subreddits = config.getPollingConfig().getMonitoredSubreddits();
+            if(subreddits != null && !subreddits.isEmpty()) {
+                for(String subreddit : subreddits) {
+                    monitoredSubreddits.add(subreddit);
+                    pollSubredditNewPosts(subreddit);
+                }
+            }
+
+            // Poll user's subscribed subreddits if enabled
+            if(config.getPollingConfig().isPollSubscribedSubreddits()) {
+                pollUserSubscriptions();
+            }
+        } catch(Exception e) {
+            log.error("Error polling Reddit posts", e);
+        }
+    }
+
+    /**
+     * Polls for comments on tracked posts
+     */
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.reddit.polling.comments - interval:600000}")
+    public void pollComments() {
+        if(!config.getPollingConfig().isEnabled() || !config.getFeatures().isEnableCommentManagement()) {
+            return;
+        }
+
+        try {
+            log.debug("Polling Reddit comments");
+
+            // Poll comments on user's posts
+            if(config.getPollingConfig().isPollUserComments()) {
+                pollUserPostComments();
+            }
+
+            // Poll replies to user's comments
+            if(config.getPollingConfig().isPollCommentReplies()) {
+                pollCommentReplies();
+            }
+        } catch(Exception e) {
+            log.error("Error polling Reddit comments", e);
+        }
+    }
+
+    /**
+     * Polls for private messages and notifications
+     */
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.reddit.polling.messages - interval:300000}")
+    public void pollMessages() {
+        if(!config.getPollingConfig().isEnabled() || !config.getFeatures().isEnablePrivateMessages()) {
+            return;
+        }
+
+        try {
+            log.debug("Polling Reddit messages");
+            pollInbox();
+            pollMentions();
+        } catch(Exception e) {
+            log.error("Error polling Reddit messages", e);
+        }
+    }
+
+    /**
+     * Polls for moderation queue items
+     */
+    @Scheduled(fixedDelayString = "$ {integrixs.adapters.reddit.polling.modqueue - interval:180000}")
+    public void pollModQueue() {
+        if(!config.getFeatures().isEnableModeration()) {
+            return;
+        }
+
+        try {
+            log.debug("Polling Reddit moderation queue");
+
+            List<String> moderatedSubs = config.getPollingConfig().getModeratedSubreddits();
+            if(moderatedSubs != null && !moderatedSubs.isEmpty()) {
+                for(String subreddit : moderatedSubs) {
+                    pollSubredditModQueue(subreddit);
+                    pollSubredditReports(subreddit);
+                }
+            }
+        } catch(Exception e) {
+            log.error("Error polling Reddit mod queue", e);
+        }
+    }
+
+    private void pollSubredditNewPosts(String subreddit) throws Exception {
+        String lastSeen = lastSeenItems.get("posts_" + subreddit);
+
+        String url = config.getApiUrl() + "/r/" + subreddit + "/new.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+        params.put("raw_json", "1");
+
+        if(lastSeen != null) {
+            params.put("before", lastSeen);
+        }
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> posts = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> post : posts) {
+                processPost(post);
+            }
+
+            // Update last seen
+            if(!posts.isEmpty()) {
+                String firstPostName = (String) posts.get(0).get("data.name");
+                lastSeenItems.put("posts_" + subreddit, firstPostName);
+            }
+        }
+    }
+
+    private void pollUserSubscriptions() throws Exception {
+        String url = config.getApiUrl() + "/subreddits/mine/subscriber.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> subreddits = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> subreddit : subreddits) {
+                Map<String, Object> subData = (Map<String, Object>) subreddit.get("data");
+                String subName = (String) subData.get("display_name");
+
+                if(!monitoredSubreddits.contains(subName)) {
+                    monitoredSubreddits.add(subName);
+                    // Poll new posts from this subreddit
+                    pollSubredditNewPosts(subName);
+                }
+            }
+        }
+    }
+
+    private void pollUserPostComments() throws Exception {
+        String username = config.getUsername();
+        if(!StringUtils.hasText(username)) {
+            return;
+        }
+
+        String url = config.getApiUrl() + "/user/" + username + "/submitted.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "25");
+        params.put("sort", "new");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> posts = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> post : posts) {
+                Map<String, Object> postData = (Map<String, Object>) post.get("data");
+                String postId = (String) postData.get("id");
+
+                // Poll comments for this post
+                pollPostComments(postId, (String) postData.get("subreddit"));
+            }
+        }
+    }
+
+    private void pollPostComments(String postId, String subreddit) throws Exception {
+        String url = config.getApiUrl() + "/r/" + subreddit + "/comments/" + postId + ".json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "500");
+        params.put("depth", "10");
+        params.put("raw_json", "1");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        List<Map<String, Object>> responseArray = parseJsonArrayResponse(response);
+
+        if(responseArray.size() > 1) {
+            Map<String, Object> commentsData = responseArray.get(1);
+            Map<String, Object> data = (Map<String, Object>) commentsData.get("data");
+
+            if(data != null && data.containsKey("children")) {
+                List<Map<String, Object>> comments = (List<Map<String, Object>>) data.get("children");
+                processCommentTree(comments, postId);
+            }
+        }
+    }
+
+    private void processCommentTree(List<Map<String, Object>> comments, String parentId) {
+        for(Map<String, Object> comment : comments) {
+            String kind = (String) comment.get("kind");
+            if("t1".equals(kind)) { // t1 = comment
+                processComment(comment, parentId);
+
+                // Process replies recursively
+                Map<String, Object> commentData = (Map<String, Object>) comment.get("data");
+                Map<String, Object> replies = (Map<String, Object>) commentData.get("replies");
+
+                if(replies != null && replies instanceof Map) {
+                    Map<String, Object> repliesData = (Map<String, Object>) replies;
+                    Map<String, Object> repliesDataInner = (Map<String, Object>) repliesData.get("data");
+
+                    if(repliesDataInner != null && repliesDataInner.containsKey("children")) {
+                        List<Map<String, Object>> replyComments = (List<Map<String, Object>>) repliesDataInner.get("children");
+                        String commentId = (String) commentData.get("id");
+                        processCommentTree(replyComments, commentId);
+                    }
+                }
+            }
+        }
+    }
+
+    private void pollCommentReplies() throws Exception {
+        String url = config.getApiUrl() + "/message/comments.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> messages = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> message : messages) {
+                processCommentReply(message);
+            }
+        }
+    }
+
+    private void pollInbox() throws Exception {
+        String url = config.getApiUrl() + "/message/inbox.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> messages = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> message : messages) {
+                processPrivateMessage(message);
+            }
+        }
+    }
+
+    private void pollMentions() throws Exception {
+        String url = config.getApiUrl() + "/message/mentions.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> mentions = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> mention : mentions) {
+                processMention(mention);
+            }
+        }
+    }
+
+    private void pollSubredditModQueue(String subreddit) throws Exception {
+        String url = config.getApiUrl() + "/r/" + subreddit + "/about/modqueue.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> item : items) {
+                processModQueueItem(item);
+            }
+        }
+    }
+
+    private void pollSubredditReports(String subreddit) throws Exception {
+        String url = config.getApiUrl() + "/r/" + subreddit + "/about/reports.json";
+        Map<String, String> params = new HashMap<>();
+        params.put("limit", "100");
+
+        String response = executeApiCall(() -> makeGetRequest(url, params));
+        Map<String, Object> responseData = parseJsonResponse(response);
+
+        Map<String, Object> data = (Map<String, Object>) responseData.get("data");
+        if(data != null && data.containsKey("children")) {
+            List<Map<String, Object>> reports = (List<Map<String, Object>>) data.get("children");
+
+            for(Map<String, Object> report : reports) {
+                processReport(report);
+            }
+        }
+    }
+
+    private void processPost(Map<String, Object> post) {
+        Map<String, Object> postData = (Map<String, Object>) post.get("data");
+        String postId = (String) postData.get("id");
+
+        if(!processedPosts.add(postId)) {
+            return; // Already processed
+        }
+
+        RedditPost redditPost = new RedditInboundAdapter.RedditPost();
+        redditPost.id = postId;
+        redditPost.name = (String) postData.get("name");
+        redditPost.title = (String) postData.get("title");
+        redditPost.author = (String) postData.get("author");
+        redditPost.subreddit = (String) postData.get("subreddit");
+        redditPost.selftext = (String) postData.get("selftext");
+        redditPost.url = (String) postData.get("url");
+        redditPost.permalink = (String) postData.get("permalink");
+        redditPost.created = convertTimestamp(postData.get("created_utc"));
+        redditPost.score = ((Number) postData.get("score")).intValue();
+        redditPost.upvoteRatio = ((Number) postData.get("upvote_ratio")).doubleValue();
+        redditPost.numComments = ((Number) postData.get("num_comments")).intValue();
+        redditPost.over18 = (Boolean) postData.get("over_18");
+        redditPost.spoiler = (Boolean) postData.get("spoiler");
+        redditPost.locked = (Boolean) postData.get("locked");
+        redditPost.stickied = (Boolean) postData.get("stickied");
+        redditPost.distinguished = (String) postData.get("distinguished");
+        redditPost.linkFlairText = (String) postData.get("link_flair_text");
+        redditPost.postHint = (String) postData.get("post_hint");
+        redditPost.preview = postData.get("preview");
+        redditPost.media = postData.get("media");
+        redditPost.mediaEmbed = postData.get("media_embed");
+        redditPost.gallery = postData.get("gallery_data");
+        redditPost.poll = postData.get("poll_data");
+        redditPost.crosspostParent = (List<String>) postData.get("crosspost_parent_list");
+        redditPost.awards = extractAwards(postData);
+        publishMessage("reddit.post.created", redditPost);
+    }
+
+    private void processComment(Map<String, Object> comment, String parentId) {
+        Map<String, Object> commentData = (Map<String, Object>) comment.get("data");
+        String commentId = (String) commentData.get("id");
+
+        if(!processedComments.add(commentId)) {
+            return; // Already processed
+        }
+
+        RedditComment redditComment = new RedditInboundAdapter.RedditComment();
+        redditComment.id = commentId;
+        redditComment.name = (String) commentData.get("name");
+        redditComment.parentId = parentId;
+        redditComment.linkId = (String) commentData.get("link_id");
+        redditComment.author = (String) commentData.get("author");
+        redditComment.body = (String) commentData.get("body");
+        redditComment.created = convertTimestamp(commentData.get("created_utc"));
+        redditComment.score = ((Number) commentData.get("score")).intValue();
+        redditComment.edited = commentData.get("edited");
+        redditComment.distinguished = (String) commentData.get("distinguished");
+        redditComment.stickied = (Boolean) commentData.get("stickied");
+        redditComment.scoreHidden = (Boolean) commentData.get("score_hidden");
+        redditComment.locked = (Boolean) commentData.get("locked");
+        redditComment.subreddit = (String) commentData.get("subreddit");
+        redditComment.authorFlairText = (String) commentData.get("author_flair_text");
+        redditComment.awards = extractAwards(commentData);
+        publishMessage("reddit.comment.created", redditComment);
+    }
+
+    private void processCommentReply(Map<String, Object> message) {
+        Map<String, Object> messageData = (Map<String, Object>) message.get("data");
+
+        RedditMessageDTO reply = new RedditInboundAdapter.RedditMessageDTO();
+        reply.id = (String) messageData.get("id");
+        reply.type = "comment_reply";
+        reply.author = (String) messageData.get("author");
+        reply.subject = (String) messageData.get("subject");
+        reply.body = (String) messageData.get("body");
+        reply.created = convertTimestamp(messageData.get("created_utc"));
+        reply.context = (String) messageData.get("context");
+        reply.subreddit = (String) messageData.get("subreddit");
+        reply.wasComment = (Boolean) messageData.get("was_comment");
+        reply.new_ = (Boolean) messageData.get("new");
+        publishMessage("reddit.comment.reply", reply);
+    }
+
+    private void processPrivateMessage(Map<String, Object> message) {
+        Map<String, Object> messageData = (Map<String, Object>) message.get("data");
+
+        RedditMessageDTO pm = new RedditInboundAdapter.RedditMessageDTO();
+        pm.id = (String) messageData.get("id");
+        pm.type = "private_message";
+        pm.author = (String) messageData.get("author");
+        pm.dest = (String) messageData.get("dest");
+        pm.subject = (String) messageData.get("subject");
+        pm.body = (String) messageData.get("body");
+        pm.created = convertTimestamp(messageData.get("created_utc"));
+        pm.new_ = (Boolean) messageData.get("new");
+        publishMessage("reddit.message.received", pm);
+    }
+
+    private void processMention(Map<String, Object> mention) {
+        Map<String, Object> mentionData = (Map<String, Object>) mention.get("data");
+
+        RedditMessageDTO mentionMsg = new RedditInboundAdapter.RedditMessageDTO();
+        mentionMsg.id = (String) mentionData.get("id");
+        mentionMsg.type = "username_mention";
+        mentionMsg.author = (String) mentionData.get("author");
+        mentionMsg.body = (String) mentionData.get("body");
+        mentionMsg.context = (String) mentionData.get("context");
+        mentionMsg.subreddit = (String) mentionData.get("subreddit");
+        mentionMsg.created = convertTimestamp(mentionData.get("created_utc"));
+        mentionMsg.new_ = (Boolean) mentionData.get("new");
+        publishMessage("reddit.mention.received", mentionMsg);
+    }
+
+    private void processModQueueItem(Map<String, Object> item) {
+        Map<String, Object> itemData = (Map<String, Object>) item.get("data");
+        String kind = (String) item.get("kind");
+
+        RedditModItem modItem = new RedditInboundAdapter.RedditModItem();
+        modItem.id = (String) itemData.get("id");
+        modItem.kind = kind;
+        modItem.author = (String) itemData.get("author");
+        modItem.subreddit = (String) itemData.get("subreddit");
+        modItem.title = kind.equals("t3") ? (String) itemData.get("title") : null;
+        modItem.body = kind.equals("t1") ? (String) itemData.get("body") : null;
+        modItem.reports = (List<List<Object>>) itemData.get("mod_reports");
+        modItem.userReports = (List<List<Object>>) itemData.get("user_reports");
+        modItem.numReports = ((Number) itemData.get("num_reports")).intValue();
+        modItem.approved = (Boolean) itemData.get("approved");
+        modItem.removed = (Boolean) itemData.get("removed");
+        modItem.spam = (Boolean) itemData.get("spam");
+        publishMessage("reddit.modqueue.item", modItem);
+    }
+
+    private void processReport(Map<String, Object> report) {
+        publishMessage("reddit.report.received", report);
+    }
+
+    @Override
+    public void processWebhookEvent(Map<String, Object> event) {
+        // Reddit doesn't have a traditional webhook system
+        // Instead it uses websockets for real - time events
+        // This method would be used if implementing a custom webhook receiver
+
+        String eventType = (String) event.get("type");
+
+        switch(eventType) {
+            case "post.create":
+                processWebhookPost(event);
+                break;
+            case "comment.create":
+                processWebhookComment(event);
+                break;
+            case "message.receive":
+                processWebhookMessage(event);
+                break;
+            default:
+                log.warn("Unknown webhook event type: {}", eventType);
+        }
+    }
+
+    private void processWebhookPost(Map<String, Object> event) {
+        publishMessage("reddit.webhook.post", event);
+    }
+
+    private void processWebhookComment(Map<String, Object> event) {
+        publishMessage("reddit.webhook.comment", event);
+    }
+
+    private void processWebhookMessage(Map<String, Object> event) {
+        publishMessage("reddit.webhook.message", event);
+    }
+
+    @Override
+    public boolean verifyWebhookSignature(String signature, String payload) {
+        // Reddit doesn't use webhook signatures in the traditional sense
+        // This would be implemented for custom webhook solutions
+        return true;
+    }
+
+    @Override
+    public AdapterConfiguration.AdapterTypeEnum getAdapterType() {
+        return AdapterConfiguration.AdapterTypeEnum.REDDIT;
+    }
+
+    @Override
+    protected List<EventType> getSupportedEventTypes() {
+        return Arrays.asList(
+                EventType.SOCIAL_MEDIA_POST,
+                EventType.SOCIAL_MEDIA_COMMENT,
+                EventType.SOCIAL_MEDIA_MESSAGE,
+                EventType.SOCIAL_MEDIA_MENTION,
+                EventType.SOCIAL_MEDIA_MODERATION,
+                EventType.SOCIAL_MEDIA_VOTE
+       );
+    }
+
+    private LocalDateTime convertTimestamp(Object timestamp) {
+        if(timestamp instanceof Number) {
+            long epochSeconds = ((Number) timestamp).longValue();
+            return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
+        }
+        return LocalDateTime.now();
+    }
+
+    private List<String> extractAwards(Map<String, Object> data) {
+        List<Map<String, Object>> allAwardings = (List<Map<String, Object>>) data.get("all_awardings");
+        if(allAwardings != null) {
+            return allAwardings.stream()
+                    .map(award ->(String) award.get("name"))
+                    .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+
+    // Data classes for Reddit entities
+        public static class RedditPost {
+        private String id;
+        private String name;
+        private String title;
+        private String author;
+        private String subreddit;
+        private String selftext;
+        private String url;
+        private String permalink;
+        private LocalDateTime created;
+        private int score;
+        private double upvoteRatio;
+        private int numComments;
+        private boolean over18;
+        private boolean spoiler;
+        private boolean locked;
+        private boolean stickied;
+        private String distinguished;
+        private String linkFlairText;
+        private String postHint;
+        private Object preview;
+        private Object media;
+        private Object mediaEmbed;
+        private Object gallery;
+        private Object poll;
+        private List<String> crosspostParent;
+        private List<String> awards;
+    }
+
+        public static class RedditComment {
+        private String id;
+        private String name;
+        private String parentId;
+        private String linkId;
+        private String author;
+        private String body;
+        private LocalDateTime created;
+        private int score;
+        private Object edited;
+        private String distinguished;
+        private boolean stickied;
+        private boolean scoreHidden;
+        private boolean locked;
+        private String subreddit;
+        private String authorFlairText;
+        private List<String> awards;
+    }
+
+        public static class RedditMessageDTO {
+        private String id;
+        private String type;
+        private String author;
+        private String dest;
+        private String subject;
+        private String body;
+        private LocalDateTime created;
+        private String context;
+        private String subreddit;
+        private Boolean wasComment;
+        private Boolean new_;
+    }
+
+        public static class RedditModItem {
+        private String id;
+        private String kind;
+        private String author;
+        private String subreddit;
+        private String title;
+        private String body;
+        private List<List<Object>> reports;
+        private List<List<Object>> userReports;
+        private int numReports;
+        private boolean approved;
+        private boolean removed;
+        private boolean spam;
+    }
+    // Getters and Setters
+    // DUPLICATE: public RedditApiConfig getConfig() {
+    //     return config;
+    // }
+    
+    public Set<String> getProcessedPosts() {
+        return processedPosts;
+    }
+    public Set<String> getProcessedComments() {
+        return processedComments;
+    }
+    public Set<String> getMonitoredSubreddits() {
+        return monitoredSubreddits;
+    }
+    public Map<String, String> getLastSeenItems() {
+        return lastSeenItems;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    public String getSubreddit() {
+        return subreddit;
+    }
+    public void setSubreddit(String subreddit) {
+        this.subreddit = subreddit;
+    }
+    public String getSelftext() {
+        return selftext;
+    }
+    public void setSelftext(String selftext) {
+        this.selftext = selftext;
+    }
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    public String getPermalink() {
+        return permalink;
+    }
+    public void setPermalink(String permalink) {
+        this.permalink = permalink;
+    }
+    public LocalDateTime getCreated() {
+        return created;
+    }
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+    public int getScore() {
+        return score;
+    }
+    public void setScore(int score) {
+        this.score = score;
+    }
+    public double getUpvoteRatio() {
+        return upvoteRatio;
+    }
+    public void setUpvoteRatio(double upvoteRatio) {
+        this.upvoteRatio = upvoteRatio;
+    }
+    public int getNumComments() {
+        return numComments;
+    }
+    public void setNumComments(int numComments) {
+        this.numComments = numComments;
+    }
+    public boolean isOver18() {
+        return over18;
+    }
+    public void setOver18(boolean over18) {
+        this.over18 = over18;
+    }
+    public boolean isSpoiler() {
+        return spoiler;
+    }
+    public void setSpoiler(boolean spoiler) {
+        this.spoiler = spoiler;
+    }
+    public boolean isLocked() {
+        return locked;
+    }
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+    public boolean isStickied() {
+        return stickied;
+    }
+    public void setStickied(boolean stickied) {
+        this.stickied = stickied;
+    }
+    public String getDistinguished() {
+        return distinguished;
+    }
+    public void setDistinguished(String distinguished) {
+        this.distinguished = distinguished;
+    }
+    public String getLinkFlairText() {
+        return linkFlairText;
+    }
+    public void setLinkFlairText(String linkFlairText) {
+        this.linkFlairText = linkFlairText;
+    }
+    public String getPostHint() {
+        return postHint;
+    }
+    public void setPostHint(String postHint) {
+        this.postHint = postHint;
+    }
+    public Object getPreview() {
+        return preview;
+    }
+    public void setPreview(Object preview) {
+        this.preview = preview;
+    }
+    public Object getMedia() {
+        return media;
+    }
+    public void setMedia(Object media) {
+        this.media = media;
+    }
+    public Object getMediaEmbed() {
+        return mediaEmbed;
+    }
+    public void setMediaEmbed(Object mediaEmbed) {
+        this.mediaEmbed = mediaEmbed;
+    }
+    public Object getGallery() {
+        return gallery;
+    }
+    public void setGallery(Object gallery) {
+        this.gallery = gallery;
+    }
+    public Object getPoll() {
+        return poll;
+    }
+    public void setPoll(Object poll) {
+        this.poll = poll;
+    }
+    public List<String> getCrosspostParent() {
+        return crosspostParent;
+    }
+    public void setCrosspostParent(List<String> crosspostParent) {
+        this.crosspostParent = crosspostParent;
+    }
+    public List<String> getAwards() {
+        return awards;
+    }
+    public void setAwards(List<String> awards) {
+        this.awards = awards;
+    }
+// DUPLICATE:     public String getId() {
+    //         return id;
+//     }
+// DUPLICATE:     public void setId(String id) {
+    //         this.id = id;
+//     }
+    public String getParentId() {
+        return parentId;
+    }
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+    public String getLinkId() {
+        return linkId;
+    }
+    public void setLinkId(String linkId) {
+        this.linkId = linkId;
+    }
+// DUPLICATE:     public String getAuthor() {
+    //         return author;
+//     }
+// DUPLICATE:     public void setAuthor(String author) {
+    //         this.author = author;
+//     }
+    public String getBody() {
+        return body;
+    }
+    public void setBody(String body) {
+        this.body = body;
+    }
+// DUPLICATE:     public LocalDateTime getCreated() {
+    //         return created;
+//     }
+// DUPLICATE:     public void setCreated(LocalDateTime created) {
+    //         this.created = created;
+//     }
+    public Object getEdited() {
+        return edited;
+    }
+    public void setEdited(Object edited) {
+        this.edited = edited;
+    }
+    public boolean isScoreHidden() {
+        return scoreHidden;
+    }
+    public void setScoreHidden(boolean scoreHidden) {
+        this.scoreHidden = scoreHidden;
+    }
+// DUPLICATE:     public String getSubreddit() {
+    //         return subreddit;
+//     }
+// DUPLICATE:     public void setSubreddit(String subreddit) {
+    //         this.subreddit = subreddit;
+//     }
+    public String getAuthorFlairText() {
+        return authorFlairText;
+    }
+    public void setAuthorFlairText(String authorFlairText) {
+        this.authorFlairText = authorFlairText;
+    }
+// DUPLICATE:     public String getId() {
+    //         return id;
+//     }
+// DUPLICATE:     public void setId(String id) {
+    //         this.id = id;
+//     }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+// DUPLICATE:     public String getAuthor() {
+    //         return author;
+//     }
+// DUPLICATE:     public void setAuthor(String author) {
+    //         this.author = author;
+//     }
+    public String getDest() {
+        return dest;
+    }
+    public void setDest(String dest) {
+        this.dest = dest;
+    }
+    public String getSubject() {
+        return subject;
+    }
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+// DUPLICATE:     public String getBody() {
+    //         return body;
+//     }
+// DUPLICATE:     public void setBody(String body) {
+    //         this.body = body;
+//     }
+    public String getContext() {
+        return context;
+    }
+    public void setContext(String context) {
+        this.context = context;
+    }
+// DUPLICATE:     public String getSubreddit() {
+    //         return subreddit;
+//     }
+// DUPLICATE:     public void setSubreddit(String subreddit) {
+    //         this.subreddit = subreddit;
+//     }
+    public Boolean isWasComment() {
+        return wasComment;
+    }
+    public void setWasComment(Boolean wasComment) {
+        this.wasComment = wasComment;
+    }
+    public Boolean isNew_() {
+        return new_;
+    }
+    public void setNew_(Boolean new_) {
+        this.new_ = new_;
+    }
+    public String getKind() {
+        return kind;
+    }
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+    public List<List<Object>> getReports() {
+        return reports;
+    }
+    public void setReports(List<List<Object>> reports) {
+        this.reports = reports;
+    }
+    public List<List<Object>> getUserReports() {
+        return userReports;
+    }
+    public void setUserReports(List<List<Object>> userReports) {
+        this.userReports = userReports;
+    }
+    public int getNumReports() {
+        return numReports;
+    }
+    public void setNumReports(int numReports) {
+        this.numReports = numReports;
+    }
+    public boolean isApproved() {
+        return approved;
+    }
+    public void setApproved(boolean approved) {
+        this.approved = approved;
+    }
+    public boolean isRemoved() {
+        return removed;
+    }
+    public void setRemoved(boolean removed) {
+        this.removed = removed;
+    }
+    public boolean isSpam() {
+        return spam;
+    }
+    public void setSpam(boolean spam) {
+        this.spam = spam;
+    }
+}

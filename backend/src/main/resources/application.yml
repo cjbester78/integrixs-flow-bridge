@@ -1,0 +1,235 @@
+# ======================================
+# Main Application Configuration
+# ======================================
+# This is the main configuration file that imports other
+# specialized configuration files for better organization
+
+# ======================================
+# Logging Configuration
+# ======================================
+logging:
+  path: ${INTEGRIX_LOG_PATH:/Users/cjbester/git/Integrixs-Flow-Bridge/logs}  # Default to absolute path, override with env var or external config
+
+# ======================================
+# Repository Implementation Configuration
+# ======================================
+integrix:
+  repository:
+    # Using native SQL implementation
+    implementation: sql
+  # Configuration loading
+  config:
+    load-from-database: false  # Set to true to load configs from database
+  # Message lazy loading configuration (used by MessageLazyLoadingService)
+  message:
+    payload:
+      size-threshold: ${MESSAGE_PAYLOAD_SIZE_THRESHOLD:1048576}  # 1MB default
+      storage-path: ${MESSAGE_PAYLOAD_STORAGE_PATH:./data/payloads}
+  # Dead Letter Queue configuration
+  dlq:
+    retry:
+      interval: ${INTEGRIX_DLQ_RETRY_INTERVAL:300000}  # 5 minutes
+    auto-retry:
+      enabled: ${INTEGRIX_DLQ_AUTO_RETRY_ENABLED:true}
+      max-attempts: ${INTEGRIX_DLQ_MAX_ATTEMPTS:3}
+    retention-days: ${INTEGRIX_DLQ_RETENTION_DAYS:30}
+    batch-size: ${INTEGRIX_DLQ_BATCH_SIZE:100}
+
+# ======================================
+# Camunda BPM Configuration
+# ======================================
+camunda:
+  bpm:
+    enabled: ${CAMUNDA_ENABLED:true}
+
+server:
+  port: 8080
+  address: 0.0.0.0
+  tomcat:
+    max-http-form-post-size: 100MB
+    max-swallow-size: 100MB
+    connection-timeout: 60000
+    max-connections: 10000
+    accept-count: 100
+
+spring:
+  application:
+    name: integrixs-flow-bridge
+  cache:
+    type: none  # Temporarily disable caching to avoid conflicts
+  data:
+    redis:
+      repositories:
+        enabled: false  # Disable Redis repositories
+  config:
+    use-database: false  # Set to true to load configurations from database
+  profiles:
+    # Import all configuration profiles
+    include:
+      - adapters       # All adapter configurations (Teams, Slack, Discord, etc.)
+      - resilience     # Circuit breaker, bulkhead, retry configurations
+      - connection-pools # Database, HTTP, JMS, FTP connection pools
+      - hazelcast      # Distributed cache configurations
+      - monitoring     # Metrics, logging, performance monitoring
+      - security       # Security, encryption, rate limiting
+    active: dev,camunda,messaging
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true  # Temporary fix for circular dependencies
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+      resolve-lazily: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+    static-path-pattern: /**
+    # Large request body support
+    async:
+      request-timeout: 60000
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          no-cache: true
+          no-store: true
+          must-revalidate: true
+          max-age: 0
+      static-locations: classpath:/public/
+  jackson:
+    serialization:
+      indent_output: true
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+    # Large JSON payload support
+    generator:
+      write-numbers-as-strings: false
+    parser:
+      allow-unquoted-control-chars: true
+      allow-backslash-escaping-any-character: true
+
+# ✅ Flyway configuration
+  flyway:
+    enabled: false  # Temporarily disabled due to startup issues
+    baseline-on-migrate: true
+    baseline-version: 121
+    locations: classpath:db/migration  # This will read from db module's resources
+    sql-migration-prefix: V
+    sql-migration-separator: __
+    sql-migration-suffixes: .sql
+    validate-on-migrate: true
+    clean-disabled: true
+    schemas: integrixflowbridge
+
+# ✅ Native SQL configuration (JPA removed)
+  # Using Spring JDBC and native SQL repositories
+
+# ✅ Certificate path (used globally)
+certificates:
+  storage:
+    path: /opt/integrixflowbridge/certs
+
+# ✅ Engine runtime config
+engine:
+  worker:
+    thread-pool-size: 4
+    retry-attempts: 3
+    retry-delay-ms: 2000
+
+# ✅ System environment configuration
+system:
+  environment:
+    type: DEVELOPMENT  # Options: DEVELOPMENT, QUALITY_ASSURANCE, PRODUCTION
+    enforce-restrictions: true
+    restriction-message: "This action is not allowed in %s environment"
+
+# ✅ Payload lazy loading configuration
+payload:
+  storage:
+    path: ${PAYLOAD_STORAGE_PATH:./data/payloads}  # Directory for external payload storage
+  size:
+    threshold: ${PAYLOAD_SIZE_THRESHOLD:1048576}  # 1MB default - payloads larger than this are stored externally
+  compression:
+    enabled: ${PAYLOAD_COMPRESSION_ENABLED:true}  # Enable GZIP compression for external payloads
+  cleanup:
+    days-to-keep: ${PAYLOAD_CLEANUP_DAYS:30}  # Keep external payloads for 30 days
+
+# Message lazy loading configuration is now under the main integrix: section above
+
+# ✅ Email configuration
+mail:
+  smtp:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    from: ${SMTP_FROM:noreply@integrix.com}
+    auth: ${SMTP_AUTH:true}
+    starttls-enable: ${SMTP_STARTTLS:true}
+    connection-timeout: ${SMTP_TIMEOUT:10000}
+    timeout: ${SMTP_TIMEOUT:10000}
+    write-timeout: ${SMTP_TIMEOUT:10000}
+    alerts-enabled: ${EMAIL_ALERTS_ENABLED:true}
+    default-alert-recipients: ${EMAIL_ALERT_RECIPIENTS:}
+    test-mode: ${EMAIL_TEST_MODE:false}
+    test-email-recipient: ${EMAIL_TEST_RECIPIENT:}
+
+# ✅ Heatmap Analytics configuration
+heatmap:
+  analytics:
+    execution-cluster:
+      threshold-millis: ${HEATMAP_CLUSTER_THRESHOLD:300000}  # 5 minutes default
+    critical-path:
+      min-traffic-volume: ${CRITICAL_PATH_MIN_TRAFFIC:100}
+      max-error-rate: ${CRITICAL_PATH_MAX_ERROR_RATE:0.1}
+    error-hotspot:
+      threshold: ${ERROR_HOTSPOT_THRESHOLD:10}  # Minimum errors per hour to consider as hotspot
+
+# ✅ Historical Trend Analysis configuration
+trend:
+  analysis:
+    anomaly:
+      detection-window-size: ${ANOMALY_DETECTION_WINDOW_SIZE:20}  # Window size for anomaly detection
+      sigma-threshold: ${ANOMALY_SIGMA_THRESHOLD:3.0}  # Standard deviations for anomaly
+      high-severity-sigma: ${ANOMALY_HIGH_SEVERITY_SIGMA:4.0}  # High severity threshold
+    prediction:
+      periods-ahead: ${PREDICTION_PERIODS_AHEAD:5}  # Number of periods to predict
+      moving-average-window: ${PREDICTION_MA_WINDOW:10}  # Moving average window size
+    capacity:
+      limit-percentage: ${CAPACITY_LIMIT_PERCENTAGE:0.9}  # 90% capacity threshold
+      storage-daily-growth: ${STORAGE_DAILY_GROWTH:0.01}  # 1% daily growth estimate
+      projection-confidence: ${PROJECTION_CONFIDENCE:0.7}  # Medium confidence default
+    correlation:
+      min-threshold: ${CORRELATION_MIN_THRESHOLD:0.5}  # Minimum correlation to include
+    peak-detection:
+      sigma-multiplier: ${PEAK_DETECTION_SIGMA:2.0}  # Peak threshold = mean + sigma * stddev
+    error-hotspot-hourly:
+      threshold: ${ERROR_HOTSPOT_HOURLY_THRESHOLD:10}  # Errors per hour for hotspot
+    variance-outlier:
+      sigma-threshold: ${VARIANCE_OUTLIER_SIGMA:2.0}  # Outlier detection threshold
+    growth-pattern:
+      stable-threshold: ${GROWTH_STABLE_THRESHOLD:5}  # % change for stable growth
+      exponential-threshold: ${GROWTH_EXPONENTIAL_THRESHOLD:50}  # % for exponential
+      rapid-linear-threshold: ${GROWTH_RAPID_LINEAR_THRESHOLD:20}  # % for rapid linear
+    temporal:
+      min-data-points: ${TEMPORAL_MIN_DATA_POINTS:10}  # Minimum data points needed
+      seasonality-min-hours: ${SEASONALITY_MIN_HOURS:168}  # 1 week of hourly data
+    trend-detection:
+      stable-slope-threshold: ${TREND_STABLE_SLOPE:0.01}
+      rapid-increase-threshold: ${TREND_RAPID_INCREASE:0.1}
+      rapid-decrease-threshold: ${TREND_RAPID_DECREASE:-0.1}
+    confidence:
+      prediction-decay-rate: ${PREDICTION_CONFIDENCE_DECAY:0.1}
+      min-confidence: ${MIN_PREDICTION_CONFIDENCE:0.5}
+    time-series:
+      variance-percentage: ${TIME_SERIES_VARIANCE:0.2}  # ±20% variation
+    scoring:
+      error-penalty-factor: ${ERROR_PENALTY_FACTOR:0.5}
+      performance-penalty-factor: ${PERF_PENALTY_FACTOR:0.7}
+    capacity-planning:
+      projection-days: ${CAPACITY_PROJECTION_DAYS:30}
+      historical-days: ${CAPACITY_HISTORICAL_DAYS:30}
+      critical-days-threshold: ${CAPACITY_CRITICAL_DAYS:30}
+      memory-usage-threshold: ${MEMORY_USAGE_THRESHOLD:80}

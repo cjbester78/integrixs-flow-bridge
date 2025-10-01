@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: integrix-config
+  namespace: integrix
+data:
+  application.yaml: |
+    spring:
+      profiles:
+        active: prod
+      datasource:
+        url: jdbc:postgresql://postgres-service:5432/integrixflowbridge
+        hikari:
+          maximum-pool-size: 20
+          minimum-idle: 5
+          connection-timeout: 30000
+      redis:
+        host: redis-service
+        port: 6379
+      kafka:
+        bootstrap-servers: kafka-service:9092
+        consumer:
+          group-id: integrix-consumer-group
+          auto-offset-reset: earliest
+        producer:
+          retries: 3
+          acks: all
+    
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics,prometheus
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+    
+    logging:
+      level:
+        root: INFO
+        com.integrix: INFO
+      pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+      file:
+        name: /app/logs/integrix.log
+        max-size: 100MB
+        max-history: 30
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: integrix-nginx-config
+  namespace: integrix
+data:
+  nginx.conf: |
+    upstream backend {
+        server integrix-app-service:8080 max_fails=3 fail_timeout=30s;
+    }
+    
+    server {
+        listen 80;
+        server_name _;
+        
+        location / {
+            proxy_pass http://backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # Timeouts
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+            
+            # Buffering
+            proxy_buffering on;
+            proxy_buffer_size 4k;
+            proxy_buffers 8 4k;
+            
+            # WebSocket support
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+        
+        location /health {
+            access_log off;
+            return 200 "healthy\n";
+        }
+    }

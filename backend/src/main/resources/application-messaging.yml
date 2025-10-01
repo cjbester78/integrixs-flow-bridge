@@ -1,0 +1,163 @@
+# RabbitMQ Configuration
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    
+    # Connection settings
+    connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT:60000}
+    requested-heartbeat: ${RABBITMQ_HEARTBEAT:60}
+    
+    # Channel cache settings
+    cache:
+      channel:
+        size: ${RABBITMQ_CHANNEL_CACHE_SIZE:50}
+        checkout-timeout: ${RABBITMQ_CHANNEL_CHECKOUT_TIMEOUT:10000}
+      connection:
+        mode: ${RABBITMQ_CONNECTION_MODE:connection}
+        size: ${RABBITMQ_CONNECTION_CACHE_SIZE:1}
+    
+    # Publisher settings
+    publisher-confirms: true
+    publisher-returns: true
+    
+    # Listener settings
+    listener:
+      simple:
+        acknowledge-mode: manual
+        concurrency: ${RABBITMQ_LISTENER_CONCURRENCY:5}
+        max-concurrency: ${RABBITMQ_LISTENER_MAX_CONCURRENCY:10}
+        prefetch: ${RABBITMQ_LISTENER_PREFETCH:10}
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2.0
+        default-requeue-rejected: false
+    
+    # Template settings
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        max-interval: 10000
+        multiplier: 2.0
+      mandatory: true
+
+# Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    client-id: integrix-flow-bridge
+    
+    # Producer settings
+    producer:
+      acks: ${KAFKA_PRODUCER_ACKS:all}
+      retries: ${KAFKA_PRODUCER_RETRIES:3}
+      batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:16384}
+      linger-ms: ${KAFKA_PRODUCER_LINGER_MS:10}
+      buffer-memory: ${KAFKA_PRODUCER_BUFFER_MEMORY:33554432}
+      compression-type: ${KAFKA_PRODUCER_COMPRESSION:snappy}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        request.timeout.ms: 30000
+        delivery.timeout.ms: 120000
+    
+    # Consumer settings
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:integrix-consumer-group}
+      auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
+      enable-auto-commit: false
+      max-poll-records: ${KAFKA_MAX_POLL_RECORDS:500}
+      fetch-min-size: ${KAFKA_FETCH_MIN_SIZE:1}
+      fetch-max-wait: ${KAFKA_FETCH_MAX_WAIT:500}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 3000
+        max.poll.interval.ms: 300000
+        spring.json.trusted.packages: "com.integrixs.*"
+    
+    # Admin settings
+    admin:
+      client-id: integrix-admin
+      properties:
+        request.timeout.ms: 30000
+    
+    # Streams settings (if using Kafka Streams)
+    streams:
+      application-id: integrix-streams
+      replication-factor: ${KAFKA_REPLICATION_FACTOR:1}
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        processing.guarantee: exactly_once_v2
+        state.dir: ${KAFKA_STATE_DIR:./kafka-streams-state}
+    
+    # SSL/Security settings (optional)
+    security:
+      protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    ssl:
+      trust-store-location: ${KAFKA_TRUSTSTORE_LOCATION:}
+      trust-store-password: ${KAFKA_TRUSTSTORE_PASSWORD:}
+      key-store-location: ${KAFKA_KEYSTORE_LOCATION:}
+      key-store-password: ${KAFKA_KEYSTORE_PASSWORD:}
+      key-password: ${KAFKA_KEY_PASSWORD:}
+
+# Integrix messaging configuration
+integrix:
+  messaging:
+    # Dead letter queue settings
+    dlq:
+      enabled: ${DLQ_ENABLED:true}
+      max-retries: ${DLQ_MAX_RETRIES:3}
+      ttl: ${DLQ_TTL:86400000} # 24 hours
+    
+    # Message routing
+    routing:
+      default-exchange: integrix.exchange
+      default-routing-key: integrix.default
+      topic-exchange: integrix.topic
+    
+    # Queue settings
+    queues:
+      inbound:
+        name: integrix.inbound
+        durable: true
+        auto-delete: false
+        exclusive: false
+      outbound:
+        name: integrix.outbound
+        durable: true
+        auto-delete: false
+        exclusive: false
+      error:
+        name: integrix.error
+        durable: true
+        auto-delete: false
+        exclusive: false
+        arguments:
+          x-message-ttl: 604800000 # 7 days
+    
+    # Kafka topics
+    topics:
+      inbound: ${KAFKA_TOPIC_INBOUND:integrix-inbound}
+      outbound: ${KAFKA_TOPIC_OUTBOUND:integrix-outbound}
+      error: ${KAFKA_TOPIC_ERROR:integrix-error}
+      audit: ${KAFKA_TOPIC_AUDIT:integrix-audit}
+      metrics: ${KAFKA_TOPIC_METRICS:integrix-metrics}
+      
+    # Message serialization
+    serialization:
+      format: ${MESSAGE_FORMAT:json}
+      include-type-info: ${INCLUDE_TYPE_INFO:true}
+      compress: ${COMPRESS_MESSAGES:true}
+      compression-level: ${COMPRESSION_LEVEL:6}

@@ -1,0 +1,79 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.integrixs</groupId>
+		<artifactId>integrixs-flow-bridge</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>monitoring</artifactId>
+	<packaging>jar</packaging>
+	<name>Integrix Flow Bridge Monitoring Module</name>
+
+	<dependencies>
+
+		<!-- Shared DTOs or common libraries -->
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>shared-lib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.integrixs</groupId>
+			<artifactId>data-access</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Spring JDBC support -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+
+		<!-- Spring Boot Mail support -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		<!-- Twilio SDK for SMS -->
+		<dependency>
+			<groupId>com.twilio.sdk</groupId>
+			<artifactId>twilio</artifactId>
+			<version>9.14.1</version>
+		</dependency>
+
+		<!-- Spring Boot Web for RestTemplate -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

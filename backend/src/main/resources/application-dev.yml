@@ -1,0 +1,41 @@
+spring:
+  redis:
+    enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/integrixflowbridge
+    username: integrix
+    password: B3st3r@01
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # Connection pool sizing
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000  # 5 minutes
+      max-lifetime: 1800000  # 30 minutes
+      
+      # Connection timeout
+      connection-timeout: 30000  # 30 seconds
+      
+      # Performance settings
+      auto-commit: false
+      pool-name: IntegrixFlowBridge-HikariCP
+      
+      # Connection test query
+      connection-test-query: SELECT 1
+      validation-timeout: 5000  # 5 seconds
+      
+      # Leak detection (development only)
+      leak-detection-threshold: 60000  # 1 minute
+      
+      # Connection properties
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false

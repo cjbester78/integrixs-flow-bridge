@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+  
+  mvc:
+    static-path-pattern: /**
+  web:
+    resources:
+      static-locations: classpath:/public/
+      
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO

@@ -1,0 +1,968 @@
+# ======================================
+# Adapter Configurations
+# ======================================
+# This file contains all adapter-specific configurations including
+# Teams, Slack, Discord, Facebook, Twitter, WhatsApp, Instagram, etc.
+
+rate:
+  # Adapter configurations
+  adapters:
+    teams:
+      # API Configuration
+      graph-api-url: ${TEAMS_GRAPH_API_URL:https://graph.microsoft.com/v1.0}
+      bot-framework-url: ${TEAMS_BOT_FRAMEWORK_URL:https://smba.trafficmanager.net/teams}
+      authorization-url-base: ${TEAMS_AUTHORIZATION_URL_BASE:https://login.microsoftonline.com}
+      token-url-base: ${TEAMS_TOKEN_URL_BASE:https://login.microsoftonline.com}
+      # Authentication
+      tenant-id: ${TEAMS_TENANT_ID:}
+      client-id: ${TEAMS_CLIENT_ID:}
+      client-secret: ${TEAMS_CLIENT_SECRET:}
+      bot-id: ${TEAMS_BOT_ID:}
+      bot-name: ${TEAMS_BOT_NAME:}
+      webhook-url: ${TEAMS_WEBHOOK_URL:}
+      notification-url: ${TEAMS_NOTIFICATION_URL:}
+      features:
+        enable-messaging: true
+        enable-channels: true
+        enable-teams: true
+        enable-meetings: true
+        enable-calls: true
+        enable-files: true
+        enable-tabs: true
+        enable-bots: true
+        enable-cards: true
+        enable-connectors: true
+        enable-webhooks: true
+        enable-proactive-messaging: true
+        enable-adaptive-cards: true
+        enable-message-extensions: true
+        enable-activity-feed: true
+        enable-shifts: true
+        enable-planner: true
+        enable-one-note: true
+        enable-share-point: true
+        enable-power-apps: true
+        enable-power-automate: true
+        enable-yammer: false
+        enable-stream: true
+        enable-forms: true
+        enable-whiteboard: true
+        enable-lists: true
+        enable-approvals: true
+        enable-bookings: true
+        enable-polls: true
+        enable-praise: true
+      limits:
+        max-message-length: 28000
+        max-card-size: 25
+        max-attachments-per-message: 10
+        max-tabs-per-channel: 30
+        max-private-channels: 30
+        max-channels-per-team: 200
+        max-members-per-team: 25000
+        max-teams-per-user: 250
+        max-meeting-duration: 24
+        max-meeting-participants: 1000
+        max-file-size-mb: 250
+        max-bot-messages-per-second: 8
+        max-bot-messages-per-minute: 60
+        max-bot-conversations-per-second: 15
+        max-card-actions: 6
+        max-suggested-actions: 3
+        max-message-extension-results: 25
+        rate-limit-per-second: 30
+        rate-limit-per-minute: 500
+        burst-limit: 100
+        max-batch-requests: 20
+        webhook-expiry-hours: 72
+    
+    facebook:
+      messenger:
+        # API Configuration
+        api-base-url: https://graph.facebook.com
+        api-version: v18.0
+        default-api-base-url: https://graph.facebook.com
+        default-api-version: v18.0
+        messages-endpoint: /me/messages
+        polling-interval: 60000
+        # Authentication
+        page-id: ${FACEBOOK_PAGE_ID:}
+        page-access-token: ${FACEBOOK_PAGE_ACCESS_TOKEN:}
+        app-id: ${FACEBOOK_APP_ID:}
+        app-secret: ${FACEBOOK_APP_SECRET:}
+        verify-token: ${FACEBOOK_VERIFY_TOKEN:}
+        # Features
+        enable-typing-indicator: true
+        enable-read-receipts: true
+        enable-quick-replies: true
+        message-timeout: 30000
+        # OAuth settings
+        client-id: ${FACEBOOK_CLIENT_ID:}
+        client-secret: ${FACEBOOK_CLIENT_SECRET:}
+        redirect-uri: ${FACEBOOK_REDIRECT_URI:}
+        scope: pages_messaging,pages_messaging_subscriptions,pages_messaging_phone_number,pages_read_engagement
+        # Rate limiting
+        rate-limit-per-minute: 250
+        rate-limit-per-hour: 10000
+    
+    twitter:
+      # API Configuration
+      api-base-url: https://api.twitter.com/2
+      api-version: v2
+      default-max-results: 100
+      crc-prefix: "sha256 = "
+      # OAuth 1.0a settings
+      api-key: ${TWITTER_API_KEY:}
+      api-key-secret: ${TWITTER_API_KEY_SECRET:}
+      access-token: ${TWITTER_ACCESS_TOKEN:}
+      access-token-secret: ${TWITTER_ACCESS_TOKEN_SECRET:}
+      # OAuth 2.0 settings
+      bearer-token: ${TWITTER_BEARER_TOKEN:}
+      client-id: ${TWITTER_CLIENT_ID:}
+      client-secret: ${TWITTER_CLIENT_SECRET:}
+      redirect-uri: ${TWITTER_REDIRECT_URI:}
+      scope: tweet.read users.read follows.read dm.read space.read
+      # Polling intervals (milliseconds)
+      mention-polling-interval: 60000
+      timeline-polling-interval: 300000
+      dm-polling-interval: 120000
+      spaces-polling-interval: 300000
+      # Rate limiting
+      rate-limit-per-minute: 300
+      rate-limit-per-hour: 10000
+      # Features
+      features:
+        enable-mention-monitoring: true
+        enable-timeline-retrieval: true
+        enable-direct-messages: true
+        enable-spaces-integration: true
+        enable-list-management: true
+        enable-analytics-tracking: true
+        enable-advanced-search: true
+        enable-user-management: true
+        enable-webhook-support: true
+      ads:
+        # API Configuration
+        api-base-url: https://ads-api.twitter.com/12
+        # Polling intervals (in milliseconds)
+        campaignPollingInterval: 300000    # 5 minutes
+        adGroupPollingInterval: 600000     # 10 minutes
+        creativePollingInterval: 900000    # 15 minutes
+        audiencePollingInterval: 3600000   # 1 hour
+        conversionPollingInterval: 1800000 # 30 minutes
+        budgetCheckInterval: 600000        # 10 minutes
+        # Default values
+        default-count: 200
+        default-batch-size: 50
+        max-job-wait-time-ms: 300000      # 5 minutes for async jobs
+        features:
+          enable-campaign-management: true
+          enable-ad-group-management: true
+          enable-creative-management: true
+          enable-audience-targeting: true
+          enable-budget-management: true
+          enable-bidding: true
+          enable-analytics: true
+          enable-conversion-tracking: true
+          enable-reporting: true
+          enable-custom-audiences: true
+          enable-tailored-audiences: true
+          enable-promoted-tweets: true
+          enable-promoted-accounts: true
+          enable-promoted-trends: true
+          enable-video-ads: true
+          enable-carousel-ads: true
+          enable-moment-ads: true
+          enable-website-cards: true
+          enable-app-cards: true
+          enable-lead-gen-cards: true
+        limits:
+          max-campaigns-per-account: 200
+          max-ad-groups-per-campaign: 100
+          max-ads-per-ad-group: 50
+          max-keywords-per-ad-group: 1000
+          max-targeting-criteria-per-ad-group: 50
+          min-daily-budget: 1.00
+          max-daily-budget: 1000000.00
+          max-custom-audience-size: 500000
+          min-custom-audience-size: 100
+          max-conversion-events-per-day: 100000
+      api:
+        # Twitter API v2 Configuration
+        api-base-url: https://api.twitter.com/2
+        api-version: v2
+        upload-base-url: https://upload.twitter.com/1.1
+        request-timeout: 30000
+        max-retries: 3
+        rate-limit-per-minute: 300
+        rate-limit-per-hour: 10000
+        features:
+          enable-tweet-composition: true
+          enable-threading: true
+          enable-timeline-retrieval: true
+          enable-mention-monitoring: true
+          enable-follower-analytics: true
+          enable-media-upload: true
+          enable-spaces-integration: true
+          enable-direct-messages: true
+          enable-lists: true
+          enable-bookmarks: true
+          enable-polls: true
+          enable-scheduled-tweets: true
+          enable-quote-tweets: true
+          enable-retweets: true
+          enable-likes: true
+        limits:
+          max-tweet-length: 280
+          max-thread-length: 25
+          max-images-per-tweet: 4
+          max-video-length: 140
+          max-video-size-mb: 512
+          max-gif-size-mb: 15
+          max-poll-options: 4
+          max-poll-duration-hours: 168
+          max-lists-per-account: 1000
+          max-accounts-per-list: 5000
+    
+    tiktok:
+      business:
+        # API Configuration
+        api-base-url: https://business-api.tiktok.com/open_api/v1.3
+        api-version: v1.3
+        app-id: ${TIKTOK_BUSINESS_APP_ID:}
+        app-secret: ${TIKTOK_BUSINESS_APP_SECRET:}
+        advertiser-id: ${TIKTOK_BUSINESS_ADVERTISER_ID:}
+        business-id: ${TIKTOK_BUSINESS_ID:}
+        access-token: ${TIKTOK_BUSINESS_ACCESS_TOKEN:}
+        refresh-token: ${TIKTOK_BUSINESS_REFRESH_TOKEN:}
+        client-id: ${TIKTOK_BUSINESS_CLIENT_ID:}
+        client-secret: ${TIKTOK_BUSINESS_CLIENT_SECRET:}
+        redirect-uri: ${TIKTOK_BUSINESS_REDIRECT_URI:}
+        scope: ads_management,ads_read,ads_write,audience_management,catalog_management,reports
+        request-timeout: 30000
+        max-retries: 3
+        default-polling-interval: 60000
+        # Default values
+        default-page-size: 100
+        default-report-page-size: 1000
+        placement-type-automatic: PLACEMENT_TYPE_AUTOMATIC
+        placement-type-normal: PLACEMENT_TYPE_NORMAL
+        schedule-type-start-end: SCHEDULE_START_END
+        default-report-type: BASIC
+        default-data-level: AUCTION_CAMPAIGN
+        default-audience-action: APPEND
+        default-code-type: PUBLIC_AUTH
+        default-targeting-scene: GENERAL_INTEREST
+        default-behavior-scene: ACTION_CATEGORY
+        rate-limit-per-minute: 500
+        rate-limit-per-hour: 10000
+        # Feature flags
+        features:
+          enable-campaign-management: true
+          enable-ad-group-management: true
+          enable-ad-management: true
+          enable-creative-management: true
+          enable-audience-targeting: true
+          enable-custom-audiences: true
+          enable-pixel-tracking: true
+          enable-conversion-tracking: true
+          enable-reporting: true
+          enable-budget-management: true
+          enable-bid-strategy: true
+          enable-creative-optimization: true
+          enable-video-upload: true
+          enable-image-upload: true
+          enable-catalog-management: true
+          enable-dynamic-ads: true
+          enable-spark-ads: true
+          enable-branded-content: true
+          enable-analytics-export: true
+          enable-automated-rules: true
+        # API limits
+        limits:
+          max-campaigns-per-account: 500
+          max-ad-groups-per-campaign: 1000
+          max-ads-per-ad-group: 20
+          max-creatives-per-ad: 10
+          max-custom-audiences: 500
+          max-pixels-per-account: 20
+          max-video-size-mb: 500
+          max-video-duration-seconds: 60
+          max-image-size-mb: 30
+          min-budget-usd: 20
+          max-bulk-operations: 100
+          reporting-delay-hours: 3
+      content:
+        # API Configuration
+        api-base-url: https://open-api.tiktok.com
+        api-version: /v1.3
+        # Default limits for API calls
+        default-video-count: 20
+        default-comment-count: 50
+        default-trending-count: 50
+        default-follower-count: 100
+        default-hashtag-count: 20
+        default-top-hashtags-limit: 5
+        active-follower-video-threshold: 10
+        webhook-timestamp-max-age-seconds: 300
+        default-polling-interval-ms: 300000
+        # Polling intervals (in milliseconds)
+        videoPollInterval: 600000      # 10 minutes
+        commentPollInterval: 1800000   # 30 minutes
+        engagementPollInterval: 900000 # 15 minutes
+        trendingPollInterval: 7200000  # 2 hours
+        followerPollInterval: 21600000 # 6 hours
+        hashtagPollInterval: 14400000  # 4 hours
+        features:
+          enable-video-publishing: true
+          enable-video-retrieval: true
+          enable-comment-management: true
+          enable-hashtag-analytics: true
+          enable-trending-content: true
+          enable-user-profile: true
+          enable-follower-analytics: true
+          enable-engagement-metrics: true
+          enable-music-integration: true
+          enable-effects-management: true
+          enable-duet-stitch: true
+          enable-live-streaming: true
+          enable-creator-search: true
+          enable-content-discovery: true
+          enable-sound-library: true
+          enable-content-insights: true
+          enable-viral-trends: true
+          enable-challenge-participation: true
+          enable-collaboration: true
+          enable-analytics-export: true
+        limits:
+          max-video-duration-seconds: 180
+          max-video-size-mb: 287
+          max-description-length: 2200
+          max-hashtags-per-post: 100
+          max-mentions-per-post: 30
+          max-videos-per-day: 10
+          max-comments-to-retrieve: 1000
+          max-followers-to-retrieve: 10000
+          max-trending-videos: 100
+          max-search-results: 100
+          min-video-duration-seconds: 3
+          max-caption-length: 150
+          analytics-retention-days: 90
+    
+    whatsapp:
+      business:
+        # WhatsApp Business API Configuration
+        api-base-url: https://graph.facebook.com
+        api-version: v18.0
+        phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+        business-account-id: ${WHATSAPP_BUSINESS_ACCOUNT_ID:}
+        verify-token: ${WHATSAPP_VERIFY_TOKEN:}
+        system-user-access-token: ${WHATSAPP_SYSTEM_USER_ACCESS_TOKEN:}
+        features:
+          enable-text-messaging: true
+          enable-media-messaging: true
+          enable-template-messaging: true
+          enable-interactive-messages: true
+          enable-status-updates: true
+          enable-group-messaging: true
+          enable-contact-management: true
+          enable-business-profile: true
+          enable-catalogs: true
+          enable-qr-codes: true
+          enable-labels: true
+          enable-flows: true
+        settings:
+          max-text-length: 4096
+          max-caption-length: 1024
+          max-buttons-per-message: 3
+          max-sections-per-list: 10
+          max-items-per-section: 10
+          session-timeout-minutes: 1440
+          auto-download-media: true
+          save-media-locally: false
+          media-storage-path: /tmp/whatsapp-media
+        limits:
+          max-media-size-mb: 100
+          max-image-size-mb: 5
+          max-video-size-mb: 16
+          max-audio-size-mb: 16
+          max-document-size-mb: 100
+          max-sticker-size-kb: 100
+        status-polling-interval: 60000  # 1 minute
+        request-timeout: 30000
+        max-retries: 3
+        rate-limit-per-minute: 300
+        rate-limit-per-hour: 10000
+    
+    instagram:
+      graph:
+        # API Configuration
+        api-base-url: https://graph.facebook.com
+        api-version: v18.0
+        instagram-business-account-id: ${INSTAGRAM_BUSINESS_ACCOUNT_ID:}
+        access-token: ${INSTAGRAM_ACCESS_TOKEN:}
+        client-id: ${INSTAGRAM_CLIENT_ID:}
+        client-secret: ${INSTAGRAM_CLIENT_SECRET:}
+        # Endpoints
+        media-endpoint: /media
+        media-publish-endpoint: /media_publish
+        comments-endpoint: /comments
+        replies-endpoint: /replies
+        product-tags-endpoint: /product_tags
+        stories-endpoint: /stories
+        tags-endpoint: /tags
+        mentioned-comment-endpoint: /mentioned_comment
+        mentioned-media-endpoint: /mentioned_media
+        insights-endpoint: /insights
+        hashtag-search-endpoint: /ig_hashtag_search
+        recent-media-endpoint: /recent_media
+        # Processing delays (milliseconds)
+        video-processing-initial-delay: 5000
+        video-processing-check-interval: 5000
+        reel-processing-delay: 10000
+        # Polling intervals (milliseconds)
+        insights-polling-interval: 3600000  # 1 hour
+        comment-polling-interval: 300000    # 5 minutes
+        mention-polling-interval: 300000    # 5 minutes
+        media-polling-interval: 600000      # 10 minutes
+        default-polling-interval: 60000     # 1 minute
+        # Features
+        enable-insights: true
+        enable-comment-filtering: true
+        enable-mention-monitoring: true
+        # Limits
+        media-limit: 25
+        comments-limit: 50
+        mentions-limit: 50
+        insights-media-limit: 10
+        carousel-min-items: 2
+        carousel-max-items: 10
+        # Default values
+        default-api-version: v18.0
+        default-api-base-url: https://graph.facebook.com
+        # Rate limiting
+        rate-limit-per-minute: 200
+        rate-limit-per-hour: 5000
+        # Request settings
+        request-timeout: 30000
+        max-retries: 3
+    
+    amqp:
+      # AMQP Configuration
+      host: ${AMQP_HOST:localhost}
+      port: ${AMQP_PORT:5672}
+      username: ${AMQP_USERNAME:}
+      password: ${AMQP_PASSWORD:}
+      source-address: ${AMQP_SOURCE_ADDRESS:}
+      connection-url: ${AMQP_CONNECTION_URL:}
+      use-ssl: ${AMQP_USE_SSL:false}
+      sasl-mechanism: ${AMQP_SASL_MECHANISM:PLAIN}
+      idle-timeout: ${AMQP_IDLE_TIMEOUT:30000}
+      max-frame-size: ${AMQP_MAX_FRAME_SIZE:65536}
+      enable-tracing: ${AMQP_ENABLE_TRACING:false}
+      enable-auto-reconnect: ${AMQP_ENABLE_AUTO_RECONNECT:true}
+      enable-transactions: ${AMQP_ENABLE_TRANSACTIONS:false}
+      enable-duplicate-detection: ${AMQP_ENABLE_DUPLICATE_DETECTION:true}
+      enable-dead-lettering: ${AMQP_ENABLE_DEAD_LETTERING:false}
+      dead-letter-address: ${AMQP_DEAD_LETTER_ADDRESS:}
+      max-retries: ${AMQP_MAX_RETRIES:3}
+      broker-type: ${AMQP_BROKER_TYPE:GENERIC}
+      routing-type: ${AMQP_ROUTING_TYPE:anycast}
+      entity-path: ${AMQP_ENTITY_PATH:}
+      version: ${AMQP_VERSION:AMQP_1_0}
+      source-filters: {}
+      deduplication-ttl-seconds: 3600
+      cleanup-interval-seconds: 60
+    
+    youtube:
+      analytics:
+        # API Configuration
+        api-base-url: https://youtubeanalytics.googleapis.com
+        api-version: v2
+        reporting-api-base-url: https://youtubereporting.googleapis.com
+        data-api-base-url: https://www.googleapis.com/youtube/v3
+        client-id: ${YOUTUBE_CLIENT_ID:}
+        client-secret: ${YOUTUBE_CLIENT_SECRET:}
+        channel-id: ${YOUTUBE_CHANNEL_ID:}
+        redirect-uri: ${YOUTUBE_REDIRECT_URI:}
+        scope: https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/yt-analytics-monetary.readonly
+        request-timeout: 30000
+        max-retries: 3
+        rate-limit-per-minute: 100
+        rate-limit-per-hour: 5000
+        features:
+          enable-channel-reports: true
+          enable-video-reports: true
+          enable-playlist-reports: true
+          enable-revenue-reports: true
+          enable-engagement-reports: true
+          enable-audience-reports: true
+          enable-device-reports: true
+          enable-geography-reports: true
+          enable-traffic-source-reports: true
+          enable-search-term-reports: true
+          enable-sharing-service-reports: true
+          enable-annotations-reports: true
+          enable-cards-reports: true
+          enable-end-screen-reports: true
+          enable-subtitles-reports: true
+          enable-realtime-reports: true
+          enable-content-owner-reports: false
+          enable-ad-performance-reports: true
+          enable-demographics-reports: true
+          enable-playback-location-reports: true
+        limits:
+          max-report-dimensions: 3
+          max-report-metrics: 10
+          max-report-rows: 10000
+          max-date-range: 365
+          max-group-items: 500
+          max-filters: 5
+          realtime-delay-minutes: 5
+          data-availability-delay-hours: 48
+      data:
+        # API Configuration
+        api-base-url: https://www.googleapis.com/youtube/v3
+        upload-base-url: https://www.googleapis.com/upload/youtube/v3
+        api-version: v3
+        client-id: ${YOUTUBE_CLIENT_ID:}
+        client-secret: ${YOUTUBE_CLIENT_SECRET:}
+        channel-id: ${YOUTUBE_CHANNEL_ID:}
+        upload-playlist-id: ${YOUTUBE_UPLOAD_PLAYLIST_ID:}
+        redirect-uri: ${YOUTUBE_REDIRECT_URI:}
+        scope: https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.force-ssl
+        request-timeout: 30000
+        max-retries: 3
+        rate-limit-per-minute: 100
+        rate-limit-per-hour: 5000
+        features:
+          enable-video-upload: true
+          enable-video-management: true
+          enable-playlist-management: true
+          enable-comment-management: true
+          enable-live-streaming: true
+          enable-community-posts: true
+          enable-channel-management: true
+          enable-subscriber-management: true
+          enable-analytics: true
+          enable-captions: true
+          enable-thumbnail-upload: true
+          enable-video-editing: true
+          enable-monetization: true
+          enable-content-id: true
+          enable-premiere: true
+          enable-stories: true
+          enable-shorts: true
+          enable-memberships: true
+          enable-super-chat: true
+          enable-merchandise: true
+        limits:
+          max-video-size: 137438953472  # 128GB in bytes
+          max-video-length: 43200  # 12 hours in seconds
+          max-title-length: 100
+          max-description-length: 5000
+          max-tags: 500
+          max-playlist-items: 5000
+          max-playlists-per-channel: 200
+          max-comment-length: 10000
+          max-thumbnail-size: 2097152  # 2MB in bytes
+          max-caption-size: 1048576  # 1MB in bytes
+          daily-upload-limit: 50
+          rate-limit: 10000  # Quota units per day
+    
+    linkedin:
+      # LinkedIn API Configuration (non-ads)
+      api-base-url: https://api.linkedin.com/v2
+      rest-api-base-url: https://api.linkedin.com/rest
+      media-upload-url: https://api.linkedin.com/mediaUpload
+      ugc-api-base-url: https://api.linkedin.com/v2
+      ads:
+        # API Configuration
+        api-base-url: https://api.linkedin.com
+        api-version: v2
+        authorization-url: https://www.linkedin.com/oauth/v2/authorization
+        token-url: https://www.linkedin.com/oauth/v2/accessToken
+        platform-name: linkedin_ads
+        linkedin-api-version: "202401"
+        restli-protocol-version: "2.0.0"
+        default-alert-level: WARNING
+        ad-account-id: ${LINKEDIN_AD_ACCOUNT_ID:}
+        organization-id: ${LINKEDIN_ORGANIZATION_ID:}
+        client-id: ${LINKEDIN_CLIENT_ID:}
+        client-secret: ${LINKEDIN_CLIENT_SECRET:}
+        access-token: ${LINKEDIN_ACCESS_TOKEN:}
+        refresh-token: ${LINKEDIN_REFRESH_TOKEN:}
+        redirect-uri: ${LINKEDIN_REDIRECT_URI:}
+        scope: ${LINKEDIN_SCOPE:r_ads,w_ads,r_ads_reporting,r_organization_social}
+        request-timeout: ${LINKEDIN_REQUEST_TIMEOUT:30000}
+        max-retries: ${LINKEDIN_MAX_RETRIES:3}
+        rate-limit-per-minute: ${LINKEDIN_RATE_LIMIT_PER_MINUTE:100}
+        rate-limit-per-hour: ${LINKEDIN_RATE_LIMIT_PER_HOUR:5000}
+        # API Endpoints
+        rest-path: /rest
+        ad-analytics-endpoint: /adAnalytics
+        ad-campaign-groups-endpoint: /adCampaignGroups
+        ad-creatives-endpoint: /adCreatives
+        dmp-segments-endpoint: /dmpSegments
+        conversions-endpoint: /conversions
+        ad-campaigns-endpoint: /adCampaigns
+        lead-gen-form-responses-endpoint: /leadGenerationFormResponses
+        ad-accounts-endpoint: /adAccounts
+        # Feature flags
+        features:
+          enable-analytics: true
+          enable-audience-targeting: false
+          enable-conversion-tracking: false
+          enable-budget-management: true
+          enable-lead-gen-forms: false
+          enable-video-analytics: false
+        # API limits
+        limits:
+          max-campaigns-per-request: 100
+          max-creatives-per-request: 100
+          max-audiences-per-request: 50
+        # Polling intervals (in milliseconds)
+        polling-intervals:
+          campaign: 300000       # 5 minutes
+          ad-group: 600000       # 10 minutes
+          creative: 900000       # 15 minutes
+          audience: 3600000      # 1 hour
+          conversion: 1800000    # 30 minutes
+          budget-check: 600000   # 10 minutes
+          lead-gen: 300000       # 5 minutes
+    
+    snapchat:
+      ads:
+        # API Configuration
+        api-base-url: https://adsapi.snapchat.com/v1
+        media-upload-url: https://adsapi.snapchat.com/v1/media
+        api-version: v1
+        ad-account-id: ${SNAPCHAT_AD_ACCOUNT_ID:}
+        organization-id: ${SNAPCHAT_ORGANIZATION_ID:}
+        pixel-id: ${SNAPCHAT_PIXEL_ID:}
+        client-id: ${SNAPCHAT_CLIENT_ID:}
+        client-secret: ${SNAPCHAT_CLIENT_SECRET:}
+        access-token: ${SNAPCHAT_ACCESS_TOKEN:}
+        refresh-token: ${SNAPCHAT_REFRESH_TOKEN:}
+        redirect-uri: ${SNAPCHAT_REDIRECT_URI:}
+        scope: ${SNAPCHAT_SCOPE:ads_management}
+        request-timeout: ${SNAPCHAT_REQUEST_TIMEOUT:30000}
+        max-retries: ${SNAPCHAT_MAX_RETRIES:3}
+        rate-limit-per-minute: ${SNAPCHAT_RATE_LIMIT_PER_MINUTE:500}
+        rate-limit-per-hour: ${SNAPCHAT_RATE_LIMIT_PER_HOUR:10000}
+        # Feature flags
+        features:
+          enable-campaign-management: true
+          enable-ad-management: true
+          enable-creative-management: true
+          enable-audience-management: true
+          enable-pixel-tracking: true
+          enable-reporting: true
+          enable-bulk-operations: true
+          enable-dynamic-ads: true
+          enable-catalog-management: true
+          enable-app-install-ads: true
+          enable-web-conversions: true
+          enable-story-ads: true
+          enable-collection-ads: true
+          enable-ar-lenses: true
+          enable-filters: true
+          enable-branded-moments: true
+          enable-commercialized-lenses: true
+          enable-measurement: true
+          enable-auto-optimization: true
+          enable-creative-library: true
+        # API limits
+        limits:
+          max-campaigns-per-account: 1000
+          max-ad-squads-per-campaign: 1000
+          max-ads-per-ad-squad: 100
+          max-creatives-per-account: 10000
+          max-audiences-per-account: 5000
+          max-audience-size: 200000000
+          min-audience-size: 1000
+          max-video-size-mb: 1024
+          max-video-length-seconds: 180
+          max-image-size-mb: 5
+          max-catalog-items: 10000000
+          rate-limit-per-second: 10
+          rate-limit-per-minute: 500
+          rate-limit-per-hour: 10000
+          max-bulk-operations: 100
+          max-report-rows: 100000
+    
+    discord:
+      # Discord API configuration
+      api-base-url: ${DISCORD_API_BASE_URL:https://discord.com/api/v10}
+      gateway-url: ${DISCORD_GATEWAY_URL:wss://gateway.discord.gg/?v=10&encoding=json}
+      api-version: ${DISCORD_API_VERSION:v10}
+      user-agent: ${DISCORD_USER_AGENT:DiscordBot(https://integrixs.com, 1.0)}
+      
+      # Default values for Discord operations
+      default-channel-type: ${DISCORD_DEFAULT_CHANNEL_TYPE:0}
+      default-privacy-level: ${DISCORD_DEFAULT_PRIVACY_LEVEL:2}  # GUILD_ONLY
+      default-auto-archive-duration: ${DISCORD_DEFAULT_AUTO_ARCHIVE_DURATION:60}
+      default-thread-type: ${DISCORD_DEFAULT_THREAD_TYPE:11}
+      
+      # Polling configuration
+      polling-interval-ms: ${DISCORD_POLLING_INTERVAL_MS:30000}
+      # OAuth URLs
+      authorization-url: ${DISCORD_AUTHORIZATION_URL:https://discord.com/api/oauth2/authorize}
+      token-url: ${DISCORD_TOKEN_URL:https://discord.com/api/oauth2/token}
+      # Authentication
+      client-id: ${DISCORD_CLIENT_ID:}
+      client-secret: ${DISCORD_CLIENT_SECRET:}
+      bot-token: ${DISCORD_BOT_TOKEN:}
+      public-key: ${DISCORD_PUBLIC_KEY:}
+      application-id: ${DISCORD_APPLICATION_ID:}
+      guild-id: ${DISCORD_GUILD_ID:}  # Optional: specific guild/server to operate in
+      # Gateway intent bit positions
+      gateway-intent-bits:
+        GUILDS: 0
+        GUILD_MEMBERS: 1
+        GUILD_MESSAGES: 9
+        DIRECT_MESSAGES: 12
+        MESSAGE_CONTENT: 15
+        GUILD_VOICE_STATES: 7
+        GUILD_SCHEDULED_EVENTS: 16
+      # Feature toggles
+      enable-guild-management: true
+      enable-channel-operations: true
+      enable-message-management: true
+      enable-voice-support: true
+      enable-slash-commands: true
+      enable-webhooks: true
+      enable-role-management: true
+      enable-member-management: true
+      enable-emoji-management: true
+      enable-event-management: true
+      enable-thread-support: true
+      enable-stage-channels: true
+      enable-auto-moderation: true
+      enable-interactions: true
+      enable-embeds: true
+      enable-reactions: true
+      enable-direct-messages: true
+      enable-file-uploads: true
+      enable-voice-recording: false
+      enable-stream-notifications: true
+      # API limits
+      max-message-length: 2000
+      max-embed-length: 6000
+      max-embed-fields: 25
+      max-file-size: 8388608  # 8MB for free, 50MB for Nitro
+      max-reactions-per-messageDTO: 20
+      max-channels-per-guild: 500
+      max-roles-per-guild: 250
+      max-emojis-per-guild: 50  # Without boosts
+      max-webhooks-per-channel: 10
+      max-invites-per-guild: 1000
+      max-bans-per-guild: 1000
+      rate-limit-per-minute: 5  # For most endpoints
+      bulk-delete-limit: 100  # Messages at once
+      message-history-limit: 100  # Per request
+      guild-member-limit: 250000  # Without verification
+      # Polling intervals
+      polling:
+        guilds: 3600000  # 1 hour
+        channels: 1800000  # 30 minutes
+        messages: 300000  # 5 minutes
+        members: 3600000  # 1 hour
+        events: 1800000  # 30 minutes
+        voice: 60000  # 1 minute
+    
+    rabbitmq:
+      # Connection settings
+      host: ${RABBITMQ_HOST:localhost}
+      port: ${RABBITMQ_PORT:5672}
+      virtual-host: ${RABBITMQ_VHOST:/}
+      username: ${RABBITMQ_USERNAME:guest}
+      password: ${RABBITMQ_PASSWORD:guest}
+      connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT:60000}
+      requested-heartbeat: ${RABBITMQ_HEARTBEAT:60}
+      network-recovery-interval: ${RABBITMQ_NETWORK_RECOVERY_INTERVAL:5000}
+      connection-name-prefix: ${RABBITMQ_CONNECTION_NAME_PREFIX:IntegrixsFlowBridge_Outbound_}
+      default-port: ${RABBITMQ_DEFAULT_PORT:5672}
+      confirm-wait-time: ${RABBITMQ_CONFIRM_WAIT_TIME:1000}
+      # Channel settings
+      channel-cache-size: 25
+      channel-checkout-timeout: 0
+      # Exchange settings
+      exchange-name: ${RABBITMQ_EXCHANGE_NAME:}
+      exchange-type: DIRECT
+      exchange-durable: true
+      exchange-auto-delete: false
+      # Queue settings
+      queue-name: ${RABBITMQ_QUEUE_NAME:}
+      queue-durable: true
+      queue-exclusive: false
+      queue-auto-delete: false
+      # Routing
+      routing-key: ${RABBITMQ_ROUTING_KEY:}
+      binding-key: ${RABBITMQ_BINDING_KEY:}
+      # Consumer settings
+      prefetch-count: ${RABBITMQ_PREFETCH_COUNT:1}
+      auto-ack: ${RABBITMQ_AUTO_ACK:false}
+      consumer-tag: ${RABBITMQ_CONSUMER_TAG:}
+      exclusive: false
+      no-local: false
+      # Publisher settings
+      publisher-confirms: true
+      publisher-returns: true
+      mandatory: false
+      immediate: false
+      # Message settings
+      delivery-mode: PERSISTENT
+      priority: 0
+      ttl: 0
+      # Retry and error handling
+      max-retries: 3
+      retry-delay: 5000
+      enable-dead-letter-exchange: true
+      dead-letter-exchange-name: ${RABBITMQ_DLX_NAME:}
+      dead-letter-routing-key: ${RABBITMQ_DLX_ROUTING_KEY:}
+      # Priority settings
+      max-priority: 10
+      # SSL/TLS settings
+      ssl-enabled: ${RABBITMQ_SSL_ENABLED:false}
+      trust-store: ${RABBITMQ_TRUST_STORE:}
+      trust-store-password: ${RABBITMQ_TRUST_STORE_PASSWORD:}
+      key-store: ${RABBITMQ_KEY_STORE:}
+      key-store-password: ${RABBITMQ_KEY_STORE_PASSWORD:}
+      ssl-protocol: TLSv1.2
+      # Connection pool settings
+      use-connection-pool: true
+      max-connections: 10
+      min-connections: 1
+      connection-idle-timeout: 600000
+      # Monitoring and metrics
+      enable-metrics: true
+      enable-tracing: false
+      # Advanced features
+      enable-publisher-batching: false
+      publisher-batch-size: 100
+      publisher-batch-timeout: 1000
+      # Transaction support
+      enable-transactions: false
+      # Cluster settings
+      cluster-addresses: ${RABBITMQ_CLUSTER_ADDRESSES:}
+      enable-cluster-failover: true
+      # Feature flags
+      enable-message-ordering: false
+      # Management API settings
+      management-api:
+        enabled: ${RABBITMQ_MANAGEMENT_ENABLED:false}
+        url: ${RABBITMQ_MANAGEMENT_URL:http://localhost:15672}
+        read-timeout: ${RABBITMQ_MANAGEMENT_READ_TIMEOUT:10000}
+      enable-message-deduplication: false
+      enable-priority-queues: false
+      enable-lazy-queues: false
+      enable-quorum-queues: false
+      enable-stream-queues: false
+      enable-rpc-pattern: false
+      enable-delayed-messaging: false
+      enable-message-tracing: false
+      enable-schema-validation: false
+    
+    sms:
+      # Provider configuration
+      provider: TWILIO
+      account-id: ${SMS_ACCOUNT_ID:}
+      auth-token: ${SMS_AUTH_TOKEN:}
+      api-key: ${SMS_API_KEY:}
+      api-secret: ${SMS_API_SECRET:}
+      # Sender configuration
+      default-sender-number: ${SMS_DEFAULT_SENDER_NUMBER:}
+      sender-name: ${SMS_SENDER_NAME:}
+      # Message settings
+      default-message-type: SMS
+      max-message-length: 160
+      enable-unicode: true
+      enable-concatenation: true
+      max-concatenated-parts: 10
+      # Delivery settings
+      request-delivery-receipt: true
+      callback-url: ${SMS_CALLBACK_URL:}
+      message-validity-period: 48
+      priority: NORMAL
+      # Rate limiting
+      messages-per-second: 10
+      messages-per-minute: 100
+      messages-per-hour: 1000
+      messages-per-day: 10000
+      # Retry configuration
+      max-retries: 3
+      retry-delay: 5000
+      exponential-backoff: true
+      # Regional settings
+      default-country-code: "+1"
+      preferred-route: standard
+      # Content filtering
+      enable-content-filtering: true
+      enable-spam-detection: true
+      # Number validation
+      validate-numbers: true
+      enable-number-lookup: false
+      reject-landlines: false
+      reject-voip: false
+      # Opt-out management
+      enable-opt-out-management: true
+      opt-out-keywords:
+        - STOP
+        - UNSUBSCRIBE
+        - CANCEL
+        - END
+        - QUIT
+      opt-out-confirmation-message: "You have been unsubscribed. Reply START to resubscribe."
+      # Analytics
+      enable-analytics: true
+      track-links: false
+      link-tracking-domain: ${SMS_LINK_TRACKING_DOMAIN:}
+      # Cleanup and retention settings
+      cleanup-interval: 3600000  # 1 hour
+      message-retention-seconds: 86400  # 24 hours
+      # Scheduler configuration
+      bulk-processor-delay: 1000  # milliseconds
+      bulk-processor-interval: 1000  # milliseconds
+      bulk-batch-size: 100  # max messages per batch
+      # Phone validation
+      min-phone-length: 10
+      max-phone-length: 15
+      # Quiet hours configuration
+      quiet-hours-delay-hours: 8  # hours to delay during quiet hours
+      quiet-hours-start-hour: 21  # 9 PM
+      quiet-hours-end-hour: 8  # 8 AM
+      # Template configuration
+      template-variable-prefix: " {{"
+      template-variable-suffix: "}}"
+      # Retry configuration
+      exponential-backoff-base: 2.0
+      # API endpoints
+      twilio-api-base-url: "https://api.twilio.com/2010-04-01"
+      vonage-api-base-url: "https://rest.nexmo.com"
+      # Honor quiet hours
+      honor-quiet-hours: true
+      # Bulk messaging
+      enable-bulk-messaging: true
+    
+    # Slack Configuration
+    slack:
+      # API Configuration
+      api-url: ${SLACK_API_URL:https://slack.com/api/}
+      authorization-url: ${SLACK_AUTHORIZATION_URL:https://slack.com/oauth/v2/authorize}
+      token-url: ${SLACK_TOKEN_URL:https://slack.com/api/oauth.v2.access}
+      user-info-url: ${SLACK_USER_INFO_URL:https://slack.com/api/users.identity}
+      # Authentication
+      bot-token: ${SLACK_BOT_TOKEN:}
+      user-token: ${SLACK_USER_TOKEN:}
+      workspace-id: ${SLACK_WORKSPACE_ID:}
+      signing-secret: ${SLACK_SIGNING_SECRET:}
+      app-token: ${SLACK_APP_TOKEN:}
+      webhook-url: ${SLACK_WEBHOOK_URL:}
+      slash-command-prefix: ${SLACK_SLASH_COMMAND_PREFIX:/}
+      # Socket mode configuration
+      socket-mode-reconnect-delay: ${SLACK_SOCKET_MODE_RECONNECT_DELAY:5000}
+      ping-interval: ${SLACK_PING_INTERVAL:30000}
+      # Retry configuration
+      max-retry-attempts: ${SLACK_MAX_RETRY_ATTEMPTS:3}
+      retry-delay-ms: ${SLACK_RETRY_DELAY_MS:1000}

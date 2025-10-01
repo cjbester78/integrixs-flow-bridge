@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Simplified WSDL 1.1 Schema for validation -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://schemas.xmlsoap.org/wsdl/"
+           xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+           elementFormDefault="qualified">
+    
+    <xs:element name="definitions" type="wsdl:tDefinitions"/>
+    
+    <xs:complexType name="tDefinitions">
+        <xs:sequence>
+            <xs:element name="import" type="wsdl:tImport" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="types" type="wsdl:tTypes" minOccurs="0"/>
+            <xs:element name="message" type="wsdl:tMessage" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="portType" type="wsdl:tPortType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="binding" type="wsdl:tBinding" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="service" type="wsdl:tService" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName"/>
+        <xs:attribute name="targetNamespace" type="xs:anyURI"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tImport">
+        <xs:attribute name="namespace" type="xs:anyURI" use="required"/>
+        <xs:attribute name="location" type="xs:anyURI" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tTypes">
+        <xs:sequence>
+            <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="tMessage">
+        <xs:sequence>
+            <xs:element name="part" type="wsdl:tPart" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tPart">
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+        <xs:attribute name="element" type="xs:QName"/>
+        <xs:attribute name="type" type="xs:QName"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tPortType">
+        <xs:sequence>
+            <xs:element name="operation" type="wsdl:tOperation" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tOperation">
+        <xs:sequence>
+            <xs:element name="input" type="wsdl:tParam" minOccurs="0"/>
+            <xs:element name="output" type="wsdl:tParam" minOccurs="0"/>
+            <xs:element name="fault" type="wsdl:tFault" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tParam">
+        <xs:attribute name="name" type="xs:NCName"/>
+        <xs:attribute name="message" type="xs:QName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tFault">
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+        <xs:attribute name="message" type="xs:QName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tBinding">
+        <xs:sequence>
+            <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+        <xs:attribute name="type" type="xs:QName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tService">
+        <xs:sequence>
+            <xs:element name="port" type="wsdl:tPort" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="tPort">
+        <xs:sequence>
+            <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NCName" use="required"/>
+        <xs:attribute name="binding" type="xs:QName" use="required"/>
+    </xs:complexType>
+    
+</xs:schema>
