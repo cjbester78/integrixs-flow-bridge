@@ -208,7 +208,7 @@ return navigation.filter(item => {
  {!collapsed && (
  <>
  <div>Version 1.0.0</div>
- <div>© 2024 Integrix Flow Bridge</div>
+ <div>© 2022 Integrix Flow Bridge</div>
  </>
  )}
  </div>

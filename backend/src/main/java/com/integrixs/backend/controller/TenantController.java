@@ -47,7 +47,7 @@ public class TenantController {
      * Get user's tenants(stub implementation)
      * In a multi - tenant system, this would return all tenants the user has access to
      */
-    @GetMapping("/my - tenants")
+    @GetMapping("/my-tenants")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Map<String, Object>>> getUserTenants() {
         log.debug("Getting user tenants");
@@ -69,7 +69,7 @@ public class TenantController {
     /**
      * Switch to a different tenant(stub implementation)
      */
-    @PostMapping("/switch/ {tenantId}")
+    @PostMapping("/switch/{tenantId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> switchTenant(@PathVariable String tenantId) {
         log.info("Switching to tenant: {}", tenantId);
@@ -85,7 +85,7 @@ public class TenantController {
     /**
      * Get tenant subscription(stub implementation)
      */
-    @GetMapping("/ {tenantId}/subscription")
+    @GetMapping("/{tenantId}/subscription")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getTenantSubscription(@PathVariable String tenantId) {
         log.debug("Getting subscription for tenant: {}", tenantId);
@@ -113,7 +113,7 @@ public class TenantController {
     /**
      * Get tenant usage(stub implementation)
      */
-    @GetMapping("/ {tenantId}/usage")
+    @GetMapping("/{tenantId}/usage")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getTenantUsage(@PathVariable String tenantId) {
         log.debug("Getting usage for tenant: {}", tenantId);

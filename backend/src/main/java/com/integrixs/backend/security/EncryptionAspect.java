@@ -4,6 +4,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -22,11 +24,25 @@ public class EncryptionAspect {
 
     private static final Logger log = LoggerFactory.getLogger(EncryptionAspect.class);
 
-
     private final FieldEncryptionService encryptionService;
+    
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public EncryptionAspect(FieldEncryptionService encryptionService) {
         this.encryptionService = encryptionService;
+    }
+    
+    /**
+     * Check if the application context is fully initialized.
+     */
+    private boolean isApplicationContextReady() {
+        try {
+            return applicationContext != null && applicationContext.getDisplayName() != null;
+        } catch (Exception e) {
+            log.debug("Application context not ready yet: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -34,6 +50,11 @@ public class EncryptionAspect {
      */
     @Around("@within(org.springframework.stereotype.Repository) && execution(* save*(..))")
     public Object encryptOnSave(ProceedingJoinPoint joinPoint) throws Throwable {
+        // Skip encryption during application startup
+        if (!isApplicationContextReady()) {
+            return joinPoint.proceed();
+        }
+        
         Object[] args = joinPoint.getArgs();
 
         // Encrypt fields in entities before saving
@@ -52,6 +73,11 @@ public class EncryptionAspect {
     @Around("@within(org.springframework.stereotype.Repository) && execution(* find*(..))")
     public Object decryptOnFind(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = joinPoint.proceed();
+
+        // Skip decryption during application startup
+        if (!isApplicationContextReady()) {
+            return result;
+        }
 
         // Decrypt fields in returned entities
         if(result != null) {

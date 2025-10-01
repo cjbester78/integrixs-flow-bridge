@@ -87,7 +87,8 @@ public class MessageSqlRepository extends BaseSqlRepository<Message, UUID> {
             if (flowExecutionId != null) {
                 FlowExecution flowExecution = new FlowExecution();
                 flowExecution.setId(flowExecutionId);
-                flowExecution.setExecutionId(ResultSetMapper.getString(rs, "execution_id"));
+                // Note: execution_id field doesn't exist in database schema
+                // Using the flow_execution_id as identifier instead
                 message.setFlowExecution(flowExecution);
             }
 
@@ -380,7 +381,7 @@ public class MessageSqlRepository extends BaseSqlRepository<Message, UUID> {
     private String buildSelectWithJoins() {
         return "SELECT m.*, " +
                "f.name as flow_name, " +
-               "fe.execution_id as execution_id, " +
+               "fe.id as flow_execution_id, " +
                "cu.username as created_by_username, cu.email as created_by_email, " +
                "uu.username as updated_by_username, uu.email as updated_by_email " +
                "FROM " + TABLE_NAME + " m " +

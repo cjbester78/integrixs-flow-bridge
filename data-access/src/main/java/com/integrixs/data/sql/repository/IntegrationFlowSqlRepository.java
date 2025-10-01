@@ -537,4 +537,38 @@ public class IntegrationFlowSqlRepository extends BaseSqlRepository<IntegrationF
         String sql = buildSelectWithJoins() + " WHERE ifl.deployment_endpoint LIKE ? AND ifl.status = ? ORDER BY ifl.name";
         return sqlQueryExecutor.queryForList(sql, FLOW_WITH_RELATIONSHIPS_ROW_MAPPER, "%" + endpoint + "%", status.toString());
     }
+
+    /**
+     * Get total execution count for all active flows
+     * Returns the sum of all execution_count for flows that are active
+     */
+    public long getTotalExecutionCountForActiveFlows() {
+        String sql = "SELECT COALESCE(SUM(execution_count), 0) FROM " + TABLE_NAME + " WHERE is_active = true";
+        return sqlQueryExecutor.count(sql);
+    }
+
+    /**
+     * Get total success count for all active flows
+     * Returns the sum of all success_count for flows that are active
+     */
+    public long getTotalSuccessCountForActiveFlows() {
+        String sql = "SELECT COALESCE(SUM(success_count), 0) FROM " + TABLE_NAME + " WHERE is_active = true";
+        return sqlQueryExecutor.count(sql);
+    }
+
+    /**
+     * Get total execution count for flows in a specific business component
+     */
+    public long getTotalExecutionCountForBusinessComponent(UUID businessComponentId) {
+        String sql = "SELECT COALESCE(SUM(execution_count), 0) FROM " + TABLE_NAME + " WHERE business_component_id = ? AND is_active = true";
+        return sqlQueryExecutor.count(sql, businessComponentId);
+    }
+
+    /**
+     * Get total success count for flows in a specific business component
+     */
+    public long getTotalSuccessCountForBusinessComponent(UUID businessComponentId) {
+        String sql = "SELECT COALESCE(SUM(success_count), 0) FROM " + TABLE_NAME + " WHERE business_component_id = ? AND is_active = true";
+        return sqlQueryExecutor.count(sql, businessComponentId);
+    }
 }

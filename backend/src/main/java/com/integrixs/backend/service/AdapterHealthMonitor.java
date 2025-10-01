@@ -101,24 +101,33 @@ public class AdapterHealthMonitor {
         healthCheckExecutor = Executors.newScheduledThreadPool(2);
         checkExecutor = Executors.newFixedThreadPool(10);
 
-        // Load all adapters
-        loadAdapters();
+        // Delay adapter loading to allow application context to complete initialization
+        healthCheckExecutor.schedule(() -> {
+            try {
+                // Load all adapters
+                loadAdapters();
+                
+                // Start health check scheduler after successful loading
+                healthCheckExecutor.scheduleWithFixedDelay(
+                    this::performHealthChecks,
+                    healthCheckIntervalMs,
+                    healthCheckIntervalMs,
+                    TimeUnit.MILLISECONDS
+                );
 
-        // Start health check scheduler
-        healthCheckExecutor.scheduleWithFixedDelay(
-            this::performHealthChecks,
-            healthCheckIntervalMs,
-            healthCheckIntervalMs,
-            TimeUnit.MILLISECONDS
-       );
-
-        // Start metrics collection
-        healthCheckExecutor.scheduleWithFixedDelay(
-            this::collectMetrics,
-            60000, // Every minute
-            60000,
-            TimeUnit.MILLISECONDS
-       );
+                // Start metrics collection
+                healthCheckExecutor.scheduleWithFixedDelay(
+                    this::collectMetrics,
+                    60000, // Every minute
+                    60000,
+                    TimeUnit.MILLISECONDS
+                );
+                
+                logger.info("AdapterHealthMonitor fully initialized and scheduled");
+            } catch (Exception e) {
+                logger.error("Failed to complete AdapterHealthMonitor initialization", e);
+            }
+        }, 30000, TimeUnit.MILLISECONDS); // 30 second delay to ensure full startup
     }
 
     /**

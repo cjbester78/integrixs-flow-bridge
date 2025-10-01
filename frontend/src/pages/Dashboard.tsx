@@ -213,11 +213,11 @@ export const Dashboard = () => {
 
  {/* Recent Activity */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
- {/* Recent Messages */}
+ {/* Recent Integration Flows */}
  <Card>
  <CardHeader>
- <CardTitle>Recent Messages</CardTitle>
- <CardDescription>Latest integration messages</CardDescription>
+ <CardTitle>Recent Integration Flows</CardTitle>
+ <CardDescription>Latest integration flow executions</CardDescription>
  </CardHeader>
  <CardContent>
  {loadingMessages ? (
@@ -225,7 +225,7 @@ export const Dashboard = () => {
  <Loader2 className="h-6 w-6 animate-spin" />
  </div>
  ) : !recentMessages || !Array.isArray(recentMessages) || recentMessages.length === 0 ? (
- <p className="text-muted-foreground text-center py-8">No recent messages</p>
+ <p className="text-muted-foreground text-center py-8">No recent integration flows</p>
  ) : (
  <div className="space-y-4">
  {recentMessages.map((message) => (

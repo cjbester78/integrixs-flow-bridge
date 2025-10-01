@@ -21,7 +21,7 @@ import java.util.List;
  * REST controller for business component management
  */
 @RestController
-@RequestMapping("/api/business - components")
+@RequestMapping("/api/business-components")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Business Components", description = "Business component management")
 public class BusinessComponentController {
@@ -73,7 +73,7 @@ public class BusinessComponentController {
     /**
      * Get business component by ID
      */
-    @GetMapping("/ {id}")
+    @GetMapping("/{id}")
     @Operation(summary = "Get business component by ID")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
     public ResponseEntity<BusinessComponentResponse> getBusinessComponentById(@PathVariable String id) {
@@ -87,7 +87,7 @@ public class BusinessComponentController {
     /**
      * Update business component
      */
-    @PutMapping("/ {id}")
+    @PutMapping("/{id}")
     @Operation(summary = "Update business component")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     public ResponseEntity<BusinessComponentResponse> updateBusinessComponent(
@@ -107,7 +107,7 @@ public class BusinessComponentController {
     /**
      * Delete business component
      */
-    @DeleteMapping("/ {id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Delete business component")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<Void> deleteBusinessComponent(@PathVariable String id) {

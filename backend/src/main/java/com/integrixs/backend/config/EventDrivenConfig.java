@@ -1,17 +1,13 @@
 package com.integrixs.backend.config;
 
-import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +21,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.0.0
  */
 @Configuration
-@EnableAsync
-public class EventDrivenConfig implements AsyncConfigurer {
+public class EventDrivenConfig {
 
     /**
      * Creates the event executor for async event processing.
@@ -66,16 +61,4 @@ public class EventDrivenConfig implements AsyncConfigurer {
         return eventMulticaster;
     }
 
-    @Override
-    public Executor getAsyncExecutor() {
-        return eventExecutor();
-    }
-
-    @Override
-    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-        return(throwable, method, objects) -> {
-            log.error("Uncaught async exception in method: {} with params: {}",
-                     method.getName(), objects, throwable);
-        };
-    }
 }

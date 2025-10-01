@@ -29,15 +29,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
                );
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600);
-    }
+    // CORS configuration moved to SecurityConfig to avoid conflicts
+    // @Override
+    // public void addCorsMappings(CorsRegistry registry) {
+    //     registry.addMapping("/**")
+    //             .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*")
+    //             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+    //             .allowedHeaders("*")
+    //             .allowCredentials(true)
+    //             .maxAge(3600);
+    // }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

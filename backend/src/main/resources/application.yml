@@ -55,12 +55,30 @@ server:
 spring:
   application:
     name: integrixs-flow-bridge
+  kafka:
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:integrix-flow-bridge-group}
+      auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
+    producer:
+      retries: ${KAFKA_PRODUCER_RETRIES:3}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
   cache:
     type: none  # Temporarily disable caching to avoid conflicts
   data:
     redis:
       repositories:
         enabled: false  # Disable Redis repositories
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: ${REDIS_TIMEOUT:2000ms}
+      database: ${REDIS_DATABASE:0}
+      password: ${REDIS_PASSWORD:}
   config:
     use-database: false  # Set to true to load configurations from database
   profiles:

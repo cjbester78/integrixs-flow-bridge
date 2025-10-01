@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/adapter - monitoring")
+@RequestMapping("/api/adapter-monitoring")
 @CrossOrigin(origins = "*")
 public class AdapterMonitoringController {
 
@@ -30,7 +30,7 @@ public class AdapterMonitoringController {
         return ResponseEntity.ok(statuses);
     }
 
-    @GetMapping("/status/ {adapterId}")
+    @GetMapping("/status/{adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'VIEWER')")
     public ResponseEntity<AdapterStatusDTO> getAdapterStatus(@PathVariable String adapterId) {
         log.debug("Getting status for adapter: {}", adapterId);
@@ -38,7 +38,7 @@ public class AdapterMonitoringController {
         return ResponseEntity.ok(status);
     }
 
-    @PostMapping("/start/ {adapterId}")
+    @PostMapping("/start/{adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<AdapterStatusDTO> startAdapter(@PathVariable String adapterId) {
         log.info("Starting adapter: {}", adapterId);
@@ -46,7 +46,7 @@ public class AdapterMonitoringController {
         return ResponseEntity.ok(status);
     }
 
-    @PostMapping("/stop/ {adapterId}")
+    @PostMapping("/stop/{adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<AdapterStatusDTO> stopAdapter(@PathVariable String adapterId) {
         log.info("Stopping adapter: {}", adapterId);
@@ -54,7 +54,7 @@ public class AdapterMonitoringController {
         return ResponseEntity.ok(status);
     }
 
-    @PostMapping("/restart/ {adapterId}")
+    @PostMapping("/restart/{adapterId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER')")
     public ResponseEntity<AdapterStatusDTO> restartAdapter(@PathVariable String adapterId) {
         log.info("Restarting adapter: {}", adapterId);
