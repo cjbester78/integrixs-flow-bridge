@@ -32,20 +32,6 @@ const navigation = [
  requiresDevEnv: false,
  },
  {
- name: 'Data Structures',
- href: '/data-structures',
- icon: Layers,
- roles: ['administrator', 'integrator'],
- requiresDevEnv: false // Can view in all environments, create only in dev
- },
- {
- name: 'Communication Adapters',
- href: '/communication-adapters',
- icon: Send,
- roles: ['administrator', 'integrator'],
- requiresDevEnv: false // Can view in all environments, create only in dev
- },
- {
  name: 'Business Components',
  href: '/business-components',
  icon: Building2,
@@ -67,8 +53,8 @@ const navigation = [
  requiresDevEnv: false // Can view and manage in all environments
  },
  {
- name: 'Message Monitor',
- href: '/messages',
+ name: 'Integration Flow Monitor',
+ href: '/integration-flows',
  icon: MessageSquare,
  roles: ['administrator', 'integrator', 'viewer'],
  requiresDevEnv: false,

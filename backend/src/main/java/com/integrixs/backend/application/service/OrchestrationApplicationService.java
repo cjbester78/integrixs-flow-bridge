@@ -7,9 +7,14 @@ import com.integrixs.backend.domain.model.OrchestrationExecution;
 import com.integrixs.backend.domain.service.OrchestrationManagementService;
 import com.integrixs.backend.infrastructure.orchestration.OrchestrationExecutor;
 import com.integrixs.backend.service.TransformationExecutionService;
+import com.integrixs.backend.statemachine.FlowExecutionStates;
+import com.integrixs.backend.statemachine.FlowExecutionEvents;
 import com.integrixs.data.model.IntegrationFlow;
 import com.integrixs.data.sql.repository.IntegrationFlowSqlRepository;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.statemachine.config.StateMachineFactory;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,17 +38,21 @@ public class OrchestrationApplicationService {
     private final OrchestrationExecutor orchestrationExecutor;
     private final IntegrationFlowSqlRepository integrationFlowRepository;
     private final TransformationExecutionService transformationService;
+    private final StateMachineFactory<FlowExecutionStates, FlowExecutionEvents> stateMachineFactory;
 
     private final Map<String, OrchestrationExecution> activeExecutions = new ConcurrentHashMap<>();
+    private final Map<String, StateMachine<FlowExecutionStates, FlowExecutionEvents>> activeStateMachines = new ConcurrentHashMap<>();
 
     public OrchestrationApplicationService(OrchestrationManagementService orchestrationManagementService,
                                          OrchestrationExecutor orchestrationExecutor,
                                          IntegrationFlowSqlRepository integrationFlowRepository,
-                                         TransformationExecutionService transformationService) {
+                                         TransformationExecutionService transformationService,
+                                         StateMachineFactory<FlowExecutionStates, FlowExecutionEvents> stateMachineFactory) {
         this.orchestrationManagementService = orchestrationManagementService;
         this.orchestrationExecutor = orchestrationExecutor;
         this.integrationFlowRepository = integrationFlowRepository;
         this.transformationService = transformationService;
+        this.stateMachineFactory = stateMachineFactory;
     }
 
     /**
@@ -64,8 +73,8 @@ public class OrchestrationApplicationService {
             OrchestrationExecution execution = createExecution(flow, inputData);
             activeExecutions.put(execution.getExecutionId(), execution);
 
-            // Execute workflow
-            return executeWorkflow(execution, flow);
+            // Execute workflow using state machine
+            return executeWorkflowWithStateMachine(execution, flow);
 
         } catch(Exception e) {
             log.error("Orchestration execution failed for flow {}", flowId, e);
@@ -163,6 +172,53 @@ public class OrchestrationApplicationService {
         execution.addLog("Orchestration execution created");
 
         return execution;
+    }
+
+    /**
+     * Execute workflow using Spring State Machine to replace Camunda task execution
+     */
+    private OrchestrationDTO executeWorkflowWithStateMachine(OrchestrationExecution execution, IntegrationFlow flow) {
+        try {
+            // Create and configure state machine for this execution
+            StateMachine<FlowExecutionStates, FlowExecutionEvents> stateMachine = stateMachineFactory.getStateMachine();
+            activeStateMachines.put(execution.getExecutionId(), stateMachine);
+            
+            // Configure state machine with execution context
+            stateMachine.getExtendedState().getVariables().put("execution", execution);
+            stateMachine.getExtendedState().getVariables().put("flow", flow);
+            stateMachine.getExtendedState().getVariables().put("orchestrationExecutor", orchestrationExecutor);
+            stateMachine.getExtendedState().getVariables().put("transformationService", transformationService);
+            
+            // Start state machine
+            stateMachine.start();
+            
+            // Trigger flow start event
+            boolean eventSent = stateMachine.sendEvent(FlowExecutionEvents.START_FLOW);
+            if (!eventSent) {
+                return createErrorResult(execution, "Failed to start flow execution state machine");
+            }
+            
+            // Wait for completion or monitor async execution
+            FlowExecutionStates finalState = stateMachine.getState().getId();
+            
+            // Clean up state machine
+            activeStateMachines.remove(execution.getExecutionId());
+            stateMachine.stop();
+            
+            if (finalState == FlowExecutionStates.COMPLETED) {
+                return createSuccessResult(execution);
+            } else if (finalState == FlowExecutionStates.FAILED) {
+                return createErrorResult(execution, "Flow execution failed in state machine");
+            } else {
+                return createErrorResult(execution, "Flow execution ended in unexpected state: " + finalState);
+            }
+            
+        } catch(Exception e) {
+            log.error("State machine workflow execution failed", e);
+            execution.updateStatus("FAILED");
+            execution.addLog("State machine execution failed: " + e.getMessage());
+            return createErrorResult(execution, "State machine workflow execution failed: " + e.getMessage());
+        }
     }
 
     private OrchestrationDTO executeWorkflow(OrchestrationExecution execution, IntegrationFlow flow) {

@@ -3,7 +3,7 @@ import { logger, LogCategory } from '@/lib/logger';
 
 export interface DashboardStats {
  activeIntegrations: number;
- messagesToday: number;
+ integrationFlowsToday: number;
  successRate: number;
  avgResponseTime: number;
 }
@@ -16,7 +16,7 @@ export interface DashboardMetric {
  color: string;
 }
 
-export interface RecentMessage {
+export interface RecentIntegrationFlow {
  id: string;
  source: string;
  target: string;
@@ -42,7 +42,7 @@ export interface AdapterStatus {
 export interface DashboardData {
  stats: DashboardStats;
  metrics: DashboardMetric[];
- recentMessages: RecentMessage[];
+ recentIntegrationFlows: RecentIntegrationFlow[];
  adapterStatuses: AdapterStatus[];
 }
 
@@ -79,8 +79,8 @@ class DashboardService {
  color: "text-success"
  },
  {
- title: "Messages Today",
- value: stats.messagesToday?.toLocaleString() || '0',
+ title: "Integration Flows Today",
+ value: stats.integrationFlowsToday?.toLocaleString() || '0',
  change: "+0%", // This should come from backend
  icon: "MessageSquare",
  color: "text-info"
@@ -116,16 +116,16 @@ class DashboardService {
   }
  }
 
- async getRecentMessages(businessComponentId?: string, limit: number = 10): Promise<{ success: boolean; data?: RecentMessage[]; error?: string }> {
+ async getRecentIntegrationFlows(businessComponentId?: string, limit: number = 10): Promise<{ success: boolean; data?: RecentIntegrationFlow[]; error?: string }> {
   try {
    const endpoint = businessComponentId
-    ? `/messages/recent?businessComponentId=${businessComponentId}&limit=${limit}`
-    : `/messages/recent?limit=${limit}`;
-   return await api.get<RecentMessage[]>(endpoint);
+    ? `/flow-executions/recent?businessComponentId=${businessComponentId}&limit=${limit}`
+    : `/flow-executions/recent?limit=${limit}`;
+   return await api.get<RecentIntegrationFlow[]>(endpoint);
   } catch (error) {
    return {
     success: false,
-    error: error instanceof Error ? error.message : 'Failed to fetch recent messages'
+    error: error instanceof Error ? error.message : 'Failed to fetch recent integration flows'
    };
   }
  }
@@ -149,7 +149,7 @@ class DashboardService {
    // Fetch all dashboard data in parallel
    const [statsResponse, messagesResponse, adaptersResponse] = await Promise.all([
     this.getDashboardStats(businessComponentId),
-    this.getRecentMessages(businessComponentId),
+    this.getRecentIntegrationFlows(businessComponentId),
     this.getAdapterStatuses(businessComponentId)
    ]);
 
@@ -167,7 +167,7 @@ class DashboardService {
     data: {
      stats: statsResponse.data!,
      metrics: metrics.data || [],
-     recentMessages: messagesResponse.data || [],
+     recentIntegrationFlows: messagesResponse.data || [],
      adapterStatuses: adaptersResponse.data || []
     }
    };

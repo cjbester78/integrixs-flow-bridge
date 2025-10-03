@@ -15,6 +15,9 @@ public class OrchestrationExecutionDTO {
     private String status;
     private String currentStep;
     private String currentStepDisplay;
+    private String stateMachineState;
+    private String lastEvent;
+    private String nextPossibleStates;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private long duration; // milliseconds
@@ -147,5 +150,29 @@ public class OrchestrationExecutionDTO {
 
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
+    }
+
+    public String getStateMachineState() {
+        return stateMachineState;
+    }
+
+    public void setStateMachineState(String stateMachineState) {
+        this.stateMachineState = stateMachineState;
+    }
+
+    public String getLastEvent() {
+        return lastEvent;
+    }
+
+    public void setLastEvent(String lastEvent) {
+        this.lastEvent = lastEvent;
+    }
+
+    public String getNextPossibleStates() {
+        return nextPossibleStates;
+    }
+
+    public void setNextPossibleStates(String nextPossibleStates) {
+        this.nextPossibleStates = nextPossibleStates;
     }
 }

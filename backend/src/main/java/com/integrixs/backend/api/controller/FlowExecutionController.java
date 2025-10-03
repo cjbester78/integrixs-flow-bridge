@@ -1,7 +1,10 @@
 package com.integrixs.backend.api.controller;
 
 import com.integrixs.backend.application.service.FlowExecutionApplicationService;
+import com.integrixs.backend.application.service.OrchestrationApplicationService;
+import com.integrixs.backend.api.dto.OrchestrationExecutionDTO;
 import com.integrixs.backend.logging.BusinessOperation;
+import com.integrixs.shared.dto.RecentIntegrationFlowDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,13 +14,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
 
 /**
  * REST controller for flow execution operations
  * Handles asynchronous flow execution requests
  */
 @RestController
-@RequestMapping("/api/flow - execution")
+@RequestMapping("/api/flow-executions")
 @CrossOrigin(origins = "*")
 public class FlowExecutionController {
 
@@ -25,9 +29,12 @@ public class FlowExecutionController {
 
 
     private final FlowExecutionApplicationService flowExecutionApplicationService;
+    private final OrchestrationApplicationService orchestrationApplicationService;
 
-    public FlowExecutionController(FlowExecutionApplicationService flowExecutionApplicationService) {
+    public FlowExecutionController(FlowExecutionApplicationService flowExecutionApplicationService,
+                                 OrchestrationApplicationService orchestrationApplicationService) {
         this.flowExecutionApplicationService = flowExecutionApplicationService;
+        this.orchestrationApplicationService = orchestrationApplicationService;
     }
 
     /**
@@ -35,7 +42,7 @@ public class FlowExecutionController {
      * @param flowId The ID of the flow to execute
      * @return Acknowledgment response
      */
-    @PostMapping("/execute/ {flowId}")
+    @PostMapping("/execute/{flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @BusinessOperation(value = "FLOW.EXECUTE", module = "FlowEngine")
     public ResponseEntity<ExecuteFlowResponse> executeFlow(@PathVariable @NotBlank String flowId) {
@@ -100,6 +107,88 @@ public class FlowExecutionController {
         }
 
         return ResponseEntity.accepted().body(response);
+    }
+
+    /**
+     * Get recent flow executions
+     * @param businessComponentId Optional business component filter
+     * @param limit Maximum number of results
+     * @return List of recent integration flows
+     */
+    @GetMapping("/recent")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
+    public ResponseEntity<List<RecentIntegrationFlowDTO>> getRecentFlowExecutions(
+            @RequestParam(required = false) String businessComponentId,
+            @RequestParam(defaultValue = "10") int limit) {
+        log.debug("Getting recent flow executions for component: {}, limit: {}", businessComponentId, limit);
+        
+        try {
+            List<RecentIntegrationFlowDTO> recentFlows = flowExecutionApplicationService.getRecentFlowExecutions(businessComponentId, limit);
+            return ResponseEntity.ok(recentFlows);
+        } catch (Exception e) {
+            log.error("Error getting recent flow executions", e);
+            return ResponseEntity.ok(List.of()); // Return empty list to prevent frontend errors
+        }
+    }
+
+    /**
+     * Get active orchestration executions with state machine states
+     * @return List of active executions
+     */
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
+    public ResponseEntity<List<OrchestrationExecutionDTO>> getActiveExecutions() {
+        log.debug("Getting active orchestration executions");
+        
+        try {
+            List<OrchestrationExecutionDTO> activeExecutions = orchestrationApplicationService.getActiveExecutions();
+            return ResponseEntity.ok(activeExecutions);
+        } catch (Exception e) {
+            log.error("Error getting active executions", e);
+            return ResponseEntity.ok(List.of());
+        }
+    }
+
+    /**
+     * Get execution status for a specific flow execution with state machine information
+     * @param executionId The execution ID
+     * @return Execution status with state information
+     */
+    @GetMapping("/status/{executionId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
+    public ResponseEntity<OrchestrationExecutionDTO> getExecutionStatus(@PathVariable @NotBlank String executionId) {
+        log.debug("Getting execution status for: {}", executionId);
+        
+        try {
+            return orchestrationApplicationService.getExecutionStatus(executionId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            log.error("Error getting execution status for: {}", executionId, e);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Get execution history for a specific flow with state machine transitions
+     * @param flowId The flow ID
+     * @param limit Maximum number of results
+     * @return List of executions with state information
+     */
+    @GetMapping("/history/{flowId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR', 'VIEWER')")
+    public ResponseEntity<List<OrchestrationExecutionDTO>> getExecutionHistory(
+            @PathVariable @NotBlank String flowId,
+            @RequestParam(defaultValue = "10") int limit) {
+        log.debug("Getting execution history for flow: {}, limit: {}", flowId, limit);
+        
+        try {
+            List<OrchestrationExecutionDTO> history = orchestrationApplicationService.getExecutionHistory(flowId, limit);
+            return ResponseEntity.ok(history);
+        } catch (Exception e) {
+            log.error("Error getting execution history for flow: {}", flowId, e);
+            return ResponseEntity.ok(List.of());
+        }
     }
 
     /**

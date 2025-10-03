@@ -41,7 +41,7 @@ public class OrchestrationController {
     /**
      * Execute an orchestration flow synchronously
      */
-    @PostMapping("/execute/ {flowId}")
+    @PostMapping("/execute/{flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Execute orchestration flow", description = "Execute an orchestration flow synchronously")
     public ResponseEntity<OrchestrationDTO> executeFlow(
@@ -63,7 +63,7 @@ public class OrchestrationController {
     /**
      * Execute an orchestration flow asynchronously
      */
-    @PostMapping("/execute - async/ {flowId}")
+    @PostMapping("/execute-async/{flowId}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'DEVELOPER', 'INTEGRATOR')")
     @Operation(summary = "Execute orchestration flow async", description = "Execute an orchestration flow asynchronously")
     public ResponseEntity<Map<String, String>> executeFlowAsync(

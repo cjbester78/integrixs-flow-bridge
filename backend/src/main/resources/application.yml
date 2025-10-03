@@ -35,13 +35,6 @@ integrix:
     retention-days: ${INTEGRIX_DLQ_RETENTION_DAYS:30}
     batch-size: ${INTEGRIX_DLQ_BATCH_SIZE:100}
 
-# ======================================
-# Camunda BPM Configuration
-# ======================================
-camunda:
-  bpm:
-    enabled: ${CAMUNDA_ENABLED:true}
-
 server:
   port: 8080
   address: 0.0.0.0
@@ -90,7 +83,7 @@ spring:
       - hazelcast      # Distributed cache configurations
       - monitoring     # Metrics, logging, performance monitoring
       - security       # Security, encryption, rate limiting
-    active: dev,camunda,messaging
+    active: dev,messaging
   main:
     allow-bean-definition-overriding: true
     allow-circular-references: true  # Temporary fix for circular dependencies
@@ -99,7 +92,15 @@ spring:
       enabled: true
       max-file-size: 50MB
       max-request-size: 100MB
-      resolve-lazily: false
+  # Spring State Machine Configuration
+  statemachine:
+    enabled: ${INTEGRIX_STATE_MACHINE_ENABLED:true}
+    # Task execution timeouts (replace Camunda timeouts)
+    task-timeout: ${INTEGRIX_STATE_MACHINE_TASK_TIMEOUT:30000}
+    # Retry configuration (replace Camunda retry mechanisms)  
+    retry:
+      max-attempts: ${INTEGRIX_STATE_MACHINE_RETRY_MAX_ATTEMPTS:3}
+      delay: ${INTEGRIX_STATE_MACHINE_RETRY_DELAY:5000}
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher

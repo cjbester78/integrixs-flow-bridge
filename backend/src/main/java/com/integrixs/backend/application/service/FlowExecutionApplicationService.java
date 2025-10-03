@@ -20,6 +20,7 @@ import com.integrixs.shared.dto.transformation.CustomFunctionConfigDTO;
 import com.integrixs.shared.dto.transformation.EnrichmentTransformationConfigDTO;
 import com.integrixs.shared.dto.transformation.FilterTransformationConfigDTO;
 import com.integrixs.shared.dto.transformation.ValidationTransformationConfigDTO;
+import com.integrixs.shared.dto.RecentIntegrationFlowDTO;
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger;
 import com.integrixs.backend.logging.EnhancedFlowExecutionLogger.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -450,6 +451,25 @@ public class FlowExecutionApplicationService {
         } catch (Exception e) {
             log.warn("Failed to parse configuration JSON", e);
             return new HashMap<>();
+        }
+    }
+
+    /**
+     * Get recent flow executions for dashboard display
+     * @param businessComponentId Optional business component filter
+     * @param limit Maximum number of results
+     * @return List of recent integration flows
+     */
+    public List<RecentIntegrationFlowDTO> getRecentFlowExecutions(String businessComponentId, int limit) {
+        log.debug("Getting recent flow executions for component: {}, limit: {}", businessComponentId, limit);
+        
+        try {
+            // For now, return empty list to prevent errors
+            // TODO: Implement actual flow execution query from database
+            return List.of();
+        } catch (Exception e) {
+            log.error("Error getting recent flow executions", e);
+            return List.of();
         }
     }
 }

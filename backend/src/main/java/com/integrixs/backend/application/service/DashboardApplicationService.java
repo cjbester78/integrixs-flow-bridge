@@ -68,7 +68,7 @@ public class DashboardApplicationService {
 
         return DashboardStatsDTO.builder()
             .activeIntegrations(activeIntegrations)
-            .messagesToday(messagesToday)
+            .integrationFlowsToday(messagesToday)
             .successRate(successRate)
             .avgResponseTime(avgResponseTime)
             .totalFlows(totalFlows)

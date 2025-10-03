@@ -17,7 +17,7 @@ import jakarta.validation.constraints.NotNull;
 public class DashboardStatsDTO {
 
     private int activeIntegrations;
-    private long messagesToday;
+    private long integrationFlowsToday;
     private double successRate;
     private long avgResponseTime;
     private Integer totalFlows;
@@ -29,9 +29,9 @@ public class DashboardStatsDTO {
     }
 
     // All args constructor
-    public DashboardStatsDTO(int activeIntegrations, long messagesToday, double successRate, long avgResponseTime, Integer totalFlows, Integer errorFlows, Double uptimePercentage) {
+    public DashboardStatsDTO(int activeIntegrations, long integrationFlowsToday, double successRate, long avgResponseTime, Integer totalFlows, Integer errorFlows, Double uptimePercentage) {
         this.activeIntegrations = activeIntegrations;
-        this.messagesToday = messagesToday;
+        this.integrationFlowsToday = integrationFlowsToday;
         this.successRate = successRate;
         this.avgResponseTime = avgResponseTime;
         this.totalFlows = totalFlows;
@@ -41,7 +41,7 @@ public class DashboardStatsDTO {
 
     // Getters
     public int getActiveIntegrations() { return activeIntegrations; }
-    public long getMessagesToday() { return messagesToday; }
+    public long getIntegrationFlowsToday() { return integrationFlowsToday; }
     public double getSuccessRate() { return successRate; }
     public long getAvgResponseTime() { return avgResponseTime; }
     public Integer getTotalFlows() { return totalFlows; }
@@ -50,7 +50,7 @@ public class DashboardStatsDTO {
 
     // Setters
     public void setActiveIntegrations(int activeIntegrations) { this.activeIntegrations = activeIntegrations; }
-    public void setMessagesToday(long messagesToday) { this.messagesToday = messagesToday; }
+    public void setIntegrationFlowsToday(long integrationFlowsToday) { this.integrationFlowsToday = integrationFlowsToday; }
     public void setSuccessRate(double successRate) { this.successRate = successRate; }
     public void setAvgResponseTime(long avgResponseTime) { this.avgResponseTime = avgResponseTime; }
     public void setTotalFlows(Integer totalFlows) { this.totalFlows = totalFlows; }
@@ -64,7 +64,7 @@ public class DashboardStatsDTO {
 
     public static class DashboardStatsDTOBuilder {
         private int activeIntegrations;
-        private long messagesToday;
+        private long integrationFlowsToday;
         private double successRate;
         private long avgResponseTime;
         private Integer totalFlows;
@@ -76,8 +76,8 @@ public class DashboardStatsDTO {
             return this;
         }
 
-        public DashboardStatsDTOBuilder messagesToday(long messagesToday) {
-            this.messagesToday = messagesToday;
+        public DashboardStatsDTOBuilder integrationFlowsToday(long integrationFlowsToday) {
+            this.integrationFlowsToday = integrationFlowsToday;
             return this;
         }
 
@@ -107,7 +107,7 @@ public class DashboardStatsDTO {
         }
 
         public DashboardStatsDTO build() {
-            return new DashboardStatsDTO(activeIntegrations, messagesToday, successRate, avgResponseTime, totalFlows, errorFlows, uptimePercentage);
+            return new DashboardStatsDTO(activeIntegrations, integrationFlowsToday, successRate, avgResponseTime, totalFlows, errorFlows, uptimePercentage);
         }
     }
 }
